@@ -1707,8 +1707,8 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
       }
     ],
     branding: {
-      primaryColor: '#861F41', // Pantone Maroon (BRAC's original brand color)
-      accentColor: '#d97706',  // Warm Amber
+      primaryColor: '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
+      accentColor: '#C40072',  // Deep Magenta Complement
       tagline: 'Digitized Microfinance & Client Protection Compliance',
       bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
       logoUrl: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
@@ -2382,6 +2382,17 @@ export class LmsDataService {
   tenants = signal<Tenant[]>(INITIAL_TENANTS);
   activeTenantId = signal<string>('tenant-brac');
   activeRole = signal<UserRole>('lms_admin');
+
+  // Role check computed signals
+  isSystemAdmin = computed<boolean>(() => {
+    const role = this.activeRole();
+    return role === 'system_admin' || (role as any) === 'super_admin';
+  });
+
+  isLmsAdmin = computed<boolean>(() => {
+    const role = this.activeRole();
+    return role === 'lms_admin' || (role as any) === 'tenant_admin';
+  });
   courses = signal<Course[]>(INITIAL_COURSES);
   users = signal<User[]>(INITIAL_USERS);
   enrollments = signal<CourseEnrollment[]>(INITIAL_ENROLLMENTS);
@@ -2920,8 +2931,8 @@ export class LmsDataService {
         customBatches: draft.resources.customBatches
       },
       branding: {
-        primaryColor: '#861F41', // Pantone Maroon (BRAC's original brand color)
-        accentColor: '#d97706',  // Warm Amber
+        primaryColor: '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
+        accentColor: '#C40072',  // Deep Magenta Complement
         tagline: draft.basicInfo.tagline || 'Excellence in Enterprise Skill Mastery',
         bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
         logoUrl: draft.basicInfo.logo?.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80',
@@ -3794,7 +3805,7 @@ export class LmsDataService {
 
   constructor() {
     // Dynamic CSS theme and favicon injection effect:
-    // Theming & layouting setup is dependent on the LMS and mapped with LMS
+    // Theming & layouting setup is STRICTLY dependent on the LMS and mapped with LMS
     effect(() => {
       const lms = this.activeLms();
       if (lms && lms.branding) {
@@ -3808,23 +3819,17 @@ export class LmsDataService {
         if (lms.layoutPreferences) {
           this.adminLayoutPreferences.set({ ...lms.layoutPreferences });
         }
-      } else {
-        const tenant = this.activeTenant();
-        if (tenant && tenant.branding) {
-          this.applyTenantTheme(
-            tenant.branding.primaryColor,
-            tenant.branding.accentColor,
-            tenant.branding.faviconUrl,
-            tenant.name,
-            tenant.branding.themePreset
-          );
-        }
       }
     });
   }
 
-  // Switch tenant / organization
+  // Switch tenant / organization (System Admin only)
   switchTenant(tenantId: string) {
+    if (!this.isSystemAdmin()) {
+      this.showToast('Only System Administrators can switch between organizations.', 'warning', 3500, 'Access Restricted');
+      return;
+    }
+
     this.activeTenantId.set(tenantId);
     // When switching organization, auto-select its first LMS instance
     const orgLms = this.lmsInstances().filter(l => l.organizationId === tenantId);
@@ -3835,16 +3840,23 @@ export class LmsDataService {
       }
     }
     this.logAction('Organization Switch', `Switched active organization to: ${this.activeTenant().name}`, 'info');
+    this.showToast(`Switched active organization to "${this.activeTenant().name}"`, 'info', 3000, 'Organization Switched');
   }
 
-  // Switch active LMS portal (LMS Admin can switch between LMS instances)
+  // Switch active LMS portal (LMS Admin switches between their org's LMS instances; System Admin can switch between all LMS instances)
   switchLms(lmsId: string) {
     const targetLms = this.lmsInstances().find(l => l.id === lmsId);
     if (!targetLms) return;
 
+    // Non-system admins can only switch between LMS instances belonging to their active organization
+    if (!this.isSystemAdmin() && targetLms.organizationId !== this.activeTenantId()) {
+      this.showToast('LMS Admins can only switch between LMS portals in their assigned organization.', 'warning', 3500, 'Access Restricted');
+      return;
+    }
+
     this.activeLmsId.set(lmsId);
     
-    // Sync organization if the LMS belongs to a different organization
+    // Sync organization if the LMS belongs to a different organization (for System Admin)
     if (targetLms.organizationId !== this.activeTenantId()) {
       this.activeTenantId.set(targetLms.organizationId);
     }
@@ -3874,8 +3886,8 @@ export class LmsDataService {
     this.lmsInstances.update(list => list.map(lms => {
       if (lms.id === lmsId) {
         const currentBranding = lms.branding || {
-          primaryColor: '#861F41',
-          accentColor: '#d97706',
+          primaryColor: '#EC008C',
+          accentColor: '#C40072',
           tagline: lms.basicInfo.summary || '',
           bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
           logoUrl: lms.basicInfo.logo?.url || '',
@@ -4137,8 +4149,8 @@ export class LmsDataService {
       createdAt: new Date().toISOString().split('T')[0],
       renewalDate: new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
       branding: {
-        primaryColor: newTenant.branding?.primaryColor || '#861F41', // Pantone Maroon (BRAC's original brand color)
-        accentColor: newTenant.branding?.accentColor || '#d97706',
+        primaryColor: newTenant.branding?.primaryColor || '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
+        accentColor: newTenant.branding?.accentColor || '#C40072',
         tagline: newTenant.branding?.tagline || 'Custom Enterprise Learning Experience',
         bannerUrl: newTenant.branding?.bannerUrl || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
         logoUrl: newTenant.branding?.logoUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80',

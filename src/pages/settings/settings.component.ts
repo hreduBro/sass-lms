@@ -28,8 +28,8 @@ export class SettingsComponent {
     tagline: '',
     logoUrl: '',
     faviconUrl: '',
-    primaryColor: '#861F41',
-    accentColor: '#d97706',
+    primaryColor: '#EC008C',
+    accentColor: '#C40072',
     themePreset: 'solid' as 'solid' | 'glassmorphism' | 'neumorphic',
     ssoProvider: 'Okta' as 'Okta' | 'SAML 2.0' | 'Azure AD' | 'Google Workspace' | 'None',
     enforceMfa: true,
@@ -42,17 +42,25 @@ export class SettingsComponent {
   constructor() {
     effect(() => {
       const activeLms = this.lms.activeLms();
-      const t = this.lms.activeTenant();
-      
-      const branding: TenantBranding = activeLms?.branding || t.branding;
+      const defaultBranding: TenantBranding = {
+        primaryColor: '#EC008C',
+        accentColor: '#C40072',
+        tagline: '',
+        bannerUrl: '',
+        logoUrl: '',
+        customCssEnabled: true,
+        themePreset: 'solid',
+        ssoProvider: 'Okta'
+      };
+      const branding: TenantBranding = activeLms?.branding || defaultBranding;
       this.settingsForm = {
-        name: activeLms ? activeLms.basicInfo.lmsName : t.name,
-        domain: activeLms ? (activeLms.basicInfo.urlDomain || t.domain) : t.domain,
-        tagline: branding.tagline || (activeLms ? activeLms.basicInfo.programmeDepartment : t.branding.tagline),
-        logoUrl: branding.logoUrl || t.branding.logoUrl,
-        faviconUrl: branding.faviconUrl || t.branding.faviconUrl || '',
-        primaryColor: branding.primaryColor || '#861F41',
-        accentColor: branding.accentColor || '#d97706',
+        name: activeLms ? activeLms.basicInfo.lmsName : 'LMS Portal',
+        domain: activeLms ? activeLms.basicInfo.urlDomain : '',
+        tagline: branding.tagline || (activeLms ? activeLms.basicInfo.programmeDepartment : ''),
+        logoUrl: branding.logoUrl || (activeLms?.basicInfo.logo?.url || ''),
+        faviconUrl: branding.faviconUrl || '',
+        primaryColor: branding.primaryColor || '#EC008C',
+        accentColor: branding.accentColor || '#C40072',
         themePreset: branding.themePreset || 'solid',
         ssoProvider: branding.ssoProvider || 'Okta',
         enforceMfa: true,

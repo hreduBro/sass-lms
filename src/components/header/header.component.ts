@@ -47,7 +47,8 @@ export class HeaderComponent {
 
   filteredLmsList = computed(() => {
     const q = this.lmsSearch().trim().toLowerCase();
-    const list = this.lms.lmsInstances();
+    // LMS Admin is strictly scoped to their Organization's LMS instances
+    const list = this.lms.isSystemAdmin() ? this.lms.lmsInstances() : this.lms.activeOrgLmsInstances();
     if (!q) return list;
     return list.filter(l => 
       l.basicInfo.lmsName.toLowerCase().includes(q) || 
@@ -90,6 +91,7 @@ export class HeaderComponent {
   }
 
   toggleTenantDropdown(event?: Event) {
+    if (!this.lms.isSystemAdmin()) return;
     event?.stopPropagation();
     this.lms.toggleNavDropdown('header-tenant');
   }
@@ -138,6 +140,7 @@ export class HeaderComponent {
   ];
 
   selectTenant(id: string) {
+    if (!this.lms.isSystemAdmin()) return;
     this.lms.switchTenant(id);
     this.closeAllDropdowns();
   }

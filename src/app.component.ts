@@ -8,6 +8,7 @@ import { TopMenuComponent } from './components/top-menu/top-menu.component';
 import { MobileNavComponent } from './components/mobile-nav/mobile-nav.component';
 import { LayoutSwitcherModalComponent } from './components/layout-switcher-modal/layout-switcher-modal.component';
 import { BackendConsoleModalComponent } from './components/backend-console-modal/backend-console-modal.component';
+import { FooterComponent } from './components/footer/footer.component';
 import { ThemeService } from './services/theme.service';
 import { LmsDataService } from './services/lms-data.service';
 
@@ -23,7 +24,8 @@ import { LmsDataService } from './services/lms-data.service';
     TopMenuComponent, 
     MobileNavComponent,
     LayoutSwitcherModalComponent,
-    BackendConsoleModalComponent
+    BackendConsoleModalComponent,
+    FooterComponent
   ]
 })
 export class AppComponent {
