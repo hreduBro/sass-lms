@@ -112,16 +112,16 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Applies the current active LMS organization's theme preset & colors
+   * Applies the current active LMS theme preset & colors
    */
   private ensureActiveTenantTheme() {
-    const active = this.lms.activeTenant();
+    const active = this.lms.activeLms();
     if (active && active.branding) {
       this.lms.applyTenantTheme(
         active.branding.primaryColor,
         active.branding.accentColor,
         active.branding.faviconUrl,
-        active.name,
+        active.basicInfo.lmsName,
         active.branding.themePreset
       );
     }

@@ -822,6 +822,12 @@ app.get('/api/export/scorm/:courseId', (req: Request, res: Response) => {
 // ----------------------------------------------------
 // Production Static Files Serving & SPA Fallback
 // ----------------------------------------------------
+// Static assets middleware
+app.use('/assets', express.static(join(__dirname, 'assets')));
+app.use('/assets', express.static(join(__dirname, 'public', 'assets')));
+app.use('/assets', express.static(join(__dirname, 'src', 'assets')));
+app.use(express.static(join(__dirname, 'public')));
+
 const distDirs = [
   join(__dirname, 'dist'),
   join(__dirname, 'dist', 'browser'),
