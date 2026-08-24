@@ -1,0 +1,539 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+          White-Label & Governance Hub
+        </span>
+        <span class="text-xs text-text-secondary">Tenant Partition: {{ lms.activeTenant().slug }}</span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Organization Settings & Security</h1>
+      <p class="text-xs text-text-secondary">Configure custom enterprise branding, SAML Single Sign-On, SCORM, and automated compliance policies</p>
+    </div>
+
+    <button 
+      id="btn-save-settings"
+      (click)="saveSettings()"
+      class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm self-start md:self-auto">
+      <span class="material-symbols-outlined text-sm">save</span>
+      Save & Apply Live Theme
+    </button>
+  </div>
+
+  @if (savedNotification()) {
+    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+      <span class="material-symbols-outlined text-sm">check_circle</span>
+      <span>Settings and live CSS brand theme have been successfully updated across all sessions!</span>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- 1. White-Label Branding Studio -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600">palette</span>
+          White-Label & Visual Identity
+        </h2>
+
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Organization Legal Name</label>
+              <input 
+                type="text" 
+                [(ngModel)]="settingsForm.name" 
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Custom CNAME / Subdomain</label>
+              <input 
+                type="text" 
+                [(ngModel)]="settingsForm.domain" 
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono focus:outline-none focus:border-tenant-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Brand Tagline & Welcome Message</label>
+            <input 
+              type="text" 
+              [(ngModel)]="settingsForm.tagline" 
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+          </div>
+
+          <!-- Theme Style Architecture Selector -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-2">Visual Theme Style Architecture</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button 
+                type="button" 
+                (click)="settingsForm.themePreset = 'solid'"
+                [class.border-2]="settingsForm.themePreset === 'solid'"
+                [class.border-tenant-500]="settingsForm.themePreset === 'solid'"
+                [class.bg-tenant-50]="settingsForm.themePreset === 'solid'"
+                [class.dark:bg-tenant-500/20]="settingsForm.themePreset === 'solid'"
+                class="p-3.5 rounded-2xl border border-base-300 bg-base-200 text-left transition-all hover:border-tenant-400 focus:outline-none focus:ring-0 outline-none">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">domain</span>
+                  <span class="text-xs font-bold text-text-primary">Corporate Solid</span>
+                </div>
+                <p class="text-[11px] text-text-secondary leading-snug">Crisp, high-contrast solid surface panels & enterprise typography (Default BRAC standard).</p>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="settingsForm.themePreset = 'glassmorphism'"
+                [class.border-2]="settingsForm.themePreset === 'glassmorphism'"
+                [class.border-tenant-500]="settingsForm.themePreset === 'glassmorphism'"
+                [class.bg-tenant-50]="settingsForm.themePreset === 'glassmorphism'"
+                [class.dark:bg-tenant-500/20]="settingsForm.themePreset === 'glassmorphism'"
+                class="p-3.5 rounded-2xl border border-base-300 bg-base-200 text-left transition-all hover:border-tenant-400 focus:outline-none focus:ring-0 outline-none">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="material-symbols-outlined text-sm text-cyan-500">blur_on</span>
+                  <span class="text-xs font-bold text-text-primary">Glassmorphic Spatial</span>
+                </div>
+                <p class="text-[11px] text-text-secondary leading-snug">Frosted acrylic surfaces, backdrop blur, ambient neon glows & specular top highlights.</p>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="settingsForm.themePreset = 'neumorphic'"
+                [class.border-2]="settingsForm.themePreset === 'neumorphic'"
+                [class.border-tenant-500]="settingsForm.themePreset === 'neumorphic'"
+                [class.bg-tenant-50]="settingsForm.themePreset === 'neumorphic'"
+                [class.dark:bg-tenant-500/20]="settingsForm.themePreset === 'neumorphic'"
+                class="p-3.5 rounded-2xl border border-base-300 bg-base-200 text-left transition-all hover:border-tenant-400 focus:outline-none focus:ring-0 outline-none">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="material-symbols-outlined text-sm text-purple-500">layers</span>
+                  <span class="text-xs font-bold text-text-primary">Soft Neumorphic</span>
+                </div>
+                <p class="text-[11px] text-text-secondary leading-snug">Soft extruded surface shadows, rounded micro-depth, and tactile relief layers.</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Pickers with Live Swatches & Dynamic Gradient Preview -->
+          <div class="space-y-4 p-4 rounded-2xl bg-base-200 border border-base-300/80">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Primary Theme Color</label>
+                <div class="flex items-center gap-3">
+                  <input 
+                    type="color" 
+                    [(ngModel)]="settingsForm.primaryColor"
+                    (ngModelChange)="onLiveColorChange()"
+                    class="w-10 h-10 rounded-xl cursor-pointer border-0 p-0 shadow-2xs" />
+                  <div>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="settingsForm.primaryColor" 
+                      (ngModelChange)="onLiveColorChange()"
+                      class="w-24 px-2 py-1 rounded-lg bg-base-100 border border-base-300 text-xs font-mono uppercase" />
+                    <span class="text-[10px] text-text-secondary block mt-0.5">Applied to buttons, badges & active states</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Accent Complement Color</label>
+                <div class="flex items-center gap-3">
+                  <input 
+                    type="color" 
+                    [(ngModel)]="settingsForm.accentColor" 
+                    (ngModelChange)="onLiveColorChange()"
+                    class="w-10 h-10 rounded-xl cursor-pointer border-0 p-0 shadow-2xs" />
+                  <div>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="settingsForm.accentColor" 
+                      (ngModelChange)="onLiveColorChange()"
+                      class="w-24 px-2 py-1 rounded-lg bg-base-100 border border-base-300 text-xs font-mono uppercase" />
+                    <span class="text-[10px] text-text-secondary block mt-0.5">Applied to secondary charts & gradient stop</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Gradient Preview Strip -->
+            <div class="p-3 rounded-xl bg-base-100 border border-base-300/80 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs text-tenant-500">palette</span>
+                  Dynamic Generated Brand Gradient
+                </span>
+                <span class="text-[10px] font-mono text-text-secondary">
+                  {{ settingsForm.primaryColor }} &rarr; {{ settingsForm.accentColor }}
+                </span>
+              </div>
+              <div 
+                class="h-8 w-full rounded-lg shadow-inner flex items-center justify-between px-3 text-white text-[11px] font-semibold tracking-wide"
+                [style.background]="'linear-gradient(135deg, ' + settingsForm.primaryColor + ' 0%, ' + settingsForm.accentColor + ' 100%)'">
+                <span>Primary (0%)</span>
+                <span>Complement Gradient (100%)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Logo URL (High-Res PNG / SVG)</label>
+              <input 
+                type="text" 
+                [(ngModel)]="settingsForm.logoUrl" 
+                placeholder="https://..."
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono focus:outline-none" />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-text-primary">Browser Favicon Icon</label>
+                <span class="text-[10px] text-text-secondary">Dynamic SVG Auto-tinted</span>
+              </div>
+              <input 
+                type="text" 
+                [(ngModel)]="settingsForm.faviconUrl" 
+                placeholder="Leave blank for auto-branded dynamic SVG"
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono focus:outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Single Sign-On (SSO) & Identity Governance -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600">lock</span>
+          Enterprise Single Sign-On (SAML / OIDC)
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Identity Provider</label>
+            <select 
+              [(ngModel)]="settingsForm.ssoProvider" 
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none">
+              <option value="Okta">Okta Identity Cloud</option>
+              <option value="Azure AD">Microsoft Entra ID / Azure AD</option>
+              <option value="SAML 2.0">Generic SAML 2.0 Identity Provider</option>
+              <option value="Google Workspace">Google Workspace SSO</option>
+              <option value="PingFederate">PingFederate / PingIdentity</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[11px] font-semibold text-text-secondary mb-1">SAML Entity ID</label>
+              <input 
+                type="text" 
+                readonly 
+                [value]="'urn:lms:auth:' + lms.activeTenant().slug" 
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-secondary" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-text-secondary mb-1">Assertion Consumer Service (ACS)</label>
+              <input 
+                type="text" 
+                readonly 
+                [value]="'https://' + lms.activeTenant().domain + '/sso/saml/callback'" 
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-secondary truncate" />
+            </div>
+          </div>
+
+          <div class="pt-2 flex flex-col gap-2">
+            <label class="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="settingsForm.enforceMfa" 
+                class="rounded text-tenant-500 focus:ring-0" />
+              <span>Enforce Multi-Factor Authentication (MFA / FIDO2) for all administrators</span>
+            </label>
+
+            <label class="flex items-center gap-2 text-xs font-semibold text-text-primary cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="settingsForm.certAutoIssue" 
+                class="rounded text-tenant-500 focus:ring-0" />
+              <span>Automatically generate cryptographic certificates upon 100% course score</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Navigation Layout & Dashboard Architecture -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div>
+            <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600">view_quilt</span>
+              Navigation Layout & Custom Dashboard
+            </h2>
+            <p class="text-xs text-text-secondary mt-0.5">Customize workspace menu style, viewport density, and tenant-wide dashboard layout</p>
+          </div>
+          <a 
+            routerLink="/dashboard" 
+            class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs">
+            <span class="material-symbols-outlined text-sm">dashboard_customize</span>
+            <span>Open Drag & Drop Studio</span>
+          </a>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-2">Navigation Menu Mode</label>
+            <div class="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                (click)="setNavMode('sidebar')"
+                class="p-3 rounded-2xl border text-left transition-all focus:outline-none focus:ring-0 outline-none"
+                [class]="layoutPrefs().navigationMode === 'sidebar' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 mb-1">dock_to_left</span>
+                <div class="font-bold text-xs text-text-primary">Classic Sidebar</div>
+                <div class="text-[10px] text-text-secondary">Vertical left drawer</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="setNavMode('top_menu')"
+                class="p-3 rounded-2xl border text-left transition-all focus:outline-none focus:ring-0 outline-none"
+                [class]="layoutPrefs().navigationMode === 'top_menu' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 mb-1">horizontal_split</span>
+                <div class="font-bold text-xs text-text-primary">Top Navigation</div>
+                <div class="text-[10px] text-text-secondary">Horizontal header bar</div>
+              </button>
+
+              <button
+                type="button"
+                (click)="setNavMode('compact_rail')"
+                class="p-3 rounded-2xl border text-left transition-all focus:outline-none focus:ring-0 outline-none"
+                [class]="layoutPrefs().navigationMode === 'compact_rail' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 mb-1">view_compact</span>
+                <div class="font-bold text-xs text-text-primary">Compact Rail</div>
+                <div class="text-[10px] text-text-secondary">Slim icon navigation</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Header Bar Density</label>
+              <div class="flex items-center gap-2 bg-base-200 p-1 rounded-xl border border-base-300">
+                <button
+                  type="button"
+                  (click)="setHeaderDensity('comfortable')"
+                  class="flex-1 py-1 px-2 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-0 outline-none"
+                  [class]="layoutPrefs().headerDensity === 'comfortable' ? 'bg-tenant-500 text-white font-bold shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+                  Comfortable
+                </button>
+                <button
+                  type="button"
+                  (click)="setHeaderDensity('compact')"
+                  class="flex-1 py-1 px-2 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-0 outline-none"
+                  [class]="layoutPrefs().headerDensity === 'compact' ? 'bg-tenant-500 text-white font-bold shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+                  Compact
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Container Max Width</label>
+              <div class="flex items-center gap-2 bg-base-200 p-1 rounded-xl border border-base-300">
+                <button
+                  type="button"
+                  (click)="setContentWidth('fluid')"
+                  class="flex-1 py-1 px-2 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-0 outline-none"
+                  [class]="layoutPrefs().contentWidth === 'fluid' ? 'bg-tenant-500 text-white font-bold shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+                  Fluid (100%)
+                </button>
+                <button
+                  type="button"
+                  (click)="setContentWidth('constrained')"
+                  class="flex-1 py-1 px-2 rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-0 outline-none"
+                  [class]="layoutPrefs().contentWidth === 'constrained' ? 'bg-tenant-500 text-white font-bold shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+                  Standard Max
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Mode (System Default, Light, Dark) -->
+          <div class="pt-3 border-t border-base-300">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-text-primary">Interface Theme & Dark Mode</label>
+              <span class="text-[10px] text-text-secondary">
+                Currently: 
+                <span class="font-semibold text-tenant-600 dark:text-tenant-300">
+                  {{ themeService.themeMode() === 'system' ? 'System Auto (' + (themeService.isDarkMode() ? 'Dark' : 'Light') + ')' : (themeService.themeMode() === 'dark' ? 'Dark' : 'Light') }}
+                </span>
+              </span>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                (click)="setThemeMode('system')"
+                class="p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between focus:outline-none focus:ring-0 outline-none"
+                [class]="themeService.themeMode() === 'system' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-base" [class]="themeService.themeMode() === 'system' ? 'text-tenant-600 dark:text-tenant-300' : 'text-text-secondary'">devices</span>
+                  @if (themeService.themeMode() === 'system') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300">check_circle</span>
+                  }
+                </div>
+                <div class="mt-1">
+                  <div class="font-bold text-xs text-text-primary">System Auto</div>
+                  <div class="text-[10px] text-text-secondary">Detects OS changes</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                (click)="setThemeMode('light')"
+                class="p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between focus:outline-none focus:ring-0 outline-none"
+                [class]="themeService.themeMode() === 'light' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-base text-amber-500">light_mode</span>
+                  @if (themeService.themeMode() === 'light') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300">check_circle</span>
+                  }
+                </div>
+                <div class="mt-1">
+                  <div class="font-bold text-xs text-text-primary">Light Mode</div>
+                  <div class="text-[10px] text-text-secondary">High contrast light</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                (click)="setThemeMode('dark')"
+                class="p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between focus:outline-none focus:ring-0 outline-none"
+                [class]="themeService.themeMode() === 'dark' ? 'border-2 border-tenant-500 bg-tenant-50/60 dark:bg-tenant-500/20 shadow-xs' : 'border border-base-300 bg-base-200/50 hover:bg-base-200'">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-base text-indigo-400">dark_mode</span>
+                  @if (themeService.themeMode() === 'dark') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300">check_circle</span>
+                  }
+                </div>
+                <div class="mt-1">
+                  <div class="font-bold text-xs text-text-primary">Dark Mode</div>
+                  <div class="text-[10px] text-text-secondary">Deep contrast slate</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Live Preview Card & Tenant Quotas -->
+    <div class="space-y-6">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Live Brand & Favicon Preview</h3>
+        
+        <!-- Browser Tab Mockup with Dynamic Favicon -->
+        <div class="p-3 rounded-2xl bg-base-300/60 border border-base-300 space-y-2">
+          <div class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Browser Tab Simulation</div>
+          <div class="flex items-center gap-2 bg-base-100 px-3 py-1.5 rounded-xl border border-base-300 shadow-xs max-w-xs">
+            <div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden flex-shrink-0" [style.background-color]="settingsForm.primaryColor">
+              <span class="material-symbols-outlined text-[11px] text-white">school</span>
+            </div>
+            <span class="text-xs font-semibold text-text-primary truncate">{{ settingsForm.name }} • LMS</span>
+            <span class="material-symbols-outlined text-xs text-text-secondary ml-auto">close</span>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-base-200 border border-base-300/80 space-y-3">
+          <div class="flex items-center gap-3">
+            <img [src]="settingsForm.logoUrl" [alt]="settingsForm.name" class="w-10 h-10 object-contain" referrerpolicy="no-referrer" />
+            <div>
+              <div class="font-bold text-xs text-text-primary">{{ settingsForm.name }}</div>
+              <div class="text-[10px] font-mono text-text-secondary">{{ settingsForm.domain }}</div>
+            </div>
+          </div>
+
+          <p class="text-xs text-text-secondary line-clamp-2">{{ settingsForm.tagline }}</p>
+
+          <div class="flex items-center gap-2 pt-2">
+            <div class="px-3 py-1.5 rounded-xl text-white text-xs font-bold" [style.background-color]="settingsForm.primaryColor">
+              Primary Button
+            </div>
+            <div class="px-3 py-1.5 rounded-xl text-white text-xs font-bold" [style.background-color]="settingsForm.accentColor">
+              Accent Chip
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quotas & Contract Summary -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Subscription & Quota Health</h3>
+
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between py-1.5 border-b border-base-300">
+            <span class="text-text-secondary">Tier</span>
+            <span class="font-bold text-tenant-600">{{ lms.activeTenant().plan }} Tier</span>
+          </div>
+
+          <div class="flex justify-between py-1.5 border-b border-base-300">
+            <span class="text-text-secondary">Seat License Usage</span>
+            <span class="font-mono text-text-primary">{{ lms.activeTenant().stats.seatsUsed }} / {{ lms.activeTenant().stats.seatLimit }}</span>
+          </div>
+
+          <div class="flex justify-between py-1.5 border-b border-base-300">
+            <span class="text-text-secondary">Cloud Storage</span>
+            <span class="font-mono text-text-primary">{{ lms.activeTenant().stats.storageUsedGb }} / {{ lms.activeTenant().stats.storageLimitGb }} GB</span>
+          </div>
+
+          <div class="flex justify-between py-1.5">
+            <span class="text-text-secondary">Status</span>
+            <span class="text-emerald-600 font-bold">Active & Compliant</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backend & REST API Integration Card -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-emerald-600">dns</span>
+            Backend & REST API
+          </h3>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+            Node / Express
+          </span>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <div class="flex items-center justify-between py-1 border-b border-base-300">
+            <span class="text-text-secondary">API Endpoints</span>
+            <span class="font-mono font-bold text-text-primary">/api/*</span>
+          </div>
+
+          <div class="flex items-center justify-between py-1 border-b border-base-300">
+            <span class="text-text-secondary">AI Service</span>
+            <span class="font-semibold text-indigo-600 dark:text-indigo-400">Gemini 3.7 Flash</span>
+          </div>
+
+          <div class="flex items-center justify-between py-1 border-b border-base-300">
+            <span class="text-text-secondary">SCORM Manifest Export</span>
+            <a 
+              [href]="api.getScormDownloadUrl('c-101')" 
+              target="_blank" 
+              class="text-tenant-600 dark:text-tenant-300 font-semibold hover:underline flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">download</span>
+              SCORM 1.2 XML
+            </a>
+          </div>
+
+          <div class="flex items-center justify-between py-1">
+            <span class="text-text-secondary">Multi-Tenant Isolation</span>
+            <span class="text-emerald-600 font-bold">Enforced</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

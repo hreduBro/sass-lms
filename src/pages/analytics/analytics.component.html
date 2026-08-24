@@ -1,0 +1,178 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+          {{ lms.activeTenant().name }} Intelligence
+        </span>
+        <span class="text-xs text-text-secondary">SCORM & Audit Telemetry</span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Compliance & Completion Analytics</h1>
+      <p class="text-xs text-text-secondary">Real-time regulatory tracking, department health benchmarks, and escalation metrics</p>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button 
+        (click)="dispatchReminders()"
+        class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-sm">notifications_active</span>
+        Trigger Escalations
+      </button>
+
+      <button 
+        (click)="exportAuditReport()"
+        class="px-4 py-2.5 rounded-xl bg-base-100 hover:bg-base-200 border border-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all">
+        <span class="material-symbols-outlined text-sm text-tenant-500">download</span>
+        Export JSON Audit
+      </button>
+    </div>
+  </div>
+
+  @if (reminderStatus()) {
+    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+      <span class="material-symbols-outlined text-sm">mark_email_read</span>
+      <span>{{ reminderStatus() }}</span>
+    </div>
+  }
+
+  <!-- Key Metrics Row -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-2">
+      <div class="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase">
+        <span>Overall Compliance</span>
+        <span class="material-symbols-outlined text-emerald-500 text-base">verified_user</span>
+      </div>
+      <div class="text-3xl font-black text-emerald-600 font-mono">{{ overallCompliance() }}%</div>
+      <div class="text-[11px] text-text-secondary">Regulatory minimum standard is 90%</div>
+    </div>
+
+    <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-2">
+      <div class="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase">
+        <span>Total Certificates</span>
+        <span class="material-symbols-outlined text-amber-500 text-base">military_tech</span>
+      </div>
+      <div class="text-3xl font-black text-text-primary font-mono">{{ lms.tenantCertificates().length }}</div>
+      <div class="text-[11px] text-emerald-600 font-medium">Issued with tamper-proof IDs</div>
+    </div>
+
+    <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-2">
+      <div class="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase">
+        <span>At-Risk Personnel</span>
+        <span class="material-symbols-outlined text-rose-500 text-base">warning</span>
+      </div>
+      <div class="text-3xl font-black text-rose-600 font-mono">{{ atRiskUsers().length }}</div>
+      <div class="text-[11px] text-text-secondary">Near or past compliance deadline</div>
+    </div>
+
+    <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-2">
+      <div class="flex items-center justify-between text-xs text-text-secondary font-semibold uppercase">
+        <span>Active Enrollments</span>
+        <span class="material-symbols-outlined text-indigo-500 text-base">school</span>
+      </div>
+      <div class="text-3xl font-black text-text-primary font-mono">{{ lms.enrollments().length }}</div>
+      <div class="text-[11px] text-text-secondary">Across {{ lms.tenantCourses().length }} courses</div>
+    </div>
+  </div>
+
+  <!-- Department Breakdown Table -->
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-text-primary">Department Performance & Completion Matrix</h2>
+        <p class="text-xs text-text-secondary">Aggregated by operational units within {{ lms.activeTenant().name }}</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-base-200 text-text-secondary uppercase tracking-wider font-semibold text-[10px]">
+          <tr>
+            <th class="px-4 py-3 rounded-l-xl">Department</th>
+            <th class="px-4 py-3">Personnel</th>
+            <th class="px-4 py-3">Avg Progress</th>
+            <th class="px-4 py-3">Compliance Rate</th>
+            <th class="px-4 py-3 rounded-r-xl text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-base-300">
+          @for (dept of lms.departmentMetrics(); track dept.department) {
+            <tr>
+              <td class="px-4 py-3.5 font-bold text-text-primary">{{ dept.department }}</td>
+              <td class="px-4 py-3.5 font-mono text-text-secondary">{{ dept.learnersCount }} members</td>
+              <td class="px-4 py-3.5">
+                <div class="flex items-center gap-2 max-w-[140px]">
+                  <div class="w-full bg-base-300 h-2 rounded-full overflow-hidden">
+                    <div class="bg-indigo-500 h-full rounded-full" [style.width.%]="dept.avgCompletionRate"></div>
+                  </div>
+                  <span class="font-mono text-text-primary font-semibold">{{ dept.avgCompletionRate }}%</span>
+                </div>
+              </td>
+              <td class="px-4 py-3.5">
+                <span class="font-bold font-mono" [class]="dept.complianceRate >= 95 ? 'text-emerald-600' : 'text-amber-600'">
+                  {{ dept.complianceRate }}%
+                </span>
+              </td>
+              <td class="px-4 py-3.5 text-right">
+                @if (dept.overdueCount > 0) {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                    {{ dept.overdueCount }} Overdue
+                  </span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                    Compliant
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- At-Risk Personnel Escalation Roster -->
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-rose-500">priority_high</span>
+          Overdue & Escalation Queue
+        </h2>
+        <p class="text-xs text-text-secondary">Learners requiring immediate follow-up to maintain tenant compliance quotas</p>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      @for (user of atRiskUsers(); track user.id) {
+        <div class="p-4 rounded-2xl bg-base-200 border border-base-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <img [src]="user.avatar" [alt]="user.name" class="w-10 h-10 rounded-full object-cover" referrerpolicy="no-referrer" />
+            <div>
+              <div class="font-bold text-xs text-text-primary">{{ user.name }}</div>
+              <div class="text-[11px] text-text-secondary">{{ user.email }} &bull; {{ user.department }}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold"
+                  [class]="user.complianceStatus === 'Overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'">
+              {{ user.complianceStatus }}
+            </span>
+            <button 
+              (click)="lms.sendComplianceReminders(user.department)"
+              class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-amber-500">outgoing_mail</span>
+              Send Reminder
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="p-8 text-center text-xs text-text-secondary">
+          <span class="material-symbols-outlined text-3xl text-emerald-500 block mb-1">sentiment_very_satisfied</span>
+          No overdue personnel. All organizational learners are 100% compliant!
+        </div>
+      }
+    </div>
+  </div>
+</div>

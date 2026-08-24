@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OmniLearn Multi-Tenant LMS</title>
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230f172a'/%3E%3Cpath d='M32 14 L52 24 L32 34 L12 24 Z' fill='url(%23g)'/%3E%3Cpath d='M20 30 L20 42 C20 47 44 47 44 42 L44 30 L32 36 Z' fill='url(%23g)' opacity='0.85'/%3E%3Cpath d='M50 25 L50 38' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='39' r='2.5' fill='%2338bdf8'/%3E%3Ccircle cx='32' cy='24' r='3.5' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('lms_theme_mode');
+        var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || ((!saved || saved === 'system') && systemDark)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch(e) {}
+
+      // Gracefully prevent unhandled promise rejections and errors from third-party browser extensions (e.g. MetaMask, Web3 wallets)
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason) {
+          var reasonStr = '';
+          try {
+            reasonStr = (event.reason.message || event.reason.stack || event.reason.toString() || '').toLowerCase();
+          } catch(e) {}
+          if (reasonStr.indexOf('metamask') !== -1 || reasonStr.indexOf('ethereum') !== -1 || reasonStr.indexOf('wallet') !== -1) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.debug('[OmniLearn Extension Bridge] Handled third-party wallet event gracefully.');
+          }
+        }
+      });
+
+      window.addEventListener('error', function(event) {
+        if (event) {
+          var msg = '';
+          var filename = (event.filename || '').toLowerCase();
+          try {
+            msg = (event.message || (event.error && event.error.message) || '').toLowerCase();
+          } catch(e) {}
+          if (msg.indexOf('metamask') !== -1 || msg.indexOf('ethereum') !== -1 || msg.indexOf('wallet') !== -1 || filename.indexOf('chrome-extension') !== -1 || filename.indexOf('moz-extension') !== -1) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.debug('[OmniLearn Extension Bridge] Handled third-party extension error gracefully.');
+            return true;
+          }
+        }
+      });
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          ringColor: {
+            DEFAULT: 'transparent'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            serif: ['Cinzel', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            tenant: {
+              50: 'var(--tenant-50, #FDF2F8)',
+              100: 'var(--tenant-100, #FCE7F3)',
+              200: 'var(--tenant-200, #FBCFE8)',
+              300: 'var(--tenant-300, #F9A8D4)',
+              400: 'var(--tenant-400, #F472B6)',
+              500: 'var(--tenant-primary, #EC008C)',
+              600: 'var(--tenant-primary-hover, #D8007E)',
+              700: 'var(--tenant-primary-dark, #B8006C)',
+              accent: 'var(--tenant-accent, #C40072)',
+            },
+            'brand-primary': 'var(--brand-primary)',
+            'brand-secondary': 'var(--brand-secondary)',
+            'base-100': 'var(--base-100)',
+            'base-200': 'var(--base-200)',
+            'base-300': 'var(--base-300)',
+            'text-primary': 'var(--text-primary)',
+            'text-secondary': 'var(--text-secondary)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    *, ::before, ::after {
+      --tw-ring-color: transparent !important;
+      --tw-ring-offset-color: transparent !important;
+      --tw-ring-offset-shadow: 0 0 #0000 !important;
+      --tw-ring-shadow: 0 0 #0000 !important;
+    }
+
+    :root {
+      --tenant-primary: #EC008C;
+      --tenant-primary-hover: #D8007E;
+      --tenant-primary-dark: #B8006C;
+      --tenant-accent: #C40072;
+      --tenant-50: #FDF2F8;
+      --tenant-100: #FCE7F3;
+      --tenant-200: #FBCFE8;
+      --tenant-300: #F9A8D4;
+      --tenant-400: #F472B6;
+      
+      /* Default Light Theme - BRAC Pantone Magenta */
+      --brand-primary: #EC008C;
+      --brand-secondary: #C40072;
+      --base-100: #ffffff;
+      --base-200: #f8fafc;
+      --base-300: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+    }
+
+    html.dark {
+      --base-100: #0f172a;
+      --base-200: #1e293b;
+      --base-300: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --tenant-50: rgba(236, 0, 140, 0.12);
+      --tenant-100: rgba(236, 0, 140, 0.22);
+      --tenant-200: #fbcfe8;
+      --tenant-300: #f9a8d4;
+      --tenant-400: #f472b6;
+    }
+
+    /* ========================================================================= */
+    /* IOS LIQUID GLASS MORPH SYSTEM (For Glass LMS organizations like Lumina)   */
+    /* ========================================================================= */
+    html.theme-glassmorphism {
+      --base-100: rgba(255, 255, 255, 0.82);
+      --base-200: rgba(248, 250, 252, 0.70);
+      --base-300: rgba(226, 232, 240, 0.75);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --glass-border: rgba(255, 255, 255, 0.75);
+      --glass-shine: rgba(255, 255, 255, 0.95);
+      --glass-shadow: 0 16px 40px 0 rgba(31, 38, 135, 0.09);
+    }
+
+    html.theme-glassmorphism.dark {
+      --base-100: rgba(15, 23, 42, 0.82);
+      --base-200: rgba(30, 41, 59, 0.70);
+      --base-300: rgba(51, 65, 85, 0.75);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --glass-shine: rgba(255, 255, 255, 0.22);
+      --glass-shadow: 0 16px 44px 0 rgba(0, 0, 0, 0.50);
+    }
+
+    /* Atmospheric Glass Background Mesh */
+    html.theme-glassmorphism body,
+    html.theme-glassmorphism main {
+      background: 
+        radial-gradient(at 8% 12%, rgba(6, 182, 212, 0.16) 0px, transparent 50%),
+        radial-gradient(at 92% 18%, rgba(139, 92, 246, 0.18) 0px, transparent 50%),
+        radial-gradient(at 50% 85%, rgba(236, 72, 153, 0.12) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        #f8fafc;
+      background-attachment: fixed !important;
+    }
+
+    html.theme-glassmorphism.dark body,
+    html.theme-glassmorphism.dark main {
+      background: 
+        radial-gradient(at 8% 12%, rgba(6, 182, 212, 0.20) 0px, transparent 50%),
+        radial-gradient(at 92% 18%, rgba(139, 92, 246, 0.24) 0px, transparent 50%),
+        radial-gradient(at 50% 85%, rgba(236, 72, 153, 0.16) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, rgba(59, 130, 246, 0.18) 0px, transparent 50%),
+        #090d16;
+      background-attachment: fixed !important;
+    }
+
+    /* Header & Navigation Glass */
+    html.theme-glassmorphism header {
+      background: rgba(255, 255, 255, 0.90) !important;
+      backdrop-filter: blur(32px) saturate(210%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
+    }
+    html.theme-glassmorphism.dark header {
+      background: rgba(15, 23, 42, 0.90) !important;
+      backdrop-filter: blur(32px) saturate(210%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15) !important;
+    }
+
+    html.theme-glassmorphism aside {
+      background: rgba(255, 255, 255, 0.88) !important;
+      backdrop-filter: blur(32px) saturate(210%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 4px 0 30px 0 rgba(0, 0, 0, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.9) !important;
+    }
+    html.theme-glassmorphism.dark aside {
+      background: rgba(15, 23, 42, 0.88) !important;
+      backdrop-filter: blur(32px) saturate(210%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 4px 0 30px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15) !important;
+    }
+
+    /* Standard Cards & Surfaces (Scoped to card elements to avoid trapping position:fixed overlays in main) */
+    html.theme-glassmorphism .card,
+    html.theme-glassmorphism .rounded-3xl.bg-base-100,
+    html.theme-glassmorphism .rounded-2xl.bg-base-100,
+    html.theme-glassmorphism .rounded-xl.bg-base-100,
+    html.theme-glassmorphism .border.bg-base-100:not(main):not(body):not(app-root) {
+      background-color: rgba(255, 255, 255, 0.90) !important;
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.85) !important;
+      box-shadow: 0 12px 34px 0 rgba(31, 38, 135, 0.07), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+    }
+    html.theme-glassmorphism.dark .card,
+    html.theme-glassmorphism.dark .rounded-3xl.bg-base-100,
+    html.theme-glassmorphism.dark .rounded-2xl.bg-base-100,
+    html.theme-glassmorphism.dark .rounded-xl.bg-base-100,
+    html.theme-glassmorphism.dark .border.bg-base-100:not(main):not(body):not(app-root) {
+      background-color: rgba(15, 23, 42, 0.90) !important;
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      box-shadow: 0 12px 38px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18) !important;
+    }
+
+    /* Layout Reset: Main canvas and layout shells MUST NEVER establish a containing block for fixed overlays */
+    main,
+    app-root,
+    body,
+    html,
+    .flex-1.flex.flex-col {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      filter: none !important;
+      transform: none !important;
+      perspective: none !important;
+    }
+
+    /* ========================================================================= */
+    /* FULL SCREEN MODAL OVERLAY ARCHITECTURE (COVERS HEADER, TOP MENU & ALERTS) */
+    /* ========================================================================= */
+    .animate-modal-backdrop,
+    .animate-fade-in[class*="fixed"],
+    .animate-in[class*="fixed"],
+    [class*="fixed"][class*="z-\[100\]"],
+    [class*="fixed"][class*="z-\[110\]"],
+    [class*="fixed"][class*="z-50"].flex.items-center,
+    [class*="fixed"][class*="inset-0"].bg-black\/60,
+    [class*="fixed"][class*="inset-0"].bg-black\/70 {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      z-index: 99999 !important;
+    }
+
+    /* ========================================================================= */
+    /* IOS LIQUID GLASS: FLOATING DROPDOWNS, FLYOUT MENUS, POPOVERS & MODALS     */
+    /* Ultra-dense frosted material (97% opacity) prevents any background bleed  */
+    /* while preserving authentic Apple-grade optical refraction & edge highlight*/
+    /* ========================================================================= */
+    html.theme-glassmorphism .dropdown-content,
+    html.theme-glassmorphism .liquid-glass-menu,
+    html.theme-glassmorphism .animate-dropdown,
+    html.theme-glassmorphism header .absolute.z-50,
+    html.theme-glassmorphism app-header .absolute.z-50,
+    html.theme-glassmorphism app-top-menu .absolute.z-50,
+    html.theme-glassmorphism .absolute.z-50.bg-base-100,
+    html.theme-glassmorphism .absolute.z-40.bg-base-100,
+    html.theme-glassmorphism .group-hover\/rail-item\:visible .bg-base-100,
+    html.theme-glassmorphism .modal-box,
+    html.theme-glassmorphism [class*="fixed"][class*="z-50"] > div {
+      background: rgba(255, 255, 255, 0.975) !important;
+      backdrop-filter: blur(48px) saturate(220%) contrast(101%) !important;
+      -webkit-backdrop-filter: blur(48px) saturate(220%) contrast(101%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.90) !important;
+      box-shadow: 
+        0 24px 64px -12px rgba(15, 23, 42, 0.20),
+        0 8px 24px -4px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(255, 255, 255, 0.8) inset,
+        0 1.5px 2px 0 rgba(255, 255, 255, 0.95) inset !important;
+    }
+
+    html.theme-glassmorphism.dark .dropdown-content,
+    html.theme-glassmorphism.dark .liquid-glass-menu,
+    html.theme-glassmorphism.dark .animate-dropdown,
+    html.theme-glassmorphism.dark header .absolute.z-50,
+    html.theme-glassmorphism.dark app-header .absolute.z-50,
+    html.theme-glassmorphism.dark app-top-menu .absolute.z-50,
+    html.theme-glassmorphism.dark .absolute.z-50.bg-base-100,
+    html.theme-glassmorphism.dark .absolute.z-40.bg-base-100,
+    html.theme-glassmorphism.dark .group-hover\/rail-item\:visible .bg-base-100,
+    html.theme-glassmorphism.dark .modal-box,
+    html.theme-glassmorphism.dark [class*="fixed"][class*="z-50"] > div {
+      background: rgba(15, 23, 42, 0.97) !important;
+      backdrop-filter: blur(48px) saturate(220%) contrast(101%) !important;
+      -webkit-backdrop-filter: blur(48px) saturate(220%) contrast(101%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      box-shadow: 
+        0 24px 64px -12px rgba(0, 0, 0, 0.70),
+        0 8px 24px -4px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.10) inset,
+        0 1.5px 2px 0 rgba(255, 255, 255, 0.20) inset !important;
+    }
+
+    /* Inset lists & containers inside floating menus */
+    html.theme-glassmorphism .animate-dropdown .bg-base-200\/30,
+    html.theme-glassmorphism .animate-dropdown .bg-base-200\/50,
+    html.theme-glassmorphism header .absolute .bg-base-200\/30 {
+      background: rgba(241, 245, 249, 0.75) !important;
+      border-color: rgba(226, 232, 240, 0.8) !important;
+    }
+    html.theme-glassmorphism.dark .animate-dropdown .bg-base-200\/30,
+    html.theme-glassmorphism.dark .animate-dropdown .bg-base-200\/50,
+    html.theme-glassmorphism.dark header .absolute .bg-base-200\/30 {
+      background: rgba(30, 41, 59, 0.65) !important;
+      border-color: rgba(51, 65, 85, 0.6) !important;
+    }
+
+    /* Silky iOS liquid menu item hover and active states */
+    html.theme-glassmorphism .animate-dropdown button:hover:not([class*="btn-"]),
+    html.theme-glassmorphism header .absolute button:hover:not([class*="btn-"]),
+    html.theme-glassmorphism app-top-menu .absolute a:hover,
+    html.theme-glassmorphism .dropdown-content button:hover,
+    html.theme-glassmorphism .dropdown-content a:hover {
+      background: rgba(241, 245, 249, 0.90) !important;
+    }
+    html.theme-glassmorphism.dark .animate-dropdown button:hover:not([class*="btn-"]),
+    html.theme-glassmorphism.dark header .absolute button:hover:not([class*="btn-"]),
+    html.theme-glassmorphism.dark app-top-menu .absolute a:hover,
+    html.theme-glassmorphism.dark .dropdown-content button:hover,
+    html.theme-glassmorphism.dark .dropdown-content a:hover {
+      background: rgba(30, 41, 59, 0.85) !important;
+    }
+
+    /* Form Inputs, Selects & Textareas Liquid Glass */
+    html.theme-glassmorphism input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    html.theme-glassmorphism select,
+    html.theme-glassmorphism textarea {
+      background: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.85) !important;
+      box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 2px 6px 0 rgba(0, 0, 0, 0.02) !important;
+      color: #0f172a !important;
+    }
+    html.theme-glassmorphism input:focus,
+    html.theme-glassmorphism select:focus,
+    html.theme-glassmorphism textarea:focus {
+      background: rgba(255, 255, 255, 0.98) !important;
+      border-color: var(--tenant-primary) !important;
+      box-shadow: 0 0 0 3px var(--tenant-50), 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+    }
+    html.theme-glassmorphism.dark input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    html.theme-glassmorphism.dark select,
+    html.theme-glassmorphism.dark textarea {
+      background: rgba(30, 41, 59, 0.85) !important;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.16) !important;
+      box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.2), 0 2px 6px 0 rgba(0, 0, 0, 0.15) !important;
+      color: #f8fafc !important;
+    }
+    html.theme-glassmorphism.dark input:focus,
+    html.theme-glassmorphism.dark select:focus,
+    html.theme-glassmorphism.dark textarea:focus {
+      background: rgba(30, 41, 59, 0.98) !important;
+      border-color: var(--tenant-primary) !important;
+      box-shadow: 0 0 0 3px var(--tenant-50), 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* ========================================================================= */
+    /* UNIVERSAL BUTTON GRADIENT & DYNAMIC THEME ADAPTATION SYSTEM               */
+    /* ========================================================================= */
+    .btn-gradient,
+    .btn-primary,
+    .btn-tenant-gradient,
+    .btn-brac-gradient {
+      background: var(--tenant-gradient, linear-gradient(135deg, var(--tenant-primary, #EC008C) 0%, var(--tenant-accent, #C40072) 100%)) !important;
+      color: #ffffff !important;
+      box-shadow: var(--tenant-shadow, 0 4px 14px 0 rgba(236, 0, 140, 0.32));
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-gradient:hover,
+    .btn-primary:hover,
+    .btn-tenant-gradient:hover,
+    .btn-brac-gradient:hover {
+      background: var(--tenant-gradient-hover, linear-gradient(135deg, var(--tenant-primary-hover, #FF1A9B) 0%, var(--tenant-primary-dark, #D8007E) 100%)) !important;
+      box-shadow: var(--tenant-shadow-hover, 0 6px 20px 0 rgba(236, 0, 140, 0.45));
+      transform: translateY(-1px);
+    }
+
+    .btn-gradient:active,
+    .btn-primary:active,
+    .btn-tenant-gradient:active,
+    .btn-brac-gradient:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* Dedicated Glass Theme Buttons */
+    html.theme-glassmorphism .btn-gradient,
+    html.theme-glassmorphism .btn-primary,
+    html.theme-glassmorphism .btn-tenant-gradient {
+      background: linear-gradient(135deg, var(--tenant-primary) 0%, var(--tenant-accent) 100%) !important;
+      backdrop-filter: blur(12px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.35) !important;
+      box-shadow: 0 8px 24px -4px var(--tenant-shadow, rgba(6, 182, 212, 0.45)), inset 0 1px 0 0 rgba(255, 255, 255, 0.5) !important;
+    }
+
+    html.theme-glassmorphism .btn-gradient:hover,
+    html.theme-glassmorphism .btn-primary:hover,
+    html.theme-glassmorphism .btn-tenant-gradient:hover {
+      box-shadow: 0 10px 28px -2px var(--tenant-shadow-hover, rgba(139, 92, 246, 0.55)), inset 0 1px 0 0 rgba(255, 255, 255, 0.7) !important;
+      transform: translateY(-1.5px);
+    }
+
+    /* Amber / Certificate gradient buttons */
+    button:not([disabled]):is([class*="bg-amber-500"], [class*="bg-amber-600"]),
+    a:is([class*="bg-amber-500"], [class*="bg-amber-600"]) {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.35);
+      transition: all 0.2s ease-in-out;
+    }
+    button:not([disabled]):is([class*="bg-amber-500"], [class*="bg-amber-600"]):hover,
+    a:is([class*="bg-amber-500"], [class*="bg-amber-600"]):hover {
+      background: linear-gradient(135deg, #FBBF24 0%, #EA580C 100%) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Emerald / Success gradient buttons */
+    button:not([disabled]):is([class*="bg-emerald-500"], [class*="bg-emerald-600"]),
+    a:is([class*="bg-emerald-500"], [class*="bg-emerald-600"]) {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease-in-out;
+    }
+    button:not([disabled]):is([class*="bg-emerald-500"], [class*="bg-emerald-600"]):hover,
+    a:is([class*="bg-emerald-500"], [class*="bg-emerald-600"]):hover {
+      background: linear-gradient(135deg, #34D399 0%, #047857 100%) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Secondary gradient accent buttons */
+    .btn-gradient-secondary {
+      background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+      color: #B8006C;
+      border: 1px solid #FBCFE8;
+      transition: all 0.2s ease-in-out;
+    }
+    .dark .btn-gradient-secondary {
+      background: linear-gradient(135deg, rgba(236, 0, 140, 0.15) 0%, rgba(196, 0, 114, 0.25) 100%);
+      color: #F9A8D4;
+      border-color: rgba(236, 0, 140, 0.3);
+    }
+    .btn-gradient-secondary:hover {
+      background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px 0 rgba(236, 0, 140, 0.15);
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      font-size: 20px;
+      line-height: 1;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    html.dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+
+    /* ========================================================================= */
+    /* MOTION DESIGN SYSTEM: KEYFRAMES & FLUID EASING                            */
+    /* ========================================================================= */
+    @keyframes modalBackdropFadeIn {
+      0% { opacity: 0; backdrop-filter: blur(0px); }
+      100% { opacity: 1; backdrop-filter: blur(4px); }
+    }
+    .animate-modal-backdrop {
+      margin: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      animation: modalBackdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes modalPopIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .animate-modal-card {
+      animation: modalPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes dropdownSlideDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .animate-dropdown {
+      animation: dropdownSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform-origin: top right;
+    }
+
+    @keyframes flyoutSlideRight {
+      0% {
+        opacity: 0;
+        transform: translateX(-10px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+    .animate-flyout {
+      animation: flyoutSlideRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform-origin: top left;
+    }
+
+    @keyframes accordionExpand {
+      0% {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-6px);
+      }
+      100% {
+        opacity: 1;
+        max-height: 600px;
+        transform: translateY(0);
+      }
+    }
+    .animate-accordion {
+      animation: accordionExpand 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      overflow: hidden;
+    }
+
+    @keyframes toastSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.94);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .animate-toast {
+      animation: toastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpDrawer {
+      0% {
+        opacity: 0;
+        transform: translateY(100%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-slide-up-drawer {
+      animation: slideUpDrawer 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpModal {
+      0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .animate-slide-up-modal {
+      animation: slideUpModal 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Utility animation classes for fade-in and slide-in effects */
+    @keyframes animateIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideInFromTop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideInFromBottom { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+    .animate-in { animation: animateIn 0.2s ease-out forwards; }
+    .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+    .slide-in-from-top-2 { animation: slideInFromTop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide-in-from-bottom-3 { animation: slideInFromBottom 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-scale-in { animation: scaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+
+    @keyframes toastSlideInLeft {
+      0% {
+        opacity: 0;
+        transform: translate3d(-36px, -6px, 0) scale(0.95);
+      }
+      65% {
+        opacity: 1;
+        transform: translate3d(4px, 0, 0) scale(1.005);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+    .animate-toast-slide-left {
+      animation: toastSlideInLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes toastSlideInRight {
+      0% {
+        opacity: 0;
+        transform: translate3d(40px, -8px, 0) scale(0.95);
+      }
+      65% {
+        opacity: 1;
+        transform: translate3d(-3px, 0, 0) scale(1.005);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+    .animate-toast-slide-right {
+      animation: toastSlideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Reference Design Inspiration Alert Toast Styles */
+    .alert-toast-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      padding: 13px 16px;
+      box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .alert-toast-success {
+      background-color: #d3f9eb !important;
+      border: 1px solid #96f2d7 !important;
+      border-top: 3.5px solid #0ca678 !important;
+    }
+    .dark .alert-toast-success {
+      background-color: #072a20 !important;
+      border: 1px solid #0ca678 !important;
+      border-top: 3.5px solid #20c997 !important;
+    }
+
+    .alert-toast-warning {
+      background-color: #fff9db !important;
+      border: 1px solid #ffe066 !important;
+      border-top: 3.5px solid #f59f00 !important;
+    }
+    .dark .alert-toast-warning {
+      background-color: #332402 !important;
+      border: 1px solid #f59f00 !important;
+      border-top: 3.5px solid #ffd43b !important;
+    }
+
+    .alert-toast-error {
+      background-color: #ffe3e3 !important;
+      border: 1px solid #ffc9c9 !important;
+      border-top: 3.5px solid #f03e3e !important;
+    }
+    .dark .alert-toast-error {
+      background-color: #330a13 !important;
+      border: 1px solid #f03e3e !important;
+      border-top: 3.5px solid #ff8787 !important;
+    }
+
+    .alert-toast-info {
+      background-color: #e7f5ff !important;
+      border: 1px solid #a5d8ff !important;
+      border-top: 3.5px solid #228be6 !important;
+    }
+    .dark .alert-toast-info {
+      background-color: #091e36 !important;
+      border: 1px solid #228be6 !important;
+      border-top: 3.5px solid #4dabf7 !important;
+    }
+
+    @keyframes toastProgress {
+      0% {
+        width: 100%;
+      }
+      100% {
+        width: 0%;
+      }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.3.12?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.3.12?external=rxjs",
+    "@angular/core": "https://next.esm.sh/@angular/core@^20.3.12?external=rxjs",
+    "@angular/router": "https://next.esm.sh/@angular/router@^20.3.12?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^20.3.12?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.3.12?external=rxjs"
+  }
+}
+</script>
+</head>
+<body class="bg-base-200 text-text-primary antialiased min-h-screen">
+  <app-root></app-root>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<div class="space-y-6">
+  <!-- Page Header & Actions -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200 dark:border dark:border-indigo-800/60">
+          Super Admin Console
+        </span>
+        <span class="text-xs text-text-secondary">Multi-Tenant Partition Architecture</span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Organization & Tenant Directory</h1>
+      <p class="text-xs text-text-secondary">Provision, configure resources, and govern isolated enterprise LMS client organizations</p>
+    </div>
+
+    <!-- Organization Header Actions -->
+    <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+      <a 
+        routerLink="/organization/dashboard"
+        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold flex items-center gap-2 transition-all border border-base-300">
+        <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">space_dashboard</span>
+        <span>Organization Dashboard</span>
+      </a>
+      <button 
+        id="btn-create-organization"
+        (click)="openCreateWizard()"
+        class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-tenant-500/20 active:scale-[0.98] cursor-pointer">
+        <span class="material-symbols-outlined text-sm">domain_add</span>
+        <span>Create Organization</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Platform Capacity Live Banner (§4.1) -->
+  <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-base-300">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-950 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">cloud_sync</span>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-text-primary">Global Platform Capacity & Resource Allocation</h2>
+          <p class="text-[11px] text-text-secondary">Real-time infrastructure capacity utilization across all active organizations</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5 font-semibold text-text-primary">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Infrastructure Active</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Database Capacity -->
+      <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
+        <div class="flex justify-between items-center text-xs font-semibold">
+          <span class="text-text-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-indigo-600 text-sm">database</span>
+            Database Capacity
+          </span>
+          <span class="font-mono text-text-primary font-bold">
+            {{ lms.platformCapacity().dbUsedGb }} / {{ lms.platformCapacity().dbTotalGb }} GB Used
+          </span>
+        </div>
+
+        <div class="w-full bg-base-300 h-2.5 rounded-full overflow-hidden">
+          <div 
+            class="h-full bg-indigo-500 rounded-full transition-all duration-300"
+            [style.width.%]="(lms.platformCapacity().dbUsedGb / lms.platformCapacity().dbTotalGb) * 100">
+          </div>
+        </div>
+
+        <div class="flex justify-between text-[11px]">
+          <span class="text-text-secondary">Allocated across {{ lms.tenants().length }} organizations</span>
+          <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+            DB Available: {{ lms.platformCapacity().dbAvailableGb }} GB
+          </span>
+        </div>
+      </div>
+
+      <!-- File Storage Capacity -->
+      <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
+        <div class="flex justify-between items-center text-xs font-semibold">
+          <span class="text-text-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-cyan-600 text-sm">folder_open</span>
+            File Storage Capacity
+          </span>
+          <span class="font-mono text-text-primary font-bold">
+            {{ lms.platformCapacity().fileUsedGb }} / {{ lms.platformCapacity().fileTotalGb }} GB Used
+          </span>
+        </div>
+
+        <div class="w-full bg-base-300 h-2.5 rounded-full overflow-hidden">
+          <div 
+            class="h-full bg-cyan-500 rounded-full transition-all duration-300"
+            [style.width.%]="(lms.platformCapacity().fileUsedGb / lms.platformCapacity().fileTotalGb) * 100">
+          </div>
+        </div>
+
+        <div class="flex justify-between text-[11px]">
+          <span class="text-text-secondary">SCORM, media, assets & video courses</span>
+          <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+            File Available: {{ lms.platformCapacity().fileAvailableGb }} GB
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved In-Progress Drafts Section (if any) -->
+  @if (activeDrafts().length > 0) {
+    <div class="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-amber-600 text-lg">bookmark</span>
+          <h3 class="text-xs font-bold text-text-primary">
+            Saved Organization Drafts ({{ activeDrafts().length }})
+          </h3>
+          <span class="text-[10px] text-text-secondary">Incomplete creation sessions saved for later resumption</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        @for (draft of activeDrafts(); track draft.id) {
+          <div class="p-3.5 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between gap-3">
+            <div class="space-y-0.5 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs text-text-primary truncate">
+                  {{ draft.basicInfo.organizationName || 'Untitled Draft' }}
+                </span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-base-200 text-text-secondary font-bold">
+                  #{{ draft.id }}
+                </span>
+              </div>
+              <div class="text-[10px] text-text-secondary flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-amber-500">pending</span>
+                <span>Last Step: <span class="font-semibold text-text-primary">{{ draft.lastCompletedStep }}</span></span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button 
+                type="button"
+                (click)="resumeDraft(draft.id, $event)"
+                class="px-2.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-[11px] font-bold flex items-center gap-1 transition-all shadow-xs">
+                <span>Resume</span>
+                <span class="material-symbols-outlined text-xs">arrow_forward</span>
+              </button>
+              <button 
+                type="button"
+                (click)="deleteDraft(draft.id, $event)"
+                class="p-1.5 rounded-xl text-text-secondary hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="Discard Draft">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Filters & Search Toolbar -->
+  <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="relative w-full sm:w-80">
+      <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary text-sm">search</span>
+      <input 
+        type="text" 
+        [ngModel]="searchQuery()" 
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search organization by name, numeric ID (e.g. 1972), domain, plan, city..."
+        class="w-full pl-9 pr-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+    </div>
+
+    <div class="flex items-center gap-2.5 w-full sm:w-auto">
+      <div class="flex items-center gap-1 text-xs">
+        <span class="text-text-secondary font-semibold">Plan:</span>
+        <select 
+          [ngModel]="planFilter()" 
+          (ngModelChange)="planFilter.set($event); onFilterChange()"
+          class="px-2.5 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none">
+          <option value="All">All Plans</option>
+          <option value="Enterprise">Enterprise</option>
+          <option value="Pro">Pro</option>
+          <option value="Starter">Starter</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-1 text-xs">
+        <span class="text-text-secondary font-semibold">Status:</span>
+        <select 
+          [ngModel]="statusFilter()" 
+          (ngModelChange)="statusFilter.set($event); onFilterChange()"
+          class="px-2.5 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none">
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="In-Progress">In-Progress</option>
+          <option value="Suspended">Suspended</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organizations Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    @for (tenant of paginatedTenants(); track tenant.id) {
+      <div 
+        class="rounded-3xl bg-base-100 border transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden relative group"
+        [class]="tenant.id === lms.activeTenantId() ? 'border-2 border-tenant-500 shadow-md' : 'border border-base-300'">
+        
+        <!-- Active Workspace Bar -->
+        @if (tenant.id === lms.activeTenantId()) {
+          <div class="bg-tenant-500 text-white text-[10px] font-bold py-0.5 px-3 text-center uppercase tracking-wider">
+            Currently Active Workspace
+          </div>
+        }
+
+        <div class="p-5 space-y-4">
+          <!-- Card Header: Logo, Name, ID & Status -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 p-1.5 shadow-2xs border border-base-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <img 
+                  [src]="tenant.branding.logoUrl" 
+                  [alt]="tenant.name" 
+                  class="w-full h-full object-contain" 
+                  referrerpolicy="no-referrer" />
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="font-bold text-sm text-text-primary leading-tight truncate">{{ tenant.name }}</h3>
+                  @if (tenant.numericId) {
+                    <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-base-200 text-text-primary border border-base-300/80">
+                      #{{ tenant.numericId }}
+                    </span>
+                  }
+                </div>
+                <span class="text-[11px] font-mono text-text-secondary block mt-0.5 truncate">{{ tenant.domain }}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end gap-1">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    [ngClass]="getStatusBadgeClass(tenant.status)">
+                {{ tenant.status }}
+              </span>
+              <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-base-200 text-text-secondary">
+                {{ tenant.plan }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Description / Tagline -->
+          <p class="text-xs text-text-secondary line-clamp-2">{{ tenant.description || tenant.branding.tagline }}</p>
+
+          <!-- Location & Admin Partition Info -->
+          @if (tenant.address || tenant.adminInfo) {
+            <div class="p-3 rounded-2xl bg-base-200/70 border border-base-300/70 text-xs space-y-1.5">
+              @if (tenant.address) {
+                <div class="flex items-center gap-1.5 text-text-secondary text-[11px]">
+                  <span class="material-symbols-outlined text-xs text-tenant-600">location_on</span>
+                  <span class="truncate">
+                    {{ tenant.address.district }}, {{ tenant.address.division }} 
+                    @if (tenant.address.postalCode) { ({{ tenant.address.postalCode }}) }
+                  </span>
+                </div>
+              }
+
+              @if (tenant.adminInfo) {
+                <div class="flex items-center justify-between text-[11px] text-text-secondary pt-1 border-t border-base-300/50">
+                  <div class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-indigo-600">person</span>
+                    <span class="font-medium text-text-primary truncate max-w-[140px]">{{ tenant.adminInfo.adminName }}</span>
+                  </div>
+                  @if (tenant.adminInfo.contactNumber) {
+                    <span class="font-mono text-[10px]">{{ tenant.adminInfo.contactNumber }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Resource Allocation Row (§4.2) -->
+          @if (tenant.resourceAllocation) {
+            <div class="grid grid-cols-3 gap-2 text-center text-xs py-2 bg-base-200 rounded-xl">
+              <div>
+                <div class="font-bold text-text-primary font-mono">{{ tenant.resourceAllocation.databaseSizeGb }} GB</div>
+                <div class="text-[10px] text-text-secondary">Database</div>
+              </div>
+              <div>
+                <div class="font-bold text-text-primary font-mono">{{ tenant.resourceAllocation.fileStorageGb }} GB</div>
+                <div class="text-[10px] text-text-secondary">Storage</div>
+              </div>
+              <div>
+                <div class="font-bold text-tenant-600 truncate text-[10px] pt-0.5 font-semibold">
+                  {{ tenant.resourceAllocation.dataSharingMode }}
+                </div>
+                <div class="text-[10px] text-text-secondary">Sharing</div>
+              </div>
+            </div>
+          }
+
+          <!-- Seat Usage Bar -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-semibold">
+              <span class="text-text-secondary text-[11px]">Learners / Capacity</span>
+              <span class="text-text-primary font-mono text-[11px]">{{ tenant.stats.seatsUsed }} / {{ tenant.stats.seatLimit }}</span>
+            </div>
+            <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-300"
+                [style.background-color]="tenant.branding.primaryColor || '#4f46e5'"
+                [style.width.%]="(tenant.stats.seatsUsed / tenant.stats.seatLimit) * 100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer Actions -->
+        <div class="p-3 bg-base-200 border-t border-base-300 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1">
+            <button 
+              (click)="openEditModal(tenant, $event)"
+              class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 transition-colors text-xs flex items-center gap-1"
+              title="Edit Details">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <button 
+              (click)="manageOrgLms(tenant.id, $event)"
+              class="p-2 rounded-xl text-tenant-600 hover:text-tenant-700 hover:bg-tenant-50 dark:hover:bg-tenant-950 transition-colors text-xs flex items-center gap-1"
+              title="Manage LMS Instances for this Organization">
+              <span class="material-symbols-outlined text-sm">layers</span>
+            </button>
+            <button 
+              (click)="createOrgLms(tenant.id, $event)"
+              class="p-2 rounded-xl text-tenant-600 hover:text-tenant-700 hover:bg-tenant-50 dark:hover:bg-tenant-950 transition-colors text-xs flex items-center gap-1"
+              title="+ Create LMS for this Organization">
+              <span class="material-symbols-outlined text-sm">add_circle</span>
+            </button>
+            <button 
+              (click)="toggleStatus(tenant.id, $event)"
+              class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 transition-colors text-xs"
+              [title]="tenant.status === 'Active' ? 'Set Inactive/Suspended' : 'Activate Organization'">
+              <span class="material-symbols-outlined text-sm">
+                {{ tenant.status === 'Active' ? 'pause_circle' : 'play_circle' }}
+              </span>
+            </button>
+          </div>
+
+          <button 
+            (click)="selectTenant(tenant.id)"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1"
+            [class]="tenant.id === lms.activeTenantId() ? 'bg-tenant-500 text-white' : 'bg-base-100 hover:bg-base-300 text-text-primary border border-base-300'">
+            <span class="material-symbols-outlined text-sm">login</span>
+            {{ tenant.id === lms.activeTenantId() ? 'Active' : 'Switch Workspace' }}
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-span-full p-12 rounded-3xl bg-base-100 border border-base-300 text-center space-y-2">
+        <span class="material-symbols-outlined text-4xl text-text-secondary">domain_disabled</span>
+        <h4 class="font-bold text-sm text-text-primary">No organizations found</h4>
+        <p class="text-xs text-text-secondary">Try clearing or adjusting the search and filter criteria.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Tenants Pagination Footer -->
+  <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+    <div class="flex items-center gap-3 text-text-secondary">
+      <span>
+        Showing 
+        <span class="font-semibold text-text-primary font-mono">{{ filteredTenants().length === 0 ? 0 : (currentPage() - 1) * pageSize() + 1 }}</span>
+        to 
+        <span class="font-semibold text-text-primary font-mono">{{ filteredTenants().length < currentPage() * pageSize() ? filteredTenants().length : currentPage() * pageSize() }}</span>
+        of 
+        <span class="font-semibold text-text-primary font-mono">{{ filteredTenants().length }}</span> 
+        organizations
+      </span>
+
+      <div class="flex items-center gap-1.5 pl-3 border-l border-base-300">
+        <span class="text-[11px]">Per page:</span>
+        <select 
+          [value]="pageSize()"
+          (change)="setPageSize(+$any($event.target).value)"
+          class="px-2 py-1 rounded-lg bg-base-200 border border-base-300 text-xs font-semibold focus:outline-none focus:border-tenant-500">
+          <option [value]="3">3</option>
+          <option [value]="6">6</option>
+          <option [value]="12">12</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Pagination Buttons -->
+    <div class="flex items-center gap-1">
+      <button 
+        (click)="prevPage()"
+        [disabled]="currentPage() === 1"
+        class="px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-200 hover:bg-base-300 disabled:opacity-40 disabled:hover:bg-base-200 text-text-secondary hover:text-text-primary flex items-center gap-1 transition-all"
+        title="Previous Page">
+        <span class="material-symbols-outlined text-sm">chevron_left</span>
+        <span class="hidden sm:inline text-xs">Prev</span>
+      </button>
+
+      @for (p of pagesList(); track p) {
+        <button 
+          (click)="goToPage(p)"
+          class="w-8 h-8 rounded-lg border text-xs font-semibold flex items-center justify-center transition-all"
+          [class]="p === currentPage() ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm' : 'border-base-300 bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
+          {{ p }}
+        </button>
+      }
+
+      <button 
+        (click)="nextPage()"
+        [disabled]="currentPage() === totalPages()"
+        class="px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-200 hover:bg-base-300 disabled:opacity-40 disabled:hover:bg-base-200 text-text-secondary hover:text-text-primary flex items-center gap-1 transition-all"
+        title="Next Page">
+        <span class="hidden sm:inline text-xs">Next</span>
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Tenant Modal -->
+@if (editingTenant()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-lg p-6 animate-modal-card space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-base-300">
+        <h3 class="font-bold text-base text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600">tune</span>
+          Edit Organization: {{ editingTenant()?.name }}
+        </h3>
+        <button (click)="editingTenant.set(null)" class="text-text-secondary hover:text-text-primary">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Organization Name</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editingTenant()!.name" 
+            class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Status</label>
+            <select 
+              [(ngModel)]="editingTenant()!.status" 
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none">
+              <option value="Active">Active</option>
+              <option value="In-Progress">In-Progress</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Plan Tier</label>
+            <select 
+              [(ngModel)]="editingTenant()!.plan" 
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none">
+              <option value="Enterprise">Enterprise</option>
+              <option value="Pro">Pro</option>
+              <option value="Starter">Starter</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Custom Tagline</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editingTenant()!.branding.tagline" 
+            class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
+          <button (click)="editingTenant.set(null)" class="px-4 py-2 rounded-xl bg-base-200 text-xs font-semibold text-text-secondary">Cancel</button>
+          <button (click)="saveTenantEdit()" class="px-4 py-2 rounded-xl bg-tenant-500 text-white text-xs font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">save</span> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

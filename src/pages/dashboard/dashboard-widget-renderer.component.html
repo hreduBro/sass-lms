@@ -1,0 +1,858 @@
+@if (isVisible()) {
+  <div 
+    #cardContainer
+    [id]="'widget-' + widget().id"
+    class="relative rounded-3xl bg-base-100 border border-base-300/80 shadow-xs transition-all flex flex-col h-full overflow-hidden group"
+    [class.border-2]="isBuilderMode()"
+    [class.border-tenant-500]="isBuilderMode()"
+    [class.shadow-md]="isBuilderMode()">
+
+    <!-- Live Drag-Resize Dimension Overlay (Gridstack-like) -->
+    @if (isResizing()) {
+      <div class="absolute inset-0 bg-tenant-900/60 backdrop-blur-xs border-2 border-dashed border-tenant-400 rounded-3xl flex flex-col items-center justify-center z-50 text-white animate-in fade-in select-none">
+        <div class="p-3 bg-base-100 dark:bg-base-200 text-text-primary rounded-2xl shadow-2xl border border-tenant-500 flex items-center gap-3">
+          <span class="material-symbols-outlined text-tenant-600 text-2xl animate-pulse">aspect_ratio</span>
+          <div>
+            <div class="text-xs font-bold text-tenant-600 dark:text-tenant-300">Live Grid Dimensions</div>
+            <div class="text-sm font-mono font-extrabold flex items-center gap-2 mt-0.5">
+              <span>Width: {{ previewColSpan() * 25 }}% ({{ previewColSpan() }}/4)</span>
+              <span class="text-text-secondary">&bull;</span>
+              <span>Height: {{ previewRowSpan() }}x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Studio Builder Header Controls -->
+    @if (isBuilderMode()) {
+      <div class="bg-gradient-to-r from-tenant-500/10 via-base-200 to-base-200 border-b border-tenant-500/20 px-3 py-2 flex flex-wrap items-center justify-between gap-2 select-none">
+        
+        <!-- Left: Drag Grip + Title + Dimensions Badge -->
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span 
+            class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 cursor-grab active:cursor-grabbing p-1 hover:bg-base-100 dark:hover:bg-slate-800 rounded-lg transition-colors drag-grip-handle" 
+            title="Drag card to rearrange order on grid">
+            drag_indicator
+          </span>
+          <span class="font-bold text-xs text-text-primary truncate max-w-[130px] sm:max-w-[170px]">{{ widget().title }}</span>
+          
+          <!-- Dimensions Badge -->
+          <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-mono font-bold whitespace-nowrap" title="Current Grid Dimensions">
+            {{ widget().colSpan * 25 }}% &times; {{ widget().rowSpan || 2 }}x
+          </span>
+
+          <!-- Role Badges -->
+          <div class="hidden xl:flex items-center gap-1">
+            @if (widget().visibleForRoles.includes('learner')) {
+              <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-300 font-semibold" title="Visible for Learners">Learner</span>
+            }
+            @if (widget().visibleForRoles.includes('instructor')) {
+              <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-300 font-semibold" title="Visible for Instructors">Instructor</span>
+            }
+            @if (widget().visibleForRoles.includes('tenant_admin') || widget().visibleForRoles.includes('super_admin')) {
+              <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-semibold" title="Visible for Admins">Admin</span>
+            }
+          </div>
+        </div>
+
+        <!-- Right: Segmented Width + Height Switchers + Action Buttons -->
+        <div class="flex items-center gap-1 flex-wrap">
+          
+          <!-- Width Segmented Pill Slider (W: 25% | 50% | 75% | 100%) -->
+          <div class="flex items-center bg-base-100 dark:bg-slate-900 rounded-xl border border-base-300 dark:border-slate-800 p-0.5 shadow-2xs">
+            <span class="text-[9px] font-bold text-text-secondary px-1 hidden md:inline" title="Column Width">W:</span>
+            <button 
+              type="button"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: 1 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="widget().colSpan === 1 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="1/4 Width (25% column span)">
+              25%
+            </button>
+            <button 
+              type="button"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: 2 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="widget().colSpan === 2 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="1/2 Width (50% column span)">
+              50%
+            </button>
+            <button 
+              type="button"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: 3 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="widget().colSpan === 3 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="3/4 Width (75% column span)">
+              75%
+            </button>
+            <button 
+              type="button"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: 4 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="widget().colSpan === 4 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="Full Width (100% column span)">
+              100%
+            </button>
+          </div>
+
+          <!-- Height Segmented Pill Slider (H: 1x | 2x | 3x | 4x) -->
+          <div class="flex items-center bg-base-100 dark:bg-slate-900 rounded-xl border border-base-300 dark:border-slate-800 p-0.5 shadow-2xs">
+            <span class="text-[9px] font-bold text-text-secondary px-1 hidden md:inline" title="Row Height Span">H:</span>
+            <button 
+              type="button"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 1 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="(widget().rowSpan || 2) === 1 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="Compact Height (1x)">
+              1x
+            </button>
+            <button 
+              type="button"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 2 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="(widget().rowSpan || 2) === 2 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="Standard Height (2x)">
+              2x
+            </button>
+            <button 
+              type="button"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 3 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="(widget().rowSpan || 2) === 3 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="Tall Height (3x)">
+              3x
+            </button>
+            <button 
+              type="button"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 4 })"
+              class="px-1.5 py-0.5 text-[10px] rounded-lg font-bold transition-all"
+              [class]="(widget().rowSpan || 2) === 4 ? 'bg-tenant-500 text-white shadow-xs' : 'text-text-secondary hover:text-text-primary'"
+              title="Deep Height (4x)">
+              4x
+            </button>
+          </div>
+
+          <!-- Position Up / Down -->
+          <div class="flex items-center bg-base-100 dark:bg-slate-900 rounded-xl border border-base-300 dark:border-slate-800 p-0.5">
+            <button 
+              type="button"
+              (click)="moveUp.emit(widget().id)" 
+              class="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-800 transition-colors"
+              title="Shift Widget Left / Up">
+              <span class="material-symbols-outlined text-sm">arrow_upward</span>
+            </button>
+            <button 
+              type="button"
+              (click)="moveDown.emit(widget().id)" 
+              class="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-800 transition-colors"
+              title="Shift Widget Right / Down">
+              <span class="material-symbols-outlined text-sm">arrow_downward</span>
+            </button>
+          </div>
+
+          <!-- Configure Settings -->
+          <button 
+            type="button"
+            (click)="editWidget.emit(widget())" 
+            class="p-1.5 rounded-xl bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/20 transition-colors shadow-2xs"
+            title="Configure widget properties & target roles">
+            <span class="material-symbols-outlined text-sm">tune</span>
+          </button>
+
+          <!-- Duplicate -->
+          <button 
+            type="button"
+            (click)="duplicateWidget.emit(widget())" 
+            class="p-1.5 rounded-xl bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-800 transition-colors shadow-2xs"
+            title="Duplicate widget clone">
+            <span class="material-symbols-outlined text-sm">content_copy</span>
+          </button>
+
+          <!-- Delete -->
+          <button 
+            type="button"
+            (click)="removeWidget.emit(widget().id)" 
+            class="p-1.5 rounded-xl bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors shadow-2xs"
+            title="Remove widget from canvas">
+            <span class="material-symbols-outlined text-sm">delete</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Widget Body Container -->
+    <div [class]="widget().type === 'announcement_banner' || widget().type === 'kpi_grid' ? 'p-0' : 'p-5 flex-1 flex flex-col'">
+      
+      <!-- 1. ANNOUNCEMENT BANNER -->
+      @if (widget().type === 'announcement_banner') {
+        <div class="p-5 bg-gradient-to-r from-tenant-500/15 via-tenant-500/5 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <span class="material-symbols-outlined text-xl">campaign</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="font-bold text-sm text-text-primary">{{ widget().title }}</span>
+                <span class="text-[10px] px-2 py-0.2 rounded-full font-semibold bg-tenant-500 text-white">Broadcast</span>
+              </div>
+              <p class="text-xs text-text-secondary leading-relaxed">
+                {{ widget().config?.bannerText || 'Mandatory Compliance & Cyber Skill initiative is active. Review requirements before semester close.' }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
+            <a routerLink="/courses" class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors">
+              <span>Explore Curriculum</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      }
+
+      <!-- 2. KPI GRID -->
+      @if (widget().type === 'kpi_grid') {
+        <div class="p-4 bg-base-100 flex flex-col gap-3">
+          <div class="flex items-center justify-between px-1 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">speed</span>
+              <h3 class="font-bold text-xs text-text-primary">{{ widget().title }}</h3>
+            </div>
+            <!-- Timeframe Filter -->
+            <div class="flex items-center bg-base-200 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300">
+              <button 
+                type="button"
+                (click)="kpiPeriod.set('30d')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="kpiPeriod() === '30d' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                30 Days
+              </button>
+              <button 
+                type="button"
+                (click)="kpiPeriod.set('quarter')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="kpiPeriod() === 'quarter' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                Quarter
+              </button>
+              <button 
+                type="button"
+                (click)="kpiPeriod.set('ytd')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="kpiPeriod() === 'ytd' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                Annual YTD
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            @for (kpi of kpiItems(); track kpi.title) {
+              <app-kpi-card [data]="kpi"></app-kpi-card>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 3. KPI HIGHLIGHT RADIAL GAUGE -->
+      @if (widget().type === 'kpi_highlight') {
+        <div class="flex flex-col items-center justify-center text-center py-2 h-full">
+          <div class="relative w-28 h-28 flex items-center justify-center mb-3">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <path class="text-base-300" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="text-tenant-500" stroke-dasharray="94, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center">
+              <span class="text-2xl font-black text-text-primary tracking-tight">{{ lms.activeTenant().stats.complianceRate }}%</span>
+              <span class="text-[10px] text-emerald-600 font-semibold">Compliant</span>
+            </div>
+          </div>
+          <h4 class="font-bold text-xs text-text-primary">{{ widget().title }}</h4>
+          <p class="text-[11px] text-text-secondary mt-0.5">Target standard: >95% regulatory adherence</p>
+          
+          <div class="flex items-center gap-1.5 mt-3">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-semibold border border-emerald-500/20">SOC-2</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 font-semibold border border-sky-500/20">HIPAA</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 font-semibold border border-indigo-500/20">ISO27001</span>
+          </div>
+        </div>
+      }
+
+      <!-- 4. DEPARTMENT COMPLETION MATRIX -->
+      @if (widget().type === 'chart_department_matrix') {
+        <div class="flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800 gap-2 mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+                  <span class="material-symbols-outlined text-tenant-600 text-base">bar_chart</span>
+                  {{ widget().title }}
+                </h3>
+                @if (widget().subtitle) {
+                  <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle }}</p>
+                }
+              </div>
+
+              <!-- Department Search & Sort Controls -->
+              <div class="flex items-center gap-1.5">
+                <input 
+                  type="text" 
+                  [(ngModel)]="deptSearchQuery"
+                  placeholder="Filter dept..."
+                  class="px-2.5 py-1 rounded-xl bg-base-200 dark:bg-slate-800 text-xs border border-base-300 dark:border-slate-700 text-text-primary focus:outline-hidden focus:border-tenant-500 w-28 sm:w-32" />
+                <button 
+                  type="button"
+                  (click)="deptSortMode.set(deptSortMode() === 'compliance' ? 'learners' : 'compliance')"
+                  class="px-2 py-1 rounded-xl bg-base-200 dark:bg-slate-800 hover:bg-base-300 dark:hover:bg-slate-700 border border-base-300 dark:border-slate-700 text-[10px] font-semibold text-text-secondary flex items-center gap-1"
+                  title="Toggle Sort">
+                  <span class="material-symbols-outlined text-xs">sort</span>
+                  <span>{{ deptSortMode() === 'compliance' ? 'Attention' : 'Size' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 flex-1 overflow-y-auto max-h-[220px] pr-1">
+              @for (dm of filteredDepartments(); track dm.department) {
+                <div class="p-2.5 rounded-2xl bg-base-200/50 dark:bg-slate-800/40 hover:bg-base-200 dark:hover:bg-slate-800/70 border border-base-300/60 dark:border-slate-700/60 transition-colors">
+                  <div class="flex items-center justify-between text-xs mb-1.5">
+                    <span class="font-semibold text-text-primary flex items-center gap-1.5">
+                      {{ dm.department }}
+                      <span class="text-[10px] text-text-secondary font-normal font-mono">({{ dm.learnersCount }} users)</span>
+                    </span>
+                    <div class="flex items-center gap-2 font-mono text-xs">
+                      <span class="text-text-secondary text-[11px]">Avg {{ dm.avgCompletionRate }}%</span>
+                      <span class="font-bold px-1.5 py-0.5 rounded-md text-[11px]"
+                        [class]="dm.complianceRate >= 90 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'">
+                        {{ dm.complianceRate }}%
+                      </span>
+                    </div>
+                  </div>
+                  <div class="w-full bg-base-300 dark:bg-slate-700 h-2 rounded-full overflow-hidden flex">
+                    <div 
+                      class="bg-tenant-500 h-full rounded-full transition-all duration-500" 
+                      [style.width.%]="dm.complianceRate">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <div class="pt-2 border-t border-base-300 dark:border-slate-800 flex items-center justify-between text-[11px] text-text-secondary">
+            <span>Aggregated across active divisions</span>
+            <span class="font-bold text-tenant-600 dark:text-tenant-400">98.7% Org Average</span>
+          </div>
+        </div>
+      }
+
+      <!-- 5. ENROLLMENT & COMPLETION VELOCITY TREND -->
+      @if (widget().type === 'chart_enrollment_trends') {
+        <div class="flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800 mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+                  <span class="material-symbols-outlined text-tenant-600 text-base">show_chart</span>
+                  {{ widget().title }}
+                </h3>
+                @if (widget().subtitle) {
+                  <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle }}</p>
+                }
+              </div>
+
+              <!-- Timeframe selector -->
+              <div class="flex items-center bg-base-200 dark:bg-slate-800 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300 dark:border-slate-700">
+                <button 
+                  type="button"
+                  (click)="trendsPeriod.set('6m')"
+                  class="px-2 py-0.5 rounded-lg transition-all"
+                  [class]="trendsPeriod() === '6m' ? 'bg-base-100 dark:bg-slate-900 text-tenant-600 dark:text-tenant-400 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                  6M
+                </button>
+                <button 
+                  type="button"
+                  (click)="trendsPeriod.set('12m')"
+                  class="px-2 py-0.5 rounded-lg transition-all"
+                  [class]="trendsPeriod() === '12m' ? 'bg-base-100 dark:bg-slate-900 text-tenant-600 dark:text-tenant-400 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                  12M
+                </button>
+                <button 
+                  type="button"
+                  (click)="trendsPeriod.set('all')"
+                  class="px-2 py-0.5 rounded-lg transition-all"
+                  [class]="trendsPeriod() === 'all' ? 'bg-base-100 dark:bg-slate-900 text-tenant-600 dark:text-tenant-400 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                  All
+                </button>
+              </div>
+            </div>
+
+            <!-- SVG Symmetrical Curve Chart -->
+            <div class="relative w-full h-[190px] pt-1 overflow-hidden flex flex-col justify-between">
+              <svg class="w-full h-[155px]" viewBox="0 0 500 150" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="grad-enroll-custom" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="var(--color-tenant-500, #c81e5b)" stop-opacity="0.35" />
+                    <stop offset="100%" stop-color="var(--color-tenant-500, #c81e5b)" stop-opacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                <!-- Horizontal reference grid lines -->
+                <line x1="0" y1="35" x2="500" y2="35" stroke="currentColor" class="text-base-300 dark:text-slate-800" stroke-width="1" stroke-dasharray="3 3" />
+                <line x1="0" y1="75" x2="500" y2="75" stroke="currentColor" class="text-base-300 dark:text-slate-800" stroke-width="1" stroke-dasharray="3 3" />
+                <line x1="0" y1="115" x2="500" y2="115" stroke="currentColor" class="text-base-300 dark:text-slate-800" stroke-width="1" stroke-dasharray="3 3" />
+
+                <!-- Area fill -->
+                <path d="M 15,125 C 90,110 140,85 200,68 C 270,52 340,38 485,18 L 485,145 L 15,145 Z" fill="url(#grad-enroll-custom)" />
+                
+                <!-- Curve line -->
+                <path d="M 15,125 C 90,110 140,85 200,68 C 270,52 340,38 485,18" fill="none" stroke="currentColor" class="text-tenant-500" stroke-width="3" stroke-linecap="round" />
+                
+                <!-- Data point nodes -->
+                <circle cx="15" cy="125" r="4.5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900" />
+                <circle cx="110" cy="106" r="4.5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900" />
+                <circle cx="200" cy="68" r="4.5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900" />
+                <circle cx="295" cy="48" r="4.5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900" />
+                <circle cx="390" cy="32" r="4.5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900" />
+                <circle cx="485" cy="18" r="5" class="fill-tenant-500 stroke-2 stroke-white dark:stroke-slate-900 animate-pulse" />
+              </svg>
+              
+              <!-- Month labels -->
+              <div class="grid grid-cols-6 text-center text-[10px] text-text-secondary pt-1 border-t border-base-300 dark:border-slate-800 font-mono font-medium">
+                <span>Sep</span>
+                <span>Oct</span>
+                <span>Nov</span>
+                <span>Dec</span>
+                <span>Jan</span>
+                <span class="text-tenant-600 dark:text-tenant-400 font-bold">Feb (Peak)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-base-300 dark:border-slate-800 flex items-center justify-between text-[11px] text-text-secondary">
+            <span>Velocity: <strong>+18.5% MoM</strong></span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400">+1,420 Completed Units</span>
+          </div>
+        </div>
+      }
+
+      <!-- 6. COMPLIANCE VS RISK BREAKDOWN GAUGE -->
+      @if (widget().type === 'chart_compliance_gauge') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">pie_chart</span>
+              {{ widget().title }}
+            </h3>
+            <span class="text-[10px] font-mono text-text-secondary">Real-Time Telemetry</span>
+          </div>
+
+          <!-- Clickable Filter Tiles -->
+          <div class="grid grid-cols-3 gap-2.5 text-center pt-1 mb-3">
+            <button 
+              type="button"
+              (click)="complianceFilter.set(complianceFilter() === 'compliant' ? 'all' : 'compliant')"
+              class="p-2.5 rounded-2xl border transition-all text-center focus:outline-none focus:ring-0 outline-none"
+              [class]="complianceFilter() === 'compliant' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/15'">
+              <span class="text-lg font-bold text-emerald-600">88%</span>
+              <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5">Compliant</div>
+            </button>
+            <button 
+              type="button"
+              (click)="complianceFilter.set(complianceFilter() === 'at_risk' ? 'all' : 'at_risk')"
+              class="p-2.5 rounded-2xl border transition-all text-center focus:outline-none focus:ring-0 outline-none"
+              [class]="complianceFilter() === 'at_risk' ? 'bg-amber-500/20 border-2 border-amber-500' : 'bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15'">
+              <span class="text-lg font-bold text-amber-600">9%</span>
+              <div class="text-[10px] text-amber-700 dark:text-amber-300 font-semibold mt-0.5">At Risk</div>
+            </button>
+            <button 
+              type="button"
+              (click)="complianceFilter.set(complianceFilter() === 'overdue' ? 'all' : 'overdue')"
+              class="p-2.5 rounded-2xl border transition-all text-center focus:outline-none focus:ring-0 outline-none"
+              [class]="complianceFilter() === 'overdue' ? 'bg-rose-500/20 border-2 border-rose-500' : 'bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/15'">
+              <span class="text-lg font-bold text-rose-600">3%</span>
+              <div class="text-[10px] text-rose-700 dark:text-rose-300 font-semibold mt-0.5">Overdue</div>
+            </button>
+          </div>
+
+          <!-- Micro User Drilldown -->
+          <div class="space-y-1.5 flex-1 overflow-y-auto max-h-36">
+            @for (user of filteredOverduePersonnel().slice(0, 3); track user.id) {
+              <div class="p-2 rounded-xl bg-base-200/60 border border-base-300/70 flex items-center justify-between text-xs">
+                <span class="font-medium text-text-primary truncate">{{ user.name }} ({{ user.department }})</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded-md font-bold"
+                  [class]="user.complianceStatus === 'Overdue' ? 'bg-rose-500/10 text-rose-600' : 'bg-amber-500/10 text-amber-600'">
+                  {{ user.complianceStatus }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 7. 7-DAY LEARNING ACTIVITY HEATMAP -->
+      @if (widget().type === 'chart_activity_heatmap') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">calendar_view_week</span>
+              {{ widget().title }}
+            </h3>
+            <span class="text-[11px] font-mono text-text-secondary">438 Study Hours</span>
+          </div>
+
+          <div class="grid grid-cols-7 gap-2 text-center pt-1 mb-3">
+            @for (day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; track day; let i = $index) {
+              <button 
+                type="button"
+                (click)="selectedHeatmapDay.set(i)"
+                class="space-y-1 p-1 rounded-xl transition-all focus:outline-none focus:ring-0 outline-none"
+                [class.border-2]="selectedHeatmapDay() === i"
+                [class.border-tenant-500]="selectedHeatmapDay() === i">
+                <span class="text-[10px] font-semibold text-text-secondary block">{{ day }}</span>
+                <div 
+                  class="h-14 rounded-xl flex items-end justify-center pb-1 transition-all"
+                  [class]="i === 1 || i === 3 ? 'bg-tenant-500 text-white' : i === 2 || i === 4 ? 'bg-tenant-500/60 text-white' : 'bg-base-200 text-text-secondary'">
+                  <span class="text-[10px] font-mono font-bold">{{ (i + 3) * 12 }}h</span>
+                </div>
+              </button>
+            }
+          </div>
+
+          <!-- Heatmap Day Detail -->
+          <div class="p-2.5 rounded-2xl bg-base-200/60 border border-base-300 text-xs flex items-center justify-between">
+            <span class="text-text-secondary">Peak Hours: <strong>10:00 AM – 2:30 PM</strong></span>
+            <span class="font-bold text-tenant-600 font-mono">+18% Engagement</span>
+          </div>
+        </div>
+      }
+
+      <!-- 8. IN-PROGRESS LEARNER COURSEWARE -->
+      @if (widget().type === 'learner_in_progress') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-base-300 gap-2 mb-4">
+            <div>
+              <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-tenant-600 text-base">play_circle</span>
+                {{ widget().title }}
+              </h3>
+              @if (widget().subtitle) {
+                <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle }}</p>
+              }
+            </div>
+
+            <!-- Course Filter Tabs -->
+            <div class="flex items-center bg-base-200 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300">
+              <button 
+                type="button"
+                (click)="courseFilter.set('all')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="courseFilter() === 'all' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                All
+              </button>
+              <button 
+                type="button"
+                (click)="courseFilter.set('in_progress')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="courseFilter() === 'in_progress' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                In-Progress
+              </button>
+              <button 
+                type="button"
+                (click)="courseFilter.set('completed')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="courseFilter() === 'completed' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                Completed
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            @for (item of myEnrollments(); track item.enrollment.id) {
+              <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300/80 flex flex-col justify-between hover:border-tenant-500/50 transition-all group/course">
+                <div class="flex items-start gap-3 mb-3">
+                  <img [src]="item.course?.thumbnail" [alt]="item.course?.title" class="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-xs" referrerpolicy="no-referrer" />
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[10px] px-2 py-0.2 rounded-md bg-base-100 font-semibold text-text-secondary border border-base-300">
+                      {{ item.course?.category }}
+                    </span>
+                    <h4 class="font-bold text-xs text-text-primary line-clamp-1 mt-1">{{ item.course?.title }}</h4>
+                    <p class="text-[10px] text-text-secondary line-clamp-1">{{ item.course?.instructorName }}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between text-[11px] mb-1">
+                    <span class="text-text-secondary">Progress</span>
+                    <span class="font-bold text-tenant-600 font-mono">{{ item.enrollment.progressPercent }}%</span>
+                  </div>
+                  <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden mb-3">
+                    <div class="bg-tenant-500 h-full rounded-full transition-all duration-300" [style.width.%]="item.enrollment.progressPercent"></div>
+                  </div>
+
+                  <a 
+                    [routerLink]="['/courses', item.course?.id, 'learn']"
+                    class="w-full py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs">
+                    <span class="material-symbols-outlined text-sm">play_arrow</span>
+                    <span>{{ item.enrollment.progressPercent === 100 ? 'Review Course' : 'Resume Lesson' }}</span>
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 9. OVERDUE COMPLIANCE ESCALATION QUEUE -->
+      @if (widget().type === 'escalation_queue') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <div>
+              <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-rose-500 text-base">priority_high</span>
+                {{ widget().title }}
+              </h3>
+              <p class="text-[11px] text-text-secondary mt-0.5">Personnel requiring remediation</p>
+            </div>
+            <button 
+              type="button"
+              (click)="dispatchReminders()" 
+              class="px-2.5 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 text-xs font-semibold flex items-center gap-1 transition-colors">
+              <span class="material-symbols-outlined text-xs">send</span>
+              <span>Dispatch All</span>
+            </button>
+          </div>
+
+          <div class="space-y-2 flex-1 overflow-y-auto max-h-56 pr-1">
+            @for (user of filteredOverduePersonnel(); track user.id) {
+              <div class="p-2.5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between text-xs gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" referrerpolicy="no-referrer" />
+                  <div class="min-w-0">
+                    <div class="font-semibold text-text-primary truncate">{{ user.name }}</div>
+                    <div class="text-[10px] text-text-secondary truncate">{{ user.department }} &bull; {{ user.email }}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <span class="text-[9px] px-2 py-0.5 rounded-md font-bold"
+                    [class]="user.complianceStatus === 'Overdue' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'">
+                    {{ user.complianceStatus }}
+                  </span>
+                  <button 
+                    type="button"
+                    (click)="escalateIndividual(user)"
+                    class="p-1 rounded-lg bg-base-100 hover:bg-rose-50 text-text-secondary hover:text-rose-600 border border-base-300"
+                    title="Escalate directly to Manager">
+                    <span class="material-symbols-outlined text-xs">forward_to_inbox</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 10. LIVE AUDIT LOG STREAM -->
+      @if (widget().type === 'live_audit_feed') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3 flex-wrap gap-2">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">history_toggle_off</span>
+              {{ widget().title }}
+            </h3>
+
+            <!-- Category Filter Tabs -->
+            <div class="flex items-center bg-base-200 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300">
+              <button 
+                type="button"
+                (click)="auditFilter.set('all')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="auditFilter() === 'all' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                All
+              </button>
+              <button 
+                type="button"
+                (click)="auditFilter.set('compliance')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="auditFilter() === 'compliance' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                Compliance
+              </button>
+              <button 
+                type="button"
+                (click)="auditFilter.set('security')"
+                class="px-2 py-0.5 rounded-lg transition-all"
+                [class]="auditFilter() === 'security' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                Security
+              </button>
+            </div>
+          </div>
+
+          <div class="divide-y divide-base-300 space-y-2 flex-1 overflow-y-auto max-h-56 pr-1">
+            @for (log of filteredAuditLogs().slice(0, 4); track log.id) {
+              <div class="pt-2 text-xs">
+                <div class="flex items-center justify-between text-[10px] text-text-secondary mb-0.5">
+                  <span class="font-bold text-text-primary">{{ log.actor }} ({{ log.actorRole }})</span>
+                  <span class="font-mono">{{ log.timestamp }}</span>
+                </div>
+                <p class="text-text-secondary line-clamp-1">{{ log.action }}: <span class="text-text-primary font-medium">{{ log.target }}</span></p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 11. UPCOMING WEBINARS -->
+      @if (widget().type === 'upcoming_webinars') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">videocam</span>
+              {{ widget().title }}
+            </h3>
+            <a routerLink="/webinars" class="text-xs text-tenant-600 font-semibold hover:underline">View Schedule</a>
+          </div>
+
+          <div class="space-y-2.5 flex-1">
+            @for (webinar of lms.webinars().slice(0, 2); track webinar.id) {
+              <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img [src]="webinar.instructorAvatar" [alt]="webinar.instructor" class="w-9 h-9 rounded-xl object-cover flex-shrink-0" referrerpolicy="no-referrer" />
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-xs text-text-primary line-clamp-1">{{ webinar.title }}</h4>
+                    <div class="text-[10px] text-text-secondary flex items-center gap-1.5 mt-0.5">
+                      <span>{{ webinar.scheduledAt | date:'short' }}</span>
+                      <span>&bull;</span>
+                      <span class="text-tenant-600 font-medium">{{ webinar.platform }}</span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  (click)="registerWebinar(webinar.title)" 
+                  class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-xs flex-shrink-0">
+                  Join
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 12. GAMIFICATION LEADERBOARD -->
+      @if (widget().type === 'gamification_leaderboard') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-amber-500 text-base">military_tech</span>
+              {{ widget().title }}
+            </h3>
+            <button 
+              type="button"
+              (click)="leaderboardMetric.set(leaderboardMetric() === 'xp' ? 'badges' : 'xp')"
+              class="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors">
+              {{ leaderboardMetric() === 'xp' ? 'Top XP' : 'Top Badges' }}
+            </button>
+          </div>
+
+          <div class="space-y-2 flex-1">
+            @for (learner of topLearners(); track learner.id; let idx = $index) {
+              <div class="flex items-center justify-between p-2 rounded-xl bg-base-200/50 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    [class]="idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-slate-300 text-black' : 'bg-base-300 text-text-secondary'">
+                    {{ idx + 1 }}
+                  </span>
+                  <img [src]="learner.avatar" [alt]="learner.name" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer" />
+                  <span class="font-semibold text-text-primary truncate max-w-[110px]">{{ learner.name }}</span>
+                </div>
+                <span class="font-bold font-mono text-tenant-600">
+                  {{ leaderboardMetric() === 'xp' ? learner.points + ' XP' : (learner.badges?.length || 0) + ' Badges' }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 13. QUICK ACTIONS DISPATCHER -->
+      @if (widget().type === 'quick_actions') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-base">bolt</span>
+              {{ widget().title }}
+            </h3>
+            <span class="text-[10px] font-mono text-text-secondary">1-Click Dispatch</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 flex-1">
+            <button 
+              type="button"
+              (click)="dispatchReminders()" 
+              class="p-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-left transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-rose-500 text-base">mail</span>
+              <span class="text-xs font-semibold text-text-primary">Send Alerts</span>
+            </button>
+            <a 
+              routerLink="/courses" 
+              class="p-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-left transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-500 text-base">add_circle</span>
+              <span class="text-xs font-semibold text-text-primary">Create Course</span>
+            </a>
+            <a 
+              routerLink="/users" 
+              class="p-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-left transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-500 text-base">person_add</span>
+              <span class="text-xs font-semibold text-text-primary">Invite Users</span>
+            </a>
+            <a 
+              routerLink="/certificates" 
+              class="p-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-left transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-amber-500 text-base">verified</span>
+              <span class="text-xs font-semibold text-text-primary">Audit Vault</span>
+            </a>
+          </div>
+        </div>
+      }
+
+      <!-- 14. CERTIFICATES TICKER -->
+      @if (widget().type === 'certificates_ticker') {
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-amber-500 text-base">verified</span>
+              {{ widget().title }}
+            </h3>
+            <a routerLink="/certificates" class="text-xs text-tenant-600 font-semibold hover:underline">Vault</a>
+          </div>
+
+          <div class="space-y-2 flex-1">
+            @for (cert of lms.tenantCertificates().slice(0, 3); track cert.id) {
+              <div class="p-2.5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-text-primary">{{ cert.userName }}</div>
+                  <div class="text-[10px] text-text-secondary">{{ cert.courseTitle }}</div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] font-mono text-tenant-600 font-bold">{{ cert.verificationCode }}</span>
+                  <div class="text-[9px] text-emerald-600 font-semibold">Verified</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- Gridstack Interactive Bottom-Right Corner Resize Handle (Builder Mode Only) -->
+    @if (isBuilderMode()) {
+      <div 
+        (mousedown)="startCornerResize($event, cardContainer)"
+        class="absolute bottom-1 right-1 w-6 h-6 rounded-br-2xl cursor-se-resize flex items-end justify-end p-1 text-tenant-600 dark:text-tenant-400 hover:text-tenant-700 dark:hover:text-tenant-200 hover:bg-tenant-500/10 transition-colors select-none z-30 group/handle"
+        title="Drag corner to dynamically resize width & height (Gridstack mode)">
+        <svg class="w-3.5 h-3.5 opacity-60 group-hover/handle:opacity-100 transition-opacity" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M14 14H12V12H14V14ZM14 10H12V8H14V10ZM10 14H8V12H10V14ZM14 6H12V4H14V6ZM6 14H4V12H6V14ZM10 10H8V8H10V10Z" />
+        </svg>
+      </div>
+    }
+
+  </div>
+}

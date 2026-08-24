@@ -1,0 +1,651 @@
+<div 
+  #cardEl
+  class="h-full flex flex-col bg-base-100 rounded-2xl border transition-all duration-200 overflow-hidden relative group select-none"
+  [class.border-base-300]="!isBuilderMode()"
+  [class.shadow-xs]="!isBuilderMode()"
+  [class.border-tenant-500]="isBuilderMode()"
+  [class.border-dashed]="isBuilderMode()"
+  [class.shadow-md]="isBuilderMode()"
+  [class.ring-2]="isBuilderMode()"
+  [class.ring-tenant-500_20]="isBuilderMode()">
+
+  <!-- ========================================================================= -->
+  <!-- STUDIO MODE OVERLAY CONTROLS (WHEN IN STUDIO MODE)                         -->
+  <!-- ========================================================================= -->
+  @if (isBuilderMode()) {
+    <div class="bg-base-200/95 backdrop-blur-xs border-b border-base-300 px-3.5 py-2 flex items-center justify-between gap-2 z-20 flex-wrap">
+      <!-- Drag Handle & Title Badge -->
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="material-symbols-outlined text-text-secondary cursor-grab active:cursor-grabbing text-base hover:text-text-primary" title="Drag to reorder">
+          drag_indicator
+        </span>
+        <span class="text-xs font-bold text-text-primary truncate flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-tenant-500"></span>
+          {{ widget().title }}
+        </span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded bg-base-300 text-text-secondary font-mono font-medium">
+          {{ widget().colSpan * 25 }}% &times; {{ widget().rowSpan || 2 }}x
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1">
+        <!-- Width / ColSpan Selector -->
+        <div class="flex items-center bg-base-300/80 p-0.5 rounded-lg text-[10px] font-semibold">
+          <button 
+            type="button"
+            (click)="changeColSpan.emit({ id: widget().id, colSpan: 1 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().colSpan === 1"
+            [class.text-white]="widget().colSpan === 1"
+            [class.text-text-secondary]="widget().colSpan !== 1"
+            title="25% Width (1 col)">25%</button>
+          <button 
+            type="button"
+            (click)="changeColSpan.emit({ id: widget().id, colSpan: 2 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().colSpan === 2"
+            [class.text-white]="widget().colSpan === 2"
+            [class.text-text-secondary]="widget().colSpan !== 2"
+            title="50% Width (2 cols)">50%</button>
+          <button 
+            type="button"
+            (click)="changeColSpan.emit({ id: widget().id, colSpan: 3 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().colSpan === 3"
+            [class.text-white]="widget().colSpan === 3"
+            [class.text-text-secondary]="widget().colSpan !== 3"
+            title="75% Width (3 cols)">75%</button>
+          <button 
+            type="button"
+            (click)="changeColSpan.emit({ id: widget().id, colSpan: 4 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().colSpan === 4"
+            [class.text-white]="widget().colSpan === 4"
+            [class.text-text-secondary]="widget().colSpan !== 4"
+            title="100% Width (4 cols)">100%</button>
+        </div>
+
+        <!-- Height / RowSpan Selector -->
+        <div class="flex items-center bg-base-300/80 p-0.5 rounded-lg text-[10px] font-semibold ml-1">
+          <button 
+            type="button"
+            (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 1 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().rowSpan === 1"
+            [class.text-white]="widget().rowSpan === 1"
+            [class.text-text-secondary]="widget().rowSpan !== 1"
+            title="Compact (1x Height)">1x</button>
+          <button 
+            type="button"
+            (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 2 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="(widget().rowSpan || 2) === 2"
+            [class.text-white]="(widget().rowSpan || 2) === 2"
+            [class.text-text-secondary]="(widget().rowSpan || 2) !== 2"
+            title="Standard (2x Height)">2x</button>
+          <button 
+            type="button"
+            (click)="changeRowSpan.emit({ id: widget().id, rowSpan: 3 })"
+            class="px-1.5 py-0.5 rounded transition-all cursor-pointer"
+            [class.bg-tenant-500]="widget().rowSpan === 3"
+            [class.text-white]="widget().rowSpan === 3"
+            [class.text-text-secondary]="widget().rowSpan !== 3"
+            title="Tall (3x Height)">3x</button>
+        </div>
+
+        <!-- Settings Modal Trigger -->
+        <button 
+          type="button"
+          (click)="editWidget.emit(widget())"
+          class="p-1 rounded-lg hover:bg-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          title="Configure Widget Settings">
+          <span class="material-symbols-outlined text-base">settings</span>
+        </button>
+
+        <!-- Duplicate Widget -->
+        <button 
+          type="button"
+          (click)="duplicateWidget.emit(widget())"
+          class="p-1 rounded-lg hover:bg-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          title="Duplicate Widget">
+          <span class="material-symbols-outlined text-base">content_copy</span>
+        </button>
+
+        <!-- Remove Widget -->
+        <button 
+          type="button"
+          (click)="removeWidget.emit(widget().id)"
+          class="p-1 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/80 text-text-secondary hover:text-rose-600 transition-colors cursor-pointer"
+          title="Remove from Dashboard">
+          <span class="material-symbols-outlined text-base">delete</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- WIDGET CONTENT ROUTER BASED ON WIDGET TYPE                                -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex flex-col min-h-0 relative">
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 1. ORGANIZATION CAPACITY WIDGET                                       -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'org_capacity') {
+      <div class="p-4 sm:p-5 flex flex-col justify-between h-full space-y-4">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-base-300/80 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-xl">storage</span>
+              <h3 class="text-sm sm:text-base font-bold text-text-primary">
+                Organization Capacity ({{ activeTenant().name }})
+              </h3>
+            </div>
+            <p class="text-xs text-text-secondary mt-0.5">
+              Resource quota allocated by platform operators, shared across all internal LMS instances.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+              <span class="w-2 h-2 rounded-full bg-tenant-500 animate-pulse"></span>
+              {{ totalLmsCount() }} LMS Instances Active / In-Progress
+            </span>
+          </div>
+        </div>
+
+        <!-- Quota Progress Bars Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Database Capacity Box -->
+          <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-sky-600 dark:text-sky-400">database</span>
+                <span class="text-xs font-bold text-text-primary">Database Storage</span>
+              </div>
+              <span class="text-xs font-bold font-mono text-sky-700 dark:text-sky-300">
+                {{ capacity().dbUsedGb }} / {{ capacity().dbTotalGb }} GB
+              </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 bg-base-300 rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-500"
+                [class.bg-sky-500]="dbUsedPct() < 80"
+                [class.bg-amber-500]="dbUsedPct() >= 80 && dbUsedPct() < 95"
+                [class.bg-rose-500]="dbUsedPct() >= 95"
+                [style.width.%]="dbUsedPct()"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-text-secondary">
+              <span class="font-medium">{{ dbUsedPct() }}% Allocated</span>
+              <span class="font-semibold text-emerald-600 dark:text-emerald-400">
+                {{ capacity().dbAvailableGb }} GB Available for new LMS creation
+              </span>
+            </div>
+          </div>
+
+          <!-- File Storage Capacity Box -->
+          <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-indigo-600 dark:text-indigo-400">folder_zip</span>
+                <span class="text-xs font-bold text-text-primary">File & Video Storage</span>
+              </div>
+              <span class="text-xs font-bold font-mono text-indigo-700 dark:text-indigo-300">
+                {{ capacity().fileUsedGb }} / {{ capacity().fileTotalGb }} GB
+              </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 bg-base-300 rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-500"
+                [class.bg-indigo-500]="fileUsedPct() < 80"
+                [class.bg-amber-500]="fileUsedPct() >= 80 && fileUsedPct() < 95"
+                [class.bg-rose-500]="fileUsedPct() >= 95"
+                [style.width.%]="fileUsedPct()"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-text-secondary">
+              <span class="font-medium">{{ fileUsedPct() }}% Allocated</span>
+              <span class="font-semibold text-emerald-600 dark:text-emerald-400">
+                {{ capacity().fileAvailableGb }} GB Available for multimedia storage
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 2. ACTIVE LMS CREATION DRAFTS WIDGET                                 -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'active_lms_drafts') {
+      <div class="p-4 sm:p-5 flex flex-col h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg">edit_note</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">
+              Active LMS Creation Drafts ({{ activeDrafts().length }})
+            </h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-medium">Unsaved configuration progress</span>
+        </div>
+
+        @if (activeDrafts().length > 0) {
+          <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            @for (draft of activeDrafts(); track draft.id) {
+              <div class="p-3 rounded-xl bg-base-200/50 hover:bg-base-200 border border-base-300/80 transition-all flex items-center justify-between gap-3 group/draft">
+                <div class="min-w-0 flex-1 space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-text-primary truncate">
+                      {{ draft.basicInfo.lmsName || 'Unnamed LMS Draft' }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/60">
+                      {{ formatStepName(draft.lastCompletedStep) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[11px] text-text-secondary">
+                    <span class="truncate">{{ draft.basicInfo.programmeDepartment || 'General Dept' }}</span>
+                    <span>&bull;</span>
+                    <span>Updated {{ draft.updatedAt || draft.createdAt }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button 
+                    type="button"
+                    (click)="resumeDraft(draft.id, $event)"
+                    class="px-2.5 py-1 rounded-lg bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95">
+                    <span class="material-symbols-outlined text-xs">play_arrow</span>
+                    <span>Resume</span>
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="requestDeleteDraft(draft, $event)"
+                    class="p-1 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/80 transition-colors cursor-pointer"
+                    title="Discard Draft">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-2">
+            <div class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-text-secondary">
+              <span class="material-symbols-outlined text-xl">check_circle</span>
+            </div>
+            <p class="text-xs font-semibold text-text-primary">No active drafts in progress</p>
+            <p class="text-[11px] text-text-secondary max-w-xs">All LMS creation workflows are complete or published.</p>
+            <button 
+              type="button"
+              (click)="navigateToCreateLms()"
+              class="mt-1 px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-medium transition-all">
+              + Start New LMS
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 3. LMS STATUS BREAKDOWN WIDGET                                       -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'lms_status_breakdown') {
+      <div class="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">pie_chart</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">LMS Status Breakdown</h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-mono font-medium">{{ statusSummary().total }} Portals</span>
+        </div>
+
+        <!-- 4-Card Status Grid Matching Spec §6.4 -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Active -->
+          <div 
+            (click)="navigateToLmsGrid('Active')"
+            class="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 hover:border-emerald-400 transition-all cursor-pointer group/stat">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">Active</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="text-lg font-black text-emerald-900 dark:text-emerald-100 font-mono">{{ statusSummary().active }}</span>
+              <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">{{ statusSummary().activePct }}%</span>
+            </div>
+          </div>
+
+          <!-- Under Processing -->
+          <div 
+            (click)="navigateToLmsGrid('Under Processing')"
+            class="p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 hover:border-amber-400 transition-all cursor-pointer group/stat">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-amber-800 dark:text-amber-300">Under Processing</span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            </div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="text-lg font-black text-amber-900 dark:text-amber-100 font-mono">{{ statusSummary().underProcessing }}</span>
+              <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-400">{{ statusSummary().underProcessingPct }}%</span>
+            </div>
+          </div>
+
+          <!-- Drafted -->
+          <div 
+            (click)="navigateToLmsGrid('Drafted')"
+            class="p-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-slate-400 transition-all cursor-pointer group/stat">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Drafted</span>
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+            </div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="text-lg font-black text-slate-900 dark:text-slate-100 font-mono">{{ statusSummary().drafted }}</span>
+              <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400">{{ statusSummary().draftedPct }}%</span>
+            </div>
+          </div>
+
+          <!-- Deactivated -->
+          <div 
+            (click)="navigateToLmsGrid('Deactivated')"
+            class="p-2.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 hover:border-rose-400 transition-all cursor-pointer group/stat">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-rose-800 dark:text-rose-300">Deactivated</span>
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            </div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="text-lg font-black text-rose-900 dark:text-rose-100 font-mono">{{ statusSummary().deactivated }}</span>
+              <span class="text-[10px] font-semibold text-rose-700 dark:text-rose-400">{{ statusSummary().deactivatedPct }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Integrated Distribution Ratio Bar -->
+        <div class="space-y-1">
+          <div class="h-2 w-full bg-base-300 rounded-full overflow-hidden flex">
+            <div [style.width.%]="statusSummary().activePct" class="bg-emerald-500 h-full" title="Active"></div>
+            <div [style.width.%]="statusSummary().underProcessingPct" class="bg-amber-500 h-full" title="Under Processing"></div>
+            <div [style.width.%]="statusSummary().draftedPct" class="bg-slate-400 h-full" title="Drafted"></div>
+            <div [style.width.%]="statusSummary().deactivatedPct" class="bg-rose-500 h-full" title="Deactivated"></div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-text-secondary">
+            <span>Overall deployment health: Nominal</span>
+            <button (click)="navigateToLmsGrid()" class="text-tenant-600 dark:text-tenant-400 hover:underline font-medium">Open Grid &rarr;</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 4. RECENT LMS ACTIVITY WIDGET                                         -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'recent_lms_activity') {
+      <div class="p-4 sm:p-5 flex flex-col h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">history</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">Recent LMS Activity</h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-medium">Lifecycle Feed</span>
+        </div>
+
+        @if (filteredActivities().length > 0) {
+          <div class="flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar">
+            @for (act of filteredActivities(); track act.id) {
+              <div class="flex items-start gap-2.5 p-2 rounded-xl hover:bg-base-200/60 transition-colors">
+                <span class="material-symbols-outlined text-sm mt-0.5 flex-shrink-0"
+                      [class.text-emerald-600]="act.type === 'activated'"
+                      [class.text-amber-600]="act.type === 'created'"
+                      [class.text-indigo-600]="act.type === 'updated'"
+                      [class.text-rose-600]="act.type === 'deactivated'">
+                  {{ act.type === 'activated' ? 'check_circle' : act.type === 'created' ? 'add_circle' : act.type === 'deactivated' ? 'cancel' : 'update' }}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-semibold text-text-primary leading-tight">
+                    {{ act.title }}
+                  </p>
+                  <p class="text-[11px] text-text-secondary truncate mt-0.5">
+                    {{ act.description }}
+                  </p>
+                  <div class="flex items-center gap-2 mt-1 text-[10px] text-text-secondary/80">
+                    <span>{{ act.timestamp }}</span>
+                    <span>&bull;</span>
+                    <span>{{ act.actor }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <span class="material-symbols-outlined text-2xl text-text-secondary mb-1">hourglass_empty</span>
+            <p class="text-xs text-text-secondary">No activity to display yet.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 5. LMS INSTANCES SNAPSHOT (TOP CARDS) WIDGET                          -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'lms_snapshot_cards') {
+      <div class="p-4 sm:p-5 flex flex-col h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-sky-600 dark:text-sky-400 text-lg">layers</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">LMS Instances Snapshot</h3>
+          </div>
+          <button 
+            type="button"
+            (click)="navigateToLmsGrid()"
+            class="text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:underline flex items-center gap-0.5">
+            <span>View All</span>
+            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+          </button>
+        </div>
+
+        @if (topInstances().length > 0) {
+          <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            @for (inst of topInstances(); track inst.id) {
+              <div 
+                (click)="onCardClick(inst)"
+                class="p-3 rounded-xl bg-base-200/50 hover:bg-base-200 border border-base-300/80 hover:border-tenant-400 transition-all cursor-pointer group/card">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] font-bold font-mono text-text-secondary">{{ inst.id }}</span>
+                      <span class="text-[9px] px-1.5 py-0.2 rounded font-medium"
+                            [class]="inst.basicInfo.lmsType === 'Public' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
+                        {{ inst.basicInfo.lmsType }}
+                      </span>
+                    </div>
+                    <h4 class="text-xs font-bold text-text-primary group-hover/card:text-tenant-600 transition-colors truncate mt-0.5">
+                      {{ inst.basicInfo.lmsName }}
+                    </h4>
+                    <p class="text-[11px] text-text-secondary truncate">{{ inst.basicInfo.programmeDepartment }}</p>
+                  </div>
+
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border flex-shrink-0"
+                        [class]="getStatusBadgeClass(inst.status)">
+                    {{ inst.status }}
+                  </span>
+                </div>
+
+                <!-- Usage Footer -->
+                <div class="mt-2 pt-2 border-t border-base-300/60 flex items-center justify-between text-[10px] text-text-secondary font-mono">
+                  <span>DB: {{ inst.resources.databaseSizeGb }} GB</span>
+                  <span>Storage: {{ inst.resources.fileStorageGb }} GB</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-2">
+            <span class="material-symbols-outlined text-2xl text-text-secondary">folder_open</span>
+            <p class="text-xs font-semibold text-text-primary">No LMS information is available to display.</p>
+            <button 
+              type="button"
+              (click)="navigateToCreateLms()"
+              class="px-3 py-1 rounded-xl bg-tenant-500 text-white text-xs font-semibold shadow-xs">
+              Create LMS
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 6. QUICK LMS DISPATCHER WIDGET                                        -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'quick_lms_actions') {
+      <div class="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3">
+        <div class="flex items-center gap-2 border-b border-base-300/80 pb-2">
+          <span class="material-symbols-outlined text-amber-500 text-lg">bolt</span>
+          <h3 class="text-xs sm:text-sm font-bold text-text-primary">Executive LMS Dispatcher</h3>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button 
+            type="button"
+            (click)="navigateToCreateLms()"
+            class="p-2.5 rounded-xl bg-base-200/70 hover:bg-tenant-50 dark:hover:bg-tenant-950/80 border border-base-300 hover:border-tenant-300 text-left transition-all group/btn cursor-pointer">
+            <span class="material-symbols-outlined text-lg text-tenant-600 group-hover/btn:scale-110 transition-transform">add_circle</span>
+            <span class="block text-xs font-bold text-text-primary mt-1">Create LMS</span>
+            <span class="block text-[10px] text-text-secondary">Launch 4-step wizard</span>
+          </button>
+
+          <button 
+            type="button"
+            (click)="navigateToLmsGrid()"
+            class="p-2.5 rounded-xl bg-base-200/70 hover:bg-sky-50 dark:hover:bg-sky-950/80 border border-base-300 hover:border-sky-300 text-left transition-all group/btn cursor-pointer">
+            <span class="material-symbols-outlined text-lg text-sky-600 group-hover/btn:scale-110 transition-transform">grid_view</span>
+            <span class="block text-xs font-bold text-text-primary mt-1">LMS Grid</span>
+            <span class="block text-[10px] text-text-secondary">Browse instances</span>
+          </button>
+
+          <button 
+            type="button"
+            [routerLink]="['/courses']"
+            class="p-2.5 rounded-xl bg-base-200/70 hover:bg-emerald-50 dark:hover:bg-emerald-950/80 border border-base-300 hover:border-emerald-300 text-left transition-all group/btn cursor-pointer">
+            <span class="material-symbols-outlined text-lg text-emerald-600 group-hover/btn:scale-110 transition-transform">school</span>
+            <span class="block text-xs font-bold text-text-primary mt-1">Curriculum</span>
+            <span class="block text-[10px] text-text-secondary">Course catalog</span>
+          </button>
+
+          <button 
+            type="button"
+            [routerLink]="['/analytics']"
+            class="p-2.5 rounded-xl bg-base-200/70 hover:bg-indigo-50 dark:hover:bg-indigo-950/80 border border-base-300 hover:border-indigo-300 text-left transition-all group/btn cursor-pointer">
+            <span class="material-symbols-outlined text-lg text-indigo-600 group-hover/btn:scale-110 transition-transform">analytics</span>
+            <span class="block text-xs font-bold text-text-primary mt-1">Compliance</span>
+            <span class="block text-[10px] text-text-secondary">Audit logs & metrics</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 7. PROGRAMME / DEPARTMENT DISTRIBUTION WIDGET                         -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'programme_distribution') {
+      <div class="p-4 sm:p-5 flex flex-col h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 text-lg">account_tree</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">Programme / Department Matrix</h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-medium">{{ programmeDistribution().length }} Departments</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+          @for (prog of programmeDistribution(); track prog.programme) {
+            <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300/80 flex items-center justify-between">
+              <div class="min-w-0 flex-1">
+                <span class="text-xs font-bold text-text-primary block truncate">{{ prog.programme }}</span>
+                <span class="text-[10px] text-text-secondary font-medium">{{ prog.activeCount }} active / {{ prog.count }} total LMS</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-tenant-100 dark:bg-tenant-950 text-tenant-800 dark:text-tenant-300 text-xs font-bold font-mono">
+                {{ prog.count }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 8. LMS ADMINISTRATOR ROSTER WIDGET                                    -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'lms_admin_roster') {
+      <div class="p-4 sm:p-5 flex flex-col h-full space-y-3">
+        <div class="flex items-center justify-between border-b border-base-300/80 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-indigo-600 text-lg">badge</span>
+            <h3 class="text-xs sm:text-sm font-bold text-text-primary">LMS Administrator Roster</h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-medium">{{ filteredAdminRoster().length }} Admins</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+          @for (admin of filteredAdminRoster(); track admin.email) {
+            <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300/80 flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <span class="text-xs font-bold text-text-primary block truncate">{{ admin.adminName }}</span>
+                <span class="text-[11px] text-text-secondary block truncate">{{ admin.email }}</span>
+                <span class="text-[10px] text-tenant-600 dark:text-tenant-400 font-medium">Manages: {{ admin.lmsNames.join(', ') }}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex-shrink-0">
+                {{ admin.invitationStatus }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- 9. BROADCAST NOTICE BANNER WIDGET                                     -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (widget().type === 'lms_broadcast_banner' && !dismissedBanner()) {
+      <div class="p-4 sm:p-5 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white border-b border-indigo-800/40 flex items-center justify-between gap-3 h-full">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-amber-300 text-xl">campaign</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">Operational Notice</span>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-100 mt-1 leading-snug">
+              {{ widget().config?.bannerText || '⭐ Active LMS instance provisioning is operational. Quota allocation is shared across all internal programmes.' }}
+            </p>
+          </div>
+        </div>
+        <button 
+          type="button"
+          (click)="dismissedBanner.set(true)"
+          class="p-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer flex-shrink-0"
+          title="Dismiss Banner">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- Corner Drag Resize Grip (Studio Mode Only) -->
+  @if (isBuilderMode()) {
+    <div 
+      (mousedown)="startCornerResize($event, cardEl)"
+      class="absolute bottom-1 right-1 w-4 h-4 cursor-nwse-resize z-30 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
+      title="Drag corner to adjust widget width and height">
+      <span class="material-symbols-outlined text-xs text-text-secondary transform rotate-90">
+        south_east
+      </span>
+    </div>
+  }
+</div>

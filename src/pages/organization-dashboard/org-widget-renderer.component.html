@@ -1,0 +1,684 @@
+<div 
+  #cardEl
+  class="h-full rounded-3xl bg-base-100 border transition-all relative flex flex-col justify-between overflow-hidden group/card"
+  [class]="isBuilderMode() 
+    ? 'border-tenant-500/40 shadow-md ring-1 ring-tenant-500/20 hover:border-tenant-500/80 hover:shadow-xl' 
+    : 'border-base-300/80 shadow-xs hover:border-base-300 hover:shadow-md'">
+
+  <!-- Builder Mode Card Toolbar (Controls, Drag Handle, Width & Height Multipliers, Actions) -->
+  @if (isBuilderMode()) {
+    <div class="px-4 py-2.5 bg-base-200/90 border-b border-base-300 flex items-center justify-between gap-2 flex-wrap select-none">
+      
+      <!-- Drag Handle & Widget Title -->
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-base-300 text-text-secondary hover:text-tenant-600 transition-colors flex items-center" title="Drag to reorder on canvas">
+          <span class="material-symbols-outlined text-base">drag_indicator</span>
+        </div>
+        <span class="text-xs font-bold text-text-primary truncate">
+          {{ widget().title }}
+        </span>
+        @if (widget().audience && widget().audience!.length > 0) {
+          <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold uppercase hidden sm:inline">
+            {{ widget().audience![0] }}
+          </span>
+        }
+      </div>
+
+      <!-- Sizing Pills & Action Icons -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        
+        <!-- Width Pills (25% - 100%) -->
+        <div class="flex items-center bg-base-100 p-0.5 rounded-xl border border-base-300">
+          @for (span of [1, 2, 3, 4]; track span) {
+            <button 
+              type="button"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: span })"
+              class="px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+              [class]="widget().colSpan === span ? 'bg-tenant-500 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+              {{ span * 25 }}%
+            </button>
+          }
+        </div>
+
+        <!-- Height Pills (1x - 4x) -->
+        <div class="flex items-center bg-base-100 p-0.5 rounded-xl border border-base-300">
+          @for (rSpan of [1, 2, 3, 4]; track rSpan) {
+            <button 
+              type="button"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: rSpan })"
+              class="px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+              [class]="(widget().rowSpan || 2) === rSpan ? 'bg-tenant-500 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+              {{ rSpan }}x
+            </button>
+          }
+        </div>
+
+        <!-- Action Icons: Move Up, Move Down, Duplicate, Edit, Remove -->
+        <div class="flex items-center gap-0.5">
+          <button 
+            type="button"
+            (click)="moveUp.emit(widget().id)"
+            class="w-6 h-6 rounded-lg bg-base-100 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Move Up / Left">
+            <span class="material-symbols-outlined text-xs">arrow_upward</span>
+          </button>
+          <button 
+            type="button"
+            (click)="moveDown.emit(widget().id)"
+            class="w-6 h-6 rounded-lg bg-base-100 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Move Down / Right">
+            <span class="material-symbols-outlined text-xs">arrow_downward</span>
+          </button>
+          <button 
+            type="button"
+            (click)="duplicateWidget.emit(widget())"
+            class="w-6 h-6 rounded-lg bg-base-100 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Duplicate Widget">
+            <span class="material-symbols-outlined text-xs">content_copy</span>
+          </button>
+          <button 
+            type="button"
+            (click)="editWidget.emit(widget())"
+            class="w-6 h-6 rounded-lg bg-base-100 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Configure Widget">
+            <span class="material-symbols-outlined text-xs">settings</span>
+          </button>
+          <button 
+            type="button"
+            (click)="removeWidget.emit(widget().id)"
+            class="w-6 h-6 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors cursor-pointer"
+            title="Remove Widget">
+            <span class="material-symbols-outlined text-xs">delete</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Main Widget Body -->
+  <div class="p-5 flex-1 flex flex-col justify-between overflow-hidden">
+
+    <!-- ========================================================================= -->
+    <!-- 1. WIDGET: Organization KPI Summary                                       -->
+    <!-- ========================================================================= -->
+    @if (widget().type === 'org_kpi_summary') {
+      <div class="h-full flex flex-col justify-between space-y-4">
+        
+        <!-- Header with Period Selector -->
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-base">insights</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Platform-wide telemetry across all registered organizations' }}</p>
+          </div>
+
+          <!-- Period Filter Pills -->
+          <div class="flex items-center gap-1 bg-base-200 p-1 rounded-xl border border-base-300/80">
+            <button 
+              type="button"
+              (click)="kpiPeriod.set('30d')"
+              class="px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer"
+              [class]="kpiPeriod() === '30d' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+              30 Days
+            </button>
+            <button 
+              type="button"
+              (click)="kpiPeriod.set('quarter')"
+              class="px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer"
+              [class]="kpiPeriod() === 'quarter' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+              Quarter
+            </button>
+            <button 
+              type="button"
+              (click)="kpiPeriod.set('ytd')"
+              class="px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer"
+              [class]="kpiPeriod() === 'ytd' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+              YTD
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI 4-Card Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 flex-1">
+          @for (kpi of kpiItems(); track kpi.title) {
+            <app-kpi-card [kpi]="kpi" class="h-full"></app-kpi-card>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 2. WIDGET: Organization Status Breakdown                                  -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'org_status_breakdown') {
+      <div class="h-full flex flex-col justify-between space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">donut_large</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Active, In-Progress, Suspended & Draft distribution' }}</p>
+          </div>
+          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-base-200 border border-base-300 text-text-primary">
+            {{ statusSummary().total }} Total
+          </span>
+        </div>
+
+        <!-- Donut & Breakdown Visualization -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 flex-1 py-2">
+          
+          <!-- Visual Donut Chart SVG -->
+          <div class="relative w-36 h-36 flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <!-- Background Ring -->
+              <path class="text-base-200" stroke-width="4.5" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              
+              <!-- 1. Active Segment (Emerald) -->
+              <path class="text-emerald-500 transition-all duration-700" stroke-width="4.5"
+                [attr.stroke-dasharray]="statusSummary().activePct + ', 100'"
+                stroke-linecap="round" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              
+              <!-- 2. In-Progress Segment (Amber) -->
+              <path class="text-amber-500 transition-all duration-700" stroke-width="4.5"
+                [attr.stroke-dasharray]="statusSummary().inProgressPct + ', 100'"
+                [attr.stroke-dashoffset]="-statusSummary().activePct"
+                stroke-linecap="round" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+
+              <!-- 3. Suspended Segment (Rose) -->
+              <path class="text-rose-500 transition-all duration-700" stroke-width="4.5"
+                [attr.stroke-dasharray]="statusSummary().suspendedPct + ', 100'"
+                [attr.stroke-dashoffset]="-(statusSummary().activePct + statusSummary().inProgressPct)"
+                stroke-linecap="round" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+
+              <!-- 4. Draft Segment (Indigo) -->
+              <path class="text-indigo-500 transition-all duration-700" stroke-width="4.5"
+                [attr.stroke-dasharray]="statusSummary().draftPct + ', 100'"
+                [attr.stroke-dashoffset]="-(statusSummary().activePct + statusSummary().inProgressPct + statusSummary().suspendedPct)"
+                stroke-linecap="round" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+
+            <!-- Center Badge -->
+            <div class="absolute flex flex-col items-center justify-center text-center">
+              <span class="text-xl font-extrabold text-text-primary tracking-tight">{{ statusSummary().activePct }}%</span>
+              <span class="text-[9px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Active</span>
+            </div>
+          </div>
+
+          <!-- Status Counts List -->
+          <div class="grid grid-cols-2 sm:grid-cols-1 gap-2.5 flex-1 w-full">
+            
+            <!-- Active -->
+            <div class="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                <span class="text-xs font-semibold text-text-primary">Active</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300">{{ statusSummary().active }}</span>
+                <span class="text-[10px] text-text-secondary block">({{ statusSummary().activePct }}%)</span>
+              </div>
+            </div>
+
+            <!-- In-Progress -->
+            <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+                <span class="text-xs font-semibold text-text-primary">In-Progress</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-amber-700 dark:text-amber-300">{{ statusSummary().inProgress }}</span>
+                <span class="text-[10px] text-text-secondary block">({{ statusSummary().inProgressPct }}%)</span>
+              </div>
+            </div>
+
+            <!-- Suspended / Inactive -->
+            <div class="p-2.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 flex-shrink-0"></span>
+                <span class="text-xs font-semibold text-text-primary">Suspended</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-300">{{ statusSummary().suspended }}</span>
+                <span class="text-[10px] text-text-secondary block">({{ statusSummary().suspendedPct }}%)</span>
+              </div>
+            </div>
+
+            <!-- Drafts -->
+            <div class="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                <span class="text-xs font-semibold text-text-primary">Draft</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">{{ statusSummary().draft }}</span>
+                <span class="text-[10px] text-text-secondary block">({{ statusSummary().draftPct }}%)</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 3. WIDGET: Platform Capacity Overview                                     -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'platform_capacity_overview') {
+      <div class="h-full flex flex-col justify-between space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-sky-600 dark:text-sky-400 text-base">dns</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Global DB and File Storage capacity consumption' }}</p>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            98.7% Operational
+          </span>
+        </div>
+
+        <!-- Gauges & Progress Bars -->
+        <div class="space-y-4 flex-1 justify-center flex flex-col">
+          
+          <!-- Database Capacity -->
+          <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400">database</span>
+                <span class="font-bold text-text-primary">Database Capacity</span>
+              </div>
+              <span class="font-mono text-xs font-bold text-text-primary">
+                {{ platformCapacity().dbUsedGb }} / {{ platformCapacity().dbTotalGb }} GB
+              </span>
+            </div>
+            
+            <div class="w-full bg-base-300 rounded-full h-2.5 overflow-hidden">
+              <div class="bg-tenant-500 h-2.5 rounded-full transition-all duration-500" [style.width.%]="dbUsedPct()"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-text-secondary">
+              <span>{{ dbUsedPct() }}% allocated</span>
+              <span>{{ platformCapacity().dbAvailableGb }} GB remaining</span>
+            </div>
+          </div>
+
+          <!-- File Storage Capacity -->
+          <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-sky-600 dark:text-sky-400">cloud_upload</span>
+                <span class="font-bold text-text-primary">File Storage Capacity</span>
+              </div>
+              <span class="font-mono text-xs font-bold text-text-primary">
+                {{ platformCapacity().fileUsedGb }} / {{ platformCapacity().fileTotalGb }} GB
+              </span>
+            </div>
+
+            <div class="w-full bg-base-300 rounded-full h-2.5 overflow-hidden">
+              <div class="bg-sky-500 h-2.5 rounded-full transition-all duration-500" [style.width.%]="fileUsedPct()"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-text-secondary">
+              <span>{{ fileUsedPct() }}% allocated</span>
+              <span>{{ platformCapacity().fileAvailableGb }} GB remaining</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 4. WIDGET: Recent Organization Activity                                   -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'recent_org_activity') {
+      <div class="h-full flex flex-col justify-between space-y-3">
+        
+        <!-- Header with Filter -->
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-base">history</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'System-logged lifecycle events & status updates' }}</p>
+          </div>
+
+          <select 
+            [ngModel]="activityFilter()"
+            (ngModelChange)="activityFilter.set($event)"
+            class="text-[11px] font-semibold px-2 py-1 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none">
+            <option value="all">All Events</option>
+            <option value="activated">Activated</option>
+            <option value="deactivated">Deactivated</option>
+            <option value="created">Created</option>
+            <option value="updated">Updated</option>
+          </select>
+        </div>
+
+        <!-- Activity Feed List -->
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[340px]">
+          @if (filteredActivities().length === 0) {
+            <div class="py-8 text-center text-text-secondary space-y-1">
+              <span class="material-symbols-outlined text-3xl text-text-secondary/60">notifications_off</span>
+              <p class="text-xs font-semibold">No activity to display yet.</p>
+            </div>
+          } @else {
+            @for (act of filteredActivities(); track act.id) {
+              <div class="p-3 rounded-2xl bg-base-200/50 hover:bg-base-200 transition-colors border border-base-300/60 flex items-start gap-3">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                     [class]="act.severity === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : act.severity === 'danger' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
+                  <span class="material-symbols-outlined text-sm">
+                    {{ act.type === 'activated' ? 'check_circle' : act.type === 'deactivated' ? 'block' : act.type === 'created' ? 'domain_add' : 'edit_note' }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="font-bold text-xs text-text-primary truncate">{{ act.title }}</span>
+                    <span class="text-[10px] text-text-secondary whitespace-nowrap font-mono">{{ act.timestamp }}</span>
+                  </div>
+                  <p class="text-[11px] text-text-secondary mt-0.5 leading-relaxed">{{ act.description }}</p>
+                  <span class="text-[10px] font-semibold text-tenant-600 dark:text-tenant-300 mt-1 inline-block">By {{ act.actor }}</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 5. WIDGET: Organizations by LMS Count                                     -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'top_orgs_by_lms') {
+      <div class="h-full flex flex-col justify-between space-y-3">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-base">format_list_numbered</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Top enterprise organizations ranked by active LMS instances' }}</p>
+          </div>
+          <a routerLink="/tenants" class="text-xs font-semibold text-tenant-600 dark:text-tenant-300 hover:underline flex items-center gap-0.5">
+            <span>View All</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+
+        <!-- Top List Table -->
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[340px]">
+          @if (topOrgsList().length === 0) {
+            <div class="py-8 text-center text-text-secondary space-y-1">
+              <span class="material-symbols-outlined text-3xl text-text-secondary/60">domain_disabled</span>
+              <p class="text-xs font-semibold">No organizations to rank yet.</p>
+            </div>
+          } @else {
+            @for (item of topOrgsList(); track item.tenant.id; let i = $index) {
+              <div 
+                (click)="navigateToOrg(item.tenant.id)"
+                class="p-3 rounded-2xl bg-base-200/50 hover:bg-base-200 border border-base-300/60 transition-all flex items-center justify-between gap-3 cursor-pointer group">
+                
+                <!-- Rank Badge + Org Details -->
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center flex-shrink-0"
+                       [class]="i === 0 ? 'bg-amber-400 text-amber-950 shadow-xs' : i === 1 ? 'bg-slate-300 text-slate-900' : i === 2 ? 'bg-amber-700/80 text-white' : 'bg-base-300 text-text-secondary'">
+                    #{{ i + 1 }}
+                  </div>
+
+                  <div class="w-8 h-8 rounded-xl bg-tenant-500/10 border border-base-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    @if (item.tenant.branding?.logoUrl) {
+                      <img [src]="item.tenant.branding.logoUrl" [alt]="item.tenant.name" class="w-full h-full object-contain p-1" />
+                    } @else {
+                      <span class="font-bold text-xs text-tenant-600">{{ item.tenant.name.substring(0, 2) }}</span>
+                    }
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-bold text-xs text-text-primary group-hover:text-tenant-600 transition-colors truncate">{{ item.tenant.name }}</span>
+                      <span class="text-[9px] px-1.5 py-0.2 rounded-md font-semibold"
+                            [class]="getStatusBadgeClass(item.tenant.status)">
+                        {{ item.tenant.status }}
+                      </span>
+                    </div>
+                    <span class="text-[10px] text-text-secondary block truncate">{{ item.tenant.domain }}</span>
+                  </div>
+                </div>
+
+                <!-- LMS Instance Count -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <div class="text-right">
+                    <span class="text-xs font-extrabold text-tenant-700 dark:text-tenant-300 block">
+                      {{ item.lmsCount }} LMS
+                    </span>
+                    <span class="text-[9px] text-text-secondary block">
+                      {{ item.totalStorageGb }} GB Storage
+                    </span>
+                  </div>
+                  <span class="material-symbols-outlined text-base text-text-secondary group-hover:translate-x-0.5 transition-transform">chevron_right</span>
+                </div>
+
+              </div>
+            }
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 6. WIDGET: Broadcast Announcement Banner                                  -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'org_broadcast_banner') {
+      @if (!dismissedBanner()) {
+        <div class="h-full flex items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-tenant-500/15 via-tenant-500/10 to-indigo-500/10 border border-tenant-500/30 text-text-primary">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-lg">campaign</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] uppercase tracking-wider font-bold px-2 py-0.2 rounded-md bg-tenant-500 text-white">
+                  System Notice
+                </span>
+                <span class="text-xs font-bold text-text-primary">{{ widget().title }}</span>
+              </div>
+              <p class="text-xs text-text-secondary mt-1 leading-relaxed">
+                {{ widget().config?.bannerText || '⚡ System Maintenance Window scheduled for Sunday 02:00 UTC. All multi-tenant services will remain active with read-only database replication.' }}
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            (click)="dismissedBanner.set(true)"
+            class="w-7 h-7 rounded-lg bg-base-200/80 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+            title="Dismiss Announcement">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      } @else {
+        <div class="py-3 px-4 rounded-xl bg-base-200/50 border border-dashed border-base-300 text-xs text-text-secondary flex items-center justify-between">
+          <span>Announcement dismissed.</span>
+          <button (click)="dismissedBanner.set(false)" class="text-tenant-600 font-semibold hover:underline cursor-pointer text-[11px]">Restore Banner</button>
+        </div>
+      }
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 7. WIDGET: Resource Allocation Leaderboard                                -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'resource_allocation_leaderboard') {
+      <div class="h-full flex flex-col justify-between space-y-3">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base">leaderboard</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Ranked database & storage consumption per organization' }}</p>
+          </div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[340px]">
+          @for (item of resourceLeaderboard(); track item.tenant.id) {
+            <div class="p-3 rounded-2xl bg-base-200/50 hover:bg-base-200 border border-base-300/60 transition-colors flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-text-primary truncate">{{ item.tenant.name }}</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-base-300 text-text-secondary font-mono">{{ item.sharingMode }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-[10px] text-text-secondary mt-0.5">
+                  <span>DB: <strong>{{ item.dbGb }} GB</strong> ({{ item.dbPctOfInfra }}%)</span>
+                  <span>File: <strong>{{ item.fileGb }} GB</strong> ({{ item.filePctOfInfra }}%)</span>
+                </div>
+              </div>
+
+              <div class="text-right flex-shrink-0">
+                <span class="text-xs font-bold text-text-primary block">{{ item.totalGb }} GB</span>
+                <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  Threshold: {{ item.threshold }}%
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 8. WIDGET: Organization Admin Directory                                   -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'org_admin_directory') {
+      <div class="h-full flex flex-col justify-between space-y-3">
+        
+        <!-- Header & Search -->
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-base">contact_mail</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Primary organization administrators and contact points' }}</p>
+          </div>
+
+          <input 
+            type="text"
+            [(ngModel)]="directorySearch"
+            placeholder="Search admins..."
+            class="text-[11px] px-2.5 py-1 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none w-32 sm:w-40" />
+        </div>
+
+        <!-- Directory List -->
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[340px]">
+          @for (admin of filteredAdminDirectory(); track admin.tenantId) {
+            <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300/60 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  {{ admin.adminName.substring(0, 2) }}
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-xs text-text-primary truncate">{{ admin.adminName }}</span>
+                    <span class="material-symbols-outlined text-xs text-emerald-500" title="Verified Admin">verified</span>
+                  </div>
+                  <span class="text-[10px] text-text-secondary block truncate">{{ admin.adminEmail }} &bull; {{ admin.tenantName }}</span>
+                </div>
+              </div>
+
+              <div class="text-right flex-shrink-0">
+                <span class="text-[11px] font-mono text-text-secondary block">{{ admin.contactNumber }}</span>
+                <span class="text-[9px] font-semibold text-tenant-600 dark:text-tenant-400">{{ admin.division }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 9. WIDGET: Timezone Distribution                                          -->
+    <!-- ========================================================================= -->
+    @else if (widget().type === 'timezone_distribution') {
+      <div class="h-full flex flex-col justify-between space-y-3">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-teal-600 dark:text-teal-400 text-base">schedule</span>
+              <span>{{ widget().title }}</span>
+            </h3>
+            <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle || 'Geographic timezone allocation across organizations' }}</p>
+          </div>
+        </div>
+
+        <!-- Timezone List -->
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 max-h-[340px]">
+          @for (tz of timezoneList(); track tz.timezone) {
+            <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300/60 flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm text-teal-500">public</span>
+                  <span class="font-bold text-xs text-text-primary">{{ tz.timezone }}</span>
+                </div>
+                <div class="flex items-center gap-1 mt-1 flex-wrap">
+                  @for (name of tz.orgNames; track name) {
+                    <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-base-300 text-text-secondary font-medium">
+                      {{ name }}
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-teal-500/10 text-teal-700 dark:text-teal-300 font-mono flex-shrink-0">
+                {{ tz.count }} Orgs
+              </span>
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+
+  </div>
+
+  <!-- Studio Mode Interactive Corner Resize Handle -->
+  @if (isBuilderMode()) {
+    <div 
+      (mousedown)="startCornerResize($event, cardEl)"
+      class="absolute bottom-1 right-1 w-5 h-5 rounded-br-2xl cursor-nwse-resize flex items-center justify-center text-tenant-500 hover:text-tenant-700 select-none z-10"
+      title="Drag corner to dynamically resize width & height">
+      <span class="material-symbols-outlined text-sm rotate-45 pointer-events-none">unfold_more</span>
+    </div>
+  }
+
+</div>
