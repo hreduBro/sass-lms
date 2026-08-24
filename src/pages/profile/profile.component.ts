@@ -713,8 +713,8 @@ interface ProfileTab {
                 </div>
                 <button 
                   type="button"
-                  (click)="showSignOutConfirm.set(true)"
-                  class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 text-xs font-semibold transition-colors">
+                  (click)="lms.openSignOutModal()"
+                  class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 text-xs font-semibold transition-colors cursor-pointer">
                   Sign Out
                 </button>
               </div>
@@ -769,37 +769,6 @@ interface ProfileTab {
         </div>
       </div>
     }
-
-    <!-- Sign Out Confirmation Modal -->
-    @if (showSignOutConfirm()) {
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
-        <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4">
-          <div class="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center mx-auto">
-            <span class="material-symbols-outlined text-3xl">logout</span>
-          </div>
-
-          <div>
-            <h3 class="font-bold text-base text-text-primary">Sign Out of Session?</h3>
-            <p class="text-xs text-text-secondary mt-1">You will be signed out of {{ lms.activeTenant().name }}. You can switch roles or re-authenticate at any time.</p>
-          </div>
-
-          <div class="flex items-center justify-center gap-2.5 pt-2">
-            <button 
-              type="button"
-              (click)="showSignOutConfirm.set(false)"
-              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold flex-1">
-              Cancel
-            </button>
-            <button 
-              type="button"
-              (click)="confirmSignOut()"
-              class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex-1">
-              Confirm Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -811,7 +780,6 @@ export class ProfileComponent {
   isEditing = signal<boolean>(false);
   saveSuccessMessage = signal<string>('');
   showAvatarPicker = signal<boolean>(false);
-  showSignOutConfirm = signal<boolean>(false);
   customAvatarUrl = '';
   newSkillInput = '';
 
@@ -984,11 +952,5 @@ export class ProfileComponent {
     a.click();
     URL.revokeObjectURL(url);
     this.lms.logAction('Transcript Exported', `Exported learning transcript dossier for ${user.name}`, 'info');
-  }
-
-  confirmSignOut() {
-    this.lms.logout();
-    this.showSignOutConfirm.set(false);
-    this.saveSuccessMessage.set('Session successfully signed out. Switched to guest simulation.');
   }
 }

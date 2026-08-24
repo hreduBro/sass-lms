@@ -29,7 +29,6 @@ export class HeaderComponent {
   showThemeMenu = computed(() => this.lms.isNavDropdownOpen('header-theme'));
 
   showNewTenantModal = signal(false);
-  showSignOutModal = signal(false);
 
   tenantSearch = signal('');
   lmsSearch = signal('');
@@ -87,7 +86,6 @@ export class HeaderComponent {
   @HostListener('document:keydown.escape')
   onEscapePress() {
     this.closeAllDropdowns();
-    this.showSignOutModal.set(false);
   }
 
   toggleTenantDropdown(event?: Event) {
@@ -171,13 +169,7 @@ export class HeaderComponent {
 
   handleSignOut() {
     this.closeAllDropdowns();
-    this.showSignOutModal.set(true);
-  }
-
-  confirmSignOut() {
-    this.lms.logout();
-    this.showSignOutModal.set(false);
-    this.router.navigate(['/dashboard']);
+    this.lms.openSignOutModal();
   }
 
   createTenant() {

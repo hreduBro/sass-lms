@@ -18,15 +18,15 @@
     <div class="relative">
       @if (lms.isSystemAdmin()) {
         <!-- System Admin: Interactive Organization Switcher Dropdown -->
-        <button
+        <button 
           id="btn-tenant-switcher"
           (click)="toggleTenantDropdown($event)"
           class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-left transition-all cursor-pointer"
           aria-label="Select Organization Tenant">
           <div class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 p-0.5 shadow-2xs border border-base-300/80 flex items-center justify-center overflow-hidden shrink-0">
             @if (lms.activeTenant().branding.logoUrl) {
-              <img
-                [src]="lms.activeTenant().branding.logoUrl"
+              <img 
+                [src]="lms.activeTenant().branding.logoUrl" 
                 [alt]="lms.activeTenant().name"
                 class="w-full h-full object-contain"
                 referrerpolicy="no-referrer" />
@@ -54,7 +54,7 @@
         <!-- Tenant Dropdown Menu (System Admin Only) -->
         @if (showTenantDropdown()) {
           <div class="absolute left-0 mt-2 w-88 sm:w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-300 p-3 z-50 animate-dropdown space-y-2.5">
-
+            
             <!-- Header with Tenant Count -->
             <div class="flex items-center justify-between px-1 text-xs">
               <div class="flex items-center gap-1.5 font-bold text-text-primary">
@@ -69,21 +69,21 @@
             <!-- Quick Filter Input -->
             <div class="relative">
               <span class="material-symbols-outlined text-sm text-text-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
-              <input
-                type="text"
+              <input 
+                type="text" 
                 [value]="tenantSearch()"
                 (input)="tenantSearch.set($any($event.target).value)"
-                placeholder="Filter by name, domain, plan..."
+                placeholder="Filter by name, domain, plan..." 
                 class="w-full pl-9 pr-8 py-2 bg-base-200/70 dark:bg-base-200/50 hover:bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all" />
               @if (tenantSearch()) {
-                <button
-                  (click)="tenantSearch.set('')"
+                <button 
+                  (click)="tenantSearch.set('')" 
                   class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 cursor-pointer">
                   <span class="material-symbols-outlined text-xs">close</span>
                 </button>
               }
             </div>
-
+            
             <!-- Tenant List with dedicated inset padding and no-clip border styling -->
             <div class="max-h-68 overflow-y-auto space-y-1.5 p-1 rounded-xl bg-base-200/30 border border-base-300/40">
               @if (filteredTenants().length === 0) {
@@ -93,24 +93,24 @@
                 </div>
               } @else {
                 @for (tenant of filteredTenants(); track tenant.id) {
-                  <button
+                  <button 
                     (click)="selectTenant(tenant.id)"
                     class="w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all group cursor-pointer border"
                     [class]="tenant.id === lms.activeTenantId() ? 'bg-tenant-500/10 border-tenant-500/50 dark:bg-tenant-500/20 text-text-primary shadow-xs' : 'border-transparent hover:border-base-300 hover:bg-base-200/90 text-text-primary'">
-
+                    
                     <div class="flex items-center gap-3 min-w-0">
                       <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 p-1.5 shadow-2xs border border-base-300/80 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
                         @if (tenant.branding.logoUrl) {
-                          <img
-                            [src]="tenant.branding.logoUrl"
-                            [alt]="tenant.name"
-                            class="w-full h-full object-contain"
+                          <img 
+                            [src]="tenant.branding.logoUrl" 
+                            [alt]="tenant.name" 
+                            class="w-full h-full object-contain" 
                             referrerpolicy="no-referrer" />
                         } @else {
                           <span class="material-symbols-outlined text-base text-tenant-500">domain</span>
                         }
                       </div>
-
+                      
                       <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-1.5 truncate">
                           <span class="text-xs font-semibold truncate">{{ tenant.name }}</span>
@@ -143,7 +143,7 @@
 
             <!-- Bottom Action Buttons -->
             <div class="pt-2 border-t border-base-300 flex items-center gap-2">
-              <a
+              <a 
                 routerLink="/tenants/create"
                 (click)="closeAllDropdowns()"
                 class="flex-1 btn-gradient flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-white text-xs font-semibold shadow-xs hover:opacity-95 transition-opacity">
@@ -151,7 +151,7 @@
                 <span>New Organization</span>
               </a>
 
-              <button
+              <button 
                 id="btn-add-tenant"
                 (click)="openNewTenantModal()"
                 title="Quick Simple Provision"
@@ -164,13 +164,13 @@
         }
       } @else {
         <!-- LMS Admin / Learner / Instructor: Static Read-Only Organization Badge -->
-        <div
+        <div 
           class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-base-200/80 border border-base-300 text-left select-none shadow-2xs"
           title="Assigned Organization: {{ lms.activeTenant().name }}">
           <div class="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 p-0.5 shadow-2xs border border-base-300/80 flex items-center justify-center overflow-hidden shrink-0">
             @if (lms.activeTenant().branding.logoUrl) {
-              <img
-                [src]="lms.activeTenant().branding.logoUrl"
+              <img 
+                [src]="lms.activeTenant().branding.logoUrl" 
                 [alt]="lms.activeTenant().name"
                 class="w-full h-full object-contain"
                 referrerpolicy="no-referrer" />
@@ -198,15 +198,15 @@
 
     <!-- LMS Switcher Dropdown (LMS Admin switches between their Org's LMS portals; System Admin can switch across all LMS portals) -->
     <div class="relative hidden sm:block">
-      <button
+      <button 
         id="btn-lms-switcher"
         (click)="toggleLmsDropdown($event)"
         class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-tenant-500/10 hover:bg-tenant-500/20 border border-tenant-500/30 text-left transition-all cursor-pointer"
         title="Switch Active LMS Portal (Theming & Layout mapped to LMS)">
         <div class="w-6 h-6 rounded-lg bg-tenant-500 text-white flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
           @if (lms.activeLms()?.branding?.logoUrl) {
-            <img
-              [src]="lms.activeLms().branding.logoUrl"
+            <img 
+              [src]="lms.activeLms().branding.logoUrl" 
               [alt]="lms.activeLms().basicInfo.lmsName"
               class="w-full h-full object-contain"
               referrerpolicy="no-referrer" />
@@ -248,15 +248,15 @@
           <!-- Search Input -->
           <div class="relative">
             <span class="material-symbols-outlined text-sm text-text-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
-            <input
-              type="text"
+            <input 
+              type="text" 
               [value]="lmsSearch()"
               (input)="lmsSearch.set($any($event.target).value)"
-              placeholder="Search LMS by name, department, org..."
+              placeholder="Search LMS by name, department, org..." 
               class="w-full pl-9 pr-8 py-2 bg-base-200/70 dark:bg-base-200/50 hover:bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all" />
             @if (lmsSearch()) {
-              <button
-                (click)="lmsSearch.set('')"
+              <button 
+                (click)="lmsSearch.set('')" 
                 class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 cursor-pointer">
                 <span class="material-symbols-outlined text-xs">close</span>
               </button>
@@ -272,7 +272,7 @@
               </div>
             } @else {
               @for (item of filteredLmsList(); track item.id) {
-                <button
+                <button 
                   (click)="selectLms(item.id)"
                   class="w-full flex items-center justify-between p-2 rounded-xl text-left transition-all group cursor-pointer border"
                   [class]="item.id === lms.activeLmsId() ? 'bg-tenant-500/10 border-tenant-500/50 dark:bg-tenant-500/20 text-text-primary shadow-xs' : 'border-transparent hover:border-base-300 hover:bg-base-200/90 text-text-primary'">
@@ -304,7 +304,7 @@
           </div>
 
           <div class="pt-2 border-t border-base-300">
-            <a
+            <a 
               routerLink="/lms-instances/create"
               (click)="closeAllDropdowns()"
               class="w-full btn-gradient flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-white text-xs font-semibold shadow-xs hover:opacity-95 transition-opacity">
@@ -710,37 +710,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
-}
-
-<!-- Sign Out Confirmation Modal -->
-@if (showSignOutModal()) {
-  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4">
-      <div class="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">logout</span>
-      </div>
-
-      <div>
-        <h3 class="font-bold text-base text-text-primary">Sign Out of Session?</h3>
-        <p class="text-xs text-text-secondary mt-1">You are currently logged in as <span class="font-semibold text-text-primary">{{ lms.activeUser().name }}</span> on <span class="font-semibold text-text-primary">{{ lms.activeTenant().name }}</span>.</p>
-      </div>
-
-      <div class="flex items-center justify-center gap-2.5 pt-2">
-        <button
-          type="button"
-          (click)="showSignOutModal.set(false)"
-          class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold flex-1 cursor-pointer">
-          Cancel
-        </button>
-        <button
-          type="button"
-          (click)="confirmSignOut()"
-          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex-1 cursor-pointer">
-          Confirm Sign Out
-        </button>
-      </div>
     </div>
   </div>
 }
