@@ -23,14 +23,14 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Dashboard',
     route: '/dashboard',
     icon: 'space_dashboard',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+    roles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
     description: 'Overview metrics, recent activities & quick insights'
   },
   {
     label: 'Organizations',
     route: '/tenants',
     icon: 'corporate_fare',
-    roles: ['system_admin', 'super_admin'],
+    roles: ['super_admin', 'tenant_admin'],
     badge: 'Multi',
     description: 'Manage workspace tenants & subsidiaries',
     children: [
@@ -43,7 +43,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'LMS Instances',
     route: '/lms',
     icon: 'layers',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin'],
+    roles: ['super_admin', 'tenant_admin'],
     description: 'Multi-portal LMS instance allocation',
     children: [
       { label: 'LMS Dashboard', route: '/lms/dashboard', icon: 'space_dashboard', badge: 'Overview', description: 'Organization LMS status, active drafts & capacity metrics' },
@@ -55,7 +55,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+    roles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
     description: 'Curriculum library & training materials',
     children: [
       { label: 'Course Directory', route: '/courses', icon: 'auto_stories', description: 'Browse courses, modules & tracks' },
@@ -66,28 +66,28 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Users & Personnel',
     route: '/users',
     icon: 'groups',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor'],
+    roles: ['super_admin', 'tenant_admin', 'instructor'],
     description: 'Personnel directory & permissions'
   },
   {
     label: 'Compliance & Analytics',
     route: '/analytics',
     icon: 'analytics',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin'],
+    roles: ['super_admin', 'tenant_admin'],
     description: 'KPI metrics, audit reports & compliance'
   },
   {
     label: 'Certificates Vault',
     route: '/certificates',
     icon: 'verified',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+    roles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
     description: 'Verifiable credentials & issued certificates'
   },
   {
     label: 'Live Classrooms',
     route: '/webinars',
     icon: 'videocam',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+    roles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
     badge: 'Live',
     description: 'Virtual interactive classrooms & webinars'
   },
@@ -95,15 +95,15 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'My Profile',
     route: '/profile',
     icon: 'account_circle',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+    roles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
     description: 'Personal profile & skills'
   },
   {
-    label: 'LMS Theming & Layout',
+    label: 'Tenant Branding',
     route: '/settings',
     icon: 'palette',
-    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin'],
-    description: 'LMS-mapped theme, layout & brand customizer'
+    roles: ['super_admin', 'tenant_admin'],
+    description: 'Theme, layout & brand customizer'
   }
 ];
 

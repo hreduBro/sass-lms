@@ -1,4 +1,3 @@
-
 <div class="flex h-screen bg-base-200 font-sans overflow-hidden">
 
   <!-- Dynamic Sidebar (Handles Desktop Classic, Desktop Rail, and Mobile Slide-Out Drawer) -->
@@ -14,15 +13,12 @@
       </div>
     }
     
-    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6">
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-20 lg:pb-6">
       <div [class]="lms.adminLayoutPreferences().contentWidth === 'fluid' ? 'w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6' : 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6'">
         <!-- The main content will be rendered here based on the route. -->
         <router-outlet></router-outlet>
       </div>
     </main>
-
-    <!-- Fixed Bottom Platform Footer -->
-    <app-footer class="relative z-20 flex-shrink-0"></app-footer>
 
     <!-- Mobile Bottom Tab Navigation -->
     <app-mobile-nav></app-mobile-nav>
@@ -221,41 +217,6 @@
 <!-- Backend REST API & Telemetry Console Modal (Rendered at root level with z-[100] above toast notifications) -->
 @if (lms.showBackendConsole()) {
   <app-backend-console-modal (close)="lms.closeBackendConsole()"></app-backend-console-modal>
-}
-
-<!-- Global Sign Out Confirmation Modal (Rendered at root level to guarantee true 100vw x 100vh full-screen coverage) -->
-@if (lms.showSignOutModal()) {
-  <div 
-    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
-    (click)="lms.closeSignOutModal()">
-    <div 
-      class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4"
-      (click)="$event.stopPropagation()">
-      <div class="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">logout</span>
-      </div>
-
-      <div>
-        <h3 class="font-bold text-base text-text-primary">Sign Out of Session?</h3>
-        <p class="text-xs text-text-secondary mt-1">You are currently logged in as <span class="font-semibold text-text-primary">{{ lms.activeUser().name }}</span> on <span class="font-semibold text-text-primary">{{ lms.activeTenant().name }}</span>.</p>
-      </div>
-
-      <div class="flex items-center justify-center gap-2.5 pt-2">
-        <button 
-          type="button" 
-          (click)="lms.closeSignOutModal()" 
-          class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold flex-1 cursor-pointer">
-          Cancel
-        </button>
-        <button 
-          type="button" 
-          (click)="confirmGlobalSignOut()" 
-          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex-1 cursor-pointer shadow-xs">
-          Confirm Sign Out
-        </button>
-      </div>
-    </div>
-  </div>
 }
 
 

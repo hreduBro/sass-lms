@@ -339,7 +339,7 @@
               title="+ Create LMS for this Organization">
               <span class="material-symbols-outlined text-sm">add_circle</span>
             </button>
-            <button 
+            <button
               (click)="toggleStatus(tenant.id, $event)"
               class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 transition-colors text-xs"
               [title]="tenant.status === 'Active' ? 'Set Inactive/Suspended' : 'Activate Organization'">
@@ -349,7 +349,7 @@
             </button>
           </div>
 
-          <button 
+          <button
             (click)="selectTenant(tenant.id)"
             class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1"
             [class]="tenant.id === lms.activeTenantId() ? 'bg-tenant-500 text-white' : 'bg-base-100 hover:bg-base-300 text-text-primary border border-base-300'">
@@ -371,7 +371,7 @@
   <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
     <div class="flex items-center gap-3 text-text-secondary">
       <span>
-        Showing 
+        Showing
         <span class="font-semibold text-text-primary font-mono">{{ filteredTenants().length === 0 ? 0 : (currentPage() - 1) * pageSize() + 1 }}</span>
         to
         <span class="font-semibold text-text-primary font-mono">{{ filteredTenants().length < currentPage() * pageSize() ? filteredTenants().length : currentPage() * pageSize() }}</span>
@@ -405,7 +405,7 @@
       </button>
 
       @for (p of pagesList(); track p) {
-        <button 
+        <button
           (click)="goToPage(p)"
           class="w-8 h-8 rounded-lg border text-xs font-semibold flex items-center justify-center transition-all"
           [class]="p === currentPage() ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm' : 'border-base-300 bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
@@ -413,7 +413,7 @@
         </button>
       }
 
-      <button 
+      <button
         (click)="nextPage()"
         [disabled]="currentPage() === totalPages()"
         class="px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-200 hover:bg-base-300 disabled:opacity-40 disabled:hover:bg-base-200 text-text-secondary hover:text-text-primary flex items-center gap-1 transition-all"

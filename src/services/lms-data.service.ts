@@ -1,7 +1,6 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import {
   Tenant,
-  TenantBranding,
   User,
   Course,
   CourseEnrollment,
@@ -1705,25 +1704,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'accepted'
       }
-    ],
-    branding: {
-      primaryColor: '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
-      accentColor: '#C40072',  // Deep Magenta Complement
-      tagline: 'Digitized Microfinance & Client Protection Compliance',
-      bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'Okta'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-1972-02',
@@ -1761,25 +1742,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'accepted'
       }
-    ],
-    branding: {
-      primaryColor: '#059669', // Emerald Green
-      accentColor: '#10b981',  // Bright Green
-      tagline: 'Evidence-Based Multidimensional Poverty Graduation Methodology',
-      bannerUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'Google Workspace'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-1972-03',
@@ -1818,25 +1781,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'pending'
       }
-    ],
-    branding: {
-      primaryColor: '#d97706', // Warm Amber
-      accentColor: '#f59e0b',
-      tagline: 'Early Childhood Play Pedagogy & Community Learning Facilitation',
-      bannerUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'Okta'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'compact',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-1972-04',
@@ -1874,25 +1819,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'pending'
       }
-    ],
-    branding: {
-      primaryColor: '#0284c7', // Sky Blue
-      accentColor: '#0ea5e9',
-      tagline: 'Coastal Climate Adaptation, Disaster Preparedness & Cyclone Safety',
-      bannerUrl: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'None'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-1972-05',
@@ -1930,25 +1857,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'accepted'
       }
-    ],
-    branding: {
-      primaryColor: '#64748b', // Slate
-      accentColor: '#94a3b8',
-      tagline: 'Archived ERP Standard Operating Procedures & Procurement',
-      bannerUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'None'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-1972-06',
@@ -1987,25 +1896,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'pending'
       }
-    ],
-    branding: {
-      primaryColor: '#e11d48', // Rose / Ruby
-      accentColor: '#f43f5e',
-      tagline: 'Frontline Community Health & Maternal Nutrition Diagnostic Toolkits',
-      bannerUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'Okta'
-    },
-    layoutPreferences: {
-      navigationMode: 'sidebar',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-5520-01',
@@ -2039,25 +1930,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'accepted'
       }
-    ],
-    branding: {
-      primaryColor: '#7c3aed', // Vibrant Violet
-      accentColor: '#06b6d4',  // Cyan
-      tagline: 'Spatial Computing, Optical Refraction & Generative Vision',
-      bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'glassmorphism',
-      ssoProvider: 'Okta'
-    },
-    layoutPreferences: {
-      navigationMode: 'top_menu',
-      headerDensity: 'comfortable',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   },
   {
     id: 'LMS-4821-01',
@@ -2091,25 +1964,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
         role: 'LMS Admin',
         invitationStatus: 'accepted'
       }
-    ],
-    branding: {
-      primaryColor: '#2563eb', // Enterprise Blue
-      accentColor: '#38bdf8',  // Sky
-      tagline: 'Zero Trust Architecture, SOC-2 Credential Governance & Cloud Security',
-      bannerUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
-      logoUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=200&q=80',
-      customCssEnabled: true,
-      themePreset: 'solid',
-      ssoProvider: 'Azure AD'
-    },
-    layoutPreferences: {
-      navigationMode: 'compact_rail',
-      headerDensity: 'compact',
-      showBreadcrumbs: true,
-      stickyHeader: true,
-      contentWidth: 'fluid',
-      accentMode: 'brand'
-    }
+    ]
   }
 ];
 
@@ -2381,27 +2236,13 @@ export class LmsDataService {
   // Core reactive signals
   tenants = signal<Tenant[]>(INITIAL_TENANTS);
   activeTenantId = signal<string>('tenant-brac');
-  activeRole = signal<UserRole>('lms_admin');
-
-  // Role check computed signals
-  isSystemAdmin = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'system_admin' || (role as any) === 'super_admin';
-  });
-
-  isLmsAdmin = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'lms_admin' || (role as any) === 'tenant_admin';
-  });
+  activeRole = signal<UserRole>('tenant_admin');
   courses = signal<Course[]>(INITIAL_COURSES);
   users = signal<User[]>(INITIAL_USERS);
   enrollments = signal<CourseEnrollment[]>(INITIAL_ENROLLMENTS);
   certificates = signal<Certificate[]>(INITIAL_CERTIFICATES);
   webinars = signal<LiveWebinar[]>(INITIAL_WEBINARS);
   auditLogs = signal<AuditLog[]>(INITIAL_AUDIT_LOGS);
-
-  // Active LMS Instance Signal (LMS Admin switches between LMS instances)
-  activeLmsId = signal<string>('LMS-1972-01');
 
   // Platform Capacity Infra Hardcoded Limits (YYYY values based on infra setup)
   readonly dbTotalInfraGb = 5000;
@@ -2931,8 +2772,8 @@ export class LmsDataService {
         customBatches: draft.resources.customBatches
       },
       branding: {
-        primaryColor: '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
-        accentColor: '#C40072',  // Deep Magenta Complement
+        primaryColor: '#861F41', // Pantone Maroon (BRAC's original brand color)
+        accentColor: '#d97706',  // Warm Amber
         tagline: draft.basicInfo.tagline || 'Excellence in Enterprise Skill Mastery',
         bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
         logoUrl: draft.basicInfo.logo?.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80',
@@ -3010,15 +2851,6 @@ export class LmsDataService {
   activeOrgLmsInstances = computed<LmsInstance[]>(() => {
     const currentOrgId = this.activeTenantId();
     return this.lmsInstances().filter(l => l.organizationId === currentOrgId);
-  });
-
-  // Currently active LMS instance computed (Theming and Layouting is mapped to this LMS)
-  activeLms = computed<LmsInstance>(() => {
-    const list = this.lmsInstances();
-    const current = list.find(l => l.id === this.activeLmsId());
-    if (current) return current;
-    const orgLms = this.activeOrgLmsInstances();
-    return orgLms[0] || list[0];
   });
 
   // LMS Drafts scoped to the active organization
@@ -3672,52 +3504,30 @@ export class LmsDataService {
     return current || list[0];
   });
 
-  // Currently active user based on activeTenant, activeLms, and activeRole
+  // Currently active user based on activeTenant and activeRole
   activeUser = computed<User>(() => {
     const currentTenantId = this.activeTenantId();
     const currentRole = this.activeRole();
-    const currentLms = this.activeLms();
     const tenantUsers = this.users().filter(u => u.tenantId === currentTenantId);
 
     // Look for matching user role in tenant
     const matched = tenantUsers.find(u => u.role === currentRole);
     if (matched) return matched;
 
-    if (currentRole === 'system_admin' || (currentRole as any) === 'super_admin') {
+    if (currentRole === 'super_admin') {
       return {
-        id: 'usr-system-admin',
+        id: 'usr-super-admin',
         tenantId: 'global',
         name: 'Alexandre Sterling',
-        email: 'systemadmin@omnilearn-cloud.io',
+        email: 'superadmin@omnilearn-cloud.io',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        role: 'system_admin',
+        role: 'super_admin',
         department: 'Global Platform Operations',
         enrolledCourses: [],
         completedCourses: [],
         earnedCertificates: [],
         points: 9999,
-        badges: ['System Admin', 'Platform Architect'],
-        lastActive: 'Just now',
-        status: 'Active',
-        complianceStatus: 'Compliant'
-      };
-    }
-
-    if (currentRole === 'lms_admin' || (currentRole as any) === 'tenant_admin') {
-      const lmsAdmin = currentLms?.admins?.[0];
-      return {
-        id: `usr-lms-admin-${currentLms?.id || 'default'}`,
-        tenantId: currentTenantId,
-        name: lmsAdmin?.name || 'Tanvir Hossain',
-        email: lmsAdmin?.email || 'tanvir.admin@brac-mf.lmscloud.io',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        role: 'lms_admin',
-        department: currentLms?.basicInfo?.programmeDepartment || 'Executive Management',
-        enrolledCourses: [],
-        completedCourses: [],
-        earnedCertificates: [],
-        points: 1200,
-        badges: ['LMS Admin', 'Portal Director'],
+        badges: ['Super Admin', 'Platform Architect'],
         lastActive: 'Just now',
         status: 'Active',
         complianceStatus: 'Compliant'
@@ -3750,8 +3560,8 @@ export class LmsDataService {
     const role = this.activeRole();
     const all = this.courses();
 
-    // If system admin, they can see all courses or filter
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    // If super admin, they can see all courses or filter
+    if (role === 'super_admin') {
       return all;
     }
     return all.filter(c => c.tenantId === tenantId || c.tenantId === 'global');
@@ -3761,7 +3571,7 @@ export class LmsDataService {
   tenantUsers = computed<User[]>(() => {
     const tenantId = this.activeTenantId();
     const role = this.activeRole();
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'super_admin') {
       return this.users();
     }
     return this.users().filter(u => u.tenantId === tenantId);
@@ -3771,7 +3581,7 @@ export class LmsDataService {
   tenantCertificates = computed<Certificate[]>(() => {
     const tenantId = this.activeTenantId();
     const role = this.activeRole();
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'super_admin') {
       return this.certificates();
     }
     return this.certificates().filter(c => c.tenantId === tenantId);
@@ -3804,153 +3614,25 @@ export class LmsDataService {
   });
 
   constructor() {
-    // Dynamic CSS theme and favicon injection effect:
-    // Theming & layouting setup is STRICTLY dependent on the LMS and mapped with LMS
+    // Dynamic CSS theme and favicon injection effect whenever active tenant changes
     effect(() => {
-      const lms = this.activeLms();
-      if (lms && lms.branding) {
+      const tenant = this.activeTenant();
+      if (tenant && tenant.branding) {
         this.applyTenantTheme(
-          lms.branding.primaryColor,
-          lms.branding.accentColor,
-          lms.branding.faviconUrl,
-          lms.basicInfo.lmsName,
-          lms.branding.themePreset
+          tenant.branding.primaryColor,
+          tenant.branding.accentColor,
+          tenant.branding.faviconUrl,
+          tenant.name,
+          tenant.branding.themePreset
         );
-        if (lms.layoutPreferences) {
-          this.adminLayoutPreferences.set({ ...lms.layoutPreferences });
-        }
       }
     });
   }
 
-  // Switch tenant / organization (System Admin only)
+  // Switch tenant
   switchTenant(tenantId: string) {
-    if (!this.isSystemAdmin()) {
-      this.showToast('Only System Administrators can switch between organizations.', 'warning', 3500, 'Access Restricted');
-      return;
-    }
-
     this.activeTenantId.set(tenantId);
-    // When switching organization, auto-select its first LMS instance
-    const orgLms = this.lmsInstances().filter(l => l.organizationId === tenantId);
-    if (orgLms.length > 0) {
-      this.activeLmsId.set(orgLms[0].id);
-      if (orgLms[0].layoutPreferences) {
-        this.adminLayoutPreferences.set({ ...orgLms[0].layoutPreferences });
-      }
-    }
-    this.logAction('Organization Switch', `Switched active organization to: ${this.activeTenant().name}`, 'info');
-    this.showToast(`Switched active organization to "${this.activeTenant().name}"`, 'info', 3000, 'Organization Switched');
-  }
-
-  // Switch active LMS portal (LMS Admin switches between their org's LMS instances; System Admin can switch between all LMS instances)
-  switchLms(lmsId: string) {
-    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
-    if (!targetLms) return;
-
-    // Non-system admins can only switch between LMS instances belonging to their active organization
-    if (!this.isSystemAdmin() && targetLms.organizationId !== this.activeTenantId()) {
-      this.showToast('LMS Admins can only switch between LMS portals in their assigned organization.', 'warning', 3500, 'Access Restricted');
-      return;
-    }
-
-    this.activeLmsId.set(lmsId);
-    
-    // Sync organization if the LMS belongs to a different organization (for System Admin)
-    if (targetLms.organizationId !== this.activeTenantId()) {
-      this.activeTenantId.set(targetLms.organizationId);
-    }
-
-    // Apply LMS-mapped layout preferences
-    if (targetLms.layoutPreferences) {
-      this.adminLayoutPreferences.set({ ...targetLms.layoutPreferences });
-    }
-
-    // Apply LMS-mapped branding
-    if (targetLms.branding) {
-      this.applyTenantTheme(
-        targetLms.branding.primaryColor,
-        targetLms.branding.accentColor,
-        targetLms.branding.faviconUrl,
-        targetLms.basicInfo.lmsName,
-        targetLms.branding.themePreset
-      );
-    }
-
-    this.logAction('LMS Switch', `Switched active LMS portal to: ${targetLms.basicInfo.lmsName} (${targetLms.id})`, 'info');
-    this.showToast(`Switched active LMS portal to "${targetLms.basicInfo.lmsName}"`, 'info', 3500, 'LMS Portal Switched');
-  }
-
-  // Update branding mapped to a specific LMS instance
-  updateLmsBranding(lmsId: string, brandingChanges: Partial<TenantBranding>) {
-    this.lmsInstances.update(list => list.map(lms => {
-      if (lms.id === lmsId) {
-        const currentBranding = lms.branding || {
-          primaryColor: '#EC008C',
-          accentColor: '#C40072',
-          tagline: lms.basicInfo.summary || '',
-          bannerUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-          logoUrl: lms.basicInfo.logo?.url || '',
-          customCssEnabled: true,
-          themePreset: 'solid',
-          ssoProvider: 'Okta'
-        };
-        return {
-          ...lms,
-          branding: {
-            ...currentBranding,
-            ...brandingChanges
-          },
-          updatedAt: new Date().toISOString().split('T')[0]
-        };
-      }
-      return lms;
-    }));
-
-    if (this.activeLmsId() === lmsId) {
-      const active = this.activeLms();
-      if (active && active.branding) {
-        this.applyTenantTheme(
-          active.branding.primaryColor,
-          active.branding.accentColor,
-          active.branding.faviconUrl,
-          active.basicInfo.lmsName,
-          active.branding.themePreset
-        );
-      }
-    }
-
-    this.logAction('LMS Branding Updated', `Updated branding for LMS portal ID: ${lmsId}`, 'info');
-    this.showToast('LMS portal branding & theme updated successfully', 'success', 4000, 'Branding Saved');
-  }
-
-  // Update layout preferences mapped to a specific LMS instance
-  updateLmsLayoutPreferences(lmsId: string, prefs: Partial<AdminLayoutPreferences>) {
-    this.lmsInstances.update(list => list.map(lms => {
-      if (lms.id === lmsId) {
-        const currentPrefs = lms.layoutPreferences || {
-          navigationMode: 'sidebar',
-          headerDensity: 'comfortable',
-          showBreadcrumbs: true,
-          stickyHeader: true,
-          contentWidth: 'fluid',
-          accentMode: 'brand'
-        };
-        return {
-          ...lms,
-          layoutPreferences: {
-            ...currentPrefs,
-            ...prefs
-          },
-          updatedAt: new Date().toISOString().split('T')[0]
-        };
-      }
-      return lms;
-    }));
-
-    if (this.activeLmsId() === lmsId) {
-      this.adminLayoutPreferences.update(cur => ({ ...cur, ...prefs }));
-    }
+    this.logAction('Tenant Switch', `Switched active workspace to: ${this.activeTenant().name}`, 'info');
   }
 
   // Switch role
@@ -4149,8 +3831,8 @@ export class LmsDataService {
       createdAt: new Date().toISOString().split('T')[0],
       renewalDate: new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0],
       branding: {
-        primaryColor: newTenant.branding?.primaryColor || '#EC008C', // 100% Pantone Magenta (BRAC Pink Standard)
-        accentColor: newTenant.branding?.accentColor || '#C40072',
+        primaryColor: newTenant.branding?.primaryColor || '#861F41', // Pantone Maroon (BRAC's original brand color)
+        accentColor: newTenant.branding?.accentColor || '#d97706',
         tagline: newTenant.branding?.tagline || 'Custom Enterprise Learning Experience',
         bannerUrl: newTenant.branding?.bannerUrl || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
         logoUrl: newTenant.branding?.logoUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80',
@@ -4470,7 +4152,7 @@ export class LmsDataService {
       tenantId: tenant.id,
       tenantName: tenant.name,
       actor: user.name,
-      actorRole: user.role === 'system_admin' || (user.role as any) === 'super_admin' ? 'System Admin' : (user.role === 'lms_admin' || (user.role as any) === 'tenant_admin') ? 'LMS Admin' : user.role,
+      actorRole: user.role === 'super_admin' ? 'Super Admin' : user.role === 'tenant_admin' ? 'Tenant Admin' : user.role,
       action,
       target,
       timestamp: 'Just now',
@@ -4481,16 +4163,12 @@ export class LmsDataService {
     this.auditLogs.update(list => [newLog, ...list.slice(0, 49)]);
   }
 
-  // Update Admin Layout Preferences (Mapped with active LMS)
+  // Update Admin Layout Preferences
   updateLayoutPreferences(prefs: Partial<AdminLayoutPreferences>) {
     this.adminLayoutPreferences.update(current => ({
       ...current,
       ...prefs
     }));
-    const currentLmsId = this.activeLmsId();
-    if (currentLmsId) {
-      this.updateLmsLayoutPreferences(currentLmsId, prefs);
-    }
     this.logAction('Layout Customization Changed', `Switched layout to navigation mode: ${prefs.navigationMode || this.adminLayoutPreferences().navigationMode}`, 'info');
   }
 

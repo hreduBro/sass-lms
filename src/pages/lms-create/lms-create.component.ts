@@ -117,13 +117,13 @@ export class LmsCreateComponent implements OnInit {
   }
 
   private ensureActiveTenantTheme() {
-    const active = this.lms.activeLms();
+    const active = this.lms.activeTenant();
     if (active && active.branding) {
       this.lms.applyTenantTheme(
         active.branding.primaryColor,
         active.branding.accentColor,
         active.branding.faviconUrl,
-        active.basicInfo.lmsName,
+        active.name,
         active.branding.themePreset
       );
     }
