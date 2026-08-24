@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.ts",
-    "dev": "ng serve",
+    "dev": "ng serve --host 0.0.0.0",
     "build": "ng build",
     "preview": "ng serve --configuration=production"
   },
