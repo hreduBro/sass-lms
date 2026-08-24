@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'tenant_admin' | 'instructor' | 'learner';
+export type UserRole = 'system_admin' | 'lms_admin' | 'super_admin' | 'tenant_admin' | 'instructor' | 'learner';
 export type TenantPlan = 'Starter' | 'Pro' | 'Enterprise';
 export type TenantStatus = 'Active' | 'Trial' | 'Suspended' | 'In-Progress';
 export type LessonType = 'video' | 'article' | 'quiz' | 'interactive_lab';

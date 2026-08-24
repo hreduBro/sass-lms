@@ -50,7 +50,7 @@
             @if (widget().visibleForRoles.includes('instructor')) {
               <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-300 font-semibold" title="Visible for Instructors">Instructor</span>
             }
-            @if (widget().visibleForRoles.includes('tenant_admin') || widget().visibleForRoles.includes('super_admin')) {
+            @if (widget().visibleForRoles.includes('system_admin') || widget().visibleForRoles.includes('lms_admin') || widget().visibleForRoles.includes('tenant_admin') || widget().visibleForRoles.includes('super_admin')) {
               <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-semibold" title="Visible for Admins">Admin</span>
             }
           </div>

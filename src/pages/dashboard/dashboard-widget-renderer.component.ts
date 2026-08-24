@@ -135,7 +135,7 @@ export class DashboardWidgetRendererComponent {
 
     const periodMultiplier = period === '30d' ? 1 : period === 'quarter' ? 1.4 : 2.1;
 
-    if (role === 'super_admin') {
+    if (role === 'system_admin' || (role as any) === 'super_admin') {
       const allTenants = this.lms.tenants();
       const totalLearners = allTenants.reduce((acc, t) => acc + t.stats.totalLearners, 0);
       const totalSeats = allTenants.reduce((acc, t) => acc + t.stats.seatLimit, 0);

@@ -29,9 +29,9 @@
     <div class="flex items-center gap-2.5 min-w-0" [class.lg:justify-center]="isCompact()">
       <!-- Brand Logo Box -->
       <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 p-1 shadow-2xs border border-base-300/80 flex items-center justify-center overflow-hidden flex-shrink-0"
-           [title]="lms.activeTenant().name">
-        @if (lms.activeTenant().branding.logoUrl) {
-          <img [src]="lms.activeTenant().branding.logoUrl" [alt]="lms.activeTenant().name" class="w-full h-full object-contain" referrerpolicy="no-referrer" />
+           [title]="lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name">
+        @if (lms.activeLms()?.branding?.logoUrl || lms.activeTenant().branding.logoUrl) {
+          <img [src]="lms.activeLms()?.branding?.logoUrl || lms.activeTenant().branding.logoUrl" [alt]="lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name" class="w-full h-full object-contain" referrerpolicy="no-referrer" />
         } @else {
           <span class="material-symbols-outlined text-2xl text-tenant-500">school</span>
         }
@@ -41,10 +41,10 @@
       @if (!isCompact()) {
         <div class="flex flex-col min-w-0 transition-opacity duration-200">
           <span class="font-bold text-sm text-text-primary truncate tracking-tight">
-            {{ lms.activeTenant().name }}
+            {{ lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name }}
           </span>
           <span class="text-[10px] text-text-secondary truncate">
-            {{ lms.activeTenant().branding.tagline }}
+            {{ lms.activeLms()?.basicInfo?.programmeDepartment || lms.activeTenant().branding.tagline }}
           </span>
         </div>
       }
