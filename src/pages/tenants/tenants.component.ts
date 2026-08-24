@@ -33,9 +33,9 @@ export class TenantsComponent {
     const status = this.statusFilter();
 
     return this.lms.tenants().filter(t => {
-      const matchSearch = !q ||
-        t.name.toLowerCase().includes(q) ||
-        t.domain.toLowerCase().includes(q) ||
+      const matchSearch = !q || 
+        t.name.toLowerCase().includes(q) || 
+        t.domain.toLowerCase().includes(q) || 
         t.slug.toLowerCase().includes(q) ||
         (t.numericId && t.numericId.includes(q)) ||
         (t.adminInfo?.adminName && t.adminInfo.adminName.toLowerCase().includes(q)) ||

@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { LmsApiService } from '../../services/lms-api.service';
 import { ThemeService, ThemeMode } from '../../services/theme.service';
-import { Tenant, NavigationLayoutMode, HeaderDensity, ContentWidthMode, TenantBranding } from '../../models/lms.model';
+import { Tenant, NavigationLayoutMode, HeaderDensity, ContentWidthMode } from '../../models/lms.model';
 
 @Component({
   selector: 'app-settings',
@@ -21,15 +21,15 @@ export class SettingsComponent {
   savedNotification = signal<boolean>(false);
   layoutPrefs = this.lms.adminLayoutPreferences;
 
-  // Editable settings copy mapped to active LMS
+  // Editable settings copy
   settingsForm = {
     name: '',
     domain: '',
     tagline: '',
     logoUrl: '',
     faviconUrl: '',
-    primaryColor: '#EC008C',
-    accentColor: '#C40072',
+    primaryColor: '#4f46e5',
+    accentColor: '#06b6d4',
     themePreset: 'solid' as 'solid' | 'glassmorphism' | 'neumorphic',
     ssoProvider: 'Okta' as 'Okta' | 'SAML 2.0' | 'Azure AD' | 'Google Workspace' | 'None',
     enforceMfa: true,
@@ -41,28 +41,17 @@ export class SettingsComponent {
 
   constructor() {
     effect(() => {
-      const activeLms = this.lms.activeLms();
-      const defaultBranding: TenantBranding = {
-        primaryColor: '#EC008C',
-        accentColor: '#C40072',
-        tagline: '',
-        bannerUrl: '',
-        logoUrl: '',
-        customCssEnabled: true,
-        themePreset: 'solid',
-        ssoProvider: 'Okta'
-      };
-      const branding: TenantBranding = activeLms?.branding || defaultBranding;
+      const t = this.lms.activeTenant();
       this.settingsForm = {
-        name: activeLms ? activeLms.basicInfo.lmsName : 'LMS Portal',
-        domain: activeLms ? activeLms.basicInfo.urlDomain : '',
-        tagline: branding.tagline || (activeLms ? activeLms.basicInfo.programmeDepartment : ''),
-        logoUrl: branding.logoUrl || (activeLms?.basicInfo.logo?.url || ''),
-        faviconUrl: branding.faviconUrl || '',
-        primaryColor: branding.primaryColor || '#EC008C',
-        accentColor: branding.accentColor || '#C40072',
-        themePreset: branding.themePreset || 'solid',
-        ssoProvider: branding.ssoProvider || 'Okta',
+        name: t.name,
+        domain: t.domain,
+        tagline: t.branding.tagline,
+        logoUrl: t.branding.logoUrl,
+        faviconUrl: t.branding.faviconUrl || '',
+        primaryColor: t.branding.primaryColor,
+        accentColor: t.branding.accentColor,
+        themePreset: t.branding.themePreset || 'solid',
+        ssoProvider: t.branding.ssoProvider,
         enforceMfa: true,
         scormEnabled: true,
         certAutoIssue: true,
@@ -101,46 +90,25 @@ export class SettingsComponent {
   }
 
   saveSettings() {
-    const activeLms = this.lms.activeLms();
-    const currentTenant = this.lms.activeTenant();
-
-    const updatedBranding: TenantBranding = {
-      tagline: this.settingsForm.tagline,
-      logoUrl: this.settingsForm.logoUrl,
-      bannerUrl: currentTenant.branding.bannerUrl || '',
-      faviconUrl: this.settingsForm.faviconUrl,
-      primaryColor: this.settingsForm.primaryColor,
-      accentColor: this.settingsForm.accentColor,
-      themePreset: this.settingsForm.themePreset,
-      ssoProvider: this.settingsForm.ssoProvider,
-      customCssEnabled: true
-    };
-
-    // Update active LMS branding & preferences (Theming mapped to LMS)
-    if (activeLms) {
-      this.lms.updateLmsBranding(activeLms.id, updatedBranding);
-      this.lms.updateLmsLayoutPreferences(activeLms.id, this.lms.adminLayoutPreferences());
-    }
-
-    // Also update tenant branding for consistency
-    const updatedTenant: Tenant = {
-      ...currentTenant,
+    const current = this.lms.activeTenant();
+    const updated: Tenant = {
+      ...current,
+      name: this.settingsForm.name,
+      domain: this.settingsForm.domain,
       branding: {
-        ...currentTenant.branding,
-        ...updatedBranding
+        ...current.branding,
+        tagline: this.settingsForm.tagline,
+        logoUrl: this.settingsForm.logoUrl,
+        faviconUrl: this.settingsForm.faviconUrl,
+        primaryColor: this.settingsForm.primaryColor,
+        accentColor: this.settingsForm.accentColor,
+        themePreset: this.settingsForm.themePreset,
+        ssoProvider: this.settingsForm.ssoProvider
       }
     };
-    this.lms.updateTenant(updatedTenant);
 
-    this.lms.applyTenantTheme(
-      this.settingsForm.primaryColor,
-      this.settingsForm.accentColor,
-      this.settingsForm.faviconUrl,
-      this.settingsForm.name,
-      this.settingsForm.themePreset
-    );
-
-    this.lms.showToast(`Settings, branding and layout mapped to LMS [${activeLms ? activeLms.basicInfo.lmsName : currentTenant.name}] updated successfully!`, 'success', 3500, 'LMS Theme Saved');
+    this.lms.updateTenant(updated);
+    this.lms.showToast('Settings and live CSS brand theme have been successfully updated!', 'success', 3500, 'Settings Saved');
     this.savedNotification.set(true);
     setTimeout(() => this.savedNotification.set(false), 3500);
   }

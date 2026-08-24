@@ -1,6 +1,6 @@
-
 import { Component, ChangeDetectionStrategy, inject, effect, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+
+import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -8,7 +8,6 @@ import { TopMenuComponent } from './components/top-menu/top-menu.component';
 import { MobileNavComponent } from './components/mobile-nav/mobile-nav.component';
 import { LayoutSwitcherModalComponent } from './components/layout-switcher-modal/layout-switcher-modal.component';
 import { BackendConsoleModalComponent } from './components/backend-console-modal/backend-console-modal.component';
-import { FooterComponent } from './components/footer/footer.component';
 import { ThemeService } from './services/theme.service';
 import { LmsDataService } from './services/lms-data.service';
 
@@ -24,14 +23,12 @@ import { LmsDataService } from './services/lms-data.service';
     TopMenuComponent, 
     MobileNavComponent,
     LayoutSwitcherModalComponent,
-    BackendConsoleModalComponent,
-    FooterComponent
+    BackendConsoleModalComponent
   ]
 })
 export class AppComponent {
   themeService = inject(ThemeService);
   lms = inject(LmsDataService);
-  router = inject(Router);
   isSidebarOpen = signal(false);
 
   constructor() {
@@ -55,12 +52,5 @@ export class AppComponent {
 
   closeSidebar() {
     this.isSidebarOpen.set(false);
-  }
-
-  confirmGlobalSignOut() {
-    this.lms.logout();
-    this.lms.closeSignOutModal();
-    this.lms.showToast('You have been signed out of your session', 'info', 3500, 'Signed Out');
-    this.router.navigate(['/dashboard']);
   }
 }

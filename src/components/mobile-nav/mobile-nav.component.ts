@@ -70,7 +70,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
         </a>
 
         <!-- 4. Analytics or Certificates based on role -->
-        @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'lms_admin' || lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
+        @if (lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
           <a 
             routerLink="/analytics"
             [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
@@ -134,7 +134,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
               </div>
               <div class="min-w-0">
                 <h3 class="font-bold text-sm text-text-primary truncate">{{ lms.activeTenant().name }}</h3>
-                <span class="text-[11px] text-text-secondary truncate block">{{ lms.activeUser().name }} ({{ lms.activeRole() === 'system_admin' ? 'System Admin' : lms.activeRole() === 'lms_admin' ? 'LMS Admin' : lms.activeRole().replace('_', ' ') }})</span>
+                <span class="text-[11px] text-text-secondary truncate block">{{ lms.activeUser().name }} ({{ lms.activeRole().replace('_', ' ') }})</span>
               </div>
             </div>
             <button 
@@ -265,8 +265,8 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                 [ngModel]="lms.activeRole()"
                 (ngModelChange)="lms.switchRole($event)"
                 class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
-                <option value="system_admin">System Admin</option>
-                <option value="lms_admin">LMS Admin</option>
+                <option value="super_admin">Super Admin</option>
+                <option value="tenant_admin">Tenant Admin</option>
                 <option value="instructor">Instructor</option>
                 <option value="learner">Learner</option>
               </select>
