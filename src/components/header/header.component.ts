@@ -23,6 +23,7 @@ export class HeaderComponent {
   toggleSidebar = output<void>();
 
   showTenantDropdown = computed(() => this.lms.isNavDropdownOpen('header-tenant'));
+  showLmsDropdown = computed(() => this.lms.isNavDropdownOpen('header-lms'));
   showUserDropdown = computed(() => this.lms.isNavDropdownOpen('header-user'));
   showNotificationMenu = computed(() => this.lms.isNavDropdownOpen('header-notifications'));
   showThemeMenu = computed(() => this.lms.isNavDropdownOpen('header-theme'));
@@ -31,6 +32,7 @@ export class HeaderComponent {
   showSignOutModal = signal(false);
 
   tenantSearch = signal('');
+  lmsSearch = signal('');
 
   filteredTenants = computed(() => {
     const q = this.tenantSearch().trim().toLowerCase();
@@ -40,6 +42,18 @@ export class HeaderComponent {
       t.name.toLowerCase().includes(q) || 
       t.domain.toLowerCase().includes(q) ||
       t.plan.toLowerCase().includes(q)
+    );
+  });
+
+  filteredLmsList = computed(() => {
+    const q = this.lmsSearch().trim().toLowerCase();
+    const list = this.lms.lmsInstances();
+    if (!q) return list;
+    return list.filter(l => 
+      l.basicInfo.lmsName.toLowerCase().includes(q) || 
+      l.basicInfo.programmeDepartment.toLowerCase().includes(q) ||
+      l.organizationName.toLowerCase().includes(q) ||
+      l.id.toLowerCase().includes(q)
     );
   });
 
@@ -55,6 +69,7 @@ export class HeaderComponent {
   closeAllDropdowns() {
     this.lms.closeNavDropdown();
     this.tenantSearch.set('');
+    this.lmsSearch.set('');
   }
 
   @HostListener('document:click', ['$event'])
@@ -77,6 +92,11 @@ export class HeaderComponent {
   toggleTenantDropdown(event?: Event) {
     event?.stopPropagation();
     this.lms.toggleNavDropdown('header-tenant');
+  }
+
+  toggleLmsDropdown(event?: Event) {
+    event?.stopPropagation();
+    this.lms.toggleNavDropdown('header-lms');
   }
 
   toggleUserDropdown(event?: Event) {
@@ -111,14 +131,19 @@ export class HeaderComponent {
   };
 
   roles: { role: UserRole; label: string; icon: string }[] = [
-    { role: 'super_admin', label: 'Super Admin', icon: 'shield_person' },
-    { role: 'tenant_admin', label: 'Tenant Admin', icon: 'admin_panel_settings' },
+    { role: 'system_admin', label: 'System Admin', icon: 'shield_person' },
+    { role: 'lms_admin', label: 'LMS Admin', icon: 'admin_panel_settings' },
     { role: 'instructor', label: 'Instructor', icon: 'school' },
     { role: 'learner', label: 'Learner', icon: 'person' },
   ];
 
   selectTenant(id: string) {
     this.lms.switchTenant(id);
+    this.closeAllDropdowns();
+  }
+
+  selectLms(id: string) {
+    this.lms.switchLms(id);
     this.closeAllDropdowns();
   }
 

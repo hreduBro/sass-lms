@@ -1,4 +1,5 @@
 import { TimezoneOption } from './organization.model';
+import { TenantBranding, AdminLayoutPreferences } from './lms.model';
 
 export type LmsStatus = 'Active' | 'Under Processing' | 'Drafted' | 'Deactivated' | 'Suspended' | 'In-Progress';
 export type LmsType = 'Public' | 'Private';
@@ -45,6 +46,8 @@ export interface LmsInstance {
   basicInfo: LmsBasicInfo;
   resources: LmsResourceAllocation;
   admins: LmsAdminInfo[];
+  branding?: TenantBranding;
+  layoutPreferences?: AdminLayoutPreferences;
   createdAt: string;
   updatedAt: string;
   createdBy?: string;

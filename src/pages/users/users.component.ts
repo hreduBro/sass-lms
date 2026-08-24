@@ -137,4 +137,24 @@ export class UsersComponent {
     event.stopPropagation();
     this.lms.sendComplianceReminders(user.department);
   }
+
+  getRoleLabel(role: string): string {
+    if (role === 'system_admin' || role === 'super_admin') return 'System Admin';
+    if (role === 'lms_admin' || role === 'tenant_admin') return 'LMS Admin';
+    if (role === 'instructor') return 'Instructor';
+    return 'Learner';
+  }
+
+  getRoleBadgeClass(role: string): string {
+    if (role === 'system_admin' || role === 'super_admin') {
+      return 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-200 dark:border dark:border-purple-800/60';
+    }
+    if (role === 'lms_admin' || role === 'tenant_admin') {
+      return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200 dark:border dark:border-indigo-800/60';
+    }
+    if (role === 'instructor') {
+      return 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-200 dark:border dark:border-amber-800/60';
+    }
+    return 'bg-base-200 text-text-secondary';
+  }
 }

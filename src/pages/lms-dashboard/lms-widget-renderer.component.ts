@@ -5,11 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
 import { LmsInstance, LmsDraft, LmsStatus } from '../../models/lms-instance.model';
-import { KpiCardComponent } from '../../components/kpi-card/kpi-card.component';
 
 @Component({
   selector: 'app-lms-widget-renderer',
-  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './lms-widget-renderer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

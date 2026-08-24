@@ -232,7 +232,7 @@ import { NavigationLayoutMode, HeaderDensity, ContentWidthMode } from '../../mod
         <div class="flex items-center justify-between pt-5 border-t border-base-300 mt-5">
           <span class="text-[11px] text-text-secondary flex items-center gap-1">
             <span class="material-symbols-outlined text-sm text-tenant-600">verified_user</span>
-            Applies to current tenant workspace session
+            Mapped & applied to active LMS: <strong class="text-text-primary">{{ lms.activeLms()?.basicInfo?.lmsName }}</strong>
           </span>
           <button 
             type="button" 

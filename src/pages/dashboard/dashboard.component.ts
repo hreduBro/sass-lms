@@ -58,7 +58,7 @@ export class DashboardComponent {
 
   isAdmin = computed(() => {
     const role = this.activeRole();
-    return role === 'super_admin' || role === 'tenant_admin';
+    return role === 'system_admin' || role === 'lms_admin' || (role as any) === 'super_admin' || (role as any) === 'tenant_admin';
   });
 
   // Effective displayed widgets

@@ -873,7 +873,7 @@ export class ProfileComponent {
       email: u.email || '',
       department: u.department || this.lms.activeTenant().departments[0] || 'Operations',
       phone: u.phone || '+880 1713 000000',
-      title: u.title || (u.role === 'super_admin' ? 'Chief Platform Operations' : u.role === 'tenant_admin' ? 'Learning Operations Director' : 'Senior Specialist'),
+      title: u.title || (u.role === 'system_admin' || (u.role as any) === 'super_admin' ? 'Chief System Architect & Platform Director' : u.role === 'lms_admin' || (u.role as any) === 'tenant_admin' ? 'LMS Learning Operations Director' : 'Senior Specialist'),
       timezone: u.timezone || 'Asia/Dhaka',
       bio: u.bio || 'Dedicated to organizational skill progression, microfinance governance, and digital learning transformation.'
     };

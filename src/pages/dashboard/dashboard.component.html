@@ -171,10 +171,17 @@
           </button>
           <button 
             type="button"
-            (click)="previewRole.set('tenant_admin')"
+            (click)="previewRole.set('lms_admin')"
             class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-            [class]="previewRole() === 'tenant_admin' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-            Admin View
+            [class]="previewRole() === 'lms_admin' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            LMS Admin View
+          </button>
+          <button 
+            type="button"
+            (click)="previewRole.set('system_admin')"
+            class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
+            [class]="previewRole() === 'system_admin' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            System Admin View
           </button>
         </div>
 
