@@ -714,34 +714,3 @@
   </div>
 }
 
-<!-- Sign Out Confirmation Modal -->
-@if (showSignOutModal()) {
-  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4">
-      <div class="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">logout</span>
-      </div>
-
-      <div>
-        <h3 class="font-bold text-base text-text-primary">Sign Out of Session?</h3>
-        <p class="text-xs text-text-secondary mt-1">You are currently logged in as <span class="font-semibold text-text-primary">{{ lms.activeUser().name }}</span> on <span class="font-semibold text-text-primary">{{ lms.activeTenant().name }}</span>.</p>
-      </div>
-
-      <div class="flex items-center justify-center gap-2.5 pt-2">
-        <button 
-          type="button" 
-          (click)="showSignOutModal.set(false)"
-          class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold flex-1 cursor-pointer">
-          Cancel
-        </button>
-        <button 
-          type="button" 
-          (click)="confirmSignOut()"
-          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex-1 cursor-pointer">
-          Confirm Sign Out
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
