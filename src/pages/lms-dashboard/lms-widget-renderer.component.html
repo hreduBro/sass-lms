@@ -130,61 +130,9 @@
   <div class="flex-1 flex flex-col min-h-0 relative">
 
     <!-- --------------------------------------------------------------------- -->
-    <!-- 0. LMS KPI SUMMARY WIDGET (§2.2)                                      -->
-    <!-- --------------------------------------------------------------------- -->
-    @if (widget().type === 'lms_kpi_summary') {
-      <div class="p-4 sm:p-5 flex flex-col justify-between h-full space-y-4">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-base-300/80 pb-3">
-          <div>
-            <h3 class="font-bold text-sm sm:text-base text-text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg sm:text-xl">insights</span>
-              <span>{{ widget().title }}</span>
-            </h3>
-            <p class="text-xs text-text-secondary mt-0.5">
-              {{ widget().subtitle || ('Organization-wide LMS telemetry for ' + activeTenant().name + '.') }}
-            </p>
-          </div>
-
-          <!-- Period Filter Pills -->
-          <div class="flex items-center gap-1 bg-base-200 p-1 rounded-xl border border-base-300/80 self-start sm:self-auto">
-            <button 
-              type="button"
-              (click)="kpiPeriod.set('30d')"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
-              [class]="kpiPeriod() === '30d' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-              30 Days
-            </button>
-            <button 
-              type="button"
-              (click)="kpiPeriod.set('quarter')"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
-              [class]="kpiPeriod() === 'quarter' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-              Quarter
-            </button>
-            <button 
-              type="button"
-              (click)="kpiPeriod.set('ytd')"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
-              [class]="kpiPeriod() === 'ytd' ? 'bg-tenant-500 text-white shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-              YTD
-            </button>
-          </div>
-        </div>
-
-        <!-- KPI 4-Card Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 flex-1">
-          @for (kpi of kpiItems(); track kpi.title) {
-            <app-kpi-card [kpi]="kpi" class="h-full"></app-kpi-card>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- --------------------------------------------------------------------- -->
     <!-- 1. ORGANIZATION CAPACITY WIDGET                                       -->
     <!-- --------------------------------------------------------------------- -->
-    @else if (widget().type === 'org_capacity') {
+    @if (widget().type === 'org_capacity') {
       <div class="p-4 sm:p-5 flex flex-col justify-between h-full space-y-4">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-base-300/80 pb-3">

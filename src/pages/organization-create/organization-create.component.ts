@@ -396,7 +396,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   onSaveAsDraft() {
     const draft = this.constructDraftObject();
     this.lms.saveOrganizationDraft(draft);
-    this.lms.showToast('Draft saved successfully.', 'success');
+    this.lms.showToast(`Draft for "${draft.basicInfo.organizationName || 'Organization ID: ' + draft.id}" saved successfully. You can resume anytime from the organization directory.`, 'success');
     this.router.navigate(['/tenants']);
   }
 
@@ -421,7 +421,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(2);
-      this.lms.showToast('Step 1 saved successfully.', 'success');
+      this.lms.showToast('Organization Details have been saved successfully.', 'success');
       this.scrollTop();
     } 
     else if (step === 2) {
@@ -454,7 +454,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(3);
-      this.lms.showToast('Step 2 saved successfully.', 'success');
+      this.lms.showToast('Resource Allocation has been saved successfully.', 'success');
       this.scrollTop();
     }
     else if (step === 3) {
@@ -466,7 +466,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(4);
-      this.lms.showToast('Step 3 saved successfully.', 'success');
+      this.lms.showToast('Admin Setup has been saved successfully.', 'success');
       this.scrollTop();
     }
   }

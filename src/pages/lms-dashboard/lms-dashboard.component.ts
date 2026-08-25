@@ -120,7 +120,7 @@ export class LmsDashboardComponent {
       return widgets.map(w => {
         let span = w.colSpan;
         let rSpan = w.rowSpan || 2;
-        if (w.type === 'lms_kpi_summary' || w.type === 'org_capacity' || w.type === 'lms_broadcast_banner') {
+        if (w.type === 'org_capacity' || w.type === 'lms_broadcast_banner') {
           span = 4;
           rSpan = 1;
         } else if (span > 2) {

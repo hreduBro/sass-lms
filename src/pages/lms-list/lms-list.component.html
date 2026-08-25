@@ -185,8 +185,8 @@
   <!-- ========================================================================= -->
   <!-- 4. SEARCH & FILTER CONTROLS (§2.2, §2.3, §2.4)                            -->
   <!-- ========================================================================= -->
-  <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs space-y-3">
-    
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-4 shadow-xs space-y-3">
+
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       
       <!-- Left: Search Field (LMS Name only as per §2.2) + Filter Button -->
@@ -194,20 +194,20 @@
         
         <!-- Search Field (Strictly searches LMS Name only) -->
         <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-          <input 
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
+          <input
             type="text"
             id="input-lms-name-search"
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
             placeholder="Search by LMS Name..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
-          
+            class="w-full pl-9 pr-3 py-2.5 rounded-xl bg-base-200/70 border border-base-300 text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all" />
+
           @if (searchQuery()) {
             <button 
               type="button"
               (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md">
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 rounded-md hover:bg-base-300">
               <span class="material-symbols-outlined text-sm">close</span>
             </button>
           }
@@ -218,15 +218,14 @@
           type="button"
           id="btn-toggle-filter-panel"
           (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || hasActiveFilters() 
-            ? 'bg-[#ec008c] text-white border-[#ec008c]' 
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          class="px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+          [class]="isFilterPanelOpen() || hasActiveFilters()
+            ? 'bg-tenant-500 text-white border-tenant-500 shadow-xs'
+            : 'bg-base-200 hover:bg-base-300 text-text-primary border-base-300'">
+          <span class="material-symbols-outlined text-base">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-[#ec008c] text-[10px] font-bold flex items-center justify-center">
+            <span class="w-5 h-5 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
@@ -238,7 +237,7 @@
             type="button"
             id="btn-grid-reset"
             (click)="resetGrid()"
-            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
             title="Clear search and all active filters">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             <span>Reset</span>
@@ -248,17 +247,14 @@
       </div>
 
       <!-- Right: View Mode Toggle (Grid / Table) -->
-      <div class="flex items-center justify-end gap-2 self-end sm:self-auto flex-shrink-0">
-        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-xl border border-slate-200/80 dark:border-base-300">
-          <button 
+      <div class="flex items-center justify-end gap-2 self-end sm:self-auto">
+        <div class="flex items-center bg-base-200 p-1 rounded-xl border border-base-300">
+          <button
             type="button"
             (click)="viewMode.set('grid')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'grid'"
-            [class.dark:bg-base-100]="viewMode() === 'grid'"
-            [class.text-slate-700]="viewMode() === 'grid'"
-            [class.dark:text-white]="viewMode() === 'grid'"
-            [class.text-slate-400]="viewMode() !== 'grid'"
+            class="p-1.5 rounded-lg text-text-secondary transition-colors cursor-pointer"
+            [class.bg-base-100]="viewMode() === 'grid'"
+            [class.text-text-primary]="viewMode() === 'grid'"
             [class.shadow-2xs]="viewMode() === 'grid'"
             title="Grid View">
             <span class="material-symbols-outlined text-base">grid_view</span>
@@ -266,12 +262,9 @@
           <button 
             type="button"
             (click)="viewMode.set('table')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'table'"
-            [class.dark:bg-base-100]="viewMode() === 'table'"
-            [class.text-slate-700]="viewMode() === 'table'"
-            [class.dark:text-white]="viewMode() === 'table'"
-            [class.text-slate-400]="viewMode() !== 'table'"
+            class="p-1.5 rounded-lg text-text-secondary transition-colors cursor-pointer"
+            [class.bg-base-100]="viewMode() === 'table'"
+            [class.text-text-primary]="viewMode() === 'table'"
             [class.shadow-2xs]="viewMode() === 'table'"
             title="Table View">
             <span class="material-symbols-outlined text-base">format_list_bulleted</span>
