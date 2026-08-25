@@ -1,3 +1,4 @@
+
 import { Component, ChangeDetectionStrategy, inject, effect, signal } from '@angular/core';
 
 import { Router, RouterOutlet } from '@angular/router';
