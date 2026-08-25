@@ -118,7 +118,7 @@ const INITIAL_TENANTS: Tenant[] = [
   },
   {
     id: 'tenant-lumina',
-    numericId: '5528',
+    numericId: '5520',
     name: 'Lumina Spatial Labs',
     slug: 'lumina-glass',
     domain: 'academy.lumina-glass.io',
@@ -241,7 +241,7 @@ const INITIAL_TENANTS: Tenant[] = [
   },
   {
     id: 'tenant-stanford',
-    numericId: '7384',
+    numericId: '7304',
     name: 'Stanford Tech Institute',
     slug: 'stanford-tech',
     domain: 'learn.stanfordtech.edu',
