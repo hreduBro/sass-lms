@@ -5,12 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
 import { LmsInstance, LmsDraft, LmsStatus } from '../../models/lms-instance.model';
-import { KpiCardComponent } from '../../components/kpi-card/kpi-card.component';
-import { Kpi } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-lms-widget-renderer',
-  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './lms-widget-renderer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -41,7 +39,6 @@ export class LmsWidgetRendererComponent {
   previewRowSpan = signal<1 | 2 | 3 | 4>(2);
 
   // Interactive filters inside widgets
-  kpiPeriod = signal<'30d' | 'quarter' | 'ytd'>('30d');
   activityFilter = signal<string>('all');
   adminSearch = signal<string>('');
   dismissedBanner = signal<boolean>(false);
@@ -69,53 +66,6 @@ export class LmsWidgetRendererComponent {
 
   // Status Summary
   statusSummary = computed(() => this.lms.lmsStatusSummary());
-
-  // 0. KPI Items Computation for lms_kpi_summary (§2.2)
-  kpiItems = computed<Kpi[]>(() => {
-    const summary = this.statusSummary();
-    const period = this.kpiPeriod();
-    const isEmpty = summary.total === 0;
-
-    const periodSubtext = period === '30d' ? 'vs last 30 days' : period === 'quarter' ? 'vs last quarter' : 'vs prior year';
-    const totalTrend = isEmpty 
-      ? '+0 this period' 
-      : (period === '30d' ? '+1 this month' : period === 'quarter' ? '+3 this quarter' : '+5 this year');
-
-    return [
-      {
-        title: 'Total LMS Instances',
-        value: summary.total.toString(),
-        change: totalTrend,
-        icon: 'server',
-        color: 'indigo',
-        subtext: periodSubtext
-      },
-      {
-        title: 'Active LMS',
-        value: summary.active.toString(),
-        change: isEmpty ? '0% of total' : `${summary.activePct}% of total`,
-        icon: 'check',
-        color: 'emerald',
-        subtext: 'Operational & Provisioned'
-      },
-      {
-        title: 'Under Processing',
-        value: summary.underProcessing.toString(),
-        change: `${summary.underProcessing} pending`,
-        icon: 'trending',
-        color: 'amber',
-        subtext: 'Awaiting activation'
-      },
-      {
-        title: 'Drafted',
-        value: summary.drafted.toString(),
-        change: `${summary.drafted} in wizard`,
-        icon: 'message',
-        color: 'indigo',
-        subtext: 'Pending completion'
-      }
-    ];
-  });
 
   // Recent Activity Feed
   filteredActivities = computed(() => {
