@@ -27,8 +27,9 @@
     </div>
 
     <!-- Top-Right Action Buttons -->
-    <div class="flex items-center gap-2.5  flex-wrap">
-      <aid="btn-org-overview-header"
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <a
+        id="btn-org-overview-header"
         routerLink="/organization/dashboard"
         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
         <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">space_dashboard</span>
@@ -187,26 +188,27 @@
   <div class="space-y-3">
 
     <!-- Top Search Toolbar Card matching design -->
-    <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 
       <!-- Left: Search Field + Filters Button -->
-      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+      <div class="flex items-center gap-3 flex-1 max-w-2xl">
 
         <!-- Search Field -->
         <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-      <input
-        type="text"id="input-organization-search"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="onSearchChange($event)"
-        placeholder="Search by Organization Name..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+          <input
+            type="text"
+            id="input-organization-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by Organization Name..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
 
           @if (searchQuery()) {
             <button
               type="button"
               (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md">
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md">
               <span class="material-symbols-outlined text-sm">close</span>
             </button>
           }
@@ -217,15 +219,15 @@
           type="button"
           id="btn-toggle-org-filter-panel"
           (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
           [class]="isFilterPanelOpen() || hasActiveFilters()
-            ? 'bg-[#ec008c] text-white border-[#ec008c]'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
+            ? 'bg-slate-100 dark:bg-base-300 text-slate-900 dark:text-white border-slate-300 dark:border-base-300 ring-2 ring-tenant-500/20'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
           title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          <span class="material-symbols-outlined text-base text-slate-600 dark:text-slate-300">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-[#ec008c] text-[10px] font-bold flex items-center justify-center">
+            <span class="w-4 h-4 rounded-full bg-tenant-500 text-white text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
@@ -236,7 +238,7 @@
             type="button"
             id="btn-org-grid-reset"
             (click)="resetGrid()"
-            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
             title="Reset Filters">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             <span>Reset</span>
@@ -247,32 +249,22 @@
 
       <!-- Right: View Mode Toggle (Grid / Table) -->
       <div class="flex items-center justify-end gap-2 self-end sm:self-auto flex-shrink-0">
-        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-xl border border-slate-200/80 dark:border-base-300">
+        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
           <button
             type="button"
             (click)="viewMode.set('grid')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'grid'"
-            [class.dark:bg-base-100]="viewMode() === 'grid'"
-            [class.text-slate-700]="viewMode() === 'grid'"
-            [class.dark:text-white]="viewMode() === 'grid'"
-            [class.text-slate-400]="viewMode() !== 'grid'"
-            [class.shadow-2xs]="viewMode() === 'grid'"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Grid View">
-            <span class="material-symbols-outlined text-base">grid_view</span>
+            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
           </button>
           <button
             type="button"
             (click)="viewMode.set('table')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'table'"
-            [class.dark:bg-base-100]="viewMode() === 'table'"
-            [class.text-slate-700]="viewMode() === 'table'"
-            [class.dark:text-white]="viewMode() === 'table'"
-            [class.text-slate-400]="viewMode() !== 'table'"
-            [class.shadow-2xs]="viewMode() === 'table'"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Table View">
-            <span class="material-symbols-outlined text-base">format_list_bulleted</span>
+            <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
           </button>
         </div>
       </div>
@@ -520,14 +512,15 @@
         @for (tenant of visibleTenants(); track tenant.id) {
 
           <!-- Organization Card -->
-      <div[id]="'org-card-' + tenant.id"
+          <div
+            [id]="'org-card-' + tenant.id"
             (click)="openTenantDetails(tenant)"
             class="bg-base-100 rounded-3xl border transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden shadow-xs hover:shadow-md"
             [class.border-2]="tenant.id === lms.activeTenantId()"
             [class.border-[#ec008c]]="tenant.id === lms.activeTenantId()"
             [class.border-base-300]="tenant.id !== lms.activeTenantId()">
 
-        <!-- Top Banner for Active Workspace -->
+            <!-- Top Banner for Active Workspace -->
             @if (tenant.id === lms.activeTenantId()) {
               <div class="bg-[#ec008c] text-white text-[11px] font-extrabold tracking-wider text-center py-1.5 uppercase">
                 CURRENTLY ACTIVE WORKSPACE
@@ -543,11 +536,12 @@
                   <div class="flex items-start gap-3 min-w-0">
                     <div class="w-11 h-11 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 p-1 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-2xs">
                       @if (tenant.branding.logoUrl) {
-                  <img[src]="tenant.branding.logoUrl"
-                  [alt]="tenant.name"
-                  class="w-full h-full object-contain"
-                  referrerpolicy="no-referrer" />
-              } @else {
+                        <img
+                          [src]="tenant.branding.logoUrl"
+                          [alt]="tenant.name"
+                          class="w-full h-full object-contain"
+                          referrerpolicy="no-referrer" />
+                      } @else {
                         <span class="material-symbols-outlined text-tenant-600 text-2xl">domain</span>
                       }
                     </div>

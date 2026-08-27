@@ -103,12 +103,47 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         this.basicInfoForm.patchValue({
           organizationId: generatedId
         });
+        this.showStepAlert(1, 'entered');
       }
     });
   }
 
   ngOnDestroy() {
     // Keep active tenant theme persistent
+  }
+
+  /**
+   * Dispatches a prominent step alert mentioning the exact step number and description
+   */
+  private showStepAlert(step: WizardStep, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
+    const stepTitles: Record<WizardStep, string> = {
+      1: 'Step 1 of 4: Basic Information',
+      2: 'Step 2 of 4: Resource Allocation',
+      3: 'Step 3 of 4: Admin Setup',
+      4: 'Step 4 of 4: Preview & Confirm'
+    };
+
+    const stepDescriptions: Record<WizardStep, string> = {
+      1: 'Step 1 of 4 — Organization Details: Enter name, ID, address, and admin contact details.',
+      2: 'Step 2 of 4 — Resource Allocation: Allocate storage quota and configure data sharing mode.',
+      3: 'Step 3 of 4 — Admin Setup: Review administrator credentials and dispatch invitation notification.',
+      4: 'Step 4 of 4 — Preview & Finalize: Review organization parameters before provisioning.'
+    };
+
+    const title = stepTitles[step];
+    const badge = `STEP ${step} / 4`;
+
+    let msg = stepDescriptions[step];
+    if (action === 'completed') {
+      const prev = (step - 1) as WizardStep;
+      msg = `Step ${prev} completed successfully! Now on Step ${step} of 4.`;
+    } else if (action === 'back') {
+      msg = `Navigated back to Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+    } else if (action === 'jump') {
+      msg = `Active: Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+    }
+
+    this.lms.showToast(msg, 'info', 4000, title, badge);
   }
 
   /**
@@ -235,17 +270,20 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     const completed = new Set<number>();
     if (draft.lastCompletedStep === 'basic-info') {
       completed.add(1);
+      this.currentStep.set(2);
     } else if (draft.lastCompletedStep === 'resources') {
       completed.add(1);
       completed.add(2);
+      this.currentStep.set(3);
     } else if (draft.lastCompletedStep === 'admin') {
       completed.add(1);
       completed.add(2);
       completed.add(3);
+      this.currentStep.set(4);
     }
     this.completedSteps.set(completed);
 
-    this.lms.showToast(`Resumed draft for "${draft.basicInfo.organizationName || 'Organization'}"`, 'info');
+    this.lms.showToast(`Resumed draft for "${draft.basicInfo.organizationName || 'Organization'}" at Step ${this.currentStep()} of 4`, 'info', 4500, `Step ${this.currentStep()} Resumed`, `STEP ${this.currentStep()} / 4`);
   }
 
   // Stepper State helpers (§2)
@@ -263,7 +301,10 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   jumpToStep(stepNum: number) {
     if (this.isStepClickable(stepNum)) {
       this.formErrorAlert.set(null);
-      this.currentStep.set(stepNum as WizardStep);
+      if (this.currentStep() !== stepNum) {
+        this.currentStep.set(stepNum as WizardStep);
+        this.showStepAlert(stepNum as WizardStep, 'jump');
+      }
     }
   }
 
@@ -390,13 +431,14 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     } else if (step === 3) {
       this.adminEmailSent.set(false);
     }
+    this.lms.showToast(`Step ${step} form fields have been reset.`, 'info', 4000, `Step ${step} Reset`, `STEP ${step} / 4`);
   }
 
   // 3. Save as draft -> Save all inputs as draft, redirect to All Organization grid (§3.4, §4.3, §5.2, §6.2)
   onSaveAsDraft() {
     const draft = this.constructDraftObject();
     this.lms.saveOrganizationDraft(draft);
-    this.lms.showToast(`Draft for "${draft.basicInfo.organizationName || 'Organization ID: ' + draft.id}" saved successfully. You can resume anytime from the organization directory.`, 'success');
+    this.lms.showToast(`Draft saved at Step ${this.currentStep()} of 4 for "${draft.basicInfo.organizationName || 'Organization ID: ' + draft.id}". You can resume anytime from the organization directory.`, 'success', 5000, `Step ${this.currentStep()} Draft Saved`, `STEP ${this.currentStep()} / 4`);
     this.router.navigate(['/tenants']);
   }
 
@@ -410,6 +452,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       if (this.basicInfoForm.invalid) {
         this.markFormGroupTouched(this.basicInfoForm);
         this.formErrorAlert.set('All mandatory fields are not filled up.');
+        this.lms.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 4');
         return;
       }
 
@@ -421,7 +464,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(2);
-      this.lms.showToast('Organization Details have been saved successfully.', 'success');
+      this.lms.showToast('Step 1 (Basic Information) saved. Proceeding to Step 2 of 4: Resource Allocation.', 'success', 4500, 'Step 1 Completed', 'STEP 2 / 4');
       this.scrollTop();
     } 
     else if (step === 2) {
@@ -429,6 +472,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       if (this.resourcesForm.invalid) {
         this.markFormGroupTouched(this.resourcesForm);
         this.formErrorAlert.set('All mandatory fields are not filled up.');
+        this.lms.showToast('Step 2 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
         return;
       }
 
@@ -438,11 +482,13 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
       if (dbSize > capacity.dbAvailableGb) {
         this.formErrorAlert.set(`Database Size cannot exceed available DB capacity (${capacity.dbAvailableGb} GB).`);
+        this.lms.showToast(`Step 2 Validation: DB Size exceeds available capacity (${capacity.dbAvailableGb} GB).`, 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
         return;
       }
 
       if (fileSize > capacity.fileAvailableGb) {
         this.formErrorAlert.set(`File Storage cannot exceed available storage capacity (${capacity.fileAvailableGb} GB).`);
+        this.lms.showToast(`Step 2 Validation: File Storage exceeds available capacity (${capacity.fileAvailableGb} GB).`, 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
         return;
       }
 
@@ -454,7 +500,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(3);
-      this.lms.showToast('Resource Allocation has been saved successfully.', 'success');
+      this.lms.showToast('Step 2 (Resource Allocation) saved. Proceeding to Step 3 of 4: Admin Setup.', 'success', 4500, 'Step 2 Completed', 'STEP 3 / 4');
       this.scrollTop();
     }
     else if (step === 3) {
@@ -466,7 +512,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(4);
-      this.lms.showToast('Admin Setup has been saved successfully.', 'success');
+      this.lms.showToast('Step 3 (Admin Setup) saved. Proceeding to Step 4 of 4: Preview & Confirm.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 4');
       this.scrollTop();
     }
   }
@@ -476,7 +522,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.formErrorAlert.set(null);
     const step = this.currentStep();
     if (step > 1) {
-      this.currentStep.set((step - 1) as WizardStep);
+      const prevStep = (step - 1) as WizardStep;
+      this.currentStep.set(prevStep);
+      this.showStepAlert(prevStep, 'back');
       this.scrollTop();
     }
   }
@@ -490,7 +538,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     this.lms.sendAdminSetupNoticeEmail(adminEmail, adminName, orgName);
     this.adminEmailSent.set(true);
-    this.lms.showToast(`"Organization Setup In-Progress" notification dispatched to ${adminEmail}`, 'info');
+    this.lms.showToast(`"Organization Setup In-Progress" notification dispatched to ${adminEmail}`, 'info', 4500, 'Step 3: Email Dispatched', 'STEP 3 / 4');
   }
 
   // 7. Step 4 Terminal Action: Create Organization (§6.2)
@@ -500,7 +548,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     // Redirect to All Organization grid and show exact alert from §7.1:
     // "Organization has been successfully created, and under in-progress status"
-    this.lms.showToast('Organization has been successfully created, and under in-progress status', 'success', 5000);
+    this.lms.showToast('Organization has been successfully created, and under in-progress status', 'success', 5000, 'Step 4 Complete: Organization Created', 'PROVISIONING');
     this.router.navigate(['/tenants']);
   }
 
