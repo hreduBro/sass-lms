@@ -69,7 +69,7 @@
     
     <!-- Category label (Standard sidebar only) -->
     @if (!isCompact()) {
-      <div class="px-2.5 pb-1 text-[10px] font-semibold text-text-secondary uppercase tracking-wider">
+      <div class="px-3 pb-1.5 pt-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         <span>Navigation</span>
       </div>
     }
@@ -82,15 +82,15 @@
           <!-- COMPACT RAIL ITEM WITH FLOATING CHILD MENU (FLYOUT)           -->
           <!-- ============================================================= -->
           <div class="relative group/rail-item flex justify-center">
-            <!-- Compact Rail Icon Button (Removed [title] to eliminate browser native tooltip collision with custom flyouts and tooltips) -->
+            <!-- Compact Rail Icon Button -->
             <a 
               [routerLink]="item.route || (item.children ? item.children[0].route : '/dashboard')"
               (click)="onNavItemClick()"
               [attr.aria-label]="item.label"
               class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all relative select-none cursor-pointer focus:outline-none focus:ring-0"
               [class]="isRouteActive(item) 
-                ? 'border-2 border-tenant-500 bg-white dark:bg-slate-900 text-tenant-600 dark:text-tenant-300 shadow-sm' 
-                : 'border border-transparent text-text-secondary hover:text-text-primary hover:bg-base-200/80 hover:border-base-300/60'">
+                ? 'border-2 border-[#EC008C] bg-[#FDF2F8] dark:bg-pink-950/40 text-[#EC008C] dark:text-[#F472B6] shadow-sm' 
+                : 'border border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60'">
               
               <span class="material-symbols-outlined text-2xl transition-transform group-hover/rail-item:scale-110">
                 {{ item.icon }}
@@ -107,46 +107,46 @@
 
                 <div class="bg-base-100 rounded-2xl border border-base-300 dark:border-white/10 shadow-2xl overflow-hidden py-1">
                   <!-- Flyout Header: Uppercase category name with badge -->
-                  <div class="px-4 py-2.5 text-[11px] font-bold tracking-wider text-text-secondary uppercase border-b border-base-300/80 dark:border-white/10 flex items-center justify-between">
+                  <div class="px-4 py-2.5 text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase border-b border-base-300/80 dark:border-white/10 flex items-center justify-between">
                     <span>{{ item.label.toUpperCase() }}</span>
                     @if (item.badge) {
-                      <span class="text-[9px] px-1.5 py-0.2 rounded-md font-semibold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300">
+                      <span class="text-[9px] px-2 py-0.5 rounded-full font-bold bg-[#EC008C] text-white">
                         {{ item.badge }}
                       </span>
                     }
                   </div>
 
                   <!-- Flyout Child Menu Items -->
-                  <div class="p-1.5 space-y-0.5">
+                  <div class="p-1.5 space-y-1">
                     @for (child of item.children; track child.route) {
                       <a 
                         [routerLink]="child.route"
                         (click)="onNavItemClick()"
                         class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors group/child cursor-pointer focus:outline-none focus:ring-0"
-                        [class]="isChildActive(child.route) ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-semibold' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'">
+                        [class]="isChildActive(child.route) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                         
                         <div class="flex items-center gap-2.5 min-w-0">
                           <span class="material-symbols-outlined text-base flex-shrink-0"
-                                [class]="isChildActive(child.route) ? 'text-tenant-600 dark:text-tenant-300' : 'text-text-secondary group-hover/child:text-text-primary'">
+                                [class]="isChildActive(child.route) ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover/child:text-slate-900 dark:group-hover/child:text-slate-100'">
                             {{ child.icon }}
                           </span>
                           <div class="truncate">
                             <span class="truncate block">{{ child.label }}</span>
                             @if (child.description) {
-                              <span class="text-[10px] text-text-secondary truncate block font-normal">{{ child.description }}</span>
+                              <span class="text-[10px] truncate block font-normal" [class]="isChildActive(child.route) ? 'text-white/80' : 'text-slate-400'">{{ child.description }}</span>
                             }
                           </div>
                         </div>
 
                         <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
                           @if (child.badge) {
-                            <span class="text-[8px] px-1.5 py-0.2 rounded font-bold uppercase"
-                                  [class]="child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-base-300 text-text-secondary'">
+                            <span class="text-[8.5px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider"
+                                  [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
                               {{ child.badge }}
                             </span>
                           }
                           @if (isChildActive(child.route)) {
-                            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-300">check</span>
+                            <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
                           }
                         </div>
                       </a>
@@ -160,7 +160,7 @@
                 class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 px-3 py-1.5 bg-slate-900 text-white dark:bg-slate-950 dark:text-slate-100 border border-slate-700/60 dark:border-slate-700 rounded-xl text-xs font-semibold shadow-2xl whitespace-nowrap invisible opacity-0 translate-x-1 group-hover/rail-item:visible group-hover/rail-item:opacity-100 group-hover/rail-item:translate-x-0 transition-all duration-150 pointer-events-none z-50 flex items-center gap-1.5">
                 <span>{{ item.label }}</span>
                 @if (item.badge) {
-                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-tenant-500 text-white font-bold">{{ item.badge }}</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#EC008C] text-white font-bold">{{ item.badge }}</span>
                 }
               </div>
             }
@@ -175,59 +175,64 @@
             <div class="space-y-1">
               <div 
                 (click)="toggleMenu(item.label)"
-                class="flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all group select-none relative focus:outline-none focus:ring-0 outline-none"
+                class="flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs cursor-pointer transition-all group select-none relative focus:outline-none focus:ring-0 outline-none"
                 [class]="isRouteActive(item) 
-                  ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-bold' 
-                  : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'">
+                  ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                 
                 <div class="flex items-center gap-2.5 min-w-0">
                   @if (isRouteActive(item)) {
-                    <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
                   }
-                  <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-110 flex-shrink-0">
+                  <span class="material-symbols-outlined text-[19px] transition-transform group-hover:scale-110 flex-shrink-0"
+                        [class.text-[#EC008C]]="isRouteActive(item)"
+                        [class.text-slate-500]="!isRouteActive(item)">
                     {{ item.icon }}
                   </span>
-                  <span class="truncate">{{ item.label }}</span>
+                  <span class="truncate text-[13px]">{{ item.label }}</span>
                 </div>
 
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                   @if (item.badge) {
-                    <span class="text-[9px] px-1.5 py-0.2 rounded-md font-semibold"
-                          [class]="isRouteActive(item) ? 'bg-tenant-500 text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
+                    <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                          [class]="isRouteActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                       {{ item.badge }}
                     </span>
                   }
-                  <span class="material-symbols-outlined text-sm transition-transform duration-200 text-text-secondary"
+                  <span class="material-symbols-outlined text-base transition-transform duration-200 text-slate-400"
+                        [class.text-[#EC008C]]="isRouteActive(item)"
                         [class.rotate-180]="isMenuExpanded(item.label)">
                     expand_more
                   </span>
                 </div>
               </div>
 
-              <!-- Collapsible Sub-menu Items -->
+              <!-- Collapsible Sub-menu Items with Left Vertical Connector Line -->
               @if (isMenuExpanded(item.label)) {
-                <div class="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-tenant-500/30 ml-4 animate-accordion">
+                <div class="border-l-2 border-slate-200 dark:border-slate-800 ml-4.5 pl-3 space-y-1.5 my-1.5 animate-accordion">
                   @for (child of item.children; track child.route) {
                     <a 
                       [routerLink]="child.route"
                       (click)="onNavItemClick()"
-                      class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all group focus:outline-none focus:ring-0 outline-none"
-                      [class]="isChildActive(child.route) ? 'bg-tenant-500 text-white font-semibold shadow-xs' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'">
-                      <div class="flex items-center gap-2 truncate">
-                        <span class="material-symbols-outlined text-sm flex-shrink-0 group-hover:scale-110 transition-transform">
+                      class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all group focus:outline-none focus:ring-0 outline-none"
+                      [class]="isChildActive(child.route) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                      <div class="flex items-center gap-2.5 truncate">
+                        <span class="material-symbols-outlined text-base flex-shrink-0 group-hover:scale-105 transition-transform"
+                              [class.text-white]="isChildActive(child.route)"
+                              [class.text-slate-500]="!isChildActive(child.route)">
                           {{ child.icon }}
                         </span>
-                        <span class="truncate">{{ child.label }}</span>
+                        <span class="truncate text-xs">{{ child.label }}</span>
                       </div>
-                      <div class="flex items-center gap-1">
+                      <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
                         @if (child.badge) {
-                          <span class="text-[8px] uppercase tracking-wider px-1 py-0.2 rounded font-bold"
-                                [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-base-300 text-text-secondary')">
+                          <span class="text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded font-bold"
+                                [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
                             {{ child.badge }}
                           </span>
                         }
                         @if (isChildActive(child.route)) {
-                          <span class="material-symbols-outlined text-xs text-white">check</span>
+                          <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
                         }
                       </div>
                     </a>
@@ -241,24 +246,29 @@
               [routerLink]="item.route"
               (click)="onNavItemClick()"
               [title]="item.label"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all group relative active:scale-[0.98] focus:outline-none focus:ring-0 outline-none"
+              class="flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs transition-all group relative active:scale-[0.98] focus:outline-none focus:ring-0 outline-none"
               [class]="isRouteActive(item) 
-                ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-bold' 
-                : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'">
+                ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
               
-              <!-- Active Indicator Dot -->
-              @if (isRouteActive(item)) {
-                <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 shadow-xs flex-shrink-0 animate-pulse"></span>
-              }
+              <div class="flex items-center gap-2.5 min-w-0">
+                <!-- Active Indicator Dot -->
+                @if (isRouteActive(item)) {
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
+                }
 
-              <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-110 flex-shrink-0">
-                {{ item.icon }}
-              </span>
+                <span class="material-symbols-outlined text-[19px] transition-transform group-hover:scale-110 flex-shrink-0"
+                      [class.text-[#EC008C]]="isRouteActive(item)"
+                      [class.text-slate-500]="!isRouteActive(item)">
+                  {{ item.icon }}
+                </span>
 
-              <span class="truncate flex-1">{{ item.label }}</span>
+                <span class="truncate text-[13px]">{{ item.label }}</span>
+              </div>
+
               @if (item.badge) {
-                <span class="text-[9px] px-1.5 py-0.5 rounded-md font-semibold"
-                      [class]="isRouteActive(item) ? 'bg-tenant-500 text-white' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
+                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                      [class]="isRouteActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
                   {{ item.badge }}
                 </span>
               }

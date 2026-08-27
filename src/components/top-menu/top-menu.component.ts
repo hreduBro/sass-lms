@@ -24,26 +24,27 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                   [id]="'top-menu-btn-' + item.label.toLowerCase().replace(' ', '-')"
                   (click)="toggleDropdown(item.label, $event)"
                   [class]="isParentActive(item) 
-                    ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-bold' 
-                    : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'"
+                    ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'"
                   class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all select-none group cursor-pointer active:scale-[0.98] focus:outline-none focus:ring-0 outline-none">
                   
                   <!-- Active Indicator Dot -->
                   @if (isParentActive(item)) {
-                    <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
                   }
                   
-                  <span class="material-symbols-outlined text-base flex-shrink-0 group-hover:scale-105 transition-transform">{{ item.icon }}</span>
+                  <span class="material-symbols-outlined text-base flex-shrink-0 group-hover:scale-105 transition-transform" [class.text-[#EC008C]]="isParentActive(item)" [class.text-slate-500]="!isParentActive(item)">{{ item.icon }}</span>
                   <span class="whitespace-nowrap">{{ item.label }}</span>
                   
                   @if (item.badge) {
-                    <span class="text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider"
-                          [class]="isParentActive(item) ? 'bg-tenant-500 text-white' : 'bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300'">
+                    <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                          [class]="isParentActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300'">
                       {{ item.badge }}
                     </span>
                   }
                   
                   <span class="material-symbols-outlined text-sm transition-transform duration-200"
+                        [class.text-[#EC008C]]="isParentActive(item)"
                         [class.rotate-180]="isDropdownOpen(item.label)">
                     expand_more
                   </span>
@@ -58,9 +59,9 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                     (click)="$event.stopPropagation()">
                     
                     <div class="bg-base-100 rounded-2xl border border-base-300 shadow-2xl p-2.5 space-y-1">
-                      <div class="px-2.5 py-1.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider border-b border-base-300/80 mb-1 flex items-center justify-between">
+                      <div class="px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-base-300/80 mb-1 flex items-center justify-between">
                         <span>{{ item.label }}</span>
-                        <span class="text-[9px] font-normal text-text-secondary">Select view</span>
+                        <span class="text-[9px] font-normal text-slate-400">Select view</span>
                       </div>
 
                       <div class="space-y-1">
@@ -69,17 +70,17 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                             [routerLink]="child.route"
                             (click)="closeDropdown()"
                             class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all group cursor-pointer focus:outline-none focus:ring-0 outline-none"
-                            [class]="isChildActive(child.route) ? 'bg-tenant-500 text-white font-semibold shadow-xs' : 'text-text-secondary hover:text-text-primary hover:bg-base-200'">
+                            [class]="isChildActive(child.route) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                             
                             <div class="flex items-center gap-2.5 min-w-0">
                               <span class="material-symbols-outlined text-base flex-shrink-0"
-                                    [class]="isChildActive(child.route) ? 'text-white' : 'text-tenant-600 dark:text-tenant-400 group-hover:scale-105 transition-transform'">
+                                    [class]="isChildActive(child.route) ? 'text-white' : 'text-slate-500 group-hover:scale-105 transition-transform'">
                                 {{ child.icon }}
                               </span>
                               <div class="min-w-0">
                                 <span class="truncate block font-medium" [class.font-bold]="isChildActive(child.route)">{{ child.label }}</span>
                                 @if (child.description) {
-                                  <span class="text-[10px] block truncate" [class]="isChildActive(child.route) ? 'text-white/80' : 'text-text-secondary'">
+                                  <span class="text-[10px] block truncate" [class]="isChildActive(child.route) ? 'text-white/80' : 'text-slate-400'">
                                     {{ child.description }}
                                   </span>
                                 }
@@ -88,13 +89,13 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
 
                             <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                               @if (child.badge) {
-                                <span class="text-[8px] px-1.5 py-0.2 rounded font-bold uppercase"
-                                      [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'">
+                                <span class="text-[8.5px] px-1.5 py-0.5 rounded font-bold uppercase"
+                                      [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
                                   {{ child.badge }}
                                 </span>
                               }
                               @if (isChildActive(child.route)) {
-                                <span class="material-symbols-outlined text-sm text-white">check</span>
+                                <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
                               }
                             </div>
                           </a>
@@ -110,19 +111,19 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                 [routerLink]="item.route"
                 (click)="closeDropdown()"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all flex-shrink-0 active:scale-[0.98] select-none cursor-pointer focus:outline-none focus:ring-0 outline-none"
-                [class]="isParentActive(item) ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-bold' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/80 font-medium'">
+                [class]="isParentActive(item) ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                 
                 <!-- Active Indicator Dot -->
                 @if (isParentActive(item)) {
-                  <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
                 }
 
-                <span class="material-symbols-outlined text-base flex-shrink-0">{{ item.icon }}</span>
+                <span class="material-symbols-outlined text-base flex-shrink-0" [class.text-[#EC008C]]="isParentActive(item)" [class.text-slate-500]="!isParentActive(item)">{{ item.icon }}</span>
                 <span class="whitespace-nowrap">{{ item.label }}</span>
                 
                 @if (item.badge) {
-                  <span class="text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider"
-                        [class]="isParentActive(item) ? 'bg-tenant-500 text-white' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
+                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                        [class]="isParentActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
                     {{ item.badge }}
                   </span>
                 }

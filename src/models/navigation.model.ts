@@ -30,7 +30,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Organizations',
     route: '/tenants',
     icon: 'corporate_fare',
-    roles: ['system_admin', 'super_admin'],
+    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin'],
     badge: 'Multi',
     description: 'Manage workspace tenants & subsidiaries',
     children: [
