@@ -495,7 +495,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(2);
-      this.lms.showToast('LMS Basic Information has been saved successfully.', 'success');
+      this.lms.showToast('Step 1 saved successfully.', 'success');
       this.scrollTop();
     } else if (step === 2) {
       if (!this.validateStep2()) return;
@@ -507,7 +507,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(3);
-      this.lms.showToast('Resource Allocation has been saved successfully.', 'success');
+      this.lms.showToast('Step 2 saved successfully.', 'success');
       this.scrollTop();
     } else if (step === 3) {
       if (!this.validateStep3()) return;
@@ -519,7 +519,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(4);
-      this.lms.showToast('Admin Setup has been saved successfully.', 'success');
+      this.lms.showToast('Step 3 saved successfully.', 'success');
       this.scrollTop();
     }
   }
@@ -607,7 +607,7 @@ export class LmsCreateComponent implements OnInit {
     };
 
     this.lms.saveLmsDraft(draftPayload);
-    this.lms.showToast('LMS Draft has been saved successfully.', 'info');
+    this.lms.showToast('Draft saved successfully.', 'success');
     this.router.navigate(['/lms']);
   }
 
