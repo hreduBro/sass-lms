@@ -224,8 +224,14 @@ export class LmsListComponent {
       return true;
     });
 
-    // Sort: Latest created LMS first (§2.5)
+    // Sort: Active LMS instance pinned first to ensure it's on page 1, then latest created LMS (§2.5)
+    const activeId = this.lms.activeLmsId();
     return filtered.sort((a, b) => {
+      const isAActive = a.id === activeId;
+      const isBActive = b.id === activeId;
+      if (isAActive && !isBActive) return -1;
+      if (!isAActive && isBActive) return 1;
+
       const dateA = new Date(a.createdAt).getTime() || 0;
       const dateB = new Date(b.createdAt).getTime() || 0;
       return dateB - dateA;
