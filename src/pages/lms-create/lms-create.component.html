@@ -822,7 +822,8 @@
 
           <button 
             type="button" 
-            (click)="addAdditionalAdmin()" 
+            id="btn-add-co-admin"
+            (click)="openAddCoAdminModal()" 
             class="px-3.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-bold text-tenant-600 dark:text-tenant-400 flex items-center gap-1 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">add</span>
             Add Co-Admin
@@ -1227,3 +1228,148 @@
     </div>
   </div>
 }
+
+<!-- ========================================================================= -->
+<!-- ADD CO-ADMINISTRATOR MODAL                                                -->
+<!-- ========================================================================= -->
+@if (showCoAdminModal()) {
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+       (click)="closeAddCoAdminModal()">
+    
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-modal-card"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-base-300">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">group_add</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-text-primary">Add Co-Administrator</h3>
+            <p class="text-xs text-text-secondary">Delegate secondary management access for this instance</p>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          (click)="closeAddCoAdminModal()"
+          class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="space-y-4">
+        <!-- Full Name -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-text-primary flex items-center justify-between">
+            <span>Full Name <span class="text-rose-500">*</span></span>
+            @if (coAdminErrors()['name']) {
+              <span class="text-[11px] text-rose-500 font-normal">{{ coAdminErrors()['name'] }}</span>
+            }
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+              person
+            </span>
+            <input 
+              type="text"
+              [ngModel]="coAdminName()"
+              (ngModelChange)="coAdminName.set($event)"
+              placeholder="e.g. Dr. Mahmudul Hasan"
+              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors"
+              [class.border-rose-400]="coAdminErrors()['name']" />
+          </div>
+        </div>
+
+        <!-- Email Address -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-text-primary flex items-center justify-between">
+            <span>Email Address <span class="text-rose-500">*</span></span>
+            @if (coAdminErrors()['email']) {
+              <span class="text-[11px] text-rose-500 font-normal">{{ coAdminErrors()['email'] }}</span>
+            }
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+              mail
+            </span>
+            <input 
+              type="email"
+              [ngModel]="coAdminEmail()"
+              (ngModelChange)="coAdminEmail.set($event)"
+              placeholder="e.g. mahmud.hasan@organization.edu.bd"
+              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors"
+              [class.border-rose-400]="coAdminErrors()['email']" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Contact Number -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-text-primary flex items-center justify-between">
+              <span>Contact Number</span>
+              @if (coAdminErrors()['contact']) {
+                <span class="text-[11px] text-rose-500 font-normal">{{ coAdminErrors()['contact'] }}</span>
+              }
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+                call
+              </span>
+              <input 
+                type="tel"
+                [ngModel]="coAdminContact()"
+                (ngModelChange)="coAdminContact.set($event)"
+                placeholder="01XXXXXXXXX"
+                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors"
+                [class.border-rose-400]="coAdminErrors()['contact']" />
+            </div>
+          </div>
+
+          <!-- Role / Title -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-text-primary block">
+              Administrative Role
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+                badge
+              </span>
+              <select 
+                [ngModel]="coAdminRole()"
+                (ngModelChange)="coAdminRole.set($event)"
+                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 transition-colors">
+                <option value="LMS Co-Admin">LMS Co-Admin</option>
+                <option value="Technical Administrator">Technical Administrator</option>
+                <option value="Academic Coordinator">Academic Coordinator</option>
+                <option value="Department Coordinator">Department Coordinator</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="flex items-center gap-3 pt-3 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="closeAddCoAdminModal()"
+          class="flex-1 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          id="btn-save-co-admin"
+          (click)="saveCoAdmin()"
+          class="flex-1 py-2.5 rounded-xl btn-gradient text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">person_add</span>
+          <span>Add Co-Administrator</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+

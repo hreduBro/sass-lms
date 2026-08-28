@@ -57,6 +57,14 @@ export class LmsCreateComponent implements OnInit {
   adminList = signal<LmsAdminInfo[]>([]);
   adminEmailSent = signal<boolean>(false);
 
+  // Step 3: Add Co-Admin Modal State
+  showCoAdminModal = signal<boolean>(false);
+  coAdminName = signal<string>('');
+  coAdminEmail = signal<string>('');
+  coAdminContact = signal<string>('');
+  coAdminRole = signal<string>('LMS Co-Admin');
+  coAdminErrors = signal<Record<string, string>>({});
+
   // Draft tracking
   draftId = signal<string | null>(null);
 
@@ -437,30 +445,84 @@ export class LmsCreateComponent implements OnInit {
     return true;
   }
 
-  addAdditionalAdmin() {
-    const name = prompt('Enter Additional LMS Admin Full Name:');
-    if (!name?.trim()) return;
-    const email = prompt('Enter Additional LMS Admin Email:');
-    if (!email?.trim()) return;
-    const phone = prompt('Enter Contact Number (01XXXXXXXXX):') || '01700000000';
+  openAddCoAdminModal() {
+    this.coAdminName.set('');
+    this.coAdminEmail.set('');
+    this.coAdminContact.set('');
+    this.coAdminRole.set('LMS Co-Admin');
+    this.coAdminErrors.set({});
+    this.showCoAdminModal.set(true);
+  }
+
+  closeAddCoAdminModal() {
+    this.showCoAdminModal.set(false);
+    this.coAdminErrors.set({});
+  }
+
+  saveCoAdmin() {
+    const name = this.coAdminName().trim();
+    const email = this.coAdminEmail().trim().toLowerCase();
+    const contact = this.coAdminContact().trim();
+    const role = this.coAdminRole().trim() || 'LMS Co-Admin';
+
+    const errors: Record<string, string> = {};
+
+    if (!name) {
+      errors['name'] = 'Full name is required.';
+    } else if (name.length < 2) {
+      errors['name'] = 'Name must be at least 2 characters.';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      errors['email'] = 'Email address is required.';
+    } else if (!emailRegex.test(email)) {
+      errors['email'] = 'Please enter a valid email address.';
+    } else {
+      const primaryEmail = this.adminEmail().trim().toLowerCase();
+      if (primaryEmail && email === primaryEmail) {
+        errors['email'] = 'This email is already assigned as the Primary Admin.';
+      } else if (this.adminList().some(a => a.email.toLowerCase() === email)) {
+        errors['email'] = 'This administrator has already been added.';
+      }
+    }
+
+    if (contact && !/^01\d{9}$/.test(contact) && !/^\+?\d{8,15}$/.test(contact)) {
+      errors['contact'] = 'Enter a valid contact number (e.g. 01XXXXXXXXX).';
+    }
+
+    this.coAdminErrors.set(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
     const newAdmin: LmsAdminInfo = {
-      name: name.trim(),
-      email: email.trim(),
-      contactNumber: phone.trim(),
-      role: 'LMS Admin',
+      name,
+      email,
+      contactNumber: contact || 'N/A',
+      role,
       invitationStatus: 'pending'
     };
 
     this.adminList.update(list => [...list, newAdmin]);
+    this.showCoAdminModal.set(false);
+    this.lms.showToast(`Co-Administrator "${name}" added successfully.`, 'success', 3500, 'Admin Assigned');
+  }
+
+  addAdditionalAdmin() {
+    this.openAddCoAdminModal();
   }
 
   removeAdmin(index: number) {
     if (index === 0) {
-      alert('The primary LMS Administrator cannot be removed.');
+      this.lms.showToast('The primary LMS Administrator cannot be removed.', 'warning', 3500, 'Primary Admin Locked');
       return;
     }
+    const removedAdmin = this.adminList()[index];
     this.adminList.update(list => list.filter((_, i) => i !== index));
+    if (removedAdmin) {
+      this.lms.showToast(`Removed "${removedAdmin.name}" from instance administrators.`, 'info', 3000);
+    }
   }
 
   triggerAdminNoticeEmail() {

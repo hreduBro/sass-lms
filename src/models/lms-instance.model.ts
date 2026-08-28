@@ -1,7 +1,7 @@
 import { TimezoneOption } from './organization.model';
 import { TenantBranding, AdminLayoutPreferences } from './lms.model';
 
-export type LmsStatus = 'Active' | 'Under Processing' | 'Drafted' | 'Deactivated' | 'Suspended' | 'In-Progress';
+export type LmsStatus = 'Active' | 'Under Processing' | 'Drafted' | 'Trial' | 'Deactivated' | 'Suspended' | 'In-Progress';
 export type LmsType = 'Public' | 'Private';
 
 export interface LmsLogo {
