@@ -1,5 +1,5 @@
 <div class="space-y-6 pb-16">
-  
+
   <!-- ========================================================================= -->
   <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
   <!-- ========================================================================= -->
@@ -13,13 +13,13 @@
           Multi-Tenant Partition Architecture &bull; <strong class="font-bold text-text-primary">{{ lms.tenants().length }} Organizations</strong>
         </span>
       </div>
-      
+
       <!-- Primary Heading -->
       <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
         <span class="material-symbols-outlined text-tenant-600 text-3xl">corporate_fare</span>
         <span>Organizations</span>
       </h1>
-      
+
       <!-- Subtitle -->
       <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
         All organizations & enterprise tenants registered under the platform.
@@ -28,7 +28,7 @@
 
     <!-- Top-Right Action Buttons -->
     <div class="flex items-center gap-2.5 flex-wrap">
-      <a 
+      <a
         id="btn-org-overview-header"
         routerLink="/organization/dashboard"
         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
@@ -36,7 +36,7 @@
         <span>Organization Dashboard</span>
       </a>
 
-      <button 
+      <button
         type="button"
         id="btn-create-organization-header"
         (click)="openCreateWizard()"
@@ -85,7 +85,8 @@
           <span class="font-bold font-mono text-text-primary">{{ lms.platformCapacity().dbUsedGb }} / {{ lms.platformCapacity().dbTotalGb }} GB</span>
         </div>
         <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" [style.width.%]="(lms.platformCapacity().dbUsedGb / (lms.platformCapacity().dbTotalGb || 1)) * 100"></div>
+          <div
+            class="bg-indigo-500 h-full rounded-full transition-all duration-500" [style.width.%]="(lms.platformCapacity().dbUsedGb / (lms.platformCapacity().dbTotalGb || 1)) * 100"></div>
         </div>
       </div>
 
@@ -110,7 +111,8 @@
           <span class="font-bold font-mono text-text-primary">{{ lms.platformCapacity().fileUsedGb }} / {{ lms.platformCapacity().fileTotalGb }} GB</span>
         </div>
         <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-purple-500 h-full rounded-full transition-all duration-500" [style.width.%]="(lms.platformCapacity().fileUsedGb / (lms.platformCapacity().fileTotalGb || 1)) * 100"></div>
+          <div
+            class="bg-purple-500 h-full rounded-full transition-all duration-500" [style.width.%]="(lms.platformCapacity().fileUsedGb / (lms.platformCapacity().fileTotalGb || 1)) * 100"></div>
         </div>
       </div>
 
@@ -159,7 +161,7 @@
             </div>
 
             <div class="flex items-center gap-2 flex-shrink-0">
-              <button 
+              <button
                 type="button"
                 (click)="resumeDraft(draft.id, $event)"
                 class="px-4 py-1.5 rounded-full bg-[#ec008c] hover:bg-[#c40072] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95">
@@ -184,59 +186,59 @@
   <!-- 4. SEARCH & FILTER CONTROLS                                               -->
   <!-- ========================================================================= -->
   <div class="space-y-3">
-    
+
     <!-- Top Search Toolbar Card matching design -->
-    <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-      
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+
       <!-- Left: Search Field + Filters Button -->
-      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
-        
+      <div class="flex items-center gap-3 flex-1 max-w-2xl">
+
         <!-- Search Field -->
         <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-          <input 
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+          <input
             type="text"
             id="input-organization-search"
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
             placeholder="Search by Organization Name..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
-          
+            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
+
           @if (searchQuery()) {
-            <button 
+            <button
               type="button"
               (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md">
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md">
               <span class="material-symbols-outlined text-sm">close</span>
             </button>
           }
         </div>
 
         <!-- Filter Button beside Search -->
-        <button 
+        <button
           type="button"
           id="btn-toggle-org-filter-panel"
           (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || hasActiveFilters() 
-            ? 'bg-[#ec008c] text-white border-[#ec008c]' 
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
+          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="isFilterPanelOpen() || hasActiveFilters()
+            ? 'bg-slate-100 dark:bg-base-300 text-slate-900 dark:text-white border-slate-300 dark:border-base-300 ring-2 ring-tenant-500/20'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
           title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          <span class="material-symbols-outlined text-base text-slate-600 dark:text-slate-300">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-[#ec008c] text-[10px] font-bold flex items-center justify-center">
+            <span class="w-4 h-4 rounded-full bg-tenant-500 text-white text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
         </button>
 
         @if (isResetVisible()) {
-          <button 
+          <button
             type="button"
             id="btn-org-grid-reset"
             (click)="resetGrid()"
-            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
             title="Reset Filters">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             <span>Reset</span>
@@ -247,32 +249,22 @@
 
       <!-- Right: View Mode Toggle (Grid / Table) -->
       <div class="flex items-center justify-end gap-2 self-end sm:self-auto flex-shrink-0">
-        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-xl border border-slate-200/80 dark:border-base-300">
-          <button 
+        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
+          <button
             type="button"
             (click)="viewMode.set('grid')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'grid'"
-            [class.dark:bg-base-100]="viewMode() === 'grid'"
-            [class.text-slate-700]="viewMode() === 'grid'"
-            [class.dark:text-white]="viewMode() === 'grid'"
-            [class.text-slate-400]="viewMode() !== 'grid'"
-            [class.shadow-2xs]="viewMode() === 'grid'"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Grid View">
-            <span class="material-symbols-outlined text-base">grid_view</span>
+            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
           </button>
-          <button 
+          <button
             type="button"
             (click)="viewMode.set('table')"
-            class="p-1.5 rounded-lg transition-colors cursor-pointer"
-            [class.bg-white]="viewMode() === 'table'"
-            [class.dark:bg-base-100]="viewMode() === 'table'"
-            [class.text-slate-700]="viewMode() === 'table'"
-            [class.dark:text-white]="viewMode() === 'table'"
-            [class.text-slate-400]="viewMode() !== 'table'"
-            [class.shadow-2xs]="viewMode() === 'table'"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Table View">
-            <span class="material-symbols-outlined text-base">format_list_bulleted</span>
+            <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
           </button>
         </div>
       </div>
@@ -284,7 +276,7 @@
     <!-- ========================================================================= -->
     @if (isFilterPanelOpen()) {
       <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
-        
+
         <!-- Header -->
         <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
           <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
@@ -298,7 +290,7 @@
 
         <!-- Filter Body Grid: Balanced 2-column layout without excessive gaps -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
-          
+
           <!-- 1. Status Multi-select -->
           <div class="space-y-2.5">
             <label class="text-xs font-bold text-text-primary block">
@@ -307,7 +299,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               @for (st of statusOptions; track st) {
                 <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
-                  <input 
+                  <input
                     type="checkbox"
                     [checked]="draftFilters().status.includes(st)"
                     (change)="toggleStatusDraft(st)"
@@ -337,7 +329,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <span class="text-[11px] text-text-secondary block mb-1 font-medium">From Date:</span>
-                <input 
+                <input
                   type="date"
                   [ngModel]="draftFilters().createdDateFrom"
                   (ngModelChange)="setDateFromDraft($event)"
@@ -345,7 +337,7 @@
               </div>
               <div>
                 <span class="text-[11px] text-text-secondary block mb-1 font-medium">To Date:</span>
-                <input 
+                <input
                   type="date"
                   [ngModel]="draftFilters().createdDateTo"
                   (ngModelChange)="setDateToDraft($event)"
@@ -358,7 +350,7 @@
 
         <!-- Filter Panel Footer Actions -->
         <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
-          <button 
+          <button
             type="button"
             (click)="clearFilterPanelDraft()"
             class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer">
@@ -366,13 +358,13 @@
           </button>
 
           <div class="flex items-center gap-2">
-            <button 
+            <button
               type="button"
               (click)="closeFilterPanel()"
               class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
               Cancel
             </button>
-            <button 
+            <button
               type="button"
               id="btn-apply-org-filters"
               (click)="applyFilterPanel()"
@@ -404,11 +396,11 @@
           </span>
         }
 
-        <!-- Date Range Chip -->
+          <!-- Date Range Chip -->
         @if (appliedFilters().createdDateFrom || appliedFilters().createdDateTo) {
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
             <span>
-              Created Date: 
+              Created Date:
               <strong>
                 {{ appliedFilters().createdDateFrom || 'Any' }} &rarr; {{ appliedFilters().createdDateTo || 'Today' }}
               </strong>
@@ -420,9 +412,9 @@
         }
 
         <!-- Clear all chips button -->
-        <button 
-          type="button" 
-          (click)="resetGrid()" 
+        <button
+          type="button"
+          (click)="resetGrid()"
           class="text-xs text-[#ec008c] hover:underline font-bold ml-auto cursor-pointer">
           Clear All
         </button>
@@ -434,7 +426,7 @@
   <!-- ========================================================================= -->
   <!-- 5. EMPTY STATES                                                           -->
   <!-- ========================================================================= -->
-  
+
   <!-- Case 1: True Empty State -->
   @if (emptyStateType() === 'true_empty') {
     <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
@@ -449,7 +441,7 @@
           No client organizations have been configured yet. Create your first enterprise organization to get started.
         </p>
       </div>
-      <button 
+      <button
         type="button"
         (click)="openCreateWizard()"
         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
@@ -473,7 +465,7 @@
           No organization name or ID matches "<strong class="text-text-primary">{{ searchQuery() }}</strong>". Check spelling or reset search query.
         </p>
       </div>
-      <button 
+      <button
         type="button"
         (click)="onSearchChange('')"
         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
@@ -497,7 +489,7 @@
           Try expanding your filter criteria, choosing different statuses, or clearing filters to view all organizations.
         </p>
       </div>
-      <button 
+      <button
         type="button"
         (click)="resetGrid()"
         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
@@ -518,16 +510,16 @@
     @if (viewMode() === 'grid') {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (tenant of visibleTenants(); track tenant.id) {
-          
+
           <!-- Organization Card -->
-          <div 
+          <div
             [id]="'org-card-' + tenant.id"
             (click)="openTenantDetails(tenant)"
             class="bg-base-100 rounded-3xl border transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden shadow-xs hover:shadow-md"
             [class.border-2]="tenant.id === lms.activeTenantId()"
             [class.border-[#ec008c]]="tenant.id === lms.activeTenantId()"
             [class.border-base-300]="tenant.id !== lms.activeTenantId()">
-            
+
             <!-- Top Banner for Active Workspace -->
             @if (tenant.id === lms.activeTenantId()) {
               <div class="bg-[#ec008c] text-white text-[11px] font-extrabold tracking-wider text-center py-1.5 uppercase">
@@ -537,14 +529,18 @@
 
             <div class="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
               <div class="space-y-3">
-                
+
                 <!-- Top Row: Logo, Name & #ID, Domain, Status Badge & Plan -->
                 <div class="flex items-start justify-between gap-2">
                   <!-- Left: Logo & Info -->
                   <div class="flex items-start gap-3 min-w-0">
                     <div class="w-11 h-11 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 p-1 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-2xs">
                       @if (tenant.branding.logoUrl) {
-                        <img [src]="tenant.branding.logoUrl" [alt]="tenant.name" class="w-full h-full object-contain" referrerpolicy="no-referrer" />
+                        <img
+                          [src]="tenant.branding.logoUrl"
+                          [alt]="tenant.name"
+                          class="w-full h-full object-contain"
+                          referrerpolicy="no-referrer" />
                       } @else {
                         <span class="material-symbols-outlined text-tenant-600 text-2xl">domain</span>
                       }
@@ -635,7 +631,7 @@
                     </span>
                   </div>
                   <div class="w-full bg-slate-100 dark:bg-base-200 h-1.5 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       class="h-full rounded-full transition-all duration-300"
                       [style.width.%]="getLearnerUsagePct(tenant)"
                       [style.backgroundColor]="getProgressBarColor(tenant)">
@@ -649,29 +645,29 @@
               <div class="pt-3.5 mt-3 border-t border-base-300 flex items-center justify-between gap-2" (click)="$event.stopPropagation()">
                 <!-- Left 4 icons -->
                 <div class="flex items-center gap-1.5 text-text-secondary">
-                  <button 
+                  <button
                     type="button"
                     (click)="openEditModal(tenant, $event)"
                     class="p-1 rounded-lg text-slate-400 hover:text-[#ec008c] transition-colors cursor-pointer"
                     title="Edit Organization">
                     <span class="material-symbols-outlined text-base">edit</span>
-                  </button>
-                  <button 
-                    type="button"
+            </button>
+            <button
+              type="button"
                     (click)="openTenantDetails(tenant)"
                     class="p-1 rounded-lg text-[#ec008c] hover:opacity-80 transition-opacity cursor-pointer"
                     title="View Details">
                     <span class="material-symbols-outlined text-base">diamond</span>
-                  </button>
-                  <button 
-                    type="button"
+            </button>
+            <button
+              type="button"
                     (click)="createNewLmsForOrg(tenant, $event)"
                     class="p-1 rounded-lg text-[#ec008c] hover:opacity-80 transition-opacity cursor-pointer"
                     title="Add LMS Instance">
                     <span class="material-symbols-outlined text-base">add_circle</span>
-                  </button>
-                  <button 
-                    type="button"
+            </button>
+            <button
+              type="button"
                     (click)="togglePauseOrg(tenant, $event)"
                     class="p-1 rounded-lg text-slate-400 hover:text-[#ec008c] transition-colors cursor-pointer"
                     title="Organization Status">
@@ -679,17 +675,17 @@
                   </button>
                 </div>
 
-                <!-- Right Switch / Active / Activate button -->
+                <!-- Right Switch / Active / Activatebutton-->
                 <div>
                   @if (tenant.id === lms.activeTenantId()) {
-                    <button 
+                    <button
                       type="button"
                       class="px-3.5 py-1.5 rounded-lg bg-[#ec008c] text-white text-xs font-bold shadow-2xs flex items-center gap-1.5 cursor-default">
                       <span class="material-symbols-outlined text-sm">login</span>
                       <span>Active</span>
                     </button>
                   } @else if (tenant.status === 'In-Progress') {
-                    <button 
+                    <button
                       type="button"
                       [id]="'btn-activate-org-' + tenant.id"
                       (click)="requestActivation(tenant, $event)"
@@ -698,7 +694,7 @@
                       <span>Activate</span>
                     </button>
                   } @else {
-                    <button 
+                    <button
                       type="button"
                       (click)="selectTenant(tenant.id, $event)"
                       class="px-3.5 py-1.5 rounded-lg bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs active:scale-95">
@@ -736,11 +732,11 @@
             </thead>
             <tbody class="divide-y divide-base-300/60">
               @for (tenant of visibleTenants(); track tenant.id) {
-                <tr 
+                <tr
                   (click)="openTenantDetails(tenant)"
                   class="hover:bg-base-200/50 transition-colors cursor-pointer"
                   [class.bg-tenant-50/20]="tenant.id === lms.activeTenantId()">
-                  
+
                   <!-- Org Details -->
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-3 min-w-[200px]">
@@ -773,7 +769,7 @@
 
                   <!-- Resources -->
                   <td class="py-3 px-4 font-mono text-[11px] text-text-secondary">
-                    <span>DB: <strong class="text-text-primary">{{ tenant.resourceAllocation?.databaseSizeGb || tenant.stats.storageLimitGb }}GB</strong></span> &bull; 
+                    <span>DB: <strong class="text-text-primary">{{ tenant.resourceAllocation?.databaseSizeGb || tenant.stats.storageLimitGb }}GB</strong></span> &bull;
                     <span>File: <strong class="text-text-primary">{{ tenant.resourceAllocation?.fileStorageGb || tenant.stats.storageLimitGb }}GB</strong></span>
                   </td>
 
@@ -804,7 +800,7 @@
                   <!-- Actions -->
                   <td class="py-3 px-4 text-right">
                     <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
-                      <button 
+                      <button
                         type="button"
                         (click)="openTenantDetails(tenant)"
                         class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
@@ -812,7 +808,7 @@
                         <span class="material-symbols-outlined text-base">visibility</span>
                       </button>
 
-                      <button 
+                      <button
                         type="button"
                         (click)="manageOrgLms(tenant.id, $event)"
                         class="p-1.5 rounded-lg bg-base-200 hover:bg-tenant-50 dark:hover:bg-tenant-950 text-tenant-600 hover:text-tenant-700 transition-colors cursor-pointer"
@@ -821,7 +817,7 @@
                       </button>
 
                       @if (tenant.status === 'In-Progress') {
-                        <button 
+                        <button
                           type="button"
                           (click)="requestActivation(tenant, $event)"
                           class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
@@ -829,7 +825,7 @@
                           Activate
                         </button>
                       } @else {
-                        <button 
+                        <button
                           type="button"
                           (click)="selectTenant(tenant.id, $event)"
                           class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
@@ -851,16 +847,22 @@
     <!-- 6.3 PAGINATION FOOTER (MATCHING IMAGE 2)                                  -->
     <!-- ========================================================================= -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-base-300/60">
-      
+
       <!-- Left: Showing count + Per Page selector -->
       <div class="flex items-center gap-4 text-xs text-text-secondary flex-wrap">
-        <span>
-          Showing <strong class="text-text-primary font-bold">{{ startItemIndex() }}</strong> to <strong class="text-text-primary font-bold">{{ endItemIndex() }}</strong> of <strong class="text-text-primary font-bold">{{ filteredAndSortedTenants().length }}</strong> organizations
-        </span>
+      <span>
+        Showing
+        <strong class="text-text-primary font-bold">{{ startItemIndex() }}</strong>
+        to
+        <strong class="text-text-primary font-bold">{{ endItemIndex() }}</strong>
+        of
+        <strong class="text-text-primary font-bold">{{ filteredAndSortedTenants().length }}</strong>
+        organizations
+      </span>
 
         <div class="flex items-center gap-1.5">
           <span class="text-text-secondary">Per page:</span>
-          <select 
+          <select
             [ngModel]="pageSize()"
             (ngModelChange)="setPageSize($event)"
             class="px-2.5 py-1 rounded-lg bg-base-100 dark:bg-base-200 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none focus:border-pink-500 cursor-pointer">
@@ -874,7 +876,7 @@
 
       <!-- Right: Pagination controls -->
       <div class="flex items-center gap-1.5">
-        <button 
+        <button
           type="button"
           (click)="prevPage()"
           [disabled]="currentPage() === 1"
@@ -884,7 +886,7 @@
         </button>
 
         @for (p of pagesList(); track p) {
-          <button 
+          <button
             type="button"
             (click)="goToPage(p)"
             class="w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
@@ -893,7 +895,7 @@
           </button>
         }
 
-        <button 
+        <button
           type="button"
           (click)="nextPage()"
           [disabled]="currentPage() === totalPages()"
@@ -906,7 +908,6 @@
     </div>
 
   }
-
 </div>
 
 <!-- ========================================================================= -->
@@ -915,10 +916,10 @@
 @if (selectedTenant()) {
   <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
        (click)="closeTenantDetails()">
-      
+
       <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
            (click)="$event.stopPropagation()">
-        
+
         <!-- Modal Header -->
         <div class="flex items-start justify-between gap-3 pb-4 border-b border-base-300">
           <div class="flex items-center gap-3.5">
@@ -953,7 +954,7 @@
                 {{ selectedTenant()!.status }}
               }
             </span>
-            <button 
+            <button
               type="button"
               (click)="closeTenantDetails()"
               class="p-1.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer">
@@ -1043,14 +1044,14 @@
         <!-- Modal Footer Actions -->
         <div class="pt-4 border-t border-base-300 flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
-            <button 
+            <button
               type="button"
               (click)="openEditModal(selectedTenant()!, $event)"
               class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
               <span class="material-symbols-outlined text-sm">edit</span>
               <span>Edit Organization</span>
             </button>
-            <button 
+            <button
               type="button"
               (click)="manageOrgLms(selectedTenant()!.id, $event)"
               class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-tenant-50 dark:hover:bg-tenant-950 text-tenant-600 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
@@ -1060,13 +1061,13 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <button 
+            <button
               type="button"
               (click)="closeTenantDetails()"
               class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
               Close
             </button>
-            <button 
+            <button
               type="button"
               (click)="selectTenant(selectedTenant()!.id); closeTenantDetails()"
               class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
@@ -1086,10 +1087,10 @@
 @if (activatingTenant()) {
   <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200"
        (click)="cancelActivation()">
-    
+
     <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200"
          (click)="$event.stopPropagation()">
-      
+
       <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center">
         <span class="material-symbols-outlined text-2xl">bolt</span>
       </div>
@@ -1110,14 +1111,14 @@
       </div>
 
       <div class="pt-2 border-t border-base-300 flex items-center justify-end gap-2">
-        <button 
+        <button
           type="button"
           (click)="cancelActivation()"
           [disabled]="isActivatingInProgress()"
           class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
           Cancel
         </button>
-        <button 
+        <button
           type="button"
           (click)="confirmActivation()"
           [disabled]="isActivatingInProgress()"
@@ -1190,7 +1191,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-text-primary mb-1">Custom Tagline / Description</label>
-          <input 
+          <input
             type="text" 
             [(ngModel)]="editingTenant()!.branding.tagline" 
             class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />

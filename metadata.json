@@ -1,6 +1,8 @@
 {
-  "name": "Multi-Tenant LMS Software",
-  "description": "Enterprise-grade Multi-Tenant Learning Management System with LMS-mapped theming and layout architecture, LMS Admin workspace switching, role-based dashboards (System Admin, LMS Admin, Instructor, Learner), interactive course player, compliance tracking, and quiz engine.",
+  "name": "Remix Multi-Tenant LMS Software",
+  "description": "Enterprise-grade Multi-Tenant Learning Management System with isolated tenant branding, customizable portals, role-based dashboards (Super Admin, Tenant Admin, Instructor, Learner), interactive course player, compliance tracking, and quiz engine.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

@@ -8,11 +8,11 @@
         <div class="flex items-center gap-2 mb-1.5 flex-wrap">
           <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
             <span class="material-symbols-outlined text-xs">business</span>
-            {{ activeTenant().name }} ({{ activeTenant().numericId }})
+            Organization Level
           </span>
           <span class="text-xs text-text-secondary flex items-center gap-1">
-            <span>Scope:</span> 
-            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">Organization Portals</strong>
+            <span>Role:</span> 
+            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">Organization Admin</strong>
           </span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
             Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
@@ -20,10 +20,10 @@
         </div>
         
         <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-          LMS Dashboard
+          {{ activeTenant().name }} — LMS Overview
         </h1>
         <p class="text-xs text-text-secondary mt-0.5">
-          Dedicated dashboard for managing, provisioning, and tracking all internal LMS instances under {{ activeTenant().name }}.
+          Manage and deploy specialized learning management systems for {{ activeTenant().name }}'s programmes & departments.
         </p>
       </div>
 

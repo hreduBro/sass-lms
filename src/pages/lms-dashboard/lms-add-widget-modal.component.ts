@@ -169,7 +169,6 @@ export class LmsAddWidgetModalComponent {
 
   categories = [
     { id: 'all', label: 'All Categories', icon: 'apps' },
-    { id: 'kpis-summary', label: 'KPIs & Summary', icon: 'insights' },
     { id: 'capacity', label: 'Capacity & Resources', icon: 'storage' },
     { id: 'drafts', label: 'Drafts & Creation', icon: 'edit_note' },
     { id: 'status-activity', label: 'Status & Metrics', icon: 'pie_chart' },

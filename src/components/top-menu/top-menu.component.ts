@@ -89,13 +89,17 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
 
                             <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                               @if (child.badge) {
-                                <span class="text-[8.5px] px-1.5 py-0.5 rounded font-bold uppercase"
-                                      [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
+                                <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold"
+                                      [class]="isChildActive(child.route) 
+                                        ? 'bg-white/20 text-white' 
+                                        : (child.badge.toLowerCase() === 'wizard' 
+                                          ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
+                                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
                                   {{ child.badge }}
                                 </span>
                               }
                               @if (isChildActive(child.route)) {
-                                <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
+                                <span class="material-symbols-outlined text-sm text-white font-bold flex-shrink-0">check</span>
                               }
                             </div>
                           </a>

@@ -93,7 +93,7 @@ export class LmsWidgetRendererComponent {
       {
         title: 'Active LMS',
         value: summary.active.toString(),
-        change: isEmpty ? '0% of total' : `${summary.activePct}% of total`,
+        change: isEmpty ? '0% of total' : `+${summary.activePct}% of total`,
         icon: 'check',
         color: 'emerald',
         subtext: 'Operational & Provisioned'
@@ -102,7 +102,7 @@ export class LmsWidgetRendererComponent {
         title: 'Under Processing',
         value: summary.underProcessing.toString(),
         change: `${summary.underProcessing} pending`,
-        icon: 'trending',
+        icon: 'pending',
         color: 'amber',
         subtext: 'Awaiting activation'
       },
@@ -110,7 +110,7 @@ export class LmsWidgetRendererComponent {
         title: 'Drafted',
         value: summary.drafted.toString(),
         change: `${summary.drafted} in wizard`,
-        icon: 'message',
+        icon: 'draft',
         color: 'indigo',
         subtext: 'Pending completion'
       }
