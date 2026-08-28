@@ -38,11 +38,11 @@ export interface StepItem {
   templateUrl: './plan-create.component.html',
   styles: [`
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .animate-fade-in {
-      animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.2s ease-out forwards;
     }
   `]
 })
@@ -978,6 +978,9 @@ export class PlanCreateComponent implements OnInit {
       4500,
       'Plan Published'
     );
+
+    // Final submit redirects back to Plan Grid page
+    this.router.navigate(['/plans']);
   }
 
   // Activate Action (§16 - Lifecycle)
@@ -1030,16 +1033,13 @@ export class PlanCreateComponent implements OnInit {
       'Plan Activated'
     );
 
-    // Navigate to Plan details or Grid
-    this.router.navigate(['/plans/details', activePlan.id]);
+    // Final submit redirects back to Plan Grid page
+    this.router.navigate(['/plans']);
   }
 
   onCancel() {
-    if (this.planForm.dirty) {
-      this.showCancelModal.set(true);
-    } else {
-      this.goBack();
-    }
+    // Always show Cancel Confirmation Modal
+    this.showCancelModal.set(true);
   }
 
   confirmCancel() {

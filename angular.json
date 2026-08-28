@@ -13,11 +13,15 @@
           "builder": "@angular/build:application",
           "options": {
             "outputPath": {
-              "base": "./dist",
-              "browser": "."
+              "base": "dist",
+              "browser": ""
             },
+            "index": "index.html",
             "browser": "index.tsx",
             "tsConfig": "tsconfig.json",
+            "styles": [
+              "index.css"
+            ],
             "assets": [
               {
                 "glob": "**/*",

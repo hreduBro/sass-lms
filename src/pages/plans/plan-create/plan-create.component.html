@@ -6,10 +6,10 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-        <a routerLink="/plans" (click)="goBack()" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1 cursor-pointer">
+        <button type="button" (click)="onCancel()" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0">
           <span class="material-symbols-outlined text-sm">assignment</span>
           Learning Plans
-        </a>
+        </button>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
           Creation Wizard
@@ -269,42 +269,74 @@
                 (valueChange)="onSelectExistingUser($event)">
               </app-custom-select>
             </div>
-            <div class="relative flex py-1 items-center">
-              <div class="flex-grow border-t border-base-300 dark:border-slate-800"></div>
-              <span class="flex-shrink mx-3 text-[10px] font-medium text-text-secondary uppercase tracking-wider">or specify custom details</span>
-              <div class="flex-grow border-t border-base-300 dark:border-slate-800"></div>
+            <div class="relative flex py-2 items-center">
+              <div class="flex-grow border-t border-base-300 dark:border-slate-700"></div>
+              <span class="flex-shrink mx-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest bg-base-200/80 dark:bg-base-300/60 px-3 py-1 rounded-full border border-base-300/80 dark:border-slate-700/80 shadow-2xs">
+                or specify custom details
+              </span>
+              <div class="flex-grow border-t border-base-300 dark:border-slate-700"></div>
             </div>
           }
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label class="block text-[11px] font-semibold text-text-primary mb-1">Owner Name *</label>
-              <input 
-                type="text" 
-                formControlName="name"
-                placeholder="e.g. Tanvir Hossain" 
-                class="w-full px-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
-                [class.border-rose-500]="isOwnerFieldInvalid('name')" />
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Owner Name <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">
+                  person
+                </span>
+                <input 
+                  id="owner-custom-name"
+                  type="text" 
+                  formControlName="name"
+                  placeholder="e.g. Tanvir Hossain" 
+                  class="w-full h-[38px] pl-10 pr-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium placeholder:text-text-secondary/50"
+                  [class.border-rose-500]="isOwnerFieldInvalid('name')" />
+              </div>
+              @if (isOwnerFieldInvalid('name')) {
+                <p class="text-[11px] text-rose-500 mt-1">Owner Name is required.</p>
+              }
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-text-primary mb-1">Owner Email *</label>
-              <input 
-                type="email" 
-                formControlName="email"
-                placeholder="e.g. tanvir.hossain@brac.net" 
-                class="w-full px-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
-                [class.border-rose-500]="isOwnerFieldInvalid('email')" />
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Owner Email <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">
+                  mail
+                </span>
+                <input 
+                  id="owner-custom-email"
+                  type="email" 
+                  formControlName="email"
+                  placeholder="e.g. tanvir.hossain@brac.net" 
+                  class="w-full h-[38px] pl-10 pr-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium placeholder:text-text-secondary/50"
+                  [class.border-rose-500]="isOwnerFieldInvalid('email')" />
+              </div>
+              @if (isOwnerFieldInvalid('email')) {
+                <p class="text-[11px] text-rose-500 mt-1">Valid email address required.</p>
+              }
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-text-primary mb-1">Contact Number (Optional)</label>
-              <input 
-                type="tel" 
-                formControlName="contactNumber"
-                placeholder="01713001122" 
-                maxlength="11"
-                class="w-full px-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Contact Number <span class="text-[10px] text-text-secondary font-normal">(Optional)</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">
+                  call
+                </span>
+                <input 
+                  id="owner-custom-contact"
+                  type="tel" 
+                  formControlName="contactNumber"
+                  placeholder="01713001122" 
+                  maxlength="11"
+                  class="w-full h-[38px] pl-10 pr-3.5 py-2 rounded-xl text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium placeholder:text-text-secondary/50" />
+              </div>
             </div>
           </div>
         </div>
@@ -1058,11 +1090,11 @@
   <!-- ================================================================= -->
   @if (showAddPhaseModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
       (click)="showAddPhaseModal.set(false)">
       
       <div 
-        class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 space-y-5 animate-modal-card"
+        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 space-y-5 animate-modal-card m-auto"
         (click)="$event.stopPropagation()">
         
         <!-- Modal Header -->
@@ -1174,10 +1206,10 @@
   <!-- ================================================================= -->
   @if (showCancelModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
       (click)="showCancelModal.set(false)">
       <div 
-        class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card"
+        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
         (click)="$event.stopPropagation()">
         <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
           <span class="material-symbols-outlined text-2xl">warning</span>
@@ -1209,10 +1241,10 @@
   <!-- ================================================================= -->
   @if (showPublishModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
       (click)="showPublishModal.set(false)">
       <div 
-        class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card"
+        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
         (click)="$event.stopPropagation()">
         <div class="w-12 h-12 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
           <span class="material-symbols-outlined text-2xl">publish</span>
@@ -1244,10 +1276,10 @@
   <!-- ================================================================= -->
   @if (showActivateModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
       (click)="showActivateModal.set(false)">
       <div 
-        class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card"
+        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
         (click)="$event.stopPropagation()">
         <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
           <span class="material-symbols-outlined text-2xl">play_circle</span>
