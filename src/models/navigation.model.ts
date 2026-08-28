@@ -52,6 +52,19 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    label: 'Plan Management',
+    route: '/plans',
+    icon: 'event_note',
+    roles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor'],
+    badge: 'LMS Scope',
+    description: 'Plan Grid, Owner Assignment, Phase Architecture & Lifecycle',
+    children: [
+      { label: 'Plan Grid', route: '/plans', icon: 'table_view', description: 'View & filter plans in current LMS workspace' },
+      { label: 'Plan Dashboard', route: '/plans/dashboard', icon: 'monitoring', badge: 'Telemetry', description: 'Plan progress, phase sequencing & completion rates' },
+      { label: 'Create Plan', route: '/plans/create', icon: 'add_task', badge: 'Builder', description: 'Design new learning plan & phase structure' }
+    ]
+  },
+  {
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',

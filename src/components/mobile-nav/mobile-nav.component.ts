@@ -318,7 +318,7 @@ export class MobileNavComponent {
 
   isChildActive(childRoute: string): boolean {
     const currentUrl = this.router.url;
-    if (childRoute === '/tenants' || childRoute === '/courses' || childRoute === '/lms') {
+    if (childRoute === '/tenants' || childRoute === '/courses' || childRoute === '/lms' || childRoute === '/plans') {
       return currentUrl === childRoute;
     }
     return currentUrl === childRoute || currentUrl.startsWith(childRoute);

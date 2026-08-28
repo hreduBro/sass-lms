@@ -6,6 +6,10 @@ import { OrganizationCreateComponent } from './pages/organization-create/organiz
 import { LmsListComponent } from './pages/lms-list/lms-list.component';
 import { LmsDashboardComponent } from './pages/lms-dashboard/lms-dashboard.component';
 import { LmsCreateComponent } from './pages/lms-create/lms-create.component';
+import { PlanGridComponent } from './pages/plans/plan-grid/plan-grid.component';
+import { PlanDashboardComponent } from './pages/plans/plan-dashboard/plan-dashboard.component';
+import { PlanCreateComponent } from './pages/plans/plan-create/plan-create.component';
+import { PlanDetailsComponent } from './pages/plans/plan-details/plan-details.component';
 import { CoursesComponent } from './pages/courses/courses.component';
 import { CoursePlayerComponent } from './pages/course-player/course-player.component';
 import { UsersComponent } from './pages/users/users.component';
@@ -27,6 +31,10 @@ export const routes: Routes = [
   { path: 'lms', component: LmsListComponent, title: 'LMS Instances | Multi-Tenant LMS' },
   { path: 'lms/dashboard', component: LmsDashboardComponent, title: 'LMS Dashboard | Multi-Tenant LMS' },
   { path: 'lms/create', component: LmsCreateComponent, title: 'Create LMS Instance | Multi-Tenant LMS' },
+  { path: 'plans', component: PlanGridComponent, title: 'Plan Grid | Multi-Tenant LMS' },
+  { path: 'plans/dashboard', component: PlanDashboardComponent, title: 'Plan Dashboard | Multi-Tenant LMS' },
+  { path: 'plans/create', component: PlanCreateComponent, title: 'Create Plan | Multi-Tenant LMS' },
+  { path: 'plans/details/:id', component: PlanDetailsComponent, title: 'Plan Details | Multi-Tenant LMS' },
   { path: 'courses', component: CoursesComponent, title: 'Courses | Multi-Tenant LMS' },
   { path: 'courses/:id/learn', component: CoursePlayerComponent, title: 'Classroom Player | Multi-Tenant LMS' },
   { path: 'users', component: UsersComponent, title: 'Personnel Directory | Multi-Tenant LMS' },

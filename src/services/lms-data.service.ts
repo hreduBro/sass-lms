@@ -52,6 +52,17 @@ import {
   LMS_DASHBOARD_PRESETS,
   LMS_WIDGET_CATALOG
 } from '../models/lms-dashboard.model';
+import {
+  Plan,
+  Phase,
+  PlanOwner,
+  PlanStatus,
+  DurationType,
+  EnrollmentType,
+  INITIAL_PLANS,
+  validatePlanAndPhases,
+  formatDateDDMMYYYY
+} from '../models/plan.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -4572,6 +4583,273 @@ export class LmsDataService {
   // Log out or reset session simulation
   logout() {
     this.logAction('User Sign Out', `User ${this.activeUser().name} signed out of session`, 'info');
+  }
+
+  // =========================================================================
+  // PLAN MANAGEMENT & LIFECYCLE (OneLMS Hierarchy: Org -> LMS -> Plan -> Phase)
+  // =========================================================================
+  plans = signal<Plan[]>(INITIAL_PLANS);
+
+  // Plans scoped to the currently active LMS workspace context
+  activeLmsPlans = computed<Plan[]>(() => {
+    const currentLmsId = this.activeLmsId();
+    return this.plans().filter(p => p.lmsId === currentLmsId);
+  });
+
+  // Get specific plan by ID
+  getPlan(planId: string): Plan | undefined {
+    return this.plans().find(p => p.id === planId);
+  }
+
+  // Get phases for a specific plan
+  getPlanPhases(planId: string): Phase[] {
+    const plan = this.getPlan(planId);
+    return plan?.phases || [];
+  }
+
+  // Assign Plan Owner (§7 - LMS Admin action, single owner per plan)
+  assignPlanOwner(planId: string, owner: PlanOwner): { success: boolean; error?: string } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, error: 'Plan not found.' };
+    }
+
+    if (!owner.name || !owner.name.trim()) {
+      return { success: false, error: 'Plan Owner name is mandatory.' };
+    }
+
+    if (!owner.email || !owner.email.trim()) {
+      return { success: false, error: 'Plan Owner email is mandatory.' };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+    if (!emailRegex.test(owner.email.trim())) {
+      return { success: false, error: 'Invalid email address format.' };
+    }
+
+    if (owner.contactNumber && owner.contactNumber.trim()) {
+      const phoneRegex = /^01[3-9]\d{8}$/;
+      if (!phoneRegex.test(owner.contactNumber.trim())) {
+        return { success: false, error: 'Contact number must be 11 digits starting with 013-019.' };
+      }
+    }
+
+    const todayStr = formatDateDDMMYYYY(new Date());
+    const currentUser = this.activeUser();
+
+    const updatedOwner: PlanOwner = {
+      userId: owner.userId || null,
+      name: owner.name.trim(),
+      email: owner.email.trim(),
+      contactNumber: owner.contactNumber ? owner.contactNumber.trim() : undefined,
+      assignedAt: todayStr,
+      assignedBy: currentUser.name || 'LMS Admin',
+      invitationStatus: 'accepted'
+    };
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          owner: updatedOwner,
+          updatedDate: todayStr
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Plan Owner Assigned',
+      `Assigned "${updatedOwner.name}" (${updatedOwner.email}) as Plan Owner for "${plan.name}" (${plan.planCode})`,
+      'success'
+    );
+
+    this.showToast(
+      `Plan Owner "${updatedOwner.name}" assigned successfully.`,
+      'success',
+      4500,
+      'Plan Owner Assigned',
+      'OWNER ASSIGNED'
+    );
+
+    return { success: true };
+  }
+
+  // Edit / Update Plan details (§10)
+  updatePlan(planId: string, changes: Partial<Plan>): { success: boolean; errors?: string[] } {
+    const existing = this.getPlan(planId);
+    if (!existing) {
+      return { success: false, errors: ['Plan not found.'] };
+    }
+
+    // Archived plans are locked
+    if (existing.status === 'Archived') {
+      return { success: false, errors: ['Archived Plans are not editable through standard operations.'] };
+    }
+
+    const merged: Plan = {
+      ...existing,
+      ...changes,
+      // Immutable properties
+      id: existing.id,
+      planCode: existing.planCode,
+      lmsId: existing.lmsId,
+      organizationId: existing.organizationId,
+      createdDate: existing.createdDate,
+      createdBy: existing.createdBy,
+      status: existing.status
+    };
+
+    // Validate integrity and date constraints
+    const validation = validatePlanAndPhases(merged, changes.phases || existing.phases);
+    if (!validation.isValid) {
+      return { success: false, errors: validation.errors };
+    }
+
+    const todayStr = formatDateDDMMYYYY(new Date());
+    merged.updatedDate = todayStr;
+    merged.phaseCount = merged.phases ? merged.phases.length : existing.phaseCount;
+
+    this.plans.update(list => list.map(p => p.id === planId ? merged : p));
+
+    this.logAction(
+      'Plan Updated',
+      `Updated plan details for "${merged.name}" (${merged.planCode})`,
+      'info'
+    );
+
+    this.showToast(
+      'Plan details updated successfully.',
+      'success',
+      4500,
+      'Plan Updated',
+      'SAVED'
+    );
+
+    return { success: true };
+  }
+
+  // Activate Plan (§11: Published -> Active)
+  activatePlan(planId: string): { success: boolean; errors?: string[] } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, errors: ['Plan not found.'] };
+    }
+
+    if (plan.status !== 'Published') {
+      return { success: false, errors: [`Plan must be in "Published" status to activate. Current status: ${plan.status}.`] };
+    }
+
+    const errors: string[] = [];
+
+    if (!plan.owner || !plan.owner.name || !plan.owner.email) {
+      errors.push('Plan must have an assigned Plan Owner before activation.');
+    }
+
+    const phases = plan.phases || [];
+    if (phases.length === 0) {
+      errors.push('Required Phase structure is missing. A Plan must have at least one Phase before activation.');
+    }
+
+    const integrity = validatePlanAndPhases(plan, phases);
+    if (!integrity.isValid) {
+      errors.push(...integrity.errors);
+    }
+
+    if (errors.length > 0) {
+      this.showToast(
+        'Cannot activate Plan. Critical validation conditions are incomplete.',
+        'error',
+        5000,
+        'Activation Blocked'
+      );
+      return { success: false, errors };
+    }
+
+    const todayStr = formatDateDDMMYYYY(new Date());
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          status: 'Active',
+          updatedDate: todayStr,
+          capabilities: {
+            ...p.capabilities,
+            canEdit: true,
+            canAssignOwner: true,
+            canActivate: false,
+            canArchive: true,
+            protectedFields: ['startDate', 'endDate', 'durationType']
+          }
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Plan Activated',
+      `Activated Plan "${plan.name}" (${plan.planCode}) for LMS ${plan.lmsId}`,
+      'success'
+    );
+
+    this.showToast(
+      'Plan activated successfully.',
+      'success',
+      4500,
+      'Plan Activated',
+      'ACTIVE'
+    );
+
+    return { success: true };
+  }
+
+  // Archive Plan (§12)
+  archivePlan(planId: string): { success: boolean; error?: string } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, error: 'Plan not found.' };
+    }
+
+    if (plan.status === 'Archived') {
+      return { success: false, error: 'Plan is already archived.' };
+    }
+
+    const todayStr = formatDateDDMMYYYY(new Date());
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          status: 'Archived',
+          updatedDate: todayStr,
+          capabilities: {
+            canEdit: false,
+            canAssignOwner: false,
+            canActivate: false,
+            canArchive: false,
+            protectedFields: ['*']
+          }
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Plan Archived',
+      `Archived Plan "${plan.name}" (${plan.planCode})`,
+      'warning'
+    );
+
+    this.showToast(
+      'Plan archived successfully.',
+      'info',
+      4500,
+      'Plan Archived',
+      'ARCHIVED'
+    );
+
+    return { success: true };
   }
 }
 
