@@ -17,23 +17,7 @@
               "browser": "."
             },
             "browser": "index.tsx",
-            "tsConfig": "tsconfig.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "assets"
-              },
-              {
-                "glob": "**/*",
-                "input": "assets",
-                "output": "assets"
-              }
-            ]
+            "tsConfig": "tsconfig.json"
           },
           "configurations": {
             "production": {
@@ -50,10 +34,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 4200,
-            "allowedHosts": [
-              ".test"
-            ]
+            "port": 3000
           },
           "configurations": {
             "production": {

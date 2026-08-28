@@ -133,7 +133,7 @@ export class WebinarsComponent {
     if (!text) return;
 
     const user = this.lms.activeUser();
-    const isHost = this.lms.activeRole() === 'instructor' || this.lms.activeRole() === 'system_admin' || this.lms.activeRole() === 'lms_admin' || (this.lms.activeRole() as any) === 'super_admin';
+    const isHost = this.lms.activeRole() === 'instructor' || this.lms.activeRole() === 'super_admin';
     
     this.liveChatMessages.update(prev => [
       ...prev,

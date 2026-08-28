@@ -57,6 +57,14 @@ export class LmsCreateComponent implements OnInit {
   adminList = signal<LmsAdminInfo[]>([]);
   adminEmailSent = signal<boolean>(false);
 
+  // Step 3: Add Co-Admin Modal State
+  showCoAdminModal = signal<boolean>(false);
+  coAdminName = signal<string>('');
+  coAdminEmail = signal<string>('');
+  coAdminContact = signal<string>('');
+  coAdminRole = signal<string>('LMS Co-Admin');
+  coAdminErrors = signal<Record<string, string>>({});
+
   // Draft tracking
   draftId = signal<string | null>(null);
 
@@ -112,53 +120,18 @@ export class LmsCreateComponent implements OnInit {
       } else {
         // Pre-fill suggested default allocation based on available capacity
         this.initDefaultAllocations();
-        this.showStepAlert(1, 'entered');
       }
     });
   }
 
-  /**
-   * Dispatches a prominent step alert mentioning the exact step number and description
-   */
-  private showStepAlert(step: WizardStep, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
-    const stepTitles: Record<WizardStep, string> = {
-      1: 'Step 1 of 4: Basic Information',
-      2: 'Step 2 of 4: Resource Allocation',
-      3: 'Step 3 of 4: Admin Assignment',
-      4: 'Step 4 of 4: Preview & Confirm'
-    };
-
-    const stepDescriptions: Record<WizardStep, string> = {
-      1: 'Step 1 of 4 — LMS Basic Info: Configure LMS name, department, domain URL, and branding.',
-      2: 'Step 2 of 4 — Resource Allocation: Allocate database and file storage from available capacity.',
-      3: 'Step 3 of 4 — Admin Assignment: Assign primary administrator and dispatch invitation notification.',
-      4: 'Step 4 of 4 — Preview & Finalize: Review LMS instance parameters before provisioning.'
-    };
-
-    const title = stepTitles[step];
-    const badge = `STEP ${step} / 4`;
-
-    let msg = stepDescriptions[step];
-    if (action === 'completed') {
-      const prev = (step - 1) as WizardStep;
-      msg = `Step ${prev} completed successfully! Now on Step ${step} of 4.`;
-    } else if (action === 'back') {
-      msg = `Navigated back to Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
-    } else if (action === 'jump') {
-      msg = `Active: Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
-    }
-
-    this.lms.showToast(msg, 'info', 4000, title, badge);
-  }
-
   private ensureActiveTenantTheme() {
-    const active = this.lms.activeLms();
+    const active = this.lms.activeTenant();
     if (active && active.branding) {
       this.lms.applyTenantTheme(
         active.branding.primaryColor,
         active.branding.accentColor,
         active.branding.faviconUrl,
-        active.basicInfo.lmsName,
+        active.name,
         active.branding.themePreset
       );
     }
@@ -225,7 +198,7 @@ export class LmsCreateComponent implements OnInit {
       this.currentStep.set(4);
     }
 
-    this.lms.showToast(`Loaded draft for "${draft.basicInfo?.lmsName || draft.id}" at Step ${this.currentStep()} of 4`, 'info', 4500, `Step ${this.currentStep()} Resumed`, `STEP ${this.currentStep()} / 4`);
+    this.lms.showToast(`Loaded draft for "${draft.basicInfo?.lmsName || draft.id}"`, 'info');
   }
 
   // Stepper helper logic identical to Organization Create
@@ -247,11 +220,8 @@ export class LmsCreateComponent implements OnInit {
 
   jumpToStep(step: number) {
     if (this.isStepClickable(step)) {
+      this.currentStep.set(step as WizardStep);
       this.formErrorAlert.set(null);
-      if (this.currentStep() !== step) {
-        this.currentStep.set(step as WizardStep);
-        this.showStepAlert(step as WizardStep, 'jump');
-      }
       this.scrollTop();
     }
   }
@@ -475,30 +445,84 @@ export class LmsCreateComponent implements OnInit {
     return true;
   }
 
-  addAdditionalAdmin() {
-    const name = prompt('Enter Additional LMS Admin Full Name:');
-    if (!name?.trim()) return;
-    const email = prompt('Enter Additional LMS Admin Email:');
-    if (!email?.trim()) return;
-    const phone = prompt('Enter Contact Number (01XXXXXXXXX):') || '01700000000';
+  openAddCoAdminModal() {
+    this.coAdminName.set('');
+    this.coAdminEmail.set('');
+    this.coAdminContact.set('');
+    this.coAdminRole.set('LMS Co-Admin');
+    this.coAdminErrors.set({});
+    this.showCoAdminModal.set(true);
+  }
+
+  closeAddCoAdminModal() {
+    this.showCoAdminModal.set(false);
+    this.coAdminErrors.set({});
+  }
+
+  saveCoAdmin() {
+    const name = this.coAdminName().trim();
+    const email = this.coAdminEmail().trim().toLowerCase();
+    const contact = this.coAdminContact().trim();
+    const role = this.coAdminRole().trim() || 'LMS Co-Admin';
+
+    const errors: Record<string, string> = {};
+
+    if (!name) {
+      errors['name'] = 'Full name is required.';
+    } else if (name.length < 2) {
+      errors['name'] = 'Name must be at least 2 characters.';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      errors['email'] = 'Email address is required.';
+    } else if (!emailRegex.test(email)) {
+      errors['email'] = 'Please enter a valid email address.';
+    } else {
+      const primaryEmail = this.adminEmail().trim().toLowerCase();
+      if (primaryEmail && email === primaryEmail) {
+        errors['email'] = 'This email is already assigned as the Primary Admin.';
+      } else if (this.adminList().some(a => a.email.toLowerCase() === email)) {
+        errors['email'] = 'This administrator has already been added.';
+      }
+    }
+
+    if (contact && !/^01\d{9}$/.test(contact) && !/^\+?\d{8,15}$/.test(contact)) {
+      errors['contact'] = 'Enter a valid contact number (e.g. 01XXXXXXXXX).';
+    }
+
+    this.coAdminErrors.set(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
     const newAdmin: LmsAdminInfo = {
-      name: name.trim(),
-      email: email.trim(),
-      contactNumber: phone.trim(),
-      role: 'LMS Admin',
+      name,
+      email,
+      contactNumber: contact || 'N/A',
+      role,
       invitationStatus: 'pending'
     };
 
     this.adminList.update(list => [...list, newAdmin]);
+    this.showCoAdminModal.set(false);
+    this.lms.showToast(`Co-Administrator "${name}" added successfully.`, 'success', 3500, 'Admin Assigned');
+  }
+
+  addAdditionalAdmin() {
+    this.openAddCoAdminModal();
   }
 
   removeAdmin(index: number) {
     if (index === 0) {
-      alert('The primary LMS Administrator cannot be removed.');
+      this.lms.showToast('The primary LMS Administrator cannot be removed.', 'warning', 3500, 'Primary Admin Locked');
       return;
     }
+    const removedAdmin = this.adminList()[index];
     this.adminList.update(list => list.filter((_, i) => i !== index));
+    if (removedAdmin) {
+      this.lms.showToast(`Removed "${removedAdmin.name}" from instance administrators.`, 'info', 3000);
+    }
   }
 
   triggerAdminNoticeEmail() {
@@ -513,7 +537,7 @@ export class LmsCreateComponent implements OnInit {
 
     this.lms.sendLmsAdminNoticeEmail(adminEmail, adminName, lmsName);
     this.adminEmailSent.set(true);
-    this.lms.showToast(`"LMS Setup In-Progress" notification dispatched to ${adminEmail}`, 'info', 4500, 'Step 3: Email Dispatched', 'STEP 3 / 4');
+    this.lms.showToast(`"LMS Setup In-Progress" notification dispatched to ${adminEmail}`, 'info');
   }
 
   // =========================================================================
@@ -524,10 +548,7 @@ export class LmsCreateComponent implements OnInit {
     const step = this.currentStep();
 
     if (step === 1) {
-      if (!this.validateStep1()) {
-        this.lms.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 4');
-        return;
-      }
+      if (!this.validateStep1()) return;
 
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -536,13 +557,10 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(2);
-      this.lms.showToast('Step 1 (Basic Information) saved. Proceeding to Step 2 of 4: Resource Allocation.', 'success', 4500, 'Step 1 Completed', 'STEP 2 / 4');
+      this.lms.showToast('LMS Basic Information has been saved successfully.', 'success');
       this.scrollTop();
     } else if (step === 2) {
-      if (!this.validateStep2()) {
-        this.lms.showToast('Step 2 Validation: Check storage quota limits.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
-        return;
-      }
+      if (!this.validateStep2()) return;
 
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -551,13 +569,10 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(3);
-      this.lms.showToast('Step 2 (Resource Allocation) saved. Proceeding to Step 3 of 4: Admin Assignment.', 'success', 4500, 'Step 2 Completed', 'STEP 3 / 4');
+      this.lms.showToast('Resource Allocation has been saved successfully.', 'success');
       this.scrollTop();
     } else if (step === 3) {
-      if (!this.validateStep3()) {
-        this.lms.showToast('Step 3 Validation: All mandatory admin fields are not filled up.', 'error', 4500, 'Step 3 Error', 'STEP 3 / 4');
-        return;
-      }
+      if (!this.validateStep3()) return;
 
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -566,7 +581,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(4);
-      this.lms.showToast('Step 3 (Admin Assignment) saved. Proceeding to Step 4 of 4: Preview & Confirm.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 4');
+      this.lms.showToast('Admin Setup has been saved successfully.', 'success');
       this.scrollTop();
     }
   }
@@ -575,9 +590,7 @@ export class LmsCreateComponent implements OnInit {
     this.formErrorAlert.set(null);
     const step = this.currentStep();
     if (step > 1) {
-      const prevStep = (step - 1) as WizardStep;
-      this.currentStep.set(prevStep);
-      this.showStepAlert(prevStep, 'back');
+      this.currentStep.set((step - 1) as WizardStep);
       this.scrollTop();
     }
   }
@@ -606,7 +619,6 @@ export class LmsCreateComponent implements OnInit {
     }
     this.errors.set({});
     this.formErrorAlert.set(null);
-    this.lms.showToast(`Step ${step} form fields have been reset.`, 'info', 4000, `Step ${step} Reset`, `STEP ${step} / 4`);
   }
 
   onCancel() {
@@ -657,7 +669,7 @@ export class LmsCreateComponent implements OnInit {
     };
 
     this.lms.saveLmsDraft(draftPayload);
-    this.lms.showToast(`Draft saved at Step ${this.currentStep()} of 4 for "${draftPayload.basicInfo?.lmsName || draftPayload.id}".`, 'success', 5000, `Step ${this.currentStep()} Draft Saved`, `STEP ${this.currentStep()} / 4`);
+    this.lms.showToast('LMS Draft has been saved successfully.', 'info');
     this.router.navigate(['/lms']);
   }
 
@@ -726,11 +738,9 @@ export class LmsCreateComponent implements OnInit {
       this.showConfirmModal.set(false);
 
       this.lms.showToast(
-        `${createdLms.basicInfo.lmsName} has been successfully created and is under processing.`,
+        'LMS has been successfully created and is under processing.',
         'success',
-        6000,
-        'Step 4 Complete: LMS Created',
-        'UNDER PROCESSING'
+        6000
       );
       this.router.navigate(['/lms']);
     }, 700);

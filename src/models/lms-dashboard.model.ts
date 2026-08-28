@@ -1,5 +1,4 @@
 export type LmsDashboardWidgetType =
-  | 'lms_kpi_summary'
   | 'org_capacity'
   | 'active_lms_drafts'
   | 'lms_status_breakdown'
@@ -10,7 +9,7 @@ export type LmsDashboardWidgetType =
   | 'lms_admin_roster'
   | 'lms_broadcast_banner';
 
-export type LmsWidgetCategory = 'kpis-summary' | 'capacity' | 'drafts' | 'status-activity' | 'instances' | 'operational';
+export type LmsWidgetCategory = 'capacity' | 'drafts' | 'status-activity' | 'instances' | 'operational';
 
 export interface LmsDashboardWidgetConfig {
   bannerText?: string;
@@ -71,19 +70,6 @@ export interface LmsDashboardPreset {
 }
 
 export const LMS_WIDGET_CATALOG: LmsWidgetCatalogItem[] = [
-  {
-    id: 'cat-lms-kpi-summary',
-    type: 'lms_kpi_summary',
-    name: 'LMS KPI Summary',
-    category: 'kpis-summary',
-    categoryLabel: 'KPIs & Summary',
-    defaultWidthPct: 100,
-    defaultColSpan: 4,
-    defaultRowSpan: 1,
-    icon: 'insights',
-    badge: 'Core',
-    description: 'Organization-wide LMS telemetry: Total LMS Instances, Active LMS, Under Processing, and Drafted instances with time-range toggle.'
-  },
   {
     id: 'cat-org-capacity',
     type: 'org_capacity',
@@ -203,15 +189,6 @@ export const LMS_WIDGET_CATALOG: LmsWidgetCatalogItem[] = [
 
 export const DEFAULT_LMS_DASHBOARD_WIDGETS: LmsDashboardWidget[] = [
   {
-    id: 'w-lms-kpi-summary-main',
-    type: 'lms_kpi_summary',
-    title: 'LMS KPI Summary',
-    subtitle: 'Organization-wide LMS telemetry',
-    colSpan: 4,
-    rowSpan: 1,
-    audience: ['org-admin']
-  },
-  {
     id: 'w-org-capacity-main',
     type: 'org_capacity',
     title: 'Organization Capacity',
@@ -279,11 +256,10 @@ export const LMS_DASHBOARD_PRESETS: LmsDashboardPreset[] = [
   {
     id: 'preset-lms-standard',
     name: 'Standard Overview',
-    description: 'KPI Summary, Capacity, Active Drafts, Status Breakdown, Recent Activity & Snapshot',
+    description: 'Capacity, Active Drafts, Status Breakdown, Recent Activity & Snapshot',
     icon: 'grid_view',
     badge: 'Recommended',
     widgetTemplates: [
-      { type: 'lms_kpi_summary', colSpan: 4, rowSpan: 1 },
       { type: 'org_capacity', colSpan: 4, rowSpan: 1 },
       { type: 'active_lms_drafts', colSpan: 2, rowSpan: 2 },
       { type: 'lms_status_breakdown', colSpan: 2, rowSpan: 2 },
@@ -294,11 +270,10 @@ export const LMS_DASHBOARD_PRESETS: LmsDashboardPreset[] = [
   {
     id: 'preset-lms-capacity-ops',
     name: 'Capacity & Operations',
-    description: 'KPI Summary, Capacity Card, Status Breakdown, Quick Actions & Recent Activity Feed',
+    description: 'Capacity Card, Status Breakdown, Quick Actions & Recent Activity Feed',
     icon: 'storage',
     badge: 'Operations',
     widgetTemplates: [
-      { type: 'lms_kpi_summary', colSpan: 4, rowSpan: 1 },
       { type: 'org_capacity', colSpan: 4, rowSpan: 1 },
       { type: 'quick_lms_actions', colSpan: 2, rowSpan: 1 },
       { type: 'lms_status_breakdown', colSpan: 2, rowSpan: 1 },
@@ -309,11 +284,10 @@ export const LMS_DASHBOARD_PRESETS: LmsDashboardPreset[] = [
   {
     id: 'preset-lms-portfolio-drafts',
     name: 'Portfolio & Drafts Focus',
-    description: 'KPI Summary, Active Drafts, LMS Snapshot Cards, Programme Matrix & Admins',
+    description: 'Active Drafts, LMS Snapshot Cards, Programme Matrix & Admins',
     icon: 'layers',
     badge: 'Creation',
     widgetTemplates: [
-      { type: 'lms_kpi_summary', colSpan: 4, rowSpan: 1 },
       { type: 'org_capacity', colSpan: 4, rowSpan: 1 },
       { type: 'active_lms_drafts', colSpan: 2, rowSpan: 2 },
       { type: 'lms_snapshot_cards', colSpan: 2, rowSpan: 2 },
@@ -324,12 +298,11 @@ export const LMS_DASHBOARD_PRESETS: LmsDashboardPreset[] = [
   {
     id: 'preset-lms-executive',
     name: 'Executive Complete Hub',
-    description: 'Comprehensive 8-widget layout featuring all LMS intelligence panels',
+    description: 'Comprehensive 7-widget layout featuring all LMS intelligence panels',
     icon: 'dashboard',
     badge: 'Complete',
     widgetTemplates: [
       { type: 'lms_broadcast_banner', colSpan: 4, rowSpan: 1 },
-      { type: 'lms_kpi_summary', colSpan: 4, rowSpan: 1 },
       { type: 'org_capacity', colSpan: 4, rowSpan: 1 },
       { type: 'active_lms_drafts', colSpan: 2, rowSpan: 2 },
       { type: 'lms_status_breakdown', colSpan: 2, rowSpan: 2 },

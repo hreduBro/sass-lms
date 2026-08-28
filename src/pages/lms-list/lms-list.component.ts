@@ -122,7 +122,7 @@ export class LmsListComponent {
   isActivatingInProgress = signal<boolean>(false);
 
   // Available Status Options (§6.4)
-  statusOptions: LmsStatus[] = ['Active', 'Under Processing', 'Drafted', 'Deactivated'];
+  statusOptions: LmsStatus[] = ['Active', 'Under Processing', 'Drafted', 'Trial'];
 
   // Available Departments for active Organization (§2.3)
   allDepartments = computed(() => this.lms.getOrganizationDepartments());
@@ -146,8 +146,6 @@ export class LmsListComponent {
   hasActiveFilters = computed<boolean>(() => {
     const f = this.appliedFilters();
     return f.status.length > 0 || 
-           f.programmeDepartment.length > 0 || 
-           !!f.lmsAdmin || 
            !!f.createdDateFrom || 
            !!f.createdDateTo;
   });
@@ -160,8 +158,7 @@ export class LmsListComponent {
   // Total count of active filter criteria
   activeFilterCount = computed<number>(() => {
     const f = this.appliedFilters();
-    let count = f.status.length + f.programmeDepartment.length;
-    if (f.lmsAdmin) count++;
+    let count = f.status.length;
     if (f.createdDateFrom || f.createdDateTo) count++;
     return count;
   });
@@ -224,14 +221,8 @@ export class LmsListComponent {
       return true;
     });
 
-    // Sort: Active LMS instance pinned first to ensure it's on page 1, then latest created LMS (§2.5)
-    const activeId = this.lms.activeLmsId();
+    // Sort: Latest created LMS first (§2.5)
     return filtered.sort((a, b) => {
-      const isAActive = a.id === activeId;
-      const isBActive = b.id === activeId;
-      if (isAActive && !isBActive) return -1;
-      if (!isAActive && isBActive) return 1;
-
       const dateA = new Date(a.createdAt).getTime() || 0;
       const dateB = new Date(b.createdAt).getTime() || 0;
       return dateB - dateA;
@@ -594,17 +585,38 @@ export class LmsListComponent {
   getStatusBadgeClass(status: LmsStatus): string {
     switch (status) {
       case 'Active':
-        return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+        return 'bg-[#E8FAF4] text-[#059669] border-[#34D399] dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700';
       case 'Under Processing':
-        return 'bg-amber-50 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+        return 'bg-[#FFFBEB] text-[#D97706] border-[#FBBF24] dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-600';
       case 'Drafted':
       case 'In-Progress':
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        return 'bg-[#F1F5F9] text-[#475569] border-[#94A3B8] dark:bg-slate-900/60 dark:text-slate-300 dark:border-slate-600';
+      case 'Trial':
+        return 'bg-[#FDF2F8] text-[#DB2777] border-[#F472B6] dark:bg-pink-950/60 dark:text-pink-300 dark:border-pink-700';
       case 'Deactivated':
       case 'Suspended':
-        return 'bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+        return 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700';
       default:
-        return 'bg-base-200 text-text-secondary border-base-300';
+        return 'bg-slate-50 text-slate-700 border-slate-300';
+    }
+  }
+
+  getStatusDotClass(status: LmsStatus): string {
+    switch (status) {
+      case 'Active':
+        return 'bg-[#10B981]';
+      case 'Under Processing':
+        return 'bg-[#F59E0B]';
+      case 'Drafted':
+      case 'In-Progress':
+        return 'bg-[#64748B]';
+      case 'Trial':
+        return 'bg-[#EC4899]';
+      case 'Deactivated':
+      case 'Suspended':
+        return 'bg-[#EF4444]';
+      default:
+        return 'bg-slate-400';
     }
   }
 

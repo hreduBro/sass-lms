@@ -141,7 +141,7 @@ export class WidgetConfigModalComponent implements OnInit {
     type: 'kpi_grid',
     title: 'KPI Metrics',
     colSpan: 4,
-    visibleForRoles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner']
+    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
   });
   close = output<void>();
   save = output<DashboardWidget>();
@@ -154,8 +154,8 @@ export class WidgetConfigModalComponent implements OnInit {
   formBannerText = '';
 
   allRoles: { role: UserRole; label: string }[] = [
-    { role: 'system_admin', label: 'System Admin' },
-    { role: 'lms_admin', label: 'LMS Admin' },
+    { role: 'super_admin', label: 'Super Admin' },
+    { role: 'tenant_admin', label: 'Tenant Admin' },
     { role: 'instructor', label: 'Instructor' },
     { role: 'learner', label: 'Learner' },
   ];

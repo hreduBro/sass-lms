@@ -23,15 +23,14 @@ export class HeaderComponent {
   toggleSidebar = output<void>();
 
   showTenantDropdown = computed(() => this.lms.isNavDropdownOpen('header-tenant'));
-  showLmsDropdown = computed(() => this.lms.isNavDropdownOpen('header-lms'));
   showUserDropdown = computed(() => this.lms.isNavDropdownOpen('header-user'));
   showNotificationMenu = computed(() => this.lms.isNavDropdownOpen('header-notifications'));
   showThemeMenu = computed(() => this.lms.isNavDropdownOpen('header-theme'));
 
   showNewTenantModal = signal(false);
+  showSignOutModal = signal(false);
 
   tenantSearch = signal('');
-  lmsSearch = signal('');
 
   filteredTenants = computed(() => {
     const q = this.tenantSearch().trim().toLowerCase();
@@ -41,19 +40,6 @@ export class HeaderComponent {
       t.name.toLowerCase().includes(q) || 
       t.domain.toLowerCase().includes(q) ||
       t.plan.toLowerCase().includes(q)
-    );
-  });
-
-  filteredLmsList = computed(() => {
-    const q = this.lmsSearch().trim().toLowerCase();
-    // LMS Admin is strictly scoped to their Organization's LMS instances
-    const list = this.lms.isSystemAdmin() ? this.lms.lmsInstances() : this.lms.activeOrgLmsInstances();
-    if (!q) return list;
-    return list.filter(l => 
-      l.basicInfo.lmsName.toLowerCase().includes(q) || 
-      l.basicInfo.programmeDepartment.toLowerCase().includes(q) ||
-      l.organizationName.toLowerCase().includes(q) ||
-      l.id.toLowerCase().includes(q)
     );
   });
 
@@ -69,7 +55,6 @@ export class HeaderComponent {
   closeAllDropdowns() {
     this.lms.closeNavDropdown();
     this.tenantSearch.set('');
-    this.lmsSearch.set('');
   }
 
   @HostListener('document:click', ['$event'])
@@ -86,17 +71,12 @@ export class HeaderComponent {
   @HostListener('document:keydown.escape')
   onEscapePress() {
     this.closeAllDropdowns();
+    this.showSignOutModal.set(false);
   }
 
   toggleTenantDropdown(event?: Event) {
-    if (!this.lms.isSystemAdmin()) return;
     event?.stopPropagation();
     this.lms.toggleNavDropdown('header-tenant');
-  }
-
-  toggleLmsDropdown(event?: Event) {
-    event?.stopPropagation();
-    this.lms.toggleNavDropdown('header-lms');
   }
 
   toggleUserDropdown(event?: Event) {
@@ -131,20 +111,14 @@ export class HeaderComponent {
   };
 
   roles: { role: UserRole; label: string; icon: string }[] = [
-    { role: 'system_admin', label: 'System Admin', icon: 'shield_person' },
-    { role: 'lms_admin', label: 'LMS Admin', icon: 'admin_panel_settings' },
+    { role: 'super_admin', label: 'Super Admin', icon: 'shield_person' },
+    { role: 'tenant_admin', label: 'Tenant Admin', icon: 'admin_panel_settings' },
     { role: 'instructor', label: 'Instructor', icon: 'school' },
     { role: 'learner', label: 'Learner', icon: 'person' },
   ];
 
   selectTenant(id: string) {
-    if (!this.lms.isSystemAdmin()) return;
     this.lms.switchTenant(id);
-    this.closeAllDropdowns();
-  }
-
-  selectLms(id: string) {
-    this.lms.switchLms(id);
     this.closeAllDropdowns();
   }
 
@@ -169,7 +143,13 @@ export class HeaderComponent {
 
   handleSignOut() {
     this.closeAllDropdowns();
-    this.lms.openSignOutModal();
+    this.showSignOutModal.set(true);
+  }
+
+  confirmSignOut() {
+    this.lms.logout();
+    this.showSignOutModal.set(false);
+    this.router.navigate(['/dashboard']);
   }
 
   createTenant() {

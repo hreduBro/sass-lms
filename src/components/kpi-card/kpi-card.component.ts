@@ -36,12 +36,7 @@ export class KpiCardComponent {
     building: 'corporate_fare',
     shield: 'verified_user',
     check: 'task_alt',
-    trending: 'trending_up',
-    pending: 'hourglass_top',
-    edit_note: 'edit_note',
-    draft: 'edit_note',
-    layers: 'layers',
-    hub: 'hub'
+    trending: 'monitoring'
   };
 }
 
