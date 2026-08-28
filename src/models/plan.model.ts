@@ -41,6 +41,161 @@ export interface PlanCapabilities {
   protectedFields?: string[];
 }
 
+export type ProgressionMode = 'Sequential' | 'Free';
+export type GradingScope = 'Whole Plan' | 'Per Phase';
+export type GradingType = 'Percentage' | 'CGPA';
+export type CertificateStatus = 'Pass' | 'Fail' | 'Completed';
+export type EvaluationRequirement = 'Mandatory' | 'Optional';
+export type EnrollmentConfirmation = 'Auto Onboard' | 'Manual Review';
+
+export interface ProgressionConfig {
+  mode: ProgressionMode;
+  completionRequirementForUnlock: string;
+}
+
+export interface EnrollmentConfig {
+  mode: EnrollmentType;
+  openRegistrationLink?: string;
+  openRegistrationQr?: boolean;
+  individualEnrollment?: string[];
+  batchEnrollment?: string[];
+  existingTraineeSelfRegistration: boolean;
+  capacityEnabled: boolean;
+  capacity?: number | null;
+  waitlistEnabled: boolean;
+  confirmation: EnrollmentConfirmation;
+  termsRequirements?: string;
+  traineeProfileFilters?: {
+    locations?: string[];
+    genders?: string[];
+    departments?: string[];
+    grades?: string[];
+  };
+}
+
+export interface EquivalencyConfig {
+  samePublishedVersionSatisfies: boolean;
+  newerVersionRequiresRetake: boolean;
+  overrideEnabled: boolean;
+  explanation: string;
+}
+
+export interface PhaseWeight {
+  phaseId: string;
+  phaseName: string;
+  weight: number;
+}
+
+export interface GradingConfig {
+  scope: GradingScope;
+  type: GradingType;
+  planPassMark: number;
+  phaseWeights: PhaseWeight[];
+  contentLevelPassRequired: boolean;
+  retakePolicy: string;
+  aggregationPreview?: string;
+}
+
+export interface TranscriptRule {
+  enabledAtPlan: boolean;
+  enabledAtPhase: boolean;
+  enabledAtCourse: boolean;
+  scope: GradingScope;
+  minScore: number;
+  minCompletionPct: number;
+  gatedOnPreviousPhaseTranscript: boolean;
+}
+
+export interface CertificateConfig {
+  enabledAtPlan: boolean;
+  enabledAtPhase: boolean;
+  enabledAtCourse: boolean;
+  scope: GradingScope;
+  templateId: string;
+  templateName: string;
+  minScore: number;
+  minCompletionPct: number;
+}
+
+export interface BadgeConfig {
+  enabled: boolean;
+  templateId: string;
+  templateName: string;
+  rule: string;
+}
+
+export interface CredentialsConfig {
+  transcripts: TranscriptRule;
+  certificates: CertificateConfig;
+  badges: BadgeConfig;
+  visibility: 'Public' | 'Enrolled Trainees Only' | 'Plan Administrators Only';
+}
+
+export interface TestConfig {
+  enabled: boolean;
+  requirement: EvaluationRequirement;
+  questionnaireId: string;
+  questionnaireTitle: string;
+  questionnaireVersion: string;
+}
+
+export interface EvaluationConfig {
+  preTest: TestConfig;
+  postTest: TestConfig;
+  releaseTiming: string;
+  resultDownloadEnabled: boolean;
+}
+
+export interface FeedbackQuestion {
+  id: string;
+  type: 'Text Response' | 'Single Select' | 'Multi-Select';
+  question: string;
+  options?: string[];
+}
+
+export interface EngagementConfig {
+  rating: {
+    enabled: boolean;
+    scale: '5-Star Scale' | '10-Point CSAT' | '3-Point Smiley';
+    availability: 'Post-Completion Only' | 'Per Phase Completion' | 'Open Anytime';
+  };
+  feedback: {
+    enabled: boolean;
+    templateId: string;
+    templateName: string;
+    version: string;
+    questions: FeedbackQuestion[];
+    phaseIds: string[];
+    releaseTiming: string;
+  };
+  forum: {
+    enabled: boolean;
+    topicCreationPermission: 'Instructors Only' | 'Instructors & Trainees';
+    moderationPermission: 'LMS Co-Admins & Instructors' | 'Designated Moderators';
+    visibilityScope: 'All users' | 'Selected batches';
+    allowedPostFormats: string[];
+  };
+}
+
+export interface RecurringConfig {
+  enabled: boolean;
+  cycleConfig: string;
+  currentCycle: string;
+  historicalCycleRetention: string;
+  structureChangePolicy: string;
+  reEnrollmentRule: string;
+}
+
+export interface PlanValidationIssue {
+  severity: 'critical' | 'warning' | 'info';
+  section: number;
+  sectionTitle: string;
+  field?: string;
+  entityType?: 'Plan' | 'Phase' | 'Course';
+  entityId?: string;
+  message: string;
+}
+
 export interface Plan {
   id: string;
   planCode: string; // System-generated read-only identifier (e.g. PLN-1972-001)
@@ -59,8 +214,21 @@ export interface Plan {
   createdDate: string; // DD/MM/YYYY
   createdBy: string;
   updatedDate: string; // DD/MM/YYYY
+  publishedAt?: string | null;
+  publishedBy?: string | null;
+  lastCompletedSection?: number;
   phases?: Phase[];
   capabilities?: PlanCapabilities;
+  // Extended configuration modules (§5 - §12)
+  progression?: ProgressionConfig;
+  enrollmentConfig?: EnrollmentConfig;
+  equivalency?: EquivalencyConfig;
+  grading?: GradingConfig;
+  credentials?: CredentialsConfig;
+  evaluation?: EvaluationConfig;
+  engagement?: EngagementConfig;
+  recurringConfig?: RecurringConfig;
+  alumniTracking?: boolean;
 }
 
 export interface PlanGridFilter {
@@ -633,5 +801,235 @@ export function validatePlanAndPhases(plan: Plan, phases?: Phase[]): { isValid: 
   return {
     isValid: errors.length === 0,
     errors
+  };
+}
+
+/**
+ * Validates the full 12-section Plan configuration for Review & Validation screen
+ */
+export function validateComprehensivePlan(plan: Plan, phases: Phase[]): {
+  isValidForPublish: boolean;
+  issues: PlanValidationIssue[];
+} {
+  const issues: PlanValidationIssue[] = [];
+
+  // Section 01: Basic Information
+  if (!plan.name || plan.name.trim().length < 3) {
+    issues.push({
+      severity: 'critical',
+      section: 1,
+      sectionTitle: 'Basic Information',
+      field: 'name',
+      message: 'Plan Name is mandatory and must be at least 3 characters.'
+    });
+  }
+
+  const pStart = parseDateDDMMYYYY(plan.startDate);
+  const pEnd = parseDateDDMMYYYY(plan.endDate);
+  if (!pStart || !pEnd) {
+    issues.push({
+      severity: 'critical',
+      section: 1,
+      sectionTitle: 'Basic Information',
+      field: 'dates',
+      message: 'Plan Start Date and End Date must be in valid DD/MM/YYYY format.'
+    });
+  } else if (pStart.getTime() >= pEnd.getTime()) {
+    issues.push({
+      severity: 'critical',
+      section: 1,
+      sectionTitle: 'Basic Information',
+      field: 'dates',
+      message: 'Plan Start Date must be strictly before Plan End Date.'
+    });
+  }
+
+  if (!plan.owner?.name || !plan.owner?.email) {
+    issues.push({
+      severity: 'critical',
+      section: 1,
+      sectionTitle: 'Basic Information',
+      field: 'owner',
+      message: 'A valid Plan Owner with name and email address is required.'
+    });
+  }
+
+  if (!['Yearly', 'Half-Yearly', 'Quarterly'].includes(plan.durationType)) {
+    issues.push({
+      severity: 'critical',
+      section: 1,
+      sectionTitle: 'Basic Information',
+      field: 'durationType',
+      message: 'Duration Type must be an approved value (Yearly, Half-Yearly, Quarterly).'
+    });
+  }
+
+  // Section 02: Plan Structure
+  if (phases.length === 0) {
+    issues.push({
+      severity: 'critical',
+      section: 2,
+      sectionTitle: 'Plan Structure',
+      message: 'A usable Plan must contain at least one Phase before it can be published.'
+    });
+  } else {
+    const sorted = [...phases].sort((a, b) => a.sequence - b.sequence);
+    sorted.forEach((phase, idx) => {
+      const phStart = parseDateDDMMYYYY(phase.startDate);
+      const phEnd = parseDateDDMMYYYY(phase.endDate);
+
+      if (!phStart || !phEnd) {
+        issues.push({
+          severity: 'critical',
+          section: 2,
+          sectionTitle: 'Plan Structure',
+          entityType: 'Phase',
+          entityId: phase.id,
+          message: `Phase "${phase.name}" has invalid dates.`
+        });
+        return;
+      }
+
+      if (phStart.getTime() > phEnd.getTime()) {
+        issues.push({
+          severity: 'critical',
+          section: 2,
+          sectionTitle: 'Plan Structure',
+          entityType: 'Phase',
+          entityId: phase.id,
+          message: `Phase "${phase.name}" Start Date cannot be after its End Date.`
+        });
+      }
+
+      if (pStart && phStart.getTime() < pStart.getTime()) {
+        issues.push({
+          severity: 'critical',
+          section: 2,
+          sectionTitle: 'Plan Structure',
+          entityType: 'Phase',
+          entityId: phase.id,
+          message: `Phase "${phase.name}" start date (${phase.startDate}) cannot precede Plan start date (${plan.startDate}).`
+        });
+      }
+
+      if (pEnd && phEnd.getTime() > pEnd.getTime()) {
+        issues.push({
+          severity: 'critical',
+          section: 2,
+          sectionTitle: 'Plan Structure',
+          entityType: 'Phase',
+          entityId: phase.id,
+          message: `Phase "${phase.name}" end date (${phase.endDate}) cannot exceed Plan end date (${plan.endDate}).`
+        });
+      }
+
+      if (idx > 0) {
+        const prev = sorted[idx - 1];
+        const prevE = parseDateDDMMYYYY(prev.endDate);
+        if (prevE && phStart.getTime() < prevE.getTime()) {
+          issues.push({
+            severity: 'critical',
+            section: 2,
+            sectionTitle: 'Plan Structure',
+            entityType: 'Phase',
+            entityId: phase.id,
+            message: `Phase "${phase.name}" overlaps with preceding Phase "${prev.name}". Overlapping phases are forbidden.`
+          });
+        }
+      }
+    });
+  }
+
+  // Section 03: Progression
+  if (plan.progression && plan.progression.mode === 'Sequential') {
+    if (!plan.progression.completionRequirementForUnlock) {
+      issues.push({
+        severity: 'warning',
+        section: 3,
+        sectionTitle: 'Progression',
+        message: 'Sequential progression unlock condition is not specified. Defaulting to 100% completion.'
+      });
+    }
+  }
+
+  // Section 04: Enrollment
+  if (plan.enrollmentConfig?.capacityEnabled) {
+    if (!plan.enrollmentConfig.capacity || plan.enrollmentConfig.capacity <= 0) {
+      issues.push({
+        severity: 'critical',
+        section: 4,
+        sectionTitle: 'Enrollment & Cohorting',
+        field: 'capacity',
+        message: 'Capacity must be a positive number when capacity limit is enabled.'
+      });
+    }
+  }
+
+  // Section 06: Grading (Deferrable - Warning if empty)
+  if (!plan.grading || !plan.grading.planPassMark) {
+    issues.push({
+      severity: 'info',
+      section: 6,
+      sectionTitle: 'Grading Policy',
+      message: 'Grading Policy is not fully configured (deferrable for Draft; default pass mark will apply if published).'
+    });
+  } else {
+    if (plan.grading.type === 'Percentage' && (plan.grading.planPassMark < 0 || plan.grading.planPassMark > 100)) {
+      issues.push({
+        severity: 'critical',
+        section: 6,
+        sectionTitle: 'Grading Policy',
+        field: 'planPassMark',
+        message: 'Percentage pass mark must be between 0% and 100%.'
+      });
+    } else if (plan.grading.type === 'CGPA' && (plan.grading.planPassMark < 0 || plan.grading.planPassMark > 4.0)) {
+      issues.push({
+        severity: 'critical',
+        section: 6,
+        sectionTitle: 'Grading Policy',
+        field: 'planPassMark',
+        message: 'CGPA pass mark must be on a 0.00 - 4.00 scale.'
+      });
+    }
+  }
+
+  // Section 07: Credentials (Deferrable - Info/Warning if empty)
+  if (plan.credentials?.certificates?.enabledAtPlan && !plan.credentials.certificates.templateId) {
+    issues.push({
+      severity: 'warning',
+      section: 7,
+      sectionTitle: 'Credentials & Outputs',
+      field: 'templateId',
+      message: 'Certificate is enabled at Plan level but no template has been selected.'
+    });
+  }
+
+  // Section 08: Evaluation
+  if (plan.evaluation?.preTest?.enabled && plan.evaluation.preTest.requirement === 'Mandatory' && !plan.evaluation.preTest.questionnaireId) {
+    issues.push({
+      severity: 'critical',
+      section: 8,
+      sectionTitle: 'Evaluation',
+      field: 'preTest',
+      message: 'A mandatory Pre-Test must have a designated questionnaire.'
+    });
+  }
+
+  // Section 10: Recurring
+  if (plan.recurringConfig?.enabled && !plan.recurringConfig.cycleConfig) {
+    issues.push({
+      severity: 'warning',
+      section: 10,
+      sectionTitle: 'Recurring & Alumni',
+      field: 'cycleConfig',
+      message: 'Recurring Plan is enabled but recurrence cycle configuration is incomplete.'
+    });
+  }
+
+  const criticalIssues = issues.filter(i => i.severity === 'critical');
+
+  return {
+    isValidForPublish: criticalIssues.length === 0,
+    issues
   };
 }

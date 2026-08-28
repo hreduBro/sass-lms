@@ -4794,7 +4794,7 @@ export class LmsDataService {
     );
 
     this.showToast(
-      'Plan activated successfully.',
+      `${plan.name} is activated`,
       'success',
       4500,
       'Plan Activated',

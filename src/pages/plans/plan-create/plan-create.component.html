@@ -1,0 +1,1143 @@
+<div class="space-y-6 pb-16 animate-fade-in max-w-6xl mx-auto">
+  
+  <!-- ================================================================= -->
+  <!-- TOP HEADER & LMS WORKSPACE CONTEXT                                -->
+  <!-- ================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <button 
+        id="back-to-grid-from-create-btn"
+        type="button" 
+        (click)="goBack()"
+        class="w-9 h-9 rounded-xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 hover:bg-base-200 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+      </button>
+      <div>
+        <div class="flex items-center gap-2 text-xs text-text-secondary">
+          <span class="hover:underline cursor-pointer" (click)="goBack()">Plan Management</span>
+          <span>/</span>
+          <span class="text-text-primary font-medium">Create Plan</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-text-primary mt-0.5 flex items-center gap-2.5">
+          Design Learning Plan
+          <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300 flex items-center gap-1">
+            {{ generatedPlanCode() }}
+            <button type="button" (click)="copyPlanCode()" title="Copy Plan Code" class="hover:opacity-75">
+              <span class="material-symbols-outlined text-[13px]">content_copy</span>
+            </button>
+          </span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- Fixed LMS Workspace Context & Quick Actions -->
+    <div class="flex items-center flex-wrap gap-2.5">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200 dark:bg-base-300/50 border border-base-300 dark:border-slate-800 text-xs text-text-secondary shadow-sm">
+        <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">layers</span>
+        <span>Target LMS:</span>
+        <span class="font-bold text-text-primary">{{ activeLms().basicInfo.lmsName }}</span>
+      </div>
+
+      <button 
+        id="top-save-draft-btn"
+        type="button"
+        (click)="saveDraft()"
+        [disabled]="isSubmitting()"
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 dark:bg-base-200 hover:bg-base-300/60 border border-base-300 dark:border-slate-700 text-text-primary flex items-center gap-1.5 shadow-sm transition-all">
+        <span class="material-symbols-outlined text-sm">save</span>
+        <span>Save Draft</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 11-STEP PROGRESS INDICATOR / NAVIGATION (§2)                      -->
+  <!-- ================================================================= -->
+  <div class="p-3 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm overflow-x-auto">
+    <div class="flex items-center min-w-max gap-2 text-xs">
+      @for (step of steps; track step.id; let i = $index) {
+        <button 
+          type="button"
+          (click)="goToStep(step.id)"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl font-medium transition-all text-left"
+          [ngClass]="[
+            currentStep() === step.id 
+              ? 'bg-tenant-600 text-white font-bold shadow-sm' 
+              : completedSteps().has(step.id)
+                ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40'
+                : 'text-text-secondary hover:bg-base-200 hover:text-text-primary border border-transparent'
+          ]">
+          <span 
+            class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0"
+            [ngClass]="[
+              currentStep() === step.id 
+                ? 'bg-white/20 text-white' 
+                : completedSteps().has(step.id)
+                  ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100'
+                  : 'bg-base-300 text-text-secondary'
+            ]">
+            @if (completedSteps().has(step.id) && currentStep() !== step.id) {
+              <span class="material-symbols-outlined text-[13px]">check</span>
+            } @else {
+              {{ step.id }}
+            }
+          </span>
+          <span class="whitespace-nowrap">{{ step.shortTitle }}</span>
+          @if (step.isDeferrable) {
+            <span class="text-[9px] px-1 py-0.2 rounded font-mono opacity-80" [class.bg-white/20]="currentStep() === step.id" [class.bg-base-300]="currentStep() !== step.id">
+              Defer
+            </span>
+          }
+        </button>
+        @if (i < steps.length - 1) {
+          <span class="material-symbols-outlined text-xs text-text-secondary/40">chevron_right</span>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Main Form Wrapper -->
+  <form [formGroup]="planForm" class="space-y-6">
+
+    <!-- ================================================================= -->
+    <!-- SECTION 01 — BASIC INFORMATION (§3)                               -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 1) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 font-bold flex items-center justify-center text-xs">
+              01
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary">Basic Information & Timeframe</h2>
+              <p class="text-[11px] text-text-secondary">Define the core identity, bounds, and administrator for this learning plan.</p>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 px-2 py-1 rounded-lg border border-tenant-200 dark:border-tenant-800/40 font-bold">
+            Mandatory Gate (§3.3)
+          </span>
+        </div>
+
+        <!-- Plan Name * -->
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">
+            Plan Name <span class="text-rose-500">*</span>
+          </label>
+          <input 
+            id="plan-name-input"
+            type="text" 
+            formControlName="name"
+            placeholder="e.g. 2026 BRAC Microfinance Branch Transformation & Ethics Plan" 
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium"
+            [class.border-rose-500]="isFieldInvalid('name')" />
+          @if (isFieldInvalid('name')) {
+            <p class="text-[11px] text-rose-500 mt-1">Plan Name is required (minimum 3 characters).</p>
+          }
+        </div>
+
+        <!-- Description (Optional) -->
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">
+            Plan Description & Learning Objectives
+            <span class="text-[10px] text-text-secondary font-normal ml-1">(Optional)</span>
+          </label>
+          <textarea 
+            id="plan-desc-input"
+            formControlName="description"
+            rows="3"
+            placeholder="Describe the purpose, target audience, and curriculum journey of the plan..." 
+            class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all"></textarea>
+        </div>
+
+        <!-- Duration Type & Dates Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          <!-- Duration Type -->
+          <div>
+            <app-custom-select
+              [label]="'Duration Type'"
+              [required]="true"
+              [options]="durationOptions"
+              formControlName="durationType">
+            </app-custom-select>
+          </div>
+
+          <!-- Plan Start Date -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Plan Start Date <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(DD/MM/YYYY)</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
+                calendar_today
+              </span>
+              <input 
+                id="plan-start-date-input"
+                type="text" 
+                formControlName="startDate"
+                placeholder="01/01/2026" 
+                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium"
+                [class.border-rose-500]="isFieldInvalid('startDate')" />
+            </div>
+            @if (isFieldInvalid('startDate')) {
+              <p class="text-[11px] text-rose-500 mt-1">Valid DD/MM/YYYY format required.</p>
+            }
+          </div>
+
+          <!-- Plan End Date -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Plan End Date <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(DD/MM/YYYY)</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
+                event_busy
+              </span>
+              <input 
+                id="plan-end-date-input"
+                type="text" 
+                formControlName="endDate"
+                placeholder="31/12/2026" 
+                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all font-medium"
+                [class.border-rose-500]="isFieldInvalid('endDate')" />
+            </div>
+            @if (isFieldInvalid('endDate')) {
+              <p class="text-[11px] text-rose-500 mt-1">End Date must be after Start Date.</p>
+            }
+          </div>
+
+        </div>
+
+        <!-- Plan Owner Roster Assignment (§3.1 #6) -->
+        <div class="p-4 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 space-y-3" formGroupName="owner">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-tenant-600">manage_accounts</span>
+              <span class="font-bold text-xs text-text-primary">Plan Owner Assignment <span class="text-rose-500">*</span></span>
+            </div>
+            <span class="text-[11px] text-text-secondary">Appoint 1 authorized administrator for this plan</span>
+          </div>
+
+          @if (userOptions().length > 0) {
+            <div>
+              <app-custom-select
+                [label]="'Select from Authorized LMS Users'"
+                [hint]="'Autofill credentials from LMS member roster'"
+                [options]="userOptions()"
+                [placeholder]="'-- Choose team member or enter custom details below --'"
+                (valueChange)="onSelectExistingUser($event)">
+              </app-custom-select>
+            </div>
+            <div class="relative flex py-1 items-center">
+              <div class="flex-grow border-t border-base-300 dark:border-slate-800"></div>
+              <span class="flex-shrink mx-3 text-[10px] font-medium text-text-secondary uppercase tracking-wider">or specify custom details</span>
+              <div class="flex-grow border-t border-base-300 dark:border-slate-800"></div>
+            </div>
+          }
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-text-primary mb-1">Owner Name *</label>
+              <input 
+                type="text" 
+                formControlName="name"
+                placeholder="e.g. Tanvir Hossain" 
+                class="w-full px-3 py-2 rounded-lg text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
+                [class.border-rose-500]="isOwnerFieldInvalid('name')" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-text-primary mb-1">Owner Email *</label>
+              <input 
+                type="email" 
+                formControlName="email"
+                placeholder="e.g. tanvir.hossain@brac.net" 
+                class="w-full px-3 py-2 rounded-lg text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
+                [class.border-rose-500]="isOwnerFieldInvalid('email')" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-text-primary mb-1">Contact Number (Optional)</label>
+              <input 
+                type="tel" 
+                formControlName="contactNumber"
+                placeholder="01713001122" 
+                maxlength="11"
+                class="w-full px-3 py-2 rounded-lg text-xs bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Recurring Plan Toggle (§3.1 #8 & §12) -->
+        <div class="flex items-center justify-between p-3.5 rounded-xl bg-base-200/40 border border-base-300 dark:border-slate-800">
+          <div>
+            <div class="font-bold text-xs text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm text-tenant-600">update</span>
+              Recurring Plan Track
+            </div>
+            <p class="text-[11px] text-text-secondary mt-0.5">
+              Enable repeating cycles where the same Plan Code is retained and learner progress is preserved.
+            </p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" formControlName="recurringPlan" class="sr-only peer">
+            <div class="w-10 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-600"></div>
+          </label>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 02 — PLAN STRUCTURE & PHASE OVERVIEW (§4)                 -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 2) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center text-xs">
+              02
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary">Plan Structure & Phase Milestones</h2>
+              <p class="text-[11px] text-text-secondary">Structure curriculum phases. Phases must be non-overlapping and strictly bounded by Plan dates.</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="openAddPhaseModal()"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span>Add Phase</span>
+          </button>
+        </div>
+
+        <!-- Plan Timeline Bound Display (§4.1) -->
+        <div class="p-3.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/70 dark:border-indigo-800/40 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2 text-indigo-950 dark:text-indigo-200">
+            <span class="material-symbols-outlined text-base text-indigo-600">date_range</span>
+            <span class="font-bold">Plan Overall Bounds:</span>
+            <span class="font-mono">{{ planForm.get('startDate')?.value }} → {{ planForm.get('endDate')?.value }}</span>
+          </div>
+          <span class="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+            {{ phasesArray.length }} {{ phasesArray.length === 1 ? 'Phase' : 'Phases' }} Configured
+          </span>
+        </div>
+
+        <!-- Phases List (§4.1, §4.2) -->
+        <div class="space-y-3">
+          @for (phaseControl of phasesArray.controls; track $index; let i = $index) {
+            <div class="p-4 rounded-xl border border-base-300 dark:border-slate-800 bg-base-200/40 dark:bg-base-300/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              
+              <div class="flex items-start gap-3 min-w-0">
+                <span class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  #{{ i + 1 }}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-text-primary text-xs">{{ phaseControl.get('name')?.value }}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-base-300 text-text-secondary">
+                      {{ phaseControl.get('status')?.value || 'Ready' }}
+                    </span>
+                  </div>
+                  <div class="text-[11px] text-text-secondary mt-1 flex items-center gap-3 flex-wrap">
+                    <span class="flex items-center gap-1 font-mono">
+                      <span class="material-symbols-outlined text-xs">calendar_today</span>
+                      {{ phaseControl.get('startDate')?.value }} - {{ phaseControl.get('endDate')?.value }}
+                    </span>
+                    <span>•</span>
+                    <span>{{ phaseControl.get('courseCount')?.value }} Courses</span>
+                    <span>•</span>
+                    <span>{{ phaseControl.get('taskCount')?.value }} Tasks</span>
+                    <span>•</span>
+                    <span>{{ phaseControl.get('deliveryClassCount')?.value }} Classes</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Re-order & Action Buttons -->
+              <div class="flex items-center gap-1.5 shrink-0 self-end md:self-auto">
+                <button 
+                  type="button" 
+                  (click)="movePhase(i, 'up')" 
+                  [disabled]="i === 0"
+                  title="Move Up"
+                  class="w-7 h-7 rounded-lg bg-base-100 border border-base-300 flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30">
+                  <span class="material-symbols-outlined text-sm">arrow_upward</span>
+                </button>
+                <button 
+                  type="button" 
+                  (click)="movePhase(i, 'down')" 
+                  [disabled]="i === phasesArray.length - 1"
+                  title="Move Down"
+                  class="w-7 h-7 rounded-lg bg-base-100 border border-base-300 flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30">
+                  <span class="material-symbols-outlined text-sm">arrow_downward</span>
+                </button>
+                <button 
+                  type="button" 
+                  (click)="openEditPhaseModal(i)" 
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-100 border border-base-300 hover:bg-base-200 text-text-primary">
+                  Edit
+                </button>
+                <button 
+                  type="button" 
+                  (click)="removePhase(i)" 
+                  [disabled]="phasesArray.length <= 1"
+                  class="px-2 py-1 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 disabled:opacity-30">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 03 — PROGRESSION CONFIGURATION (§5)                       -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 3) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="progression">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold flex items-center justify-center text-xs">
+            03
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Progression & Phase Unlock Rules</h2>
+            <p class="text-[11px] text-text-secondary">Determine whether trainees must complete phases sequentially or navigate freely.</p>
+          </div>
+        </div>
+
+        <!-- Progression Mode Selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div 
+            (click)="planForm.get('progression.mode')?.setValue('Sequential')"
+            class="p-4 rounded-xl border cursor-pointer transition-all space-y-2"
+            [ngClass]="planForm.get('progression.mode')?.value === 'Sequential' ? 'border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 ring-2 ring-tenant-500/20' : 'border-base-300 bg-base-200/30 hover:border-slate-400'">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-tenant-600">format_list_numbered</span>
+                Sequential Progression (Default)
+              </span>
+              <input type="radio" value="Sequential" formControlName="mode" class="text-tenant-600">
+            </div>
+            <p class="text-[11px] text-text-secondary">
+              Phases unlock strictly in sequential order upon meeting preceding completion requirements.
+            </p>
+          </div>
+
+          <div 
+            (click)="planForm.get('progression.mode')?.setValue('Free')"
+            class="p-4 rounded-xl border cursor-pointer transition-all space-y-2"
+            [ngClass]="planForm.get('progression.mode')?.value === 'Free' ? 'border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 ring-2 ring-tenant-500/20' : 'border-base-300 bg-base-200/30 hover:border-slate-400'">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-tenant-600">dashboard_customize</span>
+                Free Progression
+              </span>
+              <input type="radio" value="Free" formControlName="mode" class="text-tenant-600">
+            </div>
+            <p class="text-[11px] text-text-secondary">
+              Phases may be accessed in any permitted order, subject to specific Phase-level prerequisites.
+            </p>
+          </div>
+        </div>
+
+        @if (planForm.get('progression.mode')?.value === 'Sequential') {
+          <div>
+            <app-custom-select
+              [label]="'Phase Completion Requirement for Unlock'"
+              [hint]="'Condition required before Phase n+1 opens for enrolled learners'"
+              [options]="unlockRequirementOptions"
+              formControlName="completionRequirementForUnlock">
+            </app-custom-select>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 04 — ENROLLMENT & COHORTING (§6)                          -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 4) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="enrollment">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center text-xs">
+            04
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Enrollment & Cohorting Configuration</h2>
+            <p class="text-[11px] text-text-secondary">Configure open self-registration, capacity constraints, waitlist, and confirmation flows.</p>
+          </div>
+        </div>
+
+        <!-- Mode & Confirmation -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <app-custom-select
+              [label]="'Enrollment Mode'"
+              [required]="true"
+              [options]="enrollmentOptions"
+              formControlName="mode">
+            </app-custom-select>
+          </div>
+
+          <div>
+            <app-custom-select
+              [label]="'Enrollment Confirmation Flow'"
+              [options]="confirmationOptions"
+              formControlName="confirmation">
+            </app-custom-select>
+          </div>
+        </div>
+
+        <!-- Open Enrollment Registration Link & QR (§6.2) -->
+        @if (planForm.get('enrollment.mode')?.value === 'Open') {
+          <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/70 dark:border-purple-800/40 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-purple-600">link</span>
+                <span class="font-bold text-xs text-text-primary">Generated Registration Link</span>
+              </div>
+              <button 
+                type="button" 
+                (click)="copyRegistrationLink()"
+                class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-base-200 border border-purple-300 text-purple-700 dark:text-purple-300 flex items-center gap-1 hover:bg-purple-100">
+                <span class="material-symbols-outlined text-xs">content_copy</span>
+                <span>Copy Link</span>
+              </button>
+            </div>
+            <div class="p-2.5 rounded-lg bg-base-100 dark:bg-base-300/60 font-mono text-[11px] text-text-primary truncate">
+              {{ generatedRegistrationLink() }}
+            </div>
+          </div>
+        }
+
+        <!-- Capacity & Waitlist Settings -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-text-primary">Seat Capacity Limit</span>
+              <input type="checkbox" formControlName="capacityEnabled" class="text-tenant-600 rounded">
+            </div>
+            @if (planForm.get('enrollment.capacityEnabled')?.value) {
+              <input 
+                type="number" 
+                formControlName="capacity" 
+                min="1" 
+                placeholder="100"
+                class="w-full px-3 py-2 rounded-lg text-xs bg-base-100 border border-base-300 text-text-primary" />
+            }
+          </div>
+
+          <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-text-primary">Waitlist Queue</span>
+              <input type="checkbox" formControlName="waitlistEnabled" class="text-tenant-600 rounded">
+            </div>
+            <p class="text-[11px] text-text-secondary">Automatically queue applicants once capacity is reached.</p>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 05 — PRIOR COMPLETION & EQUIVALENCY (§7)                  -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 5) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="equivalency">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center text-xs">
+            05
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Prior Completion & Equivalency Rules</h2>
+            <p class="text-[11px] text-text-secondary">Configure how past course completions satisfy Plan requirements.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-3.5 rounded-xl bg-base-200/40 border border-base-300">
+            <div>
+              <div class="font-bold text-xs text-text-primary">Same Published Course Version</div>
+              <div class="text-[11px] text-text-secondary">Trainee completion of identical version automatically satisfies course requirement.</div>
+            </div>
+            <input type="checkbox" formControlName="samePublishedVersionSatisfies" class="text-tenant-600 rounded">
+          </div>
+
+          <div class="flex items-center justify-between p-3.5 rounded-xl bg-base-200/40 border border-base-300">
+            <div>
+              <div class="font-bold text-xs text-text-primary">Newer Course Version Policy</div>
+              <div class="text-[11px] text-text-secondary">Require re-taking when the plan references a newer revised syllabus version.</div>
+            </div>
+            <input type="checkbox" formControlName="newerVersionRequiresRetake" class="text-tenant-600 rounded">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Equivalency Explanation on Trainee Record</label>
+            <textarea 
+              formControlName="explanation"
+              rows="2"
+              class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 text-text-primary"></textarea>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 06 — GRADING POLICY (§8 - DEFERRABLE)                     -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 6) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="grading">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center justify-center text-xs">
+              06
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary">Grading Policy & Weight Distribution</h2>
+              <p class="text-[11px] text-text-secondary">Configure grading scale, pass mark, and modular phase weight allocations.</p>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded-lg border border-amber-200 font-bold">
+            Deferrable for Draft (§18.1)
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <app-custom-select
+              [label]="'Grading Scope'"
+              [options]="gradingScopeOptions"
+              formControlName="scope">
+            </app-custom-select>
+          </div>
+
+          <div>
+            <app-custom-select
+              [label]="'Grading Type'"
+              [options]="gradingTypeOptions"
+              formControlName="type">
+            </app-custom-select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Plan Pass Mark ({{ planForm.get('grading.type')?.value === 'CGPA' ? '0.00-4.00' : '%' }}) *
+            </label>
+            <input 
+              type="number" 
+              formControlName="planPassMark" 
+              class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 text-text-primary font-bold" />
+          </div>
+        </div>
+
+        <!-- Weight Distribution per Phase (§8.1 #3) -->
+        <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-text-primary">Modular Phase Weight Breakdown</span>
+            <span class="text-xs font-bold font-mono" [class.text-emerald-600]="totalPhaseWeight() === 100" [class.text-rose-500]="totalPhaseWeight() !== 100">
+              Total Weight: {{ totalPhaseWeight() }}% {{ totalPhaseWeight() === 100 ? '✓ (Valid)' : '⚠️ (Must equal 100%)' }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            @for (phase of phasesArray.controls; track $index; let i = $index) {
+              <div class="p-3 rounded-lg bg-base-100 border border-base-300 space-y-1">
+                <div class="font-bold text-[11px] text-text-primary truncate">#{{ i + 1 }} {{ phase.get('name')?.value }}</div>
+                <div class="flex items-center gap-1">
+                  <input 
+                    type="number" 
+                    [formControl]="$any(phase.get('weight'))" 
+                    min="0" 
+                    max="100"
+                    class="w-20 px-2 py-1 rounded text-xs bg-base-200 border border-base-300 text-text-primary font-bold" />
+                  <span class="text-xs text-text-secondary">%</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 07 — CREDENTIALS & OUTPUTS (§9 - DEFERRABLE)              -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 7) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="credentials">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold flex items-center justify-center text-xs">
+              07
+            </span>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary">Credentials & Certification Outputs</h2>
+              <p class="text-[11px] text-text-secondary">Configure transcripts, certificates, digital badges, and verification seals.</p>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-1 rounded-lg border border-rose-200 font-bold">
+            Deferrable for Draft (§18.1)
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="certificates">
+          <div>
+            <app-custom-select
+              [label]="'Official Certificate Template'"
+              [options]="certificateTemplateOptions"
+              formControlName="templateId">
+            </app-custom-select>
+          </div>
+
+          <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+            <div>
+              <span class="font-bold text-xs text-text-primary">Plan-Level Certificate Release</span>
+              <p class="text-[11px] text-text-secondary">Release certificate only upon 100% Plan completion & passing score.</p>
+            </div>
+            <input type="checkbox" formControlName="enabledAtPlan" class="text-tenant-600 rounded">
+          </div>
+        </div>
+
+        <div formGroupName="badges">
+          <app-custom-select
+            [label]="'Digital Badge Recognition'"
+            [options]="badgeOptions"
+            formControlName="templateId">
+          </app-custom-select>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 08 — EVALUATION (§10)                                     -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 8) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="evaluation">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs">
+            08
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Diagnostic Evaluation (Pre-Test & Post-Test)</h2>
+            <p class="text-[11px] text-text-secondary">Assess learner baseline readiness and summative knowledge gains.</p>
+          </div>
+        </div>
+
+        <!-- Pre-Test -->
+        <div class="p-4 rounded-xl bg-base-200/40 border border-base-300 space-y-3" formGroupName="preTest">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-text-primary">Pre-Test Diagnostic</span>
+            <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+          </div>
+          @if (planForm.get('evaluation.preTest.enabled')?.value) {
+            <app-custom-select
+              [label]="'Pre-Test Questionnaire'"
+              [options]="preTestQuestionnaires"
+              formControlName="questionnaireId">
+            </app-custom-select>
+          }
+        </div>
+
+        <!-- Post-Test -->
+        <div class="p-4 rounded-xl bg-base-200/40 border border-base-300 space-y-3" formGroupName="postTest">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-text-primary">Summative Post-Test</span>
+            <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+          </div>
+          @if (planForm.get('evaluation.postTest.enabled')?.value) {
+            <app-custom-select
+              [label]="'Post-Test Questionnaire'"
+              [options]="postTestQuestionnaires"
+              formControlName="questionnaireId">
+            </app-custom-select>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 09 — ENGAGEMENT & COMMUNITY (§11)                         -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 9) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="engagement">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold flex items-center justify-center text-xs">
+            09
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Engagement, Rating & Discussion Forum</h2>
+            <p class="text-[11px] text-text-secondary">Foster collaborative learning, feedback surveys, and cohort discussions.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" formGroupName="rating">
+          <div>
+            <app-custom-select
+              [label]="'Plan Rating Scale'"
+              [options]="ratingScaleOptions"
+              formControlName="scale">
+            </app-custom-select>
+          </div>
+
+          <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+            <div>
+              <span class="font-bold text-xs text-text-primary">Discussion Forum</span>
+              <p class="text-[11px] text-text-secondary">Enable dedicated cohort discussion thread.</p>
+            </div>
+            <input type="checkbox" [formControl]="$any(planForm.get('engagement.forum.enabled'))" class="text-tenant-600 rounded">
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 10 — RECURRING PLAN & ALUMNI (§12)                        -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 10) {
+      <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-5 animate-fade-in" formGroupName="recurring">
+        
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300 dark:border-slate-800">
+          <span class="w-7 h-7 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold flex items-center justify-center text-xs">
+            10
+          </span>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">Recurring Cycles & Alumni Tracking</h2>
+            <p class="text-[11px] text-text-secondary">Configure multi-cohort recurrence and historical cycle data retention.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3.5 rounded-xl bg-base-200/40 border border-base-300">
+          <div>
+            <div class="font-bold text-xs text-text-primary">Enable Recurring Cycles</div>
+            <div class="text-[11px] text-text-secondary">Retains Plan Code {{ generatedPlanCode() }} across all recurrence cycles.</div>
+          </div>
+          <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+        </div>
+
+        @if (planForm.get('recurring.enabled')?.value) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <app-custom-select
+                [label]="'Recurrence Cycle Interval'"
+                [options]="recurrenceIntervalOptions"
+                formControlName="cycleConfig">
+              </app-custom-select>
+            </div>
+
+            <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-xs text-text-primary">Alumni Community Indexing</span>
+                <p class="text-[11px] text-text-secondary">Index graduates into organizational alumni directory.</p>
+              </div>
+              <input type="checkbox" [formControl]="$any(planForm.get('alumniTracking'))" class="text-tenant-600 rounded">
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- SECTION 11 — REVIEW & VALIDATION (§13)                            -->
+    <!-- ================================================================= -->
+    @if (currentStep() === 11) {
+      <div class="space-y-6 animate-fade-in">
+        
+        <!-- Live Validation Alert Banner (§13.2) -->
+        @if (criticalErrors().length > 0) {
+          <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-800 dark:text-rose-300 space-y-2">
+            <div class="font-bold flex items-center gap-2 text-sm">
+              <span class="material-symbols-outlined text-base text-rose-600">error</span>
+              Critical Validation Issues (Must be resolved before Publishing)
+            </div>
+            <ul class="list-disc list-inside space-y-1 pl-1">
+              @for (err of criticalErrors(); track err.message) {
+                <li class="flex items-center justify-between gap-2">
+                  <span>{{ err.message }}</span>
+                  <button type="button" (click)="goToStep(err.section)" class="font-bold underline text-[11px] text-rose-600 shrink-0">
+                    Fix in {{ err.sectionTitle }} →
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-lg text-emerald-600">check_circle</span>
+            <div>
+              <span class="font-bold">Plan Readiness Validated:</span>
+              <span>All mandatory structures satisfied. Ready for publishing and activation.</span>
+            </div>
+          </div>
+        }
+
+        <!-- Consolidated 10-Block Summary Cards (§13.1) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          
+          <!-- Block 1: Basic Info -->
+          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 space-y-2">
+            <div class="flex items-center justify-between font-bold text-text-primary pb-2 border-b border-base-300">
+              <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm text-tenant-600">info</span> Basic Information</span>
+              <button type="button" (click)="goToStep(1)" class="text-tenant-600 hover:underline text-[11px]">Edit</button>
+            </div>
+            <div><span class="text-text-secondary">Name:</span> <span class="font-semibold text-text-primary">{{ planForm.get('name')?.value }}</span></div>
+            <div><span class="text-text-secondary">Plan Code:</span> <span class="font-mono font-bold">{{ generatedPlanCode() }}</span></div>
+            <div><span class="text-text-secondary">Dates:</span> <span class="font-mono">{{ planForm.get('startDate')?.value }} → {{ planForm.get('endDate')?.value }}</span></div>
+            <div><span class="text-text-secondary">Owner:</span> {{ planForm.get('owner.name')?.value }} ({{ planForm.get('owner.email')?.value }})</div>
+          </div>
+
+          <!-- Block 2: Structure -->
+          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 space-y-2">
+            <div class="flex items-center justify-between font-bold text-text-primary pb-2 border-b border-base-300">
+              <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm text-indigo-600">account_tree</span> Phase Structure</span>
+              <button type="button" (click)="goToStep(2)" class="text-tenant-600 hover:underline text-[11px]">Edit</button>
+            </div>
+            <div><span class="text-text-secondary">Total Phases:</span> <span class="font-bold">{{ phasesArray.length }}</span></div>
+            <ul class="space-y-1 text-[11px]">
+              @for (ph of phasesArray.controls; track $index) {
+                <li class="flex items-center justify-between font-mono text-text-secondary">
+                  <span>#{{ ph.get('sequence')?.value }} {{ ph.get('name')?.value }}</span>
+                  <span>{{ ph.get('startDate')?.value }} - {{ ph.get('endDate')?.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Block 3: Progression & Enrollment -->
+          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 space-y-2">
+            <div class="flex items-center justify-between font-bold text-text-primary pb-2 border-b border-base-300">
+              <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm text-teal-600">timeline</span> Progression & Enrollment</span>
+              <button type="button" (click)="goToStep(3)" class="text-tenant-600 hover:underline text-[11px]">Edit</button>
+            </div>
+            <div><span class="text-text-secondary">Progression Mode:</span> <span class="font-bold">{{ planForm.get('progression.mode')?.value }}</span></div>
+            <div><span class="text-text-secondary">Enrollment Model:</span> {{ planForm.get('enrollment.mode')?.value }} ({{ planForm.get('enrollment.confirmation')?.value }})</div>
+          </div>
+
+          <!-- Block 4: Grading & Certification -->
+          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 space-y-2">
+            <div class="flex items-center justify-between font-bold text-text-primary pb-2 border-b border-base-300">
+              <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm text-amber-600">grade</span> Grading & Certification</span>
+              <button type="button" (click)="goToStep(6)" class="text-tenant-600 hover:underline text-[11px]">Edit</button>
+            </div>
+            <div><span class="text-text-secondary">Grading Type:</span> {{ planForm.get('grading.type')?.value }} (Pass mark: {{ planForm.get('grading.planPassMark')?.value }})</div>
+            <div><span class="text-text-secondary">Certificate:</span> {{ planForm.get('credentials.certificates.enabledAtPlan')?.value ? 'Enabled at Plan Level' : 'Disabled' }}</div>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- FOOTER ACTION TOOLBAR (ALL STEPS)                                 -->
+    <!-- ================================================================= -->
+    <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 flex items-center justify-between shadow-sm">
+      
+      <div>
+        @if (currentStep() > 1) {
+          <button 
+            type="button" 
+            (click)="prevStep()"
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 border border-base-300 transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Previous</span>
+          </button>
+        } @else {
+          <button 
+            type="button" 
+            (click)="goBack()"
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 border border-base-300 transition-colors">
+            Cancel
+          </button>
+        }
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Save Draft Button available on EVERY step (§14) -->
+        <button 
+          id="save-draft-action-btn"
+          type="button"
+          (click)="saveDraft()"
+          [disabled]="isSubmitting()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-base-200 hover:bg-base-300 border border-base-300 text-text-primary transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">save</span>
+          <span>Save Draft</span>
+        </button>
+
+        @if (currentStep() < 11) {
+          <button 
+            id="next-step-btn"
+            type="button" 
+            (click)="nextStep()"
+            class="px-5 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm transition-all flex items-center gap-1">
+            <span>Next: {{ steps[currentStep()].shortTitle }}</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        } @else {
+          <button 
+            id="publish-plan-action-btn"
+            type="button" 
+            (click)="onPublishClick()"
+            [disabled]="isSubmitting() || criticalErrors().length > 0"
+            class="px-6 py-2 rounded-xl text-xs font-bold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50">
+            <span class="material-symbols-outlined text-sm">publish</span>
+            <span>Publish Plan</span>
+          </button>
+        }
+      </div>
+
+    </div>
+
+  </form>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: ADD / EDIT PHASE (§4.2)                                    -->
+  <!-- ================================================================= -->
+  @if (showAddPhaseModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600">account_tree</span>
+            {{ editingPhaseIndex() !== null ? 'Edit Phase Milestone' : 'Add New Phase' }}
+          </h3>
+          <button type="button" (click)="showAddPhaseModal.set(false)" class="text-text-secondary hover:text-text-primary">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="phaseModalForm" (ngSubmit)="savePhaseFromModal()" class="space-y-3 text-xs">
+          
+          <div>
+            <label class="block font-semibold text-text-primary mb-1">Phase Name *</label>
+            <input 
+              type="text" 
+              formControlName="name"
+              placeholder="e.g. Phase 1: Foundation & Core Principles"
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Start Date (DD/MM/YYYY) *</label>
+              <input 
+                type="text" 
+                formControlName="startDate"
+                placeholder="01/01/2026"
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">End Date (DD/MM/YYYY) *</label>
+              <input 
+                type="text" 
+                formControlName="endDate"
+                placeholder="31/03/2026"
+                class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Courses</label>
+              <input type="number" formControlName="courseCount" min="0" class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary" />
+            </div>
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Tasks</label>
+              <input type="number" formControlName="taskCount" min="0" class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary" />
+            </div>
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Classes</label>
+              <input type="number" formControlName="deliveryClassCount" min="0" class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
+            <button type="button" (click)="showAddPhaseModal.set(false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white">
+              Save Phase
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- MODAL: CONFIRM PUBLISH (§15)                                      -->
+  <!-- ================================================================= -->
+  @if (showPublishModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl">publish</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-text-primary">Publish Plan?</h3>
+          <p class="text-xs text-text-secondary mt-1">Are you sure you want to publish this Plan?</p>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" (click)="showPublishModal.set(false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300">
+            Cancel
+          </button>
+          <button type="button" (click)="confirmPublish()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white">
+            Publish
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- MODAL: CONFIRM ACTIVATE (§16)                                     -->
+  <!-- ================================================================= -->
+  @if (showActivateModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl">play_circle</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-text-primary">Activate Plan?</h3>
+          <p class="text-xs text-text-secondary mt-1">Are you sure you want to activate this Plan?</p>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" (click)="showActivateModal.set(false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300">
+            Cancel
+          </button>
+          <button type="button" (click)="confirmActivate()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">
+            Activate
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
