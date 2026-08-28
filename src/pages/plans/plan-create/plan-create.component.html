@@ -12,20 +12,20 @@
         </button>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
-          Creation Wizard
+          {{ isEditing() ? 'Edit Wizard' : 'Creation Wizard' }}
         </span>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-[11px] font-medium text-text-secondary">LMS: <strong class="text-text-primary">{{ activeLms().basicInfo.lmsName }}</strong></span>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40 flex items-center gap-1">
-          {{ generatedPlanCode() }}
+          {{ editingPlan()?.planCode || generatedPlanCode() }}
           <button type="button" (click)="copyPlanCode()" title="Copy Plan Code" class="hover:opacity-75 cursor-pointer">
             <span class="material-symbols-outlined text-[13px]">content_copy</span>
           </button>
         </span>
       </div>
       <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-        Create Plan – {{ getCurrentStepTitle() }}
+        {{ isEditing() ? 'Edit Plan – ' + getCurrentStepTitle() : 'Create Plan – ' + getCurrentStepTitle() }}
       </h1>
       <p class="text-xs text-text-secondary mt-0.5">
         {{ getCurrentStepSubtitle() }}
@@ -1039,8 +1039,8 @@
             (click)="onPublishClick()" 
             [disabled]="isSubmitting() || criticalErrors().length > 0"
             class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 cursor-pointer">
-            <span class="material-symbols-outlined text-sm">publish</span>
-            <span>Publish Plan</span>
+            <span class="material-symbols-outlined text-sm">{{ isEditing() ? 'save' : 'publish' }}</span>
+            <span>{{ isEditing() ? 'Update Plan' : 'Publish Plan' }}</span>
           </button>
         }
       </div>
@@ -1053,7 +1053,7 @@
   <!-- ================================================================= -->
   @if (showAddPhaseModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
       (click)="showAddPhaseModal.set(false)">
       
       <div 
@@ -1171,7 +1171,7 @@
   <!-- ================================================================= -->
   @if (showPublishModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
       (click)="showPublishModal.set(false)">
       <div 
         class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
@@ -1206,7 +1206,7 @@
   <!-- ================================================================= -->
   @if (showActivateModal()) {
     <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
       (click)="showActivateModal.set(false)">
       <div 
         class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"

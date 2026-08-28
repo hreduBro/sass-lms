@@ -428,7 +428,7 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
 
     <!-- Activate Plan Confirmation Modal (§11) -->
     @if (showActivateConfirmModal() && currentPlan()) {
-      <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop overflow-y-auto">
+      <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto">
         <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4 animate-modal-card m-auto">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -477,7 +477,7 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
 
     <!-- Archive Plan Confirmation Modal (§12) -->
     @if (showArchiveConfirmModal() && currentPlan()) {
-      <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop overflow-y-auto">
+      <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto">
         <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4 animate-modal-card m-auto">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
@@ -578,7 +578,9 @@ export class PlanDetailsComponent implements OnInit {
   }
 
   openEditPlanModal() {
-    this.showEditPlanModal.set(true);
+    if (this.currentPlan()) {
+      this.router.navigate(['/plans/edit', this.currentPlan()!.id]);
+    }
   }
 
   onPlanUpdated(plan: Plan) {

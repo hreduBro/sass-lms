@@ -1397,7 +1397,7 @@ export class PlanDashboardComponent implements OnInit {
 
   openEditModal() {
     if (this.selectedPlan()) {
-      this.modalPlanForEdit.set(this.selectedPlan());
+      this.router.navigate(['/plans/edit', this.selectedPlan()!.id]);
     }
   }
 

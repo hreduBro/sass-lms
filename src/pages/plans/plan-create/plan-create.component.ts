@@ -1,10 +1,11 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormArray, FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { 
   Plan, 
+  PlanStatus,
   Phase, 
   PlanOwner, 
   DurationType, 
@@ -43,11 +44,17 @@ export type { StepItem };
 export class PlanCreateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private lmsData = inject(LmsDataService);
   modalService = inject(ConfirmationModalService);
 
   activeTenant = this.lmsData.activeTenant;
   activeLms = this.lmsData.activeLms;
+
+  // Edit Mode State
+  isEditing = signal<boolean>(false);
+  editingPlanId = signal<string | null>(null);
+  editingPlan = signal<Plan | null>(null);
 
   // Active Wizard Step (1 through 11)
   currentStep = signal<number>(1);
@@ -365,9 +372,28 @@ export class PlanCreateComponent implements OnInit {
   });
 
   ngOnInit() {
-    // Initialize with 2 structured phases conforming to Plan dates
-    this.addPhaseToForm('Phase 1: Foundation & Core Principles', '01/01/2026', '30/06/2026', 3, 6, 2, 50);
-    this.addPhaseToForm('Phase 2: Advanced Application & Capstone', '01/07/2026', '31/12/2026', 2, 4, 2, 50);
+    // Check if editing an existing plan via route param /plans/edit/:id
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.loadPlanForEdit(id);
+      }
+    });
+
+    // Check if editing or resuming draft from query params
+    this.route.queryParams.subscribe(params => {
+      const editId = params['editPlanId'] || params['editId'] || (!this.route.snapshot.paramMap.get('id') ? params['id'] : null);
+      const draftId = params['draftId'];
+      if (editId) {
+        this.loadPlanForEdit(editId);
+      } else if (draftId) {
+        this.loadDraft(draftId);
+      } else if (!this.route.snapshot.paramMap.get('id') && this.phasesArray.length === 0) {
+        // Initialize default 2 phases only for fresh creation
+        this.addPhaseToForm('Phase 1: Foundation & Core Principles', '01/01/2026', '30/06/2026', 3, 6, 2, 50);
+        this.addPhaseToForm('Phase 2: Advanced Application & Capstone', '01/07/2026', '31/12/2026', 2, 4, 2, 50);
+      }
+    });
 
     // Sync Recurring toggle in §1 with §10
     this.planForm.get('recurringPlan')?.valueChanges.subscribe(val => {
@@ -382,7 +408,9 @@ export class PlanCreateComponent implements OnInit {
     this.runValidationAudit();
 
     // Show initial step alert
-    this.showStepAlert(1, 'entered');
+    if (!this.isEditing()) {
+      this.showStepAlert(1, 'entered');
+    }
 
     // Scroll active step to front
     this.scrollToActiveStep(this.currentStep());
@@ -463,6 +491,172 @@ export class PlanCreateComponent implements OnInit {
     }, 60);
   }
 
+  /**
+   * Load existing plan into stepper form for editing
+   */
+  loadPlanForEdit(planId: string) {
+    const plan = this.lmsData.plans().find(p => p.id === planId);
+    if (!plan) return;
+
+    this.isEditing.set(true);
+    this.editingPlanId.set(plan.id);
+    this.editingPlan.set(plan);
+    this.savedPlanResult.set(plan);
+
+    // Patch plan form fields
+    this.planForm.patchValue({
+      name: plan.name || '',
+      description: plan.description || '',
+      startDate: plan.startDate || '01/01/2026',
+      endDate: plan.endDate || '31/12/2026',
+      durationType: plan.durationType || 'Yearly',
+      recurringPlan: !!plan.recurringPlan,
+      owner: {
+        userId: plan.owner?.userId || null,
+        name: plan.owner?.name || '',
+        email: plan.owner?.email || '',
+        contactNumber: plan.owner?.contactNumber || ''
+      },
+      progression: plan.progression || {
+        mode: 'Sequential',
+        completionRequirementForUnlock: 'All Courses & Assessments 100% Completed'
+      },
+      enrollment: plan.enrollmentConfig || {
+        mode: plan.enrollmentType || 'Open',
+        existingTraineeSelfRegistration: true,
+        capacityEnabled: false,
+        capacity: 100,
+        waitlistEnabled: false,
+        confirmation: 'Auto Onboard',
+        termsRequirements: 'Trainees must adhere to BRAC Code of Conduct and complete all modules prior to certification.',
+        traineeProfileFilters: {
+          locations: ['Dhaka', 'Chittagong', 'Sylhet'],
+          genders: ['All'],
+          departments: ['Microfinance', 'Operations', 'Credit Analysis'],
+          grades: ['Junior Officer', 'Officer', 'Senior Officer']
+        }
+      },
+      equivalency: plan.equivalency || {
+        samePublishedVersionSatisfies: true,
+        newerVersionRequiresRetake: true,
+        overrideEnabled: false,
+        explanation: 'Course credit granted based on certified prior version completion. Trainee is exempt from re-taking identical syllabus modules.'
+      },
+      grading: plan.grading || {
+        scope: 'Whole Plan',
+        type: 'Percentage',
+        planPassMark: 70,
+        retakePolicy: 'Latest Valid Score',
+        contentLevelPassRequired: true
+      },
+      credentials: plan.credentials || {
+        certificateEnabled: true,
+        certificateTemplateId: 'cert-exec-01',
+        badgeEnabled: true,
+        badgeId: 'badge-foundation',
+        digitalBadges: ['badge-foundation'],
+        honorsEnabled: true,
+        honorsTopPercentile: 10,
+        visibilityScope: 'Public',
+        printVerificationEnabled: true,
+        exportPdfEnabled: true,
+        shareableSocialLinksEnabled: true
+      },
+      evaluation: plan.evaluation || {
+        preTest: {
+          enabled: false,
+          requirement: 'Optional',
+          questionnaireId: 'q-baseline-2026',
+          questionnaireTitle: 'Baseline Technical Aptitude Q-2026 (v2.4)',
+          questionnaireVersion: 'v2.4'
+        },
+        postTest: {
+          enabled: true,
+          requirement: 'Mandatory',
+          questionnaireId: 'q-summative-2026',
+          questionnaireTitle: 'Comprehensive Summative Evaluation Q-2026 (v2.0)',
+          questionnaireVersion: 'v2.0'
+        },
+        releaseTiming: 'Immediate upon Plan Completion',
+        resultDownloadEnabled: true
+      },
+      engagement: plan.engagement || {
+        rating: { enabled: true, scale: '5-Star Scale', availability: 'Post-Completion Only' },
+        feedback: { enabled: true, templateId: 'fb-std-2026', templateName: 'Standard Course & Plan Feedback Form', version: 'v2.3', releaseTiming: 'At Plan Completion' },
+        forum: { enabled: true, topicCreationPermission: 'Instructors & Trainees', moderationPermission: 'LMS Co-Admins & Instructors', visibilityScope: 'All users', allowedPostFormats: ['Text', 'PDF Attachments', 'Code Snippets'] }
+      },
+      recurring: plan.recurringConfig || {
+        enabled: !!plan.recurringPlan,
+        cycleConfig: 'Annual Cycle',
+        currentCycle: 'Cycle 1 (2026 Initial Cohort)',
+        historicalCycleRetention: 'Full Snapshot & Immutable Transcript History',
+        structureChangePolicy: 'Allow Phase Updates for Future Cycles without altering past records',
+        reEnrollmentRule: 'Allow Trainees from Prior Cycles to Re-enroll'
+      },
+      alumniTracking: plan.alumniTracking !== undefined ? plan.alumniTracking : true
+    });
+
+    // Populate phases
+    while (this.phasesArray.length !== 0) {
+      this.phasesArray.removeAt(0);
+    }
+    if (plan.phases && plan.phases.length > 0) {
+      plan.phases.forEach(p => {
+        const weight = plan.grading?.phaseWeights?.find(w => w.phaseId === p.id)?.weight || Math.round(100 / plan.phases.length);
+        this.addPhaseToForm(
+          p.name,
+          p.startDate,
+          p.endDate,
+          p.courseCount || 0,
+          p.taskCount || 0,
+          p.deliveryClassCount || 0,
+          weight,
+          p.prerequisiteStatus || 'None',
+          p.certificateBadgeStatus || 'Configured',
+          p.id,
+          p.status || 'Ready'
+        );
+      });
+    }
+
+    // Enable direct step navigation for edit mode
+    this.completedSteps.set(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]));
+    this.isSection1Passed.set(true);
+
+    this.lmsData.showToast(
+      `Editing training plan: "${plan.name}". Navigate between steps to update any parameter.`,
+      'info',
+      4500,
+      'Edit Mode Active',
+      'STEPPER WIZARD'
+    );
+  }
+
+  /**
+   * Load draft into stepper form
+   */
+  loadDraft(draftId: string) {
+    const draft = this.lmsData.plans().find(p => p.id === draftId && p.status === 'Draft');
+    if (!draft) return;
+
+    this.editingPlanId.set(draft.id);
+    this.planForm.patchValue({
+      name: draft.name || '',
+      startDate: draft.startDate || '01/01/2026',
+      endDate: draft.endDate || '31/12/2026',
+      durationType: draft.durationType || 'Yearly'
+    });
+
+    if (draft.phases && draft.phases.length > 0) {
+      while (this.phasesArray.length !== 0) {
+        this.phasesArray.removeAt(0);
+      }
+      draft.phases.forEach(p => {
+        this.addPhaseToForm(p.name, p.startDate, p.endDate, p.courseCount || 0, p.taskCount || 0, p.deliveryClassCount || 0, 50, p.prerequisiteStatus, p.certificateBadgeStatus, p.id, p.status);
+      });
+    }
+  }
+
   addPhaseToForm(
     name: string,
     startDate: string,
@@ -470,24 +664,29 @@ export class PlanCreateComponent implements OnInit {
     courseCount = 2,
     taskCount = 4,
     deliveryClassCount = 1,
-    weight = 50
+    weight = 50,
+    prerequisiteStatus: any = 'None',
+    certificateBadgeStatus: any = 'Configured',
+    id?: string,
+    status: any = 'Ready'
   ) {
     const nextSeq = this.phasesArray.length + 1;
     const group = this.fb.group({
-      id: [`phase-gen-${Date.now()}-${nextSeq}`],
+      id: [id || `phase-gen-${Date.now()}-${nextSeq}`],
       name: [name || `Phase ${nextSeq}: Milestone`, [Validators.required]],
       sequence: [nextSeq],
       startDate: [startDate, [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
       endDate: [endDate, [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
-      status: ['Ready'],
+      status: [status || 'Ready'],
       courseCount: [courseCount],
       taskCount: [taskCount],
       deliveryClassCount: [deliveryClassCount],
-      prerequisiteStatus: [nextSeq === 1 ? 'None' : 'Pending'],
-      certificateBadgeStatus: ['Configured'],
+      prerequisiteStatus: [prerequisiteStatus || (nextSeq === 1 ? 'None' : 'Pending')],
+      certificateBadgeStatus: [certificateBadgeStatus || 'Configured'],
       weight: [weight]
     });
     this.phasesArray.push(group);
+    this.planForm.markAsDirty();
   }
 
   // Phase Modal Actions
@@ -883,16 +1082,17 @@ export class PlanCreateComponent implements OnInit {
   }
 
   // Build Full Plan Object
-  buildPlanObject(status: 'Draft' | 'Published' | 'Active'): Plan {
+  buildPlanObject(status: PlanStatus = 'Published'): Plan {
     const val = this.planForm.value;
     const todayStr = formatDateDDMMYYYY(new Date());
     const phases = this.extractPhases();
+    const existing = this.editingPlan();
 
     return {
-      id: this.savedPlanResult()?.id || `plan-${Date.now()}`,
-      planCode: this.generatedPlanCode(),
-      lmsId: this.activeLms().id,
-      organizationId: this.activeTenant().id,
+      id: this.editingPlanId() || this.savedPlanResult()?.id || `plan-${Date.now()}`,
+      planCode: existing?.planCode || this.generatedPlanCode(),
+      lmsId: existing?.lmsId || this.activeLms().id,
+      organizationId: existing?.organizationId || this.activeTenant().id,
       name: (val.name || '').trim(),
       description: (val.description || '').trim(),
       owner: {
@@ -900,25 +1100,25 @@ export class PlanCreateComponent implements OnInit {
         name: (val.owner?.name || '').trim(),
         email: (val.owner?.email || '').trim(),
         contactNumber: val.owner?.contactNumber ? val.owner.contactNumber.trim() : undefined,
-        assignedAt: todayStr,
-        assignedBy: this.lmsData.activeUser().name || 'LMS Admin',
-        invitationStatus: 'accepted'
+        assignedAt: existing?.owner?.assignedAt || todayStr,
+        assignedBy: existing?.owner?.assignedBy || (this.lmsData.activeUser().name || 'LMS Admin'),
+        invitationStatus: existing?.owner?.invitationStatus || 'accepted'
       },
       durationType: val.durationType as DurationType,
       startDate: (val.startDate || '').trim(),
       endDate: (val.endDate || '').trim(),
       enrollmentType: val.enrollment?.mode as EnrollmentType || val.enrollmentType || 'Open',
       recurringPlan: val.recurring?.enabled ? `Yes (${val.recurring?.cycleConfig || 'Annual Cycle'})` : null,
-      status: status,
+      status: this.isEditing() ? (existing?.status || status) : status,
       phaseCount: phases.length,
-      createdDate: todayStr,
-      createdBy: this.lmsData.activeUser().name || 'LMS Admin',
+      createdDate: existing?.createdDate || todayStr,
+      createdBy: existing?.createdBy || (this.lmsData.activeUser().name || 'LMS Admin'),
       updatedDate: todayStr,
-      publishedAt: status === 'Published' || status === 'Active' ? todayStr : null,
-      publishedBy: status === 'Published' || status === 'Active' ? this.lmsData.activeUser().name : null,
+      publishedAt: existing?.publishedAt || (status === 'Published' || status === 'Active' ? todayStr : null),
+      publishedBy: existing?.publishedBy || (status === 'Published' || status === 'Active' ? this.lmsData.activeUser().name : null),
       lastCompletedSection: this.currentStep(),
       phases,
-      capabilities: {
+      capabilities: existing?.capabilities || {
         canEdit: true,
         canAssignOwner: true,
         canActivate: status === 'Published',
@@ -979,12 +1179,12 @@ export class PlanCreateComponent implements OnInit {
     );
   }
 
-  // Publish Action (§15)
+  // Publish / Update Action (§15)
   onPublishClick() {
     this.runValidationAudit();
     if (this.criticalErrors().length > 0) {
       this.lmsData.showToast(
-        'Cannot publish Plan. Please fix critical validation errors first.',
+        'Cannot save Plan. Please fix critical validation errors first.',
         'error',
         4000,
         'Critical Validation Failed'
@@ -992,7 +1192,45 @@ export class PlanCreateComponent implements OnInit {
       this.currentStep.set(11);
       return;
     }
-    this.showPublishModal.set(true);
+    if (this.isEditing()) {
+      this.confirmUpdatePlan();
+    } else {
+      this.showPublishModal.set(true);
+    }
+  }
+
+  confirmUpdatePlan() {
+    this.isSubmitting.set(true);
+    const updatedPlan = this.buildPlanObject(this.editingPlan()?.status || 'Published');
+
+    const existingIndex = this.lmsData.plans().findIndex(p => p.id === updatedPlan.id);
+    if (existingIndex >= 0) {
+      this.lmsData.plans.update(list => {
+        const copy = [...list];
+        copy[existingIndex] = updatedPlan;
+        return copy;
+      });
+    } else {
+      this.lmsData.plans.update(list => [updatedPlan, ...list]);
+    }
+
+    this.savedPlanResult.set(updatedPlan);
+    this.isSubmitting.set(false);
+
+    this.lmsData.logAction(
+      'Plan Updated',
+      `Updated plan "${updatedPlan.name}" (${updatedPlan.planCode}) successfully via stepper wizard.`,
+      'success'
+    );
+
+    this.lmsData.showToast(
+      `Plan "${updatedPlan.name}" updated successfully.`,
+      'success',
+      4500,
+      'Plan Updated'
+    );
+
+    this.router.navigate(['/plans/details', updatedPlan.id]);
   }
 
   confirmPublish() {

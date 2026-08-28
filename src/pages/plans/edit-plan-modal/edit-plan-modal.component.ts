@@ -10,7 +10,7 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
   imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent],
   template: `
     <div 
-      class="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop overflow-y-auto"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
       (click)="onBackdropClick($event)">
       
       <div 

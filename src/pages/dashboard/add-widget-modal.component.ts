@@ -7,8 +7,12 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
   selector: 'app-add-widget-modal',
   imports: [CommonModule],
   template: `
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
-      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-modal-card">
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+      (click)="close.emit()">
+      <div 
+        class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-modal-card"
+        (click)="$event.stopPropagation()">
         
         <!-- Header -->
         <div class="p-6 border-b border-base-300 flex items-center justify-between gap-4">

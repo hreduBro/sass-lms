@@ -954,7 +954,11 @@ export class PlanGridComponent implements OnInit {
   }
 
   openEditModal(plan: Plan) {
-    this.selectedPlanForEdit.set(plan);
+    this.router.navigate(['/plans/edit', plan.id]);
+  }
+
+  resumeDraft(draft: any) {
+    this.router.navigate(['/plans/edit', draft.id]);
   }
 
   onPlanUpdated() {

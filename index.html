@@ -315,13 +315,37 @@
     }
 
     /* ========================================================================= */
-    /* FULL SCREEN MODAL OVERLAY ARCHITECTURE (CENTERED ACROSS ENTIRE VIEWPORT)  */
+    /* UNIVERSAL FULL-SCREEN MODAL OVERLAY ARCHITECTURE (100VW x 100VH COVERAGE) */
+    /* Guarantees all modals cover sidebar, topmenu, header, footer & alerts     */
     /* ========================================================================= */
+    app-modal-overlay > div,
+    app-confirmation-modal > div,
+    app-org-add-widget-modal > div,
+    app-org-widget-config-modal > div,
+    app-lms-add-widget-modal > div,
+    app-lms-widget-config-modal > div,
+    app-add-widget-modal > div,
+    app-widget-config-modal > div,
+    app-layout-switcher-modal > div,
+    app-backend-console-modal > div,
+    app-user-detail-modal > div,
     app-assign-owner-modal > div,
     app-edit-plan-modal > div,
     app-phase-details-modal > div,
     app-plan-create .fixed.inset-0,
-    app-plan-details .fixed.inset-0.z-50 {
+    app-plan-details .fixed.inset-0,
+    app-lms-create .fixed.inset-0,
+    app-lms-dashboard .fixed.inset-0,
+    app-lms-list .fixed.inset-0,
+    app-tenants .fixed.inset-0,
+    app-users .fixed.inset-0,
+    app-courses .fixed.inset-0,
+    app-certificates .fixed.inset-0,
+    app-profile .fixed.inset-0,
+    .animate-modal-backdrop,
+    [class*="animate-modal-backdrop"],
+    .modal-overlay-backdrop,
+    .app-modal-backdrop {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
@@ -336,20 +360,31 @@
       justify-content: center !important;
       margin: 0 !important;
       padding: 1rem !important;
-      z-index: 99999 !important;
+      z-index: 999999 !important;
       box-sizing: border-box !important;
     }
 
-    /* Ensure modal content cards inside backdrops are cleanly centered */
+    /* Ensure modal content cards inside backdrops are cleanly centered and scrollable */
+    app-modal-overlay > div > div,
+    app-confirmation-modal > div > div,
+    app-org-add-widget-modal > div > div,
+    app-org-widget-config-modal > div > div,
+    app-lms-add-widget-modal > div > div,
+    app-lms-widget-config-modal > div > div,
+    app-add-widget-modal > div > div,
+    app-widget-config-modal > div > div,
+    app-layout-switcher-modal > div > div,
+    app-backend-console-modal > div > div,
+    app-user-detail-modal > div > div,
     app-assign-owner-modal > div > div,
     app-edit-plan-modal > div > div,
     app-phase-details-modal > div > div,
-    app-plan-create .fixed.inset-0 > div,
-    app-plan-details .fixed.inset-0.z-50 > div {
+    .animate-modal-backdrop > div,
+    [class*="animate-modal-backdrop"] > div {
       margin-left: auto !important;
       margin-right: auto !important;
       max-height: calc(100vh - 2rem);
-      overflow-y: auto;
+      box-sizing: border-box !important;
     }
 
     /* ========================================================================= */

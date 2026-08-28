@@ -35,6 +35,7 @@ export const routes: Routes = [
   { path: 'plans', component: PlanGridComponent, title: 'Plan Grid | Multi-Tenant LMS' },
   { path: 'plans/dashboard', component: PlanDashboardComponent, title: 'Plan Dashboard | Multi-Tenant LMS' },
   { path: 'plans/create', component: PlanCreateComponent, title: 'Create Plan | Multi-Tenant LMS' },
+  { path: 'plans/edit/:id', component: PlanCreateComponent, title: 'Edit Plan | Multi-Tenant LMS' },
   { path: 'plans/details/:id', component: PlanDetailsComponent, title: 'Plan Details | Multi-Tenant LMS' },
   { path: 'courses', component: CoursesComponent, title: 'Courses | Multi-Tenant LMS' },
   { path: 'courses/:id/learn', component: CoursePlayerComponent, title: 'Classroom Player | Multi-Tenant LMS' },
