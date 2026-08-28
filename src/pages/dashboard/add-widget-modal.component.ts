@@ -1,12 +1,11 @@
 import { Component, ChangeDetectionStrategy, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { CATALOG_WIDGET_TEMPLATES } from '../../services/lms-data.service';
 import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
 
 @Component({
   selector: 'app-add-widget-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop">
       <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-modal-card">
@@ -22,7 +21,7 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
               <p class="text-xs text-text-secondary">Select an interactive component to add to your custom tenant canvas</p>
             </div>
           </div>
-          <button (click)="close.emit()" class="text-text-secondary hover:text-text-primary p-1.5 rounded-xl hover:bg-base-200">
+          <button (click)="close.emit()" class="text-text-secondary hover:text-text-primary p-1.5 rounded-xl hover:bg-base-200 cursor-pointer">
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -33,9 +32,18 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
             <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary text-sm">search</span>
             <input 
               type="text" 
-              [(ngModel)]="searchQuery" 
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
               placeholder="Search widgets, charts, KPIs..." 
-              class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+              class="w-full pl-9 pr-8 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+            @if (searchQuery()) {
+              <button 
+                type="button" 
+                (click)="searchQuery.set('')"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary cursor-pointer">
+                <span class="material-symbols-outlined text-sm">cancel</span>
+              </button>
+            }
           </div>
 
           <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
@@ -43,7 +51,7 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
               <button
                 type="button"
                 (click)="selectedCategory.set(cat)"
-                class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all"
+                class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer"
                 [class]="selectedCategory() === cat ? 'bg-tenant-500 text-white shadow-xs' : 'bg-base-100 text-text-secondary hover:text-text-primary border border-base-300'">
                 {{ cat }}
               </button>
@@ -85,7 +93,7 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
                 <button 
                   type="button"
                   (click)="addWidget(item)"
-                  class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs">
+                  class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
                   <span class="material-symbols-outlined text-sm">add</span>
                   <span>Add to Canvas</span>
                 </button>
@@ -97,7 +105,7 @@ import { DashboardWidget, DashboardWidgetType } from '../../models/lms.model';
         <!-- Footer -->
         <div class="p-4 border-t border-base-300 bg-base-100 flex items-center justify-between text-xs text-text-secondary">
           <span>{{ filteredWidgets().length }} widgets available in catalog</span>
-          <button (click)="close.emit()" class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 font-semibold text-text-primary">
+          <button (click)="close.emit()" class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 font-semibold text-text-primary cursor-pointer">
             Close Catalog
           </button>
         </div>
@@ -111,7 +119,7 @@ export class AddWidgetModalComponent {
   close = output<void>();
   add = output<DashboardWidget>();
 
-  searchQuery = '';
+  searchQuery = signal<string>('');
   selectedCategory = signal<string>('All');
 
   allCatalog = CATALOG_WIDGET_TEMPLATES;
@@ -123,7 +131,7 @@ export class AddWidgetModalComponent {
   });
 
   filteredWidgets = computed(() => {
-    const q = this.searchQuery.toLowerCase().trim();
+    const q = this.searchQuery().toLowerCase().trim();
     const cat = this.selectedCategory();
 
     return this.allCatalog.filter(w => {
@@ -132,6 +140,11 @@ export class AddWidgetModalComponent {
       return matchQuery && matchCat;
     });
   });
+
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input?.value || '');
+  }
 
   addWidget(template: typeof CATALOG_WIDGET_TEMPLATES[0]) {
     const newWidget: DashboardWidget = {

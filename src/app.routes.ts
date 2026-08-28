@@ -31,6 +31,7 @@ export const routes: Routes = [
   { path: 'lms', component: LmsListComponent, title: 'LMS Instances | Multi-Tenant LMS' },
   { path: 'lms/dashboard', component: LmsDashboardComponent, title: 'LMS Dashboard | Multi-Tenant LMS' },
   { path: 'lms/create', component: LmsCreateComponent, title: 'Create LMS Instance | Multi-Tenant LMS' },
+  { path: 'lms/edit/:id', component: LmsCreateComponent, title: 'Edit LMS Instance | Multi-Tenant LMS' },
   { path: 'plans', component: PlanGridComponent, title: 'Plan Grid | Multi-Tenant LMS' },
   { path: 'plans/dashboard', component: PlanDashboardComponent, title: 'Plan Dashboard | Multi-Tenant LMS' },
   { path: 'plans/create', component: PlanCreateComponent, title: 'Create Plan | Multi-Tenant LMS' },

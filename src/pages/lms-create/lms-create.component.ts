@@ -130,15 +130,23 @@ export class LmsCreateComponent implements OnInit {
   ngOnInit() {
     this.ensureActiveTenantTheme();
 
+    // Check if editing an existing LMS instance via route param /lms/edit/:id
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.loadLmsForEdit(id);
+      }
+    });
+
     // Check if editing an existing LMS instance or resuming draft from query params
     this.route.queryParams.subscribe(params => {
-      const qEditId = params['editLmsId'] || params['editId'];
+      const qEditId = params['editLmsId'] || params['editId'] || (!this.route.snapshot.paramMap.get('id') ? params['id'] : null);
       const qDraftId = params['draftId'];
       if (qEditId) {
         this.loadLmsForEdit(qEditId);
       } else if (qDraftId) {
         this.loadDraft(qDraftId);
-      } else {
+      } else if (!this.route.snapshot.paramMap.get('id')) {
         // Set default timezone from parent organization
         if (this.parentOrg().timezone) {
           this.selectedTimezone.set(this.parentOrg().timezone);

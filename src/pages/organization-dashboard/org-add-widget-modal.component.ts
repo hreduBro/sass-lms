@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { 
   OrgWidgetCatalogItem, 
   ORG_WIDGET_CATALOG, 
@@ -10,7 +9,7 @@ import {
 
 @Component({
   selector: 'app-org-add-widget-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div 
       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop"
@@ -31,6 +30,7 @@ import {
             </div>
           </div>
           <button 
+            type="button"
             (click)="close.emit()"
             class="w-9 h-9 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary flex items-center justify-center transition-colors cursor-pointer focus:outline-none">
             <span class="material-symbols-outlined text-lg">close</span>
@@ -45,13 +45,15 @@ import {
             <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-lg pointer-events-none">search</span>
             <input 
               type="text"
-              [(ngModel)]="searchQuery"
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
               placeholder="Search components by keyword, metric, or purpose..."
               class="w-full pl-10 pr-9 py-2 text-xs rounded-2xl bg-base-200/80 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all placeholder:text-text-secondary" />
             @if (searchQuery()) {
               <button 
+                type="button"
                 (click)="searchQuery.set('')"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary cursor-pointer">
                 <span class="material-symbols-outlined text-sm">cancel</span>
               </button>
             }
@@ -186,6 +188,11 @@ export class OrgAddWidgetModalComponent {
       return matchCat && matchSearch;
     });
   });
+
+  onSearchInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input?.value || '');
+  }
 
   getCategoryCount(catId: string): number {
     if (catId === 'all') return this.catalog.length;

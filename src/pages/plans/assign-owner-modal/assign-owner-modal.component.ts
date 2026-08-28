@@ -57,7 +57,7 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
             <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 flex items-start gap-3">
               <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg shrink-0 mt-0.5">info</span>
               <div class="text-xs text-amber-900 dark:text-amber-300 min-w-0">
-                <span class="font-semibold">Current Owner:</span> {{ plan().owner.name }} ({{ plan().owner.email }})
+                <span class="font-semibold">Current Owner:</span> {{ plan().owner?.name }} ({{ plan().owner?.email }})
                 <p class="text-[11px] text-amber-700 dark:text-amber-400/80 mt-0.5">
                   Assigning a new Plan Owner will replace the current administrator for this plan.
                 </p>

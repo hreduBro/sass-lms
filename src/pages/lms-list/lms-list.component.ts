@@ -425,6 +425,7 @@ export class LmsListComponent {
     if (event) {
       event.stopPropagation();
     }
+    this.closeLmsDetails();
     this.router.navigate(['/lms/create'], { queryParams: { editLmsId: instance.id } });
   }
 
