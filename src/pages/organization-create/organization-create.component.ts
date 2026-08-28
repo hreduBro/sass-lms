@@ -13,12 +13,13 @@ import {
 } from '../../models/organization.model';
 
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
+import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-organization-create',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, CustomSelectComponent, StepperComponent],
   templateUrl: './organization-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -31,6 +32,14 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   // Stepper State
   currentStep = signal<WizardStep>(1);
   completedSteps = signal<Set<number>>(new Set<number>());
+
+  // Reusable Stepper Configuration
+  steps: StepperStep[] = [
+    { id: 1, key: 'basic', title: 'Basic Information', shortTitle: 'Basic Info', sublabel: 'Identity & Location', icon: 'corporate_fare' },
+    { id: 2, key: 'resources', title: 'Resource Allocation', shortTitle: 'Resources', sublabel: 'Storage & Capacity', icon: 'database' },
+    { id: 3, key: 'admin', title: 'Administrator Setup', shortTitle: 'Admin Setup', sublabel: 'Super Admin & Access', icon: 'admin_panel_settings' },
+    { id: 4, key: 'preview', title: 'Preview & Confirm', shortTitle: 'Preview', sublabel: 'Review & Confirm', icon: 'preview' }
+  ];
 
   // Step 1: Basic Info Form
   basicInfoForm!: FormGroup;
@@ -144,20 +153,28 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       4: 'Step 4 of 4 — Preview & Finalize: Review organization parameters before provisioning.'
     };
 
-    const title = stepTitles[step];
-    const badge = `STEP ${step} / 4`;
+    let title = stepTitles[step];
+    let badge = `STEP ${step} / 4`;
+    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
 
     let msg = stepDescriptions[step];
     if (action === 'completed') {
       const prev = (step - 1) as WizardStep;
-      msg = `Step ${prev} completed successfully! Now on Step ${step} of 4.`;
+      const prevName = stepTitles[prev].split(': ')[1];
+      const nextName = stepTitles[step].split(': ')[1];
+      title = `Step ${prev} Completed Successfully`;
+      badge = `STEP ${prev} COMPLETED`;
+      msg = `Step ${prev} (${prevName}) saved. Now on Step ${step} of 4: ${nextName}.`;
+      type = 'success';
     } else if (action === 'back') {
       msg = `Navigated back to Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
     } else if (action === 'jump') {
       msg = `Active: Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
     }
 
-    this.lms.showToast(msg, 'info', 4000, title, badge);
+    this.lms.showToast(msg, type, 4000, title, badge);
   }
 
   /**

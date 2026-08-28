@@ -6,12 +6,13 @@ import { LmsDataService } from '../../services/lms-data.service';
 import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.model';
 import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
+import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-lms-create',
-  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, StepperComponent],
   templateUrl: './lms-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -23,6 +24,14 @@ export class LmsCreateComponent implements OnInit {
   // Stepper State (Identical to Organization Create)
   currentStep = signal<WizardStep>(1);
   completedSteps = signal<Set<number>>(new Set<number>());
+
+  // Reusable Stepper Configuration
+  steps: StepperStep[] = [
+    { id: 1, key: 'basic', title: 'Basic Information', shortTitle: 'Basic Info', sublabel: 'Identity & Scope', icon: 'school' },
+    { id: 2, key: 'resources', title: 'Resource Allocation', shortTitle: 'Resources', sublabel: 'Storage & Capacity', icon: 'database' },
+    { id: 3, key: 'admin', title: 'Administrator Assignment', shortTitle: 'Admin Setup', sublabel: 'Admins & Scope', icon: 'manage_accounts' },
+    { id: 4, key: 'preview', title: 'Preview & Confirm', shortTitle: 'Preview', sublabel: 'Review & Launch', icon: 'rate_review' }
+  ];
 
   // Organization Scope (Read-only, inherited from active tenant §0, §3.1)
   parentOrg = computed(() => this.lms.activeTenant());
@@ -176,20 +185,28 @@ export class LmsCreateComponent implements OnInit {
       4: 'Step 4 of 4 — Preview & Finalize: Review LMS instance parameters before provisioning.'
     };
 
-    const title = stepTitles[step];
-    const badge = `STEP ${step} / 4`;
+    let title = stepTitles[step];
+    let badge = `STEP ${step} / 4`;
+    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
 
     let msg = stepDescriptions[step];
     if (action === 'completed') {
       const prev = (step - 1) as WizardStep;
-      msg = `Step ${prev} completed successfully! Now on Step ${step} of 4.`;
+      const prevName = stepTitles[prev].split(': ')[1];
+      const nextName = stepTitles[step].split(': ')[1];
+      title = `Step ${prev} Completed Successfully`;
+      badge = `STEP ${prev} COMPLETED`;
+      msg = `Step ${prev} (${prevName}) saved. Now on Step ${step} of 4: ${nextName}.`;
+      type = 'success';
     } else if (action === 'back') {
       msg = `Navigated back to Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
     } else if (action === 'jump') {
       msg = `Active: Step ${step} of 4 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
     }
 
-    this.lms.showToast(msg, 'info', 4000, title, badge);
+    this.lms.showToast(msg, type, 4000, title, badge);
   }
 
   private ensureActiveTenantTheme() {

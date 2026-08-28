@@ -54,117 +54,13 @@
     </div>
   </div>
 
-  <!-- Global Stepper Bar (§2) -->
-  <div class="py-3.5 px-6 rounded-full bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 shadow-sm overflow-x-auto">
-    <div class="flex items-center justify-between min-w-[640px] px-2 sm:px-4">
-      
-      <!-- Step 1: Basic Info -->
-      <div 
-        (click)="jumpToStep(1)"
-        [class]="isStepClickable(1) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-        class="flex items-center gap-3 group">
-        <div 
-          class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all duration-300 shadow-xs select-none"
-          [ngClass]="{
-            'bg-tenant-500 text-white shadow-tenant-500/30 shadow-md': getStepState(1) === 'current',
-            'bg-emerald-500 text-white': getStepState(1) === 'done',
-            'bg-base-200 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400': getStepState(1) === 'disabled'
-          }">
-          @if (getStepState(1) === 'done') {
-            <span class="material-symbols-outlined text-lg text-white font-bold">check</span>
-          } @else {
-            <span [class]="getStepState(1) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">1</span>
-          }
-        </div>
-        <div>
-          <div class="text-xs font-bold" [ngClass]="getStepState(1) === 'current' ? 'text-tenant-600 dark:text-tenant-400' : (getStepState(1) === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-primary')">Basic Info</div>
-          <div class="text-[10px] text-text-secondary">Identity & Location</div>
-        </div>
-      </div>
-
-      <!-- Connector 1-2 -->
-      <div class="flex-1 mx-4 h-1.5 rounded-full" [ngClass]="completedSteps().has(1) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-800'"></div>
-
-      <!-- Step 2: Resources -->
-      <div 
-        (click)="jumpToStep(2)"
-        [class]="isStepClickable(2) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-        class="flex items-center gap-3 group">
-        <div 
-          class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all duration-300 shadow-xs select-none"
-          [ngClass]="{
-            'bg-tenant-500 text-white shadow-tenant-500/30 shadow-md': getStepState(2) === 'current',
-            'bg-emerald-500 text-white': getStepState(2) === 'done',
-            'bg-base-200 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400': getStepState(2) === 'disabled'
-          }">
-          @if (getStepState(2) === 'done') {
-            <span class="material-symbols-outlined text-lg text-white font-bold">check</span>
-          } @else {
-            <span [class]="getStepState(2) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">2</span>
-          }
-        </div>
-        <div>
-          <div class="text-xs font-bold" [ngClass]="getStepState(2) === 'current' ? 'text-tenant-600 dark:text-tenant-400' : (getStepState(2) === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-primary')">Resources</div>
-          <div class="text-[10px] text-text-secondary">Storage & Capacity</div>
-        </div>
-      </div>
-
-      <!-- Connector 2-3 -->
-      <div class="flex-1 mx-4 h-1.5 rounded-full" [ngClass]="completedSteps().has(2) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-800'"></div>
-
-      <!-- Step 3: Admin -->
-      <div 
-        (click)="jumpToStep(3)"
-        [class]="isStepClickable(3) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-        class="flex items-center gap-3 group">
-        <div 
-          class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all duration-300 shadow-xs select-none"
-          [ngClass]="{
-            'bg-tenant-500 text-white shadow-tenant-500/30 shadow-md': getStepState(3) === 'current',
-            'bg-emerald-500 text-white': getStepState(3) === 'done',
-            'bg-base-200 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400': getStepState(3) === 'disabled'
-          }">
-          @if (getStepState(3) === 'done') {
-            <span class="material-symbols-outlined text-lg text-white font-bold">check</span>
-          } @else {
-            <span [class]="getStepState(3) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">3</span>
-          }
-        </div>
-        <div>
-          <div class="text-xs font-bold" [ngClass]="getStepState(3) === 'current' ? 'text-tenant-600 dark:text-tenant-400' : (getStepState(3) === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-primary')">Admin</div>
-          <div class="text-[10px] text-text-secondary">Admin Setup & Notice</div>
-        </div>
-      </div>
-
-      <!-- Connector 3-4 -->
-      <div class="flex-1 mx-4 h-1.5 rounded-full" [ngClass]="completedSteps().has(3) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-800'"></div>
-
-      <!-- Step 4: Preview -->
-      <div 
-        (click)="jumpToStep(4)"
-        [class]="isStepClickable(4) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-        class="flex items-center gap-3 group">
-        <div 
-          class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all duration-300 shadow-xs select-none"
-          [ngClass]="{
-            'bg-tenant-500 text-white shadow-tenant-500/30 shadow-md': getStepState(4) === 'current',
-            'bg-emerald-500 text-white': getStepState(4) === 'done',
-            'bg-base-200 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400': getStepState(4) === 'disabled'
-          }">
-          @if (getStepState(4) === 'done') {
-            <span class="material-symbols-outlined text-lg text-white font-bold">check</span>
-          } @else {
-            <span [class]="getStepState(4) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">4</span>
-          }
-        </div>
-        <div>
-          <div class="text-xs font-bold" [ngClass]="getStepState(4) === 'current' ? 'text-tenant-600 dark:text-tenant-400' : (getStepState(4) === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-primary')">Preview</div>
-          <div class="text-[10px] text-text-secondary">Review & Launch</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  <!-- Common Reusable Stepper Bar (§2) -->
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="jumpToStep($event)">
+  </app-stepper>
 
   <!-- Mandatory Field Error Alert (§7.1) -->
   @if (formErrorAlert()) {

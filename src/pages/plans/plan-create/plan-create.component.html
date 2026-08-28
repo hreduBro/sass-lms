@@ -1,4 +1,4 @@
-<div class="space-y-6 pb-16 animate-fade-in max-w-6xl mx-auto">
+<div class="space-y-6 pb-16 max-w-6xl mx-auto">
   
   <!-- ================================================================= -->
   <!-- HEADER & BREADCRUMB CONTEXT                                        -->
@@ -54,51 +54,14 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- GLOBAL STEPPER BAR (11 STEPS)                                      -->
+  <!-- COMMON REUSABLE STEPPER COMPONENT (11 STEPS)                      -->
   <!-- ================================================================= -->
-  <div 
-    id="plan-stepper-container" 
-    class="py-3.5 px-6 rounded-full bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 shadow-sm overflow-x-auto scroll-smooth no-scrollbar">
-    <div class="flex items-center justify-between min-w-max px-2 sm:px-4 gap-2 sm:gap-3">
-      @for (step of steps; track step.id; let i = $index) {
-        
-        <!-- Step Item -->
-        <div 
-          [id]="'plan-step-item-' + step.id"
-          (click)="goToStep(step.id)"
-          [class]="isStepClickable(step.id) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-          class="flex items-center gap-2.5 group shrink-0 transition-transform duration-200"
-          [class.scale-105]="currentStep() === step.id">
-          <div 
-            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm transition-all duration-300 shadow-xs select-none"
-            [ngClass]="{
-              'bg-tenant-500 text-white shadow-tenant-500/30 shadow-md': getStepState(step.id) === 'current',
-              'bg-emerald-500 text-white': getStepState(step.id) === 'done',
-              'bg-base-200 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400': getStepState(step.id) === 'disabled'
-            }">
-            @if (getStepState(step.id) === 'done') {
-              <span class="material-symbols-outlined text-base sm:text-lg text-white font-bold">check</span>
-            } @else {
-              <span [class]="getStepState(step.id) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">{{ step.id }}</span>
-            }
-          </div>
-          <div>
-            <div class="text-xs font-bold whitespace-nowrap" [ngClass]="getStepState(step.id) === 'current' ? 'text-tenant-600 dark:text-tenant-400' : (getStepState(step.id) === 'done' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-primary')">
-              {{ step.shortTitle }}
-            </div>
-            <div class="text-[10px] text-text-secondary whitespace-nowrap">
-              {{ step.sublabel }}
-            </div>
-          </div>
-        </div>
-
-        @if (i < steps.length - 1) {
-          <!-- Connector -->
-          <div class="w-4 sm:w-6 h-1 rounded-full shrink-0" [ngClass]="completedSteps().has(step.id) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-800'"></div>
-        }
-      }
-    </div>
-  </div>
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="goToStep($event)">
+  </app-stepper>
 
   <!-- Mandatory Field Error Alert -->
   @if (formErrorAlert()) {

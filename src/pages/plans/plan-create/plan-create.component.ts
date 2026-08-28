@@ -21,20 +21,13 @@ import {
   parseDateDDMMYYYY
 } from '../../../models/plan.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { StepperComponent, StepperStep, StepItem } from '../../../components/stepper/stepper.component';
 
-export interface StepItem {
-  id: number;
-  key: string;
-  title: string;
-  shortTitle: string;
-  sublabel: string;
-  icon: string;
-  isDeferrable?: boolean;
-}
+export type { StepItem };
 
 @Component({
   selector: 'app-plan-create',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomSelectComponent, StepperComponent],
   templateUrl: './plan-create.component.html',
   styles: [`
     @keyframes fadeIn {
@@ -386,8 +379,69 @@ export class PlanCreateComponent implements OnInit {
     // Run initial validation check
     this.runValidationAudit();
 
+    // Show initial step alert
+    this.showStepAlert(1, 'entered');
+
     // Scroll active step to front
     this.scrollToActiveStep(this.currentStep());
+  }
+
+  /**
+   * Dispatches a prominent step alert mentioning the exact step number and description
+   */
+  private showStepAlert(step: number, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
+    const stepTitles: Record<number, string> = {
+      1: 'Step 1 of 11: Basic Information & Timeframe',
+      2: 'Step 2 of 11: Plan Structure & Phases',
+      3: 'Step 3 of 11: Progression & Unlock Rules',
+      4: 'Step 4 of 11: Enrollment & Cohorting',
+      5: 'Step 5 of 11: Prior Completion & Equivalency',
+      6: 'Step 6 of 11: Grading Policy & Weights',
+      7: 'Step 7 of 11: Credentials & Outputs',
+      8: 'Step 8 of 11: Diagnostic Evaluation',
+      9: 'Step 9 of 11: Engagement & Community',
+      10: 'Step 10 of 11: Recurring Cycles & Alumni',
+      11: 'Step 11 of 11: Review & Publish'
+    };
+
+    const stepDescriptions: Record<number, string> = {
+      1: 'Step 1 of 11 — Basic Information: Define core identity, bounds, timeframe, and appointed administrator.',
+      2: 'Step 2 of 11 — Plan Structure: Structure curriculum phases with courses, tasks, and date boundaries.',
+      3: 'Step 3 of 11 — Progression Rules: Configure sequential or free progression and phase unlocking criteria.',
+      4: 'Step 4 of 11 — Enrollment & Cohorting: Set open or closed enrollment, seat capacity, and registration rules.',
+      5: 'Step 5 of 11 — Equivalency: Set prior completion credit recognition and syllabus version migration policies.',
+      6: 'Step 6 of 11 — Grading Policy: Define pass mark thresholds, grading scales, and modular phase weights.',
+      7: 'Step 7 of 11 — Credentials & Outputs: Configure completion certificates, digital badges, and transcript templates.',
+      8: 'Step 8 of 11 — Diagnostic Evaluation: Configure pre-test baseline and post-test summative questionnaires.',
+      9: 'Step 9 of 11 — Engagement & Community: Enable trainee CSAT feedback surveys, ratings, and discussion forum.',
+      10: 'Step 10 of 11 — Recurring Cycles: Setup recurring cohort cycles and historical alumni transcript indexing.',
+      11: 'Step 11 of 11 — Review & Publish: Audit plan parameters, verify validation gates, and publish or activate.'
+    };
+
+    let title = stepTitles[step] || `Step ${step} of 11`;
+    let badge = `STEP ${step} / 11`;
+    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
+
+    let msg = stepDescriptions[step] || `Active: Step ${step} of 11`;
+    if (action === 'completed') {
+      const prev = step - 1;
+      const prevTitle = stepTitles[prev]?.split(': ')[1] || `Step ${prev}`;
+      const nextTitle = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
+      title = `Step ${prev} Completed Successfully`;
+      badge = `STEP ${prev} COMPLETED`;
+      msg = `Step ${prev} (${prevTitle}) saved & verified. Now proceeding to Step ${step} of 11: ${nextTitle}.`;
+      type = 'success';
+    } else if (action === 'back') {
+      const stepName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
+      msg = `Navigated back to Step ${step} of 11 (${stepName}).`;
+      type = 'info';
+    } else if (action === 'jump') {
+      const stepName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
+      msg = `Active: Step ${step} of 11 (${stepName}).`;
+      type = 'info';
+    }
+
+    this.lmsData.showToast(msg, type, 4000, title, badge);
   }
 
   // Smoothly position active step element at the front of the horizontal stepper
@@ -660,6 +714,7 @@ export class PlanCreateComponent implements OnInit {
 
     this.formErrorAlert.set(null);
     this.currentStep.set(stepId);
+    this.showStepAlert(stepId, 'jump');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.scrollToActiveStep(stepId);
     this.runValidationAudit();
@@ -702,6 +757,7 @@ export class PlanCreateComponent implements OnInit {
       });
       const next = this.currentStep() + 1;
       this.currentStep.set(next);
+      this.showStepAlert(next, 'completed');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       this.scrollToActiveStep(next);
       this.runValidationAudit();
@@ -712,6 +768,7 @@ export class PlanCreateComponent implements OnInit {
     if (this.currentStep() > 1) {
       const prev = this.currentStep() - 1;
       this.currentStep.set(prev);
+      this.showStepAlert(prev, 'back');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       this.scrollToActiveStep(prev);
     }

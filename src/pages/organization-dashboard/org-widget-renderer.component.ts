@@ -191,12 +191,12 @@ export class OrgWidgetRendererComponent {
   // 7. Admin Directory Filtered
   filteredAdminDirectory = computed(() => {
     const list = this.lms.orgAdminDirectoryList();
-    const q = this.directorySearch().toLowerCase().trim();
+    const q = (this.directorySearch() || '').toLowerCase().trim();
     if (!q) return list;
     return list.filter(a => 
-      a.adminName.toLowerCase().includes(q) || 
-      a.tenantName.toLowerCase().includes(q) || 
-      a.adminEmail.toLowerCase().includes(q)
+      (a.adminName || '').toLowerCase().includes(q) || 
+      (a.tenantName || '').toLowerCase().includes(q) || 
+      (a.adminEmail || '').toLowerCase().includes(q)
     );
   });
 

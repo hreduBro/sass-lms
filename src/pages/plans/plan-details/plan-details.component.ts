@@ -428,8 +428,8 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
 
     <!-- Activate Plan Confirmation Modal (§11) -->
     @if (showActivateConfirmModal() && currentPlan()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+      <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop overflow-y-auto">
+        <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4 animate-modal-card m-auto">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <span class="material-symbols-outlined text-xl">play_circle</span>
@@ -461,13 +461,13 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
             <button 
               type="button" 
               (click)="showActivateConfirmModal.set(false)" 
-              class="px-4 py-2 rounded-xl font-semibold bg-base-200 border border-base-300 dark:border-slate-700 text-text-secondary hover:text-text-primary">
+              class="px-4 py-2 rounded-xl font-semibold bg-base-200 border border-base-300 dark:border-slate-700 text-text-secondary hover:text-text-primary cursor-pointer">
               Cancel
             </button>
             <button 
               type="button" 
               (click)="confirmActivatePlan()" 
-              class="px-4 py-2 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">
+              class="px-4 py-2 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs">
               Activate Plan
             </button>
           </div>
@@ -477,8 +477,8 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
 
     <!-- Archive Plan Confirmation Modal (§12) -->
     @if (showArchiveConfirmModal() && currentPlan()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+      <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop overflow-y-auto">
+        <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4 animate-modal-card m-auto">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <span class="material-symbols-outlined text-xl">archive</span>
@@ -514,11 +514,11 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
   `,
   styles: [`
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .animate-fade-in {
-      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.15s ease-out;
     }
   `]
 })

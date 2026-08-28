@@ -435,10 +435,10 @@
 
                 <!-- Instructor Card -->
                 <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center gap-3">
-                  <img [src]="course().instructorAvatar" [alt]="course().instructor" class="w-10 h-10 rounded-full object-cover border-2 border-tenant-500/40" referrerpolicy="no-referrer" />
+                  <img [src]="course().instructorAvatar" [alt]="course().instructorName" class="w-10 h-10 rounded-full object-cover border-2 border-tenant-500/40" referrerpolicy="no-referrer" />
                   <div>
-                    <span class="font-bold text-xs text-text-primary block">{{ course().instructor }}</span>
-                    <span class="text-[11px] text-text-secondary">Chief Learning Officer &bull; {{ lms.activeTenant().name }}</span>
+                    <span class="font-bold text-xs text-text-primary block">{{ course().instructorName }}</span>
+                    <span class="text-[11px] text-text-secondary">{{ course().instructorTitle || 'Instructor' }} &bull; {{ lms.activeTenant().name }}</span>
                   </div>
                 </div>
               </div>
@@ -501,7 +501,8 @@
                 </div>
 
                 <textarea 
-                  [(ngModel)]="lessonNotes"
+                  [ngModel]="lessonNotes()"
+                  (ngModelChange)="lessonNotes.set($event)"
                   rows="4"
                   placeholder="Type key takeaways, formulas, or reminders for this lecture..."
                   class="w-full p-3 rounded-2xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 leading-relaxed"></textarea>
@@ -524,7 +525,8 @@
                 <div class="flex gap-2">
                   <input 
                     type="text" 
-                    [(ngModel)]="newQuestionText"
+                    [ngModel]="newQuestionText()"
+                    (ngModelChange)="newQuestionText.set($event)"
                     placeholder="Ask instructor or peers a question..."
                     class="flex-1 px-3.5 py-2.5 rounded-2xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none min-h-[44px]" />
                   <button 
@@ -725,8 +727,8 @@
         <span class="text-[11px] font-mono uppercase tracking-widest text-text-secondary block">Certificate of Completion</span>
         <h2 class="text-xl sm:text-2xl font-black text-text-primary">{{ course().title }}</h2>
         <p class="text-xs text-text-secondary">Awarded to</p>
-        <p class="text-lg font-bold text-tenant-600 dark:text-tenant-300">{{ lms.activeUser().name }}</p>
-        <p class="text-[11px] text-text-secondary">Issued on {{ cert.issuedAt | date:'mediumDate' }} &bull; Verification Hash: <span class="font-mono">{{ cert.verificationHash.substring(0, 14) }}...</span></p>
+        <p class="text-lg font-bold text-tenant-600 dark:text-tenant-300">{{ cert.userName || lms.activeUser().name }}</p>
+        <p class="text-[11px] text-text-secondary">Issued on {{ cert.issuedDate | date:'mediumDate' }} &bull; Verification Code: <span class="font-mono">{{ cert.verificationCode }}</span></p>
       </div>
 
       <div class="flex items-center justify-end gap-3 pt-2">
