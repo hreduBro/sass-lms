@@ -241,7 +241,7 @@
   <!-- Delete Draft Confirmation Modal -->
   @if (draftToDelete()) {
     <div 
-      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto animate-modal-backdrop"
       (click)="draftToDelete.set(null)">
       <div 
         class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4 animate-slide-up-modal"
@@ -282,7 +282,7 @@
   <!-- Selected LMS Details Modal -->
   @if (selectedLms()) {
     <div 
-      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop"
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto animate-modal-backdrop"
       (click)="selectedLms.set(null)">
       <div 
         class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-slide-up-modal flex flex-col max-h-[90vh]"

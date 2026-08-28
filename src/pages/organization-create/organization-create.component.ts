@@ -12,6 +12,7 @@ import {
   CustomDataSharingBatch
 } from '../../models/organization.model';
 
+import { ConfirmationModalService } from '../../services/confirmation-modal.service';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
 
@@ -28,6 +29,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   lms = inject(LmsDataService);
+  modalService = inject(ConfirmationModalService);
 
   // Stepper State
   currentStep = signal<WizardStep>(1);
@@ -493,9 +495,17 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
   // Button Actions per Step (§3.4, §4.3, §5.2, §6.2)
 
-  // 1. Cancel -> Redirect to All Organization grid (no save)
-  onCancel() {
-    this.router.navigate(['/tenants']);
+  // 1. Cancel -> Prompt via ConfirmationModalService
+  async onCancel() {
+    const res = await this.modalService.confirmDiscard({
+      title: 'Discard Organization Creation?',
+      message: 'You have unsaved changes in this wizard. You can save your progress as a draft to resume later.'
+    });
+    if (res === 'draft') {
+      this.onSaveAsDraft();
+    } else if (res === 'discard') {
+      this.router.navigate(['/tenants']);
+    }
   }
 
   // 2. Reset -> Clear inputs on current step, stay on UI

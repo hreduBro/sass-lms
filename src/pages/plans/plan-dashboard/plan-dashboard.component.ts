@@ -120,61 +120,6 @@ export interface LearnerProgressRecord {
       <!-- ================================================================= -->
       @if (!selectedPlan()) {
         
-        <!-- Filter and Search Bar for Portfolio Level -->
-        <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="relative w-full sm:w-72">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
-              search
-            </span>
-            <input 
-              type="text" 
-              [(ngModel)]="searchQuery" 
-              placeholder="Search plans, codes, owners..." 
-              class="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500" />
-          </div>
-
-          <div class="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto">
-            <!-- Status Filter -->
-            <div class="w-36 shrink-0">
-              <app-custom-select
-                [options]="statusFilterOptions"
-                [(ngModel)]="selectedStatusFilter"
-                size="sm"
-                placeholder="Status: All">
-              </app-custom-select>
-            </div>
-
-            <!-- Duration Filter -->
-            <div class="w-36 shrink-0">
-              <app-custom-select
-                [options]="durationFilterOptions"
-                [(ngModel)]="selectedDurationFilter"
-                size="sm"
-                placeholder="Duration: All">
-              </app-custom-select>
-            </div>
-
-            <!-- Enrollment Filter -->
-            <div class="w-36 shrink-0">
-              <app-custom-select
-                [options]="enrollmentFilterOptions"
-                [(ngModel)]="selectedEnrollmentFilter"
-                size="sm"
-                placeholder="Enrollment: All">
-              </app-custom-select>
-            </div>
-
-            @if (hasActivePortfolioFilters()) {
-              <button 
-                type="button" 
-                (click)="resetPortfolioFilters()"
-                class="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shrink-0">
-                Clear Filters
-              </button>
-            }
-          </div>
-        </div>
-
         <!-- 6 High-Impact Portfolio KPI Metric Tiles -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           

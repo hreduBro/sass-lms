@@ -32,7 +32,7 @@
 <!-- Global Unified Alert Toast Container — Top Right of Screen -->
 <div 
   id="global-toast-container" 
-  class="fixed right-4 sm:right-6 pointer-events-none flex flex-col gap-2.5 max-w-[430px] w-full px-3 sm:px-0 transition-all duration-200 z-[100000]"
+  class="fixed right-4 sm:right-6 pointer-events-none flex flex-col gap-2.5 max-w-[430px] w-full px-3 sm:px-0 transition-all duration-200 z-[50]"
   [style.top.px]="lms.adminLayoutPreferences().navigationMode === 'top_menu' ? 124 : (lms.adminLayoutPreferences().headerDensity === 'compact' ? 60 : 76)"
   aria-live="polite">
   @for (toast of lms.toasts(); track toast.id) {
@@ -223,10 +223,13 @@
   <app-backend-console-modal (close)="lms.closeBackendConsole()"></app-backend-console-modal>
 }
 
+<!-- Reusable Global Confirmation & Discard Modal (Controlled via ConfirmationModalService) -->
+<app-confirmation-modal></app-confirmation-modal>
+
 <!-- Global Sign Out Confirmation Modal (Rendered at root level to guarantee true 100vw x 100vh full-screen coverage) -->
 @if (lms.showSignOutModal()) {
   <div 
-    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
     (click)="lms.closeSignOutModal()">
     <div 
       class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4"

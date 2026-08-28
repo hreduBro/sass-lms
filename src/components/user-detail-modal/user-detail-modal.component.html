@@ -1,5 +1,5 @@
 @if (user(); as user) {
-  <div (click)="onClose()" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+  <div (click)="onClose()" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
     <div (click)="onModalClick($event)" class="relative w-full max-w-lg p-8 m-4 rounded-2xl bg-glass-bg border border-glass-border shadow-2xl animate-scale-in">
       <button (click)="onClose()" class="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-base-300 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
+import { ConfirmationModalService } from '../../services/confirmation-modal.service';
 import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.model';
 import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
@@ -18,6 +19,7 @@ export type WizardStep = 1 | 2 | 3 | 4;
 })
 export class LmsCreateComponent implements OnInit {
   lms = inject(LmsDataService);
+  modalService = inject(ConfirmationModalService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -87,7 +89,6 @@ export class LmsCreateComponent implements OnInit {
 
   // Confirmation Modals
   showConfirmModal = signal<boolean>(false);
-  showCancelModal = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
 
   // Timezones list
@@ -802,17 +803,16 @@ export class LmsCreateComponent implements OnInit {
     this.lms.showToast(`Step ${step} form fields have been reset.`, 'info', 4000, `Step ${step} Reset`, `STEP ${step} / 4`);
   }
 
-  onCancel() {
-    if (this.lmsName() || this.databaseSizeGb() || this.adminName()) {
-      this.showCancelModal.set(true);
-    } else {
+  async onCancel() {
+    const res = await this.modalService.confirmDiscard({
+      title: 'Discard LMS Creation?',
+      message: 'You have unsaved changes in this wizard. You can save your progress as a draft to resume later.'
+    });
+    if (res === 'draft') {
+      this.onSaveAsDraft();
+    } else if (res === 'discard') {
       this.router.navigate(['/lms']);
     }
-  }
-
-  confirmCancel() {
-    this.showCancelModal.set(false);
-    this.router.navigate(['/lms']);
   }
 
   onSaveAsDraft() {

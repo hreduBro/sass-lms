@@ -1164,40 +1164,7 @@
     </div>
   }
 
-  <!-- ================================================================= -->
-  <!-- MODAL: CONFIRM CANCEL / DISCARD DRAFT                             -->
-  <!-- ================================================================= -->
-  @if (showCancelModal()) {
-    <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-modal-backdrop overflow-y-auto"
-      (click)="showCancelModal.set(false)">
-      <div 
-        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
-        (click)="$event.stopPropagation()">
-        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-          <span class="material-symbols-outlined text-2xl">warning</span>
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-text-primary">Discard Unsaved Changes?</h3>
-          <p class="text-xs text-text-secondary mt-1">You have unsaved changes in this plan creation wizard. Are you sure you want to leave without saving?</p>
-        </div>
-        <div class="flex items-center justify-end gap-2.5 pt-3">
-          <button 
-            type="button" 
-            (click)="showCancelModal.set(false)" 
-            class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300 cursor-pointer">
-            Continue Editing
-          </button>
-          <button 
-            type="button" 
-            (click)="confirmCancel()" 
-            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs cursor-pointer">
-            Discard & Exit
-          </button>
-        </div>
-      </div>
-    </div>
-  }
+
 
   <!-- ================================================================= -->
   <!-- MODAL: CONFIRM PUBLISH (§15)                                      -->

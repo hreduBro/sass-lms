@@ -1058,51 +1058,7 @@
   </div>
 }
 
-<!-- ========================================================================= -->
-<!-- CANCEL / DISCARD CONFIRMATION MODAL                                       -->
-<!-- ========================================================================= -->
-@if (showCancelModal()) {
-  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-modal-backdrop"
-       (click)="showCancelModal.set(false)">
-    
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-sm w-full p-6 space-y-4 text-center animate-modal-card"
-         (click)="$event.stopPropagation()">
-      
-      <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-2xl">warning</span>
-      </div>
 
-      <div class="space-y-1">
-        <h3 class="text-sm font-bold text-text-primary">Discard LMS Creation?</h3>
-        <p class="text-xs text-text-secondary leading-relaxed">
-          You have unsaved changes in this wizard. You can save your progress as a draft to resume later.
-        </p>
-      </div>
-
-      <div class="space-y-2 pt-2">
-        <button 
-          type="button" 
-          (click)="onSaveAsDraft()"
-          class="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-bold shadow-2xs hover:bg-amber-100 transition-all cursor-pointer">
-          Save as Draft & Exit
-        </button>
-        <button 
-          type="button" 
-          (click)="confirmCancel()"
-          class="w-full py-2.5 rounded-xl bg-base-200 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 text-xs font-semibold transition-colors cursor-pointer">
-          Discard & Exit
-        </button>
-        <button 
-          type="button" 
-          (click)="showCancelModal.set(false)"
-          class="w-full py-1.5 text-text-secondary hover:text-text-primary text-xs font-medium cursor-pointer">
-          Continue Editing
-        </button>
-      </div>
-
-    </div>
-  </div>
-}
 
 <!-- ========================================================================= -->
 <!-- ADD CO-ADMINISTRATOR MODAL                                                -->
