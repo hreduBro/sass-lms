@@ -64,7 +64,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
             id="create-plan-nav-btn"
             type="button"
             (click)="navigateToCreate()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm hover:shadow transition-all flex items-center gap-1.5">
+            title="Create New Learning Plan"
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-sm">add_task</span>
             <span>Create Plan</span>
           </button>
@@ -93,7 +94,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
               <button 
                 type="button" 
                 (click)="onSearchChange('')" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+                title="Clear Search"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary cursor-pointer">
                 <span class="material-symbols-outlined text-sm">cancel</span>
               </button>
             }
@@ -107,7 +109,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
               id="toggle-filter-panel-btn"
               type="button"
               (click)="toggleFilterPanel()"
-              class="px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 shadow-sm"
+              title="Toggle Filter Options"
+              class="px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
               [ngClass]="isFilterPanelOpen() || activeFilterCount() > 0 
                 ? 'bg-tenant-500/10 border-tenant-500/40 text-tenant-700 dark:text-tenant-300' 
                 : 'bg-base-200 border-base-300 dark:border-slate-700 text-text-primary hover:bg-base-300'">
@@ -126,7 +129,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                 id="clear-all-filters-quick-btn"
                 type="button" 
                 (click)="clearAllFilters()"
-                class="px-3 py-2.5 rounded-xl text-xs font-medium text-text-secondary hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+                title="Clear all active filters"
+                class="px-3 py-2.5 rounded-xl text-xs font-medium text-text-secondary hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer">
                 Clear All
               </button>
             }
@@ -271,39 +275,39 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
         } @else {
           
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="min-w-[1250px] w-full text-left text-xs border-separate border-spacing-0">
               <thead>
-                <tr class="border-b border-base-300 dark:border-slate-800 bg-base-200/50 dark:bg-base-300/40 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
+                <tr class="bg-base-200/80 dark:bg-base-300/60 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
                   
                   <!-- 1. Plan Name -->
-                  <th class="py-3 px-4 min-w-[220px]">Plan Name</th>
+                  <th class="py-3 px-4 min-w-[240px] border-b border-base-300 dark:border-slate-800">Plan Name</th>
                   
                   <!-- 2. Plan Code -->
-                  <th class="py-3 px-4">Plan Code</th>
+                  <th class="py-3 px-4 min-w-[110px] border-b border-base-300 dark:border-slate-800">Plan Code</th>
                   
                   <!-- 3. Plan Owner -->
-                  <th class="py-3 px-4 min-w-[180px]">Plan Owner</th>
+                  <th class="py-3 px-4 min-w-[180px] border-b border-base-300 dark:border-slate-800">Plan Owner</th>
                   
                   <!-- 4. Duration Type -->
-                  <th class="py-3 px-4">Duration</th>
+                  <th class="py-3 px-4 min-w-[100px] border-b border-base-300 dark:border-slate-800">Duration</th>
                   
                   <!-- 5. Start Date -->
-                  <th class="py-3 px-4">Start Date</th>
+                  <th class="py-3 px-4 min-w-[105px] border-b border-base-300 dark:border-slate-800">Start Date</th>
                   
                   <!-- 6. End Date -->
-                  <th class="py-3 px-4">End Date</th>
+                  <th class="py-3 px-4 min-w-[105px] border-b border-base-300 dark:border-slate-800">End Date</th>
                   
                   <!-- 7. Number of Phases -->
-                  <th class="py-3 px-4 text-center">Phases</th>
+                  <th class="py-3 px-4 min-w-[80px] text-center border-b border-base-300 dark:border-slate-800">Phases</th>
                   
                   <!-- 8. Enrollment Type -->
-                  <th class="py-3 px-4">Enrollment</th>
+                  <th class="py-3 px-4 min-w-[110px] border-b border-base-300 dark:border-slate-800">Enrollment</th>
                   
                   <!-- 9. Status -->
-                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 min-w-[130px] border-b border-base-300 dark:border-slate-800">Status</th>
                   
                   <!-- 10. Created Date -->
-                  <th class="py-3 px-4 cursor-pointer hover:text-text-primary" (click)="toggleSort('createdDate')">
+                  <th class="py-3 px-4 min-w-[110px] border-b border-base-300 dark:border-slate-800 cursor-pointer hover:text-text-primary" (click)="toggleSort('createdDate')" title="Sort by Created Date">
                     <div class="flex items-center gap-1">
                       <span>Created</span>
                       <span class="material-symbols-outlined text-xs">{{ sortField() === 'createdDate' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
@@ -311,17 +315,17 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                   </th>
 
                   <!-- Actions -->
-                  <th class="py-3 px-4 text-right">Actions</th>
+                  <th class="py-3 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-20 w-[140px] min-w-[140px] border-b border-l border-base-300 dark:border-slate-800 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-base-300 dark:divide-slate-800/80">
+              <tbody>
                 @for (plan of filteredPlans(); track plan.id) {
                   <tr 
                     class="hover:bg-base-200/50 dark:hover:bg-base-300/30 transition-colors group cursor-pointer"
                     (click)="viewPlanDetails(plan)">
                     
                     <!-- 1. Plan Name & Description -->
-                    <td class="py-3.5 px-4 font-semibold text-text-primary">
+                    <td class="py-3.5 px-4 font-semibold text-text-primary border-b border-base-300/60 dark:border-slate-800">
                       <div class="flex items-start gap-2">
                         <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 mt-0.5">
                           <span class="material-symbols-outlined text-sm">event_note</span>
@@ -338,14 +342,14 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                     </td>
 
                     <!-- 2. Plan Code -->
-                    <td class="py-3.5 px-4 whitespace-nowrap">
+                    <td class="py-3.5 px-4 whitespace-nowrap border-b border-base-300/60 dark:border-slate-800">
                       <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-900/60">
                         {{ plan.planCode }}
                       </span>
                     </td>
 
                     <!-- 3. Plan Owner (Name / Avatar / Email) -->
-                    <td class="py-3.5 px-4">
+                    <td class="py-3.5 px-4 border-b border-base-300/60 dark:border-slate-800">
                       @if (plan.owner?.name) {
                         <div class="flex items-center gap-2">
                           <div class="w-6 h-6 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold text-[10px] flex items-center justify-center shrink-0">
@@ -360,7 +364,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                         <button 
                           type="button"
                           (click)="$event.stopPropagation(); openAssignModal(plan)"
-                          class="px-2 py-1 rounded text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/30 border border-tenant-200 dark:border-tenant-900/50 hover:bg-tenant-100 flex items-center gap-1">
+                          title="Assign Plan Owner"
+                          class="px-2 py-1 rounded text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/30 border border-tenant-200 dark:border-tenant-900/50 hover:bg-tenant-100 flex items-center gap-1 cursor-pointer">
                           <span class="material-symbols-outlined text-xs">person_add</span>
                           <span>Assign Owner</span>
                         </button>
@@ -368,22 +373,22 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                     </td>
 
                     <!-- 4. Duration Type -->
-                    <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-medium">
+                    <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-medium border-b border-base-300/60 dark:border-slate-800">
                       {{ plan.durationType }}
                     </td>
 
                     <!-- 5. Start Date -->
-                    <td class="py-3.5 px-4 whitespace-nowrap text-text-primary">
+                    <td class="py-3.5 px-4 whitespace-nowrap text-text-primary border-b border-base-300/60 dark:border-slate-800">
                       {{ plan.startDate }}
                     </td>
 
                     <!-- 6. End Date -->
-                    <td class="py-3.5 px-4 whitespace-nowrap text-text-primary">
+                    <td class="py-3.5 px-4 whitespace-nowrap text-text-primary border-b border-base-300/60 dark:border-slate-800">
                       {{ plan.endDate }}
                     </td>
 
                     <!-- 7. Number of Phases -->
-                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap border-b border-base-300/60 dark:border-slate-800">
                       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[11px] bg-base-200 dark:bg-base-300 text-text-primary">
                         <span class="material-symbols-outlined text-xs text-tenant-500">timeline</span>
                         {{ plan.phases?.length || plan.phaseCount }}
@@ -391,7 +396,7 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                     </td>
 
                     <!-- 8. Enrollment Type -->
-                    <td class="py-3.5 px-4 whitespace-nowrap">
+                    <td class="py-3.5 px-4 whitespace-nowrap border-b border-base-300/60 dark:border-slate-800">
                       <span 
                         class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
                         [ngClass]="plan.enrollmentType === 'Open' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
@@ -400,7 +405,7 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                     </td>
 
                     <!-- 9. Status Badge -->
-                    <td class="py-3.5 px-4 whitespace-nowrap">
+                    <td class="py-3.5 px-4 min-w-[130px] whitespace-nowrap border-b border-base-300/60 dark:border-slate-800">
                       <span 
                         class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border uppercase tracking-wider"
                         [ngClass]="getStatusBadgeClass(plan.status)">
@@ -409,12 +414,12 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                     </td>
 
                     <!-- 10. Created Date -->
-                    <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary">
+                    <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary border-b border-base-300/60 dark:border-slate-800">
                       {{ plan.createdDate }}
                     </td>
 
                     <!-- 11. Row Actions -->
-                    <td class="py-3.5 px-4 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-200 group-hover:bg-slate-50 dark:group-hover:bg-base-300 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 dark:border-slate-800 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]" (click)="$event.stopPropagation()">
                       <div class="flex items-center justify-end gap-1.5">
                         
                         <!-- Assign Owner Button -->
@@ -423,7 +428,7 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                             type="button"
                             title="Assign Plan Owner"
                             (click)="openAssignModal(plan)"
-                            class="p-1.5 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 dark:hover:bg-base-300 transition-colors">
+                            class="p-1.5 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 dark:hover:bg-base-300 transition-colors cursor-pointer">
                             <span class="material-symbols-outlined text-base">person_add</span>
                           </button>
                         }
@@ -431,9 +436,9 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
                         <!-- View Details Button -->
                         <button 
                           type="button"
-                          title="View Plan Details"
+                          title="View Plan Details & Roadmaps"
                           (click)="viewPlanDetails(plan)"
-                          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-base-200 hover:bg-tenant-600 hover:text-white border border-base-300 dark:border-slate-700 text-text-primary transition-all flex items-center gap-1">
+                          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-base-200 hover:bg-tenant-600 hover:text-white border border-base-300 dark:border-slate-700 text-text-primary transition-all flex items-center gap-1 cursor-pointer">
                           <span>Details</span>
                           <span class="material-symbols-outlined text-xs">arrow_forward</span>
                         </button>

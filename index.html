@@ -905,7 +905,171 @@
         width: 0%;
       }
     }
+
+    /* Universal Instant Floating Tooltip Styles */
+    .omni-global-tooltip {
+      position: fixed;
+      z-index: 9999999;
+      pointer-events: none;
+      background-color: #090d16;
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.25;
+      padding: 5px 9px;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 4px 14px -1px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+      white-space: nowrap;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.12s cubic-bezier(0.16, 1, 0.3, 1), transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .omni-global-tooltip.omni-tooltip-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .omni-global-tooltip::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background-color: #090d16;
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      transform: rotate(45deg);
+    }
+    .omni-global-tooltip.pos-top::after {
+      bottom: -4px;
+      left: 50%;
+      margin-left: -3px;
+    }
+    .omni-global-tooltip.pos-bottom::after {
+      top: -4px;
+      left: 50%;
+      margin-left: -3px;
+      border-right: none;
+      border-bottom: none;
+      border-left: 1px solid rgba(255, 255, 255, 0.14);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
   </style>
+  <script>
+    // Universal Instant Tooltip Engine for all Tables, Cards, Buttons, and Icons
+    (function() {
+      var tooltipEl = null;
+      var currentTarget = null;
+      var showTimeout = null;
+
+      function createTooltip() {
+        if (!tooltipEl) {
+          tooltipEl = document.createElement('div');
+          tooltipEl.className = 'omni-global-tooltip';
+          document.body.appendChild(tooltipEl);
+        }
+      }
+
+      function hideTooltip() {
+        if (showTimeout) {
+          clearTimeout(showTimeout);
+          showTimeout = null;
+        }
+        if (tooltipEl) {
+          tooltipEl.classList.remove('omni-tooltip-visible');
+        }
+        if (currentTarget) {
+          var text = currentTarget.getAttribute('data-omni-tooltip');
+          if (text) {
+            currentTarget.setAttribute('title', text);
+          }
+          currentTarget = null;
+        }
+      }
+
+      function showTooltipFor(target) {
+        var text = target.getAttribute('data-omni-tooltip') || target.getAttribute('title');
+        if (!text || text.trim() === '') return;
+
+        // Cache title to prevent native delayed OS tooltip from colliding
+        target.setAttribute('data-omni-tooltip', text);
+        target.removeAttribute('title');
+        currentTarget = target;
+
+        createTooltip();
+        tooltipEl.textContent = text;
+        tooltipEl.className = 'omni-global-tooltip'; // reset classes
+
+        var rect = target.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
+
+        // Position calculations
+        var tooltipWidth = tooltipEl.offsetWidth || 120;
+        var tooltipHeight = tooltipEl.offsetHeight || 26;
+
+        var top = rect.top - tooltipHeight - 8;
+        var left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        var posClass = 'pos-top';
+
+        // Flip below if not enough room on top
+        if (top < 10) {
+          top = rect.bottom + 8;
+          posClass = 'pos-bottom';
+        }
+
+        // Clamp horizontally
+        var maxLeft = window.innerWidth - tooltipWidth - 12;
+        if (left < 12) left = 12;
+        if (left > maxLeft) left = maxLeft;
+
+        tooltipEl.style.top = Math.round(top) + 'px';
+        tooltipEl.style.left = Math.round(left) + 'px';
+        tooltipEl.classList.add(posClass);
+
+        // Instant crisp presentation (short 50ms buffer for hover stability)
+        showTimeout = setTimeout(function() {
+          if (currentTarget === target && tooltipEl) {
+            tooltipEl.classList.add('omni-tooltip-visible');
+          }
+        }, 50);
+      }
+
+      document.addEventListener('mouseover', function(e) {
+        var target = e.target.closest('[title], [data-omni-tooltip], [data-tooltip]');
+        if (target) {
+          if (currentTarget !== target) {
+            hideTooltip();
+            showTooltipFor(target);
+          }
+        } else {
+          hideTooltip();
+        }
+      }, true);
+
+      document.addEventListener('mouseout', function(e) {
+        if (currentTarget) {
+          var related = e.relatedTarget;
+          if (!related || !currentTarget.contains(related)) {
+            hideTooltip();
+          }
+        }
+      }, true);
+
+      document.addEventListener('click', function() {
+        hideTooltip();
+      }, true);
+
+      window.addEventListener('scroll', function() {
+        hideTooltip();
+      }, true);
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          hideTooltip();
+        }
+      });
+    })();
+  </script>
 <script type="importmap">
 {
   "imports": {

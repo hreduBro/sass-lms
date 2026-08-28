@@ -164,7 +164,8 @@
               <button
                 type="button"
                 (click)="resumeDraft(draft.id, $event)"
-                class="px-4 py-1.5 rounded-full bg-[#ec008c] hover:bg-[#c40072] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95">
+                class="px-4 py-1.5 rounded-full bg-[#ec008c] hover:bg-[#c40072] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                title="Resume Organization Setup">
                 <span>Resume</span>
                 <span class="material-symbols-outlined text-sm font-bold">east</span>
               </button>
@@ -651,26 +652,26 @@
                     class="p-1 rounded-lg text-slate-400 hover:text-[#ec008c] transition-colors cursor-pointer"
                     title="Edit Organization">
                     <span class="material-symbols-outlined text-base">edit</span>
-            </button>
-            <button
-              type="button"
+                  </button>
+                  <button
+                    type="button"
                     (click)="openTenantDetails(tenant)"
                     class="p-1 rounded-lg text-[#ec008c] hover:opacity-80 transition-opacity cursor-pointer"
-                    title="View Details">
+                    title="View Organization Details">
                     <span class="material-symbols-outlined text-base">diamond</span>
-            </button>
-            <button
-              type="button"
+                  </button>
+                  <button
+                    type="button"
                     (click)="createNewLmsForOrg(tenant, $event)"
                     class="p-1 rounded-lg text-[#ec008c] hover:opacity-80 transition-opacity cursor-pointer"
-                    title="Add LMS Instance">
+                    title="Create New LMS Instance for this Organization">
                     <span class="material-symbols-outlined text-base">add_circle</span>
-            </button>
-            <button
-              type="button"
+                  </button>
+                  <button
+                    type="button"
                     (click)="togglePauseOrg(tenant, $event)"
                     class="p-1 rounded-lg text-slate-400 hover:text-[#ec008c] transition-colors cursor-pointer"
-                    title="Organization Status">
+                    title="Toggle Organization Status">
                     <span class="material-symbols-outlined text-base">pause_circle</span>
                   </button>
                 </div>
@@ -680,6 +681,7 @@
                   @if (tenant.id === lms.activeTenantId()) {
                     <button
                       type="button"
+                      title="Currently Active Workspace"
                       class="px-3.5 py-1.5 rounded-lg bg-[#ec008c] text-white text-xs font-bold shadow-2xs flex items-center gap-1.5 cursor-default">
                       <span class="material-symbols-outlined text-sm">login</span>
                       <span>Active</span>
@@ -689,7 +691,8 @@
                       type="button"
                       [id]="'btn-activate-org-' + tenant.id"
                       (click)="requestActivation(tenant, $event)"
-                      class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1 cursor-pointer">
+                      class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1 cursor-pointer"
+                      title="Activate Organization">
                       <span class="material-symbols-outlined text-sm">bolt</span>
                       <span>Activate</span>
                     </button>
@@ -697,7 +700,8 @@
                     <button
                       type="button"
                       (click)="selectTenant(tenant.id, $event)"
-                      class="px-3.5 py-1.5 rounded-lg bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs active:scale-95">
+                      class="px-3.5 py-1.5 rounded-lg bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs active:scale-95"
+                      title="Switch to this Organization Workspace">
                       <span class="material-symbols-outlined text-sm">login</span>
                       <span>Switch Workspace</span>
                     </button>
@@ -718,27 +722,27 @@
     @if (viewMode() === 'table') {
       <div class="bg-base-100 rounded-3xl border border-base-300 overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-base-200/70 border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
+          <table class="min-w-[1050px] w-full text-left text-xs border-separate border-spacing-0">
+            <thead class="bg-base-200/90 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
               <tr>
-                <th class="py-3.5 px-4">Organization Details</th>
-                <th class="py-3.5 px-4">Location / Division</th>
-                <th class="py-3.5 px-4">Plan</th>
-                <th class="py-3.5 px-4">Allocated Resources</th>
-                <th class="py-3.5 px-4">Org Admin</th>
-                <th class="py-3.5 px-4">Status</th>
-                <th class="py-3.5 px-4 text-right">Actions</th>
+                <th class="py-3.5 px-4 min-w-[240px] border-b border-base-300">Organization Details</th>
+                <th class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Location / Division</th>
+                <th class="py-3.5 px-4 min-w-[100px] border-b border-base-300">Plan</th>
+                <th class="py-3.5 px-4 min-w-[160px] border-b border-base-300">Allocated Resources</th>
+                <th class="py-3.5 px-4 min-w-[170px] border-b border-base-300">Org Admin</th>
+                <th class="py-3.5 px-4 min-w-[140px] border-b border-base-300">Status</th>
+                <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-20 w-[150px] min-w-[150px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-base-300/60">
+            <tbody>
               @for (tenant of visibleTenants(); track tenant.id) {
                 <tr
                   (click)="openTenantDetails(tenant)"
-                  class="hover:bg-base-200/50 transition-colors cursor-pointer"
+                  class="group hover:bg-base-200/50 transition-colors cursor-pointer"
                   [class.bg-tenant-50/20]="tenant.id === lms.activeTenantId()">
 
                   <!-- Org Details -->
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 border-b border-base-300/60">
                     <div class="flex items-center gap-3 min-w-[200px]">
                       <div class="w-9 h-9 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         @if (tenant.branding.logoUrl) {
@@ -755,12 +759,12 @@
                   </td>
 
                   <!-- Location -->
-                  <td class="py-3 px-4 text-text-secondary font-medium">
+                  <td class="py-3 px-4 text-text-secondary font-medium border-b border-base-300/60">
                     {{ tenant.address?.division || 'Enterprise' }} &bull; {{ tenant.address?.district || 'Central' }}
                   </td>
 
                   <!-- Plan -->
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 border-b border-base-300/60">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold"
                           [class]="tenant.plan === 'Enterprise' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
                       {{ tenant.plan }}
@@ -768,13 +772,13 @@
                   </td>
 
                   <!-- Resources -->
-                  <td class="py-3 px-4 font-mono text-[11px] text-text-secondary">
+                  <td class="py-3 px-4 font-mono text-[11px] text-text-secondary border-b border-base-300/60">
                     <span>DB: <strong class="text-text-primary">{{ tenant.resourceAllocation?.databaseSizeGb || tenant.stats.storageLimitGb }}GB</strong></span> &bull;
                     <span>File: <strong class="text-text-primary">{{ tenant.resourceAllocation?.fileStorageGb || tenant.stats.storageLimitGb }}GB</strong></span>
                   </td>
 
                   <!-- Admin -->
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 border-b border-base-300/60">
                     <div>
                       <span class="font-bold text-text-primary block">{{ tenant.adminInfo?.adminName || tenant.name + ' Admin' }}</span>
                       <span class="text-[10px] text-text-secondary">{{ tenant.adminInfo?.contactEmail || tenant.adminEmail }}</span>
@@ -782,7 +786,7 @@
                   </td>
 
                   <!-- Status -->
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 min-w-[140px] whitespace-nowrap border-b border-base-300/60">
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1"
                           [class]="getStatusBadgeClass(tenant.status)">
                       @if (tenant.status === 'In-Progress') {
@@ -798,13 +802,14 @@
                   </td>
 
                   <!-- Actions -->
-                  <td class="py-3 px-4 text-right">
+                  <td class="py-3 px-4 text-right sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[150px] min-w-[150px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                      [class.bg-tenant-50/20]="tenant.id === lms.activeTenantId()">
                     <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
                       <button
                         type="button"
                         (click)="openTenantDetails(tenant)"
                         class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                        title="View Details">
+                        title="View Organization Details">
                         <span class="material-symbols-outlined text-base">visibility</span>
                       </button>
 
@@ -812,7 +817,7 @@
                         type="button"
                         (click)="manageOrgLms(tenant.id, $event)"
                         class="p-1.5 rounded-lg bg-base-200 hover:bg-tenant-50 dark:hover:bg-tenant-950 text-tenant-600 hover:text-tenant-700 transition-colors cursor-pointer"
-                        title="Manage LMS Instances">
+                        title="Manage LMS Instances for this Organization">
                         <span class="material-symbols-outlined text-base">layers</span>
                       </button>
 
@@ -829,7 +834,8 @@
                           type="button"
                           (click)="selectTenant(tenant.id, $event)"
                           class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                          [class]="tenant.id === lms.activeTenantId() ? 'bg-tenant-500 text-white' : 'bg-base-200 hover:bg-base-300 text-text-primary'">
+                          [class]="tenant.id === lms.activeTenantId() ? 'bg-tenant-500 text-white' : 'bg-base-200 hover:bg-base-300 text-text-primary'"
+                          [title]="tenant.id === lms.activeTenantId() ? 'Currently Active Workspace' : 'Switch to this Organization Workspace'">
                           {{ tenant.id === lms.activeTenantId() ? 'Active' : 'Switch' }}
                         </button>
                       }
