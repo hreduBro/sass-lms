@@ -340,13 +340,15 @@
               <p class="text-xs text-text-secondary">Structure curriculum phases. Phases must be non-overlapping and bounded by Plan dates.</p>
             </div>
           </div>
-          <button 
-            type="button" 
-            (click)="openAddPhaseModal()"
-            class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-sm transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer">
-            <span class="material-symbols-outlined text-sm">add</span>
-            <span>Add Phase</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              (click)="launchPhaseCreationFlow()"
+              class="px-4 py-2 rounded-xl text-xs font-bold btn-gradient text-white shadow-sm transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              <span>Add Phase (8-Step Wizard)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Plan Timeline Bound Display (§4.1) -->
@@ -412,7 +414,7 @@
                 </button>
                 <button 
                   type="button" 
-                  (click)="openEditPhaseModal(i)" 
+                  (click)="editPhaseInWizard(i)" 
                   class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-base-100 border border-base-300 hover:bg-base-200 text-text-primary cursor-pointer">
                   Edit
                 </button>

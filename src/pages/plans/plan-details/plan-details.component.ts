@@ -267,18 +267,35 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
               </p>
             </div>
 
-            <!-- Sequence Status Pill -->
-            <div class="flex items-center gap-2 text-xs text-text-secondary">
-              <span class="material-symbols-outlined text-sm text-emerald-500">verified</span>
-              <span>Non-overlapping Sequence Integrity Validated</span>
+            <!-- Add Phase Button & Validation Badge -->
+            <div class="flex items-center gap-3">
+              <button 
+                type="button" 
+                (click)="navigateToAddPhase()"
+                class="px-3.5 py-1.5 rounded-xl btn-gradient text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs hover:opacity-95 transition-opacity cursor-pointer">
+                <span class="material-symbols-outlined text-sm">add_circle</span>
+                <span>Add Phase (Flow)</span>
+              </button>
+              <div class="hidden sm:flex items-center gap-1.5 text-xs text-text-secondary">
+                <span class="material-symbols-outlined text-sm text-emerald-500">verified</span>
+                <span>Sequence Validated</span>
+              </div>
             </div>
           </div>
 
           <!-- Phase Table -->
           @if (phasesList().length === 0) {
-            <div class="p-8 text-center text-xs text-text-secondary">
-              <span class="material-symbols-outlined text-3xl text-text-secondary/40 mb-2">view_timeline</span>
-              <p>No Phase information is structured for this Plan.</p>
+            <div class="p-10 text-center text-xs text-text-secondary space-y-3">
+              <span class="material-symbols-outlined text-4xl text-text-secondary/40">view_timeline</span>
+              <p class="font-medium text-text-primary">No learning phases are structured for this Plan yet.</p>
+              <p class="text-text-secondary max-w-sm mx-auto">Create sequential phases to assign accredited courses, operational tasks, and verifiable completion certificates.</p>
+              <button 
+                type="button" 
+                (click)="navigateToAddPhase()"
+                class="px-4 py-2 rounded-xl btn-gradient text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                <span class="material-symbols-outlined text-sm">add_circle</span>
+                <span>Launch Phase Creation Wizard</span>
+              </button>
             </div>
           } @else {
             <div class="overflow-x-auto">
@@ -294,7 +311,7 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
                     <th class="py-3 px-4 text-center">Delivery Classes</th>
                     <th class="py-3 px-4">Prerequisites</th>
                     <th class="py-3 px-4">Certificate / Badge</th>
-                    <th class="py-3 px-4 text-right">Actions</th>
+                    <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-20 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-base-300 dark:divide-slate-800/80">
@@ -370,15 +387,31 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
                         </span>
                       </td>
 
-                      <!-- Action Button: View Details -->
-                      <td class="py-3 px-4 text-right whitespace-nowrap">
-                        <button 
-                          type="button"
-                          (click)="openPhaseDetails(phase)"
-                          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-base-200 hover:bg-tenant-50 hover:text-tenant-700 hover:border-tenant-300 dark:hover:bg-tenant-950/40 dark:hover:text-tenant-300 border border-base-300 dark:border-slate-700 transition-colors inline-flex items-center gap-1">
-                          <span class="material-symbols-outlined text-xs">visibility</span>
-                          <span>View Details</span>
-                        </button>
+                      <!-- Actions: View Details, Edit, Delete (Sticky Action Column) -->
+                      <td class="py-3 px-4 text-right sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                        <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
+                          <button 
+                            type="button"
+                            (click)="openPhaseDetails(phase)"
+                            class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-600 transition-colors cursor-pointer"
+                            title="View Phase Details">
+                            <span class="material-symbols-outlined text-base">visibility</span>
+                          </button>
+                          <button 
+                            type="button"
+                            (click)="navigateToEditPhase(phase.id)"
+                            class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-600 transition-colors cursor-pointer"
+                            title="Edit Phase in 8-Step Wizard">
+                            <span class="material-symbols-outlined text-base">edit</span>
+                          </button>
+                          <button 
+                            type="button"
+                            (click)="deletePhase(phase.id)"
+                            class="p-1.5 rounded-lg bg-base-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                            title="Delete Phase">
+                            <span class="material-symbols-outlined text-base">delete</span>
+                          </button>
+                        </div>
                       </td>
 
                     </tr>
@@ -589,6 +622,24 @@ export class PlanDetailsComponent implements OnInit {
 
   openPhaseDetails(phase: Phase) {
     this.selectedPhaseForDetails.set(phase);
+  }
+
+  navigateToAddPhase() {
+    if (this.currentPlan()) {
+      this.router.navigate(['/plans', this.currentPlan()!.id, 'phases', 'create']);
+    }
+  }
+
+  navigateToEditPhase(phaseId: string) {
+    if (this.currentPlan()) {
+      this.router.navigate(['/plans', this.currentPlan()!.id, 'phases', 'edit', phaseId]);
+    }
+  }
+
+  deletePhase(phaseId: string) {
+    const plan = this.currentPlan();
+    if (!plan) return;
+    this.lmsData.deletePhaseFromPlan(plan.id, phaseId);
   }
 
   promptActivatePlan() {

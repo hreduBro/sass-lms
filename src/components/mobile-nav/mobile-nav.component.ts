@@ -4,7 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-mobile-nav',
@@ -161,34 +161,36 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
 
               <div class="grid grid-cols-2 gap-2.5">
                 @for (child of group.children; track child.route) {
-                  <a 
-                    [routerLink]="child.route" 
-                    (click)="showMoreDrawer.set(false)"
-                    class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
-                    [class]="isChildActive(child.route) 
-                      ? 'bg-[#EC008C] border-transparent text-white font-semibold shadow-xs' 
-                      : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
-                    
-                    <span class="material-symbols-outlined text-xl flex-shrink-0"
-                          [class]="isChildActive(child.route) ? 'text-white' : 'text-[#EC008C]'">{{ child.icon }}</span>
-                    <div class="text-left min-w-0 flex-1">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-xs truncate block" [class.text-white]="isChildActive(child.route)">{{ child.label }}</span>
-                        @if (child.badge) {
-                          <span class="text-[8px] px-1 py-0.2 rounded font-bold uppercase"
-                                [class]="isChildActive(child.route) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
-                            {{ child.badge }}
-                          </span>
+                  @if (!child.roles || isAllowed(child.roles)) {
+                    <a 
+                      [routerLink]="child.route" 
+                      (click)="showMoreDrawer.set(false)"
+                      class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
+                      [class]="isChildActive(child) 
+                        ? 'bg-[#EC008C] border-transparent text-white font-semibold shadow-xs' 
+                        : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
+                      
+                      <span class="material-symbols-outlined text-xl flex-shrink-0"
+                            [class]="isChildActive(child) ? 'text-white' : 'text-[#EC008C]'">{{ child.icon }}</span>
+                      <div class="text-left min-w-0 flex-1">
+                        <div class="flex items-center gap-1">
+                          <span class="font-bold text-xs truncate block" [class.text-white]="isChildActive(child)">{{ child.label }}</span>
+                          @if (child.badge) {
+                            <span class="text-[8px] px-1 py-0.2 rounded font-bold uppercase"
+                                  [class]="isChildActive(child) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
+                              {{ child.badge }}
+                            </span>
+                          }
+                        </div>
+                        @if (child.description) {
+                          <span class="text-[10px] block truncate" [class]="isChildActive(child) ? 'text-white/80' : 'text-slate-400'">{{ child.description }}</span>
                         }
                       </div>
-                      @if (child.description) {
-                        <span class="text-[10px] block truncate" [class]="isChildActive(child.route) ? 'text-white/80' : 'text-slate-400'">{{ child.description }}</span>
+                      @if (isChildActive(child)) {
+                        <span class="material-symbols-outlined text-xs text-white flex-shrink-0 font-bold">check</span>
                       }
-                    </div>
-                    @if (isChildActive(child.route)) {
-                      <span class="material-symbols-outlined text-xs text-white flex-shrink-0 font-bold">check</span>
-                    }
-                  </a>
+                    </a>
+                  }
                 }
               </div>
             </div>
@@ -268,6 +270,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
                 (ngModelChange)="lms.switchRole($event)"
                 class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
                 <option value="system_admin">System Admin</option>
+                <option value="tenant_admin">Org Admin</option>
                 <option value="lms_admin">LMS Admin</option>
                 <option value="instructor">Instructor</option>
                 <option value="learner">Learner</option>
@@ -301,7 +304,9 @@ export class MobileNavComponent {
 
   isAllowed(roles: string[]): boolean {
     const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole);
+    return roles.includes(activeRole) ||
+      (activeRole === 'super_admin' && roles.includes('system_admin')) ||
+      (activeRole === 'system_admin' && roles.includes('super_admin'));
   }
 
   groupedNavItems() {
@@ -316,11 +321,7 @@ export class MobileNavComponent {
     return isNavigationItemActive(this.router.url, item);
   }
 
-  isChildActive(childRoute: string): boolean {
-    const currentUrl = this.router.url;
-    if (childRoute === '/tenants' || childRoute === '/courses' || childRoute === '/lms' || childRoute === '/plans') {
-      return currentUrl === childRoute;
-    }
-    return currentUrl === childRoute || currentUrl.startsWith(childRoute);
+  isChildActive(child: NavChildItem | string): boolean {
+    return isNavChildActive(this.router.url, child);
   }
 }

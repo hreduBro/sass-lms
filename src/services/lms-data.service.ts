@@ -1,4 +1,5 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   Tenant,
   TenantBranding,
@@ -2394,15 +2395,32 @@ export class LmsDataService {
   activeTenantId = signal<string>('tenant-brac');
   activeRole = signal<UserRole>('lms_admin');
 
+  private router = inject(Router, { optional: true });
+
   // Role check computed signals
   isSystemAdmin = computed<boolean>(() => {
     const role = this.activeRole();
     return role === 'system_admin' || (role as any) === 'super_admin';
   });
 
+  isOrgAdmin = computed<boolean>(() => {
+    const role = this.activeRole();
+    return role === 'tenant_admin';
+  });
+
   isLmsAdmin = computed<boolean>(() => {
     const role = this.activeRole();
-    return role === 'lms_admin' || (role as any) === 'tenant_admin';
+    return role === 'lms_admin';
+  });
+
+  isInstructor = computed<boolean>(() => {
+    const role = this.activeRole();
+    return role === 'instructor';
+  });
+
+  isLearner = computed<boolean>(() => {
+    const role = this.activeRole();
+    return role === 'learner';
   });
   courses = signal<Course[]>(INITIAL_COURSES);
   users = signal<User[]>(INITIAL_USERS);
@@ -3964,9 +3982,84 @@ export class LmsDataService {
     }
   }
 
-  // Switch role
+  // Route authorization checker for RBAC
+  isRouteAllowedForRole(url: string, role: UserRole): boolean {
+    const cleanPath = url.split('?')[0].split('#')[0].replace(/^\//, '');
+    
+    // System admin / super admin has unrestricted access to all routes
+    if (role === 'system_admin' || (role as string) === 'super_admin') {
+      return true;
+    }
+
+    // Role-specific restrictions:
+    // 1. Organization creation & all organizations list are strictly System Admin
+    if (cleanPath === 'tenants' || cleanPath.startsWith('tenants/create') || cleanPath.startsWith('organization/create')) {
+      return false;
+    }
+
+    // 2. Org dashboard is for System Admin and Org Admin (tenant_admin)
+    if (cleanPath.startsWith('organization/dashboard') || cleanPath.startsWith('tenants/dashboard')) {
+      return role === 'tenant_admin';
+    }
+
+    // 3. LMS Creation & editing is for System Admin and Org Admin (Org Admin provisions LMS under their Org)
+    if (cleanPath.startsWith('lms/create') || cleanPath.startsWith('lms/edit')) {
+      return role === 'tenant_admin';
+    }
+
+    // 4. Settings / theming is for System Admin, Org Admin, and LMS Admin
+    if (cleanPath.startsWith('settings')) {
+      return role === 'tenant_admin' || role === 'lms_admin';
+    }
+
+    // 5. Analytics & LMS Management is for System Admin, Org Admin, and LMS Admin
+    if (cleanPath.startsWith('analytics') || cleanPath === 'lms' || cleanPath.startsWith('lms/dashboard')) {
+      return role === 'tenant_admin' || role === 'lms_admin';
+    }
+
+    // 6. Plan creation/edit is for System Admin, Org Admin, LMS Admin, and Instructor
+    if (cleanPath.startsWith('plans/create') || cleanPath.startsWith('plans/edit')) {
+      return role === 'tenant_admin' || role === 'lms_admin' || role === 'instructor';
+    }
+
+    // 7. Plan list/details/dashboard & users is for System Admin, Org Admin, LMS Admin, and Instructor
+    if (cleanPath.startsWith('plans') || cleanPath.startsWith('users')) {
+      return role === 'tenant_admin' || role === 'lms_admin' || role === 'instructor';
+    }
+
+    // 8. General routes (dashboard, courses, certificates, webinars, profile) are allowed for all (including learner)
+    return true;
+  }
+
+  // Switch active role preview & enforce route authorization
   switchRole(role: UserRole) {
     this.activeRole.set(role);
+    const roleLabels: Record<string, string> = {
+      system_admin: 'System Admin',
+      super_admin: 'System Admin',
+      tenant_admin: 'Org Admin',
+      lms_admin: 'LMS Admin',
+      instructor: 'Instructor',
+      learner: 'Learner'
+    };
+    const roleName = roleLabels[role] || role;
+    this.logAction('Role Switch', `Switched active view mode to: ${roleName}`, 'info');
+    this.showToast(`Switched active view mode to "${roleName.toUpperCase()}"`, 'info', 3000, 'Role Switched', 'RBAC');
+
+    // If current route is restricted for newly active role, immediately redirect to /dashboard
+    if (this.router) {
+      const currentUrl = this.router.url;
+      if (!this.isRouteAllowedForRole(currentUrl, role)) {
+        this.showToast(
+          `Access Restricted: "${roleName}" cannot access this page. Redirecting to Dashboard.`,
+          'warning',
+          4000,
+          'Route Restricted',
+          'GUARD'
+        );
+        this.router.navigate(['/dashboard']);
+      }
+    }
   }
 
   // Apply tenant branding CSS custom properties, glassmorphism theme classes, and dynamic favicon
@@ -4847,6 +4940,179 @@ export class LmsDataService {
       4500,
       'Plan Archived',
       'ARCHIVED'
+    );
+
+    return { success: true };
+  }
+
+  // =========================================================================
+  // PHASE MANAGEMENT & PHASE CREATION FLOW (§0 - §13 OneLMS Phase Spec)
+  // =========================================================================
+  phaseDrafts = signal<Record<string, any>>({});
+
+  savePhaseDraft(draft: any) {
+    this.phaseDrafts.update(m => ({ ...m, [draft.id]: draft }));
+    this.logAction('Phase Draft Saved', `Saved draft for Phase "${draft.basicInfo?.name || draft.id}"`, 'info');
+  }
+
+  getPhaseDraft(id: string): any {
+    return this.phaseDrafts()[id];
+  }
+
+  // Add new Phase to a Plan
+  addPhaseToPlan(planId: string, phaseData: Partial<Phase>, silent = false): { success: boolean; phase?: Phase; error?: string } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, error: 'Parent Plan not found.' };
+    }
+
+    const currentPhases = plan.phases || [];
+    const newSeq = phaseData.sequence || (currentPhases.length + 1);
+    const newId = phaseData.id || `PHASE-${plan.planCode || 'PLAN'}-${String(newSeq).padStart(2, '0')}`;
+
+    const newPhase: Phase = {
+      id: newId,
+      planId: plan.id,
+      name: phaseData.name || `Phase ${newSeq}`,
+      sequence: newSeq,
+      startDate: phaseData.startDate || plan.startDate,
+      endDate: phaseData.endDate || plan.endDate,
+      status: phaseData.status || 'Draft',
+      courseCount: phaseData.assignedCourses ? phaseData.assignedCourses.length : (phaseData.courseCount || 0),
+      taskCount: phaseData.taskCount || 0,
+      deliveryClassCount: phaseData.deliveryClassCount || 0,
+      prerequisiteStatus: phaseData.prerequisiteStatus || 'None',
+      certificateBadgeStatus: phaseData.certificateBadgeStatus || 'None',
+      description: phaseData.description || '',
+      assignedCourses: phaseData.assignedCourses || []
+    };
+
+    const updatedPhases = [...currentPhases, newPhase].sort((a, b) => a.sequence - b.sequence);
+    const todayStr = formatDateDDMMYYYY(new Date());
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          phases: updatedPhases,
+          phaseCount: updatedPhases.length,
+          updatedDate: todayStr
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Phase Created',
+      `Created Phase "${newPhase.name}" (#${newPhase.sequence}) under Plan "${plan.name}"`,
+      'success'
+    );
+
+    if (!silent) {
+      this.showToast(
+        `Phase "${newPhase.name}" created successfully.`,
+        'success',
+        4500,
+        'Phase Created',
+        'SAVED'
+      );
+    }
+
+    return { success: true, phase: newPhase };
+  }
+
+  // Update existing Phase in Plan
+  updatePhaseInPlan(planId: string, phaseId: string, phaseData: Partial<Phase>, silent = false): { success: boolean; phase?: Phase; error?: string } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, error: 'Parent Plan not found.' };
+    }
+
+    const currentPhases = plan.phases || [];
+    const existingIndex = currentPhases.findIndex(ph => ph.id === phaseId);
+    if (existingIndex === -1) {
+      return { success: false, error: 'Phase not found in this Plan.' };
+    }
+
+    const updatedPhase: Phase = {
+      ...currentPhases[existingIndex],
+      ...phaseData,
+      id: phaseId,
+      planId: plan.id
+    };
+
+    const updatedPhases = currentPhases.map(ph => ph.id === phaseId ? updatedPhase : ph).sort((a, b) => a.sequence - b.sequence);
+    const todayStr = formatDateDDMMYYYY(new Date());
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          phases: updatedPhases,
+          updatedDate: todayStr
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Phase Updated',
+      `Updated Phase "${updatedPhase.name}" (#${updatedPhase.sequence}) in Plan "${plan.name}"`,
+      'info'
+    );
+
+    if (!silent) {
+      this.showToast(
+        `Phase "${updatedPhase.name}" updated successfully.`,
+        'success',
+        4500,
+        'Phase Updated',
+        'SAVED'
+      );
+    }
+
+    return { success: true, phase: updatedPhase };
+  }
+
+  // Delete Phase from Plan
+  deletePhaseFromPlan(planId: string, phaseId: string): { success: boolean; error?: string } {
+    const plan = this.getPlan(planId);
+    if (!plan) {
+      return { success: false, error: 'Parent Plan not found.' };
+    }
+
+    const currentPhases = plan.phases || [];
+    const target = currentPhases.find(ph => ph.id === phaseId);
+    if (!target) {
+      return { success: false, error: 'Phase not found in this Plan.' };
+    }
+
+    const remainingPhases = currentPhases.filter(ph => ph.id !== phaseId);
+    const todayStr = formatDateDDMMYYYY(new Date());
+
+    this.plans.update(list => list.map(p => {
+      if (p.id === planId) {
+        return {
+          ...p,
+          phases: remainingPhases,
+          phaseCount: remainingPhases.length,
+          updatedDate: todayStr
+        };
+      }
+      return p;
+    }));
+
+    this.logAction(
+      'Phase Deleted',
+      `Deleted Phase "${target.name}" from Plan "${plan.name}"`,
+      'warning'
+    );
+
+    this.showToast(
+      `Phase "${target.name}" removed from ${plan.name}.`,
+      'info',
+      4000,
+      'Phase Removed'
     );
 
     return { success: true };

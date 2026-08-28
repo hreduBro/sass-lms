@@ -211,6 +211,9 @@ export interface Plan {
   recurringPlan?: boolean | string | null;
   status: PlanStatus;
   phaseCount: number;
+  enrolledLearnersCount?: number;
+  capacityLimit?: number;
+  certificatesIssuedCount?: number;
   createdDate: string; // DD/MM/YYYY
   createdBy: string;
   updatedDate: string; // DD/MM/YYYY

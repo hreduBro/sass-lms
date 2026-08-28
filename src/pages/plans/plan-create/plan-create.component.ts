@@ -384,6 +384,8 @@ export class PlanCreateComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const editId = params['editPlanId'] || params['editId'] || (!this.route.snapshot.paramMap.get('id') ? params['id'] : null);
       const draftId = params['draftId'];
+      const stepParam = params['step'] || params['returnStep'];
+
       if (editId) {
         this.loadPlanForEdit(editId);
       } else if (draftId) {
@@ -392,6 +394,17 @@ export class PlanCreateComponent implements OnInit {
         // Initialize default 2 phases only for fresh creation
         this.addPhaseToForm('Phase 1: Foundation & Core Principles', '01/01/2026', '30/06/2026', 3, 6, 2, 50);
         this.addPhaseToForm('Phase 2: Advanced Application & Capstone', '01/07/2026', '31/12/2026', 2, 4, 2, 50);
+      }
+
+      if (stepParam) {
+        const stepNum = Number(stepParam);
+        if (!isNaN(stepNum) && stepNum >= 1 && stepNum <= 11) {
+          this.currentStep.set(stepNum);
+          for (let s = 1; s < stepNum; s++) {
+            this.completedSteps.update(set => new Set(set).add(s));
+          }
+          this.scrollToActiveStep(stepNum);
+        }
       }
     });
 
@@ -687,6 +700,78 @@ export class PlanCreateComponent implements OnInit {
     });
     this.phasesArray.push(group);
     this.planForm.markAsDirty();
+  }
+
+  saveDraftSilently(): Plan {
+    const draftPlan = this.buildPlanObject('Draft');
+    const existingIndex = this.lmsData.plans().findIndex(p => p.id === draftPlan.id);
+    if (existingIndex >= 0) {
+      this.lmsData.plans.update(list => {
+        const copy = [...list];
+        copy[existingIndex] = draftPlan;
+        return copy;
+      });
+    } else {
+      this.lmsData.plans.update(list => [draftPlan, ...list]);
+    }
+    this.editingPlanId.set(draftPlan.id);
+    this.editingPlan.set(draftPlan);
+    return draftPlan;
+  }
+
+  extractPhaseAtIndex(index: number) {
+    const ctrl = this.phasesArray.at(index);
+    const plan = this.editingPlan();
+    const id = ctrl?.get('id')?.value || `PHASE-${plan?.planCode || 'PLAN'}-${String(index + 1).padStart(2, '0')}`;
+    return {
+      id,
+      planId: plan?.id || 'plan-brac-01',
+      name: ctrl?.get('name')?.value || `Phase ${index + 1}`,
+      sequence: index + 1,
+      startDate: ctrl?.get('startDate')?.value || '01/01/2026',
+      endDate: ctrl?.get('endDate')?.value || '30/06/2026',
+      status: ctrl?.get('status')?.value || 'Draft',
+      courseCount: ctrl?.get('courseCount')?.value || 0,
+      taskCount: ctrl?.get('taskCount')?.value || 0,
+      deliveryClassCount: ctrl?.get('deliveryClassCount')?.value || 0,
+      prerequisiteStatus: ctrl?.get('prerequisiteStatus')?.value || (index === 0 ? 'None' : 'Pending'),
+      certificateBadgeStatus: ctrl?.get('certificateBadgeStatus')?.value || 'Configured',
+      description: '',
+      assignedCourses: []
+    };
+  }
+
+  launchPhaseCreationFlow() {
+    let planId = this.editingPlanId() || (this.editingPlan() ? this.editingPlan()!.id : null);
+    if (!planId) {
+      const draft = this.saveDraftSilently();
+      planId = draft.id;
+    }
+    this.router.navigate(['/plans', planId, 'phases', 'create'], {
+      queryParams: { returnUrl: `/plans/edit/${planId}`, returnStep: 2 }
+    });
+  }
+
+  editPhaseInWizard(index: number) {
+    const ctrl = this.phasesArray.at(index);
+    if (!ctrl) return;
+
+    let planId = this.editingPlanId() || (this.editingPlan() ? this.editingPlan()!.id : null);
+    if (!planId) {
+      const draft = this.saveDraftSilently();
+      planId = draft.id;
+    }
+
+    const phaseId = ctrl.get('id')?.value;
+    if (phaseId) {
+      this.router.navigate(['/plans', planId, 'phases', 'edit', phaseId], {
+        queryParams: { returnUrl: `/plans/edit/${planId}`, returnStep: 2 }
+      });
+    } else {
+      this.router.navigate(['/plans', planId, 'phases', 'create'], {
+        queryParams: { returnUrl: `/plans/edit/${planId}`, returnStep: 2 }
+      });
+    }
   }
 
   // Phase Modal Actions

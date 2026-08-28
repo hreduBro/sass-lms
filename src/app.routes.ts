@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { roleGuard } from './guards/role.guard';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { OrganizationDashboardComponent } from './pages/organization-dashboard/organization-dashboard.component';
 import { TenantsComponent } from './pages/tenants/tenants.component';
@@ -21,28 +22,214 @@ import { ProfileComponent } from './pages/profile/profile.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: DashboardComponent, title: 'Dashboard | Multi-Tenant LMS' },
-  { path: 'organization/dashboard', component: OrganizationDashboardComponent, title: 'Organization Dashboard | Multi-Tenant LMS' },
+  
+  // Dashboard & Profile: Accessible to all roles
+  { 
+    path: 'dashboard', 
+    component: DashboardComponent, 
+    title: 'Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
+    path: 'profile', 
+    component: ProfileComponent, 
+    title: 'User Profile | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Organization Level Routes:
+  // - Organization Dashboard: System Admin & Org Admin (tenant_admin)
+  // - Organization Grid & Organization Creation: Strictly System Admin
+  { 
+    path: 'organization/dashboard', 
+    component: OrganizationDashboardComponent, 
+    title: 'Organization Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin'] }
+  },
   { path: 'tenants/dashboard', redirectTo: 'organization/dashboard', pathMatch: 'full' },
-  { path: 'profile', component: ProfileComponent, title: 'User Profile | Multi-Tenant LMS' },
-  { path: 'tenants', component: TenantsComponent, title: 'Organizations | Multi-Tenant LMS' },
-  { path: 'tenants/create', component: OrganizationCreateComponent, title: 'Create Organization | Multi-Tenant LMS' },
-  { path: 'organization/create', component: OrganizationCreateComponent, title: 'Create Organization | Multi-Tenant LMS' },
-  { path: 'lms', component: LmsListComponent, title: 'LMS Instances | Multi-Tenant LMS' },
-  { path: 'lms/dashboard', component: LmsDashboardComponent, title: 'LMS Dashboard | Multi-Tenant LMS' },
-  { path: 'lms/create', component: LmsCreateComponent, title: 'Create LMS Instance | Multi-Tenant LMS' },
-  { path: 'lms/edit/:id', component: LmsCreateComponent, title: 'Edit LMS Instance | Multi-Tenant LMS' },
-  { path: 'plans', component: PlanGridComponent, title: 'Plan Grid | Multi-Tenant LMS' },
-  { path: 'plans/dashboard', component: PlanDashboardComponent, title: 'Plan Dashboard | Multi-Tenant LMS' },
-  { path: 'plans/create', component: PlanCreateComponent, title: 'Create Plan | Multi-Tenant LMS' },
-  { path: 'plans/edit/:id', component: PlanCreateComponent, title: 'Edit Plan | Multi-Tenant LMS' },
-  { path: 'plans/details/:id', component: PlanDetailsComponent, title: 'Plan Details | Multi-Tenant LMS' },
-  { path: 'courses', component: CoursesComponent, title: 'Courses | Multi-Tenant LMS' },
-  { path: 'courses/:id/learn', component: CoursePlayerComponent, title: 'Classroom Player | Multi-Tenant LMS' },
-  { path: 'users', component: UsersComponent, title: 'Personnel Directory | Multi-Tenant LMS' },
-  { path: 'analytics', component: AnalyticsComponent, title: 'Compliance Analytics | Multi-Tenant LMS' },
-  { path: 'certificates', component: CertificatesComponent, title: 'Certificates Vault | Multi-Tenant LMS' },
-  { path: 'webinars', component: WebinarsComponent, title: 'Live Virtual Classrooms | Multi-Tenant LMS' },
-  { path: 'settings', component: SettingsComponent, title: 'Branding & Security | Multi-Tenant LMS' },
+  { 
+    path: 'tenants', 
+    component: TenantsComponent, 
+    title: 'Organizations | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin'] }
+  },
+  { 
+    path: 'tenants/create', 
+    component: OrganizationCreateComponent, 
+    title: 'Create Organization | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin'] }
+  },
+  { path: 'organization/create', redirectTo: 'tenants/create', pathMatch: 'full' },
+
+  // LMS Instance Level Routes:
+  // - LMS Grid & Dashboard: System Admin, Org Admin, and LMS Admin
+  // - LMS Creation & Edit: System Admin & Org Admin (Org Admin provisions LMS under their Org)
+  { 
+    path: 'lms', 
+    component: LmsListComponent, 
+    title: 'LMS Instances | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+  { 
+    path: 'lms/dashboard', 
+    component: LmsDashboardComponent, 
+    title: 'LMS Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+  { 
+    path: 'lms/create', 
+    component: LmsCreateComponent, 
+    title: 'Create LMS Instance | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin'] }
+  },
+  { 
+    path: 'lms/edit/:id', 
+    component: LmsCreateComponent, 
+    title: 'Edit LMS Instance | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin'] }
+  },
+
+  // Plan Management: System Admin, Org Admin, LMS Admin, and Instructor
+  { 
+    path: 'plans', 
+    component: PlanGridComponent, 
+    title: 'Plan Grid | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/dashboard', 
+    component: PlanDashboardComponent, 
+    title: 'Plan Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/create', 
+    component: PlanCreateComponent, 
+    title: 'Create Plan | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/edit/:id', 
+    component: PlanCreateComponent, 
+    title: 'Edit Plan | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/details/:id', 
+    component: PlanDetailsComponent, 
+    title: 'Plan Details | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/phases', 
+    loadComponent: () => import('./pages/plans/phase-grid/phase-grid.component').then(m => m.PhaseGridComponent), 
+    title: 'Phase Grid | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'phases', 
+    loadComponent: () => import('./pages/plans/phase-grid/phase-grid.component').then(m => m.PhaseGridComponent), 
+    title: 'Phase Grid | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/:planId/phases/create', 
+    loadComponent: () => import('./pages/plans/phase-create/phase-create.component').then(m => m.PhaseCreateComponent), 
+    title: 'Create Phase | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/:planId/phases/edit/:phaseId', 
+    loadComponent: () => import('./pages/plans/phase-create/phase-create.component').then(m => m.PhaseCreateComponent), 
+    title: 'Edit Phase | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'plans/phases/create', 
+    loadComponent: () => import('./pages/plans/phase-create/phase-create.component').then(m => m.PhaseCreateComponent), 
+    title: 'Create Phase | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Courses & Learning Player
+  { 
+    path: 'courses', 
+    component: CoursesComponent, 
+    title: 'Courses | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
+    path: 'courses/:id/learn', 
+    component: CoursePlayerComponent, 
+    title: 'Classroom Player | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Personnel & Directory
+  { 
+    path: 'users', 
+    component: UsersComponent, 
+    title: 'Personnel Directory | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Compliance Analytics & Audit
+  { 
+    path: 'analytics', 
+    component: AnalyticsComponent, 
+    title: 'Compliance Analytics | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+
+  // Certificates Vault
+  { 
+    path: 'certificates', 
+    component: CertificatesComponent, 
+    title: 'Certificates Vault | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Live Virtual Classrooms & Webinars
+  { 
+    path: 'webinars', 
+    component: WebinarsComponent, 
+    title: 'Live Virtual Classrooms | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Theming, Layout & Branding Setup (LMS Admin, Org Admin, System Admin)
+  { 
+    path: 'settings', 
+    component: SettingsComponent, 
+    title: 'LMS Theming & Settings | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+
   { path: '**', redirectTo: 'dashboard' },
 ];

@@ -125,21 +125,19 @@ export class SettingsComponent {
       customCssEnabled: true
     };
 
-    // Update active LMS branding & preferences (Theming mapped to LMS)
+    // Update active LMS basicInfo, branding & preferences (Theming mapped to LMS)
     if (activeLms) {
+      this.lms.updateLmsInstance(activeLms.id, {
+        basicInfo: {
+          ...activeLms.basicInfo,
+          lmsName: this.settingsForm.name || activeLms.basicInfo.lmsName,
+          urlDomain: this.settingsForm.domain || activeLms.basicInfo.urlDomain,
+          summary: this.settingsForm.tagline || activeLms.basicInfo.summary
+        }
+      });
       this.lms.updateLmsBranding(activeLms.id, updatedBranding);
       this.lms.updateLmsLayoutPreferences(activeLms.id, this.lms.adminLayoutPreferences());
     }
-
-    // Also update tenant branding for consistency
-    const updatedTenant: Tenant = {
-      ...currentTenant,
-      branding: {
-        ...currentTenant.branding,
-        ...updatedBranding
-      }
-    };
-    this.lms.updateTenant(updatedTenant);
 
     this.lms.applyTenantTheme(
       this.settingsForm.primaryColor,
@@ -149,7 +147,7 @@ export class SettingsComponent {
       this.settingsForm.themePreset
     );
 
-    this.lms.showToast(`Settings, branding and layout mapped to LMS [${activeLms ? activeLms.basicInfo.lmsName : currentTenant.name}] updated successfully!`, 'success', 3500, 'LMS Theme Saved');
+    this.lms.showToast(`Settings, branding and layout mapped to LMS [${this.settingsForm.name || (activeLms ? activeLms.basicInfo.lmsName : currentTenant.name)}] updated successfully!`, 'success', 3500, 'LMS Theme Saved');
     this.savedNotification.set(true);
     setTimeout(() => this.savedNotification.set(false), 3500);
   }

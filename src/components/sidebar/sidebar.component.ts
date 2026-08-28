@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { LmsDataService } from '../../services/lms-data.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-sidebar',
@@ -70,12 +70,8 @@ export class SidebarComponent {
     return isNavigationItemActive(this.router.url, item);
   }
 
-  isChildActive(childRoute: string): boolean {
-    const currentUrl = this.router.url;
-    if (childRoute === '/tenants' || childRoute === '/courses' || childRoute === '/lms' || childRoute === '/plans') {
-      return currentUrl === childRoute;
-    }
-    return currentUrl === childRoute || currentUrl.startsWith(childRoute);
+  isChildActive(child: NavChildItem | string): boolean {
+    return isNavChildActive(this.router.url, child);
   }
 
   isAllowed(roles: string[]): boolean {

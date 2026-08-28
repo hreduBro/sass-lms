@@ -132,6 +132,7 @@ export class HeaderComponent {
 
   roles: { role: UserRole; label: string; icon: string }[] = [
     { role: 'system_admin', label: 'System Admin', icon: 'shield_person' },
+    { role: 'tenant_admin', label: 'Org Admin', icon: 'corporate_fare' },
     { role: 'lms_admin', label: 'LMS Admin', icon: 'admin_panel_settings' },
     { role: 'instructor', label: 'Instructor', icon: 'school' },
     { role: 'learner', label: 'Learner', icon: 'person' },

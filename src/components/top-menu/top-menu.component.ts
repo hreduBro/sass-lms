@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { LmsDataService } from '../../services/lms-data.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-top-menu',
@@ -155,43 +155,45 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive } from '..
 
             <div class="space-y-1">
               @for (child of item.children; track child.route) {
-                <a 
-                  [routerLink]="child.route"
-                  (click)="closeDropdown()"
-                  class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all group cursor-pointer focus:outline-none focus:ring-0 outline-none"
-                  [class]="isChildActive(child.route) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
-                  
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <span class="material-symbols-outlined text-base flex-shrink-0"
-                          [class]="isChildActive(child.route) ? 'text-white' : 'text-slate-500 group-hover:scale-105 transition-transform'">
-                      {{ child.icon }}
-                    </span>
-                    <div class="min-w-0">
-                      <span class="truncate block font-medium" [class.font-bold]="isChildActive(child.route)">{{ child.label }}</span>
-                      @if (child.description) {
-                        <span class="text-[10px] block truncate" [class]="isChildActive(child.route) ? 'text-white/80' : 'text-slate-400'">
-                          {{ child.description }}
+                @if (!child.roles || isAllowed(child.roles)) {
+                  <a 
+                    [routerLink]="child.route"
+                    (click)="closeDropdown()"
+                    class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all group cursor-pointer focus:outline-none focus:ring-0 outline-none"
+                    [class]="isChildActive(child) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                    
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <span class="material-symbols-outlined text-base flex-shrink-0"
+                            [class]="isChildActive(child) ? 'text-white' : 'text-slate-500 group-hover:scale-105 transition-transform'">
+                        {{ child.icon }}
+                      </span>
+                      <div class="min-w-0">
+                        <span class="truncate block font-medium" [class.font-bold]="isChildActive(child)">{{ child.label }}</span>
+                        @if (child.description) {
+                          <span class="text-[10px] block truncate" [class]="isChildActive(child) ? 'text-white/80' : 'text-slate-400'">
+                            {{ child.description }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1 flex-shrink-0 ml-2">
+                      @if (child.badge) {
+                        <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold"
+                              [class]="isChildActive(child) 
+                                ? 'bg-white/20 text-white' 
+                                : (child.badge.toLowerCase() === 'wizard' 
+                                  ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
+                                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
+                          {{ child.badge }}
                         </span>
                       }
+                      @if (isChildActive(child)) {
+                        <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
+                      }
                     </div>
-                  </div>
-
-                  <div class="flex items-center gap-1 flex-shrink-0 ml-2">
-                    @if (child.badge) {
-                      <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold"
-                            [class]="isChildActive(child.route) 
-                              ? 'bg-white/20 text-white' 
-                              : (child.badge.toLowerCase() === 'wizard' 
-                                ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
-                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
-                        {{ child.badge }}
-                      </span>
-                    }
-                    @if (isChildActive(child.route)) {
-                      <span class="material-symbols-outlined text-sm text-white font-bold flex-shrink-0">check</span>
-                    }
-                  </div>
-                </a>
+                  </a>
+                }
               }
             </div>
           </div>
@@ -435,12 +437,8 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
     return isNavigationItemActive(this.router.url, item);
   }
 
-  isChildActive(childRoute: string): boolean {
-    const currentUrl = this.router.url;
-    if (childRoute === '/tenants' || childRoute === '/courses' || childRoute === '/lms' || childRoute === '/plans') {
-      return currentUrl === childRoute;
-    }
-    return currentUrl === childRoute || currentUrl.startsWith(childRoute);
+  isChildActive(child: NavChildItem | string): boolean {
+    return isNavChildActive(this.router.url, child);
   }
 
   isAllowed(roles: string[]): boolean {
