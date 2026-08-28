@@ -27,6 +27,7 @@ export interface StepItem {
   key: string;
   title: string;
   shortTitle: string;
+  sublabel: string;
   icon: string;
   isDeferrable?: boolean;
 }
@@ -61,10 +62,12 @@ export class PlanCreateComponent implements OnInit {
   isSubmitting = signal(false);
   showPublishModal = signal(false);
   showActivateModal = signal(false);
+  showCancelModal = signal(false);
   showAddPhaseModal = signal(false);
   editingPhaseIndex = signal<number | null>(null);
   qrCodeVisible = signal(false);
   savedPlanResult = signal<Plan | null>(null);
+  formErrorAlert = signal<string | null>(null);
 
   // Validation state
   sectionErrors = signal<Record<number, string[]>>({});
@@ -73,17 +76,17 @@ export class PlanCreateComponent implements OnInit {
 
   // 11 Sections Specification (§0.1, §2)
   steps: StepItem[] = [
-    { id: 1, key: 'basic', title: 'Basic Information', shortTitle: 'Basic Info', icon: 'info' },
-    { id: 2, key: 'structure', title: 'Plan Structure', shortTitle: 'Structure', icon: 'account_tree' },
-    { id: 3, key: 'progression', title: 'Progression', shortTitle: 'Progression', icon: 'timeline' },
-    { id: 4, key: 'enrollment', title: 'Enrollment & Cohorting', shortTitle: 'Enrollment', icon: 'groups' },
-    { id: 5, key: 'equivalency', title: 'Prior Completion & Equivalency', shortTitle: 'Equivalency', icon: 'verified' },
-    { id: 6, key: 'grading', title: 'Grading Policy', shortTitle: 'Grading', icon: 'grade', isDeferrable: true },
-    { id: 7, key: 'credentials', title: 'Credentials & Outputs', shortTitle: 'Credentials', icon: 'workspace_premium', isDeferrable: true },
-    { id: 8, key: 'evaluation', title: 'Evaluation (Pre/Post Test)', shortTitle: 'Evaluation', icon: 'quiz' },
-    { id: 9, key: 'engagement', title: 'Engagement & Community', shortTitle: 'Engagement', icon: 'forum' },
-    { id: 10, key: 'recurring', title: 'Recurring & Alumni', shortTitle: 'Recurring', icon: 'update' },
-    { id: 11, key: 'review', title: 'Review & Validation', shortTitle: 'Review & Publish', icon: 'rate_review' }
+    { id: 1, key: 'basic', title: 'Basic Information & Timeframe', shortTitle: 'Basic Info', sublabel: 'Identity & Bounds', icon: 'info' },
+    { id: 2, key: 'structure', title: 'Plan Structure & Phases', shortTitle: 'Structure', sublabel: 'Phase Milestones', icon: 'account_tree' },
+    { id: 3, key: 'progression', title: 'Progression & Unlock Rules', shortTitle: 'Progression', sublabel: 'Sequence & Gates', icon: 'timeline' },
+    { id: 4, key: 'enrollment', title: 'Enrollment & Cohorting', shortTitle: 'Enrollment', sublabel: 'Capacity & Links', icon: 'groups' },
+    { id: 5, key: 'equivalency', title: 'Prior Completion & Equivalency', shortTitle: 'Equivalency', sublabel: 'Course Credits', icon: 'verified' },
+    { id: 6, key: 'grading', title: 'Grading Policy & Weights', shortTitle: 'Grading', sublabel: 'Pass Mark & Scale', icon: 'grade', isDeferrable: true },
+    { id: 7, key: 'credentials', title: 'Credentials & Outputs', shortTitle: 'Credentials', sublabel: 'Certificates & Badges', icon: 'workspace_premium', isDeferrable: true },
+    { id: 8, key: 'evaluation', title: 'Diagnostic Evaluation', shortTitle: 'Evaluation', sublabel: 'Pre & Post Tests', icon: 'quiz' },
+    { id: 9, key: 'engagement', title: 'Engagement & Community', shortTitle: 'Engagement', sublabel: 'Ratings & Forum', icon: 'forum' },
+    { id: 10, key: 'recurring', title: 'Recurring Cycles & Alumni', shortTitle: 'Recurring', sublabel: 'Alumni & Cycles', icon: 'update' },
+    { id: 11, key: 'review', title: 'Review & Publish', shortTitle: 'Preview', sublabel: 'Validate & Launch', icon: 'rate_review' }
   ];
 
   // Options & Dropdowns
@@ -382,6 +385,26 @@ export class PlanCreateComponent implements OnInit {
 
     // Run initial validation check
     this.runValidationAudit();
+
+    // Scroll active step to front
+    this.scrollToActiveStep(this.currentStep());
+  }
+
+  // Smoothly position active step element at the front of the horizontal stepper
+  scrollToActiveStep(stepId: number) {
+    setTimeout(() => {
+      const container = document.getElementById('plan-stepper-container');
+      const stepEl = document.getElementById(`plan-step-item-${stepId}`);
+      if (container && stepEl) {
+        const containerRect = container.getBoundingClientRect();
+        const stepRect = stepEl.getBoundingClientRect();
+        const scrollOffset = container.scrollLeft + (stepRect.left - containerRect.left) - 20;
+        container.scrollTo({
+          left: Math.max(0, scrollOffset),
+          behavior: 'smooth'
+        });
+      }
+    }, 60);
   }
 
   addPhaseToForm(
@@ -520,12 +543,111 @@ export class PlanCreateComponent implements OnInit {
     });
   }
 
+  // Wizard Step State & Navigation Helpers
+  getStepState(stepId: number): 'current' | 'done' | 'disabled' {
+    if (this.currentStep() === stepId) return 'current';
+    if (this.completedSteps().has(stepId)) return 'done';
+    return 'disabled';
+  }
+
+  isStepClickable(stepId: number): boolean {
+    if (stepId === 1) return true;
+    if (this.isSection1Passed() || this.completedSteps().has(stepId) || stepId <= this.currentStep()) return true;
+    return false;
+  }
+
+  getCurrentStepTitle(): string {
+    const step = this.steps.find(s => s.id === this.currentStep());
+    return step ? step.title : 'Design Learning Plan';
+  }
+
+  getCurrentStepSubtitle(): string {
+    switch (this.currentStep()) {
+      case 1:
+        return 'Define core identity, bounds, timeframe, and appointed administrator for this learning plan.';
+      case 2:
+        return 'Structure sequential curriculum phases. Phases must be non-overlapping and bounded by Plan dates.';
+      case 3:
+        return 'Configure progression rules, unlocking criteria, and prerequisite enforcement between phases.';
+      case 4:
+        return 'Set enrollment model, seat capacity limits, self-registration links, and approval workflows.';
+      case 5:
+        return 'Determine prior completion equivalency, syllabus version upgrades, and exemption credits.';
+      case 6:
+        return 'Configure grading scale, pass mark thresholds, and modular phase weight allocations.';
+      case 7:
+        return 'Set official transcript templates, accredited certificate formats, and digital badge awards.';
+      case 8:
+        return 'Configure pre-test diagnostic baselines and summative post-test evaluation questionnaires.';
+      case 9:
+        return 'Enable learner CSAT feedback surveys, 5-star ratings, and cohort discussion community forums.';
+      case 10:
+        return 'Configure repeating annual/quarterly cycles and historical alumni transcript indexing.';
+      case 11:
+        return 'Review all 10 architectural blocks, run live validation audits, and publish the learning plan.';
+      default:
+        return 'Configure comprehensive learning plan parameters.';
+    }
+  }
+
+  resetCurrentStep() {
+    const step = this.currentStep();
+    if (step === 1) {
+      this.planForm.patchValue({
+        name: '',
+        description: '',
+        startDate: '01/01/2026',
+        endDate: '31/12/2026',
+        durationType: 'Yearly',
+        recurringPlan: false,
+        owner: {
+          userId: null,
+          name: '',
+          email: '',
+          contactNumber: ''
+        }
+      });
+      this.formErrorAlert.set(null);
+    } else if (step === 2) {
+      while (this.phasesArray.length !== 0) {
+        this.phasesArray.removeAt(0);
+      }
+      this.addPhaseToForm('Phase 1: Foundation & Core Principles', '01/01/2026', '30/06/2026', 3, 6, 2, 50);
+      this.addPhaseToForm('Phase 2: Advanced Application & Capstone', '01/07/2026', '31/12/2026', 2, 4, 2, 50);
+    } else if (step === 3) {
+      this.planForm.get('progression')?.reset({
+        mode: 'Sequential',
+        completionRequirementForUnlock: 'All Courses & Assessments 100% Completed'
+      });
+    } else if (step === 4) {
+      this.planForm.get('enrollment')?.reset({
+        mode: 'Open',
+        existingTraineeSelfRegistration: true,
+        capacityEnabled: false,
+        capacity: 100,
+        waitlistEnabled: false,
+        confirmation: 'Auto Onboard',
+        termsRequirements: 'Trainees must adhere to BRAC Code of Conduct and complete all modules prior to certification.'
+      });
+    } else if (step === 6) {
+      this.planForm.get('grading')?.reset({
+        scope: 'Whole Plan',
+        type: 'Percentage',
+        planPassMark: 70,
+        contentLevelPassRequired: true,
+        retakePolicy: 'Latest Valid Score'
+      });
+    }
+    this.lmsData.showToast('Current step form fields have been reset to default values.', 'info', 3000, 'Step Reset');
+  }
+
   // Wizard Step Navigation & Validation Gates (§2, §3.3, §13)
   goToStep(stepId: number) {
     if (stepId === this.currentStep()) return;
 
     // Gate: Section 01 must pass before accessing other sections (§3.3)
     if (stepId > 1 && !this.validateSection1()) {
+      this.formErrorAlert.set('Please complete all mandatory fields in Basic Information (Name, Valid Start & End Date, Duration, and Owner Email) before proceeding.');
       this.lmsData.showToast(
         'Please complete and fix mandatory Basic Information before proceeding to other sections.',
         'error',
@@ -536,14 +658,19 @@ export class PlanCreateComponent implements OnInit {
       return;
     }
 
+    this.formErrorAlert.set(null);
     this.currentStep.set(stepId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.scrollToActiveStep(stepId);
     this.runValidationAudit();
   }
 
   nextStep() {
+    this.formErrorAlert.set(null);
+
     if (this.currentStep() === 1) {
       if (!this.validateSection1()) {
+        this.formErrorAlert.set('All mandatory fields in Basic Information (Plan Name, Start Date, End Date, Duration Type, Owner Name, and Owner Email) must be filled with valid values.');
         this.lmsData.showToast(
           'All mandatory fields in Basic Information must be filled up with valid values.',
           'error',
@@ -560,22 +687,33 @@ export class PlanCreateComponent implements OnInit {
       });
     }
 
+    if (this.currentStep() === 2) {
+      if (this.phasesArray.length === 0) {
+        this.formErrorAlert.set('At least one phase must be configured in Plan Structure before proceeding.');
+        return;
+      }
+    }
+
     if (this.currentStep() < this.steps.length) {
       this.completedSteps.update(set => {
         const s = new Set(set);
         s.add(this.currentStep());
         return s;
       });
-      this.currentStep.update(s => s + 1);
+      const next = this.currentStep() + 1;
+      this.currentStep.set(next);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollToActiveStep(next);
       this.runValidationAudit();
     }
   }
 
   prevStep() {
     if (this.currentStep() > 1) {
-      this.currentStep.update(s => s - 1);
+      const prev = this.currentStep() - 1;
+      this.currentStep.set(prev);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollToActiveStep(prev);
     }
   }
 
@@ -894,6 +1032,19 @@ export class PlanCreateComponent implements OnInit {
 
     // Navigate to Plan details or Grid
     this.router.navigate(['/plans/details', activePlan.id]);
+  }
+
+  onCancel() {
+    if (this.planForm.dirty) {
+      this.showCancelModal.set(true);
+    } else {
+      this.goBack();
+    }
+  }
+
+  confirmCancel() {
+    this.showCancelModal.set(false);
+    this.goBack();
   }
 
   goBack() {
