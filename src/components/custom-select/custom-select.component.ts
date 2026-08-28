@@ -15,6 +15,9 @@ export interface SelectOption {
 @Component({
   selector: 'app-custom-select',
   imports: [CommonModule, FormsModule],
+  host: {
+    class: 'block w-full'
+  },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -45,7 +48,7 @@ export interface SelectOption {
         [disabled]="disabled()"
         [attr.aria-expanded]="isOpen()"
         [attr.aria-haspopup]="'listbox'"
-        class="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left"
+        class="w-full flex items-center justify-between gap-2 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left box-border font-medium overflow-hidden"
         [ngClass]="[
           isOpen() 
             ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
@@ -55,32 +58,32 @@ export interface SelectOption {
           customTriggerClass()
         ]">
         
-        <div class="flex items-center gap-2 min-w-0 flex-1">
+        <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
           @if (selectedOption()?.icon || leadingIcon()) {
-            <span class="material-symbols-outlined text-sm text-text-secondary shrink-0">
+            <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
               {{ selectedOption()?.icon || leadingIcon() }}
             </span>
           }
 
-          <div class="truncate flex-1">
+          <div class="truncate flex-1 leading-4">
             @if (selectedOption()) {
-              <div class="flex items-center gap-1.5">
-                <span class="font-medium text-text-primary truncate">{{ selectedOption()?.label }}</span>
+              <div class="flex items-center gap-1.5 truncate">
+                <span class="font-medium text-text-primary truncate text-xs leading-4">{{ selectedOption()?.label }}</span>
                 @if (selectedOption()?.badge) {
-                  <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono" [ngClass]="selectedOption()?.badgeClass || 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono shrink-0" [ngClass]="selectedOption()?.badgeClass || 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
                     {{ selectedOption()?.badge }}
                   </span>
                 }
               </div>
             } @else {
-              <span class="text-text-secondary">{{ placeholder() }}</span>
+              <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
             }
           </div>
         </div>
 
         <!-- Chevron Icon -->
         <span 
-          class="material-symbols-outlined text-base text-text-secondary transition-transform duration-200 shrink-0"
+          class="material-symbols-outlined text-[18px] leading-none text-text-secondary transition-transform duration-200 shrink-0 w-4 h-4 flex items-center justify-center"
           [class.rotate-180]="isOpen()"
           [class.text-tenant-500]="isOpen()">
           expand_more
@@ -286,9 +289,9 @@ export class CustomSelectComponent implements ControlValueAccessor {
 
   sizeClass = computed(() => {
     switch (this.size()) {
-      case 'sm': return 'py-1.5 px-2.5 text-xs';
-      case 'lg': return 'py-3 px-4 text-sm';
-      default: return 'py-2.5 px-3.5 text-xs';
+      case 'sm': return 'h-[34px] min-h-[34px] max-h-[34px] py-1.5 px-3 text-xs leading-4';
+      case 'lg': return 'h-[44px] min-h-[44px] max-h-[44px] py-3 px-4 text-sm leading-5';
+      default: return 'h-[38px] min-h-[38px] max-h-[38px] py-2.5 px-3.5 text-xs leading-4';
     }
   });
 

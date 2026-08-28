@@ -380,26 +380,47 @@
       -moz-appearance: none !important;
       cursor: pointer !important;
       font-family: inherit !important;
+      font-size: 0.75rem !important; /* text-xs: 12px */
+      line-height: 1rem !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
+      box-sizing: border-box !important;
       background-color: var(--base-200) !important;
       color: var(--text-primary) !important;
       border: 1px solid var(--base-300) !important;
       border-radius: 0.75rem !important;
+      padding: 0.625rem 2.35rem 0.625rem 0.875rem !important;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
       background-repeat: no-repeat !important;
       background-position: right 0.75rem center !important;
       background-size: 1.125rem 1.125rem !important;
-      padding-right: 2.35rem !important;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    select.px-2,
-    select.px-2\.5,
     select.py-1,
     select.py-1\.5,
-    select[class*="text-xs"] {
+    select.h-8,
+    select.h-9,
+    select.text-xs.py-1,
+    select.text-xs.py-1\.5 {
+      height: 34px !important;
+      min-height: 34px !important;
+      max-height: 34px !important;
+      padding-top: 0.375rem !important;
+      padding-bottom: 0.375rem !important;
+      padding-right: 1.85rem !important;
+      padding-left: 0.625rem !important;
       background-size: 1rem 1rem !important;
       background-position: right 0.55rem center !important;
-      padding-right: 1.85rem !important;
+    }
+
+    select.py-2 {
+      height: 36px !important;
+      min-height: 36px !important;
+      max-height: 36px !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
     }
 
     select:hover:not(:disabled) {

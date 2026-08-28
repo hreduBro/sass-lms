@@ -5,12 +5,13 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.model';
 import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
+import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-lms-create',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './lms-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -93,6 +94,25 @@ export class LmsCreateComponent implements OnInit {
 
   // Dynamic departments for this org
   departments = computed(() => this.lms.getOrganizationDepartments());
+
+  departmentOptions = computed(() => {
+    const list = this.departments().map(d => ({
+      value: d,
+      label: d,
+      icon: 'corporate_fare'
+    }));
+    return [
+      ...list,
+      { value: '__ADD_NEW__', label: '+ Add New Programme / Department', icon: 'add_circle', badge: 'Custom', badgeClass: 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400' }
+    ];
+  });
+
+  coAdminRoleOptions = [
+    { value: 'LMS Co-Admin', label: 'LMS Co-Admin', sublabel: 'Full administrative rights', icon: 'admin_panel_settings' },
+    { value: 'Technical Administrator', label: 'Technical Administrator', sublabel: 'Infrastructure & system operations', icon: 'settings_suggest' },
+    { value: 'Academic Coordinator', label: 'Academic Coordinator', sublabel: 'Curriculum & instructor supervision', icon: 'school' },
+    { value: 'Department Coordinator', label: 'Department Coordinator', sublabel: 'Departmental trainee assignments', icon: 'corporate_fare' }
+  ];
 
   // Real-time capacity impact computation (§4.1.4)
   remainingOrgDbAvailable = computed(() => {
