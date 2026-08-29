@@ -111,6 +111,12 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    if (!this.lms.isSystemAdmin()) {
+      this.lms.showToast('Access Denied: SYS_ADMIN realm role required to create or edit organizations.', 'warning', 4000, 'Access Restricted');
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
     this.ensureActiveTenantTheme();
     this.initForms();
     

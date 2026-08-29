@@ -1,47 +1,45 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { LmsDataService } from '../services/lms-data.service';
-import { UserRole } from '../models/lms.model';
 
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const lms = inject(LmsDataService);
   const router = inject(Router);
-  const activeRole = lms.activeRole();
-  const allowedRoles = route.data?.['roles'] as UserRole[] | undefined;
 
-  // If no roles specified, allow access
-  if (!allowedRoles || allowedRoles.length === 0) {
+  const requiredRealmRole = route.data?.['requiredRealmRole'] as string | undefined;
+  const allowedRoles = (route.data?.['roles'] || []) as string[];
+
+  // 1. Direct Realm Role Requirement (e.g. SYS_ADMIN for Org Creation, Grid, Edit, Dashboard)
+  if (requiredRealmRole) {
+    if (!lms.hasKeycloakRole(requiredRealmRole)) {
+      const targetPath = route.routeConfig?.path || state.url;
+      lms.showToast(
+        `Access Denied: The "${requiredRealmRole}" realm role is required to access "/${targetPath}". Redirecting to Dashboard.`,
+        'warning',
+        4000,
+        'Access Restricted',
+        'GUARD'
+      );
+      return router.createUrlTree(['/dashboard']);
+    }
     return true;
   }
 
-  // Check role match (including super_admin alias for system_admin and tenant_admin for org_admin)
-  const isAllowed = allowedRoles.includes(activeRole) ||
-    (activeRole === 'super_admin' && allowedRoles.includes('system_admin')) ||
-    (activeRole === 'system_admin' && allowedRoles.includes('super_admin'));
-
-  if (isAllowed) {
-    return true;
+  // 2. Standard role list check
+  if (allowedRoles.length > 0) {
+    const isAllowed = lms.hasAccessToRole(allowedRoles);
+    if (!isAllowed) {
+      const targetPath = route.routeConfig?.path || state.url;
+      lms.showToast(
+        `Access Denied: Your account role does not have permission to access "/${targetPath}". Redirecting to Dashboard.`,
+        'warning',
+        4000,
+        'Access Restricted',
+        'GUARD'
+      );
+      return router.createUrlTree(['/dashboard']);
+    }
   }
 
-  const roleNameMap: Record<UserRole, string> = {
-    system_admin: 'System Admin',
-    super_admin: 'System Admin',
-    tenant_admin: 'Org Admin',
-    lms_admin: 'LMS Admin',
-    instructor: 'Instructor',
-    learner: 'Learner'
-  };
-
-  const currentRoleName = roleNameMap[activeRole] || activeRole;
-  const targetPath = route.routeConfig?.path || state.url;
-
-  lms.showToast(
-    `Access Denied: The "${currentRoleName}" role does not have permission to access "/${targetPath}". Redirecting to Dashboard.`,
-    'warning',
-    4000,
-    'Access Restricted',
-    'GUARD'
-  );
-
-  return router.createUrlTree(['/dashboard']);
+  return true;
 };

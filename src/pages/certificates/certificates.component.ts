@@ -28,7 +28,7 @@ export class CertificatesComponent {
     const certs = this.lms.tenantCertificates();
 
     // If learner role, only show their own certificates
-    const isLearner = this.lms.activeRole() === 'learner';
+    const isLearner = this.lms.isLearner();
     const user = this.lms.activeUser();
 
     const list = isLearner ? certs.filter(c => c.userId === user.id) : certs;

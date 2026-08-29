@@ -1,6 +1,7 @@
 import { 
   Component, 
   ChangeDetectionStrategy, 
+  ChangeDetectorRef,
   inject, 
   signal, 
   HostListener, 
@@ -68,17 +69,18 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       [id]="'top-menu-btn-' + getItemId(item.label)"
                       (click)="toggleDropdown(item.label, $event)"
                       [class]="isParentActive(item) 
-                        ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                        ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-bold' 
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'"
                       class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all select-none group cursor-pointer active:scale-[0.98] focus:outline-none focus:ring-0 outline-none">
                       
                       <!-- Active Indicator Dot -->
                       @if (isParentActive(item)) {
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 flex-shrink-0"></span>
                       }
                       
                       <span class="material-symbols-outlined text-base flex-shrink-0 group-hover:scale-105 transition-transform" 
-                            [class.text-[#EC008C]]="isParentActive(item)" 
+                            [class.text-tenant-600]="isParentActive(item)" 
+                            [class.dark:text-tenant-300]="isParentActive(item)" 
                             [class.text-slate-500]="!isParentActive(item)">
                         {{ item.icon }}
                       </span>
@@ -86,13 +88,14 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       
                       @if (item.badge) {
                         <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                              [class]="isParentActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300'">
+                              [class]="isParentActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300'">
                           {{ item.badge }}
                         </span>
                       }
                       
                       <span class="material-symbols-outlined text-sm transition-transform duration-200"
-                            [class.text-[#EC008C]]="isParentActive(item)"
+                            [class.text-tenant-600]="isParentActive(item)"
+                            [class.dark:text-tenant-300]="isParentActive(item)"
                             [class.rotate-180]="isDropdownOpen(item.label)">
                         expand_more
                       </span>
@@ -105,15 +108,16 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       [routerLink]="item.route"
                       (click)="closeDropdown()"
                       class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all flex-shrink-0 active:scale-[0.98] select-none cursor-pointer focus:outline-none focus:ring-0 outline-none"
-                      [class]="isParentActive(item) ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                      [class]="isParentActive(item) ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                       
                       <!-- Active Indicator Dot -->
                       @if (isParentActive(item)) {
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 flex-shrink-0"></span>
                       }
 
                       <span class="material-symbols-outlined text-base flex-shrink-0" 
-                            [class.text-[#EC008C]]="isParentActive(item)" 
+                            [class.text-tenant-600]="isParentActive(item)" 
+                            [class.dark:text-tenant-300]="isParentActive(item)" 
                             [class.text-slate-500]="!isParentActive(item)">
                         {{ item.icon }}
                       </span>
@@ -121,7 +125,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       
                       @if (item.badge) {
                         <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                              [class]="isParentActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
+                              [class]="isParentActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                           {{ item.badge }}
                         </span>
                       }
@@ -160,7 +164,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                     [routerLink]="child.route"
                     (click)="closeDropdown()"
                     class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all group cursor-pointer focus:outline-none focus:ring-0 outline-none"
-                    [class]="isChildActive(child) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                    [class]="isChildActive(child) ? 'bg-tenant-500 hover:bg-tenant-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                     
                     <div class="flex items-center gap-2.5 min-w-0">
                       <span class="material-symbols-outlined text-base flex-shrink-0"
@@ -238,6 +242,7 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
   lms = inject(LmsDataService);
   router = inject(Router);
   elementRef = inject(ElementRef);
+  cdr = inject(ChangeDetectorRef);
   
   canScrollLeft = signal<boolean>(false);
   canScrollRight = signal<boolean>(false);
@@ -256,6 +261,7 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
     ).subscribe(() => {
       this.closeDropdown();
       this.scrollToActiveItem();
+      this.cdr.markForCheck();
     });
   }
 
@@ -442,7 +448,6 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
   }
 
   isAllowed(roles: string[]): boolean {
-    const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole);
+    return this.lms.hasAccessToRole(roles);
   }
 }

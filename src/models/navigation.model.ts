@@ -26,14 +26,14 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Dashboard',
     route: '/dashboard',
     icon: 'space_dashboard',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: [],
     description: 'Overview metrics, recent activities & quick insights'
   },
   {
     label: 'Organizations',
     route: '/tenants',
     icon: 'corporate_fare',
-    roles: ['system_admin', 'super_admin'],
+    roles: ['SYS_ADMIN'],
     badge: 'Multi',
     description: 'Manage workspace tenants & subsidiaries',
     matchPatterns: ['/tenants/**', '/organization/**'],
@@ -43,7 +43,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/tenants', 
         icon: 'domain', 
         description: 'Browse and switch workspaces', 
-        roles: ['system_admin', 'super_admin'],
+        roles: ['SYS_ADMIN'],
         matchPatterns: ['/tenants', '/tenants/edit/**', '/tenants/details/**', '/tenants/view/**']
       },
       { 
@@ -52,7 +52,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'space_dashboard', 
         badge: 'Overview', 
         description: 'Platform-wide status, health & capacity metrics', 
-        roles: ['system_admin', 'super_admin'],
+        roles: ['SYS_ADMIN'],
         matchPatterns: ['/organization/dashboard', '/tenants/dashboard']
       },
       { 
@@ -61,7 +61,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'domain_add', 
         badge: 'Wizard', 
         description: 'Step-by-step enterprise onboarding', 
-        roles: ['system_admin', 'super_admin'],
+        roles: ['SYS_ADMIN'],
         matchPatterns: ['/tenants/create', '/organization/create']
       }
     ]
@@ -70,7 +70,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Org Dashboard',
     route: '/organization/dashboard',
     icon: 'space_dashboard',
-    roles: ['tenant_admin'],
+    roles: ['ORG_ADMIN'],
     badge: 'Overview',
     description: 'Organization-wide health, capacity & LMS allocation',
     matchPatterns: ['/organization/dashboard', '/tenants/dashboard']
@@ -79,7 +79,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'LMS Instances',
     route: '/lms',
     icon: 'layers',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+    roles: ['ORG_ADMIN', 'LMS_ADMIN'],
     description: 'Multi-portal LMS instance allocation',
     matchPatterns: ['/lms/**'],
     children: [
@@ -89,6 +89,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'space_dashboard', 
         badge: 'Overview', 
         description: 'Organization LMS status, active drafts & capacity metrics',
+        roles: ['ORG_ADMIN', 'LMS_ADMIN'],
         matchPatterns: ['/lms/dashboard']
       },
       { 
@@ -96,6 +97,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/lms', 
         icon: 'grid_view', 
         description: 'View organization LMS instances',
+        roles: ['ORG_ADMIN', 'LMS_ADMIN'],
         matchPatterns: ['/lms', '/lms/edit/**', '/lms/details/**', '/lms/view/**']
       },
       { 
@@ -104,7 +106,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'add_circle', 
         badge: 'Wizard', 
         description: '4-step LMS creation wizard', 
-        roles: ['system_admin', 'super_admin', 'tenant_admin'],
+        roles: ['ORG_ADMIN'],
         matchPatterns: ['/lms/create']
       }
     ]
@@ -113,7 +115,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Plan Management',
     route: '/plans',
     icon: 'event_note',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['LMS_ADMIN'],
     badge: 'LMS Scope',
     description: 'Plan Grid, Owner Assignment, Phase Architecture & Lifecycle',
     matchPatterns: ['/plans/**', '/phases/**'],
@@ -123,6 +125,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/plans', 
         icon: 'table_view', 
         description: 'View & filter plans in current LMS workspace',
+        roles: ['LMS_ADMIN'],
         matchPatterns: ['/plans', '/plans/details/**', '/plans/view/**']
       },
       { 
@@ -131,6 +134,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'timeline', 
         badge: 'Phases', 
         description: 'Curriculum phases, prerequisites & task roadmaps',
+        roles: ['LMS_ADMIN'],
         matchPatterns: ['/plans/phases', '/phases', '/plans/*/phases/**', '/plans/phases/**', '/phases/**']
       },
       { 
@@ -139,6 +143,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'monitoring', 
         badge: 'Telemetry', 
         description: 'Plan progress, phase sequencing & completion rates',
+        roles: ['LMS_ADMIN'],
         matchPatterns: ['/plans/dashboard']
       },
       { 
@@ -147,7 +152,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'add_task', 
         badge: 'Builder', 
         description: 'Design new learning plan & phase structure', 
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        roles: ['LMS_ADMIN'],
         matchPatterns: ['/plans/create', '/plans/edit/**']
       }
     ]
@@ -156,7 +161,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['INSTRUCTOR', 'LEARNER'],
     description: 'Curriculum library & training materials',
     matchPatterns: ['/courses/**'],
     children: [
@@ -165,6 +170,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/courses', 
         icon: 'auto_stories', 
         description: 'Browse courses, modules & tracks',
+        roles: ['INSTRUCTOR', 'LEARNER'],
         matchPatterns: ['/courses', '/courses/details/**']
       },
       { 
@@ -173,6 +179,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'play_lesson', 
         badge: 'Player', 
         description: 'Resume multimedia training session',
+        roles: ['INSTRUCTOR', 'LEARNER'],
         matchPatterns: ['/courses/*/learn', '/courses/learn/**']
       }
     ]
@@ -181,7 +188,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Users & Personnel',
     route: '/users',
     icon: 'groups',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['USER_MANAGEMENT'],
     description: 'Personnel directory & permissions',
     matchPatterns: ['/users/**']
   },
@@ -189,7 +196,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Compliance & Analytics',
     route: '/analytics',
     icon: 'analytics',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+    roles: ['LEARNER'],
     description: 'KPI metrics, audit reports & compliance',
     matchPatterns: ['/analytics/**']
   },
@@ -197,7 +204,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Certificates Vault',
     route: '/certificates',
     icon: 'verified',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['LEARNER'],
     description: 'Verifiable credentials & issued certificates',
     matchPatterns: ['/certificates/**']
   },
@@ -205,7 +212,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Live Classrooms',
     route: '/webinars',
     icon: 'videocam',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['INSTRUCTOR', 'LEARNER'],
     badge: 'Live',
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
@@ -214,7 +221,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'LMS Theming & Layout',
     route: '/settings',
     icon: 'palette',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+    roles: ['LMS_ADMIN'],
     description: 'LMS-mapped theme, layout & brand customizer',
     matchPatterns: ['/settings/**']
   },
@@ -222,7 +229,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'My Profile',
     route: '/profile',
     icon: 'account_circle',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: [],
     description: 'Personal profile & skills',
     matchPatterns: ['/profile/**']
   }
@@ -242,14 +249,27 @@ export function matchesUrlPattern(url: string, pattern: string | RegExp): boolea
     return url === pattern;
   }
 
-  // If pattern has wildcards, convert glob to regex:
-  // '**' matches any character including slashes (.*)
-  // '*' matches path segments except slashes ([^/]+)
+  // If pattern ends with '/**', match base path and any nested subpaths
+  if (pattern.endsWith('/**')) {
+    const basePath = pattern.slice(0, -3);
+    if (url === basePath || url.startsWith(basePath + '/')) {
+      return true;
+    }
+  }
+
+  // If pattern ends with '/*', match base path and immediate child path
+  if (pattern.endsWith('/*')) {
+    const basePath = pattern.slice(0, -2);
+    if (url === basePath || (url.startsWith(basePath + '/') && !url.slice(basePath.length + 1).includes('/'))) {
+      return true;
+    }
+  }
+
+  // General glob conversion
   const escaped = pattern
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '§§§DOUBLE§§§')
-    .replace(/\*/g, '[^/]+')
-    .replace(/§§§DOUBLE§§§/g, '.*');
+    .replace(/\*\*/g, '.*')
+    .replace(/\*/g, '[^/]+');
 
   const regexPattern = '^' + escaped + '$';
   return new RegExp(regexPattern).test(url);
@@ -263,18 +283,21 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   const matchPatterns = typeof child === 'object' ? child.matchPatterns : undefined;
   const url = currentUrl.split('?')[0];
 
-  // 1. Explicit Custom Match Patterns
+  // 1. Direct route match
+  if (url === childRoute) {
+    return true;
+  }
+
+  // 2. Explicit Custom Match Patterns
   if (matchPatterns && matchPatterns.length > 0) {
     for (const pattern of matchPatterns) {
       if (matchesUrlPattern(url, pattern)) {
         return true;
       }
     }
-    return false;
   }
 
-  // 2. Exact match if no custom patterns provided
-  return url === childRoute;
+  return false;
 }
 
 /**
@@ -288,22 +311,22 @@ export function isNavigationItemActive(currentUrl: string, item: NavItem): boole
     return item.children.some(child => isNavChildActive(url, child));
   }
 
-  // 2. Explicit Custom Match Patterns on the Parent Item
+  // 2. Direct exact route match
+  if (item.route) {
+    if (item.route === '/dashboard') {
+      if (url === '/dashboard' || url === '/') return true;
+    } else if (url === item.route) {
+      return true;
+    }
+  }
+
+  // 3. Explicit Custom Match Patterns on the Parent Item
   if (item.matchPatterns && item.matchPatterns.length > 0) {
     for (const pattern of item.matchPatterns) {
       if (matchesUrlPattern(url, pattern)) {
         return true;
       }
     }
-    return false;
-  }
-
-  // 3. Single Item Route match
-  if (item.route) {
-    if (item.route === '/dashboard') {
-      return url === '/dashboard' || url === '/';
-    }
-    return url === item.route;
   }
 
   return false;

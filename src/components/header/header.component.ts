@@ -130,14 +130,6 @@ export class HeaderComponent {
     tagline: ''
   };
 
-  roles: { role: UserRole; label: string; icon: string }[] = [
-    { role: 'system_admin', label: 'System Admin', icon: 'shield_person' },
-    { role: 'tenant_admin', label: 'Org Admin', icon: 'corporate_fare' },
-    { role: 'lms_admin', label: 'LMS Admin', icon: 'admin_panel_settings' },
-    { role: 'instructor', label: 'Instructor', icon: 'school' },
-    { role: 'learner', label: 'Learner', icon: 'person' },
-  ];
-
   selectTenant(id: string) {
     if (!this.lms.isSystemAdmin()) return;
     this.lms.switchTenant(id);
@@ -146,11 +138,6 @@ export class HeaderComponent {
 
   selectLms(id: string) {
     this.lms.switchLms(id);
-    this.closeAllDropdowns();
-  }
-
-  selectRole(role: UserRole) {
-    this.lms.switchRole(role);
     this.closeAllDropdowns();
   }
 

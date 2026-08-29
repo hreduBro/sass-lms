@@ -145,7 +145,7 @@ export class WidgetConfigModalComponent implements OnInit {
     type: 'kpi_grid',
     title: 'KPI Metrics',
     colSpan: 4,
-    visibleForRoles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT']
   });
   close = output<void>();
   save = output<DashboardWidget>();
@@ -158,10 +158,11 @@ export class WidgetConfigModalComponent implements OnInit {
   formBannerText = '';
 
   allRoles: { role: UserRole; label: string }[] = [
-    { role: 'system_admin', label: 'System Admin' },
-    { role: 'lms_admin', label: 'LMS Admin' },
-    { role: 'instructor', label: 'Instructor' },
-    { role: 'learner', label: 'Learner' },
+    { role: 'SYS_ADMIN', label: 'System Admin' },
+    { role: 'LMS_ADMIN', label: 'LMS Admin' },
+    { role: 'INSTRUCTOR', label: 'Instructor' },
+    { role: 'LEARNER', label: 'Learner' },
+    { role: 'USER_MANAGEMENT', label: 'User Management' },
   ];
 
   ngOnInit() {
@@ -189,7 +190,7 @@ export class WidgetConfigModalComponent implements OnInit {
       subtitle: this.formSubtitle,
       colSpan: this.formColSpan,
       rowSpan: this.formRowSpan,
-      visibleForRoles: this.formRoles.length > 0 ? this.formRoles : ['tenant_admin'],
+      visibleForRoles: this.formRoles.length > 0 ? this.formRoles : ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT'],
       config: {
         ...this.widget().config,
         bannerText: this.formBannerText

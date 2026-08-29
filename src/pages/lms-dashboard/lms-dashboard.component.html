@@ -29,13 +29,15 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-        <button 
-          id="btn-create-lms-from-dash"
-          [routerLink]="['/lms/create']"
-          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
-          <span class="material-symbols-outlined text-base">add_circle</span>
-          <span>Create LMS</span>
-        </button>
+        @if (lms.isOrgAdmin()) {
+          <button 
+            id="btn-create-lms-from-dash"
+            [routerLink]="['/lms/create']"
+            class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            <span>Create LMS</span>
+          </button>
+        }
 
         <button 
           id="btn-open-lms-studio"

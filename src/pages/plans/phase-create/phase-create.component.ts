@@ -209,7 +209,7 @@ export class PhaseCreateComponent implements OnInit {
 
   filteredTrainees = computed(() => {
     const q = this.traineeSearchQuery().trim().toLowerCase();
-    const users = this.allPlatformUsers().filter(u => u.role === 'learner' || u.role === 'instructor');
+    const users = this.allPlatformUsers().filter(u => u.role === 'LEARNER' || u.role === 'INSTRUCTOR');
     if (!q) return users;
     return users.filter(u => 
       u.name.toLowerCase().includes(q) || 

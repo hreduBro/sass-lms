@@ -384,22 +384,38 @@ export class TenantsComponent {
   }
 
   openCreateWizard() {
+    if (!this.lms.isSystemAdmin()) {
+      this.lms.showToast('Access Denied: SYS_ADMIN realm role required to create organizations.', 'warning');
+      return;
+    }
     this.router.navigate(['/tenants/create']);
   }
 
   resumeDraft(draftId: string, event?: Event) {
     if (event) event.stopPropagation();
+    if (!this.lms.isSystemAdmin()) {
+      this.lms.showToast('Access Denied: SYS_ADMIN realm role required to resume drafts.', 'warning');
+      return;
+    }
     this.router.navigate(['/tenants/create'], { queryParams: { draftId } });
   }
 
   deleteDraft(draftId: string, event: Event) {
     event.stopPropagation();
+    if (!this.lms.isSystemAdmin()) {
+      this.lms.showToast('Access Denied: SYS_ADMIN realm role required to delete drafts.', 'warning');
+      return;
+    }
     this.lms.deleteOrganizationDraft(draftId);
     this.lms.showToast(`Draft ID ${draftId} removed`, 'info');
   }
 
   openEditModal(tenant: Tenant, event?: Event) {
     if (event) event.stopPropagation();
+    if (!this.lms.isSystemAdmin()) {
+      this.lms.showToast('Access Denied: SYS_ADMIN realm role required to edit organizations.', 'warning');
+      return;
+    }
     this.router.navigate(['/tenants/create'], { queryParams: { editOrgId: tenant.id } });
   }
 

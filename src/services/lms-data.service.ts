@@ -1,5 +1,7 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import Keycloak from 'keycloak-js';
+import { IdpConfig } from '../../idp.config';
 import {
   Tenant,
   TenantBranding,
@@ -1128,7 +1130,7 @@ const INITIAL_USERS: User[] = [
     name: 'Farhana Ahmed',
     email: 'farhana.ahmed@brac.net',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80',
-    role: 'tenant_admin',
+    role: 'LMS_ADMIN',
     department: 'Human Resources & Leadership',
     enrolledCourses: ['course-brac-101', 'course-brac-102'],
     completedCourses: ['course-brac-101'],
@@ -1145,7 +1147,7 @@ const INITIAL_USERS: User[] = [
     name: 'Tanvir Hossain',
     email: 'tanvir.h@brac.net',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    role: 'instructor',
+    role: 'INSTRUCTOR',
     department: 'Microfinance & Financial Inclusion',
     enrolledCourses: ['course-brac-101'],
     completedCourses: ['course-brac-101'],
@@ -1162,7 +1164,7 @@ const INITIAL_USERS: User[] = [
     name: 'Nusrat Jahan',
     email: 'nusrat.jahan@brac.net',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Education & Youth Skills (BEP)',
     enrolledCourses: ['course-brac-101', 'course-brac-103'],
     completedCourses: ['course-brac-101'],
@@ -1179,7 +1181,7 @@ const INITIAL_USERS: User[] = [
     name: 'Arifur Rahman',
     email: 'arifur.r@brac.net',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Ultra-Poor Graduation',
     enrolledCourses: ['course-brac-101', 'course-brac-102'],
     completedCourses: [],
@@ -1197,7 +1199,7 @@ const INITIAL_USERS: User[] = [
     name: 'Aria Vance',
     email: 'aria.admin@lumina-glass.io',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    role: 'tenant_admin',
+    role: 'LMS_ADMIN',
     department: 'Spatial UI & Generative Vision',
     enrolledCourses: ['course-lumina-101', 'course-lumina-102'],
     completedCourses: ['course-lumina-101'],
@@ -1214,7 +1216,7 @@ const INITIAL_USERS: User[] = [
     name: 'Dr. Orion Sterling',
     email: 'orion.s@lumina-glass.io',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    role: 'instructor',
+    role: 'INSTRUCTOR',
     department: 'Neural LLM Architecture',
     enrolledCourses: ['course-lumina-102'],
     completedCourses: ['course-lumina-102'],
@@ -1231,7 +1233,7 @@ const INITIAL_USERS: User[] = [
     name: 'Kaelen Thorne',
     email: 'kaelen.t@lumina-glass.io',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Quantum AI Systems',
     enrolledCourses: ['course-lumina-101'],
     completedCourses: ['course-lumina-101'],
@@ -1249,7 +1251,7 @@ const INITIAL_USERS: User[] = [
     name: 'Clara Oswald',
     email: 'clara.admin@acme.com',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    role: 'tenant_admin',
+    role: 'LMS_ADMIN',
     department: 'People & HR',
     enrolledCourses: ['course-sec-101'],
     completedCourses: ['course-sec-101'],
@@ -1266,7 +1268,7 @@ const INITIAL_USERS: User[] = [
     name: 'David Kim',
     email: 'david.kim@acme.com',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Engineering',
     enrolledCourses: ['course-sec-101', 'course-cloud-202'],
     completedCourses: ['course-sec-101'],
@@ -1283,7 +1285,7 @@ const INITIAL_USERS: User[] = [
     name: 'Sophia Rodriguez',
     email: 'sophia.r@acme.com',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Sales & Growth',
     enrolledCourses: ['course-sec-101'],
     completedCourses: [],
@@ -1300,7 +1302,7 @@ const INITIAL_USERS: User[] = [
     name: 'Marcus Vance',
     email: 'marcus.vance@acme.com',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-    role: 'instructor',
+    role: 'INSTRUCTOR',
     department: 'Cloud & Security',
     enrolledCourses: ['course-sec-101'],
     completedCourses: ['course-sec-101'],
@@ -1318,7 +1320,7 @@ const INITIAL_USERS: User[] = [
     name: 'Dr. Sarah Jenkins',
     email: 'dr.jenkins@apexhealth.org',
     avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=150&q=80',
-    role: 'tenant_admin',
+    role: 'LMS_ADMIN',
     department: 'Clinical Compliance',
     enrolledCourses: ['course-hipaa-303'],
     completedCourses: ['course-hipaa-303'],
@@ -1335,7 +1337,7 @@ const INITIAL_USERS: User[] = [
     name: 'Nurse Emily Watson',
     email: 'e.watson@apexhealth.org',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Nursing & ICU',
     enrolledCourses: ['course-hipaa-303'],
     completedCourses: ['course-hipaa-303'],
@@ -1352,7 +1354,7 @@ const INITIAL_USERS: User[] = [
     name: 'Dr. Robert Torres',
     email: 'r.torres@apexhealth.org',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
+    role: 'LEARNER',
     department: 'Emergency Medicine',
     enrolledCourses: ['course-hipaa-303'],
     completedCourses: [],
@@ -1370,7 +1372,7 @@ const INITIAL_USERS: User[] = [
     name: 'Prof. Katherine Bell',
     email: 'kbell@stanfordtech.edu',
     avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80',
-    role: 'tenant_admin',
+    role: 'LMS_ADMIN',
     department: 'Computer Science',
     enrolledCourses: [],
     completedCourses: [],
@@ -2168,7 +2170,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     title: 'Tenant Skill & Compliance Directive',
     colSpan: 4,
     rowSpan: 1,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT'],
     config: {
       bannerText: 'Annual Mandatory Cybersecurity & Regulatory Certification cycle is in effect. All personnel must complete assignments before the due date.',
       bannerType: 'indigo'
@@ -2181,7 +2183,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Real-time telemetry aggregated for active tenant and role',
     colSpan: 4,
     rowSpan: 1,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT']
   },
   {
     id: 'w-learner-courses-1',
@@ -2190,7 +2192,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Enrolled interactive curricula & mandatory certification modules',
     colSpan: 3,
     rowSpan: 2,
-    visibleForRoles: ['learner']
+    visibleForRoles: ['LEARNER', 'SYS_ADMIN', 'INSTRUCTOR']
   },
   {
     id: 'w-gamification-1',
@@ -2199,7 +2201,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Top achievers and credential badge showcase',
     colSpan: 1,
     rowSpan: 2,
-    visibleForRoles: ['learner', 'instructor']
+    visibleForRoles: ['LEARNER', 'INSTRUCTOR', 'SYS_ADMIN']
   },
   {
     id: 'w-dept-matrix-1',
@@ -2208,7 +2210,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Aggregated progress across operational units',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'USER_MANAGEMENT']
   },
   {
     id: 'w-enrollment-trends-1',
@@ -2217,7 +2219,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Monthly progression trends across active cohorts',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN']
   },
   {
     id: 'w-escalation-queue-1',
@@ -2226,7 +2228,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Personnel requiring immediate remediation',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'USER_MANAGEMENT']
   },
   {
     id: 'w-live-audit-1',
@@ -2235,7 +2237,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Live tamper-proof event logs and compliance traces',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN']
   },
   {
     id: 'w-upcoming-webinars-1',
@@ -2244,7 +2246,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Interactive instructor-led sessions and workshops',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT']
   },
   {
     id: 'w-quick-actions-1',
@@ -2253,7 +2255,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     subtitle: 'Quick operational actions and escalation alerts',
     colSpan: 2,
     rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN']
   }
 ];
 
@@ -2393,35 +2395,93 @@ export class LmsDataService {
   // Core reactive signals
   tenants = signal<Tenant[]>(INITIAL_TENANTS);
   activeTenantId = signal<string>('tenant-brac');
-  activeRole = signal<UserRole>('lms_admin');
+  activeRole = signal<UserRole>('SYS_ADMIN');
 
   private router = inject(Router, { optional: true });
 
-  // Role check computed signals
+  /**
+   * Evaluates whether the currently authenticated user possesses a given Keycloak realm role.
+   * Tolerates case differences ('SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT', etc.)
+   */
+  hasKeycloakRole(roleName: string): boolean {
+    const targetNorm = roleName.toUpperCase().replace(/[-_\s]/g, '');
+
+    if (!this.keycloak || !this.keycloak.authenticated) {
+      // In local dev/fallback mode: evaluate activeRole
+      const currentRole = (this.activeRole() || '').toUpperCase().replace(/[-_\s]/g, '');
+      if (targetNorm === 'SYSADMIN' || targetNorm === 'SYSTEMADMIN' || targetNorm === 'SUPERADMIN') {
+        return currentRole === 'SYSTEMADMIN' || currentRole === 'SUPERADMIN' || currentRole === 'SYSADMIN';
+      }
+      if (targetNorm === 'ORGADMIN' || targetNorm === 'ORGANIZATIONADMIN') return currentRole === 'ORGADMIN';
+      if (targetNorm === 'LMSADMIN') return currentRole === 'LMSADMIN';
+      if (targetNorm === 'INSTRUCTOR' || targetNorm === 'INSTRUCTER') return currentRole === 'INSTRUCTOR' || currentRole === 'INSTRUCTER';
+      if (targetNorm === 'LEARNER' || targetNorm === 'LERNER') return currentRole === 'LEARNER' || currentRole === 'LERNER';
+      if (targetNorm === 'USERMANAGEMENT' || targetNorm === 'USERMANGEMENT') return currentRole === 'USERMANAGEMENT' || currentRole === 'USERMANGEMENT';
+      return currentRole === targetNorm;
+    }
+
+    // 1. Direct Keycloak JS realm role check
+    if (this.keycloak.hasRealmRole(roleName)) {
+      return true;
+    }
+
+    // 2. Case-insensitive inspection of realmAccess.roles
+    const roles: string[] = this.keycloak.realmAccess?.roles || [];
+
+    return roles.some(r => {
+      const rNorm = r.toUpperCase().replace(/[-_\s]/g, '');
+      if (rNorm === targetNorm) return true;
+      if ((targetNorm === 'SYSADMIN' || targetNorm === 'SYSTEMADMIN' || targetNorm === 'SUPERADMIN') && 
+          (rNorm === 'SYSADMIN' || rNorm === 'SYSTEMADMIN' || rNorm === 'SUPERADMIN' || rNorm === 'ADMIN')) return true;
+      if ((targetNorm === 'ORGADMIN' || targetNorm === 'ORGANIZATIONADMIN') && (rNorm === 'ORGADMIN' || rNorm === 'ORGANIZATIONADMIN')) return true;
+      if (targetNorm === 'LMSADMIN' && rNorm === 'LMSADMIN') return true;
+      if ((targetNorm === 'INSTRUCTOR' || targetNorm === 'INSTRUCTER') && (rNorm === 'INSTRUCTOR' || rNorm === 'INSTRUCTER')) return true;
+      if ((targetNorm === 'LEARNER' || targetNorm === 'LERNER') && (rNorm === 'LEARNER' || rNorm === 'LERNER')) return true;
+      if ((targetNorm === 'USERMANAGEMENT' || targetNorm === 'USERMANGEMENT') && (rNorm === 'USERMANAGEMENT' || rNorm === 'USERMANGEMENT')) return true;
+      return false;
+    });
+  }
+
+  /**
+   * Computed signal: true if the user possesses the SYS_ADMIN realm role
+   */
+  hasSysAdminRole = computed<boolean>(() => {
+    return this.hasKeycloakRole('SYS_ADMIN');
+  });
+
+  // Strict role check computed signals
   isSystemAdmin = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'system_admin' || (role as any) === 'super_admin';
+    return this.hasKeycloakRole('SYS_ADMIN');
   });
 
   isOrgAdmin = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'tenant_admin';
+    return this.hasKeycloakRole('ORG_ADMIN');
   });
 
   isLmsAdmin = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'lms_admin';
+    return this.hasKeycloakRole('LMS_ADMIN');
   });
 
   isInstructor = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'instructor';
+    return this.hasKeycloakRole('INSTRUCTOR');
   });
 
   isLearner = computed<boolean>(() => {
-    const role = this.activeRole();
-    return role === 'learner';
+    return this.hasKeycloakRole('LEARNER');
   });
+
+  isUserManagement = computed<boolean>(() => {
+    return this.hasKeycloakRole('USER_MANAGEMENT');
+  });
+
+  /**
+   * Generic permission checker against an array of allowed roles
+   */
+  hasAccessToRole(allowedRoles: string[]): boolean {
+    if (!allowedRoles || allowedRoles.length === 0) return true;
+    return allowedRoles.some(r => this.hasKeycloakRole(r));
+  }
+
   courses = signal<Course[]>(INITIAL_COURSES);
   users = signal<User[]>(INITIAL_USERS);
   enrollments = signal<CourseEnrollment[]>(INITIAL_ENROLLMENTS);
@@ -3002,7 +3062,7 @@ export class LmsDataService {
       name: draft.basicInfo.admin.adminName || 'Organization Admin',
       email: draft.basicInfo.admin.contactEmail,
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
-      role: 'tenant_admin',
+      role: 'LMS_ADMIN',
       department: 'Executive Administration',
       enrolledCourses: [],
       completedCourses: [],
@@ -3437,7 +3497,7 @@ export class LmsDataService {
           email: admin.email,
           phone: admin.contactNumber,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-          role: 'tenant_admin',
+          role: 'LMS_ADMIN',
           department: newLms.basicInfo.programmeDepartment,
           title: `LMS Admin – ${newLms.basicInfo.lmsName}`,
           enrolledCourses: [],
@@ -3712,14 +3772,14 @@ export class LmsDataService {
     const matched = tenantUsers.find(u => u.role === currentRole);
     if (matched) return matched;
 
-    if (currentRole === 'system_admin' || (currentRole as any) === 'super_admin') {
+    if (currentRole === 'SYS_ADMIN' || this.hasKeycloakRole('SYS_ADMIN')) {
       return {
         id: 'usr-system-admin',
         tenantId: 'global',
         name: 'Alexandre Sterling',
         email: 'systemadmin@omnilearn-cloud.io',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        role: 'system_admin',
+        role: 'SYS_ADMIN',
         department: 'Global Platform Operations',
         enrolledCourses: [],
         completedCourses: [],
@@ -3732,7 +3792,7 @@ export class LmsDataService {
       };
     }
 
-    if (currentRole === 'lms_admin' || (currentRole as any) === 'tenant_admin') {
+    if (currentRole === 'LMS_ADMIN') {
       const lmsAdmin = currentLms?.admins?.[0];
       return {
         id: `usr-lms-admin-${currentLms?.id || 'default'}`,
@@ -3740,7 +3800,7 @@ export class LmsDataService {
         name: lmsAdmin?.name || 'Tanvir Hossain',
         email: lmsAdmin?.email || 'tanvir.admin@brac-mf.lmscloud.io',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        role: 'lms_admin',
+        role: 'LMS_ADMIN',
         department: currentLms?.basicInfo?.programmeDepartment || 'Executive Management',
         enrolledCourses: [],
         completedCourses: [],
@@ -3780,7 +3840,7 @@ export class LmsDataService {
     const all = this.courses();
 
     // If system admin, they can see all courses or filter
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'SYS_ADMIN' || this.isSystemAdmin()) {
       return all;
     }
     return all.filter(c => c.tenantId === tenantId || c.tenantId === 'global');
@@ -3790,7 +3850,7 @@ export class LmsDataService {
   tenantUsers = computed<User[]>(() => {
     const tenantId = this.activeTenantId();
     const role = this.activeRole();
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'SYS_ADMIN' || this.isSystemAdmin()) {
       return this.users();
     }
     return this.users().filter(u => u.tenantId === tenantId);
@@ -3800,7 +3860,7 @@ export class LmsDataService {
   tenantCertificates = computed<Certificate[]>(() => {
     const tenantId = this.activeTenantId();
     const role = this.activeRole();
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'SYS_ADMIN' || this.isSystemAdmin()) {
       return this.certificates();
     }
     return this.certificates().filter(c => c.tenantId === tenantId);
@@ -3833,6 +3893,37 @@ export class LmsDataService {
   });
 
   constructor() {
+    // Sync active role & user from Keycloak if authenticated
+    if (this.keycloak && this.keycloak.authenticated) {
+      if (this.hasKeycloakRole('SYS_ADMIN')) {
+        this.activeRole.set('SYS_ADMIN');
+      } else if (this.hasKeycloakRole('ORG_ADMIN')) {
+        this.activeRole.set('ORG_ADMIN');
+      } else if (this.hasKeycloakRole('LMS_ADMIN')) {
+        this.activeRole.set('LMS_ADMIN');
+      } else if (this.hasKeycloakRole('USER_MANAGEMENT')) {
+        this.activeRole.set('USER_MANAGEMENT');
+      } else if (this.hasKeycloakRole('INSTRUCTOR')) {
+        this.activeRole.set('INSTRUCTOR');
+      } else if (this.hasKeycloakRole('LEARNER')) {
+        this.activeRole.set('LEARNER');
+      }
+
+      const token = this.keycloak.tokenParsed as any;
+      if (token) {
+        const username = token.preferred_username || token.username || token.name || 'User';
+        const email = token.email || 'user@bracits.com';
+        const name = token.name || `${token.given_name || ''} ${token.family_name || ''}`.trim() || username;
+
+        // Update active user representation
+        this.updateActiveUserProfile({
+          name: name,
+          email: email,
+          role: this.activeRole()
+        });
+      }
+    }
+
     // Dynamic CSS theme and favicon injection effect:
     // Theming & layouting setup is STRICTLY dependent on the LMS and mapped with LMS
     effect(() => {
@@ -3986,63 +4077,82 @@ export class LmsDataService {
   isRouteAllowedForRole(url: string, role: UserRole): boolean {
     const cleanPath = url.split('?')[0].split('#')[0].replace(/^\//, '');
     
-    // System admin / super admin has unrestricted access to all routes
-    if (role === 'system_admin' || (role as string) === 'super_admin') {
+    // 0. Dashboard & Profile: Accessible to ANY authenticated user (No role guard restriction)
+    if (!cleanPath || cleanPath === 'dashboard' || cleanPath.startsWith('dashboard/') || cleanPath === 'profile' || cleanPath.startsWith('profile/')) {
       return true;
     }
 
-    // Role-specific restrictions:
-    // 1. Organization creation & all organizations list are strictly System Admin
+    // 1. Organizations parent & creation: Strictly SYS_ADMIN
     if (cleanPath === 'tenants' || cleanPath.startsWith('tenants/create') || cleanPath.startsWith('organization/create')) {
-      return false;
+      return role === 'SYS_ADMIN';
     }
 
-    // 2. Org dashboard is for System Admin and Org Admin (tenant_admin)
+    // 2. Org Dashboard: SYS_ADMIN & ORG_ADMIN
     if (cleanPath.startsWith('organization/dashboard') || cleanPath.startsWith('tenants/dashboard')) {
-      return role === 'tenant_admin';
+      return role === 'SYS_ADMIN' || role === 'ORG_ADMIN';
     }
 
-    // 3. LMS Creation & editing is for System Admin and Org Admin (Org Admin provisions LMS under their Org)
-    if (cleanPath.startsWith('lms/create') || cleanPath.startsWith('lms/edit')) {
-      return role === 'tenant_admin';
+    // 3. LMS Instances: ORG_ADMIN & LMS_ADMIN (Create LMS: Strictly ORG_ADMIN)
+    if (cleanPath === 'lms/create' || cleanPath.startsWith('lms/create')) {
+      return role === 'ORG_ADMIN';
+    }
+    if (cleanPath === 'lms' || cleanPath.startsWith('lms/')) {
+      return role === 'ORG_ADMIN' || role === 'LMS_ADMIN';
     }
 
-    // 4. Settings / theming is for System Admin, Org Admin, and LMS Admin
+    // 4. Plan Management: SYS_ADMIN & LMS_ADMIN
+    if (cleanPath.startsWith('plans') || cleanPath.startsWith('phases')) {
+      return role === 'LMS_ADMIN';
+    }
+
+    // 5. LMS Theming & Layout: SYS_ADMIN & LMS_ADMIN
     if (cleanPath.startsWith('settings')) {
-      return role === 'tenant_admin' || role === 'lms_admin';
+      return role === 'LMS_ADMIN';
     }
 
-    // 5. Analytics & LMS Management is for System Admin, Org Admin, and LMS Admin
-    if (cleanPath.startsWith('analytics') || cleanPath === 'lms' || cleanPath.startsWith('lms/dashboard')) {
-      return role === 'tenant_admin' || role === 'lms_admin';
+    // 6. Courses & Catalog: SYS_ADMIN, INSTRUCTOR, LEARNER
+    if (cleanPath.startsWith('courses')) {
+      return role === 'INSTRUCTOR' || role === 'LEARNER';
     }
 
-    // 6. Plan creation/edit is for System Admin, Org Admin, LMS Admin, and Instructor
-    if (cleanPath.startsWith('plans/create') || cleanPath.startsWith('plans/edit')) {
-      return role === 'tenant_admin' || role === 'lms_admin' || role === 'instructor';
+    // 7. Live Classrooms: SYS_ADMIN, INSTRUCTOR, LEARNER
+    if (cleanPath.startsWith('webinars')) {
+      return role === 'INSTRUCTOR' || role === 'LEARNER';
     }
 
-    // 7. Plan list/details/dashboard & users is for System Admin, Org Admin, LMS Admin, and Instructor
-    if (cleanPath.startsWith('plans') || cleanPath.startsWith('users')) {
-      return role === 'tenant_admin' || role === 'lms_admin' || role === 'instructor';
+    // 8. Compliance & Analytics: SYS_ADMIN, LEARNER
+    if (cleanPath.startsWith('analytics')) {
+      return role === 'LEARNER';
     }
 
-    // 8. General routes (dashboard, courses, certificates, webinars, profile) are allowed for all (including learner)
-    return true;
+    // 9. Certificates Vault: SYS_ADMIN, LEARNER
+    if (cleanPath.startsWith('certificates')) {
+      return role === 'LEARNER';
+    }
+
+    // 10. Users & Personnel: SYS_ADMIN, USER_MANAGEMENT
+    if (cleanPath.startsWith('users')) {
+      return role === 'USER_MANAGEMENT';
+    }
+
+    return false;
+  }
+
+  getRoleDisplayName(role?: string): string {
+    const r = (role || this.activeRole() || '').toUpperCase().replace(/[-_\s]/g, '');
+    if (r === 'SYSADMIN' || r === 'SYSTEMADMIN' || r === 'SUPERADMIN') return 'System Admin';
+    if (r === 'ORGADMIN' || r === 'ORGANIZATIONADMIN') return 'Organization Admin';
+    if (r === 'LMSADMIN') return 'LMS Admin';
+    if (r === 'USERMANAGEMENT' || r === 'USERMANGEMENT') return 'User Management';
+    if (r === 'INSTRUCTOR' || r === 'INSTRUCTER') return 'Instructor';
+    if (r === 'LEARNER' || r === 'LERNER') return 'Learner';
+    return 'Member';
   }
 
   // Switch active role preview & enforce route authorization
   switchRole(role: UserRole) {
     this.activeRole.set(role);
-    const roleLabels: Record<string, string> = {
-      system_admin: 'System Admin',
-      super_admin: 'System Admin',
-      tenant_admin: 'Org Admin',
-      lms_admin: 'LMS Admin',
-      instructor: 'Instructor',
-      learner: 'Learner'
-    };
-    const roleName = roleLabels[role] || role;
+    const roleName = this.getRoleDisplayName(role);
     this.logAction('Role Switch', `Switched active view mode to: ${roleName}`, 'info');
     this.showToast(`Switched active view mode to "${roleName.toUpperCase()}"`, 'info', 3000, 'Role Switched', 'RBAC');
 
@@ -4310,7 +4420,7 @@ export class LmsDataService {
 
   // Add course
   addCourse(newCourse: Partial<Course>): Course {
-    const tenantId = this.activeRole() === 'super_admin' ? (newCourse.tenantId || 'global') : this.activeTenantId();
+    const tenantId = this.isSystemAdmin() ? (newCourse.tenantId || 'global') : this.activeTenantId();
     const course: Course = {
       id: `course-${Date.now()}`,
       tenantId,
@@ -4499,7 +4609,7 @@ export class LmsDataService {
       name: newUser.name || 'New Learner',
       email: newUser.email || 'learner@domain.io',
       avatar: newUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      role: newUser.role || 'learner',
+      role: newUser.role || 'LEARNER',
       department: newUser.department || this.activeTenant().departments[0] || 'General',
       enrolledCourses: [],
       completedCourses: [],
@@ -4574,7 +4684,7 @@ export class LmsDataService {
       tenantId: tenant.id,
       tenantName: tenant.name,
       actor: user.name,
-      actorRole: user.role === 'system_admin' || (user.role as any) === 'super_admin' ? 'System Admin' : (user.role === 'lms_admin' || (user.role as any) === 'tenant_admin') ? 'LMS Admin' : user.role,
+      actorRole: this.getRoleDisplayName(user.role),
       action,
       target,
       timestamp: 'Just now',
@@ -4608,7 +4718,7 @@ export class LmsDataService {
       tenantId,
       isPublished: true,
       publishedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      publishedBy: publishedByName || `${user.name} (${user.role === 'super_admin' ? 'Super Admin' : 'Tenant Admin'})`,
+      publishedBy: publishedByName || `${user.name} (${this.getRoleDisplayName(user.role)})`,
       version: newVersion,
       widgets: JSON.parse(JSON.stringify(widgets))
     };
@@ -4673,9 +4783,27 @@ export class LmsDataService {
     this.updateUser(current.id, changes);
   }
 
+  private keycloak = inject(Keycloak, { optional: true });
+
   // Log out or reset session simulation
   logout() {
+    IdpConfig.clearConfig();
     this.logAction('User Sign Out', `User ${this.activeUser().name} signed out of session`, 'info');
+    if (this.keycloak) {
+      try {
+        this.keycloak.logout({
+          redirectUri: window.location.origin
+        }).catch(err => {
+          console.warn('[Keycloak] Logout redirect error:', err);
+          window.location.href = window.location.origin;
+        });
+      } catch (e) {
+        console.warn('[Keycloak] Logout failed, reloading:', e);
+        window.location.href = window.location.origin;
+      }
+    } else {
+      window.location.href = window.location.origin;
+    }
   }
 
   // =========================================================================

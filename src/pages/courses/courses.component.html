@@ -12,7 +12,7 @@
       <p class="text-xs text-text-secondary">Interactive e-learning modules, video masterclasses, and certified compliance tracks</p>
     </div>
 
-    @if (lms.activeRole() !== 'learner') {
+    @if (lms.isSystemAdmin() || lms.isInstructor() || lms.isLmsAdmin()) {
       <button 
         id="btn-create-course"
         (click)="openCreateModal()"

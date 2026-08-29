@@ -19,7 +19,7 @@ export class DashboardWidgetRendererComponent {
     type: 'kpi_grid',
     title: 'KPI Metrics',
     colSpan: 4,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
+    visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT']
   });
   isBuilderMode = input<boolean>(false);
   previewRole = input<UserRole | null>(null);
@@ -121,7 +121,10 @@ export class DashboardWidgetRendererComponent {
   isVisible = computed<boolean>(() => {
     if (this.isBuilderMode()) return true;
     const role = this.effectiveRole();
-    return this.widget().visibleForRoles.includes(role);
+    const roles = this.widget().visibleForRoles || [];
+    if (roles.length === 0) return true;
+    if (role === 'SYS_ADMIN' || this.lms.isSystemAdmin()) return true;
+    return roles.includes(role);
   });
 
   // Dynamic KPIs for kpi_grid
@@ -135,7 +138,7 @@ export class DashboardWidgetRendererComponent {
 
     const periodMultiplier = period === '30d' ? 1 : period === 'quarter' ? 1.4 : 2.1;
 
-    if (role === 'system_admin' || (role as any) === 'super_admin') {
+    if (role === 'SYS_ADMIN' || this.lms.isSystemAdmin()) {
       const allTenants = this.lms.tenants();
       const totalLearners = allTenants.reduce((acc, t) => acc + t.stats.totalLearners, 0);
       const totalSeats = allTenants.reduce((acc, t) => acc + t.stats.seatLimit, 0);
@@ -149,7 +152,7 @@ export class DashboardWidgetRendererComponent {
       ];
     }
 
-    if (role === 'learner') {
+    if (role === 'LEARNER') {
       const user = this.lms.activeUser();
       const enrolled = this.lms.enrollments().filter(e => e.userId === user.id);
       const completed = enrolled.filter(e => e.status === 'completed');
@@ -162,7 +165,7 @@ export class DashboardWidgetRendererComponent {
       ];
     }
 
-    // Tenant Admin / Instructor
+    // LMS Admin / User Management / Instructor
     return [
       { title: 'Active Learners', value: users.length.toString(), change: '+8.4%', icon: 'users', color: 'indigo', subtext: `${tenant.stats.seatsUsed} / ${tenant.stats.seatLimit} seats` },
       { title: 'Mandatory Compliance', value: `${tenant.stats.complianceRate}%`, change: '+2.1%', icon: 'shield', color: 'emerald', subtext: 'SOC2 / HIPAA / ISO' },

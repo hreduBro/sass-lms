@@ -37,14 +37,16 @@
         <span>LMS Dashboard</span>
       </a>
 
-      <button 
-        type="button"
-        id="btn-create-lms-header"
-        (click)="openCreateWizard()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-lg">add_circle</span>
-        <span>Create LMS</span>
-      </button>
+      @if (lms.isOrgAdmin()) {
+        <button 
+          type="button"
+          id="btn-create-lms-header"
+          (click)="openCreateWizard()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
+          <span>Create LMS</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -465,14 +467,16 @@
           No learning management systems have been configured yet under {{ lms.activeTenant().name }}. Create your organization's first LMS instance to get started.
         </p>
       </div>
-      <!-- Retains the Create LMS button as per §2.6 -->
-      <button 
-        type="button"
-        (click)="openCreateWizard()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-base">add_circle</span>
-        <span>Create LMS</span>
-      </button>
+      <!-- Retains the Create LMS button for ORG_ADMIN -->
+      @if (lms.isOrgAdmin()) {
+        <button 
+          type="button"
+          (click)="openCreateWizard()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          <span>Create LMS</span>
+        </button>
+      }
     </div>
   }
 

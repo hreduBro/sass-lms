@@ -362,6 +362,31 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
+// 2. IDP & Keycloak Configuration API
+app.get('/api/config', (req: Request, res: Response) => {
+  const tenantSlug = (req.query.tenant as string) || '';
+
+  // Dynamically resolve realm based on tenant slug or environment variables
+  let realm = 'one-lms';
+  if (tenantSlug === 'tenant2' || tenantSlug === 'tech-campus' || tenantSlug === 'biohealth-institute') {
+    realm = 'two-lms';
+  } else if (tenantSlug === 'tenant3' || tenantSlug === 'fintech-capital') {
+    realm = 'three-lms';
+  }
+
+  const idpConfig = {
+    url: process.env.IDP_URL || 'https://we-learn.bracits.net/idp/',
+    realm: process.env.IDP_REALM || realm,
+    clientId: process.env.IDP_CLIENT_ID || 'lms-frontend'
+  };
+
+  res.json({
+    success: true,
+    data: idpConfig,
+    ...idpConfig
+  });
+});
+
 // 2. Tenants API
 app.get('/api/tenants', (req: Request, res: Response) => {
   const { search, plan, status } = req.query;

@@ -20,18 +20,20 @@ export class UsersComponent {
   selectedCompliance = signal<string>('All');
 
   roleOptions = [
-    { value: 'learner', label: 'Learner', sublabel: 'Standard student role' },
-    { value: 'instructor', label: 'Instructor', sublabel: 'Curriculum & course manager' },
-    { value: 'lms_admin', label: 'LMS Admin', sublabel: 'Manage LMS unit and learners' },
-    { value: 'system_admin', label: 'System Admin', sublabel: 'Full system authorization' }
+    { value: 'LEARNER', label: 'Learner', sublabel: 'Standard student role' },
+    { value: 'INSTRUCTOR', label: 'Instructor', sublabel: 'Curriculum & course manager' },
+    { value: 'USER_MANAGEMENT', label: 'User Management', sublabel: 'Manage personnel & user accounts' },
+    { value: 'LMS_ADMIN', label: 'LMS Admin', sublabel: 'Manage LMS unit and learners' },
+    { value: 'SYS_ADMIN', label: 'System Admin', sublabel: 'Full system authorization' }
   ];
 
   filterRoleOptions = [
     { value: 'All', label: 'All Roles' },
-    { value: 'system_admin', label: 'System Admin' },
-    { value: 'lms_admin', label: 'LMS Admin' },
-    { value: 'instructor', label: 'Instructor' },
-    { value: 'learner', label: 'Learner' }
+    { value: 'SYS_ADMIN', label: 'System Admin' },
+    { value: 'LMS_ADMIN', label: 'LMS Admin' },
+    { value: 'USER_MANAGEMENT', label: 'User Management' },
+    { value: 'INSTRUCTOR', label: 'Instructor' },
+    { value: 'LEARNER', label: 'Learner' }
   ];
 
   filterComplianceOptions = [
@@ -145,7 +147,7 @@ export class UsersComponent {
     this.newUser = {
       name: '',
       email: '',
-      role: 'learner',
+      role: 'LEARNER',
       department: this.lms.activeTenant().departments[0] || 'General',
       assignCourseId: ''
     };
@@ -180,20 +182,26 @@ export class UsersComponent {
   }
 
   getRoleLabel(role: string): string {
-    if (role === 'system_admin' || role === 'super_admin') return 'System Admin';
-    if (role === 'lms_admin' || role === 'tenant_admin') return 'LMS Admin';
-    if (role === 'instructor') return 'Instructor';
+    const rNorm = (role || '').toUpperCase().replace(/[-_\s]/g, '');
+    if (rNorm === 'SYSADMIN' || rNorm === 'SYSTEMADMIN') return 'System Admin';
+    if (rNorm === 'LMSADMIN') return 'LMS Admin';
+    if (rNorm === 'USERMANAGEMENT') return 'User Management';
+    if (rNorm === 'INSTRUCTOR') return 'Instructor';
     return 'Learner';
   }
 
   getRoleBadgeClass(role: string): string {
-    if (role === 'system_admin' || role === 'super_admin') {
+    const rNorm = (role || '').toUpperCase().replace(/[-_\s]/g, '');
+    if (rNorm === 'SYSADMIN' || rNorm === 'SYSTEMADMIN') {
       return 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-200 dark:border dark:border-purple-800/60';
     }
-    if (role === 'lms_admin' || role === 'tenant_admin') {
+    if (rNorm === 'LMSADMIN') {
       return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200 dark:border dark:border-indigo-800/60';
     }
-    if (role === 'instructor') {
+    if (rNorm === 'USERMANAGEMENT') {
+      return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/80 dark:text-cyan-200 dark:border dark:border-cyan-800/60';
+    }
+    if (rNorm === 'INSTRUCTOR') {
       return 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-200 dark:border dark:border-amber-800/60';
     }
     return 'bg-base-200 text-text-secondary';

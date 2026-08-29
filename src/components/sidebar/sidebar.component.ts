@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, input, output, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, inject, input, output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -19,6 +19,7 @@ export class SidebarComponent {
   close = output<void>();
   lms = inject(LmsDataService);
   router = inject(Router);
+  cdr = inject(ChangeDetectorRef);
 
   isCompact = computed(() => this.lms.adminLayoutPreferences().navigationMode === 'compact_rail');
   isTopMenu = computed(() => this.lms.adminLayoutPreferences().navigationMode === 'top_menu');
@@ -37,6 +38,7 @@ export class SidebarComponent {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.syncActiveMenuWithRoute();
+      this.cdr.markForCheck();
     });
   }
 
@@ -75,8 +77,7 @@ export class SidebarComponent {
   }
 
   isAllowed(roles: string[]): boolean {
-    const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole);
+    return this.lms.hasAccessToRole(roles);
   }
 
   onNavItemClick() {

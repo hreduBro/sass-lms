@@ -157,7 +157,7 @@ export class AddWidgetModalComponent {
       title: template.name,
       colSpan: template.defaultColSpan,
       rowSpan: template.defaultRowSpan || 2,
-      visibleForRoles: ['system_admin', 'lms_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
+      visibleForRoles: ['SYS_ADMIN', 'LMS_ADMIN', 'INSTRUCTOR', 'LEARNER', 'USER_MANAGEMENT'],
       config: {
         bannerText: 'Tenant announcement directive for all active personnel.',
         bannerType: 'indigo'

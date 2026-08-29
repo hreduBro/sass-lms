@@ -19,14 +19,14 @@
           }
         </div>
         <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-          @if (activeRole() === 'learner') {
+          @if (lms.isLearner()) {
             <span>Welcome back, {{ lms.activeUser().name }}!</span>
           } @else {
             <span>Enterprise Learning & Operational Intelligence</span>
           }
         </h1>
         <p class="text-xs text-text-secondary mt-0.5">
-          @if (activeRole() === 'learner') {
+          @if (lms.isLearner()) {
             <span>Track your courseware progress, complete mandatory compliance modules, and earn certified credentials.</span>
           } @else {
             <span>Real-time multi-tenant telemetry, regulatory compliance tracking, and curriculum management for {{ activeTenant().name }}.</span>
@@ -157,30 +157,37 @@
           </button>
           <button 
             type="button"
-            (click)="previewRole.set('learner')"
+            (click)="previewRole.set('LEARNER')"
             class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-            [class]="previewRole() === 'learner' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            [class]="previewRole() === 'LEARNER' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
             Learner View
           </button>
           <button 
             type="button"
-            (click)="previewRole.set('instructor')"
+            (click)="previewRole.set('INSTRUCTOR')"
             class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-            [class]="previewRole() === 'instructor' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            [class]="previewRole() === 'INSTRUCTOR' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
             Instructor View
           </button>
           <button 
             type="button"
-            (click)="previewRole.set('lms_admin')"
+            (click)="previewRole.set('USER_MANAGEMENT')"
             class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-            [class]="previewRole() === 'lms_admin' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            [class]="previewRole() === 'USER_MANAGEMENT' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            User Management View
+          </button>
+          <button 
+            type="button"
+            (click)="previewRole.set('LMS_ADMIN')"
+            class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
+            [class]="previewRole() === 'LMS_ADMIN' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
             LMS Admin View
           </button>
           <button 
             type="button"
-            (click)="previewRole.set('system_admin')"
+            (click)="previewRole.set('SYS_ADMIN')"
             class="px-2.5 py-1 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-            [class]="previewRole() === 'system_admin' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+            [class]="previewRole() === 'SYS_ADMIN' ? 'bg-base-100 text-tenant-600 shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'">
             System Admin View
           </button>
         </div>

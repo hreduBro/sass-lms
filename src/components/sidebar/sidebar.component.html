@@ -89,7 +89,7 @@
               [attr.aria-label]="item.label"
               class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all relative select-none cursor-pointer focus:outline-none focus:ring-0"
               [class]="isRouteActive(item) 
-                ? 'border-2 border-[#EC008C] bg-[#FDF2F8] dark:bg-pink-950/40 text-[#EC008C] dark:text-[#F472B6] shadow-sm'
+                ? 'border-2 border-tenant-500 bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 shadow-sm'
                 : 'border border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60'">
               <span class="material-symbols-outlined text-2xl transition-transform group-hover/rail-item:scale-110">
                 {{ item.icon }}
@@ -109,7 +109,7 @@
                   <div class="px-4 py-2.5 text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase border-b border-base-300/80 dark:border-white/10 flex items-center justify-between">
                     <span>{{ item.label.toUpperCase() }}</span>
                     @if (item.badge) {
-                      <span class="text-[9px] px-2 py-0.5 rounded-full font-bold bg-[#EC008C] text-white">
+                      <span class="text-[9px] px-2 py-0.5 rounded-full font-bold bg-tenant-500 text-white">
                         {{ item.badge }}
                       </span>
                     }
@@ -123,7 +123,7 @@
                           [routerLink]="child.route"
                           (click)="onNavItemClick()"
                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors group/child cursor-pointer focus:outline-none focus:ring-0"
-                          [class]="isChildActive(child) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                          [class]="isChildActive(child) ? 'bg-tenant-500 hover:bg-tenant-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                           <div class="flex items-center gap-2.5 min-w-0">
                             <span class="material-symbols-outlined text-base flex-shrink-0"
                                   [class]="isChildActive(child) ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover/child:text-slate-900 dark:group-hover/child:text-slate-100'">
@@ -164,7 +164,7 @@
                 class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 px-3 py-1.5 bg-slate-900 text-white dark:bg-slate-950 dark:text-slate-100 border border-slate-700/60 dark:border-slate-700 rounded-xl text-xs font-semibold shadow-2xl whitespace-nowrap invisible opacity-0 translate-x-1 group-hover/rail-item:visible group-hover/rail-item:opacity-100 group-hover/rail-item:translate-x-0 transition-all duration-150 pointer-events-none z-50 flex items-center gap-1.5">
                 <span>{{ item.label }}</span>
                 @if (item.badge) {
-                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#EC008C] text-white font-bold">{{ item.badge }}</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-tenant-500 text-white font-bold">{{ item.badge }}</span>
                 }
               </div>
             }
@@ -181,14 +181,15 @@
                 (click)="toggleMenu(item.label)"
                 class="flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs cursor-pointer transition-all group select-none relative focus:outline-none focus:ring-0 outline-none"
                 [class]="isRouteActive(item)
-                  ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold'
+                  ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                 <div class="flex items-center gap-2.5 min-w-0">
                   @if (isRouteActive(item)) {
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 flex-shrink-0"></span>
                   }
                   <span class="material-symbols-outlined text-[19px] transition-transform group-hover:scale-110 flex-shrink-0"
-                        [class.text-[#EC008C]]="isRouteActive(item)"
+                        [class.text-tenant-600]="isRouteActive(item)"
+                        [class.dark:text-tenant-300]="isRouteActive(item)"
                         [class.text-slate-500]="!isRouteActive(item)">
                     {{ item.icon }}
                   </span>
@@ -198,12 +199,13 @@
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                   @if (item.badge) {
                     <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                          [class]="isRouteActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
+                          [class]="isRouteActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                       {{ item.badge }}
                     </span>
                   }
                   <span class="material-symbols-outlined text-base transition-transform duration-200 text-slate-400"
-                        [class.text-[#EC008C]]="isRouteActive(item)"
+                        [class.text-tenant-600]="isRouteActive(item)"
+                        [class.dark:text-tenant-300]="isRouteActive(item)"
                         [class.rotate-180]="isMenuExpanded(item.label)">
                     expand_more
                   </span>
@@ -219,7 +221,7 @@
                         [routerLink]="child.route"
                         (click)="onNavItemClick()"
                         class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all group focus:outline-none focus:ring-0 outline-none select-none cursor-pointer"
-                        [class]="isChildActive(child) ? 'bg-[#EC008C] hover:bg-[#D8007E] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
+                        [class]="isChildActive(child) ? 'bg-tenant-500 hover:bg-tenant-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
                         <div class="flex items-center gap-2.5 truncate">
                           <span class="material-symbols-outlined text-base flex-shrink-0 group-hover:scale-105 transition-transform"
                                 [class.text-white]="isChildActive(child)"
@@ -257,17 +259,18 @@
               [title]="item.label"
               class="flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs transition-all group relative active:scale-[0.98] focus:outline-none focus:ring-0 outline-none"
               [class]="isRouteActive(item)
-                ? 'bg-[#FDF2F8] dark:bg-pink-950/30 text-[#EC008C] dark:text-[#F472B6] font-bold'
+                ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-bold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-medium'">
 
               <div class="flex items-center gap-2.5 min-w-0">
                 <!-- Active Indicator Dot -->
                 @if (isRouteActive(item)) {
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] flex-shrink-0"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 flex-shrink-0"></span>
                 }
 
                 <span class="material-symbols-outlined text-[19px] transition-transform group-hover:scale-110 flex-shrink-0"
-                      [class.text-[#EC008C]]="isRouteActive(item)"
+                      [class.text-tenant-600]="isRouteActive(item)"
+                      [class.dark:text-tenant-300]="isRouteActive(item)"
                       [class.text-slate-500]="!isRouteActive(item)">
                   {{ item.icon }}
                 </span>
@@ -277,7 +280,7 @@
 
               @if (item.badge) {
                 <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                      [class]="isRouteActive(item) ? 'bg-[#EC008C] text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
+                      [class]="isRouteActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                   {{ item.badge }}
                 </span>
               }

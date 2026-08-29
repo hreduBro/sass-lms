@@ -57,27 +57,32 @@ export class DashboardComponent {
   activeTenant = this.lms.activeTenant;
 
   isAdmin = computed(() => {
-    const role = this.activeRole();
-    return role === 'system_admin' || role === 'lms_admin' || (role as any) === 'super_admin' || (role as any) === 'tenant_admin';
+    return this.lms.isSystemAdmin() || this.lms.isLmsAdmin();
   });
+
+  private isWidgetVisibleForRole(widget: DashboardWidget, role: UserRole): boolean {
+    if (!widget.visibleForRoles || widget.visibleForRoles.length === 0) return true;
+    if (role === 'SYS_ADMIN' || this.lms.isSystemAdmin()) return true;
+    return widget.visibleForRoles.includes(role);
+  }
 
   // Effective displayed widgets
   displayedWidgets = computed<DashboardWidget[]>(() => {
     if (this.isBuilderMode()) {
       const pRole = this.previewRole();
       if (pRole) {
-        return this.draftWidgets().filter(w => w.visibleForRoles.includes(pRole));
+        return this.draftWidgets().filter(w => this.isWidgetVisibleForRole(w, pRole));
       }
       return this.draftWidgets();
     }
     const currentRole = this.activeRole();
-    return this.activeDashboard().widgets.filter(w => w.visibleForRoles.includes(currentRole));
+    return this.activeDashboard().widgets.filter(w => this.isWidgetVisibleForRole(w, currentRole));
   });
 
   // Visible widgets count for the active/preview role
   visibleCount = computed(() => {
     const role = this.previewRole() || this.activeRole();
-    return this.displayedWidgets().filter(w => w.visibleForRoles.includes(role)).length;
+    return this.displayedWidgets().filter(w => this.isWidgetVisibleForRole(w, role)).length;
   });
 
   // Available Presets

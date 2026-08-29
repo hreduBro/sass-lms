@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { filter, Subscription } from 'rxjs';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
@@ -32,76 +33,160 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
           <span class="text-[10px] tracking-tight mt-0.5">Dashboard</span>
         </a>
 
-        <!-- 2. Courses -->
-        <a 
-          routerLink="/courses"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          #coursesRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="coursesRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">school</span>
-            @if (coursesRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">Courses</span>
-        </a>
-
-        <!-- 3. Live Classrooms -->
-        <a 
-          routerLink="/webinars"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          #webinarsRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="webinarsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">videocam</span>
-            @if (lms.webinars().length > 0 && !webinarsRla.isActive) {
-              <span class="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            }
-            @if (webinarsRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">Live Class</span>
-        </a>
-
-        <!-- 4. Analytics or Certificates based on role -->
-        @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'lms_admin' || lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
+        <!-- 2. Role-specific primary shortcuts -->
+        @if (lms.isSystemAdmin()) {
           <a 
-            routerLink="/analytics"
+            routerLink="/tenants"
             [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-            #analyticsRla="routerLinkActive"
+            #orgsRla="routerLinkActive"
             class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-            [class]="analyticsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-            
+            [class]="orgsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
             <div class="relative flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">analytics</span>
-              @if (analyticsRla.isActive) {
+              <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+              @if (orgsRla.isActive) {
                 <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
               }
             </div>
-            <span class="text-[10px] tracking-tight mt-0.5">Analytics</span>
+            <span class="text-[10px] tracking-tight mt-0.5">Organizations</span>
+          </a>
+
+          <a 
+            routerLink="/organization/dashboard"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #sysOrgDashRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="sysOrgDashRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">monitoring</span>
+              @if (sysOrgDashRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Org Dashboard</span>
+          </a>
+        } @else if (lms.isOrgAdmin()) {
+          <a 
+            routerLink="/organization/dashboard"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #orgDashRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="orgDashRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">monitoring</span>
+              @if (orgDashRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Org Dashboard</span>
+          </a>
+
+          <a 
+            routerLink="/lms"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #lmsRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="lmsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">layers</span>
+              @if (lmsRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">LMS Units</span>
+          </a>
+        } @else if (lms.isLmsAdmin()) {
+          <a 
+            routerLink="/lms"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #lmsRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="lmsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">layers</span>
+              @if (lmsRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">LMS Units</span>
+          </a>
+
+          <a 
+            routerLink="/plans"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #plansRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="plansRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">event_note</span>
+              @if (plansRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Plans</span>
+          </a>
+        } @else if (lms.isUserManagement()) {
+          <a 
+            routerLink="/users"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #usersRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="usersRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">groups</span>
+              @if (usersRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Personnel</span>
           </a>
         } @else {
+          <!-- Learner / Instructor -->
           <a 
-            routerLink="/certificates"
+            routerLink="/courses"
             [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-            #certsRla="routerLinkActive"
+            #coursesRla="routerLinkActive"
             class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-            [class]="certsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-            
+            [class]="coursesRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
             <div class="relative flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">verified</span>
-              @if (certsRla.isActive) {
+              <span class="material-symbols-outlined text-2xl">school</span>
+              @if (coursesRla.isActive) {
                 <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
               }
             </div>
-            <span class="text-[10px] tracking-tight mt-0.5">Certificates</span>
+            <span class="text-[10px] tracking-tight mt-0.5">Courses</span>
           </a>
+
+          <a 
+            routerLink="/webinars"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #webinarsRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="webinarsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">videocam</span>
+              @if (webinarsRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Live Class</span>
+          </a>
+
+          @if (lms.isLearner()) {
+            <a 
+              routerLink="/certificates"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              #certsRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="certsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">verified</span>
+                @if (certsRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Certificates</span>
+            </a>
+          }
         }
 
         <!-- 5. More Menu Drawer Trigger -->
@@ -134,7 +219,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
               </div>
               <div class="min-w-0">
                 <h3 class="font-bold text-sm text-text-primary truncate">{{ lms.activeTenant().name }}</h3>
-                <span class="text-[11px] text-text-secondary truncate block">{{ lms.activeUser().name }} ({{ lms.activeRole() === 'system_admin' ? 'System Admin' : lms.activeRole() === 'lms_admin' ? 'LMS Admin' : lms.activeRole().replace('_', ' ') }})</span>
+                <span class="text-[11px] text-text-secondary truncate block">{{ lms.activeUser().name }} ({{ lms.getRoleDisplayName(lms.activeRole()) }})</span>
               </div>
             </div>
             <button 
@@ -153,7 +238,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                   {{ group.label }}
                 </span>
                 @if (group.badge) {
-                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#EC008C] text-white">
+                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-tenant-500 text-white">
                     {{ group.badge }}
                   </span>
                 }
@@ -167,11 +252,11 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       (click)="showMoreDrawer.set(false)"
                       class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
                       [class]="isChildActive(child) 
-                        ? 'bg-[#EC008C] border-transparent text-white font-semibold shadow-xs' 
+                        ? 'bg-tenant-500 border-transparent text-white font-semibold shadow-xs' 
                         : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
                       
                       <span class="material-symbols-outlined text-xl flex-shrink-0"
-                            [class]="isChildActive(child) ? 'text-white' : 'text-[#EC008C]'">{{ child.icon }}</span>
+                            [class]="isChildActive(child) ? 'text-white' : 'text-tenant-600 dark:text-tenant-400'">{{ child.icon }}</span>
                       <div class="text-left min-w-0 flex-1">
                         <div class="flex items-center gap-1">
                           <span class="font-bold text-xs truncate block" [class.text-white]="isChildActive(child)">{{ child.label }}</span>
@@ -206,26 +291,26 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                   (click)="showMoreDrawer.set(false)"
                   class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
                   [class]="isItemActive(item) 
-                    ? 'bg-[#FDF2F8] dark:bg-pink-950/30 border-pink-200 dark:border-pink-900/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                    ? 'bg-tenant-50 dark:bg-tenant-500/20 border-tenant-500/30 text-tenant-600 dark:text-tenant-300 font-bold' 
                     : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
                   
-                  <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-[#EC008C]]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
+                  <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-tenant-600]="isItemActive(item)" [class.dark:text-tenant-300]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
                   <div class="text-left min-w-0 flex-1">
                     <div class="flex items-center gap-1">
                       <span class="font-bold text-xs block truncate">{{ item.label }}</span>
                       @if (item.badge) {
                         <span class="text-[8px] px-1.5 py-0.2 rounded font-bold uppercase"
-                              [class]="isItemActive(item) ? 'bg-[#EC008C] text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
+                              [class]="isItemActive(item) ? 'bg-tenant-500 text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                           {{ item.badge }}
                         </span>
                       }
                     </div>
                     @if (item.description) {
-                      <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-[#EC008C]/80 dark:text-[#F472B6]/80' : 'text-slate-400'">{{ item.description }}</span>
+                      <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-tenant-600/80 dark:text-tenant-300/80' : 'text-slate-400'">{{ item.description }}</span>
                     }
                   </div>
                   @if (isItemActive(item)) {
-                    <span class="material-symbols-outlined text-xs text-[#EC008C] dark:text-[#F472B6] flex-shrink-0">check_circle</span>
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300 flex-shrink-0">check_circle</span>
                   }
                 </a>
               }
@@ -259,23 +344,6 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                 </button>
               </div>
             </div>
-
-            <!-- Role Simulator -->
-            <div class="flex items-center justify-between pt-2 border-t border-base-300">
-              <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">badge</span> Switch Role
-              </span>
-              <select 
-                [ngModel]="lms.activeRole()"
-                (ngModelChange)="lms.switchRole($event)"
-                class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
-                <option value="system_admin">System Admin</option>
-                <option value="tenant_admin">Org Admin</option>
-                <option value="lms_admin">LMS Admin</option>
-                <option value="instructor">Instructor</option>
-                <option value="learner">Learner</option>
-              </select>
-            </div>
           </div>
 
           <!-- Bottom Action Buttons -->
@@ -294,19 +362,33 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MobileNavComponent {
+export class MobileNavComponent implements OnDestroy {
   lms = inject(LmsDataService);
   themeService = inject(ThemeService);
   router = inject(Router);
+  cdr = inject(ChangeDetectorRef);
   showMoreDrawer = signal<boolean>(false);
+
+  private routeSubscription?: Subscription;
 
   navItems: NavItem[] = APP_NAV_ITEMS;
 
+  constructor() {
+    this.routeSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+    }
+  }
+
   isAllowed(roles: string[]): boolean {
-    const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole) ||
-      (activeRole === 'super_admin' && roles.includes('system_admin')) ||
-      (activeRole === 'system_admin' && roles.includes('super_admin'));
+    return this.lms.hasAccessToRole(roles);
   }
 
   groupedNavItems() {

@@ -12,7 +12,7 @@
           </span>
           <span class="text-xs text-text-secondary flex items-center gap-1">
             <span>Role:</span> 
-            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.activeRole().replace('_', ' ') }}</strong>
+            <strong class="text-text-primary bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.getRoleDisplayName(lms.activeRole()) }}</strong>
           </span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
             Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
