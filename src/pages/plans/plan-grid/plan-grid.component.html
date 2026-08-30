@@ -52,7 +52,7 @@
   <!-- ========================================================================= -->
   <!-- 2. SEARCH & FILTER CONTROLS (LMS MATCHED DESIGN PATTERN)                 -->
   <!-- ========================================================================= -->
-  <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/90 dark:border-base-300 p-4 sm:p-5 shadow-2xs space-y-4">
+  <div class="relative z-30 bg-white dark:bg-base-100 rounded-3xl border border-slate-200/90 dark:border-base-300 p-4 sm:p-5 shadow-2xs space-y-4">
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       
       <!-- Left: Search Field & Filter Button & Reset -->
@@ -142,7 +142,7 @@
                   [checked]="draftFilters().status.includes('Active')"
                   (change)="toggleStatusDraft('Active')"
                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#FF007A] focus:ring-0 focus:outline-none cursor-pointer" />
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Active')">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Active')">
                   <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Active')"></span>
                   Active
                 </span>
@@ -155,7 +155,7 @@
                   [checked]="draftFilters().status.includes('Under Processing')"
                   (change)="toggleStatusDraft('Under Processing')"
                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#FF007A] focus:ring-0 focus:outline-none cursor-pointer" />
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Under Processing')">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Under Processing')">
                   <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Under Processing')"></span>
                   Under Processing
                 </span>
@@ -168,7 +168,7 @@
                   [checked]="draftFilters().status.includes('Drafted')"
                   (change)="toggleStatusDraft('Drafted')"
                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#FF007A] focus:ring-0 focus:outline-none cursor-pointer" />
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Drafted')">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Drafted')">
                   <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Drafted')"></span>
                   Drafted
                 </span>
@@ -181,7 +181,7 @@
                   [checked]="draftFilters().status.includes('Trial')"
                   (change)="toggleStatusDraft('Trial')"
                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#FF007A] focus:ring-0 focus:outline-none cursor-pointer" />
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Trial')">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Trial')">
                   <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Trial')"></span>
                   Trial
                 </span>

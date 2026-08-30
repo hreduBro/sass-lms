@@ -1,4 +1,4 @@
-export type PlanStatus = 'Draft' | 'Published' | 'Active' | 'Completed' | 'Archived';
+export type PlanStatus = 'Draft' | 'Published' | 'Active' | 'Completed' | 'Archived' | 'Under Processing' | 'Drafted' | 'Trial' | 'In-Progress' | 'Deactivated' | 'Suspended';
 export type DurationType = 'Yearly' | 'Half-Yearly' | 'Quarterly';
 export type EnrollmentType = 'Open' | 'Closed';
 

@@ -315,9 +315,9 @@
               Enable repeating cycles where the same Plan Code is retained and learner progress is preserved.
             </p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" formControlName="recurringPlan" class="sr-only peer">
-            <div class="w-10 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-600"></div>
+          <label class="relative inline-flex items-center cursor-pointer select-none">
+            <input id="plan-recurring-toggle" type="checkbox" formControlName="recurringPlan" class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#ec008c]/20 rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-sm after:transition-transform duration-200 ease-in-out peer-checked:bg-[#ec008c] transition-colors"></div>
           </label>
         </div>
 
@@ -862,17 +862,20 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between p-4 rounded-2xl bg-base-200/40 border border-base-300">
+        <div class="flex items-center justify-between p-4 rounded-2xl bg-base-200/40 border border-base-300 dark:border-slate-800" formGroupName="recurring">
           <div>
             <div class="font-bold text-xs text-text-primary">Enable Recurring Cycles</div>
             <div class="text-[11px] text-text-secondary">Retains Plan Code {{ generatedPlanCode() }} across all recurrence cycles.</div>
           </div>
-          <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+          <label class="relative inline-flex items-center cursor-pointer select-none">
+            <input id="plan-recurring-cycles-toggle" type="checkbox" formControlName="enabled" class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#ec008c]/20 rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-sm after:transition-transform duration-200 ease-in-out peer-checked:bg-[#ec008c] transition-colors"></div>
+          </label>
         </div>
 
         @if (planForm.get('recurring.enabled')?.value) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div formGroupName="recurring">
               <app-custom-select
                 [label]="'Recurrence Cycle Interval'"
                 [options]="recurrenceIntervalOptions"
@@ -880,12 +883,15 @@
               </app-custom-select>
             </div>
 
-            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+            <div class="p-4 rounded-2xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 flex items-center justify-between">
               <div>
                 <span class="font-bold text-xs text-text-primary">Alumni Community Indexing</span>
                 <p class="text-[11px] text-text-secondary">Index graduates into organizational alumni directory.</p>
               </div>
-              <input type="checkbox" [formControl]="$any(planForm.get('alumniTracking'))" class="text-tenant-600 rounded">
+              <label class="relative inline-flex items-center cursor-pointer select-none">
+                <input id="plan-alumni-tracking-toggle" type="checkbox" [formControl]="$any(planForm.get('alumniTracking'))" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#ec008c]/20 rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-sm after:transition-transform duration-200 ease-in-out peer-checked:bg-[#ec008c] transition-colors"></div>
+              </label>
             </div>
           </div>
         }

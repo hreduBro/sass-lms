@@ -93,13 +93,17 @@ export interface SelectOption {
       <!-- Dropdown Popover Menu (Matching Image 2 Floating Overlay) -->
       @if (isOpen()) {
         <div 
-          class="absolute z-[999] mt-1.5 w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
-          [ngClass]="customDropdownClass()"
+          class="absolute z-[999] mt-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
+          [ngClass]="[
+            dropdownAlign() === 'right' ? 'right-0' : 'left-0',
+            'w-full min-w-[280px] sm:min-w-[340px] max-w-[calc(100vw-2rem)]',
+            customDropdownClass()
+          ]"
           role="listbox">
           
           <!-- Search Bar if searchable or more than 8 options -->
           @if (shouldShowSearch()) {
-            <div class="p-2 border-b border-base-300 bg-base-200/50 dark:bg-slate-800/50">
+            <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-slate-800/50">
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-2.5 top-2 text-text-secondary text-sm">search</span>
                 <input 
@@ -110,12 +114,12 @@ export interface SelectOption {
                   placeholder="Search..."
                   (click)="$event.stopPropagation()"
                   (keydown)="onSearchKeydown($event)"
-                  class="w-full pl-8 pr-3 py-1.5 rounded-lg bg-base-100 dark:bg-slate-800 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500" />
+                  class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
                 @if (searchQuery()) {
                   <button 
                     type="button" 
                     (click)="searchQuery.set(''); $event.stopPropagation()"
-                    class="absolute right-2 top-2 text-text-secondary hover:text-text-primary text-xs">
+                    class="absolute right-2.5 top-2 text-text-secondary hover:text-text-primary text-xs">
                     ✕
                   </button>
                 }
@@ -124,7 +128,7 @@ export interface SelectOption {
           }
 
           <!-- Options List with Custom Smooth Scrollbar -->
-          <div class="overflow-y-auto p-1.5 space-y-1 max-h-56 flex-1 custom-select-scrollbar">
+          <div class="overflow-y-auto p-1.5 space-y-1 max-h-60 flex-1 custom-select-scrollbar">
             @if (normalizedFilteredOptions().length === 0) {
               <div class="px-3 py-4 text-center text-xs text-text-secondary">
                 No matching options found
@@ -162,7 +166,7 @@ export interface SelectOption {
 
                   <div class="flex items-center gap-1.5 shrink-0">
                     @if (opt.badge) {
-                      <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-base-300 text-text-secondary'">
+                      <span class="text-[10px] px-2 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-base-300 text-text-secondary'">
                         {{ opt.badge }}
                       </span>
                     }
@@ -231,6 +235,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
   leadingIcon = input<string>('');
   error = input<string>('');
   size = input<'sm' | 'md' | 'lg'>('md');
+  dropdownAlign = input<'left' | 'right' | 'auto'>('auto');
   customTriggerClass = input<string>('');
   customDropdownClass = input<string>('');
 

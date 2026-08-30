@@ -166,8 +166,17 @@ export class PlanGridComponent implements OnInit {
       }
 
       // Status filter (OR within category)
-      if (f.status.length > 0 && !f.status.includes(p.status)) {
-        return false;
+      if (f.status.length > 0) {
+        const matchesStatus = f.status.some(st => {
+          if (st === p.status) return true;
+          if ((st === 'Drafted' || st === 'Draft') && (p.status === 'Draft' || p.status === 'Drafted')) return true;
+          if ((st === 'Under Processing' || st === 'In-Progress') && (p.status === 'Under Processing' || p.status === 'In-Progress')) return true;
+          if ((st === 'Archived' || st === 'Deactivated' || st === 'Suspended') && (p.status === 'Archived' || p.status === 'Deactivated' || p.status === 'Suspended')) return true;
+          return false;
+        });
+        if (!matchesStatus) {
+          return false;
+        }
       }
 
       // Plan Owner filter
@@ -564,16 +573,24 @@ export class PlanGridComponent implements OnInit {
     switch (status) {
       case 'Active':
         return 'bg-[#E8FAF4] text-[#059669] border-[#34D399] dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700';
+      case 'Under Processing':
+      case 'In-Progress':
+        return 'bg-[#FFFBEB] text-[#D97706] border-[#FBBF24] dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-600';
+      case 'Draft':
+      case 'Drafted':
+        return 'bg-[#F1F5F9] text-[#475569] border-[#94A3B8] dark:bg-slate-900/60 dark:text-slate-300 dark:border-slate-600';
+      case 'Trial':
+        return 'bg-[#FDF2F8] text-[#DB2777] border-[#F472B6] dark:bg-pink-950/60 dark:text-pink-300 dark:border-pink-700';
       case 'Published':
         return 'bg-sky-50 text-sky-700 border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700';
-      case 'Draft':
-        return 'bg-[#F1F5F9] text-[#475569] border-[#94A3B8] dark:bg-slate-900/60 dark:text-slate-300 dark:border-slate-600';
       case 'Completed':
         return 'bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-700';
       case 'Archived':
+      case 'Deactivated':
+      case 'Suspended':
         return 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-300';
+        return 'bg-slate-50 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600';
     }
   }
 
@@ -581,13 +598,21 @@ export class PlanGridComponent implements OnInit {
     switch (status) {
       case 'Active':
         return 'bg-[#10B981]';
+      case 'Under Processing':
+      case 'In-Progress':
+        return 'bg-[#F59E0B]';
+      case 'Draft':
+      case 'Drafted':
+        return 'bg-[#64748B]';
+      case 'Trial':
+        return 'bg-[#EC4899]';
       case 'Published':
         return 'bg-sky-500';
-      case 'Draft':
-        return 'bg-[#64748B]';
       case 'Completed':
         return 'bg-purple-500';
       case 'Archived':
+      case 'Deactivated':
+      case 'Suspended':
         return 'bg-[#EF4444]';
       default:
         return 'bg-slate-400';

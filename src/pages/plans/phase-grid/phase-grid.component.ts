@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, Phase, PhaseStatus } from '../../../models/plan.model';
 import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details-modal.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 export interface PhaseWithPlanContext extends Phase {
   parentPlanName: string;
@@ -24,7 +25,8 @@ export interface PhaseGridFilters {
     CommonModule, 
     FormsModule, 
     RouterModule,
-    PhaseDetailsModalComponent
+    PhaseDetailsModalComponent,
+    CustomSelectComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './phase-grid.component.html',
@@ -85,6 +87,41 @@ export class PhaseGridComponent implements OnInit {
 
   // All plans in active LMS
   plansList = computed<Plan[]>(() => this.lms.activeLmsPlans());
+
+  // Plan options for CustomSelectComponent in filter drawer
+  planFilterOptions = computed<SelectOption[]>(() => {
+    const plans = this.plansList();
+    return [
+      { value: null, label: 'All Learning Plans (Workspace)', icon: 'layers' },
+      ...plans.map(p => ({
+        value: p.id,
+        label: p.name,
+        sublabel: p.planCode,
+        badge: p.status,
+        badgeClass: this.getPlanStatusBadgeClass(p.status),
+        icon: 'event_note'
+      }))
+    ];
+  });
+
+  getPlanStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'Active':
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800';
+      case 'Published':
+        return 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800';
+      case 'Draft':
+      case 'Drafted':
+        return 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+      case 'Completed':
+        return 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800';
+      case 'Archived':
+      case 'Deactivated':
+        return 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800';
+      default:
+        return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800';
+    }
+  }
 
   // Filtered plans inside selection modal
   filteredModalPlans = computed<Plan[]>(() => {
