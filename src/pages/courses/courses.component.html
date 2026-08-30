@@ -61,7 +61,7 @@
           type="checkbox" 
           [checked]="mandatoryOnly()" 
           (change)="mandatoryOnly.set(!mandatoryOnly()); onFilterChange()"
-          class="rounded text-tenant-500 focus:ring-tenant-500" />
+          class="rounded w-4 h-4 accent-tenant-500 cursor-pointer focus:ring-0" />
         <span>Mandatory Compliance Only</span>
       </label>
     </div>
@@ -321,7 +321,7 @@
               type="checkbox" 
               [(ngModel)]="newCourse.isMandatory" 
               name="isMandatory"
-              class="rounded text-tenant-500 focus:ring-0" />
+              class="rounded w-4 h-4 accent-tenant-500 cursor-pointer focus:ring-0" />
             <span>Mark as Mandatory Organizational Compliance</span>
           </label>
 

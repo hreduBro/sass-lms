@@ -59,6 +59,11 @@ export class PlanCreateComponent implements OnInit {
   // Active Wizard Step (1 through 11)
   currentStep = signal<number>(1);
   completedSteps = signal<Set<number>>(new Set());
+  stepperOrientation = signal<'horizontal' | 'vertical'>('vertical');
+
+  progressPercent = computed<number>(() => {
+    return Math.round((this.completedSteps().size / this.steps.length) * 100);
+  });
 
   // Action / State signals
   isSubmitting = signal(false);
@@ -487,11 +492,16 @@ export class PlanCreateComponent implements OnInit {
     this.lmsData.showToast(msg, type, 4000, title, badge);
   }
 
-  // Smoothly position active step element at the front of the horizontal stepper
+  // Smoothly position active step element
   scrollToActiveStep(stepId: number) {
     setTimeout(() => {
+      const vStepEl = document.getElementById(`app-step-item-v-${stepId}`);
+      if (vStepEl) {
+        vStepEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
       const container = document.getElementById('plan-stepper-container');
-      const stepEl = document.getElementById(`plan-step-item-${stepId}`);
+      const stepEl = document.getElementById(`app-step-item-${stepId}`) || document.getElementById(`plan-step-item-${stepId}`);
       if (container && stepEl) {
         const containerRect = container.getBoundingClientRect();
         const stepRect = stepEl.getBoundingClientRect();

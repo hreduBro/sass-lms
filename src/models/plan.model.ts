@@ -238,10 +238,13 @@ export interface PlanGridFilter {
   search: string;
   status: PlanStatus[];
   planOwnerEmail: string | null;
+  planOwnerEmails?: string[];
   durationType: DurationType[];
   enrollmentType: EnrollmentType[];
   startDate: string | null;
   endDate: string | null;
+  createdDateFrom?: string | null;
+  createdDateTo?: string | null;
 }
 
 export const INITIAL_PLANS: Plan[] = [

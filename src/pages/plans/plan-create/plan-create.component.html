@@ -1,4 +1,4 @@
-<div class="space-y-6 pb-16 max-w-6xl mx-auto">
+<div class="space-y-6 pb-16 max-w-7xl mx-auto">
   
   <!-- ================================================================= -->
   <!-- HEADER & BREADCRUMB CONTEXT                                        -->
@@ -54,30 +54,47 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- COMMON REUSABLE STEPPER COMPONENT (11 STEPS)                      -->
+  <!-- MAIN 2-COLUMN WIZARD LAYOUT: LEFT STEPPER & RIGHT FORM            -->
   <!-- ================================================================= -->
-  <app-stepper
-    [steps]="steps"
-    [currentStep]="currentStep()"
-    [completedSteps]="completedSteps()"
-    (stepChange)="goToStep($event)">
-  </app-stepper>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- LEFT SIDE: Sticky Stepper Navigation Rail                         -->
+    <div class="lg:col-span-4 xl:col-span-3 space-y-4 lg:sticky lg:top-4 z-10">
+      <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xs transition-all">
+        
+        <!-- Vertical Stepper List (Premium Sleek Navigation with Hidden Raw Scrollbar) -->
+        <div class="max-h-[calc(100vh-100px)] overflow-y-auto no-scrollbar scroll-smooth">
+          <app-stepper
+            [steps]="steps"
+            [currentStep]="currentStep()"
+            [completedSteps]="completedSteps()"
+            orientation="vertical"
+            containerClass="border-0 shadow-none p-0 bg-transparent"
+            (stepChange)="goToStep($event)">
+          </app-stepper>
+        </div>
 
-  <!-- Mandatory Field Error Alert -->
-  @if (formErrorAlert()) {
-    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
-        <span>{{ formErrorAlert() }}</span>
       </div>
-      <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
-        <span class="material-symbols-outlined text-sm">close</span>
-      </button>
     </div>
-  }
 
-  <!-- Main Form Wrapper -->
-  <form [formGroup]="planForm" class="space-y-6">
+    <!-- RIGHT SIDE: Main Form Sections & Alerts                          -->
+    <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+
+      <!-- Mandatory Field Error Alert -->
+      @if (formErrorAlert()) {
+        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+            <span>{{ formErrorAlert() }}</span>
+          </div>
+          <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      }
+
+      <!-- Main Form Wrapper -->
+      <form [formGroup]="planForm" class="space-y-6">
 
     <!-- ================================================================= -->
     <!-- SECTION 01 — BASIC INFORMATION (§3)                               -->
@@ -562,7 +579,7 @@
           <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-2">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-text-primary">Seat Capacity Limit</span>
-              <input type="checkbox" formControlName="capacityEnabled" class="text-tenant-600 rounded">
+              <input type="checkbox" formControlName="capacityEnabled" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
             </div>
             @if (planForm.get('enrollment.capacityEnabled')?.value) {
               <input 
@@ -577,7 +594,7 @@
           <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-2">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-text-primary">Waitlist Queue</span>
-              <input type="checkbox" formControlName="waitlistEnabled" class="text-tenant-600 rounded">
+              <input type="checkbox" formControlName="waitlistEnabled" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
             </div>
             <p class="text-[11px] text-text-secondary">Automatically queue applicants once capacity is reached.</p>
           </div>
@@ -608,7 +625,7 @@
               <div class="font-bold text-xs text-text-primary">Same Published Course Version</div>
               <div class="text-[11px] text-text-secondary">Trainee completion of identical version automatically satisfies course requirement.</div>
             </div>
-            <input type="checkbox" formControlName="samePublishedVersionSatisfies" class="text-tenant-600 rounded">
+            <input type="checkbox" formControlName="samePublishedVersionSatisfies" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
 
           <div class="flex items-center justify-between p-4 rounded-2xl bg-base-200/40 border border-base-300">
@@ -616,7 +633,7 @@
               <div class="font-bold text-xs text-text-primary">Newer Course Version Policy</div>
               <div class="text-[11px] text-text-secondary">Require re-taking when the plan references a newer revised syllabus version.</div>
             </div>
-            <input type="checkbox" formControlName="newerVersionRequiresRetake" class="text-tenant-600 rounded">
+            <input type="checkbox" formControlName="newerVersionRequiresRetake" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
 
           <div>
@@ -745,7 +762,7 @@
               <span class="font-bold text-xs text-text-primary">Plan-Level Certificate Release</span>
               <p class="text-[11px] text-text-secondary">Release certificate only upon 100% Plan completion & passing score.</p>
             </div>
-            <input type="checkbox" formControlName="enabledAtPlan" class="text-tenant-600 rounded">
+            <input type="checkbox" formControlName="enabledAtPlan" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
         </div>
 
@@ -780,7 +797,7 @@
         <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-3" formGroupName="preTest">
           <div class="flex items-center justify-between">
             <span class="font-bold text-xs text-text-primary">Pre-Test Diagnostic</span>
-            <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+            <input type="checkbox" formControlName="enabled" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
           @if (planForm.get('evaluation.preTest.enabled')?.value) {
             <app-custom-select
@@ -795,7 +812,7 @@
         <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-3" formGroupName="postTest">
           <div class="flex items-center justify-between">
             <span class="font-bold text-xs text-text-primary">Summative Post-Test</span>
-            <input type="checkbox" formControlName="enabled" class="text-tenant-600 rounded">
+            <input type="checkbox" formControlName="enabled" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
           @if (planForm.get('evaluation.postTest.enabled')?.value) {
             <app-custom-select
@@ -839,7 +856,7 @@
               <span class="font-bold text-xs text-text-primary">Discussion Forum</span>
               <p class="text-[11px] text-text-secondary">Enable dedicated cohort discussion thread.</p>
             </div>
-            <input type="checkbox" [formControl]="$any(planForm.get('engagement.forum.enabled'))" class="text-tenant-600 rounded">
+            <input type="checkbox" [formControl]="$any(planForm.get('engagement.forum.enabled'))" class="w-4.5 h-4.5 rounded-md accent-tenant-500 cursor-pointer">
           </div>
         </div>
 
@@ -1055,6 +1072,9 @@
     </div>
 
   </form>
+
+    </div>
+  </div>
 
   <!-- ================================================================= -->
   <!-- MODAL: ADD / EDIT PHASE (§4.2)                                    -->

@@ -14,6 +14,7 @@ import {
 } from '../../../models/plan.model';
 import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-modal.component';
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-plan-grid',
@@ -22,7 +23,8 @@ import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.compo
     FormsModule, 
     RouterModule,
     AssignOwnerModalComponent,
-    EditPlanModalComponent
+    EditPlanModalComponent,
+    CustomSelectComponent
   ],
   templateUrl: './plan-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,10 +56,13 @@ export class PlanGridComponent implements OnInit {
     search: '',
     status: [],
     planOwnerEmail: null,
+    planOwnerEmails: [],
     durationType: [],
     enrollmentType: [],
     startDate: null,
-    endDate: null
+    endDate: null,
+    createdDateFrom: null,
+    createdDateTo: null
   });
 
   // Applied filters driving the grid data
@@ -65,10 +70,13 @@ export class PlanGridComponent implements OnInit {
     search: '',
     status: [],
     planOwnerEmail: null,
+    planOwnerEmails: [],
     durationType: [],
     enrollmentType: [],
     startDate: null,
-    endDate: null
+    endDate: null,
+    createdDateFrom: null,
+    createdDateTo: null
   });
 
   // Sorting
@@ -100,31 +108,60 @@ export class PlanGridComponent implements OnInit {
 
   draftPlans = computed(() => this.plans().filter(p => p.status === 'Draft'));
 
-  // Owner options derived from existing plans
-  ownerOptions = computed<{ name: string; email: string }[]>(() => {
+  // Owner options derived from existing plans + well-known organization plan owners
+  ownerOptions = computed<SelectOption[]>(() => {
     const list = this.plans();
     const map = new Map<string, string>();
+    
+    // Seed with existing plan owners
     list.forEach(p => {
       if (p.owner?.email && p.owner?.name) {
         map.set(p.owner.email, p.owner.name);
       }
     });
-    const result: { name: string; email: string }[] = [];
+
+    // Add standard qualified plan owners / coordinators
+    const defaultInstructors = [
+      { name: 'Tanvir Hossain', email: 'tanvir.hossain@brac.net' },
+      { name: 'Farhana Ahmed', email: 'farhana.ahmed@brac.net' },
+      { name: 'Mahmudur Rahman', email: 'mahmud.rahman@brac.net' },
+      { name: 'Nusrat Jahan', email: 'nusrat.jahan@brac.net' },
+      { name: 'Joy Basak', email: 'basakjoy125@gmail.com' }
+    ];
+
+    defaultInstructors.forEach(item => {
+      if (!map.has(item.email)) {
+        map.set(item.email, item.name);
+      }
+    });
+
+    const result: SelectOption[] = [];
     map.forEach((name, email) => {
-      result.push({ name, email });
+      result.push({
+        value: email,
+        label: name,
+        sublabel: email,
+        icon: 'person'
+      });
     });
     return result;
   });
+
+  // Draft selected owner emails helper
+  draftSelectedOwners = computed(() => this.draftFilters().planOwnerEmails || []);
 
   // Check if any filters are active
   hasActiveFilters = computed<boolean>(() => {
     const f = this.appliedFilters();
     return f.status.length > 0 || 
+           (!!f.planOwnerEmails && f.planOwnerEmails.length > 0) ||
            !!f.planOwnerEmail || 
            f.durationType.length > 0 || 
            f.enrollmentType.length > 0 || 
            !!f.startDate || 
-           !!f.endDate;
+           !!f.endDate ||
+           !!f.createdDateFrom ||
+           !!f.createdDateTo;
   });
 
   // Check if grid has either active search or active filter (triggers Reset button)
@@ -136,10 +173,15 @@ export class PlanGridComponent implements OnInit {
   activeFilterCount = computed<number>(() => {
     const f = this.appliedFilters();
     let count = f.status.length;
-    if (f.planOwnerEmail) count++;
+    if (f.planOwnerEmails && f.planOwnerEmails.length > 0) {
+      count += f.planOwnerEmails.length;
+    } else if (f.planOwnerEmail) {
+      count++;
+    }
     count += f.durationType.length;
     count += f.enrollmentType.length;
     if (f.startDate || f.endDate) count++;
+    if (f.createdDateFrom || f.createdDateTo) count++;
     return count;
   });
 
@@ -179,8 +221,12 @@ export class PlanGridComponent implements OnInit {
         }
       }
 
-      // Plan Owner filter
-      if (f.planOwnerEmail && p.owner?.email !== f.planOwnerEmail) {
+      // Plan Owner multi-select filter (OR logic among selected owners)
+      if (f.planOwnerEmails && f.planOwnerEmails.length > 0) {
+        if (!p.owner?.email || !f.planOwnerEmails.includes(p.owner.email)) {
+          return false;
+        }
+      } else if (f.planOwnerEmail && p.owner?.email !== f.planOwnerEmail) {
         return false;
       }
 
@@ -208,6 +254,24 @@ export class PlanGridComponent implements OnInit {
         const toDate = this.parseDate(f.endDate);
         const planEndDate = parseDateDDMMYYYY(p.endDate);
         if (toDate && planEndDate && planEndDate.getTime() > toDate.getTime()) {
+          return false;
+        }
+      }
+
+      // Created Date From comparison
+      if (f.createdDateFrom) {
+        const fromDate = this.parseDate(f.createdDateFrom);
+        const planCreatedDate = parseDateDDMMYYYY(p.createdDate);
+        if (fromDate && planCreatedDate && planCreatedDate.getTime() < fromDate.getTime()) {
+          return false;
+        }
+      }
+
+      // Created Date To comparison
+      if (f.createdDateTo) {
+        const toDate = this.parseDate(f.createdDateTo);
+        const planCreatedDate = parseDateDDMMYYYY(p.createdDate);
+        if (toDate && planCreatedDate && planCreatedDate.getTime() > toDate.getTime()) {
           return false;
         }
       }
@@ -245,6 +309,25 @@ export class PlanGridComponent implements OnInit {
       });
     });
 
+    // Multi-selected plan owners
+    if (f.planOwnerEmails && f.planOwnerEmails.length > 0) {
+      f.planOwnerEmails.forEach(email => {
+        badges.push({
+          id: `owner-${email}`,
+          label: 'Plan Owner',
+          value: this.getOwnerDisplayName(email),
+          remove: () => this.removeOwnerEmailFilter(email)
+        });
+      });
+    } else if (f.planOwnerEmail) {
+      badges.push({
+        id: 'owner',
+        label: 'Plan Owner',
+        value: this.getOwnerDisplayName(f.planOwnerEmail),
+        remove: () => this.removeOwnerFilter()
+      });
+    }
+
     f.durationType.forEach(dt => {
       badges.push({
         id: `duration-${dt}`,
@@ -263,19 +346,10 @@ export class PlanGridComponent implements OnInit {
       });
     });
 
-    if (f.planOwnerEmail) {
-      badges.push({
-        id: 'owner',
-        label: 'Owner',
-        value: this.getOwnerDisplayName(f.planOwnerEmail),
-        remove: () => this.removeOwnerFilter()
-      });
-    }
-
     if (f.startDate) {
       badges.push({
         id: 'startDate',
-        label: 'From Date',
+        label: 'Start Date',
         value: f.startDate,
         remove: () => this.removeStartDateFilter()
       });
@@ -284,9 +358,27 @@ export class PlanGridComponent implements OnInit {
     if (f.endDate) {
       badges.push({
         id: 'endDate',
-        label: 'To Date',
+        label: 'End Date',
         value: f.endDate,
         remove: () => this.removeEndDateFilter()
+      });
+    }
+
+    if (f.createdDateFrom) {
+      badges.push({
+        id: 'createdDateFrom',
+        label: 'Created From',
+        value: f.createdDateFrom,
+        remove: () => this.removeCreatedDateFromFilter()
+      });
+    }
+
+    if (f.createdDateTo) {
+      badges.push({
+        id: 'createdDateTo',
+        label: 'Created To',
+        value: f.createdDateTo,
+        remove: () => this.removeCreatedDateToFilter()
       });
     }
 
@@ -450,12 +542,24 @@ export class PlanGridComponent implements OnInit {
     this.draftFilters.update(f => ({ ...f, planOwnerEmail: email }));
   }
 
+  onDraftOwnersChange(emails: string[]) {
+    this.draftFilters.update(f => ({ ...f, planOwnerEmails: emails || [] }));
+  }
+
   setDateFromDraft(dateStr: string) {
     this.draftFilters.update(f => ({ ...f, startDate: dateStr || null }));
   }
 
   setDateToDraft(dateStr: string) {
     this.draftFilters.update(f => ({ ...f, endDate: dateStr || null }));
+  }
+
+  setCreatedDateFromDraft(dateStr: string) {
+    this.draftFilters.update(f => ({ ...f, createdDateFrom: dateStr || null }));
+  }
+
+  setCreatedDateToDraft(dateStr: string) {
+    this.draftFilters.update(f => ({ ...f, createdDateTo: dateStr || null }));
   }
 
   applyFilterPanel() {
@@ -469,10 +573,13 @@ export class PlanGridComponent implements OnInit {
       search: '',
       status: [],
       planOwnerEmail: null,
+      planOwnerEmails: [],
       durationType: [],
       enrollmentType: [],
       startDate: null,
-      endDate: null
+      endDate: null,
+      createdDateFrom: null,
+      createdDateTo: null
     });
   }
 
@@ -493,8 +600,19 @@ export class PlanGridComponent implements OnInit {
   }
 
   removeOwnerFilter() {
-    this.appliedFilters.update(f => ({ ...f, planOwnerEmail: null }));
-    this.draftFilters.update(f => ({ ...f, planOwnerEmail: null }));
+    this.appliedFilters.update(f => ({ ...f, planOwnerEmail: null, planOwnerEmails: [] }));
+    this.draftFilters.update(f => ({ ...f, planOwnerEmail: null, planOwnerEmails: [] }));
+  }
+
+  removeOwnerEmailFilter(email: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      planOwnerEmails: (f.planOwnerEmails || []).filter(e => e !== email)
+    }));
+    this.draftFilters.update(f => ({
+      ...f,
+      planOwnerEmails: (f.planOwnerEmails || []).filter(e => e !== email)
+    }));
   }
 
   removeStartDateFilter() {
@@ -507,6 +625,16 @@ export class PlanGridComponent implements OnInit {
     this.draftFilters.update(f => ({ ...f, endDate: null }));
   }
 
+  removeCreatedDateFromFilter() {
+    this.appliedFilters.update(f => ({ ...f, createdDateFrom: null }));
+    this.draftFilters.update(f => ({ ...f, createdDateFrom: null }));
+  }
+
+  removeCreatedDateToFilter() {
+    this.appliedFilters.update(f => ({ ...f, createdDateTo: null }));
+    this.draftFilters.update(f => ({ ...f, createdDateTo: null }));
+  }
+
   clearAllFilters() {
     this.resetGrid();
   }
@@ -517,27 +645,33 @@ export class PlanGridComponent implements OnInit {
       search: '',
       status: [],
       planOwnerEmail: null,
+      planOwnerEmails: [],
       durationType: [],
       enrollmentType: [],
       startDate: null,
-      endDate: null
+      endDate: null,
+      createdDateFrom: null,
+      createdDateTo: null
     });
     this.draftFilters.set({
       search: '',
       status: [],
       planOwnerEmail: null,
+      planOwnerEmails: [],
       durationType: [],
       enrollmentType: [],
       startDate: null,
-      endDate: null
+      endDate: null,
+      createdDateFrom: null,
+      createdDateTo: null
     });
     this.lmsData.showToast('Reset grid to default view', 'info');
   }
 
   getOwnerDisplayName(email: string | null): string {
     if (!email) return '';
-    const opt = this.ownerOptions().find(o => o.email === email);
-    return opt ? opt.name : email;
+    const opt = this.ownerOptions().find(o => o.value === email || (o as any).email === email);
+    return opt ? opt.label : email;
   }
 
   toggleSort(field: 'createdDate' | 'name' | 'startDate') {
