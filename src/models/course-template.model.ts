@@ -254,8 +254,8 @@ export const INITIAL_COURSE_TEMPLATES: CourseTemplate[] = [
     visibility: { mode: 'all_lms_instructors' },
     createdBy: 'Farhana Ahmed',
     createdById: 'usr-brac-1',
-    createdAt: '12/01/2026 09:30:00',
-    updatedAt: '24/02/2026 14:15:00',
+    createdAt: '2026-01-12T09:30:00Z',
+    updatedAt: '2026-02-24T14:15:00Z',
     structure: {
       modules: [
         {
@@ -337,8 +337,8 @@ export const INITIAL_COURSE_TEMPLATES: CourseTemplate[] = [
     visibility: { mode: 'all_lms_instructors' },
     createdBy: 'Tanvir Hossain',
     createdById: 'usr-brac-2',
-    createdAt: '18/01/2026 11:00:00',
-    updatedAt: '20/02/2026 16:40:00',
+    createdAt: '2026-01-18T11:00:00Z',
+    updatedAt: '2026-02-20T16:40:00Z',
     structure: {
       modules: [
         {
@@ -406,8 +406,8 @@ export const INITIAL_COURSE_TEMPLATES: CourseTemplate[] = [
     visibility: { mode: 'all_lms_instructors' },
     createdBy: 'Shakil Anwar',
     createdById: 'usr-brac-shakil',
-    createdAt: '02/02/2026 10:15:00',
-    updatedAt: '15/02/2026 12:00:00',
+    createdAt: '2026-02-02T10:15:00Z',
+    updatedAt: '2026-02-15T12:00:00Z',
     structure: {
       modules: [
         {
@@ -487,8 +487,8 @@ export const INITIAL_COURSE_TEMPLATES: CourseTemplate[] = [
     visibility: { mode: 'all_lms_instructors' },
     createdBy: 'Nusrat Jahan',
     createdById: 'usr-brac-3',
-    createdAt: '10/02/2026 14:20:00',
-    updatedAt: '25/02/2026 11:30:00',
+    createdAt: '2026-02-10T14:20:00Z',
+    updatedAt: '2026-02-25T11:30:00Z',
     structure: {
       modules: [
         {
@@ -556,8 +556,8 @@ export const INITIAL_COURSE_TEMPLATES: CourseTemplate[] = [
     visibility: { mode: 'restricted', allowedUserIds: ['usr-brac-1'] },
     createdBy: 'Farhana Ahmed',
     createdById: 'usr-brac-1',
-    createdAt: '26/02/2026 15:45:00',
-    updatedAt: '27/02/2026 17:10:00',
+    createdAt: '2026-02-26T15:45:00Z',
+    updatedAt: '2026-02-27T17:10:00Z',
     structure: {
       modules: [
         {

@@ -340,7 +340,7 @@
               <th class="py-3.5 px-4">Outputs</th>
 
               <!-- STICKY ACTION HEADER (Exact Plan Design Match) -->
-              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-20 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
                 Actions
               </th>
 
@@ -366,8 +366,8 @@
                       <span class="material-symbols-outlined text-base">account_tree</span>
                     </div>
                     <div class="min-w-0">
-                      <span class="font-bold text-text-primary group-hover:text-tenant-600 transition-colors block line-clamp-1">{{ phase.name }}</span>
-                      <span class="text-[10px] text-text-secondary font-mono block">{{ phase.id }}</span>
+                      <span class="font-bold text-text-primary group-hover:text-tenant-600 transition-colors block line-clamp-1">{{ phase.name || 'Untitled Phase' }}</span>
+                      <span class="text-[10px] text-text-secondary font-mono block">{{ phase.id || 'PHASE' }}</span>
                     </div>
                   </div>
                 </td>
@@ -375,28 +375,28 @@
                 <!-- 3. Parent Plan -->
                 <td class="py-3 px-4 border-b border-base-300/60" (click)="$event.stopPropagation()">
                   <a [routerLink]="['/plans/details', phase.planId]" class="hover:underline font-semibold text-tenant-600 dark:text-tenant-400 block truncate max-w-[180px]">
-                    {{ phase.parentPlanName }}
+                    {{ phase.parentPlanName || 'Parent Plan' }}
                   </a>
                   <span class="text-[10px] font-mono text-text-secondary bg-base-200 px-1.5 py-0.2 rounded font-bold border border-base-300/60 mt-0.5 inline-block">
-                    {{ phase.parentPlanCode }}
+                    {{ phase.parentPlanCode || 'PLN' }}
                   </span>
                 </td>
 
                 <!-- 4. Start Date -->
                 <td class="py-3 px-4 whitespace-nowrap font-mono text-text-primary border-b border-base-300/60">
-                  {{ phase.startDate }}
+                  {{ phase.startDate || '—' }}
                 </td>
 
                 <!-- 5. End Date -->
                 <td class="py-3 px-4 whitespace-nowrap font-mono text-text-primary border-b border-base-300/60">
-                  {{ phase.endDate }}
+                  {{ phase.endDate || '—' }}
                 </td>
 
                 <!-- 6. Courses Count -->
                 <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
                   <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                     <span class="material-symbols-outlined text-xs">school</span>
-                    {{ phase.courseCount }}
+                    {{ phase.courseCount || 0 }}
                   </span>
                 </td>
 
@@ -404,7 +404,7 @@
                 <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
                   <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-base-200 text-text-primary border border-base-300">
                     <span class="material-symbols-outlined text-xs text-text-secondary">task_alt</span>
-                    {{ phase.taskCount }}
+                    {{ phase.taskCount || 0 }}
                   </span>
                 </td>
 
@@ -412,24 +412,24 @@
                 <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
                   <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                     <span class="material-symbols-outlined text-xs">co_present</span>
-                    {{ phase.deliveryClassCount }}
+                    {{ phase.deliveryClassCount || 0 }}
                   </span>
                 </td>
 
                 <!-- 9. Status -->
                 <td class="py-3 px-4 min-w-[130px] whitespace-nowrap border-b border-base-300/60">
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1.5"
-                        [class]="getStatusBadgeClass(phase.status)">
-                    <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(phase.status)"></span>
-                    {{ phase.status }}
+                        [class]="getStatusBadgeClass(phase.status || 'Ready')">
+                    <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(phase.status || 'Ready')"></span>
+                    {{ phase.status || 'Ready' }}
                   </span>
                 </td>
 
                 <!-- 10. Credentials Outputs -->
                 <td class="py-3 px-4 whitespace-nowrap border-b border-base-300/60">
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase"
-                        [ngClass]="getCertificateBadgeClass(phase.certificateBadgeStatus)">
-                    {{ phase.certificateBadgeStatus }}
+                        [ngClass]="getCertificateBadgeClass(phase.certificateBadgeStatus || 'Configured')">
+                    {{ phase.certificateBadgeStatus || 'Configured' }}
                   </span>
                 </td>
 

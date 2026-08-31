@@ -411,7 +411,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
                     <th class="py-3 px-4 text-center">Delivery Classes</th>
                     <th class="py-3 px-4">Prerequisites</th>
                     <th class="py-3 px-4">Certificate / Badge</th>
-                    <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-20 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+                    <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-base-300 dark:divide-slate-800/80">

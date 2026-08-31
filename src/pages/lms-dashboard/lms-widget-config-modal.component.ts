@@ -1,11 +1,10 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
 
 @Component({
   selector: 'app-lms-widget-config-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div 
       class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
@@ -41,7 +40,8 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
             <label class="block text-xs font-semibold text-text-primary mb-1">Widget Title</label>
             <input 
               type="text" 
-              [(ngModel)]="formData.title" 
+              [value]="title()"
+              (input)="updateTitle($event)"
               class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 transition-colors"
               placeholder="Enter widget title" />
           </div>
@@ -51,7 +51,8 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
             <label class="block text-xs font-semibold text-text-primary mb-1">Subtitle / Description</label>
             <input 
               type="text" 
-              [(ngModel)]="formData.subtitle" 
+              [value]="subtitle()"
+              (input)="updateSubtitle($event)"
               class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 transition-colors"
               placeholder="Brief subtitle explanation" />
           </div>
@@ -64,9 +65,9 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
                 @for (span of [1, 2, 3, 4]; track span) {
                   <button 
                     type="button"
-                    (click)="formData.colSpan = span"
+                    (click)="colSpan.set(span)"
                     class="py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer"
-                    [class]="formData.colSpan === span ? 'bg-tenant-500 text-white border-transparent shadow-xs font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:bg-base-300'">
+                    [class]="colSpan() === span ? 'bg-tenant-500 text-white border-transparent shadow-xs font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:bg-base-300'">
                     {{ span * 25 }}%
                   </button>
                 }
@@ -79,9 +80,9 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
                 @for (rSpan of [1, 2, 3, 4]; track rSpan) {
                   <button 
                     type="button"
-                    (click)="formData.rowSpan = rSpan"
+                    (click)="rowSpan.set(rSpan)"
                     class="py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer"
-                    [class]="(formData.rowSpan || 2) === rSpan ? 'bg-tenant-500 text-white border-transparent shadow-xs font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:bg-base-300'">
+                    [class]="rowSpan() === rSpan ? 'bg-tenant-500 text-white border-transparent shadow-xs font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:bg-base-300'">
                     {{ rSpan }}x
                   </button>
                 }
@@ -90,11 +91,12 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
           </div>
 
           <!-- Specific Widget Configurations -->
-          @if (formData.type === 'lms_broadcast_banner') {
+          @if (widget().type === 'lms_broadcast_banner') {
             <div class="pt-2 border-t border-base-300 space-y-3">
               <label class="block text-xs font-semibold text-text-primary">Banner Announcement Text</label>
               <textarea 
-                [(ngModel)]="formData.config.bannerText"
+                [value]="bannerText()"
+                (input)="updateBannerText($event)"
                 rows="3"
                 class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 transition-colors"
                 placeholder="Enter organization-wide LMS announcement..."></textarea>
@@ -105,9 +107,9 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
                   @for (type of ['indigo', 'info', 'warning', 'success']; track type) {
                     <button 
                       type="button"
-                      (click)="formData.config.bannerType = type"
+                      (click)="bannerType.set(type)"
                       class="py-1.5 px-2 rounded-xl text-xs font-semibold capitalize border transition-all cursor-pointer text-center"
-                      [class]="formData.config.bannerType === type ? 'bg-tenant-500 text-white border-transparent font-bold' : 'bg-base-200 text-text-secondary border-base-300'">
+                      [class]="bannerType() === type ? 'bg-tenant-500 text-white border-transparent font-bold' : 'bg-base-200 text-text-secondary border-base-300'">
                       {{ type }}
                     </button>
                   }
@@ -116,11 +118,12 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
             </div>
           }
 
-          @if (formData.type === 'recent_lms_activity' || formData.type === 'lms_snapshot_cards') {
+          @if (widget().type === 'recent_lms_activity' || widget().type === 'lms_snapshot_cards') {
             <div class="pt-2 border-t border-base-300">
               <label class="block text-xs font-semibold text-text-primary mb-1">Max Items to Display</label>
               <select 
-                [(ngModel)]="formData.config.maxItems"
+                [value]="maxItems()"
+                (change)="updateMaxItems($event)"
                 class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500">
                 <option [value]="3">3 items</option>
                 <option [value]="5">5 items</option>
@@ -159,16 +162,57 @@ export class LmsWidgetConfigModalComponent implements OnInit {
   close = output<void>();
   save = output<LmsDashboardWidget>();
 
-  formData: any = {};
+  title = signal<string>('');
+  subtitle = signal<string>('');
+  colSpan = signal<1 | 2 | 3 | 4>(1);
+  rowSpan = signal<1 | 2 | 3 | 4>(1);
+  bannerText = signal<string>('');
+  bannerType = signal<'indigo' | 'info' | 'warning' | 'success'>('indigo');
+  maxItems = signal<number>(5);
 
   ngOnInit() {
-    this.formData = JSON.parse(JSON.stringify(this.widget()));
-    if (!this.formData.config) {
-      this.formData.config = {};
+    const w = this.widget();
+    this.title.set(w.title || '');
+    this.subtitle.set(w.subtitle || '');
+    this.colSpan.set(w.colSpan || 1);
+    this.rowSpan.set(w.rowSpan || 1);
+    if (w.config) {
+      if (w.config.bannerText !== undefined) this.bannerText.set(w.config.bannerText);
+      if (w.config.bannerType !== undefined) this.bannerType.set(w.config.bannerType);
+      if (w.config.maxItems !== undefined) this.maxItems.set(w.config.maxItems);
     }
   }
 
+  updateTitle(event: Event) {
+    this.title.set((event.target as HTMLInputElement).value);
+  }
+
+  updateSubtitle(event: Event) {
+    this.subtitle.set((event.target as HTMLInputElement).value);
+  }
+
+  updateBannerText(event: Event) {
+    this.bannerText.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  updateMaxItems(event: Event) {
+    this.maxItems.set(Number((event.target as HTMLSelectElement).value) || 5);
+  }
+
   saveChanges() {
-    this.save.emit(this.formData);
+    const current = this.widget();
+    const updated: LmsDashboardWidget = {
+      ...current,
+      title: this.title(),
+      subtitle: this.subtitle(),
+      colSpan: this.colSpan(),
+      rowSpan: this.rowSpan(),
+      config: {
+        ...(current.config || {}),
+        ...(current.type === 'lms_broadcast_banner' ? { bannerText: this.bannerText(), bannerType: this.bannerType() } : {}),
+        ...(current.type === 'recent_lms_activity' || current.type === 'lms_snapshot_cards' ? { maxItems: this.maxItems() } : {})
+      }
+    };
+    this.save.emit(updated);
   }
 }

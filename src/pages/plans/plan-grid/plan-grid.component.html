@@ -412,7 +412,7 @@
                     <span class="material-symbols-outlined text-xs">{{ sortField() === 'createdDate' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
                   </div>
                 </th>
-                <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200/95 dark:bg-base-300 z-10 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]">Actions</th>
+                <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-base-300">
@@ -424,11 +424,11 @@
                   <!-- Plan Name -->
                   <td class="py-3.5 px-4 font-semibold text-text-primary">
                     <div class="flex items-start gap-2">
-                      <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 mt-0.5 border border-tenant-500/20">
                         <span class="material-symbols-outlined text-sm">event_note</span>
                       </div>
                       <div class="min-w-0">
-                        <span class="group-hover:text-tenant-600 transition-colors">{{ plan.name }}</span>
+                        <span class="group-hover:text-tenant-600 transition-colors">{{ plan.name || 'Untitled Plan' }}</span>
                         @if (plan.description) {
                           <div class="text-[11px] font-normal text-text-secondary line-clamp-1 mt-0.5">
                             {{ plan.description }}
@@ -441,7 +441,7 @@
                   <!-- Plan Code -->
                   <td class="py-3.5 px-4 whitespace-nowrap">
                     <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-900/60">
-                      {{ plan.planCode }}
+                      {{ plan.planCode || 'PLN-DRAFT' }}
                     </span>
                   </td>
 
@@ -456,14 +456,14 @@
                         </app-custom-avatar>
                         <div class="min-w-0">
                           <div class="font-medium text-text-primary truncate">{{ plan.owner.name }}</div>
-                          <div class="text-[10px] text-text-secondary truncate">{{ plan.owner.email }}</div>
+                          <div class="text-[10px] text-text-secondary truncate">{{ plan.owner.email || '—' }}</div>
                         </div>
                       </div>
                     } @else {
                       <button 
                         type="button"
                         (click)="$event.stopPropagation(); openAssignModal(plan)"
-                        class="px-2 py-1 rounded text-[11px] font-semibold text-tenant-600 bg-tenant-50 border border-tenant-200 hover:bg-tenant-100 flex items-center gap-1">
+                        class="px-2 py-1 rounded text-[11px] font-semibold text-tenant-600 bg-tenant-50 border border-tenant-200 hover:bg-tenant-100 flex items-center gap-1 cursor-pointer">
                         <span class="material-symbols-outlined text-xs">person_add</span>
                         <span>Assign</span>
                       </button>
@@ -472,24 +472,24 @@
 
                   <!-- Duration -->
                   <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-medium">
-                    {{ plan.durationType }}
+                    {{ plan.durationType || 'Yearly' }}
                   </td>
 
                   <!-- Start Date -->
                   <td class="py-3.5 px-4 whitespace-nowrap text-text-primary font-mono">
-                    {{ plan.startDate }}
+                    {{ plan.startDate || '—' }}
                   </td>
 
                   <!-- End Date -->
                   <td class="py-3.5 px-4 whitespace-nowrap text-text-primary font-mono">
-                    {{ plan.endDate }}
+                    {{ plan.endDate || '—' }}
                   </td>
 
                   <!-- Phases Count -->
                   <td class="py-3.5 px-4 text-center whitespace-nowrap">
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[11px] bg-base-200 text-text-primary">
                       <span class="material-symbols-outlined text-xs text-tenant-500">timeline</span>
-                      {{ plan.phases?.length || plan.phaseCount }}
+                      {{ plan.phases?.length || plan.phaseCount || 0 }}
                     </span>
                   </td>
 
@@ -498,7 +498,7 @@
                     <span 
                       class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
                       [ngClass]="plan.enrollmentType === 'Open' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
-                      {{ plan.enrollmentType }}
+                      {{ plan.enrollmentType || 'Open' }}
                     </span>
                   </td>
 
@@ -506,14 +506,14 @@
                   <td class="py-3.5 px-4 whitespace-nowrap">
                     <span 
                       class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border uppercase tracking-wider"
-                      [ngClass]="getStatusBadgeClass(plan.status)">
-                      {{ plan.status }}
+                      [ngClass]="getStatusBadgeClass(plan.status || 'Draft')">
+                      {{ plan.status || 'Draft' }}
                     </span>
                   </td>
 
                   <!-- Created Date -->
                   <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-mono">
-                    {{ plan.createdDate }}
+                    {{ plan.createdDate || '—' }}
                   </td>
 
                   <!-- Actions -->

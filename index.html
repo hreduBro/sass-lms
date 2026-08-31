@@ -112,6 +112,68 @@
       accent-color: var(--tenant-primary, #EC008C) !important;
     }
 
+    /* Universal Sticky Table Columns & Header Protection against overlap */
+    th.sticky,
+    td.sticky,
+    th[class*="sticky"],
+    td[class*="sticky"],
+    [class*="sticky right-0"],
+    [class*="sticky left-0"] {
+      background-clip: padding-box !important;
+    }
+
+    thead th.sticky,
+    thead th[class*="sticky"],
+    thead [class*="sticky right-0"],
+    thead [class*="sticky left-0"] {
+      background-color: #f8fafc !important;
+      color: inherit !important;
+      z-index: 30 !important;
+      opacity: 1 !important;
+    }
+
+    html.dark thead th.sticky,
+    html.dark thead th[class*="sticky"],
+    html.dark thead [class*="sticky right-0"],
+    html.dark thead [class*="sticky left-0"] {
+      background-color: #1e293b !important;
+      color: inherit !important;
+      z-index: 30 !important;
+      opacity: 1 !important;
+    }
+
+    tbody td.sticky,
+    tbody td[class*="sticky"],
+    tbody [class*="sticky right-0"],
+    tbody [class*="sticky left-0"] {
+      background-color: #ffffff !important;
+      z-index: 20 !important;
+      opacity: 1 !important;
+    }
+
+    html.dark tbody td.sticky,
+    html.dark tbody td[class*="sticky"],
+    html.dark tbody [class*="sticky right-0"],
+    html.dark tbody [class*="sticky left-0"] {
+      background-color: #0f172a !important;
+      z-index: 20 !important;
+      opacity: 1 !important;
+    }
+
+    tbody tr:hover td.sticky,
+    tbody tr:hover td[class*="sticky"],
+    tbody tr:hover [class*="sticky right-0"],
+    tbody tr:hover [class*="sticky left-0"] {
+      background-color: #f1f5f9 !important;
+    }
+
+    html.dark tbody tr:hover td.sticky,
+    html.dark tbody tr:hover td[class*="sticky"],
+    html.dark tbody tr:hover [class*="sticky right-0"],
+    html.dark tbody tr:hover [class*="sticky left-0"] {
+      background-color: #1e293b !important;
+    }
+
     :root {
       --tenant-primary: #EC008C;
       --tenant-primary-hover: #D8007E;

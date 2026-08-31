@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,19 +9,30 @@ import {
   CourseTemplateStatus,
   CourseTemplateScope,
   CourseSlotType,
-  CourseTemplateModule,
-  CourseTemplateSlot,
   calculateTemplateDuration,
   countTemplateSlots
 } from '../../../models/course-template.model';
 import { CourseCategory, CourseLevel } from '../../../models/lms.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+
+export interface TemplateGridFilters {
+  status: CourseTemplateStatus[];
+  scope: CourseTemplateScope[];
+  category: string[];
+  createdDateFrom: string;
+  createdDateTo: string;
+  sortBy: 'updated_desc' | 'updated_asc' | 'name_asc' | 'used_desc';
+}
 
 @Component({
   selector: 'app-course-template-grid',
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    CustomSelectComponent,
+    CustomAvatarComponent
   ],
   templateUrl: './course-template-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -31,16 +42,40 @@ export class CourseTemplateGridComponent {
   private router = inject(Router);
   private confirmModal = inject(ConfirmationModalService);
 
-  // View Layout Mode
-  viewMode = signal<'grid' | 'table'>('grid');
-
   // Search & Filter State
   searchQuery = signal<string>('');
-  selectedStatus = signal<string>('all');
-  selectedScope = signal<string>('all');
-  selectedCategory = signal<string>('all');
-  sortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'used_desc'>('updated_desc');
-  showFilterDrawer = signal<boolean>(false);
+  selectedCategoryQuick = signal<string>('All');
+  selectedStatusQuick = signal<string>('all');
+  selectedScopeQuick = signal<string>('all');
+
+  // Filter Panel Drawer State
+  isFilterPanelOpen = signal<boolean>(false);
+
+  draftFilters = signal<TemplateGridFilters>({
+    status: [],
+    scope: [],
+    category: [],
+    createdDateFrom: '',
+    createdDateTo: '',
+    sortBy: 'updated_desc'
+  });
+
+  appliedFilters = signal<TemplateGridFilters>({
+    status: [],
+    scope: [],
+    category: [],
+    createdDateFrom: '',
+    createdDateTo: '',
+    sortBy: 'updated_desc'
+  });
+
+  // Action Menu Dropdown State (Floating Fixed Menu like Plan Grid)
+  activeMenuTemplate = signal<CourseTemplate | null>(null);
+  menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  // Pagination / Load More
+  displayedCount = signal<number>(10);
+  pageSizeIncrement = 10;
 
   // Blueprint Inspection Modal State
   inspectTemplate = signal<CourseTemplate | null>(null);
@@ -70,17 +105,15 @@ export class CourseTemplateGridComponent {
   visibilityModalTemplate = signal<CourseTemplate | null>(null);
   visibilityMode = signal<'all_lms_instructors' | 'restricted' | 'org_wide'>('all_lms_instructors');
 
-  // Role permissions
+  // Context & permissions
   permissions = this.lms.courseTemplatePermissions;
-
-  // Active User / Tenant / LMS info
   activeTenant = this.lms.activeTenant;
   activeLms = this.lms.activeLms;
   activeUser = this.lms.activeUser;
   stats = this.lms.courseTemplateStats;
 
   // Categories list
-  categories = signal<string[]>([
+  categories: string[] = [
     'Compliance & Security',
     'AI & Data',
     'Clinical Healthcare',
@@ -89,18 +122,230 @@ export class CourseTemplateGridComponent {
     'Engineering',
     'Leadership & Soft Skills',
     'General'
-  ]);
+  ];
 
-  // Filtered & Sorted Templates
+  statusOptions: { value: CourseTemplateStatus; label: string; badgeClass: string }[] = [
+    { value: 'active', label: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
+    { value: 'draft', label: 'Draft', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+    { value: 'inactive', label: 'Inactive', badgeClass: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700' }
+  ];
+
+  scopeOptions: { value: CourseTemplateScope; label: string; description: string }[] = [
+    { value: 'lms', label: 'LMS Workspace', description: 'Available within this LMS instance only' },
+    { value: 'organization', label: 'Organization-wide', description: 'Shared across all LMS instances under this Organization' }
+  ];
+
+  sortOptions: SelectOption[] = [
+    { value: 'updated_desc', label: 'Recently Updated' },
+    { value: 'updated_asc', label: 'Oldest Updated' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'used_desc', label: 'Most Adopted' }
+  ];
+
+  spawnCategoryOptions: SelectOption[] = [
+    { value: 'Compliance & Security', label: 'Compliance & Security', icon: 'verified_user' },
+    { value: 'AI & Data', label: 'AI & Data', icon: 'psychology' },
+    { value: 'Clinical Healthcare', label: 'Clinical Healthcare', icon: 'medical_services' },
+    { value: 'Finance', label: 'Finance', icon: 'payments' },
+    { value: 'Microfinance & Social Development', label: 'Microfinance & Social Dev', icon: 'hub' },
+    { value: 'Engineering', label: 'Engineering', icon: 'code' },
+    { value: 'Leadership & Soft Skills', label: 'Leadership & Soft Skills', icon: 'groups' },
+    { value: 'General', label: 'General', icon: 'school' }
+  ];
+
+  spawnLevelOptions: SelectOption[] = [
+    { value: 'Beginner', label: 'Beginner', sublabel: 'Foundational concepts' },
+    { value: 'Intermediate', label: 'Intermediate', sublabel: 'Practical application' },
+    { value: 'Advanced', label: 'Advanced', sublabel: 'Specialized deep dive' }
+  ];
+
+  visibilityOptions: SelectOption[] = [
+    { value: 'all_lms_instructors', label: 'All LMS Instructors', sublabel: 'Any course creator in this LMS can use this blueprint' },
+    { value: 'restricted', label: 'Restricted (Admins & Author)', sublabel: 'Only template creator and appointed administrators' },
+    { value: 'org_wide', label: 'Organization-wide Public', sublabel: 'Available to instructors across all LMS instances' }
+  ];
+
+  // Active filter checks
+  hasActiveFilters = computed<boolean>(() => {
+    const f = this.appliedFilters();
+    return (
+      f.status.length > 0 ||
+      f.scope.length > 0 ||
+      f.category.length > 0 ||
+      !!f.createdDateFrom ||
+      !!f.createdDateTo ||
+      f.sortBy !== 'updated_desc'
+    );
+  });
+
+  isResetVisible = computed<boolean>(() => {
+    return (
+      !!this.searchQuery().trim() ||
+      this.hasActiveFilters() ||
+      this.selectedCategoryQuick() !== 'All' ||
+      this.selectedStatusQuick() !== 'all' ||
+      this.selectedScopeQuick() !== 'all'
+    );
+  });
+
+  activeFilterCount = computed<number>(() => {
+    const f = this.appliedFilters();
+    let count = 0;
+    if (f.status.length > 0) count += f.status.length;
+    if (f.scope.length > 0) count += f.scope.length;
+    if (f.category.length > 0) count += f.category.length;
+    if (f.createdDateFrom || f.createdDateTo) count++;
+    if (f.sortBy !== 'updated_desc') count++;
+    if (this.selectedCategoryQuick() !== 'All') count++;
+    if (this.selectedStatusQuick() !== 'all') count++;
+    if (this.selectedScopeQuick() !== 'all') count++;
+    return count;
+  });
+
+  activeFilterBadges = computed<{ id: string; label: string; value: string; remove: () => void }[]>(() => {
+    const badges: { id: string; label: string; value: string; remove: () => void }[] = [];
+    const f = this.appliedFilters();
+
+    if (this.searchQuery().trim()) {
+      badges.push({
+        id: 'search',
+        label: 'Search',
+        value: this.searchQuery(),
+        remove: () => this.onSearchChange('')
+      });
+    }
+
+    if (this.selectedCategoryQuick() !== 'All') {
+      badges.push({
+        id: 'quickCat',
+        label: 'Category',
+        value: this.selectedCategoryQuick(),
+        remove: () => this.selectedCategoryQuick.set('All')
+      });
+    }
+
+    if (this.selectedStatusQuick() !== 'all') {
+      badges.push({
+        id: 'quickStatus',
+        label: 'Status',
+        value: this.selectedStatusQuick(),
+        remove: () => this.selectedStatusQuick.set('all')
+      });
+    }
+
+    if (this.selectedScopeQuick() !== 'all') {
+      badges.push({
+        id: 'quickScope',
+        label: 'Scope',
+        value: this.selectedScopeQuick() === 'organization' ? 'Organization-wide' : 'LMS Workspace',
+        remove: () => this.selectedScopeQuick.set('all')
+      });
+    }
+
+    f.status.forEach(st => {
+      badges.push({
+        id: `status-${st}`,
+        label: 'Status',
+        value: st.toUpperCase(),
+        remove: () => this.removeFilterStatus(st)
+      });
+    });
+
+    f.scope.forEach(sc => {
+      badges.push({
+        id: `scope-${sc}`,
+        label: 'Scope',
+        value: sc === 'organization' ? 'Organization-wide' : 'LMS Workspace',
+        remove: () => this.removeFilterScope(sc)
+      });
+    });
+
+    f.category.forEach(cat => {
+      badges.push({
+        id: `cat-${cat}`,
+        label: 'Category',
+        value: cat,
+        remove: () => this.removeFilterCategory(cat)
+      });
+    });
+
+    if (f.createdDateFrom) {
+      badges.push({
+        id: 'createdDateFrom',
+        label: 'From',
+        value: f.createdDateFrom,
+        remove: () => this.removeFilterCreatedDateFrom()
+      });
+    }
+
+    if (f.createdDateTo) {
+      badges.push({
+        id: 'createdDateTo',
+        label: 'To',
+        value: f.createdDateTo,
+        remove: () => this.removeFilterCreatedDateTo()
+      });
+    }
+
+    return badges;
+  });
+
+  removeFilterStatus(st: CourseTemplateStatus) {
+    this.appliedFilters.update(f => ({ ...f, status: f.status.filter(s => s !== st) }));
+  }
+
+  removeFilterScope(sc: CourseTemplateScope) {
+    this.appliedFilters.update(f => ({ ...f, scope: f.scope.filter(s => s !== sc) }));
+  }
+
+  removeFilterCategory(cat: string) {
+    this.appliedFilters.update(f => ({ ...f, category: f.category.filter(c => c !== cat) }));
+  }
+
+  removeFilterCreatedDateFrom() {
+    this.appliedFilters.update(f => ({ ...f, createdDateFrom: '' }));
+  }
+
+  removeFilterCreatedDateTo() {
+    this.appliedFilters.update(f => ({ ...f, createdDateTo: '' }));
+  }
+
+  // Filtered and Sorted list
+  parseDateTimestamp(dateStr: string | undefined | null): number {
+    if (!dateStr) return 0;
+    const dmyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10) - 1;
+      const year = parseInt(dmyMatch[3], 10);
+      const hour = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+      const min = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+      const sec = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+      return new Date(year, month, day, hour, min, sec).getTime();
+    }
+    const parsed = new Date(dateStr).getTime();
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  formatDate(dateStr: string | undefined | null): string {
+    if (!dateStr) return '—';
+    const ts = this.parseDateTimestamp(dateStr);
+    if (ts > 0) {
+      const date = new Date(ts);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return dateStr.split(' ')[0] || dateStr;
+  }
+
   filteredTemplates = computed<CourseTemplate[]>(() => {
     let list = this.lms.scopedCourseTemplates();
     const query = this.searchQuery().trim().toLowerCase();
-    const status = this.selectedStatus();
-    const scope = this.selectedScope();
-    const category = this.selectedCategory();
-    const sort = this.sortBy();
+    const quickCat = this.selectedCategoryQuick();
+    const quickStatus = this.selectedStatusQuick();
+    const quickScope = this.selectedScopeQuick();
+    const filters = this.appliedFilters();
 
-    // 1. Search Query (Name, Code, CreatedBy, Description)
+    // 1. Search Query
     if (query) {
       list = list.filter(t => 
         t.name.toLowerCase().includes(query) ||
@@ -111,29 +356,57 @@ export class CourseTemplateGridComponent {
       );
     }
 
-    // 2. Status Filter
-    if (status !== 'all') {
-      list = list.filter(t => t.status === status);
+    // 2. Quick Toolbar Filters
+    if (quickCat !== 'All') {
+      list = list.filter(t => t.categoryTags && t.categoryTags.includes(quickCat));
+    }
+    if (quickStatus !== 'all') {
+      list = list.filter(t => t.status === quickStatus);
+    }
+    if (quickScope !== 'all') {
+      list = list.filter(t => t.scope === quickScope);
     }
 
-    // 3. Scope Filter
-    if (scope !== 'all') {
-      list = list.filter(t => t.scope === scope);
+    // 3. Filter Drawer Panel Applied Criteria
+    if (filters.status.length > 0) {
+      list = list.filter(t => filters.status.includes(t.status));
+    }
+    if (filters.scope.length > 0) {
+      list = list.filter(t => filters.scope.includes(t.scope));
+    }
+    if (filters.category.length > 0) {
+      list = list.filter(t => t.categoryTags && t.categoryTags.some(tag => filters.category.includes(tag)));
+    }
+    if (filters.createdDateFrom) {
+      const from = new Date(filters.createdDateFrom).getTime();
+      list = list.filter(t => {
+        const itemDate = this.parseDateTimestamp(t.createdAt);
+        return itemDate === 0 || itemDate >= from;
+      });
+    }
+    if (filters.createdDateTo) {
+      const to = new Date(filters.createdDateTo).getTime() + 86400000;
+      list = list.filter(t => {
+        const itemDate = this.parseDateTimestamp(t.createdAt);
+        return itemDate === 0 || itemDate <= to;
+      });
     }
 
-    // 4. Category Filter
-    if (category !== 'all') {
-      list = list.filter(t => t.categoryTags && t.categoryTags.includes(category));
-    }
-
-    // 5. Sorting
+    // 4. Sorting
+    const sort = filters.sortBy;
     return [...list].sort((a, b) => {
       if (sort === 'updated_desc') {
-        return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+        const bTime = this.parseDateTimestamp(b.updatedAt || b.createdAt);
+        const aTime = this.parseDateTimestamp(a.updatedAt || a.createdAt);
+        if (bTime && aTime) return bTime - aTime;
+        return (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
       } else if (sort === 'updated_asc') {
-        return (a.updatedAt || '').localeCompare(b.updatedAt || '');
+        const bTime = this.parseDateTimestamp(b.updatedAt || b.createdAt);
+        const aTime = this.parseDateTimestamp(a.updatedAt || a.createdAt);
+        if (bTime && aTime) return aTime - bTime;
+        return (a.updatedAt || a.createdAt || '').localeCompare(b.updatedAt || b.createdAt || '');
       } else if (sort === 'name_asc') {
-        return a.name.localeCompare(b.name);
+        return (a.name || '').localeCompare(b.name || '');
       } else if (sort === 'used_desc') {
         return (b.usedCount || 0) - (a.usedCount || 0);
       }
@@ -141,18 +414,209 @@ export class CourseTemplateGridComponent {
     });
   });
 
-  // Calculate duration helper
+  // Displayed slice for lazy pagination
+  displayedTemplates = computed<CourseTemplate[]>(() => {
+    return this.filteredTemplates().slice(0, this.displayedCount());
+  });
+
+  hasMoreTemplates = computed<boolean>(() => {
+    return this.displayedCount() < this.filteredTemplates().length;
+  });
+
+  // Empty state type resolution
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredTemplates().length > 0) return 'none';
+    if (this.lms.scopedCourseTemplates().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
+  });
+
+  // Floating Action Popover Menu (Plan Grid Pattern)
+  toggleActionMenu(template: CourseTemplate, event: MouseEvent) {
+    event.stopPropagation();
+    if (this.activeMenuTemplate()?.id === template.id) {
+      this.closeActionMenu();
+      return;
+    }
+
+    const button = (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 280;
+    const menuWidth = 230;
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    this.menuPosition.set({ top, left });
+    this.activeMenuTemplate.set(template);
+  }
+
+  closeActionMenu() {
+    this.activeMenuTemplate.set(null);
+  }
+
+  isActionMenuOpen(templateId: string): boolean {
+    return this.activeMenuTemplate()?.id === templateId;
+  }
+
+  @HostListener('document:click')
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onDocumentInteraction() {
+    if (this.activeMenuTemplate()) {
+      this.closeActionMenu();
+    }
+  }
+
+  // Load more
+  loadMore() {
+    this.displayedCount.update(c => c + this.pageSizeIncrement);
+  }
+
+  // Search handler
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.displayedCount.set(10);
+  }
+
+  // Filter Drawer Actions
+  toggleFilterPanel() {
+    if (!this.isFilterPanelOpen()) {
+      this.draftFilters.set({ ...this.appliedFilters() });
+    }
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  closeFilterPanel() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  applyFilterPanel() {
+    this.appliedFilters.set({ ...this.draftFilters() });
+    this.isFilterPanelOpen.set(false);
+    this.displayedCount.set(10);
+  }
+
+  clearFilterPanelDraft() {
+    this.draftFilters.set({
+      status: [],
+      scope: [],
+      category: [],
+      createdDateFrom: '',
+      createdDateTo: '',
+      sortBy: 'updated_desc'
+    });
+  }
+
+  toggleDraftStatus(st: CourseTemplateStatus) {
+    this.draftFilters.update(f => {
+      const current = [...f.status];
+      const idx = current.indexOf(st);
+      if (idx > -1) current.splice(idx, 1);
+      else current.push(st);
+      return { ...f, status: current };
+    });
+  }
+
+  toggleDraftScope(sc: CourseTemplateScope) {
+    this.draftFilters.update(f => {
+      const current = [...f.scope];
+      const idx = current.indexOf(sc);
+      if (idx > -1) current.splice(idx, 1);
+      else current.push(sc);
+      return { ...f, scope: current };
+    });
+  }
+
+  toggleDraftCategory(cat: string) {
+    this.draftFilters.update(f => {
+      const current = [...f.category];
+      const idx = current.indexOf(cat);
+      if (idx > -1) current.splice(idx, 1);
+      else current.push(cat);
+      return { ...f, category: current };
+    });
+  }
+
+  resetGrid() {
+    this.searchQuery.set('');
+    this.selectedCategoryQuick.set('All');
+    this.selectedStatusQuick.set('all');
+    this.selectedScopeQuick.set('all');
+    this.draftFilters.set({
+      status: [],
+      scope: [],
+      category: [],
+      createdDateFrom: '',
+      createdDateTo: '',
+      sortBy: 'updated_desc'
+    });
+    this.appliedFilters.set({
+      status: [],
+      scope: [],
+      category: [],
+      createdDateFrom: '',
+      createdDateTo: '',
+      sortBy: 'updated_desc'
+    });
+    this.displayedCount.set(10);
+  }
+
+  // Duration & Slot helpers
   getDuration(template: CourseTemplate): number {
     return calculateTemplateDuration(template.structure);
   }
 
-  // Count slots helper
   getSlotCount(template: CourseTemplate): number {
     return countTemplateSlots(template.structure);
   }
 
-  // Open Blueprint Inspection Modal
+  // Status badge styling
+  getStatusBadgeClass(status: CourseTemplateStatus): string {
+    switch (status) {
+      case 'active':
+        return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+      case 'draft':
+        return 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+      case 'inactive':
+        return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+    }
+  }
+
+  getSlotTypeIcon(type: CourseSlotType): string {
+    switch (type) {
+      case 'video': return 'videocam';
+      case 'article': return 'article';
+      case 'quiz': return 'quiz';
+      case 'interactive_lab': return 'science';
+      case 'simulation': return 'smart_toy';
+      case 'scorm': return 'extension';
+      default: return 'menu_book';
+    }
+  }
+
+  getSlotTypeColor(type: CourseSlotType): string {
+    switch (type) {
+      case 'video': return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20';
+      case 'article': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+      case 'quiz': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+      case 'interactive_lab': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+      case 'simulation': return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
+      case 'scorm': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      default: return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
+    }
+  }
+
+  // Inspection Modal
   openInspect(template: CourseTemplate) {
+    this.closeActionMenu();
     this.inspectTemplate.set(template);
   }
 
@@ -160,8 +624,9 @@ export class CourseTemplateGridComponent {
     this.inspectTemplate.set(null);
   }
 
-  // Open Spawn Course Modal
+  // Spawn Course Modal
   openSpawnModal(template: CourseTemplate) {
+    this.closeActionMenu();
     this.spawnTemplate.set(template);
     this.spawnForm.set({
       title: `${template.name} - Cohort ${new Date().getFullYear()}`,
@@ -173,7 +638,6 @@ export class CourseTemplateGridComponent {
       isMandatory: false
     });
     this.spawnModalOpen.set(true);
-    // Close inspect if open
     this.inspectTemplate.set(null);
   }
 
@@ -208,13 +672,14 @@ export class CourseTemplateGridComponent {
     }
   }
 
-  // Duplicate
+  // Template Actions
   duplicate(template: CourseTemplate) {
+    this.closeActionMenu();
     this.lms.duplicateCourseTemplate(template.id);
   }
 
-  // Toggle Deactivate / Reactivate
   toggleStatus(template: CourseTemplate) {
+    this.closeActionMenu();
     if (template.status === 'active') {
       this.confirmModal.confirm({
         title: 'Deactivate Course Template?',
@@ -230,8 +695,8 @@ export class CourseTemplateGridComponent {
     }
   }
 
-  // Delete Template
   deleteTemplate(template: CourseTemplate) {
+    this.closeActionMenu();
     this.confirmModal.confirm({
       title: 'Delete Course Template?',
       message: `Are you sure you want to delete template "${template.name}"? This action removes the blueprint permanently from the template library.`,
@@ -243,8 +708,8 @@ export class CourseTemplateGridComponent {
     });
   }
 
-  // Open Visibility Settings
   openVisibilityModal(template: CourseTemplate) {
+    this.closeActionMenu();
     this.visibilityModalTemplate.set(template);
     this.visibilityMode.set(template.visibility?.mode || 'all_lms_instructors');
   }
@@ -261,31 +726,5 @@ export class CourseTemplateGridComponent {
       mode: this.visibilityMode()
     });
     this.closeVisibilityModal();
-  }
-
-  // Get Slot Type Icon
-  getSlotTypeIcon(type: CourseSlotType): string {
-    switch (type) {
-      case 'video': return 'videocam';
-      case 'article': return 'article';
-      case 'quiz': return 'quiz';
-      case 'interactive_lab': return 'science';
-      case 'simulation': return 'smart_toy';
-      case 'scorm': return 'extension';
-      default: return 'menu_book';
-    }
-  }
-
-  // Get Slot Type Color
-  getSlotTypeColor(type: CourseSlotType): string {
-    switch (type) {
-      case 'video': return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20';
-      case 'article': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-      case 'quiz': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-      case 'interactive_lab': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
-      case 'simulation': return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
-      case 'scorm': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
-      default: return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
-    }
   }
 }

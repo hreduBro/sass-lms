@@ -35,7 +35,7 @@ export type StepItem = StepperStep;
   template: `
     @if (orientation() === 'vertical') {
       <!-- ================================================================= -->
-      <!-- VERTICAL ORIENTATION STEPPER (LMS Unified Design)                -->
+      <!-- VERTICAL ORIENTATION STEPPER (Unified Bold Typography Design)     -->
       <!-- ================================================================= -->
       <div 
         class="w-full flex flex-col"
@@ -52,47 +52,47 @@ export type StepItem = StepperStep;
             <!-- Left Column: Step Circle Indicator & Vertical Connector Line -->
             <div class="relative flex flex-col items-center shrink-0 self-stretch">
               
-              <!-- Circular Step Badge (Matching Create LMS Reusable Stepper) -->
+              <!-- Circular Step Badge -->
               <div 
-                class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm z-10 transition-all duration-300 select-none shrink-0"
+                class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300 select-none shrink-0"
                 [ngClass]="{
-                  'bg-tenant-500 text-white shadow-md shadow-tenant-500/30 ring-4 ring-tenant-500/20': getStepState(step.id) === 'current',
+                  'bg-tenant-500 text-white shadow-md shadow-tenant-500/30': getStepState(step.id) === 'current',
                   'bg-emerald-500 text-white shadow-xs': getStepState(step.id) === 'done',
-                  'bg-base-200/90 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400 group-hover:border-base-400': getStepState(step.id) === 'disabled'
+                  'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 group-hover:border-slate-300': getStepState(step.id) === 'disabled'
                 }">
                 @if (getStepState(step.id) === 'done') {
-                  <span class="material-symbols-outlined text-base sm:text-lg text-white font-bold">check</span>
+                  <span class="material-symbols-outlined text-lg text-white font-bold">check</span>
                 } @else {
-                  <span [class]="getStepState(step.id) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">
+                  <span [class]="getStepState(step.id) === 'current' ? 'text-white font-bold' : 'text-slate-400 dark:text-slate-500 font-bold'">
                     {{ step.id }}
                   </span>
                 }
               </div>
 
-              <!-- Vertical Connecting Line to Next Step (Clean Centered Segment with Top & Bottom Gaps as in Reference Image) -->
+              <!-- Vertical Connecting Line to Next Step -->
               @if (!isLast) {
                 <div 
-                  class="w-[2.5px] my-2.5 flex-1 min-h-[28px] rounded-full transition-colors duration-300 pointer-events-none"
-                  [ngClass]="isStepDone(step.id) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-700'">
+                  class="w-[2.5px] my-2 flex-1 min-h-[28px] rounded-full transition-colors duration-300 pointer-events-none"
+                  [ngClass]="isStepDone(step.id) ? 'bg-emerald-500/80' : 'bg-slate-200 dark:bg-slate-700'">
                 </div>
               }
             </div>
 
             <!-- Right Column: Step Title & Subtitle / Deferrable Indicator -->
-            <div class="flex-1 min-w-0 pt-1">
+            <div class="flex-1 min-w-0 pt-1.5 pb-2">
               <div class="flex items-center justify-between gap-1.5 flex-wrap">
                 <div 
-                  class="text-xs sm:text-sm tracking-tight truncate transition-colors leading-tight"
+                  class="text-sm tracking-tight truncate transition-colors leading-tight"
                   [ngClass]="{
-                    'text-tenant-600 dark:text-tenant-400 font-extrabold': getStepState(step.id) === 'current',
+                    'text-tenant-500 dark:text-tenant-400 font-extrabold': getStepState(step.id) === 'current',
                     'text-emerald-600 dark:text-emerald-400 font-bold': getStepState(step.id) === 'done',
-                    'text-text-primary group-hover:text-tenant-600 font-bold': getStepState(step.id) === 'disabled'
+                    'text-slate-700 dark:text-slate-200 font-bold group-hover:text-text-primary': getStepState(step.id) === 'disabled'
                   }">
                   {{ step.shortTitle || step.title }}
                 </div>
 
                 @if (step.isDeferrable) {
-                  <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 shrink-0">
+                  <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 shrink-0">
                     Optional
                   </span>
                 }
@@ -100,10 +100,10 @@ export type StepItem = StepperStep;
 
               @if (step.sublabel) {
                 <div 
-                  class="text-[11px] truncate mt-0.5 leading-normal transition-colors"
+                  class="text-xs font-medium truncate mt-0.5 leading-normal transition-colors"
                   [ngClass]="{
-                    'text-text-secondary dark:text-slate-400': getStepState(step.id) === 'current' || getStepState(step.id) === 'done',
-                    'text-text-secondary/80 dark:text-slate-500': getStepState(step.id) === 'disabled'
+                    'text-slate-500 dark:text-slate-400': getStepState(step.id) === 'current' || getStepState(step.id) === 'done',
+                    'text-slate-400 dark:text-slate-500': getStepState(step.id) === 'disabled'
                   }">
                   {{ step.sublabel }}
                 </div>
@@ -116,43 +116,43 @@ export type StepItem = StepperStep;
 
     } @else {
       <!-- ================================================================= -->
-      <!-- HORIZONTAL ORIENTATION STEPPER (DEFAULT)                          -->
+      <!-- HORIZONTAL ORIENTATION STEPPER (Reference Pill Capsule Design)    -->
       <!-- ================================================================= -->
       <div class="relative group/stepper w-full">
         <!-- Left Gradient Edge Fade & Scroll Button -->
         @if (canScrollLeft()) {
-          <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-base-100 via-base-100/90 dark:from-slate-900 dark:via-slate-900/90 to-transparent rounded-l-2xl sm:rounded-l-full pointer-events-none z-10 transition-opacity duration-200"></div>
+          <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-base-100 via-base-100/90 dark:from-slate-900 dark:via-slate-900/90 to-transparent rounded-l-full pointer-events-none z-10 transition-opacity duration-200"></div>
           <button 
             type="button"
             (click)="scrollStepper('left')" 
             aria-label="Scroll steps left"
-            class="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-base-100/95 dark:bg-slate-800/95 border border-base-300 dark:border-slate-700 shadow-md hover:shadow-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer">
+            class="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-base-100/95 dark:bg-slate-800/95 border border-base-300 dark:border-slate-700 shadow-md hover:shadow-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-base">chevron_left</span>
           </button>
         }
 
         <!-- Right Gradient Edge Fade & Scroll Button -->
         @if (canScrollRight()) {
-          <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-base-100 via-base-100/90 dark:from-slate-900 dark:via-slate-900/90 to-transparent rounded-r-2xl sm:rounded-r-full pointer-events-none z-10 transition-opacity duration-200"></div>
+          <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-base-100 via-base-100/90 dark:from-slate-900 dark:via-slate-900/90 to-transparent rounded-r-full pointer-events-none z-10 transition-opacity duration-200"></div>
           <button 
             type="button"
             (click)="scrollStepper('right')" 
             aria-label="Scroll steps right"
-            class="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-base-100/95 dark:bg-slate-800/95 border border-base-300 dark:border-slate-700 shadow-md hover:shadow-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer">
+            class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-base-100/95 dark:bg-slate-800/95 border border-base-300 dark:border-slate-700 shadow-md hover:shadow-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-base">chevron_right</span>
           </button>
         }
 
-        <!-- Stepper Main Horizontal Scroll Track -->
+        <!-- Stepper Main Horizontal Pill Track -->
         <div 
           #scrollContainer
           (scroll)="updateScrollState()"
           (wheel)="onWheel($event)"
-          class="py-3 px-4 sm:px-7 rounded-2xl sm:rounded-full bg-base-100/95 dark:bg-slate-900/95 backdrop-blur-md border border-base-300 dark:border-slate-800 shadow-sm overflow-x-auto scroll-smooth no-scrollbar"
+          class="py-3.5 sm:py-4 px-5 sm:px-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-x-auto scroll-smooth no-scrollbar"
           [ngClass]="containerClass()">
           
           <div 
-            class="flex items-center min-w-max px-1 sm:px-3 gap-2 sm:gap-3.5"
+            class="flex items-center min-w-max px-1 sm:px-2 gap-3 sm:gap-4"
             [ngClass]="steps().length <= 4 ? 'justify-between sm:justify-around w-full' : 'justify-between'">
             
             @for (step of steps(); track step.id; let i = $index) {
@@ -161,53 +161,52 @@ export type StepItem = StepperStep;
                 [id]="'app-step-item-' + step.id"
                 (click)="onStepClicked(step)"
                 [class]="isClickable(step.id) ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'"
-                class="flex items-center gap-2.5 group shrink-0 transition-transform duration-200 select-none"
-                [class.scale-105]="currentStep() === step.id"
+                class="flex items-center gap-3 group shrink-0 transition-all duration-200 select-none"
                 [attr.aria-current]="currentStep() === step.id ? 'step' : null">
                 
-                <!-- Step Badge Indicator -->
+                <!-- Circular Step Badge (Matching User Reference Image) -->
                 <div 
-                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm transition-all duration-300 select-none"
+                  class="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all duration-300 select-none shrink-0"
                   [ngClass]="{
-                    'bg-tenant-500 text-white shadow-md shadow-tenant-500/30 ring-4 ring-tenant-500/20': getStepState(step.id) === 'current',
+                    'bg-tenant-500 text-white shadow-md shadow-tenant-500/30 ring-0': getStepState(step.id) === 'current',
                     'bg-emerald-500 text-white shadow-xs': getStepState(step.id) === 'done',
-                    'bg-base-200/80 dark:bg-slate-800/80 border border-base-300 dark:border-slate-700 text-text-secondary dark:text-slate-400 group-hover:border-base-400': getStepState(step.id) === 'disabled'
+                    'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 group-hover:border-slate-300 dark:group-hover:border-slate-600': getStepState(step.id) === 'disabled'
                   }">
                   @if (getStepState(step.id) === 'done') {
                     <span class="material-symbols-outlined text-base sm:text-lg text-white font-bold">check</span>
                   } @else {
-                    <span [class]="getStepState(step.id) === 'current' ? 'text-white font-black' : 'text-text-secondary dark:text-slate-400 font-bold'">
+                    <span [class]="getStepState(step.id) === 'current' ? 'text-white font-bold' : 'text-slate-400 dark:text-slate-500 font-bold'">
                       {{ step.id }}
                     </span>
                   }
                 </div>
 
-                <!-- Step Labels -->
-                <div>
+                <!-- Step Labels (Title & Subtitle matching User Reference Image) -->
+                <div class="flex flex-col justify-center">
                   <div 
-                    class="text-xs font-bold whitespace-nowrap transition-colors" 
+                    class="text-xs sm:text-sm whitespace-nowrap transition-colors leading-tight" 
                     [ngClass]="{
-                      'text-tenant-600 dark:text-tenant-400 font-extrabold': getStepState(step.id) === 'current',
-                      'text-emerald-600 dark:text-emerald-400': getStepState(step.id) === 'done',
-                      'text-text-primary group-hover:text-text-primary': getStepState(step.id) === 'disabled'
+                      'text-tenant-500 dark:text-tenant-400 font-extrabold': getStepState(step.id) === 'current',
+                      'text-emerald-600 dark:text-emerald-400 font-bold': getStepState(step.id) === 'done',
+                      'text-slate-600 dark:text-slate-300 font-bold group-hover:text-text-primary': getStepState(step.id) === 'disabled'
                     }">
                     {{ step.shortTitle || step.title }}
                   </div>
                   @if (step.sublabel) {
-                    <div class="text-[10px] text-text-secondary whitespace-nowrap">
+                    <div class="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-normal whitespace-nowrap leading-tight mt-0.5">
                       {{ step.sublabel }}
                     </div>
                   }
                 </div>
               </div>
 
-              <!-- Inter-Step Connector -->
+              <!-- Inter-Step Connector (Horizontal Rounded Pill Bar) -->
               @if (i < steps().length - 1) {
                 <div 
                   class="rounded-full shrink-0 transition-colors duration-300"
                   [ngClass]="[
-                    steps().length <= 4 ? 'flex-1 min-w-[24px] sm:min-w-[48px] max-w-[120px] h-1 sm:h-1.5' : 'w-4 sm:w-6 h-1',
-                    isStepDone(step.id) ? 'bg-emerald-500' : 'bg-base-300 dark:bg-slate-800'
+                    steps().length <= 4 ? 'flex-1 min-w-[32px] sm:min-w-[56px] max-w-[140px] h-2' : 'w-6 sm:w-10 h-1.5',
+                    isStepDone(step.id) ? 'bg-emerald-500/80' : 'bg-slate-100 dark:bg-slate-800'
                   ]">
                 </div>
               }
