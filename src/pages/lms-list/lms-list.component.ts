@@ -11,10 +11,11 @@ import {
   LmsGridFilters, 
   LmsDetailsPermissions 
 } from '../../models/lms-instance.model';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-lms-list',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
   templateUrl: './lms-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { Certificate, Course, CourseEnrollment, User } from '../../models/lms.model';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 interface ProfileTab {
   id: 'overview' | 'learning' | 'certificates' | 'badges' | 'security';
@@ -14,7 +15,7 @@ interface ProfileTab {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
   template: `
     <div class="space-y-6 pb-16 animate-in fade-in duration-200">
       
@@ -45,22 +46,20 @@ interface ProfileTab {
               
               <!-- Avatar with Ring & Upload/Change Trigger -->
               <div class="relative group shrink-0">
-                <img 
-                  [src]="activeUser().avatar" 
-                  [alt]="activeUser().name"
-                  class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-base-100 shadow-xl bg-base-200"
-                  referrerpolicy="no-referrer" />
-                
-                <!-- Online Status Dot -->
-                <span class="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-base-100 flex items-center justify-center text-white" title="Active Online">
-                  <span class="material-symbols-outlined text-xs">check</span>
-                </span>
+                <app-custom-avatar 
+                  [imageUrl]="activeUser().avatar" 
+                  [name]="activeUser().name" 
+                  size="2xl" 
+                  shape="squircle"
+                  status="online"
+                  class="[&_img]:w-28 [&_img]:h-28 sm:[&_img]:w-36 sm:[&_img]:h-36 [&_div]:w-28 [&_div]:h-28 sm:[&_div]:w-36 sm:[&_div]:h-36 shadow-xl">
+                </app-custom-avatar>
 
                 <!-- Avatar Edit Overlay -->
                 <button 
                   type="button"
                   (click)="showAvatarPicker.set(true)"
-                  class="absolute inset-0 bg-black/50 backdrop-blur-xs rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium gap-1 shadow-inner cursor-pointer"
+                  class="absolute inset-0 bg-black/50 backdrop-blur-xs rounded-[30%] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium gap-1 shadow-inner cursor-pointer"
                   title="Change profile avatar">
                   <span class="material-symbols-outlined text-2xl">photo_camera</span>
                   <span>Change</span>
@@ -811,7 +810,7 @@ export class ProfileComponent {
     { name: 'Security Champion', icon: 'security', description: 'Scored 100% on Cybersecurity & Zero Trust assessments.', bgClass: 'bg-emerald-500 text-white' },
     { name: 'Tenant Admin Ace', icon: 'admin_panel_settings', description: 'Configured and launched enterprise LMS workflows.', bgClass: 'bg-indigo-500 text-white' },
     { name: 'Cloud Architect', icon: 'cloud_done', description: 'Completed Multi-Cloud & DevOps Architecture curriculum.', bgClass: 'bg-cyan-500 text-white' },
-    { name: 'Client Protection Specialist', icon: 'handshake', description: 'Certified in BRAC microfinance ethical lending covenants.', bgClass: 'bg-[#EC008C] text-white' },
+    { name: 'Client Protection Specialist', icon: 'handshake', description: 'Certified in BRAC microfinance ethical lending covenants.', bgClass: 'bg-tenant-500 text-white' },
     { name: 'Speed Learner', icon: 'bolt', description: 'Completed a 3-module certification within 48 hours.', bgClass: 'bg-amber-500 text-white' },
     { name: 'Early Finisher', icon: 'timer_off', description: 'Submitted all compliance modules 7 days ahead of deadline.', bgClass: 'bg-purple-500 text-white' },
     { name: 'Patient Guardian', icon: 'health_and_safety', description: 'Mastered HIPAA data privacy and clinical EHR workflows.', bgClass: 'bg-teal-500 text-white' },

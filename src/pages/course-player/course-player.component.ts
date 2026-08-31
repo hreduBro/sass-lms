@@ -4,10 +4,11 @@ import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { Course, Lesson, QuizQuestion, Certificate } from '../../models/lms.model';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-course-player',
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, CustomAvatarComponent],
   templateUrl: './course-player.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

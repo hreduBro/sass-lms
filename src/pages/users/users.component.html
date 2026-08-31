@@ -87,7 +87,12 @@
               <!-- Personnel Name & Avatar -->
               <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
-                  <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover border border-base-300" referrerpolicy="no-referrer" />
+                  <app-custom-avatar 
+                    [name]="user.name" 
+                    [imageUrl]="user.avatar" 
+                    size="sm" 
+                    shape="squircle">
+                  </app-custom-avatar>
                   <div>
                     <div class="font-bold text-text-primary">{{ user.name }}</div>
                     <div class="text-[11px] text-text-secondary">{{ user.email }}</div>
@@ -310,7 +315,12 @@
     <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-lg p-6 animate-modal-card space-y-4">
       <div class="flex items-center justify-between pb-4 border-b border-base-300">
         <div class="flex items-center gap-3">
-          <img [src]="u.avatar" [alt]="u.name" class="w-12 h-12 rounded-full object-cover border-2 border-tenant-500/40" referrerpolicy="no-referrer" />
+          <app-custom-avatar 
+            [name]="u.name" 
+            [imageUrl]="u.avatar" 
+            size="lg" 
+            shape="squircle">
+          </app-custom-avatar>
           <div>
             <h3 class="font-bold text-base text-text-primary">{{ u.name }}</h3>
             <p class="text-xs text-text-secondary">{{ u.email }} &bull; {{ u.department }}</p>

@@ -235,10 +235,10 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     // Step 2: Resources Form (§4.2)
     this.resourcesForm = this.fb.group({
-      databaseSizeGb: [250, [Validators.required, Validators.min(1)]],
-      fileStorageGb: [500, [Validators.required, Validators.min(1)]],
-      usageAlertThresholdPct: [80, [Validators.required, Validators.min(1), Validators.max(100)]],
-      dataSharingMode: ['Yes – Shared' as DataSharingMode, [Validators.required]]
+      databaseSizeGb: [null, [Validators.required, Validators.min(1)]],
+      fileStorageGb: [null, [Validators.required, Validators.min(1)]],
+      usageAlertThresholdPct: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
+      dataSharingMode: ['', [Validators.required]]
     });
   }
 
@@ -554,6 +554,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         this.markFormGroupTouched(this.basicInfoForm);
         this.formErrorAlert.set('All mandatory fields are not filled up.');
         this.lms.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -574,6 +575,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         this.markFormGroupTouched(this.resourcesForm);
         this.formErrorAlert.set('All mandatory fields are not filled up.');
         this.lms.showToast('Step 2 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -584,12 +586,14 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       if (dbSize > capacity.dbAvailableGb) {
         this.formErrorAlert.set(`Database Size cannot exceed available DB capacity (${capacity.dbAvailableGb} GB).`);
         this.lms.showToast(`Step 2 Validation: DB Size exceeds available capacity (${capacity.dbAvailableGb} GB).`, 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.scrollToFirstError();
         return;
       }
 
       if (fileSize > capacity.fileAvailableGb) {
         this.formErrorAlert.set(`File Storage cannot exceed available storage capacity (${capacity.fileAvailableGb} GB).`);
         this.lms.showToast(`Step 2 Validation: File Storage exceeds available capacity (${capacity.fileAvailableGb} GB).`, 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -774,5 +778,22 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.ng-invalid, select.ng-invalid, textarea.ng-invalid, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

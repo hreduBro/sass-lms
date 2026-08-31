@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/user.model';
+import { CustomAvatarComponent } from '../custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-user-detail-modal',
   templateUrl: './user-detail-modal.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule],
+  imports: [CommonModule, CustomAvatarComponent],
 })
 export class UserDetailModalComponent {
   user = input<User | null>(null);

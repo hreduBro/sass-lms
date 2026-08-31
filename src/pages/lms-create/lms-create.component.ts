@@ -8,12 +8,13 @@ import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.mode
 import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-lms-create',
-  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, StepperComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, StepperComponent, CustomAvatarComponent],
   templateUrl: './lms-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -60,7 +61,7 @@ export class LmsCreateComponent implements OnInit {
   // Step 2: Resource Allocation State
   databaseSizeGb = signal<number | null>(null);
   fileStorageGb = signal<number | null>(null);
-  usageAlertThresholdPct = signal<number | null>(80);
+  usageAlertThresholdPct = signal<number | null>(null);
 
   // Step 3: Admin Assignment State
   adminName = signal<string>('');
@@ -161,8 +162,6 @@ export class LmsCreateComponent implements OnInit {
         if (this.parentOrg().timezone) {
           this.selectedTimezone.set(this.parentOrg().timezone);
         }
-        // Pre-fill suggested default allocation based on available capacity
-        this.initDefaultAllocations();
         this.showStepAlert(1, 'entered');
       }
     });
@@ -719,6 +718,7 @@ export class LmsCreateComponent implements OnInit {
     if (step === 1) {
       if (!this.validateStep1()) {
         this.lms.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -734,6 +734,7 @@ export class LmsCreateComponent implements OnInit {
     } else if (step === 2) {
       if (!this.validateStep2()) {
         this.lms.showToast('Step 2 Validation: Check storage quota limits.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -749,6 +750,7 @@ export class LmsCreateComponent implements OnInit {
     } else if (step === 3) {
       if (!this.validateStep3()) {
         this.lms.showToast('Step 3 Validation: All mandatory admin fields are not filled up.', 'error', 4500, 'Step 3 Error', 'STEP 3 / 4');
+        this.scrollToFirstError();
         return;
       }
 
@@ -968,5 +970,22 @@ export class LmsCreateComponent implements OnInit {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.border-rose-500, select.border-rose-500, textarea.border-rose-500, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

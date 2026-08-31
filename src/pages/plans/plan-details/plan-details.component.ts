@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, Phase, PlanOwner } from '../../../models/plan.model';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-modal.component';
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
 import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details-modal.component';
@@ -11,6 +12,7 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
   selector: 'app-plan-details',
   imports: [
     CommonModule,
+    CustomAvatarComponent,
     AssignOwnerModalComponent,
     EditPlanModalComponent,
     PhaseDetailsModalComponent
@@ -169,9 +171,11 @@ import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details
                 <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Active</span>
               </div>
               <div class="flex items-center gap-2.5 mt-1">
-                <div class="w-8 h-8 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold flex items-center justify-center shrink-0">
-                  {{ currentPlan()!.owner?.name?.charAt(0) || '?' }}
-                </div>
+                <app-custom-avatar 
+                  [name]="currentPlan()!.owner?.name || 'Not assigned'" 
+                  size="sm" 
+                  shape="squircle">
+                </app-custom-avatar>
                 <div class="min-w-0 flex-1">
                   <div class="font-bold text-text-primary truncate">{{ currentPlan()!.owner?.name || 'Not assigned' }}</div>
                   <div class="text-[11px] text-text-secondary truncate">{{ currentPlan()!.owner?.email || '—' }} • {{ currentPlan()!.owner?.contactNumber || 'No phone' }}</div>

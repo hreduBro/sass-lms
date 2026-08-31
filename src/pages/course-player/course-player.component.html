@@ -544,7 +544,12 @@
                     <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 space-y-2">
                       <div class="flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
-                          <img [src]="item.avatar" [alt]="item.user" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer" />
+                          <app-custom-avatar 
+                            [imageUrl]="item.avatar" 
+                            [name]="item.user" 
+                            size="xs" 
+                            shape="squircle">
+                          </app-custom-avatar>
                           <span class="font-bold text-text-primary">{{ item.user }}</span>
                         </div>
                         <span class="text-[10px] text-text-secondary">{{ item.time }}</span>

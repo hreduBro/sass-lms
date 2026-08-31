@@ -371,9 +371,11 @@
               @for (admin of selectedLms()!.administrators; track admin.id) {
                 <div class="p-2.5 rounded-xl bg-base-200/70 border border-base-300 flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-bold flex items-center justify-center text-xs">
-                      {{ admin.name.charAt(0) }}
-                    </div>
+                    <app-custom-avatar 
+                      [name]="admin.name" 
+                      size="xs" 
+                      shape="squircle">
+                    </app-custom-avatar>
                     <div>
                       <p class="font-semibold text-text-primary text-xs">{{ admin.name }}</p>
                       <p class="text-[10px] text-text-secondary">{{ admin.email }}</p>

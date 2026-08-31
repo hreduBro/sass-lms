@@ -451,25 +451,10 @@ export class TenantsComponent {
   }
 
   getProgressBarColor(tenant: Tenant): string {
-    if (tenant.id === this.lms.activeTenantId() || tenant.id === 'tenant-brac') {
-      return '#ec008c'; // Official BRAC Pantone Magenta
+    if (tenant.id === this.lms.activeTenantId()) {
+      return this.lms.activeTenant().branding.primaryColor || 'var(--color-tenant-500, #ec008c)';
     }
-    if (tenant.id === 'tenant-lumina') {
-      return '#06b6d4'; // Cyan
-    }
-    if (tenant.id === 'tenant-acme') {
-      return '#7c3aed'; // Violet / purple
-    }
-    if (tenant.id === 'tenant-stanford') {
-      return '#dc2626'; // Red
-    }
-    if (tenant.id === 'tenant-apexhealth') {
-      return '#059669'; // Emerald
-    }
-    if (tenant.id === 'tenant-finedge') {
-      return '#4f46e5'; // Indigo
-    }
-    return tenant.branding.primaryColor || '#ec008c';
+    return tenant.branding.primaryColor || 'var(--color-tenant-500, #ec008c)';
   }
 
   scrollToTop() {

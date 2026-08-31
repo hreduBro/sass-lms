@@ -153,7 +153,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                   {{ group.label }}
                 </span>
                 @if (group.badge) {
-                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#EC008C] text-white">
+                  <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-tenant-500 text-white">
                     {{ group.badge }}
                   </span>
                 }
@@ -167,11 +167,11 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       (click)="showMoreDrawer.set(false)"
                       class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
                       [class]="isChildActive(child) 
-                        ? 'bg-[#EC008C] border-transparent text-white font-semibold shadow-xs' 
+                        ? 'bg-tenant-500 border-transparent text-white font-semibold shadow-xs' 
                         : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
                       
                       <span class="material-symbols-outlined text-xl flex-shrink-0"
-                            [class]="isChildActive(child) ? 'text-white' : 'text-[#EC008C]'">{{ child.icon }}</span>
+                            [class]="isChildActive(child) ? 'text-white' : 'text-tenant-500'">{{ child.icon }}</span>
                       <div class="text-left min-w-0 flex-1">
                         <div class="flex items-center gap-1">
                           <span class="font-bold text-xs truncate block" [class.text-white]="isChildActive(child)">{{ child.label }}</span>
@@ -206,26 +206,26 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                   (click)="showMoreDrawer.set(false)"
                   class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
                   [class]="isItemActive(item) 
-                    ? 'bg-[#FDF2F8] dark:bg-pink-950/30 border-pink-200 dark:border-pink-900/30 text-[#EC008C] dark:text-[#F472B6] font-bold' 
+                    ? 'bg-tenant-50 dark:bg-tenant-500/20 border-tenant-200 dark:border-tenant-500/30 text-tenant-600 dark:text-tenant-300 font-bold' 
                     : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
                   
-                  <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-[#EC008C]]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
+                  <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-tenant-600]="isItemActive(item)" [class.dark:text-tenant-300]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
                   <div class="text-left min-w-0 flex-1">
                     <div class="flex items-center gap-1">
                       <span class="font-bold text-xs block truncate">{{ item.label }}</span>
                       @if (item.badge) {
                         <span class="text-[8px] px-1.5 py-0.2 rounded font-bold uppercase"
-                              [class]="isItemActive(item) ? 'bg-[#EC008C] text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
+                              [class]="isItemActive(item) ? 'bg-tenant-500 text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
                           {{ item.badge }}
                         </span>
                       }
                     </div>
                     @if (item.description) {
-                      <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-[#EC008C]/80 dark:text-[#F472B6]/80' : 'text-slate-400'">{{ item.description }}</span>
+                      <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-tenant-600/80 dark:text-tenant-300/80' : 'text-slate-400'">{{ item.description }}</span>
                     }
                   </div>
                   @if (isItemActive(item)) {
-                    <span class="material-symbols-outlined text-xs text-[#EC008C] dark:text-[#F472B6] flex-shrink-0">check_circle</span>
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300 flex-shrink-0">check_circle</span>
                   }
                 </a>
               }

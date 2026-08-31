@@ -624,7 +624,12 @@
             @for (user of filteredOverduePersonnel(); track user.id) {
               <div class="p-2.5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between text-xs gap-2">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover flex-shrink-0" referrerpolicy="no-referrer" />
+                  <app-custom-avatar 
+                    [imageUrl]="user.avatar" 
+                    [name]="user.name" 
+                    size="xs" 
+                    shape="squircle">
+                  </app-custom-avatar>
                   <div class="min-w-0">
                     <div class="font-semibold text-text-primary truncate">{{ user.name }}</div>
                     <div class="text-[10px] text-text-secondary truncate">{{ user.department }} &bull; {{ user.email }}</div>
@@ -759,7 +764,12 @@
                     [class]="idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-slate-300 text-black' : 'bg-base-300 text-text-secondary'">
                     {{ idx + 1 }}
                   </span>
-                  <img [src]="learner.avatar" [alt]="learner.name" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer" />
+                  <app-custom-avatar 
+                    [imageUrl]="learner.avatar" 
+                    [name]="learner.name" 
+                    size="xs" 
+                    shape="squircle">
+                  </app-custom-avatar>
                   <span class="font-semibold text-text-primary truncate max-w-[110px]">{{ learner.name }}</span>
                 </div>
                 <span class="font-bold font-mono text-tenant-600">

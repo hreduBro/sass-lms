@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { DashboardWidget, UserRole, CourseEnrollment, User } from '../../models/lms.model';
 import { KpiCardComponent } from '../../components/kpi-card/kpi-card.component';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 import { Kpi } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard-widget-renderer',
-  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent, CustomAvatarComponent],
   templateUrl: './dashboard-widget-renderer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

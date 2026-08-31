@@ -232,7 +232,12 @@
         <div class="flex items-center gap-2 overflow-x-auto py-1 sm:py-2 px-1 scrollbar-none">
           @for (user of lms.tenantUsers().slice(0, 5); track user.id) {
             <div class="px-2.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center gap-2 text-white text-xs flex-shrink-0 min-w-32">
-              <img [src]="user.avatar" [alt]="user.name" class="w-6 h-6 rounded-full object-cover border border-white/20" referrerpolicy="no-referrer" />
+              <app-custom-avatar 
+                [imageUrl]="user.avatar" 
+                [name]="user.name" 
+                size="xs" 
+                shape="squircle">
+              </app-custom-avatar>
               <div class="truncate">
                 <span class="block truncate text-[11px] font-medium leading-none">{{ user.name }}</span>
                 <span class="text-[9px] text-white/50 capitalize">{{ user.role.replace('_', ' ') }}</span>
@@ -466,7 +471,12 @@
             <!-- You -->
             <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
               <div class="flex items-center gap-2.5">
-                <img [src]="lms.activeUser().avatar" [alt]="lms.activeUser().name" class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+                <app-custom-avatar 
+                  [imageUrl]="lms.activeUser().avatar" 
+                  [name]="lms.activeUser().name" 
+                  size="xs" 
+                  shape="squircle">
+                </app-custom-avatar>
                 <div>
                   <span class="font-bold text-xs text-white block">{{ lms.activeUser().name }} (You)</span>
                   <span class="text-[10px] text-white/50 capitalize">{{ lms.activeRole() }}</span>
@@ -486,7 +496,12 @@
             @for (user of lms.tenantUsers(); track user.id) {
               <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                  <img [src]="user.avatar" [alt]="user.name" class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+                  <app-custom-avatar 
+                    [imageUrl]="user.avatar" 
+                    [name]="user.name" 
+                    size="xs" 
+                    shape="squircle">
+                  </app-custom-avatar>
                   <div>
                     <span class="font-bold text-xs text-white block">{{ user.name }}</span>
                     <span class="text-[10px] text-white/50 capitalize">{{ user.role.replace('_', ' ') }}</span>

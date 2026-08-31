@@ -2393,7 +2393,7 @@ export class LmsDataService {
   // Core reactive signals
   tenants = signal<Tenant[]>(INITIAL_TENANTS);
   activeTenantId = signal<string>('tenant-brac');
-  activeRole = signal<UserRole>('lms_admin');
+  activeRole = signal<UserRole>('system_admin');
 
   private router = inject(Router, { optional: true });
 

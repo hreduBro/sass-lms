@@ -14,6 +14,7 @@ import { LmsInstance, LmsDraft } from '../../models/lms-instance.model';
 import { LmsWidgetRendererComponent } from './lms-widget-renderer.component';
 import { LmsWidgetConfigModalComponent } from './lms-widget-config-modal.component';
 import { LmsAddWidgetModalComponent } from './lms-add-widget-modal.component';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-lms-dashboard',
@@ -23,7 +24,8 @@ import { LmsAddWidgetModalComponent } from './lms-add-widget-modal.component';
     FormsModule, 
     LmsWidgetRendererComponent, 
     LmsWidgetConfigModalComponent, 
-    LmsAddWidgetModalComponent
+    LmsAddWidgetModalComponent,
+    CustomAvatarComponent
   ],
   templateUrl: './lms-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

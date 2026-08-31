@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { User, UserRole } from '../../models/lms.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
+import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-users',
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, CustomAvatarComponent],
   templateUrl: './users.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

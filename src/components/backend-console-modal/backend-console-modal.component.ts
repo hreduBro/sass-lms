@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, output, signal, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, output, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LmsApiService, BackendHealth } from '../../services/lms-api.service';
@@ -20,8 +20,8 @@ import { LmsDataService } from '../../services/lms-data.service';
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="font-bold text-base text-text-primary">Express Backend & API Server</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                   REST API Active
                 </span>
               </div>
@@ -83,8 +83,8 @@ import { LmsDataService } from '../../services/lms-data.service';
               <button 
                 type="button" 
                 (click)="refreshTelemetry()"
-                class="text-[11px] font-semibold text-tenant-600 dark:text-tenant-300 hover:underline flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">sync</span>
+                class="text-[11px] font-semibold text-tenant-600 dark:text-tenant-300 hover:underline flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-xs" [class.animate-spin]="isRefreshing()">sync</span>
                 Ping Server
               </button>
             </div>
@@ -94,63 +94,64 @@ import { LmsDataService } from '../../services/lms-data.service';
               <button
                 type="button"
                 (click)="testEndpoint('health')"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors flex items-center gap-1"
-                [class]="selectedEndpoint() === 'health' ? 'bg-tenant-500 text-white border-tenant-600 font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                <span class="text-[9px] font-bold px-1 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">GET</span>
+                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-all cursor-pointer flex items-center gap-1 select-none"
+                [class]="selectedEndpoint() === 'health' ? 'bg-tenant-500 text-white border-tenant-600 font-bold shadow-xs' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary hover:bg-base-300/60'">
+                <span class="text-[9px] font-bold px-1 rounded" [class]="selectedEndpoint() === 'health' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'">GET</span>
                 /api/health
               </button>
 
               <button
                 type="button"
                 (click)="testEndpoint('tenants')"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors flex items-center gap-1"
-                [class]="selectedEndpoint() === 'tenants' ? 'bg-tenant-500 text-white border-tenant-600 font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                <span class="text-[9px] font-bold px-1 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">GET</span>
+                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-all cursor-pointer flex items-center gap-1 select-none"
+                [class]="selectedEndpoint() === 'tenants' ? 'bg-tenant-500 text-white border-tenant-600 font-bold shadow-xs' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary hover:bg-base-300/60'">
+                <span class="text-[9px] font-bold px-1 rounded" [class]="selectedEndpoint() === 'tenants' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'">GET</span>
                 /api/tenants
               </button>
 
               <button
                 type="button"
                 (click)="testEndpoint('courses')"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors flex items-center gap-1"
-                [class]="selectedEndpoint() === 'courses' ? 'bg-tenant-500 text-white border-tenant-600 font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                <span class="text-[9px] font-bold px-1 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">GET</span>
+                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-all cursor-pointer flex items-center gap-1 select-none"
+                [class]="selectedEndpoint() === 'courses' ? 'bg-tenant-500 text-white border-tenant-600 font-bold shadow-xs' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary hover:bg-base-300/60'">
+                <span class="text-[9px] font-bold px-1 rounded" [class]="selectedEndpoint() === 'courses' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'">GET</span>
                 /api/courses
               </button>
 
               <button
                 type="button"
                 (click)="testEndpoint('analytics')"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors flex items-center gap-1"
-                [class]="selectedEndpoint() === 'analytics' ? 'bg-tenant-500 text-white border-tenant-600 font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                <span class="text-[9px] font-bold px-1 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">GET</span>
+                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-all cursor-pointer flex items-center gap-1 select-none"
+                [class]="selectedEndpoint() === 'analytics' ? 'bg-tenant-500 text-white border-tenant-600 font-bold shadow-xs' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary hover:bg-base-300/60'">
+                <span class="text-[9px] font-bold px-1 rounded" [class]="selectedEndpoint() === 'analytics' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'">GET</span>
                 /api/analytics
               </button>
 
               <button
                 type="button"
                 (click)="testEndpoint('ai')"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors flex items-center gap-1"
-                [class]="selectedEndpoint() === 'ai' ? 'bg-tenant-500 text-white border-tenant-600 font-bold' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                <span class="text-[9px] font-bold px-1 rounded bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">POST</span>
+                class="px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium border transition-all cursor-pointer flex items-center gap-1 select-none"
+                [class]="selectedEndpoint() === 'ai' ? 'bg-tenant-500 text-white border-tenant-600 font-bold shadow-xs' : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary hover:bg-base-300/60'">
+                <span class="text-[9px] font-bold px-1 rounded" [class]="selectedEndpoint() === 'ai' ? 'bg-white/20 text-white' : 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300'">POST</span>
                 /api/ai/generate-course
               </button>
             </div>
 
             <!-- JSON Payload Response Display -->
-            <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800 text-slate-100 font-mono text-xs overflow-x-auto relative min-h-[160px] max-h-[260px]">
+            <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800 text-slate-100 font-mono text-xs overflow-x-auto relative min-h-[180px] max-h-[280px]">
               <div class="flex items-center justify-between text-[10px] text-slate-400 border-b border-slate-800 pb-2 mb-2">
-                <span>Response Status: <strong class="text-emerald-400">200 OK</strong></span>
+                <div class="flex items-center gap-2">
+                  <span>Response Status: <strong class="text-emerald-400">200 OK</strong></span>
+                  @if (isLoading()) {
+                    <span class="flex items-center gap-1 text-slate-400">
+                      <span class="material-symbols-outlined text-[12px] animate-spin">progress_activity</span>
+                      <span>Syncing...</span>
+                    </span>
+                  }
+                </div>
                 <span>Content-Type: application/json</span>
               </div>
-              @if (isLoading()) {
-                <div class="flex items-center justify-center py-10 gap-2 text-slate-400">
-                  <span class="material-symbols-outlined animate-spin">progress_activity</span>
-                  <span>Executing server request...</span>
-                </div>
-              } @else {
-                <pre class="text-[11px] leading-relaxed text-emerald-300 whitespace-pre-wrap">{{ responseData() }}</pre>
-              }
+              <pre class="text-[11px] leading-relaxed text-emerald-300 whitespace-pre-wrap font-mono">{{ responseData() }}</pre>
             </div>
           </div>
 
@@ -177,7 +178,7 @@ import { LmsDataService } from '../../services/lms-data.service';
           <button 
             type="button" 
             (click)="close.emit()"
-            class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-sm transition-colors">
+            class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer">
             Close Console
           </button>
         </div>
@@ -194,112 +195,96 @@ export class BackendConsoleModalComponent {
 
   selectedEndpoint = signal<'health' | 'tenants' | 'courses' | 'analytics' | 'ai'>('health');
   isLoading = signal<boolean>(false);
-  responseData = signal<string>('');
+  isRefreshing = signal<boolean>(false);
 
-  constructor() {
-    this.testEndpoint('health');
-  }
+  // Cached endpoint response map for instant, zero-flicker transitions
+  private endpointResponses = computed(() => ({
+    health: JSON.stringify({
+      status: 'healthy',
+      environment: 'production',
+      version: '2.4.0',
+      uptimeSeconds: 1420,
+      timestamp: new Date().toISOString(),
+      database: {
+        tenantsCount: this.lms.tenants().length,
+        coursesCount: this.lms.courses().length,
+        learnersCount: this.lms.users().length,
+        auditLogsCount: this.lms.auditLogs().length
+      },
+      aiEnabled: true,
+      aiModel: 'gemini-3.7-flash'
+    }, null, 2),
+
+    tenants: JSON.stringify({
+      success: true,
+      count: this.lms.tenants().length,
+      data: this.lms.tenants().map(t => ({
+        id: t.id,
+        name: t.name,
+        domain: t.domain,
+        plan: t.plan,
+        status: t.status,
+        seatsUsed: t.stats.seatsUsed,
+        seatLimit: t.stats.seatLimit
+      }))
+    }, null, 2),
+
+    courses: JSON.stringify({
+      success: true,
+      count: this.lms.courses().length,
+      data: this.lms.courses().slice(0, 3).map(c => ({
+        id: c.id,
+        title: c.title,
+        category: c.category,
+        level: c.level,
+        durationMinutes: c.durationMinutes,
+        isMandatory: c.isMandatory
+      }))
+    }, null, 2),
+
+    analytics: JSON.stringify({
+      success: true,
+      data: {
+        activeWorkspaces: this.lms.tenants().length,
+        totalCourses: this.lms.courses().length,
+        averageComplianceRate: '96.2%',
+        activeLearners: 4210,
+        averageLearningHours: 48.5
+      }
+    }, null, 2),
+
+    ai: JSON.stringify({
+      success: true,
+      source: 'gemini-3.7-flash',
+      data: {
+        title: 'Advanced Zero-Trust Cloud SecOps Masterclass',
+        category: 'Compliance & Security',
+        estimatedMinutes: 90,
+        level: 'Advanced',
+        learningObjectives: [
+          'Architect Zero-Trust boundary policies across AWS, GCP, and Azure',
+          'Enforce automated least-privilege role validation and MFA',
+          'Pass SOC-2 Type II audit verifications'
+        ],
+        modulesCount: 4
+      }
+    }, null, 2)
+  }));
+
+  responseData = computed(() => {
+    return this.endpointResponses()[this.selectedEndpoint()];
+  });
 
   refreshTelemetry() {
-    this.api.pingHealth().subscribe();
+    this.isRefreshing.set(true);
+    this.api.pingHealth().subscribe({
+      next: () => this.isRefreshing.set(false),
+      error: () => this.isRefreshing.set(false)
+    });
   }
 
   testEndpoint(type: 'health' | 'tenants' | 'courses' | 'analytics' | 'ai') {
     this.selectedEndpoint.set(type);
-    this.isLoading.set(true);
-
-    if (type === 'health') {
-      const data = {
-        status: 'healthy',
-        environment: 'production',
-        version: '2.4.0',
-        uptimeSeconds: 1420,
-        timestamp: new Date().toISOString(),
-        database: {
-          tenantsCount: this.lms.tenants().length,
-          coursesCount: this.lms.courses().length,
-          learnersCount: this.lms.users().length,
-          auditLogsCount: this.lms.auditLogs().length
-        },
-        aiEnabled: true,
-        aiModel: 'gemini-3.7-flash'
-      };
-      setTimeout(() => {
-        this.responseData.set(JSON.stringify(data, null, 2));
-        this.isLoading.set(false);
-      }, 150);
-    } else if (type === 'tenants') {
-      const data = {
-        success: true,
-        count: this.lms.tenants().length,
-        data: this.lms.tenants().map(t => ({
-          id: t.id,
-          name: t.name,
-          domain: t.domain,
-          plan: t.plan,
-          status: t.status,
-          seatsUsed: t.stats.seatsUsed,
-          seatLimit: t.stats.seatLimit
-        }))
-      };
-      setTimeout(() => {
-        this.responseData.set(JSON.stringify(data, null, 2));
-        this.isLoading.set(false);
-      }, 150);
-    } else if (type === 'courses') {
-      const data = {
-        success: true,
-        count: this.lms.courses().length,
-        data: this.lms.courses().slice(0, 3).map(c => ({
-          id: c.id,
-          title: c.title,
-          category: c.category,
-          level: c.level,
-          durationMinutes: c.durationMinutes,
-          isMandatory: c.isMandatory
-        }))
-      };
-      setTimeout(() => {
-        this.responseData.set(JSON.stringify(data, null, 2));
-        this.isLoading.set(false);
-      }, 150);
-    } else if (type === 'analytics') {
-      const data = {
-        success: true,
-        data: {
-          activeWorkspaces: this.lms.tenants().length,
-          totalCourses: this.lms.courses().length,
-          averageComplianceRate: '96.2%',
-          activeLearners: 4210,
-          averageLearningHours: 48.5
-        }
-      };
-      setTimeout(() => {
-        this.responseData.set(JSON.stringify(data, null, 2));
-        this.isLoading.set(false);
-      }, 150);
-    } else if (type === 'ai') {
-      const data = {
-        success: true,
-        source: 'gemini-3.7-flash',
-        data: {
-          title: 'Advanced Zero-Trust Cloud SecOps Masterclass',
-          category: 'Compliance & Security',
-          estimatedMinutes: 90,
-          level: 'Advanced',
-          learningObjectives: [
-            'Architect Zero-Trust boundary policies across AWS, GCP, and Azure',
-            'Enforce automated least-privilege role validation and MFA',
-            'Pass SOC-2 Type II audit verifications'
-          ],
-          modulesCount: 4
-        }
-      };
-      setTimeout(() => {
-        this.responseData.set(JSON.stringify(data, null, 2));
-        this.isLoading.set(false);
-      }, 200);
-    }
   }
 
   onBackdropClick(event: MouseEvent) {
@@ -311,3 +296,4 @@ export class BackendConsoleModalComponent {
     this.close.emit();
   }
 }
+

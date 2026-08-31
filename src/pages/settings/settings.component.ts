@@ -51,20 +51,21 @@ export class SettingsComponent {
   constructor() {
     effect(() => {
       const activeLms = this.lms.activeLms();
+      const currentTenant = this.lms.activeTenant();
       const defaultBranding: TenantBranding = {
-        primaryColor: '#EC008C',
-        accentColor: '#C40072',
-        tagline: '',
-        bannerUrl: '',
-        logoUrl: '',
+        primaryColor: currentTenant?.branding?.primaryColor || '#EC008C',
+        accentColor: currentTenant?.branding?.accentColor || '#C40072',
+        tagline: currentTenant?.branding?.tagline || '',
+        bannerUrl: currentTenant?.branding?.bannerUrl || '',
+        logoUrl: currentTenant?.branding?.logoUrl || '',
         customCssEnabled: true,
-        themePreset: 'solid',
-        ssoProvider: 'Okta'
+        themePreset: currentTenant?.branding?.themePreset || 'solid',
+        ssoProvider: currentTenant?.branding?.ssoProvider || 'Okta'
       };
-      const branding: TenantBranding = activeLms?.branding || defaultBranding;
+      const branding: TenantBranding = activeLms?.branding || currentTenant?.branding || defaultBranding;
       this.settingsForm = {
-        name: activeLms ? activeLms.basicInfo.lmsName : 'LMS Portal',
-        domain: activeLms ? activeLms.basicInfo.urlDomain : '',
+        name: activeLms ? activeLms.basicInfo.lmsName : (currentTenant?.name || 'LMS Portal'),
+        domain: activeLms ? activeLms.basicInfo.urlDomain : (currentTenant?.domain || ''),
         tagline: branding.tagline || (activeLms ? activeLms.basicInfo.programmeDepartment : ''),
         logoUrl: branding.logoUrl || (activeLms?.basicInfo.logo?.url || ''),
         faviconUrl: branding.faviconUrl || '',
@@ -137,6 +138,18 @@ export class SettingsComponent {
       });
       this.lms.updateLmsBranding(activeLms.id, updatedBranding);
       this.lms.updateLmsLayoutPreferences(activeLms.id, this.lms.adminLayoutPreferences());
+    }
+
+    if (currentTenant) {
+      this.lms.updateTenant({
+        ...currentTenant,
+        name: this.settingsForm.name || currentTenant.name,
+        domain: this.settingsForm.domain || currentTenant.domain,
+        branding: {
+          ...currentTenant.branding,
+          ...updatedBranding
+        }
+      });
     }
 
     this.lms.applyTenantTheme(

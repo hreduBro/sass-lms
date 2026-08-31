@@ -724,7 +724,12 @@
                   class="p-2.5 rounded-xl border flex items-center justify-between gap-3 cursor-pointer select-none transition-all"
                   [class]="isTraineeAssigned(trainee.id) ? 'bg-tenant-500/10 border-tenant-500/50' : 'bg-base-100 border-base-300 dark:border-slate-800 hover:bg-base-200/50'">
                   <div class="flex items-center gap-3">
-                    <img [src]="trainee.avatar" [alt]="trainee.name" class="w-7 h-7 rounded-full object-cover shrink-0" />
+                    <app-custom-avatar 
+                      [name]="trainee.name" 
+                      [imageUrl]="trainee.avatar" 
+                      size="xs" 
+                      shape="squircle">
+                    </app-custom-avatar>
                     <div>
                       <div class="text-xs font-bold text-text-primary">{{ trainee.name }}</div>
                       <div class="text-[10px] text-text-secondary font-mono">{{ trainee.email }} &bull; {{ trainee.department }}</div>

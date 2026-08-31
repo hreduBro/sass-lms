@@ -26,6 +26,7 @@ import {
   validatePhaseDates
 } from '../../../models/phase.model';
 import { StepperComponent, StepItem } from '../../../components/stepper/stepper.component';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 
 @Component({
@@ -35,7 +36,8 @@ import { ConfirmationModalService } from '../../../services/confirmation-modal.s
     FormsModule, 
     ReactiveFormsModule, 
     RouterModule, 
-    StepperComponent
+    StepperComponent,
+    CustomAvatarComponent
   ],
   templateUrl: './phase-create.component.html',
   styles: [`
@@ -161,7 +163,7 @@ export class PhaseCreateComponent implements OnInit {
   requiredPriorPhaseId = signal<string>('');
   requiredCourseId = signal<string>('');
   minScoreThreshold = signal<number>(75);
-  gatedByPendingTasks = signal<boolean>(true);
+  gatedByPendingTasks = signal<boolean>(false);
   unlockDelayDays = signal<number>(0);
 
   // =========================================================================
@@ -175,7 +177,7 @@ export class PhaseCreateComponent implements OnInit {
   newTaskAssignedTo = signal<string>('');
   newTaskDueDate = signal<string>('');
   newTaskStatus = signal<TaskStatus>('Pending');
-  newTaskIsRequired = signal<boolean>(true);
+  newTaskIsRequired = signal<boolean>(false);
 
   // =========================================================================
   // STEP 5: Delivery Methodology & Scheduled Sessions Modal (PHASE-06)
@@ -416,6 +418,8 @@ export class PhaseCreateComponent implements OnInit {
       this.currentStep.set(stepNumber);
       this.formErrorAlert.set(null);
       this.showStepAlert(stepNumber, 'jump');
+    } else {
+      this.scrollToFirstError();
     }
   }
 
@@ -431,6 +435,8 @@ export class PhaseCreateComponent implements OnInit {
       this.currentStep.set(nextStepNum);
       this.formErrorAlert.set(null);
       this.showStepAlert(nextStepNum, 'completed');
+    } else {
+      this.scrollToFirstError();
     }
   }
 
@@ -817,16 +823,19 @@ export class PhaseCreateComponent implements OnInit {
     if (!this.phaseName().trim()) {
       this.currentStep.set(1);
       this.formErrorAlert.set('Phase Name is mandatory.');
+      this.scrollToFirstError();
       return;
     }
     if (!this.startDate().trim() || !this.endDate().trim()) {
       this.currentStep.set(1);
       this.formErrorAlert.set('Start Date and End Date are mandatory.');
+      this.scrollToFirstError();
       return;
     }
     if (this.assignedCoursesList().length === 0) {
       this.currentStep.set(2);
       this.formErrorAlert.set('Please assign at least one Course to this Phase.');
+      this.scrollToFirstError();
       return;
     }
 
@@ -842,6 +851,7 @@ export class PhaseCreateComponent implements OnInit {
     for (let step = 1; step <= 2; step++) {
       this.currentStep.set(step);
       if (!this.validateCurrentStep()) {
+        this.scrollToFirstError();
         return;
       }
     }
@@ -975,5 +985,22 @@ export class PhaseCreateComponent implements OnInit {
       onDiscard: () => this.returnToPlan(),
       onCancel: () => {}
     });
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.border-rose-500, select.border-rose-500, textarea.border-rose-500, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

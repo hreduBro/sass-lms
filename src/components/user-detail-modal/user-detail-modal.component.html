@@ -8,7 +8,12 @@
       </button>
 
       <div class="flex flex-col items-center text-center">
-        <img class="h-24 w-24 rounded-full border-4 border-glass-border" [src]="'https://i.pravatar.cc/100?u=' + user.email" alt="User Avatar">
+        <app-custom-avatar 
+          [imageUrl]="'https://i.pravatar.cc/100?u=' + user.email" 
+          [name]="user.name" 
+          size="2xl" 
+          shape="squircle">
+        </app-custom-avatar>
         <h2 class="mt-4 text-2xl font-bold text-text-primary">{{ user.name }}</h2>
         <p class="text-sm text-text-secondary">{{ user.email }}</p>
       </div>

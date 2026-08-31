@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, Phase, PlanOwner, PlanStatus, DurationType, EnrollmentType } from '../../../models/plan.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-modal.component';
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
 import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details-modal.component';
@@ -35,6 +36,7 @@ export interface LearnerProgressRecord {
     CommonModule,
     FormsModule,
     CustomSelectComponent,
+    CustomAvatarComponent,
     AssignOwnerModalComponent,
     EditPlanModalComponent,
     PhaseDetailsModalComponent
@@ -440,9 +442,11 @@ export interface LearnerProgressRecord {
                     <td class="py-3 px-3 whitespace-nowrap">
                       @if (plan.owner?.name) {
                         <div class="flex items-center gap-2">
-                          <div class="w-6 h-6 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold flex items-center justify-center text-[10px]">
-                            {{ plan.owner.name.charAt(0) }}
-                          </div>
+                          <app-custom-avatar 
+                            [name]="plan.owner.name" 
+                            size="xs" 
+                            shape="squircle">
+                          </app-custom-avatar>
                           <div class="min-w-0">
                             <div class="font-semibold text-text-primary text-[11px]">{{ plan.owner.name }}</div>
                             <div class="text-[10px] text-text-secondary truncate">{{ plan.owner.email }}</div>
@@ -543,9 +547,11 @@ export interface LearnerProgressRecord {
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
             @for (owner of ownerRoster(); track owner.email) {
               <div class="p-3.5 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 flex items-start gap-3">
-                <div class="w-10 h-10 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold flex items-center justify-center shrink-0 text-sm">
-                  {{ owner.name.charAt(0) }}
-                </div>
+                <app-custom-avatar 
+                  [name]="owner.name" 
+                  size="md" 
+                  shape="squircle">
+                </app-custom-avatar>
                 <div class="min-w-0 flex-1">
                   <div class="font-bold text-text-primary truncate">{{ owner.name }}</div>
                   <div class="text-[11px] text-text-secondary truncate">{{ owner.email }}</div>
@@ -633,9 +639,11 @@ export interface LearnerProgressRecord {
             <div class="flex items-center gap-3">
               @if (selectedPlan()!.owner?.name) {
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/60 dark:bg-base-300/40 border border-base-300 dark:border-slate-800">
-                  <div class="w-6 h-6 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold flex items-center justify-center text-[10px]">
-                    {{ selectedPlan()!.owner.name.charAt(0) }}
-                  </div>
+                  <app-custom-avatar 
+                    [name]="selectedPlan()!.owner.name" 
+                    size="xs" 
+                    shape="squircle">
+                  </app-custom-avatar>
                   <div>
                     <span class="text-text-secondary text-[10px]">Plan Owner:</span>
                     <strong class="text-text-primary ml-1">{{ selectedPlan()!.owner.name }}</strong>
@@ -900,9 +908,12 @@ export interface LearnerProgressRecord {
                     <!-- Profile -->
                     <td class="py-3 px-3">
                       <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold flex items-center justify-center text-xs">
-                          {{ learner.name.charAt(0) }}
-                        </div>
+                        <app-custom-avatar 
+                          [name]="learner.name" 
+                          [imageUrl]="learner.avatar" 
+                          size="sm" 
+                          shape="squircle">
+                        </app-custom-avatar>
                         <div>
                           <div class="font-bold text-text-primary">{{ learner.name }}</div>
                           <div class="text-[10px] text-text-secondary">{{ learner.email }} • {{ learner.department }}</div>

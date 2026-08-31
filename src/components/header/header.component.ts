@@ -7,10 +7,11 @@ import { LmsDataService } from '../../services/lms-data.service';
 import { LmsApiService } from '../../services/lms-api.service';
 import { ThemeService } from '../../services/theme.service';
 import { UserRole } from '../../models/lms.model';
+import { CustomAvatarComponent } from '../custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

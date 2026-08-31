@@ -15,6 +15,7 @@ import {
 import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-modal.component';
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-plan-grid',
@@ -24,7 +25,8 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
     RouterModule,
     AssignOwnerModalComponent,
     EditPlanModalComponent,
-    CustomSelectComponent
+    CustomSelectComponent,
+    CustomAvatarComponent
   ],
   templateUrl: './plan-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

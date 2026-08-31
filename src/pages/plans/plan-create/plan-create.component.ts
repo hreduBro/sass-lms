@@ -227,14 +227,14 @@ export class PlanCreateComponent implements OnInit {
 
     // Section 03: Progression
     progression: this.fb.group({
-      mode: ['Sequential', [Validators.required]],
+      mode: ['', [Validators.required]],
       completionRequirementForUnlock: ['All Courses & Assessments 100% Completed']
     }),
 
     // Section 04: Enrollment & Cohorting
     enrollment: this.fb.group({
       mode: ['Open', [Validators.required]],
-      existingTraineeSelfRegistration: [true],
+      existingTraineeSelfRegistration: [false],
       capacityEnabled: [false],
       capacity: [100],
       waitlistEnabled: [false],
@@ -250,8 +250,8 @@ export class PlanCreateComponent implements OnInit {
 
     // Section 05: Prior Completion & Equivalency
     equivalency: this.fb.group({
-      samePublishedVersionSatisfies: [true],
-      newerVersionRequiresRetake: [true],
+      samePublishedVersionSatisfies: [false],
+      newerVersionRequiresRetake: [false],
       overrideEnabled: [false],
       explanation: ['Course credit granted based on certified prior version completion. Trainee is exempt from re-taking identical syllabus modules.']
     }),
@@ -261,23 +261,23 @@ export class PlanCreateComponent implements OnInit {
       scope: ['Whole Plan'],
       type: ['Percentage'],
       planPassMark: [70],
-      contentLevelPassRequired: [true],
+      contentLevelPassRequired: [false],
       retakePolicy: ['Latest Valid Score']
     }),
 
     // Section 07: Credentials & Outputs
     credentials: this.fb.group({
       transcripts: this.fb.group({
-        enabledAtPlan: [true],
-        enabledAtPhase: [true],
+        enabledAtPlan: [false],
+        enabledAtPhase: [false],
         enabledAtCourse: [false],
         scope: ['Whole Plan'],
         minScore: [70],
         minCompletionPct: [100],
-        gatedOnPreviousPhaseTranscript: [true]
+        gatedOnPreviousPhaseTranscript: [false]
       }),
       certificates: this.fb.group({
-        enabledAtPlan: [true],
+        enabledAtPlan: [false],
         enabledAtPhase: [false],
         enabledAtCourse: [false],
         scope: ['Whole Plan'],
@@ -287,7 +287,7 @@ export class PlanCreateComponent implements OnInit {
         minCompletionPct: [100]
       }),
       badges: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         templateId: ['badge-specialist'],
         templateName: ['Master Practitioner Digital Badge'],
         rule: ['Issued to trainees scoring >= 85% overall']
@@ -298,39 +298,39 @@ export class PlanCreateComponent implements OnInit {
     // Section 08: Evaluation
     evaluation: this.fb.group({
       preTest: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         requirement: ['Optional'],
         questionnaireId: ['q-baseline-2026'],
         questionnaireTitle: ['Baseline Technical Aptitude Q-2026 (v2.4)'],
         questionnaireVersion: ['v2.4']
       }),
       postTest: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         requirement: ['Mandatory'],
         questionnaireId: ['q-summative-2026'],
         questionnaireTitle: ['Comprehensive Summative Evaluation Q-2026 (v2.0)'],
         questionnaireVersion: ['v2.0']
       }),
       releaseTiming: ['Immediate upon Plan Completion'],
-      resultDownloadEnabled: [true]
+      resultDownloadEnabled: [false]
     }),
 
     // Section 09: Engagement
     engagement: this.fb.group({
       rating: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         scale: ['5-Star Scale'],
         availability: ['Post-Completion Only']
       }),
       feedback: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         templateId: ['fb-std-2026'],
         templateName: ['Standard Course & Plan Feedback Form'],
         version: ['v2.3'],
         releaseTiming: ['At Plan Completion']
       }),
       forum: this.fb.group({
-        enabled: [true],
+        enabled: [false],
         topicCreationPermission: ['Instructors & Trainees'],
         moderationPermission: ['LMS Co-Admins & Instructors'],
         visibilityScope: ['All users'],
@@ -347,7 +347,7 @@ export class PlanCreateComponent implements OnInit {
       structureChangePolicy: ['Allow Phase Updates for Future Cycles without altering past records'],
       reEnrollmentRule: ['Allow Trainees from Prior Cycles to Re-enroll']
     }),
-    alumniTracking: [true]
+    alumniTracking: [false]
   });
 
   // Modal temporary phase form
@@ -966,13 +966,13 @@ export class PlanCreateComponent implements OnInit {
       this.addPhaseToForm('Phase 2: Advanced Application & Capstone', '01/07/2026', '31/12/2026', 2, 4, 2, 50);
     } else if (step === 3) {
       this.planForm.get('progression')?.reset({
-        mode: 'Sequential',
+        mode: '',
         completionRequirementForUnlock: 'All Courses & Assessments 100% Completed'
       });
     } else if (step === 4) {
       this.planForm.get('enrollment')?.reset({
         mode: 'Open',
-        existingTraineeSelfRegistration: true,
+        existingTraineeSelfRegistration: false,
         capacityEnabled: false,
         capacity: 100,
         waitlistEnabled: false,
@@ -984,11 +984,11 @@ export class PlanCreateComponent implements OnInit {
         scope: 'Whole Plan',
         type: 'Percentage',
         planPassMark: 70,
-        contentLevelPassRequired: true,
+        contentLevelPassRequired: false,
         retakePolicy: 'Latest Valid Score'
       });
     }
-    this.lmsData.showToast('Current step form fields have been reset to default values.', 'info', 3000, 'Step Reset');
+    this.lmsData.showToast('Current step form fields have been reset.', 'info', 3000, 'Step Reset');
   }
 
   // Wizard Step Navigation & Validation Gates (§2, §3.3, §13)
@@ -1005,6 +1005,7 @@ export class PlanCreateComponent implements OnInit {
         'Validation Required'
       );
       this.currentStep.set(1);
+      this.scrollToFirstError();
       return;
     }
 
@@ -1028,6 +1029,7 @@ export class PlanCreateComponent implements OnInit {
           4000,
           'Basic Information Incomplete'
         );
+        this.scrollToFirstError();
         return;
       }
       this.isSection1Passed.set(true);
@@ -1041,6 +1043,7 @@ export class PlanCreateComponent implements OnInit {
     if (this.currentStep() === 2) {
       if (this.phasesArray.length === 0) {
         this.formErrorAlert.set('At least one phase must be configured in Plan Structure before proceeding.');
+        this.scrollToFirstError();
         return;
       }
     }
@@ -1444,5 +1447,22 @@ export class PlanCreateComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/plans']);
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.ng-invalid, select.ng-invalid, textarea.ng-invalid, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

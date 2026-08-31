@@ -219,13 +219,13 @@
           (click)="toggleFilterPanel()"
           class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
           [class]="isFilterPanelOpen() || hasActiveFilters()
-            ? 'bg-[#ec008c] text-white border-[#ec008c]'
+            ? 'bg-tenant-500 text-white border-tenant-500'
             : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
           title="Filters">
           <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-[#ec008c] text-[10px] font-bold flex items-center justify-center">
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-500 text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
@@ -652,7 +652,7 @@
                   type="button"
                   [id]="'btn-edit-lms-' + instance.id"
                   (click)="openEditLms(instance, $event)"
-                  class="p-1 rounded-lg text-slate-400 hover:text-[#ec008c] hover:bg-base-200 transition-colors cursor-pointer"
+                  class="p-1 rounded-lg text-slate-400 hover:text-tenant-500 hover:bg-base-200 transition-colors cursor-pointer"
                   title="Edit LMS Instance">
                   <span class="material-symbols-outlined text-base">edit</span>
                 </button>
@@ -660,7 +660,7 @@
                   type="button"
                   [id]="'btn-details-lms-' + instance.id"
                   (click)="openLmsDetails(instance)"
-                  class="p-1 rounded-lg text-[#ec008c] hover:opacity-80 hover:bg-base-200 transition-all cursor-pointer"
+                  class="p-1 rounded-lg text-tenant-500 hover:opacity-80 hover:bg-base-200 transition-all cursor-pointer"
                   title="View Details">
                   <span class="material-symbols-outlined text-base">diamond</span>
                 </button>
@@ -775,7 +775,7 @@
                         type="button"
                         [id]="'btn-table-edit-lms-' + instance.id"
                         (click)="openEditLms(instance, $event)"
-                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-[#ec008c] transition-colors cursor-pointer"
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-500 transition-colors cursor-pointer"
                         title="Edit LMS Instance">
                         <span class="material-symbols-outlined text-base">edit</span>
                       </button>
@@ -783,7 +783,7 @@
                       <button 
                         type="button"
                         (click)="openLmsDetails(instance)"
-                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-[#ec008c] transition-colors cursor-pointer"
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-500 transition-colors cursor-pointer"
                         title="View LMS Details">
                         <span class="material-symbols-outlined text-base">visibility</span>
                       </button>
@@ -987,9 +987,11 @@
               @for (admin of selectedLms()?.admins; track admin.email) {
                 <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between text-xs">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-tenant-500 text-white flex items-center justify-center font-bold text-xs">
-                      {{ admin.name.charAt(0) }}
-                    </div>
+                    <app-custom-avatar 
+                      [name]="admin.name" 
+                      size="sm" 
+                      shape="squircle">
+                    </app-custom-avatar>
                     <div>
                       <strong class="text-text-primary block">{{ admin.name }}</strong>
                       <span class="text-text-secondary text-[11px]">{{ admin.email }} &bull; {{ admin.contactNumber }}</span>
