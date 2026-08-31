@@ -160,16 +160,43 @@ export class PlanCreateComponent implements OnInit {
     { value: 'Plan Administrators Only', label: 'Plan Administrators & Instructors Only', icon: 'lock' }
   ];
 
-  preTestQuestionnaires: SelectOption[] = [
-    { value: 'q-baseline-2026', label: 'Baseline Technical Aptitude Q-2026 (v2.4)', sublabel: '30 diagnostic items covering core domain knowledge', icon: 'quiz' },
-    { value: 'q-readiness-mfi', label: 'Field Officer Readiness Survey (v1.8)', sublabel: 'Ethics & customer service scenario diagnostics', icon: 'checklist' },
-    { value: 'q-cyber-eval', label: 'Cybersecurity Diagnostic Baseline (v3.0)', sublabel: 'Phishing hygiene and password protocols', icon: 'security' }
-  ];
+  preTestQuestionnaires = computed<SelectOption[]>(() => {
+    const list = this.lmsData.questionnaires()
+      .filter(q => !q.type || q.type === 'pre_test' || q.type === 'assessment' || q.type === 'diagnostic');
+    if (list.length === 0) {
+      return [
+        { value: 'q-baseline-2026', label: 'Baseline Technical Aptitude Q-2026 (v2.4)', sublabel: '30 diagnostic items covering core domain knowledge', icon: 'quiz' }
+      ];
+    }
+    return list.map(q => {
+      const publishedVer = q.versions.find(v => v.state === 'published-current') || q.versions[0];
+      return {
+        value: q.id || q.questionnaireId,
+        label: `${q.title} (${publishedVer?.versionLabel || 'v1.0'})`,
+        sublabel: `${publishedVer?.questions?.length || 0} items · ${q.category}`,
+        icon: 'quiz'
+      };
+    });
+  });
 
-  postTestQuestionnaires: SelectOption[] = [
-    { value: 'q-summative-2026', label: 'Comprehensive Summative Evaluation Q-2026 (v2.0)', sublabel: '50-item final competency assessment', icon: 'assignment_turned_in' },
-    { value: 'q-impact-survey', label: 'Post-Training Impact & Knowledge Retention Survey (v1.5)', sublabel: 'Self-assessment and practical application review', icon: 'insights' }
-  ];
+  postTestQuestionnaires = computed<SelectOption[]>(() => {
+    const list = this.lmsData.questionnaires()
+      .filter(q => !q.type || q.type === 'post_test' || q.type === 'assessment' || q.type === 'survey');
+    if (list.length === 0) {
+      return [
+        { value: 'q-summative-2026', label: 'Comprehensive Summative Evaluation Q-2026 (v2.0)', sublabel: '50-item final competency assessment', icon: 'assignment_turned_in' }
+      ];
+    }
+    return list.map(q => {
+      const publishedVer = q.versions.find(v => v.state === 'published-current') || q.versions[0];
+      return {
+        value: q.id || q.questionnaireId,
+        label: `${q.title} (${publishedVer?.versionLabel || 'v1.0'})`,
+        sublabel: `${publishedVer?.questions?.length || 0} items · ${q.category}`,
+        icon: 'assignment_turned_in'
+      };
+    });
+  });
 
   ratingScaleOptions: SelectOption[] = [
     { value: '5-Star Scale', label: '5-Star Rating Scale (1 to 5 Stars)', icon: 'star' },
@@ -268,12 +295,13 @@ export class PlanCreateComponent implements OnInit {
     // Section 07: Credentials & Outputs
     credentials: this.fb.group({
       transcripts: this.fb.group({
-        enabledAtPlan: [false],
-        enabledAtPhase: [false],
-        enabledAtCourse: [false],
+        enabledAtPlan: [true],
+        enabledAtPhase: [true],
+        enabledAtCourse: [true],
         scope: ['Whole Plan'],
         minScore: [70],
         minCompletionPct: [100],
+        allowPdfDownload: [true],
         gatedOnPreviousPhaseTranscript: [false]
       }),
       certificates: this.fb.group({

@@ -92,6 +92,111 @@ import {
   INITIAL_CERTIFICATE_ACTIVITIES,
   CANVAS_SIZE_MAP
 } from '../models/certificate-template.model';
+import {
+  BadgeTemplate,
+  BadgePermissions,
+  INITIAL_BADGE_TEMPLATES
+} from '../models/badge-template.model';
+import {
+  Assessment,
+  AssessmentAttempt,
+  AssessmentPermissions,
+  AssessmentDashboardLayout,
+  INITIAL_ASSESSMENTS,
+  INITIAL_ASSESSMENT_ATTEMPTS,
+  DEFAULT_ASSESSMENT_DASHBOARD_LAYOUT,
+  calculateAssessmentAttemptScore
+} from '../models/assessment.model';
+import {
+  CourseEntity,
+  CourseStructureNode,
+  CourseContentItem,
+  CourseStructureConfig,
+  CourseReviewsConfig,
+  CourseVersionInfo,
+  CourseVersionSnapshot,
+  CourseValidationResult,
+  CoursePermissions,
+  InstructorRef,
+  CreatorRef,
+  ContentAuthor,
+  LayerCount,
+  ContentFamily,
+  LearningSubtype,
+  AssessmentSubtype,
+  GradingMode,
+  AuthorKind,
+  CourseStatus,
+  DifficultyLevel,
+  MOCK_INSTRUCTORS_REPO,
+  MOCK_CREATORS_REPO,
+  LAYER_LABEL_PRESETS,
+  validateCourseEntity,
+  summarizeCourseMetrics
+} from '../models/course.model';
+import { INITIAL_COURSES_ENTITIES } from '../models/course-initial.data';
+import {
+  RatingSubmission,
+  RatingSummary,
+  RatingLevel,
+  RatingDimension,
+  RatingScale,
+  FeedbackForm,
+  FeedbackFormVersion,
+  FeedbackQuestion,
+  FeedbackResponse,
+  DiscussionForum,
+  ForumTopic,
+  ForumPost,
+  ForumAttachment,
+  ContentRepoAsset,
+  INITIAL_RATINGS,
+  INITIAL_FEEDBACK_FORMS,
+  INITIAL_FEEDBACK_RESPONSES,
+  INITIAL_DISCUSSION_FORUMS,
+  INITIAL_CONTENT_REPO_ASSETS,
+  Questionnaire,
+  QuestionnaireVersion,
+  TestType,
+  TestResponse,
+  INITIAL_QUESTIONNAIRES,
+  INITIAL_TEST_RESPONSES,
+  DEFAULT_PRIVACY_POLICY,
+  PrivacyPolicyConfig
+} from '../models/engagement.model';
+import {
+  TranscriptRecord,
+  TranscriptLevel,
+  TranscriptStatus,
+  TranscriptReleaseState,
+  TranscriptExportJob,
+  TranscriptConfig,
+  INITIAL_TRANSCRIPTS
+} from '../models/transcript.model';
+import {
+  Skill,
+  SkillCluster,
+  SkillMapping,
+  LearnerSkillProgress,
+  SkillChangeLog,
+  SkillCategory,
+  SkillStatus,
+  SkillTargetType,
+  INITIAL_SKILLS,
+  INITIAL_SKILL_CLUSTERS,
+  INITIAL_SKILL_MAPPINGS,
+  INITIAL_LEARNER_SKILL_PROGRESS,
+  INITIAL_SKILL_CHANGE_LOGS
+} from '../models/skill-mapping.model';
+import {
+  Signatory,
+  SignatoryTemplateLink,
+  SignatoryChangeLog,
+  SignatoryStatus,
+  INITIAL_SIGNATORIES,
+  INITIAL_SIGNATORY_LINKS,
+  INITIAL_SIGNATORY_CHANGE_LOGS
+} from '../models/signatory.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -2423,6 +2528,446 @@ export class LmsDataService {
   activeTenantId = signal<string>('tenant-brac');
   activeRole = signal<UserRole>('system_admin');
 
+  // Skill Mapping Store (§4.10)
+  skills = signal<Skill[]>(INITIAL_SKILLS);
+  skillClusters = signal<SkillCluster[]>(INITIAL_SKILL_CLUSTERS);
+  skillMappings = signal<SkillMapping[]>(INITIAL_SKILL_MAPPINGS);
+  learnerSkillProgress = signal<LearnerSkillProgress[]>(INITIAL_LEARNER_SKILL_PROGRESS);
+  skillChangeLogs = signal<SkillChangeLog[]>(INITIAL_SKILL_CHANGE_LOGS);
+
+  // Badge Templates Store
+  badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
+
+  badgePermissions = computed<BadgePermissions>(() => {
+    const role = this.activeRole();
+    const isSys = role === 'system_admin' || (role as any) === 'super_admin';
+    const isOrg = role === 'tenant_admin';
+    const isLms = role === 'lms_admin';
+    const isInst = role === 'instructor';
+
+    return {
+      canViewFeature: true,
+      canCreate: isSys || isOrg || isLms || isInst,
+      canEdit: isSys || isOrg || isLms || isInst,
+      canDuplicate: isSys || isOrg || isLms || isInst,
+      canDelete: isSys || isOrg || isLms,
+      canPublish: isSys || isOrg || isLms || isInst,
+      canSetOrgWideSharing: isSys || isOrg,
+      canManageDashboardStudio: isSys || isOrg || isLms
+    };
+  });
+
+  // Assessment Store (§0.1 - §12)
+  assessments = signal<Assessment[]>(INITIAL_ASSESSMENTS);
+  assessmentAttempts = signal<AssessmentAttempt[]>(INITIAL_ASSESSMENT_ATTEMPTS);
+  assessmentDashboardLayout = signal<AssessmentDashboardLayout>(DEFAULT_ASSESSMENT_DASHBOARD_LAYOUT);
+
+  assessmentPermissions = computed<AssessmentPermissions>(() => {
+    const role = this.activeRole();
+    const isSys = role === 'system_admin' || (role as any) === 'super_admin';
+    const isOrg = role === 'tenant_admin';
+    const isLms = role === 'lms_admin';
+    const isInst = role === 'instructor';
+
+    return {
+      canViewFeature: true,
+      canCreateAssessment: isSys || isOrg || isLms || isInst,
+      canEditAssessment: isSys || isOrg || isLms || isInst,
+      canPublishAssessment: isSys || isOrg || isLms || isInst,
+      canVersionAssessment: isSys || isOrg || isLms || isInst,
+      canDeactivateAssessment: isSys || isOrg || isLms,
+      canConfigureScoringDefaults: isSys || isOrg,
+      canManualGrade: isSys || isOrg || isLms || isInst,
+      canViewResults: true,
+      canExportResults: isSys || isOrg || isLms || isInst,
+      canManageDashboardStudio: isSys || isOrg || isLms
+    };
+  });
+
+  // Assessment CRUD operations
+  createAssessment(data: Partial<Assessment>): Assessment {
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const id = `asm-${Date.now()}`;
+    const versionId = `asm-ver-${Date.now()}-v1`;
+
+    const newVersion = {
+      versionId,
+      assessmentId: id,
+      versionLabel: 'v1',
+      state: (data.status === 'published' ? 'published-current' : 'draft') as any,
+      publishedAt: data.status === 'published' ? `${formattedDate} 12:00:00` : undefined,
+      publishedBy: data.createdBy || 'Farhana Ahmed',
+      responseCount: 0,
+      questions: data.versions?.[0]?.questions || [],
+      scoringPolicy: data.versions?.[0]?.scoringPolicy || {
+        totalMarks: 10,
+        passMarkPercent: 60,
+        negativeMarking: { enabled: false, penalty: 0 },
+        attempts: { allowed: 1, keep: 'highest' },
+        timeLimitMinutes: null,
+        availability: { opensAt: null, closesAt: null },
+        resultDisplay: { showScore: 'afterSubmit', showCorrect: true, showFeedback: true }
+      }
+    };
+
+    const newAssessment: Assessment = {
+      assessmentId: id,
+      code: data.code || `ASM-${Math.floor(1000 + Math.random() * 9000)}`,
+      title: data.title || 'Untitled Assessment',
+      description: data.description || '',
+      type: data.type || 'exam',
+      categoryTags: data.categoryTags || ['General'],
+      scoringMode: data.scoringMode || 'scored',
+      currentVersionId: versionId,
+      status: data.status || 'draft',
+      responsibleInstructorId: data.responsibleInstructorId,
+      responsibleInstructorName: data.responsibleInstructorName,
+      sharingLevel: data.sharingLevel || 'lms',
+      usedInCount: 0,
+      usedInReferences: [],
+      versions: [newVersion],
+      createdBy: data.createdBy || 'Farhana Ahmed',
+      createdAt: formattedDate,
+      updatedAt: formattedDate
+    };
+
+    this.assessments.update(prev => [newAssessment, ...prev]);
+    this.showToast('Assessment created successfully', 'success');
+    return newAssessment;
+  }
+
+  updateAssessment(assessmentId: string, data: Partial<Assessment>): void {
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    this.assessments.update(list =>
+      list.map(asm => {
+        if (asm.assessmentId !== assessmentId) return asm;
+
+        // If updating questions in draft, update current version
+        let updatedVersions = asm.versions;
+        if (data.versions && data.versions.length > 0) {
+          updatedVersions = data.versions;
+        }
+
+        return {
+          ...asm,
+          ...data,
+          versions: updatedVersions,
+          updatedAt: formattedDate
+        };
+      })
+    );
+    this.showToast('Assessment updated successfully', 'info');
+  }
+
+  publishAssessment(assessmentId: string, changeSummary?: string): { success: boolean; message: string } {
+    const asm = this.assessments().find(a => a.assessmentId === assessmentId);
+    if (!asm) return { success: false, message: 'Assessment not found.' };
+
+    const currentVer = asm.versions.find(v => v.versionId === asm.currentVersionId) || asm.versions[0];
+    if (!currentVer) return { success: false, message: 'No version found to publish.' };
+
+    // Mandatory instructor gate rule (§6.4 & §8): If manual questions exist, responsible instructor MUST exist!
+    const hasManualQuestions = currentVer.questions.some(q => q.manualGraded);
+    if (hasManualQuestions && (!asm.responsibleInstructorId || !asm.responsibleInstructorName)) {
+      const msg = 'Publishing is blocked: manual-graded questions have no responsible instructor assigned.';
+      this.showToast(msg, 'error');
+      return { success: false, message: msg };
+    }
+
+    if (currentVer.questions.length === 0) {
+      const msg = 'Publishing is blocked: At least one question is required.';
+      this.showToast(msg, 'error');
+      return { success: false, message: msg };
+    }
+
+    const now = new Date();
+    const formattedTime = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.assessments.update(list =>
+      list.map(a => {
+        if (a.assessmentId !== assessmentId) return a;
+
+        const versions = a.versions.map(v => {
+          if (v.versionId === currentVer.versionId) {
+            return {
+              ...v,
+              state: 'published-current' as const,
+              publishedAt: formattedTime,
+              publishedBy: this.activeRole(),
+              changeSummary: changeSummary || 'Published version'
+            };
+          } else if (v.state === 'published-current') {
+            return { ...v, state: 'published-superseded' as const };
+          }
+          return v;
+        });
+
+        return {
+          ...a,
+          status: 'published' as const,
+          versions,
+          updatedAt: formattedTime.split(' ')[0]
+        };
+      })
+    );
+
+    this.showToast(`Assessment "${asm.title}" published successfully`, 'success');
+    return { success: true, message: 'Assessment published successfully.' };
+  }
+
+  forkAssessmentVersion(assessmentId: string, changeSummary?: string): Assessment {
+    const asm = this.assessments().find(a => a.assessmentId === assessmentId);
+    if (!asm) throw new Error('Assessment not found');
+
+    const currentVer = asm.versions.find(v => v.versionId === asm.currentVersionId) || asm.versions[0];
+    const newVersionLabel = `v${asm.versions.length + 1}`;
+    const newVersionId = `asm-ver-${Date.now()}-${newVersionLabel}`;
+
+    const newVersion = {
+      ...currentVer,
+      versionId: newVersionId,
+      versionLabel: newVersionLabel,
+      state: 'draft' as const,
+      publishedAt: undefined,
+      publishedBy: undefined,
+      changeSummary: changeSummary || `Draft created for ${newVersionLabel}`,
+      responseCount: 0,
+      questions: JSON.parse(JSON.stringify(currentVer.questions))
+    };
+
+    let updatedAsm: Assessment = asm;
+
+    this.assessments.update(list =>
+      list.map(a => {
+        if (a.assessmentId !== assessmentId) return a;
+
+        updatedAsm = {
+          ...a,
+          currentVersionId: newVersionId,
+          status: 'draft' as const,
+          versions: [newVersion, ...a.versions]
+        };
+        return updatedAsm;
+      })
+    );
+
+    this.showToast(`Created new draft version ${newVersionLabel} for "${asm.title}"`, 'info');
+    return updatedAsm;
+  }
+
+  deactivateAssessment(assessmentId: string): void {
+    this.assessments.update(list =>
+      list.map(asm => (asm.assessmentId === assessmentId ? { ...asm, status: 'inactive' as const } : asm))
+    );
+    this.showToast('Assessment deactivated', 'info');
+  }
+
+  reactivateAssessment(assessmentId: string): void {
+    this.assessments.update(list =>
+      list.map(asm => (asm.assessmentId === assessmentId ? { ...asm, status: 'published' as const } : asm))
+    );
+    this.showToast('Assessment reactivated', 'success');
+  }
+
+  deleteAssessment(assessmentId: string): { success: boolean; message: string } {
+    const asm = this.assessments().find(a => a.assessmentId === assessmentId);
+    if (!asm) return { success: false, message: 'Assessment not found.' };
+
+    const attempts = this.assessmentAttempts().filter(att => att.assessmentId === assessmentId);
+    if (asm.usedInCount > 0 || attempts.length > 0) {
+      const msg = `Cannot delete "${asm.title}": It is referenced in ${asm.usedInCount} courses/plans and has ${attempts.length} historical attempt records. Deactivate it instead to preserve audit records.`;
+      this.showToast(msg, 'warning');
+      return { success: false, message: msg };
+    }
+
+    this.assessments.update(list => list.filter(a => a.assessmentId !== assessmentId));
+    this.showToast(`Assessment "${asm.title}" deleted`, 'info');
+    return { success: true, message: 'Deleted successfully.' };
+  }
+
+  duplicateAssessment(assessmentId: string): Assessment {
+    const asm = this.assessments().find(a => a.assessmentId === assessmentId);
+    if (!asm) throw new Error('Assessment not found');
+
+    const newId = `asm-${Date.now()}`;
+    const newVersionId = `asm-ver-${Date.now()}-v1`;
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    const sourceVersion = asm.versions.find(v => v.versionId === asm.currentVersionId) || asm.versions[0];
+
+    const duplicated: Assessment = {
+      ...asm,
+      assessmentId: newId,
+      code: `${asm.code}-COPY`,
+      title: `${asm.title} (Copy)`,
+      status: 'draft',
+      usedInCount: 0,
+      usedInReferences: [],
+      currentVersionId: newVersionId,
+      createdAt: formattedDate,
+      updatedAt: formattedDate,
+      versions: [
+        {
+          ...sourceVersion,
+          versionId: newVersionId,
+          versionLabel: 'v1',
+          state: 'draft',
+          responseCount: 0,
+          publishedAt: undefined,
+          publishedBy: undefined,
+          questions: JSON.parse(JSON.stringify(sourceVersion.questions))
+        }
+      ]
+    };
+
+    this.assessments.update(list => [duplicated, ...list]);
+    this.showToast(`Duplicated assessment as "${duplicated.title}"`, 'success');
+    return duplicated;
+  }
+
+  submitAssessmentAttempt(attemptData: Partial<AssessmentAttempt> & { assessmentId: string; assessmentVersionId: string; answers: any[] }): AssessmentAttempt {
+    const now = new Date();
+    const formattedTime = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const attemptId = `att-${Date.now()}`;
+
+    const asm = this.assessments().find(a => a.assessmentId === attemptData.assessmentId);
+    const version = asm?.versions.find(v => v.versionId === attemptData.assessmentVersionId);
+
+    let calculated = {
+      autoScore: attemptData.autoScore || 0,
+      manualScore: attemptData.manualScore || 0,
+      manualPendingPoints: 0,
+      totalScore: attemptData.totalScore || 0,
+      maxScore: attemptData.maxScore || 10,
+      percentage: attemptData.percentage || 0,
+      passed: attemptData.passed !== undefined ? attemptData.passed : true,
+      manualGradingStatus: attemptData.manualGradingStatus || 'notRequired',
+      evaluatedAnswers: attemptData.answers
+    };
+
+    if (version) {
+      calculated = calculateAssessmentAttemptScore(version.questions, version.scoringPolicy, attemptData.answers);
+    }
+
+    const fullAttempt: AssessmentAttempt = {
+      assessmentId: attemptData.assessmentId,
+      assessmentVersionId: attemptData.assessmentVersionId,
+      versionLabel: attemptData.versionLabel || version?.versionLabel || 'v1',
+      traineeId: attemptData.traineeId || 'usr-brac-1',
+      traineeName: attemptData.traineeName || 'Farhana Ahmed',
+      traineeEmail: attemptData.traineeEmail || 'farhana.ahmed@brac.net',
+      attemptNumber: attemptData.attemptNumber || 1,
+      timeTakenSeconds: attemptData.timeTakenSeconds || 180,
+      ...attemptData,
+      attemptId,
+      submittedAt: formattedTime,
+      autoScore: calculated.autoScore,
+      manualScore: calculated.manualScore,
+      totalScore: calculated.totalScore,
+      maxScore: calculated.maxScore,
+      percentage: calculated.percentage,
+      passed: calculated.passed,
+      manualGradingStatus: calculated.manualGradingStatus,
+      answers: calculated.evaluatedAnswers
+    };
+
+    this.assessmentAttempts.update(prev => [fullAttempt, ...prev]);
+
+    // Increment response count on version
+    this.assessments.update(list =>
+      list.map(a => {
+        if (a.assessmentId !== attemptData.assessmentId) return a;
+        return {
+          ...a,
+          versions: a.versions.map(v =>
+            v.versionId === attemptData.assessmentVersionId ? { ...v, responseCount: v.responseCount + 1 } : v
+          )
+        };
+      })
+    );
+
+    this.showToast('Your assessment attempt has been submitted.', 'success');
+    return fullAttempt;
+  }
+
+  gradeManualAssessmentAttempt(
+    attemptId: string,
+    questionScores: { questionId: string; earnedPoints: number; feedback?: string }[],
+    gradedBy: string
+  ): AssessmentAttempt {
+    let updatedAttempt!: AssessmentAttempt;
+
+    const now = new Date();
+    const formattedTime = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.assessmentAttempts.update(list =>
+      list.map(att => {
+        if (att.attemptId !== attemptId) return att;
+
+        const asm = this.assessments().find(a => a.assessmentId === att.assessmentId);
+        const version = asm?.versions.find(v => v.versionId === att.assessmentVersionId);
+
+        const updatedAnswers = att.answers.map(ans => {
+          const evalScore = questionScores.find(qs => qs.questionId === ans.questionId);
+          if (evalScore) {
+            return {
+              ...ans,
+              earnedPoints: evalScore.earnedPoints,
+              instructorFeedback: evalScore.feedback
+            };
+          }
+          return ans;
+        });
+
+        let newAutoScore = att.autoScore;
+        let newManualScore = 0;
+        let newTotalScore = 0;
+        let newPercentage = 0;
+        let newPassed = att.passed;
+
+        if (version) {
+          const calc = calculateAssessmentAttemptScore(version.questions, version.scoringPolicy, updatedAnswers);
+          newAutoScore = calc.autoScore;
+          newManualScore = calc.manualScore;
+          newTotalScore = calc.totalScore;
+          newPercentage = calc.percentage;
+          newPassed = calc.passed;
+        } else {
+          newManualScore = questionScores.reduce((acc, curr) => acc + curr.earnedPoints, 0);
+          newTotalScore = newAutoScore + newManualScore;
+          newPercentage = att.maxScore > 0 ? Math.round((newTotalScore / att.maxScore) * 100) : 0;
+        }
+
+        updatedAttempt = {
+          ...att,
+          answers: updatedAnswers,
+          autoScore: newAutoScore,
+          manualScore: newManualScore,
+          totalScore: newTotalScore,
+          percentage: newPercentage,
+          passed: newPassed,
+          manualGradingStatus: 'graded',
+          gradedBy,
+          gradedAt: formattedTime
+        };
+
+        return updatedAttempt;
+      })
+    );
+
+    this.showToast('Manual grades recorded successfully', 'success');
+    return updatedAttempt;
+  }
+
+  updateAssessmentDashboardLayout(layout: AssessmentDashboardLayout): void {
+    this.assessmentDashboardLayout.set(layout);
+    this.showToast('Assessment Dashboard studio layout updated', 'success');
+  }
+
   private router = inject(Router, { optional: true });
 
   // Role check computed signals
@@ -2450,6 +2995,51 @@ export class LmsDataService {
     const role = this.activeRole();
     return role === 'learner';
   });
+
+  // Course Management Reactive State (BRD §4.4)
+  courseEntities = signal<CourseEntity[]>(INITIAL_COURSES_ENTITIES);
+  instructorsRepo = signal<InstructorRef[]>(MOCK_INSTRUCTORS_REPO);
+  creatorsRepo = signal<CreatorRef[]>(MOCK_CREATORS_REPO);
+
+  // Course Permissions capability object (§4.4)
+  coursePermissions = computed<CoursePermissions>(() => {
+    const role = this.activeRole();
+    const isSys = role === 'system_admin' || (role as any) === 'super_admin';
+    const isOrg = role === 'tenant_admin';
+    const isLms = role === 'lms_admin';
+    const isInst = role === 'instructor';
+
+    return {
+      canViewFeature: true,
+      canCreateCourse: isSys || isOrg || isLms || isInst,
+      canEditCourse: isSys || isOrg || isLms || isInst,
+      canPublishCourse: isSys || isOrg || isLms || isInst,
+      canVersionCourse: isSys || isOrg || isLms || isInst,
+      canDeactivateCourse: isSys || isOrg || isLms,
+      canTagInstructors: isSys || isOrg || isLms || isInst,
+      canTagAuthors: isSys || isOrg || isLms || isInst,
+      canConfigureReviews: isSys || isOrg || isLms,
+      canConfigureLayerLabels: isSys || isOrg || isLms || isInst,
+      canManageDashboardStudio: isSys || isOrg || isLms
+    };
+  });
+
+  // Active LMS filtered Course Entities
+  activeLmsCourseEntities = computed<CourseEntity[]>(() => {
+    const all = this.courseEntities();
+    const activeLms = this.activeLms();
+    const activeTenant = this.activeTenant();
+    const isSys = this.isSystemAdmin();
+
+    if (isSys) {
+      return all;
+    }
+    if (activeLms) {
+      return all.filter(c => c.lmsId === activeLms.id || c.tenantId === activeTenant.id);
+    }
+    return all.filter(c => c.tenantId === activeTenant.id);
+  });
+
   courses = signal<Course[]>(INITIAL_COURSES);
   users = signal<User[]>(INITIAL_USERS);
   enrollments = signal<CourseEnrollment[]>(INITIAL_ENROLLMENTS);
@@ -3800,6 +4390,8 @@ export class LmsDataService {
       complianceStatus: 'Compliant'
     };
   });
+
+  currentUser = computed<User>(() => this.activeUser());
 
   // Filtered courses for active tenant
   tenantCourses = computed<Course[]>(() => {
@@ -5676,8 +6268,10 @@ export class LmsDataService {
 
   // Path 1: Save Course Structure as Template (§3)
   saveCourseStructureAsTemplate(courseId: string, metadata: { name: string; code?: string; description?: string; categoryTags?: string[]; scope?: CourseTemplateScope }): { success: boolean; template?: CourseTemplate; error?: string } {
-    const course = this.courses().find(c => c.id === courseId);
-    if (!course) {
+    const courseEntity = this.getCourseEntityById(courseId);
+    const legacyCourse = this.courses().find(c => c.id === courseId);
+    
+    if (!courseEntity && !legacyCourse) {
       return { success: false, error: 'Course not found.' };
     }
 
@@ -5690,26 +6284,76 @@ export class LmsDataService {
     const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
     const timestamp = `${dateStr} ${timeStr}`;
 
+    const title = courseEntity?.title || legacyCourse?.title || 'Extracted Course';
+    const category = courseEntity?.category || legacyCourse?.category || 'General';
     const numericRand = Math.floor(1000 + Math.random() * 9000);
     const newId = `CTMP-${tenant.numericId || '1972'}-${numericRand}`;
-    const newCode = metadata.code?.trim() || `TMP-${course.category.slice(0, 3).toUpperCase()}-${numericRand}`;
+    const newCode = metadata.code?.trim() || `TMP-${category.slice(0, 3).toUpperCase()}-${numericRand}`;
 
-    // Extract structural blueprint from Course: modules and lessons transformed to slots, stripping content/progress (§3.2)
-    const extractedModules: CourseTemplateModule[] = (course.modules || []).map((m, mIdx) => ({
-      moduleId: `m-${String(mIdx + 1).padStart(2, '0')}`,
-      order: mIdx + 1,
-      title: m.title || `Module ${mIdx + 1}`,
-      description: `Structural blueprint extracted from ${course.title}`,
-      contentSlots: (m.lessons || []).map((l, lIdx) => ({
-        slotId: `s-${String(mIdx + 1)}-${String(lIdx + 1)}`,
-        order: lIdx + 1,
-        title: l.title || `Lesson ${lIdx + 1}`,
-        type: (l.type === 'interactive_lab' ? 'interactive_lab' : l.type === 'quiz' ? 'quiz' : l.type === 'video' ? 'video' : 'article') as CourseSlotType,
-        required: true,
-        estimatedMinutes: l.durationMinutes || 15,
-        description: `Content placeholder extracted from lesson layout.`
-      }))
-    }));
+    // Extract structural blueprint from CourseEntity or legacy Course
+    let extractedModules: CourseTemplateModule[] = [];
+
+    if (courseEntity) {
+      extractedModules = courseEntity.structure.map((node, mIdx) => {
+        const slots: CourseTemplateSlot[] = [];
+        function collectSlots(n: CourseStructureNode) {
+          if (n.content && n.content.length > 0) {
+            for (const item of n.content) {
+              let slotType: CourseSlotType = 'reading';
+              if (item.family === 'learning') {
+                if (item.learning?.subtype === 'video') slotType = 'video';
+                else if (item.learning?.subtype === 'interactive') slotType = 'interactive_lab';
+                else slotType = 'reading';
+              } else if (item.family === 'assessment') {
+                slotType = 'quiz';
+              }
+
+              slots.push({
+                slotId: `s-${mIdx + 1}-${slots.length + 1}`,
+                order: slots.length + 1,
+                title: item.title,
+                type: slotType,
+                required: true,
+                estimatedMinutes: item.learning?.durationMinutes || item.assessment?.durationMinutes || 15,
+                description: `Standard slot extracted from "${title}"`
+              });
+            }
+          }
+          if (n.children && n.children.length > 0) {
+            for (const child of n.children) {
+              collectSlots(child);
+            }
+          }
+        }
+        collectSlots(node);
+
+        return {
+          moduleId: `m-${String(mIdx + 1).padStart(2, '0')}`,
+          order: mIdx + 1,
+          title: node.title,
+          description: `Extracted from ${title}`,
+          contentSlots: slots.length > 0 ? slots : [
+            { slotId: `s-${mIdx + 1}-01`, order: 1, title: 'Instructional Lesson', type: 'video', required: true, estimatedMinutes: 15 }
+          ]
+        };
+      });
+    } else if (legacyCourse) {
+      extractedModules = (legacyCourse.modules || []).map((m, mIdx) => ({
+        moduleId: `m-${String(mIdx + 1).padStart(2, '0')}`,
+        order: mIdx + 1,
+        title: m.title || `Module ${mIdx + 1}`,
+        description: `Structural blueprint extracted from ${legacyCourse.title}`,
+        contentSlots: (m.lessons || []).map((l, lIdx) => ({
+          slotId: `s-${String(mIdx + 1)}-${String(lIdx + 1)}`,
+          order: lIdx + 1,
+          title: l.title || `Lesson ${lIdx + 1}`,
+          type: (l.type === 'interactive_lab' ? 'interactive_lab' : l.type === 'quiz' ? 'quiz' : l.type === 'video' ? 'video' : 'article') as CourseSlotType,
+          required: true,
+          estimatedMinutes: l.durationMinutes || 15,
+          description: `Content placeholder extracted from lesson layout.`
+        }))
+      }));
+    }
 
     if (extractedModules.length === 0) {
       extractedModules.push({
@@ -5729,7 +6373,7 @@ export class LmsDataService {
         passingScorePercent: 80,
         completionTracking: 'all_slots',
         sequentialUnlock: true,
-        certificateEnabled: course.certificateEnabled ?? true,
+        certificateEnabled: true,
         allowRetakes: true,
         maxRetakeAttempts: 3,
         pace: 'cohort_scheduled'
@@ -5740,9 +6384,9 @@ export class LmsDataService {
       id: newId,
       code: newCode,
       name: metadata.name.trim(),
-      description: metadata.description?.trim() || `Reusable course blueprint extracted from course "${course.title}".`,
-      categoryTags: metadata.categoryTags && metadata.categoryTags.length > 0 ? metadata.categoryTags : [course.category, 'Extracted Blueprint'],
-      scope: 'lms',
+      description: metadata.description?.trim() || `Reusable course blueprint extracted from course "${title}".`,
+      categoryTags: metadata.categoryTags && metadata.categoryTags.length > 0 ? metadata.categoryTags : [category, 'Extracted Blueprint'],
+      scope: metadata.scope || 'lms',
       lmsId: lms.id,
       lmsName: lms.basicInfo?.lmsName || 'Current LMS Workspace',
       organizationId: tenant.id,
@@ -5750,8 +6394,8 @@ export class LmsDataService {
       version: 1,
       structure: extractedStructure,
       status: 'active',
-      sourceCourseId: course.id,
-      sourceCourseName: course.title,
+      sourceCourseId: courseId,
+      sourceCourseName: title,
       usedCount: 0,
       visibility: { mode: 'all_lms_instructors' },
       createdBy: user.name,
@@ -5764,11 +6408,11 @@ export class LmsDataService {
 
     this.logAction(
       'Course Saved as Template',
-      `Saved structure of "${course.title}" as template "${newTemplate.name}"`,
+      `Saved structure of "${title}" as template "${newTemplate.name}"`,
       'success'
     );
 
-    this.showToast('Course structure has been saved as a template.', 'success', 4500, 'Structure Saved', 'SUCCESS');
+    this.showToast('Template has been created and saved to blueprint catalog.', 'success', 4500, 'Template Created', 'SUCCESS');
     return { success: true, template: newTemplate };
   }
 
@@ -6087,7 +6731,1766 @@ export class LmsDataService {
 
     return { success: true, course: newCourse };
   }
+
+  // =========================================================================
+  // COURSE MANAGEMENT DOMAIN OPERATIONS (BRD §4.4)
+  // =========================================================================
+
+  getCourseEntityById(id: string): CourseEntity | undefined {
+    return this.courseEntities().find(c => c.courseId === id);
+  }
+
+  generateCourseCode(title: string, category: string): string {
+    const catPrefix = category.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'CRS');
+    const titlePart = title
+      .split(' ')
+      .slice(0, 2)
+      .map(w => w.slice(0, 3).toUpperCase())
+      .join('-')
+      .replace(/[^A-Z-]/g, '');
+    const randNum = Math.floor(10 + Math.random() * 90);
+    return `CRS-${catPrefix}-${titlePart || 'COR'}-${randNum}`;
+  }
+
+  addCourseEntity(courseData: Partial<CourseEntity>): CourseEntity {
+    const activeTenant = this.activeTenant();
+    const activeLms = this.activeLms();
+    const user = this.activeUser();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const timestampStr = `${formattedDate} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newId = `crs-${Date.now()}`;
+    const code = courseData.code?.trim() || this.generateCourseCode(courseData.title || 'New Course', courseData.category || 'General');
+
+    const newCourse: CourseEntity = {
+      courseId: newId,
+      code,
+      title: courseData.title?.trim() || 'Untitled Course',
+      description: courseData.description?.trim() || '',
+      ownerId: courseData.ownerId || user.id,
+      ownerName: courseData.ownerName || user.name,
+      ownerEmail: courseData.ownerEmail || user.email,
+      ownerAvatar: courseData.ownerAvatar || user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      category: courseData.category || 'Compliance & Security',
+      tags: courseData.tags && courseData.tags.length > 0 ? courseData.tags : ['Curriculum'],
+      difficulty: courseData.difficulty || 'Intermediate',
+      durationMinutes: courseData.durationMinutes || 60,
+      coverImage: courseData.coverImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+      lmsId: activeLms?.id || 'LMS-1972-01',
+      lmsName: activeLms?.basicInfo?.lmsName || activeTenant.name + ' Academy',
+      tenantId: activeTenant.id,
+      structureConfig: courseData.structureConfig || {
+        layerCount: 3,
+        layerLabels: ['Chapter', 'Topic', 'Lesson']
+      },
+      structure: courseData.structure || [],
+      reviewsConfig: courseData.reviewsConfig || {
+        contentReviewsEnabled: true,
+        instructorReviewsEnabled: true,
+        scale: '5-star-likert'
+      },
+      version: {
+        versionNumber: 1,
+        label: 'v1.0-draft',
+        state: 'draft',
+        lockedInPhasesCount: 0
+      },
+      versionHistory: [],
+      status: 'draft',
+      usedInPlansCount: 0,
+      usedInPhasesCount: 0,
+      createdFromTemplateId: courseData.createdFromTemplateId,
+      createdFromTemplateName: courseData.createdFromTemplateName,
+      createdBy: user.name,
+      createdById: user.id,
+      createdAt: formattedDate,
+      updatedAt: formattedDate
+    };
+
+    this.courseEntities.update(list => [newCourse, ...list]);
+
+    this.logAction(
+      'Course Created',
+      `New course draft "${newCourse.title}" (${newCourse.code}) created by ${user.name}`,
+      'info'
+    );
+
+    this.showToast(`Course "${newCourse.title}" saved as draft.`, 'success', 3500, 'Draft Created');
+    return newCourse;
+  }
+
+  updateCourseEntity(courseId: string, updates: Partial<CourseEntity>, isStructuralEdit = false): CourseEntity {
+    const existing = this.getCourseEntityById(courseId);
+    if (!existing) {
+      throw new Error(`Course with ID ${courseId} not found.`);
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    // If published course undergoes structural change, spawn a new draft version (§Rule Engine #4)
+    if (existing.status === 'published' && isStructuralEdit) {
+      return this.createNewCourseVersion(courseId, 'Structural edit on published course created new draft version.');
+    }
+
+    const updated: CourseEntity = {
+      ...existing,
+      ...updates,
+      updatedAt: formattedDate
+    };
+
+    this.courseEntities.update(list => list.map(c => c.courseId === courseId ? updated : c));
+
+    this.logAction(
+      'Course Updated',
+      `Course "${updated.title}" (${updated.code}) details updated.`,
+      'info'
+    );
+
+    this.showToast(`Course "${updated.title}" updated successfully.`, 'success', 3000, 'Course Saved');
+    return updated;
+  }
+
+  publishCourseEntity(courseId: string): { success: boolean; errors?: string[] } {
+    const course = this.getCourseEntityById(courseId);
+    if (!course) {
+      return { success: false, errors: ['Course not found.'] };
+    }
+
+    // Run Rule Engines 1, 2, 3 validation
+    const validation = validateCourseEntity(course);
+    if (!validation.publishable) {
+      const errorList = [
+        ...validation.missingMandatoryFields.map(f => `Missing required field: ${f}`),
+        ...validation.warnings
+      ];
+      this.showToast(errorList[0] || 'Course failed validation gates.', 'error', 5000, 'Publish Blocked');
+      return { success: false, errors: errorList };
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const timestampStr = `${formattedDate} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const user = this.activeUser();
+
+    const newVersionNumber = course.version.versionNumber || 1;
+    const newVersionLabel = `v${newVersionNumber}.0`;
+
+    const snapshot: CourseVersionSnapshot = {
+      versionNumber: newVersionNumber,
+      label: newVersionLabel,
+      publishedAt: timestampStr,
+      publishedBy: user.name,
+      changeSummary: course.version.changeSummary || 'Published release.',
+      structureConfig: JSON.parse(JSON.stringify(course.structureConfig)),
+      structure: JSON.parse(JSON.stringify(course.structure)),
+      lockedInPhases: []
+    };
+
+    const updated: CourseEntity = {
+      ...course,
+      status: 'published',
+      version: {
+        versionNumber: newVersionNumber,
+        label: newVersionLabel,
+        state: 'published-current',
+        publishedAt: timestampStr,
+        publishedBy: user.name,
+        changeSummary: course.version.changeSummary || 'Published release.',
+        lockedInPhasesCount: course.version.lockedInPhasesCount || 0,
+        lockedPhaseNames: course.version.lockedPhaseNames || []
+      },
+      versionHistory: [snapshot, ...course.versionHistory],
+      updatedAt: formattedDate
+    };
+
+    this.courseEntities.update(list => list.map(c => c.courseId === courseId ? updated : c));
+
+    this.logAction(
+      'Course Published',
+      `Course "${updated.title}" published as version ${newVersionLabel} by ${user.name}`,
+      'success'
+    );
+
+    this.showToast(`Course "${updated.title}" (${newVersionLabel}) is now live and published!`, 'success', 4500, 'Published Successfully');
+    return { success: true };
+  }
+
+  createNewCourseVersion(courseId: string, changeSummary = 'New version draft'): CourseEntity {
+    const course = this.getCourseEntityById(courseId);
+    if (!course) {
+      throw new Error(`Course ${courseId} not found.`);
+    }
+
+    const nextVerNum = (course.version.versionNumber || 1) + 1;
+    const nextVerLabel = `v${nextVerNum}.0-draft`;
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    const updated: CourseEntity = {
+      ...course,
+      status: 'draft',
+      version: {
+        versionNumber: nextVerNum,
+        label: nextVerLabel,
+        state: 'draft',
+        changeSummary,
+        lockedInPhasesCount: 0,
+        lockedPhaseNames: []
+      },
+      updatedAt: formattedDate
+    };
+
+    this.courseEntities.update(list => list.map(c => c.courseId === courseId ? updated : c));
+
+    this.logAction(
+      'Course Version Created',
+      `Initialized new draft version ${nextVerLabel} for course "${course.title}". Running phases stay pinned to earlier version.`,
+      'info'
+    );
+
+    this.showToast(`New draft version ${nextVerLabel} created for "${course.title}".`, 'info', 4000, 'New Version Initialized');
+    return updated;
+  }
+
+  deactivateCourseEntity(courseId: string): void {
+    const course = this.getCourseEntityById(courseId);
+    if (!course) return;
+
+    this.courseEntities.update(list => list.map(c => {
+      if (c.courseId === courseId) {
+        return {
+          ...c,
+          status: 'inactive'
+        };
+      }
+      return c;
+    }));
+
+    this.logAction('Course Deactivated', `Course "${course.title}" was set to Inactive. Existing locked phase usages continue safely.`, 'warning');
+    this.showToast(`Course "${course.title}" deactivated. Locked usages remain intact.`, 'warning', 4000, 'Course Deactivated');
+  }
+
+  reactivateCourseEntity(courseId: string): void {
+    const course = this.getCourseEntityById(courseId);
+    if (!course) return;
+
+    this.courseEntities.update(list => list.map(c => {
+      if (c.courseId === courseId) {
+        return {
+          ...c,
+          status: 'published'
+        };
+      }
+      return c;
+    }));
+
+    this.logAction('Course Reactivated', `Course "${course.title}" reactivated to Published status.`, 'success');
+    this.showToast(`Course "${course.title}" is now reactivated and published.`, 'success', 3500, 'Course Reactivated');
+  }
+
+  duplicateCourseEntity(courseId: string): CourseEntity {
+    const course = this.getCourseEntityById(courseId);
+    if (!course) {
+      throw new Error(`Course ${courseId} not found.`);
+    }
+
+    const user = this.activeUser();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const duplicatedTitle = `${course.title} (Copy)`;
+    const newCode = this.generateCourseCode(duplicatedTitle, course.category);
+
+    const duplicated: CourseEntity = {
+      ...JSON.parse(JSON.stringify(course)),
+      courseId: `crs-${Date.now()}`,
+      code: newCode,
+      title: duplicatedTitle,
+      status: 'draft',
+      version: {
+        versionNumber: 1,
+        label: 'v1.0-draft',
+        state: 'draft',
+        lockedInPhasesCount: 0,
+        lockedPhaseNames: []
+      },
+      versionHistory: [],
+      usedInPlansCount: 0,
+      usedInPhasesCount: 0,
+      createdBy: user.name,
+      createdById: user.id,
+      createdAt: formattedDate,
+      updatedAt: formattedDate
+    };
+
+    this.courseEntities.update(list => [duplicated, ...list]);
+
+    this.logAction('Course Duplicated', `Duplicated "${course.title}" into new independent draft "${duplicated.title}"`, 'info');
+    this.showToast(`Course duplicated into "${duplicated.title}".`, 'success', 3500, 'Course Duplicated');
+    return duplicated;
+  }
+
+  // -------------------------------------------------------------
+  // ENGAGEMENT MODULE: RATINGS, FEEDBACK FORMS & FORUMS
+  // -------------------------------------------------------------
+
+  ratings = signal<RatingSubmission[]>(INITIAL_RATINGS);
+  feedbackForms = signal<FeedbackForm[]>(INITIAL_FEEDBACK_FORMS);
+  feedbackResponses = signal<FeedbackResponse[]>(INITIAL_FEEDBACK_RESPONSES);
+  discussionForums = signal<DiscussionForum[]>(INITIAL_DISCUSSION_FORUMS);
+  contentRepoAssets = signal<ContentRepoAsset[]>(INITIAL_CONTENT_REPO_ASSETS);
+  questionnaires = signal<Questionnaire[]>(INITIAL_QUESTIONNAIRES);
+  testResponses = signal<TestResponse[]>(INITIAL_TEST_RESPONSES);
+  privacyPolicy = signal<PrivacyPolicyConfig>(DEFAULT_PRIVACY_POLICY);
+  transcripts = signal<TranscriptRecord[]>(INITIAL_TRANSCRIPTS);
+  transcriptExportJobs = signal<TranscriptExportJob[]>([]);
+
+  getRatingsForPlan(planId: string): RatingSubmission[] {
+    return this.ratings().filter(r => r.planId === planId);
+  }
+
+  getRatingSummary(planId: string, level?: RatingLevel, entityId?: string): RatingSummary {
+    let list = this.ratings().filter(r => r.planId === planId);
+    if (level === 'phase' && entityId) {
+      list = list.filter(r => r.phaseId === entityId);
+    } else if (level === 'course' && entityId) {
+      list = list.filter(r => r.courseId === entityId);
+    }
+
+    const totalCount = list.length;
+    if (totalCount === 0) {
+      return {
+        level: level || 'plan',
+        entityId: entityId || planId,
+        entityName: 'Training Plan',
+        averageValue: 0,
+        totalCount: 0,
+        scale: 'star5',
+        dimensionAverages: { overall: 0, content: 0, instructor: 0 },
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        recentComments: []
+      };
+    }
+
+    const sum = list.reduce((acc, curr) => acc + curr.value, 0);
+    const averageValue = Number((sum / totalCount).toFixed(2));
+
+    const overallList = list.filter(r => r.dimension === 'overall');
+    const contentList = list.filter(r => r.dimension === 'content');
+    const instructorList = list.filter(r => r.dimension === 'instructor');
+
+    const dimensionAverages = {
+      overall: overallList.length ? Number((overallList.reduce((a, b) => a + b.value, 0) / overallList.length).toFixed(1)) : averageValue,
+      content: contentList.length ? Number((contentList.reduce((a, b) => a + b.value, 0) / contentList.length).toFixed(1)) : averageValue,
+      instructor: instructorList.length ? Number((instructorList.reduce((a, b) => a + b.value, 0) / instructorList.length).toFixed(1)) : averageValue
+    };
+
+    const distribution: { [score: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    list.forEach(r => {
+      const v = Math.round(r.value);
+      distribution[v] = (distribution[v] || 0) + 1;
+    });
+
+    const recentComments = list
+      .filter(r => !!r.comment)
+      .map(r => ({
+        userId: r.userId,
+        userName: r.userName,
+        userAvatar: r.userAvatar,
+        value: r.value,
+        comment: r.comment || '',
+        dimension: r.dimension,
+        submittedAt: r.submittedAt
+      }))
+      .slice(0, 10);
+
+    return {
+      level: level || 'plan',
+      entityId: entityId || planId,
+      entityName: 'Training Plan',
+      averageValue,
+      totalCount,
+      scale: 'star5',
+      dimensionAverages,
+      distribution,
+      recentComments
+    };
+  }
+
+  submitRating(submission: Omit<RatingSubmission, 'id' | 'submittedAt'>): RatingSubmission {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}:${String(now.getMonth() + 1).padStart(2, '0')}:${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newSub: RatingSubmission = {
+      ...submission,
+      id: `rat-${Date.now()}`,
+      submittedAt: formatted
+    };
+
+    this.ratings.update(list => [newSub, ...list]);
+    this.logAction('Rating Submitted', `Rating (${submission.value}/5) submitted for ${submission.level}`, 'info');
+    this.showToast('Your rating and feedback have been submitted successfully.', 'success', 3500, 'Rating Recorded');
+    return newSub;
+  }
+
+  // --- Feedback Forms ---
+
+  getFeedbackFormForPlan(planId: string): FeedbackForm | undefined {
+    let form = this.feedbackForms().find(f => f.planId === planId);
+    if (!form) {
+      // Auto-initialize standard plan feedback form if none exists yet
+      const plan = this.plans().find(p => p.id === planId);
+      const planName = plan?.name || 'Training Plan';
+      const createdDate = plan?.createdDate || '15/01/2026';
+
+      const initialVer: FeedbackFormVersion = {
+        versionId: `fb-ver-${planId}-v1`,
+        feedbackFormId: `fb-form-${planId}`,
+        versionLabel: 'v1',
+        state: 'published-current',
+        publishedAt: `${createdDate} 09:00:00`,
+        publishedBy: 'Academic Coordinator',
+        changeSummary: 'Baseline curriculum & delivery evaluation questionnaire',
+        responseCount: 0,
+        questions: [
+          {
+            questionId: 'q1',
+            type: 'singleSelect',
+            text: 'How relevant was this curriculum to your operational domain and job responsibilities?',
+            required: true,
+            order: 1,
+            options: [
+              { optionId: 'o1', text: 'Highly Relevant — applied immediately to field work' },
+              { optionId: 'o2', text: 'Moderately Relevant — reinforced existing core concepts' },
+              { optionId: 'o3', text: 'Slightly Relevant — needed more contextual case studies' },
+              { optionId: 'o4', text: 'Not Relevant' }
+            ]
+          },
+          {
+            questionId: 'q2',
+            type: 'multiSelect',
+            text: 'Which instructional components delivered the highest practical learning impact?',
+            required: true,
+            order: 2,
+            options: [
+              { optionId: 'c1', text: 'Hands-on Simulation Labs & Interactive Tasks' },
+              { optionId: 'c2', text: 'Instructor Video Lessons & Demonstrations' },
+              { optionId: 'c3', text: 'Accredited Compliance Assessments & Quizzes' },
+              { optionId: 'c4', text: 'Discussion Forum Collaboration & Q&A' }
+            ]
+          },
+          {
+            questionId: 'q3',
+            type: 'text',
+            text: 'What suggestions do you have for improving future iterations of this learning plan?',
+            required: false,
+            placeholder: 'Share your feedback, topic requests, or procedural observations...',
+            order: 3
+          }
+        ]
+      };
+
+      form = {
+        feedbackFormId: `fb-form-${planId}`,
+        planId,
+        planName,
+        title: `${planName} - Feedback Questionnaire`,
+        description: 'Comprehensive learner feedback instrument assessing curriculum quality, instructional delivery, and operational readiness.',
+        enabled: true,
+        currentVersionId: initialVer.versionId,
+        associatedPhaseIds: plan?.phases?.map(p => p.id) || [],
+        releaseTiming: 'after_plan_completion',
+        anonymous: false,
+        status: 'published',
+        createdAt: createdDate,
+        updatedAt: createdDate,
+        versions: [initialVer]
+      };
+
+      this.feedbackForms.update(list => [form!, ...list]);
+    }
+    return form;
+  }
+
+  getFeedbackResponsesForPlan(planId: string, formId?: string, versionId?: string): FeedbackResponse[] {
+    let list = this.feedbackResponses().filter(r => r.planId === planId);
+    if (formId) {
+      list = list.filter(r => r.feedbackFormId === formId);
+    }
+    if (versionId) {
+      list = list.filter(r => r.feedbackFormVersionId === versionId);
+    }
+    return list;
+  }
+
+  saveOrUpdateFeedbackForm(updatedForm: FeedbackForm): void {
+    this.feedbackForms.update(list => {
+      const idx = list.findIndex(f => f.feedbackFormId === updatedForm.feedbackFormId);
+      if (idx >= 0) {
+        const copy = [...list];
+        copy[idx] = updatedForm;
+        return copy;
+      }
+      return [updatedForm, ...list];
+    });
+    this.showToast('Feedback form configuration saved successfully.', 'success', 3500, 'Form Updated');
+  }
+
+  forkNewFeedbackFormVersion(
+    formId: string,
+    questions: FeedbackQuestion[],
+    changeSummary: string,
+    publishImmediately = true
+  ): FeedbackFormVersion {
+    const form = this.feedbackForms().find(f => f.feedbackFormId === formId);
+    if (!form) throw new Error('Feedback form not found');
+
+    const nextVerNumber = form.versions.length + 1;
+    const versionLabel = `v${nextVerNumber}`;
+    const versionId = `fb-ver-${form.planId}-${versionLabel}-${Date.now()}`;
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}:${String(now.getMonth() + 1).padStart(2, '0')}:${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newVersion: FeedbackFormVersion = {
+      versionId,
+      feedbackFormId: formId,
+      versionLabel,
+      state: publishImmediately ? 'published-current' : 'draft',
+      publishedAt: publishImmediately ? formatted : undefined,
+      publishedBy: this.activeUser().name,
+      changeSummary: changeSummary || `Version ${versionLabel} updates`,
+      responseCount: 0,
+      questions: JSON.parse(JSON.stringify(questions))
+    };
+
+    const updatedVersions = form.versions.map(v => {
+      if (publishImmediately && v.state === 'published-current') {
+        return { ...v, state: 'published-superseded' as const };
+      }
+      return v;
+    });
+
+    updatedVersions.push(newVersion);
+
+    const updatedForm: FeedbackForm = {
+      ...form,
+      currentVersionId: publishImmediately ? versionId : form.currentVersionId,
+      versions: updatedVersions,
+      updatedAt: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
+    };
+
+    this.saveOrUpdateFeedbackForm(updatedForm);
+    this.logAction('Feedback Form Version Forked', `Forked ${versionLabel} for form "${form.title}" with copy-on-edit protection.`, 'success');
+    this.showToast(`New version ${versionLabel} created and published. Prior versions remain intact for historical responses.`, 'success', 4000, 'Version Forked');
+    return newVersion;
+  }
+
+  submitFeedbackResponse(response: Omit<FeedbackResponse, 'responseId' | 'submittedAt'>): FeedbackResponse {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}:${String(now.getMonth() + 1).padStart(2, '0')}:${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newResp: FeedbackResponse = {
+      ...response,
+      responseId: `resp-${Date.now()}`,
+      submittedAt: formatted
+    };
+
+    this.feedbackResponses.update(list => [newResp, ...list]);
+
+    // Increment version response count
+    this.feedbackForms.update(forms => forms.map(f => {
+      if (f.feedbackFormId === response.feedbackFormId) {
+        return {
+          ...f,
+          versions: f.versions.map(v => {
+            if (v.versionId === response.feedbackFormVersionId) {
+              return { ...v, responseCount: v.responseCount + 1 };
+            }
+            return v;
+          })
+        };
+      }
+      return f;
+    }));
+
+    this.logAction('Feedback Response Received', `Response recorded for form version ${response.versionLabel}`, 'info');
+    this.showToast('Thank you for your feedback! Your submission has been securely recorded.', 'success', 3500, 'Feedback Submitted');
+    return newResp;
+  }
+
+  // --- Discussion Forums ---
+
+  getForumForPlan(planId: string): DiscussionForum {
+    let forum = this.discussionForums().find(f => f.planId === planId);
+    if (!forum) {
+      // Auto initialize forum for this plan
+      forum = {
+        forumId: `forum-${planId}`,
+        planId,
+        enabled: true,
+        topicCreationPermission: 'instructorsAndTrainees',
+        moderationPermission: 'instructorsAndAdmins',
+        visibilityScope: 'allUsers',
+        selectedBatchIds: [],
+        allowedPostFormats: {
+          text: true,
+          attachmentsFromContentRepository: true,
+          directUpload: true,
+          allowedTypes: ['video', 'audio', 'file'],
+          maxAttachmentSizeMb: 50
+        },
+        topics: [
+          {
+            topicId: `top-${planId}-welcome`,
+            forumId: `forum-${planId}`,
+            planId,
+            title: '👋 Welcome & Plan Cohort Orientation Discussion',
+            description: 'Introduce yourself, connect with fellow participants, and ask questions regarding schedule milestones.',
+            categoryTag: 'General Discussion',
+            createdBy: this.activeUser().name,
+            createdById: this.activeUser().id,
+            createdByRole: 'instructor',
+            createdByAvatar: this.activeUser().avatar,
+            createdAt: '15/01/2026 09:00:00',
+            postPermission: 'instructorsAndTrainees',
+            locked: false,
+            pinned: true,
+            postCount: 1,
+            lastActivityAt: '15/01/2026 09:00:00',
+            posts: [
+              {
+                postId: `post-${planId}-welcome-1`,
+                topicId: `top-${planId}-welcome`,
+                authorId: this.activeUser().id,
+                authorName: this.activeUser().name,
+                authorEmail: this.activeUser().email,
+                authorRole: 'instructor',
+                authorAvatar: this.activeUser().avatar,
+                text: 'Welcome to this learning plan discussion forum! Feel free to post questions, share insights, and discuss operational assignments with your peers.',
+                attachments: [],
+                createdAt: '15/01/2026 09:00:00',
+                hidden: false,
+                likesCount: 5,
+                likedByCurrentUser: false
+              }
+            ]
+          }
+        ]
+      };
+      this.discussionForums.update(list => [forum!, ...list]);
+    }
+    return forum;
+  }
+
+  createForumTopic(
+    planId: string,
+    topicData: {
+      title: string;
+      description?: string;
+      categoryTag?: string;
+      postPermission: 'instructorsOnly' | 'instructorsAndTrainees';
+    },
+    initialPostText: string,
+    initialAttachments: ForumAttachment[] = []
+  ): ForumTopic {
+    const forum = this.getForumForPlan(planId);
+    const user = this.activeUser();
+    const userRole = user.role.includes('admin') ? 'admin' : (user.role === 'instructor' ? 'instructor' : 'trainee');
+
+    // Topic creation permission check
+    if (forum.topicCreationPermission === 'instructorsOnly' && userRole === 'trainee') {
+      throw new Error("You don't have permission to create a topic here.");
+    }
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}:${String(now.getMonth() + 1).padStart(2, '0')}:${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const topicId = `top-${Date.now()}`;
+    const firstPostId = `post-${Date.now()}-1`;
+
+    const initialPost: ForumPost = {
+      postId: firstPostId,
+      topicId,
+      authorId: user.id,
+      authorName: user.name,
+      authorEmail: user.email,
+      authorRole: userRole,
+      authorAvatar: user.avatar,
+      text: initialPostText,
+      attachments: initialAttachments,
+      createdAt: formatted,
+      hidden: false,
+      likesCount: 0,
+      likedByCurrentUser: false
+    };
+
+    const newTopic: ForumTopic = {
+      topicId,
+      forumId: forum.forumId,
+      planId,
+      title: topicData.title,
+      description: topicData.description,
+      categoryTag: topicData.categoryTag || 'General',
+      createdBy: user.name,
+      createdById: user.id,
+      createdByRole: userRole,
+      createdByAvatar: user.avatar,
+      createdAt: formatted,
+      postPermission: topicData.postPermission,
+      locked: false,
+      pinned: false,
+      postCount: 1,
+      lastActivityAt: formatted,
+      posts: [initialPost]
+    };
+
+    this.discussionForums.update(forums => forums.map(f => {
+      if (f.forumId === forum.forumId) {
+        return {
+          ...f,
+          topics: [newTopic, ...f.topics]
+        };
+      }
+      return f;
+    }));
+
+    this.logAction('Forum Topic Created', `Created topic "${newTopic.title}" in forum for plan ${planId}`, 'info');
+    this.showToast(`Topic "${newTopic.title}" created successfully.`, 'success', 3500, 'Topic Published');
+    return newTopic;
+  }
+
+  createForumPost(
+    topicId: string,
+    postText: string,
+    attachments: ForumAttachment[] = [],
+    parentPostId?: string | null
+  ): ForumPost {
+    const user = this.activeUser();
+    const userRole = user.role.includes('admin') ? 'admin' : (user.role === 'instructor' ? 'instructor' : 'trainee');
+
+    // Find topic
+    let foundTopic: ForumTopic | null = null;
+    let foundForumId: string | null = null;
+    for (const f of this.discussionForums()) {
+      const t = f.topics.find(top => top.topicId === topicId);
+      if (t) {
+        foundTopic = t;
+        foundForumId = f.forumId;
+        break;
+      }
+    }
+
+    if (!foundTopic) throw new Error('Topic not found');
+    if (foundTopic.locked) throw new Error('This topic is locked. New posts are not permitted.');
+    if (foundTopic.postPermission === 'instructorsOnly' && userRole === 'trainee') {
+      throw new Error('Only instructors are permitted to post in this topic.');
+    }
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}:${String(now.getMonth() + 1).padStart(2, '0')}:${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newPost: ForumPost = {
+      postId: `post-${Date.now()}`,
+      topicId,
+      parentPostId: parentPostId || null,
+      authorId: user.id,
+      authorName: user.name,
+      authorEmail: user.email,
+      authorRole: userRole,
+      authorAvatar: user.avatar,
+      text: postText,
+      attachments,
+      createdAt: formatted,
+      hidden: false,
+      likesCount: 0,
+      likedByCurrentUser: false
+    };
+
+    this.discussionForums.update(forums => forums.map(f => {
+      if (f.forumId === foundForumId) {
+        return {
+          ...f,
+          topics: f.topics.map(t => {
+            if (t.topicId === topicId) {
+              return {
+                ...t,
+                postCount: t.postCount + 1,
+                lastActivityAt: formatted,
+                posts: [...t.posts, newPost]
+              };
+            }
+            return t;
+          })
+        };
+      }
+      return f;
+    }));
+
+    this.logAction('Forum Post Created', `Replied to topic "${foundTopic.title}"`, 'info');
+    this.showToast('Your message has been posted to the discussion thread.', 'success', 3000, 'Post Added');
+    return newPost;
+  }
+
+  toggleTopicPin(topicId: string): void {
+    this.discussionForums.update(forums => forums.map(f => ({
+      ...f,
+      topics: f.topics.map(t => t.topicId === topicId ? { ...t, pinned: !t.pinned } : t)
+    })));
+  }
+
+  toggleTopicLock(topicId: string): void {
+    this.discussionForums.update(forums => forums.map(f => ({
+      ...f,
+      topics: f.topics.map(t => t.topicId === topicId ? { ...t, locked: !t.locked } : t)
+    })));
+    this.showToast('Topic lock state toggled.', 'info', 2500, 'Topic Status Updated');
+  }
+
+  deleteOrHidePost(postId: string, permanentDelete = false): void {
+    this.discussionForums.update(forums => forums.map(f => ({
+      ...f,
+      topics: f.topics.map(t => {
+        if (t.posts.some(p => p.postId === postId)) {
+          if (permanentDelete) {
+            return {
+              ...t,
+              postCount: Math.max(0, t.postCount - 1),
+              posts: t.posts.filter(p => p.postId !== postId)
+            };
+          } else {
+            return {
+              ...t,
+              posts: t.posts.map(p => p.postId === postId ? { ...p, hidden: !p.hidden } : p)
+            };
+          }
+        }
+        return t;
+      })
+    })));
+    this.showToast(permanentDelete ? 'Post permanently deleted.' : 'Post visibility updated.', 'info', 3000, 'Moderation Action');
+  }
+
+  togglePostLike(postId: string): void {
+    this.discussionForums.update(forums => forums.map(f => ({
+      ...f,
+      topics: f.topics.map(t => ({
+        ...t,
+        posts: t.posts.map(p => {
+          if (p.postId === postId) {
+            const liked = !p.likedByCurrentUser;
+            return {
+              ...p,
+              likedByCurrentUser: liked,
+              likesCount: Math.max(0, (p.likesCount || 0) + (liked ? 1 : -1))
+            };
+          }
+          return p;
+        })
+      }))
+    })));
+  }
+
+  // -------------------------------------------------------------
+  // PRE-TEST / POST-TEST QUESTIONNAIRE METHODS
+  // -------------------------------------------------------------
+
+  getQuestionnaires(): Questionnaire[] {
+    return this.questionnaires();
+  }
+
+  getQuestionnaireById(id: string): Questionnaire | undefined {
+    return this.questionnaires().find(q => (q.id || q.questionnaireId) === id);
+  }
+
+  saveQuestionnaire(questionnaire: Questionnaire): Questionnaire {
+    const qId = questionnaire.id || questionnaire.questionnaireId;
+    const existing = this.questionnaires().find(q => (q.id || q.questionnaireId) === qId);
+    if (existing) {
+      this.questionnaires.update(list => list.map(q => (q.id || q.questionnaireId) === qId ? questionnaire : q));
+      this.showToast(`Questionnaire "${questionnaire.title}" saved.`, 'success', 3000, 'Questionnaire Updated');
+    } else {
+      this.questionnaires.update(list => [questionnaire, ...list]);
+      this.showToast(`New questionnaire "${questionnaire.title}" created.`, 'success', 3000, 'Questionnaire Created');
+    }
+    return questionnaire;
+  }
+
+  publishQuestionnaireVersion(questionnaireId: string, versionId: string): void {
+    this.questionnaires.update(list => list.map(q => {
+      if ((q.id || q.questionnaireId) === questionnaireId) {
+        return {
+          ...q,
+          versions: q.versions.map(v => ({
+            ...v,
+            state: v.versionId === versionId ? 'published-current' : 'archived'
+          }))
+        };
+      }
+      return q;
+    }));
+    this.showToast('Questionnaire version published and set as current.', 'success', 3000, 'Version Published');
+  }
+
+  forkQuestionnaireVersion(questionnaireId: string, changeSummary: string): QuestionnaireVersion | null {
+    const q = this.getQuestionnaireById(questionnaireId);
+    if (!q) return null;
+
+    const currentPublished = q.versions.find(v => v.state === 'published-current') || q.versions[0];
+    const nextVerNum = q.versions.length + 1;
+    const nextLabel = `v${nextVerNum}`;
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newVersion: QuestionnaireVersion = {
+      versionId: `qv-${questionnaireId}-v${nextVerNum}`,
+      questionnaireId,
+      versionLabel: nextLabel,
+      state: 'draft',
+      publishedAt: formatted,
+      publishedBy: this.currentUser().name,
+      changeSummary: changeSummary || `Draft iteration ${nextLabel} based on ${currentPublished?.versionLabel || 'v1'}`,
+      responseCount: 0,
+      questions: JSON.parse(JSON.stringify(currentPublished?.questions || []))
+    };
+
+    this.questionnaires.update(list => list.map(item => {
+      if ((item.id || item.questionnaireId) === questionnaireId) {
+        return {
+          ...item,
+          versions: [newVersion, ...item.versions]
+        };
+      }
+      return item;
+    }));
+
+    this.showToast(`New draft version ${nextLabel} created for "${q.title}". Historical responses remain immutable.`, 'info', 4000, 'Copy-on-Edit Forked');
+    return newVersion;
+  }
+
+  getTestResponses(filter?: { questionnaireId?: string; testType?: TestType; planId?: string }): TestResponse[] {
+    let list = this.testResponses();
+    if (filter?.questionnaireId) list = list.filter(r => r.questionnaireId === filter.questionnaireId);
+    if (filter?.testType) list = list.filter(r => r.testType === filter.testType);
+    if (filter?.planId) list = list.filter(r => r.planId === filter.planId);
+    return list;
+  }
+
+  submitTestResponse(response: Omit<TestResponse, 'responseId' | 'submittedAt'>): TestResponse {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newResp: TestResponse = {
+      ...response,
+      responseId: `tresp-${Date.now()}`,
+      submittedAt: formatted
+    };
+
+    this.testResponses.update(list => [newResp, ...list]);
+    this.showToast(`${(response.testType === 'pre_test' || (response.testType as string) === 'preTest') ? 'Pre-Test' : 'Post-Test'} submitted successfully!`, 'success', 3500, 'Assessment Completed');
+    return newResp;
+  }
+
+  updatePrivacyPolicy(policy: Partial<PrivacyPolicyConfig>): void {
+    this.privacyPolicy.update(curr => ({ ...curr, ...policy }));
+    this.showToast('Engagement privacy policy updated.', 'info', 2500, 'Privacy Policy Updated');
+  }
+
+  // -------------------------------------------------------------
+  // TRANSCRIPTS MANAGEMENT ENGINE & LIFECYCLE
+  // -------------------------------------------------------------
+
+  getTranscripts(filter?: {
+    level?: TranscriptLevel[];
+    status?: TranscriptStatus[];
+    releaseState?: TranscriptReleaseState[];
+    planId?: string;
+    phaseId?: string;
+    searchTerm?: string;
+  }): TranscriptRecord[] {
+    let list = this.transcripts();
+
+    if (filter) {
+      if (filter.level && filter.level.length > 0) {
+        list = list.filter(t => filter.level!.includes(t.level));
+      }
+      if (filter.status && filter.status.length > 0) {
+        list = list.filter(t => filter.status!.includes(t.content.status));
+      }
+      if (filter.releaseState && filter.releaseState.length > 0) {
+        list = list.filter(t => filter.releaseState!.includes(t.releaseState));
+      }
+      if (filter.planId) {
+        list = list.filter(t => t.planId === filter.planId);
+      }
+      if (filter.phaseId) {
+        list = list.filter(t => t.phaseId === filter.phaseId);
+      }
+      if (filter.searchTerm && filter.searchTerm.trim()) {
+        const q = filter.searchTerm.toLowerCase().trim();
+        list = list.filter(t =>
+          t.traineeName.toLowerCase().includes(q) ||
+          t.traineeEmail.toLowerCase().includes(q) ||
+          t.content.traineeId.toLowerCase().includes(q) ||
+          t.scopeName.toLowerCase().includes(q) ||
+          t.planName.toLowerCase().includes(q) ||
+          t.transcriptId.toLowerCase().includes(q) ||
+          t.content.serialNumber.toLowerCase().includes(q)
+        );
+      }
+    }
+
+    return list;
+  }
+
+  getTraineeTranscripts(traineeId: string): TranscriptRecord[] {
+    // Return released transcripts for this learner + pending placeholders
+    return this.transcripts().filter(t => t.traineeId === traineeId);
+  }
+
+  getTranscriptById(transcriptId: string): TranscriptRecord | undefined {
+    return this.transcripts().find(t => t.transcriptId === transcriptId);
+  }
+
+  releaseTranscript(transcriptId: string): void {
+    const t = this.getTranscriptById(transcriptId);
+    if (!t) return;
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.transcripts.update(list => list.map(item => {
+      if (item.transcriptId === transcriptId) {
+        return {
+          ...item,
+          releaseState: 'released',
+          releasedAt: formatted,
+          downloadEnabled: true,
+          content: {
+            ...item.content,
+            releasedAt: formatted
+          },
+          updatedAt: formatted
+        };
+      }
+      return item;
+    }));
+
+    this.logAction(
+      'Transcript Released',
+      `Manual release of ${t.level.toUpperCase()} transcript [${t.content.serialNumber}] for trainee ${t.traineeName}.`,
+      'success'
+    );
+    this.showToast(`Transcript ${t.content.serialNumber} released to trainee.`, 'success', 3500, 'Transcript Released');
+  }
+
+  revokeTranscript(transcriptId: string, reason = 'Administrative audit revocation'): void {
+    const t = this.getTranscriptById(transcriptId);
+    if (!t) return;
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.transcripts.update(list => list.map(item => {
+      if (item.transcriptId === transcriptId) {
+        return {
+          ...item,
+          releaseState: 'revoked',
+          revocationReason: reason,
+          downloadEnabled: false,
+          updatedAt: formatted
+        };
+      }
+      return item;
+    }));
+
+    this.logAction(
+      'Transcript Revoked',
+      `Revoked transcript [${t.content.serialNumber}] for trainee ${t.traineeName}. Reason: ${reason}`,
+      'danger'
+    );
+    this.showToast(`Transcript ${t.content.serialNumber} has been revoked.`, 'warning', 3500, 'Transcript Revoked');
+  }
+
+  reIssueTranscript(transcriptId: string, updatedScores?: Partial<TranscriptRecord['content']>): TranscriptRecord | null {
+    const t = this.getTranscriptById(transcriptId);
+    if (!t) return null;
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const formattedTime = `${formattedDate} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const nextVer = (t.version || 1) + 1;
+
+    const updated: TranscriptRecord = {
+      ...t,
+      version: nextVer,
+      content: {
+        ...t.content,
+        ...updatedScores,
+        issuedDate: formattedDate,
+        releasedAt: formattedTime
+      },
+      updatedAt: formattedTime
+    };
+
+    this.transcripts.update(list => list.map(item => item.transcriptId === transcriptId ? updated : item));
+
+    this.logAction(
+      'Transcript Re-issued',
+      `Re-issued version v${nextVer} of transcript [${t.content.serialNumber}] after score adjustment.`,
+      'info'
+    );
+    this.showToast(`Transcript re-issued as version v${nextVer}.`, 'info', 3500, 'Transcript Re-issued');
+    return updated;
+  }
+
+  createBulkExportJob(
+    filter: any,
+    selectedIds: string[],
+    format: 'pdfZip' | 'csv' | 'both',
+    includeUnreleased: boolean
+  ): TranscriptExportJob {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    let targetTranscripts: TranscriptRecord[] = [];
+    if (selectedIds && selectedIds.length > 0) {
+      targetTranscripts = this.transcripts().filter(t => selectedIds.includes(t.transcriptId));
+    } else {
+      targetTranscripts = this.getTranscripts(filter);
+    }
+
+    if (!includeUnreleased) {
+      targetTranscripts = targetTranscripts.filter(t => t.releaseState === 'released');
+    }
+
+    const job: TranscriptExportJob = {
+      jobId: `EXP-JOB-${Date.now()}`,
+      requestedBy: this.currentUser().name,
+      requesterRole: this.activeRole(),
+      filter,
+      selectedTranscriptIds: targetTranscripts.map(t => t.transcriptId),
+      format,
+      includeUnreleased,
+      status: 'ready',
+      totalRecords: targetTranscripts.length,
+      progressPercent: 100,
+      resultUrl: `#export-${Date.now()}`,
+      requestedAt: formatted,
+      completedAt: formatted
+    };
+
+    this.transcriptExportJobs.update(jobs => [job, ...jobs]);
+
+    // If CSV or both, automatically generate and trigger the CSV summary download!
+    if (format === 'csv' || format === 'both') {
+      const csvData = this.generateTranscriptCsv(targetTranscripts);
+      this.downloadCsv(csvData, `OneLMS_Transcripts_Export_${Date.now()}.csv`);
+    }
+
+    this.logAction(
+      'Transcripts Bulk Export',
+      `Exported ${targetTranscripts.length} transcripts in ${format} format.`,
+      'info'
+    );
+    this.showToast(`Export of ${targetTranscripts.length} transcripts is ready.`, 'success', 4000, 'Export Completed');
+
+    return job;
+  }
+
+  generateTranscriptCsv(transcriptsToExport: TranscriptRecord[]): string {
+    const headers = [
+      'Transcript ID',
+      'Serial Number',
+      'Trainee Name',
+      'Trainee ID',
+      'Trainee Email',
+      'Level',
+      'Scope Name',
+      'Plan Name',
+      'Score / Result',
+      'Percentage',
+      'CGPA',
+      'Status',
+      'Release State',
+      'Completion Date',
+      'Issued Date',
+      'Verification Code',
+      'Plan Closed Gate',
+      'Download Enabled',
+      'Version'
+    ];
+
+    const rows = transcriptsToExport.map(t => [
+      `"${t.transcriptId}"`,
+      `"${t.content.serialNumber}"`,
+      `"${t.traineeName}"`,
+      `"${t.content.traineeId}"`,
+      `"${t.traineeEmail}"`,
+      `"${t.level.toUpperCase()}"`,
+      `"${t.scopeName.replace(/"/g, '""')}"`,
+      `"${t.planName.replace(/"/g, '""')}"`,
+      `"${t.content.result}"`,
+      `"${t.content.percentage ?? ''}"`,
+      `"${t.content.cgpa ?? ''}"`,
+      `"${t.content.status.toUpperCase()}"`,
+      `"${t.releaseState.toUpperCase()}"`,
+      `"${t.content.completionDate}"`,
+      `"${t.content.issuedDate}"`,
+      `"${t.content.verificationCode}"`,
+      `"${t.planClosed ? 'YES' : 'NO'}"`,
+      `"${t.downloadEnabled ? 'YES' : 'NO'}"`,
+      `"v${t.version}"`
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
+  downloadCsv(csvContent: string, filename: string): void {
+    if (typeof window === 'undefined') return;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // --------------------------------------------------------------------------
+  // SKILL MAPPING MODULE METHODS (BRD §4.10)
+  // --------------------------------------------------------------------------
+
+  saveSkill(skillData: Partial<Skill>): Skill {
+    const today = new Date().toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const user = this.activeUser();
+    const cluster = this.skillClusters().find(c => c.clusterId === skillData.clusterId);
+
+    if (skillData.skillId) {
+      // Edit existing skill
+      let updatedSkill: Skill | undefined;
+      let changedFields: string[] = [];
+      let previousMapCount = 0;
+
+      this.skills.update(list => list.map(s => {
+        if (s.skillId === skillData.skillId) {
+          if (s.name !== skillData.name) changedFields.push('name');
+          if (s.description !== skillData.description) changedFields.push('description');
+          if (s.category !== skillData.category) changedFields.push('category');
+          if (s.clusterId !== skillData.clusterId) changedFields.push('cluster');
+
+          previousMapCount = s.mappedElementCount;
+          updatedSkill = {
+            ...s,
+            ...skillData,
+            clusterName: cluster?.name || skillData.clusterName || undefined,
+            updatedAt: today
+          } as Skill;
+          return updatedSkill;
+        }
+        return s;
+      }));
+
+      // Log propagation event (§6.5)
+      if (updatedSkill && changedFields.length > 0) {
+        const logEntry: SkillChangeLog = {
+          logId: `log-${Date.now()}`,
+          skillId: updatedSkill.skillId,
+          skillName: updatedSkill.name,
+          changedBy: user.name || 'LMS Admin',
+          changedAt: `${today} ${new Date().toLocaleTimeString('en-GB')}`,
+          changedFields,
+          propagatedTargetCount: previousMapCount,
+          summary: `Updated skill fields (${changedFields.join(', ')}). Propagated automatically to ${previousMapCount} mapped elements.`
+        };
+        this.skillChangeLogs.update(logs => [logEntry, ...logs]);
+      }
+
+      this.showToast(`Skill "${skillData.name}" has been saved successfully. Changes propagated to all mapped learning elements.`, 'success', 3500, 'Skill Updated');
+      return updatedSkill!;
+    } else {
+      // Create new skill
+      const newId = `skl-${Date.now()}`;
+      const codeIndex = String(this.skills().length + 1).padStart(4, '0');
+      const newSkill: Skill = {
+        skillId: newId,
+        skillCode: skillData.skillCode || `SKL-${codeIndex}`,
+        name: skillData.name || 'New Skill',
+        description: skillData.description || '',
+        category: skillData.category || 'Technical',
+        clusterId: skillData.clusterId,
+        clusterName: cluster?.name,
+        levels: skillData.levels || ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+        status: skillData.status || 'active',
+        mappedElementCount: 0,
+        learnersAcquiredCount: 0,
+        createdBy: user.name || 'LMS Admin',
+        createdAt: today,
+        updatedAt: today
+      };
+
+      this.skills.update(list => [newSkill, ...list]);
+
+      // If cluster assigned, update cluster skill count
+      if (skillData.clusterId) {
+        this.skillClusters.update(clusters => clusters.map(c => 
+          c.clusterId === skillData.clusterId ? { ...c, skillCount: (c.skillCount || 0) + 1 } : c
+        ));
+      }
+
+      this.showToast(`Skill "${newSkill.name}" has been saved successfully.`, 'success', 3500, 'Skill Created');
+      return newSkill;
+    }
+  }
+
+  deactivateSkill(skillId: string): boolean {
+    const target = this.skills().find(s => s.skillId === skillId);
+    if (!target) return false;
+
+    this.skills.update(list => list.map(s => 
+      s.skillId === skillId ? { ...s, status: 'inactive', updatedAt: new Date().toLocaleDateString('en-GB') } : s
+    ));
+
+    this.showToast(`${target.name} has been deactivated. It cannot be newly mapped to elements.`, 'warning', 3500, 'Skill Deactivated');
+    return true;
+  }
+
+  reactivateSkill(skillId: string): boolean {
+    const target = this.skills().find(s => s.skillId === skillId);
+    if (!target) return false;
+
+    this.skills.update(list => list.map(s => 
+      s.skillId === skillId ? { ...s, status: 'active', updatedAt: new Date().toLocaleDateString('en-GB') } : s
+    ));
+
+    this.showToast(`${target.name} has been reactivated.`, 'success', 3500, 'Skill Reactivated');
+    return true;
+  }
+
+  deleteSkill(skillId: string): { success: boolean; error?: string } {
+    const target = this.skills().find(s => s.skillId === skillId);
+    if (!target) return { success: false, error: 'Skill not found' };
+
+    // Check if skill is mapped (§9.2)
+    const mappings = this.skillMappings().filter(m => m.skillId === skillId);
+    if (mappings.length > 0) {
+      const errorMsg = `This skill is mapped to ${mappings.length} element(s) and cannot be deleted. Unmap or deactivate it first.`;
+      this.showToast(errorMsg, 'error', 4500, 'Deletion Blocked');
+      return { success: false, error: errorMsg };
+    }
+
+    this.skills.update(list => list.filter(s => s.skillId !== skillId));
+
+    // Update cluster count if mapped to a cluster
+    if (target.clusterId) {
+      this.skillClusters.update(clusters => clusters.map(c => 
+        c.clusterId === target.clusterId ? { ...c, skillCount: Math.max(0, (c.skillCount || 1) - 1) } : c
+      ));
+    }
+
+    this.showToast(`${target.name} has been deleted.`, 'info', 3000, 'Skill Deleted');
+    return { success: true };
+  }
+
+  saveCluster(clusterData: Partial<SkillCluster>): SkillCluster {
+    const today = new Date().toLocaleDateString('en-GB');
+    const user = this.activeUser();
+
+    if (clusterData.clusterId) {
+      let updated: SkillCluster | undefined;
+      this.skillClusters.update(list => list.map(c => {
+        if (c.clusterId === clusterData.clusterId) {
+          updated = { ...c, ...clusterData, updatedAt: today } as SkillCluster;
+          return updated;
+        }
+        return c;
+      }));
+      this.showToast(`Cluster "${clusterData.name}" saved.`, 'success', 3000, 'Cluster Updated');
+      return updated!;
+    } else {
+      const codeIdx = String(this.skillClusters().length + 1).padStart(2, '0');
+      const newCluster: SkillCluster = {
+        clusterId: `cls-${Date.now()}`,
+        clusterCode: clusterData.clusterCode || `CLS-COMP-${codeIdx}`,
+        name: clusterData.name || 'New Competency Cluster',
+        description: clusterData.description || '',
+        status: clusterData.status || 'active',
+        skillCount: 0,
+        createdBy: user.name || 'LMS Admin',
+        createdAt: today,
+        updatedAt: today
+      };
+      this.skillClusters.update(list => [newCluster, ...list]);
+      this.showToast(`Cluster "${newCluster.name}" created successfully.`, 'success', 3000, 'Cluster Created');
+      return newCluster;
+    }
+  }
+
+  deleteCluster(clusterId: string): void {
+    const target = this.skillClusters().find(c => c.clusterId === clusterId);
+    if (!target) return;
+
+    // Detach skills to uncategorized (§5.1)
+    const affectedSkills = this.skills().filter(s => s.clusterId === clusterId);
+    this.skills.update(list => list.map(s => 
+      s.clusterId === clusterId ? { ...s, clusterId: undefined, clusterName: undefined } : s
+    ));
+
+    this.skillClusters.update(list => list.filter(c => c.clusterId !== clusterId));
+
+    if (affectedSkills.length > 0) {
+      this.showToast(`This cluster contained ${affectedSkills.length} skill(s). Deleting it left them uncategorized.`, 'warning', 4500, 'Cluster Deleted');
+    } else {
+      this.showToast(`Cluster "${target.name}" deleted.`, 'info', 3000, 'Cluster Deleted');
+    }
+  }
+
+  mapSkillToElement(skillId: string, targetType: SkillTargetType, targetId: string, targetName?: string, achievementRule?: string): void {
+    const skill = this.skills().find(s => s.skillId === skillId);
+    if (!skill) return;
+
+    if (skill.status === 'inactive') {
+      this.showToast(`Cannot map inactive skill "${skill.name}". Reactivate it first.`, 'error', 3500, 'Mapping Failed');
+      return;
+    }
+
+    const existing = this.skillMappings().find(m => m.skillId === skillId && m.targetType === targetType && m.targetId === targetId);
+    if (existing) {
+      this.showToast(`Skill "${skill.name}" is already mapped to this ${targetType}.`, 'info', 3000, 'Already Mapped');
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const user = this.activeUser();
+
+    const newMapping: SkillMapping = {
+      mappingId: `map-${Date.now()}`,
+      skillId,
+      skillName: skill.name,
+      targetType,
+      targetId,
+      targetName: targetName || `${targetType.toUpperCase()} #${targetId}`,
+      achievementRule: achievementRule || `Complete ${targetType} requirements`,
+      mappedBy: user.name || 'LMS Admin',
+      mappedAt: today
+    };
+
+    this.skillMappings.update(list => [newMapping, ...list]);
+
+    // Recalculate skill mappedElementCount
+    this.skills.update(list => list.map(s => 
+      s.skillId === skillId ? { ...s, mappedElementCount: s.mappedElementCount + 1 } : s
+    ));
+
+    this.showToast(`Skill "${skill.name}" successfully mapped to ${targetName || targetType}.`, 'success', 3000, 'Skill Mapped');
+  }
+
+  unmapSkillFromElement(skillId: string, targetType: SkillTargetType, targetId: string): void {
+    const existing = this.skillMappings().find(m => m.skillId === skillId && m.targetType === targetType && m.targetId === targetId);
+    if (!existing) return;
+
+    this.skillMappings.update(list => list.filter(m => m.mappingId !== existing.mappingId));
+
+    // Recalculate skill mappedElementCount
+    this.skills.update(list => list.map(s => 
+      s.skillId === skillId ? { ...s, mappedElementCount: Math.max(0, s.mappedElementCount - 1) } : s
+    ));
+
+    this.showToast(`Unmapped skill from ${existing.targetName || targetType}.`, 'info', 3000, 'Skill Unmapped');
+  }
+
+  getSkillMappingsForElement(targetType: SkillTargetType, targetId: string): SkillMapping[] {
+    return this.skillMappings().filter(m => m.targetType === targetType && m.targetId === targetId);
+  }
+
+  getElementsMappedToSkill(skillId: string): SkillMapping[] {
+    return this.skillMappings().filter(m => m.skillId === skillId);
+  }
+
+  // -------------------------------------------------------------
+  // SIGNATORY MANAGEMENT REPOSITORY & PROPAGATION ENGINE (§4.8.1)
+  // -------------------------------------------------------------
+
+  signatories = signal<Signatory[]>(INITIAL_SIGNATORIES);
+  signatoryLinks = signal<SignatoryTemplateLink[]>(INITIAL_SIGNATORY_LINKS);
+  signatoryChangeLogs = signal<SignatoryChangeLog[]>(INITIAL_SIGNATORY_CHANGE_LOGS);
+
+  createSignatory(data: { name: string; designation: string; department?: string; signatureImage: any; status?: SignatoryStatus; sharing?: any }): Signatory {
+    const user = this.activeUser();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newSignatory: Signatory = {
+      signatoryId: `SIG-${Date.now().toString().slice(-5)}`,
+      name: data.name,
+      designation: data.designation,
+      department: data.department || '',
+      signatureImage: data.signatureImage,
+      status: data.status || 'active',
+      sharing: data.sharing || { level: 'lms', lmsName: 'Global Corporate LMS' },
+      linkedTemplateCount: 0,
+      createdBy: user?.name || 'LMS Admin',
+      createdAt: formattedDate,
+      updatedAt: formattedDate
+    };
+
+    this.signatories.update(list => [newSignatory, ...list]);
+
+    // Log action & change log
+    const changeLog: SignatoryChangeLog = {
+      id: `LOG-${Date.now()}`,
+      signatoryId: newSignatory.signatoryId,
+      signatoryName: newSignatory.name,
+      changedBy: user?.name || 'LMS Admin',
+      changedAt: formattedDate,
+      changedFields: ['created'],
+      propagatedTemplateIds: [],
+      propagatedTemplateCount: 0,
+      actionSummary: `Signatory profile "${newSignatory.name}" created.`
+    };
+    this.signatoryChangeLogs.update(logs => [changeLog, ...logs]);
+
+    this.showToast('Signatory has been saved successfully.', 'success', 3500, 'Signatory Created');
+    return newSignatory;
+  }
+
+  updateSignatory(signatoryId: string, updates: Partial<Signatory>): Signatory | null {
+    const existing = this.signatories().find(s => s.signatoryId === signatoryId);
+    if (!existing) return null;
+
+    const user = this.activeUser();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const changedFields: string[] = [];
+    if (updates.name && updates.name !== existing.name) changedFields.push('name');
+    if (updates.designation && updates.designation !== existing.designation) changedFields.push('designation');
+    if (updates.department !== undefined && updates.department !== existing.department) changedFields.push('department');
+    if (updates.signatureImage && updates.signatureImage.fileUrl !== existing.signatureImage.fileUrl) changedFields.push('signatureImage');
+    if (updates.status && updates.status !== existing.status) changedFields.push('status');
+
+    const updatedSignatory: Signatory = {
+      ...existing,
+      ...updates,
+      updatedAt: formattedDate
+    };
+
+    this.signatories.update(list => list.map(s => s.signatoryId === signatoryId ? updatedSignatory : s));
+
+    // Find linked templates for centralized propagation
+    const linkedTemplates = this.signatoryLinks().filter(l => l.signatoryId === signatoryId);
+    const propagatedTemplateIds = Array.from(new Set(linkedTemplates.map(l => l.certificateTemplateId)));
+    const propagatedCount = propagatedTemplateIds.length;
+
+    // Record change log
+    const changeLog: SignatoryChangeLog = {
+      id: `LOG-${Date.now()}`,
+      signatoryId,
+      signatoryName: updatedSignatory.name,
+      changedBy: user?.name || 'LMS Admin',
+      changedAt: formattedDate,
+      changedFields: changedFields.length ? changedFields : ['updated'],
+      propagatedTemplateIds,
+      propagatedTemplateCount: propagatedCount,
+      actionSummary: propagatedCount > 0 
+        ? `Updated ${changedFields.join(', ') || 'profile'}. Propagated automatically to ${propagatedCount} certificate template(s).`
+        : `Updated ${changedFields.join(', ') || 'profile'}. No templates currently linked.`
+    };
+    this.signatoryChangeLogs.update(logs => [changeLog, ...logs]);
+
+    if (propagatedCount > 0) {
+      this.showToast(`Signatory updated — changes automatically propagated to ${propagatedCount} linked certificate template(s).`, 'success', 4000, 'Centralized Propagation');
+    } else {
+      this.showToast('Signatory has been saved successfully.', 'success', 3500, 'Signatory Saved');
+    }
+
+    return updatedSignatory;
+  }
+
+  deactivateSignatory(signatoryId: string): void {
+    const signatory = this.signatories().find(s => s.signatoryId === signatoryId);
+    if (!signatory) return;
+
+    this.updateSignatory(signatoryId, { status: 'inactive' });
+    this.showToast(`${signatory.name} has been deactivated`, 'info', 3500, 'Signatory Deactivated');
+  }
+
+  reactivateSignatory(signatoryId: string): void {
+    const signatory = this.signatories().find(s => s.signatoryId === signatoryId);
+    if (!signatory) return;
+
+    this.updateSignatory(signatoryId, { status: 'active' });
+    this.showToast(`${signatory.name} has been reactivated`, 'success', 3500, 'Signatory Reactivated');
+  }
+
+  deleteSignatory(signatoryId: string): boolean {
+    const signatory = this.signatories().find(s => s.signatoryId === signatoryId);
+    if (!signatory) return false;
+
+    // Safety check: Block delete if linked to any template (§9.2)
+    const links = this.getLinkedTemplatesForSignatory(signatoryId);
+    if (links.length > 0) {
+      this.showToast(`This signatory is linked to ${links.length} certificate template(s) and cannot be deleted. Unlink or deactivate it first.`, 'error', 5000, 'Deletion Blocked');
+      return false;
+    }
+
+    this.signatories.update(list => list.filter(s => s.signatoryId !== signatoryId));
+    this.showToast(`${signatory.name} has been deleted`, 'success', 3500, 'Signatory Deleted');
+    return true;
+  }
+
+  getLinkedTemplatesForSignatory(signatoryId: string): SignatoryTemplateLink[] {
+    return this.signatoryLinks().filter(l => l.signatoryId === signatoryId);
+  }
+
+  linkSignatoryToTemplate(signatoryId: string, certificateTemplateId: string, slotLabel?: string, slotRequired = false): boolean {
+    const signatory = this.signatories().find(s => s.signatoryId === signatoryId);
+    if (!signatory) return false;
+
+    if (signatory.status !== 'active') {
+      this.showToast(`Cannot link inactive signatory "${signatory.name}". Reactivate it first.`, 'error', 3500, 'Link Failed');
+      return false;
+    }
+
+    const existing = this.signatoryLinks().find(l => l.signatoryId === signatoryId && l.certificateTemplateId === certificateTemplateId);
+    if (existing) {
+      this.showToast(`Signatory "${signatory.name}" is already linked to this template.`, 'info', 3000, 'Already Linked');
+      return false;
+    }
+
+    const certTemplate = this.certificateTemplates().find(c => c.id === certificateTemplateId);
+    const certName = certTemplate ? certTemplate.name : `Certificate #${certificateTemplateId}`;
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newLink: SignatoryTemplateLink = {
+      id: `LINK-${Date.now()}`,
+      signatoryId,
+      certificateTemplateId,
+      certificateTemplateName: certName,
+      slotId: `sig_slot_${Date.now()}`,
+      slotLabel: slotLabel || signatory.designation,
+      slotRequired,
+      order: this.getLinkedTemplatesForSignatory(signatoryId).length + 1,
+      linkedAt: formattedDate
+    };
+
+    this.signatoryLinks.update(list => [newLink, ...list]);
+
+    // Recalculate derived link count
+    this.signatories.update(list => list.map(s => 
+      s.signatoryId === signatoryId ? { ...s, linkedTemplateCount: s.linkedTemplateCount + 1 } : s
+    ));
+
+    this.showToast(`Signatory "${signatory.name}" successfully linked to "${certName}".`, 'success', 3500, 'Signatory Linked');
+    return true;
+  }
+
+  unlinkSignatoryFromTemplate(signatoryId: string, certificateTemplateId: string): void {
+    const existing = this.signatoryLinks().find(l => l.signatoryId === signatoryId && l.certificateTemplateId === certificateTemplateId);
+    if (!existing) return;
+
+    this.signatoryLinks.update(list => list.filter(l => l.id !== existing.id));
+
+    // Recalculate derived link count
+    this.signatories.update(list => list.map(s => 
+      s.signatoryId === signatoryId ? { ...s, linkedTemplateCount: Math.max(0, s.linkedTemplateCount - 1) } : s
+    ));
+
+    this.showToast(`Unlinked signatory from "${existing.certificateTemplateName || certificateTemplateId}".`, 'info', 3000, 'Signatory Unlinked');
+  }
+
+  // Badge Template CRUD Operations
+  createBadgeTemplate(badge: BadgeTemplate): BadgeTemplate {
+    this.badgeTemplates.update(list => [badge, ...list]);
+    this.showToast(`Badge template "${badge.name}" saved.`, 'success', 3500, 'Badge Created');
+    return badge;
+  }
+
+  updateBadgeTemplate(id: string, updates: Partial<BadgeTemplate>): BadgeTemplate | null {
+    const existing = this.badgeTemplates().find(b => b.templateId === id);
+    if (!existing) return null;
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const nowTime = new Date().toLocaleTimeString('en-GB');
+    const updated: BadgeTemplate = {
+      ...existing,
+      ...updates,
+      updatedAt: `${today} ${nowTime}`
+    };
+
+    this.badgeTemplates.update(list => list.map(b => b.templateId === id ? updated : b));
+    return updated;
+  }
+
+  publishBadgeTemplate(id: string): boolean {
+    const badge = this.badgeTemplates().find(b => b.templateId === id);
+    if (!badge) return false;
+
+    this.updateBadgeTemplate(id, {
+      status: 'published',
+      creationStatus: 'saved',
+      lastCompletedStep: 'preview'
+    });
+    this.showToast(`Badge has been published successfully.`, 'success', 3500, 'Badge Published');
+    return true;
+  }
+
+  archiveBadgeTemplate(id: string): boolean {
+    const badge = this.badgeTemplates().find(b => b.templateId === id);
+    if (!badge) return false;
+
+    this.updateBadgeTemplate(id, { status: 'archived' });
+    this.showToast(`${badge.name} has been archived`, 'info', 3500, 'Badge Archived');
+    return true;
+  }
+
+  deleteBadgeTemplate(id: string): boolean {
+    const badge = this.badgeTemplates().find(b => b.templateId === id);
+    if (!badge) return false;
+
+    if (badge.status === 'published' && badge.usageCount > 0) {
+      this.showToast(`"${badge.name}" is referenced by ${badge.usageCount} Phase(s)/Plan(s) and cannot be deleted. Archive it instead.`, 'error', 4500, 'Delete Blocked');
+      return false;
+    }
+
+    this.badgeTemplates.update(list => list.filter(b => b.templateId !== id));
+    this.showToast(`${badge.name} has been deleted`, 'success', 3500, 'Badge Deleted');
+    return true;
+  }
+
+  duplicateBadgeTemplate(id: string): BadgeTemplate | null {
+    const source = this.badgeTemplates().find(b => b.templateId === id);
+    if (!source) return null;
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const user = this.activeUser();
+
+    const copy: BadgeTemplate = {
+      ...JSON.parse(JSON.stringify(source)),
+      templateId: `BDG-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: `${source.name} (Copy)`,
+      status: 'draft',
+      creationStatus: 'draft',
+      version: 1,
+      usageCount: 0,
+      createdBy: user?.name || 'LMS Admin',
+      createdAt: today,
+      updatedAt: `${today} ${new Date().toLocaleTimeString('en-GB')}`
+    };
+
+    this.badgeTemplates.update(list => [copy, ...list]);
+    this.showToast(`Duplicated badge as "${copy.name}".`, 'success', 3500, 'Badge Duplicated');
+    return copy;
+  }
 }
+
+
 
 
 

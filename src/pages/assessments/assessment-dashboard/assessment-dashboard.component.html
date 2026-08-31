@@ -1,0 +1,227 @@
+<div class="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8">
+  <!-- Top Bar -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
+    <div>
+      <div class="flex items-center gap-2 text-sm font-medium text-indigo-600 mb-1">
+        <span class="material-icons text-base">space_dashboard</span>
+        <span>Dashboard Studio & Telemetry</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Assessment Telemetry</h1>
+      <p class="text-slate-500 text-sm mt-1">Repository health, publish blocker detection, score velocity & customizable widget studio</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        (click)="showStudioDrawer.set(true)"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50"
+      >
+        <span class="material-icons text-indigo-600 text-base">tune</span>
+        <span>Customize Widgets</span>
+      </button>
+
+      <a
+        routerLink="/assessments"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+      >
+        <span class="material-icons text-base">quiz</span>
+        <span>Assessment Bank</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Dynamic Widget Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for (w of visibleWidgets(); track w.id) {
+      <!-- Widget 1: KPI Grid -->
+      @if (w.type === 'asm_kpi_summary') {
+        <div class="col-span-1 md:col-span-2 lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <span class="material-icons text-indigo-600 text-lg">speed</span>
+              <span>High-Level Assessment Repository Telemetry</span>
+            </h3>
+            <span class="text-xs text-slate-400 font-mono">Live Sync</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+              <div class="text-xs text-slate-500 font-semibold uppercase">Total Instruments</div>
+              <div class="text-2xl font-bold text-slate-900 mt-1">{{ totalAssessments() }}</div>
+            </div>
+
+            <div class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-100">
+              <div class="text-xs text-emerald-800 font-semibold uppercase">Published</div>
+              <div class="text-2xl font-bold text-emerald-600 mt-1">{{ publishedCount() }}</div>
+            </div>
+
+            <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-100">
+              <div class="text-xs text-amber-800 font-semibold uppercase">Draft / Revision</div>
+              <div class="text-2xl font-bold text-amber-600 mt-1">{{ draftCount() }}</div>
+            </div>
+
+            <div class="p-4 bg-purple-50/60 rounded-xl border border-purple-100">
+              <div class="text-xs text-purple-800 font-semibold uppercase">Manual Graded</div>
+              <div class="text-2xl font-bold text-purple-600 mt-1">{{ manualGradedCount() }}</div>
+            </div>
+
+            <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 col-span-2 sm:col-span-1">
+              <div class="text-xs text-indigo-800 font-semibold uppercase">Pass Velocity</div>
+              <div class="text-2xl font-bold text-indigo-600 mt-1">{{ passRate() }}%</div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Widget 2: Publish Blockers -->
+      @else if (w.type === 'asm_blockers') {
+        <div
+          [class.col-span-1]="w.colSpan === 1"
+          [class.col-span-2]="w.colSpan === 2"
+          [class.col-span-3]="w.colSpan === 3"
+          [class.col-span-4]="w.colSpan === 4"
+          class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4"
+        >
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <span class="material-icons text-amber-500 text-lg">warning</span>
+              <span>Governance & Publish Blockers</span>
+            </h3>
+            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">
+              {{ publishBlockers().length }} Warnings
+            </span>
+          </div>
+
+          @if (publishBlockers().length === 0) {
+            <div class="p-6 bg-emerald-50/60 border border-emerald-100 rounded-xl text-center text-xs text-emerald-800 space-y-1">
+              <span class="material-icons text-2xl text-emerald-600">check_circle</span>
+              <div class="font-bold text-sm">All Assessments Gate Compliant</div>
+              <div>No assessments currently blocked by unassigned instructors.</div>
+            </div>
+          } @else {
+            <div class="space-y-3">
+              @for (blk of publishBlockers(); track blk.assessmentId) {
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
+                  <div>
+                    <div class="font-bold text-amber-900">{{ blk.title }}</div>
+                    <div class="text-amber-700">Code: {{ blk.code }} &bull; Missing assigned responsible instructor</div>
+                  </div>
+                  <a
+                    [routerLink]="['/assessments/edit', blk.assessmentId]"
+                    class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shrink-0"
+                  >
+                    Fix Gate
+                  </a>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Widget 3: Recent Attempts Stream -->
+      @else if (w.type === 'asm_recent_attempts') {
+        <div
+          [class.col-span-1]="w.colSpan === 1"
+          [class.col-span-2]="w.colSpan === 2"
+          [class.col-span-3]="w.colSpan === 3"
+          [class.col-span-4]="w.colSpan === 4"
+          class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4"
+        >
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <span class="material-icons text-indigo-600 text-lg">history</span>
+              <span>Recent Attempt Stream</span>
+            </h3>
+            <a routerLink="/assessments/results" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">View All</a>
+          </div>
+
+          <div class="space-y-3">
+            @for (att of attempts().slice(0, 4); track att.attemptId) {
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between text-xs">
+                <div>
+                  <div class="font-bold text-slate-900">{{ att.traineeName }}</div>
+                  <div class="text-slate-500 font-mono">{{ att.submittedAt }}</div>
+                </div>
+
+                <div class="text-right">
+                  <div class="font-bold text-slate-900">{{ att.percentage }}%</div>
+                  <span
+                    [class.text-emerald-600]="att.passed"
+                    [class.text-rose-600]="!att.passed"
+                    class="font-bold uppercase text-[10px]"
+                  >
+                    {{ att.passed ? 'PASSED' : 'FAILED' }}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Studio Drawer Modal -->
+@if (showStudioDrawer()) {
+  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex justify-end">
+    <div class="bg-white max-w-md w-full h-full p-6 shadow-2xl space-y-6 overflow-y-auto">
+      <div class="flex items-center justify-between border-b pb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Customize Studio Layout</h2>
+          <p class="text-xs text-slate-500">Toggle widget visibility and change column spans.</p>
+        </div>
+        <button (click)="showStudioDrawer.set(false)" class="text-slate-400 hover:text-slate-700">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        @for (w of layout().widgets; track w.id) {
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-slate-900">{{ w.title }}</span>
+              <input
+                type="checkbox"
+                [checked]="w.visible"
+                (change)="toggleWidgetVisibility(w.id)"
+                class="w-4 h-4 text-indigo-600 rounded"
+              />
+            </div>
+
+            @if (w.visible) {
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-500 font-semibold">Column Span:</span>
+                <button
+                  *for="let s of [1, 2, 3, 4]"
+                  (click)="updateWidgetSpan(w.id, s)"
+                  [class.bg-indigo-600]="w.colSpan === s"
+                  [class.text-white]="w.colSpan === s"
+                  [class.bg-white]="w.colSpan !== s"
+                  class="px-2.5 py-1 rounded border border-slate-300 font-bold"
+                >
+                  {{ s }}x
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="pt-4 border-t flex justify-between">
+        <button
+          (click)="resetDefaultLayout()"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl"
+        >
+          Reset Defaults
+        </button>
+        <button
+          (click)="showStudioDrawer.set(false)"
+          class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+}

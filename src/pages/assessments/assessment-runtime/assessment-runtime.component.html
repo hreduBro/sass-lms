@@ -1,0 +1,451 @@
+<div class="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between">
+  @if (!isSubmitted()) {
+    <!-- Sticky Exam Header -->
+    <header class="bg-slate-950 border-b border-slate-800 px-4 md:px-8 py-4 sticky top-0 z-30 shadow-lg">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-bold text-white shrink-0">
+            <span class="material-icons text-xl">quiz</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-indigo-400">
+              <span>{{ assessment()?.code }}</span>
+              <span>&bull;</span>
+              <span>{{ currentVersion()?.versionLabel }}</span>
+            </div>
+            <h1 class="text-base md:text-lg font-bold text-white truncate max-w-xl">
+              {{ assessment()?.title }}
+            </h1>
+          </div>
+        </div>
+
+        <!-- Timer & Progress Controls -->
+        <div class="flex items-center gap-4 self-end md:self-auto">
+          @if (remainingSeconds() !== null) {
+            <div
+              [class.bg-rose-950]="(remainingSeconds() || 0) < 300"
+              [class.border-rose-700]="(remainingSeconds() || 0) < 300"
+              [class.text-rose-400]="(remainingSeconds() || 0) < 300"
+              class="px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-mono font-bold flex items-center gap-2"
+            >
+              <span class="material-icons text-base">timer</span>
+              <span>{{ formatTime(remainingSeconds()) }}</span>
+            </div>
+          }
+
+          <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+            <span>Progress:</span>
+            <span class="text-indigo-400 font-bold">{{ answeredCount() }}/{{ totalQuestions() }} ({{ progressPercent() }}%)</span>
+          </div>
+
+          <button
+            (click)="onSubmitClick()"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+          >
+            <span class="material-icons text-sm">check_circle</span>
+            <span>Submit Exam</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Linear Progress Indicator -->
+      <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden">
+        <div class="bg-indigo-500 h-full transition-all duration-300" [style.width.%]="progressPercent()"></div>
+      </div>
+    </header>
+
+    <!-- Main Question Content Area -->
+    <main class="max-w-5xl w-full mx-auto p-4 md:p-8 flex-1 space-y-6">
+      @if (currentQuestion()) {
+        @let q = currentQuestion()!;
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl relative">
+          <!-- Question Header Bar -->
+          <div class="flex items-center justify-between border-b border-slate-700/80 pb-4">
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 bg-indigo-600 text-white rounded-lg font-bold text-xs">
+                Question {{ currentQuestionIndex() + 1 }} of {{ totalQuestions() }}
+              </span>
+              <span class="px-2.5 py-0.5 bg-slate-700 text-slate-300 rounded text-xs font-mono font-semibold uppercase">
+                {{ q.type }}
+              </span>
+              @if (q.manualGraded) {
+                <span class="px-2 py-0.5 bg-purple-900/60 text-purple-300 border border-purple-700/60 rounded text-xs">
+                  Manual Graded
+                </span>
+              }
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-800/50">
+                {{ q.points }} Points
+              </span>
+
+              <button
+                (click)="toggleFlag(q.questionId)"
+                [class.text-amber-400]="isFlagged(q.questionId)"
+                [class.bg-amber-950/50]="isFlagged(q.questionId)"
+                class="px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1 transition-all"
+              >
+                <span class="material-icons text-sm">{{ isFlagged(q.questionId) ? 'bookmark' : 'bookmark_border' }}</span>
+                <span>{{ isFlagged(q.questionId) ? 'Flagged' : 'Flag' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Prompt -->
+          <div class="text-base md:text-lg font-semibold text-slate-100 leading-relaxed">
+            {{ q.prompt }}
+          </div>
+
+          <!-- Interactive Question Answer Controls -->
+          <div class="space-y-3 pt-2">
+            <!-- Single Select / True-False -->
+            @if (q.type === 'singleSelect' || q.type === 'trueFalse') {
+              <div class="grid grid-cols-1 gap-3">
+                @for (opt of q.options; track opt.optionId) {
+                  @let selected = isOptionSelected(q.questionId, opt.optionId);
+                  <button
+                    (click)="setSingleSelectAnswer(q.questionId, opt.optionId)"
+                    [class.bg-indigo-950/80]="selected"
+                    [class.border-indigo-500]="selected"
+                    [class.text-white]="selected"
+                    [class.bg-slate-900/60]="!selected"
+                    [class.border-slate-700]="!selected"
+                    [class.text-slate-300]="!selected"
+                    class="p-4 rounded-xl border text-left text-sm font-medium transition-all hover:border-slate-500 flex items-center gap-3"
+                  >
+                    <div
+                      [class.bg-indigo-600]="selected"
+                      [class.border-indigo-500]="selected"
+                      [class.border-slate-600]="!selected"
+                      class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                    >
+                      @if (selected) {
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      }
+                    </div>
+                    <span>{{ opt.text }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Multi Select -->
+            @else if (q.type === 'multiSelect') {
+              <div class="space-y-3">
+                <p class="text-xs text-indigo-400 italic font-semibold">Select all correct statements:</p>
+                <div class="grid grid-cols-1 gap-3">
+                  @for (opt of q.options; track opt.optionId) {
+                    @let selected = isOptionSelected(q.questionId, opt.optionId);
+                    <button
+                      (click)="toggleMultiSelectAnswer(q.questionId, opt.optionId)"
+                      [class.bg-indigo-950/80]="selected"
+                      [class.border-indigo-500]="selected"
+                      [class.text-white]="selected"
+                      [class.bg-slate-900/60]="!selected"
+                      [class.border-slate-700]="!selected"
+                      [class.text-slate-300]="!selected"
+                      class="p-4 rounded-xl border text-left text-sm font-medium transition-all hover:border-slate-500 flex items-center gap-3"
+                    >
+                      <div
+                        [class.bg-indigo-600]="selected"
+                        [class.border-indigo-500]="selected"
+                        [class.border-slate-600]="!selected"
+                        class="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 text-white"
+                      >
+                        @if (selected) {
+                          <span class="material-icons text-xs">check</span>
+                        }
+                      </div>
+                      <span>{{ opt.text }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Numeric Input -->
+            @else if (q.type === 'numeric') {
+              <div class="space-y-2 max-w-sm">
+                <label class="block text-xs font-semibold text-slate-400">Enter Numeric Answer:</label>
+                <input
+                  type="number"
+                  [ngModel]="userAnswers()[q.questionId]"
+                  (ngModelChange)="setTextAnswer(q.questionId, $event)"
+                  placeholder="e.g. 100"
+                  class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-base font-bold text-white focus:outline-none focus:border-indigo-500 font-mono"
+                />
+              </div>
+            }
+
+            <!-- Matching Pairs -->
+            @else if (q.type === 'matching') {
+              <div class="space-y-3">
+                <p class="text-xs text-indigo-400 font-semibold">Match each item on the left with its corresponding target on the right:</p>
+                @for (pair of q.matchingPairs; track pair.pairId) {
+                  <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+                    <div class="md:col-span-6 font-semibold text-sm text-slate-200">{{ pair.leftItem }}</div>
+                    <div class="md:col-span-6">
+                      <select
+                        [ngModel]="userAnswers()[q.questionId]?.[pair.pairId] || ''"
+                        (ngModelChange)="setMatchingAnswer(q.questionId, pair.pairId, $event)"
+                        class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="">-- Choose Match --</option>
+                        @for (pOpt of q.matchingPairs; track pOpt.pairId) {
+                          <option [value]="pOpt.rightItem">{{ pOpt.rightItem }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Fill in the blank / Text -->
+            @else if (q.type === 'fillBlank') {
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">Fill in the blank:</label>
+                <input
+                  type="text"
+                  [ngModel]="userAnswers()[q.questionId]"
+                  (ngModelChange)="setTextAnswer(q.questionId, $event)"
+                  placeholder="Type your response..."
+                  class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            }
+
+            <!-- Essay -->
+            @else if (q.type === 'essay') {
+              <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-400">Essay Answer Response (Manual Graded):</label>
+                <textarea
+                  rows="6"
+                  [ngModel]="userAnswers()[q.questionId]"
+                  (ngModelChange)="setTextAnswer(q.questionId, $event)"
+                  placeholder="Write your comprehensive answer response here..."
+                  class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                ></textarea>
+              </div>
+            }
+
+            <!-- File Upload -->
+            @else if (q.type === 'fileUpload') {
+              <div class="space-y-3">
+                <label class="block text-xs font-semibold text-slate-400">Attach Document / Spreadsheet Solution:</label>
+
+                <div class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center space-y-2 bg-slate-900/40 hover:border-indigo-500 transition-all">
+                  <span class="material-icons text-3xl text-indigo-400">upload_file</span>
+                  <div class="text-xs text-slate-300 font-semibold">
+                    Upload file attachment (PDF, DOCX, XLSX, ZIP)
+                  </div>
+                  <input
+                    type="file"
+                    (change)="simulateFileUpload($event, q.questionId)"
+                    class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500"
+                  />
+                </div>
+
+                @if (uploadedFiles()[q.questionId]) {
+                  @let file = uploadedFiles()[q.questionId];
+                  <div class="p-3 bg-indigo-950/60 border border-indigo-800 rounded-xl flex items-center justify-between text-xs text-indigo-200">
+                    <div class="flex items-center gap-2">
+                      <span class="material-icons text-base">description</span>
+                      <span class="font-bold">{{ file.fileName }}</span>
+                      <span class="text-indigo-400">({{ file.fileSize }})</span>
+                    </div>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1">
+                      <span class="material-icons text-xs">check_circle</span> Uploaded
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Bottom Footer Navigation -->
+          <div class="flex items-center justify-between border-t border-slate-700/80 pt-6">
+            <button
+              (click)="prevQuestion()"
+              [disabled]="currentQuestionIndex() === 0"
+              class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-30 rounded-xl text-xs font-semibold text-white flex items-center gap-1"
+            >
+              <span class="material-icons text-base">arrow_back</span>
+              <span>Previous Question</span>
+            </button>
+
+            @if (currentQuestionIndex() < totalQuestions() - 1) {
+              <button
+                (click)="nextQuestion()"
+                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white flex items-center gap-1"
+              >
+                <span>Next Question</span>
+                <span class="material-icons text-base">arrow_forward</span>
+              </button>
+            } @else {
+              <button
+                (click)="onSubmitClick()"
+                class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 shadow-md"
+              >
+                <span class="material-icons text-base">check_circle</span>
+                <span>Review & Finish Exam</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Bottom Question Palette Drawer Strip -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-5 space-y-3">
+        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+          <span>Question Navigator Palette</span>
+          <span class="text-slate-400 font-normal">Click any tile to jump</span>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          @for (q of currentVersion()?.questions; track q.questionId; let idx = $index) {
+            @let answered = userAnswers()[q.questionId] !== undefined && userAnswers()[q.questionId] !== '';
+            @let flagged = isFlagged(q.questionId);
+            @let active = currentQuestionIndex() === idx;
+
+            <button
+              (click)="jumpToQuestion(idx)"
+              [class.ring-2]="active"
+              [class.ring-indigo-400]="active"
+              [class.bg-emerald-600]="answered && !flagged"
+              [class.text-white]="answered"
+              [class.bg-amber-600]="flagged"
+              [class.bg-slate-700]="!answered && !flagged"
+              [class.text-slate-300]="!answered && !flagged"
+              class="w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center transition-all hover:scale-105 relative"
+            >
+              <span>{{ idx + 1 }}</span>
+              @if (flagged) {
+                <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border border-slate-900"></div>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </main>
+  } @else if (submissionAttempt()) {
+    <!-- SUBMITTED RESULTS SUMMARY VIEW -->
+    @let att = submissionAttempt()!;
+    <div class="max-w-4xl w-full mx-auto p-4 md:p-8 space-y-8 flex-1">
+      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
+        <div
+          [class.bg-emerald-950/80]="att.passed"
+          [class.border-emerald-700]="att.passed"
+          [class.text-emerald-400]="att.passed"
+          [class.bg-rose-950/80]="!att.passed"
+          [class.border-rose-700]="!att.passed"
+          [class.text-rose-400]="!att.passed"
+          class="w-20 h-20 rounded-full border-2 flex items-center justify-center mx-auto"
+        >
+          <span class="material-icons text-4xl">{{ att.passed ? 'workspace_premium' : 'error' }}</span>
+        </div>
+
+        <div>
+          <span
+            [class.bg-emerald-900/60]="att.passed"
+            [class.text-emerald-300]="att.passed"
+            [class.bg-rose-900/60]="!att.passed"
+            [class.text-rose-300]="!att.passed"
+            class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-current"
+          >
+            {{ att.passed ? 'PASSED & COMPLETED' : 'DID NOT PASS' }}
+          </span>
+          <h1 class="text-3xl font-bold text-white mt-3">Exam Attempt Submitted</h1>
+          <p class="text-slate-400 text-sm mt-1 font-mono">{{ assessment()?.title }} &bull; {{ att.submittedAt }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-900/80 rounded-2xl border border-slate-700 text-left">
+          <div>
+            <div class="text-xs text-slate-400 font-semibold">Final Percentage</div>
+            <div class="text-2xl font-bold text-indigo-400">{{ att.percentage }}%</div>
+          </div>
+
+          <div>
+            <div class="text-xs text-slate-400 font-semibold">Total Score</div>
+            <div class="text-2xl font-bold text-white">{{ att.totalScore }} / {{ att.maxScore }}</div>
+          </div>
+
+          <div>
+            <div class="text-xs text-slate-400 font-semibold">Auto Score</div>
+            <div class="text-2xl font-bold text-emerald-400">{{ att.autoScore }} pts</div>
+          </div>
+
+          <div>
+            <div class="text-xs text-slate-400 font-semibold">Manual Grading Status</div>
+            <div class="text-xs font-bold text-purple-400 mt-1 capitalize">
+              {{ att.manualGradingStatus }}
+            </div>
+          </div>
+        </div>
+
+        @if (att.manualGradingStatus === 'pending') {
+          <div class="p-4 bg-purple-950/60 border border-purple-800 text-purple-200 rounded-2xl text-xs text-left flex items-start gap-3">
+            <span class="material-icons text-purple-400 text-lg">hourglass_top</span>
+            <div>
+              <strong class="font-bold block text-sm">Instructor Grading Pending</strong>
+              <span>Your responses include open-ended or essay questions. Assigned instructor ({{ assessment()?.responsibleInstructorName || 'Department Head' }}) will review and grade your submission.</span>
+            </div>
+          </div>
+        }
+
+        <div class="flex items-center justify-center gap-4 pt-4">
+          <a
+            routerLink="/assessments"
+            class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl transition-all"
+          >
+            Return to Assessment Bank
+          </a>
+          <a
+            routerLink="/assessments/results"
+            class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm rounded-xl transition-all"
+          >
+            View All Exam Results
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Submit Confirmation Modal -->
+@if (showConfirmSubmitModal()) {
+  <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 text-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center gap-3 text-indigo-400">
+        <span class="material-icons text-3xl">help_outline</span>
+        <h3 class="text-lg font-bold">Confirm Exam Submission</h3>
+      </div>
+
+      <p class="text-sm text-slate-300">
+        You have answered <strong>{{ answeredCount() }}</strong> out of <strong>{{ totalQuestions() }}</strong> questions.
+      </p>
+
+      @if (answeredCount() < totalQuestions()) {
+        <div class="p-3 bg-amber-950/60 border border-amber-800 text-amber-200 rounded-xl text-xs">
+          <strong>Warning:</strong> You have {{ totalQuestions() - answeredCount() }} unanswered question(s). Are you sure you want to finalize submission?
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button
+          (click)="showConfirmSubmitModal.set(false)"
+          class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-semibold"
+        >
+          Continue Exam
+        </button>
+        <button
+          (click)="executeSubmission()"
+          class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold"
+        >
+          Confirm & Submit
+        </button>
+      </div>
+    </div>
+  </div>
+}

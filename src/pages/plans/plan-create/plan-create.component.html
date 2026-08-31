@@ -758,6 +758,87 @@
           </span>
         </div>
 
+        <!-- Transcripts Configuration Block (Section 5 Spec) -->
+        <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-4" formGroupName="transcripts">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-base text-tenant-600">receipt_long</span>
+              <span class="font-bold text-xs text-text-primary">Academic Transcript Setup & Release Rules</span>
+            </div>
+            <span class="text-[10px] text-text-secondary font-mono">Independent per-level enablement</span>
+          </div>
+
+          <!-- Availability Level Enablement Checkboxes (§5.1) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-2">Transcript Availability Levels</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between cursor-pointer">
+                <div>
+                  <div class="font-bold text-xs text-text-primary">Course Level</div>
+                  <div class="text-[10px] text-text-secondary">Released on course completion</div>
+                </div>
+                <input type="checkbox" formControlName="enabledAtCourse" class="w-4 h-4 rounded accent-tenant-500 cursor-pointer">
+              </label>
+
+              <label class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between cursor-pointer">
+                <div>
+                  <div class="font-bold text-xs text-text-primary">Phase Level</div>
+                  <div class="text-[10px] text-text-secondary">Released on phase completion</div>
+                </div>
+                <input type="checkbox" formControlName="enabledAtPhase" class="w-4 h-4 rounded accent-tenant-500 cursor-pointer">
+              </label>
+
+              <label class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between cursor-pointer">
+                <div>
+                  <div class="font-bold text-xs text-text-primary">Plan Level</div>
+                  <div class="text-[10px] text-text-secondary">Gated on Plan completion & closure</div>
+                </div>
+                <input type="checkbox" formControlName="enabledAtPlan" class="w-4 h-4 rounded accent-tenant-500 cursor-pointer">
+              </label>
+            </div>
+          </div>
+
+          <!-- Release Rules & PDF Download Gate (§5.2, §5.3) -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Release Rule Scope</label>
+              <select formControlName="scope" class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 text-text-primary">
+                <option value="Whole Plan">Whole Plan Unified Rule</option>
+                <option value="Per Phase">Per Phase Scoped Rules</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Min Score Required (%)</label>
+              <input type="number" formControlName="minScore" min="0" max="100" class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-bold text-text-primary">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Min Completion Required (%)</label>
+              <input type="number" formControlName="minCompletionPct" min="0" max="100" class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-bold text-text-primary">
+            </div>
+          </div>
+
+          <!-- PDF Download & Chaining Toggles -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <label class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="font-bold text-xs text-text-primary">Allow Trainee PDF Download</div>
+                <div class="text-[10px] text-text-secondary">If disabled, trainees can view transcript but cannot download PDF</div>
+              </div>
+              <input type="checkbox" formControlName="allowPdfDownload" class="w-4 h-4 rounded accent-tenant-500 cursor-pointer">
+            </label>
+
+            <label class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="font-bold text-xs text-text-primary">Chainable Phase Gate</div>
+                <div class="text-[10px] text-text-secondary">Next phase transcript requires previous phase transcript release</div>
+              </div>
+              <input type="checkbox" formControlName="gatedOnPreviousPhaseTranscript" class="w-4 h-4 rounded accent-tenant-500 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="certificates">
           <div>
             <app-custom-select
@@ -812,7 +893,7 @@
           @if (planForm.get('evaluation.preTest.enabled')?.value) {
             <app-custom-select
               [label]="'Pre-Test Questionnaire'"
-              [options]="preTestQuestionnaires"
+              [options]="preTestQuestionnaires()"
               formControlName="questionnaireId">
             </app-custom-select>
           }
@@ -827,7 +908,7 @@
           @if (planForm.get('evaluation.postTest.enabled')?.value) {
             <app-custom-select
               [label]="'Post-Test Questionnaire'"
-              [options]="postTestQuestionnaires"
+              [options]="postTestQuestionnaires()"
               formControlName="questionnaireId">
             </app-custom-select>
           }

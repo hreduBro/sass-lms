@@ -43,7 +43,7 @@ export interface PlanCapabilities {
 
 export type ProgressionMode = 'Sequential' | 'Free';
 export type GradingScope = 'Whole Plan' | 'Per Phase';
-export type GradingType = 'Percentage' | 'CGPA';
+export type GradingType = 'Percentage' | 'CGPA' | 'percentage' | 'cgpa';
 export type CertificateStatus = 'Pass' | 'Fail' | 'Completed';
 export type EvaluationRequirement = 'Mandatory' | 'Optional';
 export type EnrollmentConfirmation = 'Auto Onboard' | 'Manual Review';

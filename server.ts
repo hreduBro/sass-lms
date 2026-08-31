@@ -829,8 +829,8 @@ app.use('/assets', express.static(join(__dirname, 'src', 'assets')));
 app.use(express.static(join(__dirname, 'public')));
 
 const distDirs = [
-  join(__dirname, 'dist'),
   join(__dirname, 'dist', 'browser'),
+  join(__dirname, 'dist'),
   join(__dirname, 'dist', 'app'),
   __dirname
 ];

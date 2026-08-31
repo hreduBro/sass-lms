@@ -23,6 +23,11 @@ import { CertificateTemplateGridComponent } from './pages/certificate-templates/
 import { CertificateTemplateDashboardComponent } from './pages/certificate-templates/template-dashboard/template-dashboard.component';
 import { CertificateTemplateCreateComponent } from './pages/certificate-templates/template-create/template-create.component';
 import { CertificatesVaultComponent } from './pages/certificate-templates/certificates-vault/certificates-vault.component';
+import { SignatoryGridComponent } from './pages/signatories/signatory-grid/signatory-grid.component';
+import { SignatoryDashboardComponent } from './pages/signatories/signatory-dashboard/signatory-dashboard.component';
+import { BadgeGridComponent } from './pages/badge-templates/badge-grid/badge-grid.component';
+import { BadgeDashboardComponent } from './pages/badge-templates/badge-dashboard/badge-dashboard.component';
+import { BadgeCreateComponent } from './pages/badge-templates/badge-create/badge-create.component';
 import { WebinarsComponent } from './pages/webinars/webinars.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ProfileComponent } from './pages/profile/profile.component';
@@ -142,6 +147,27 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
   { 
+    path: 'engagement', 
+    loadComponent: () => import('./pages/engagement/engagement-hub.component').then(m => m.EngagementHubComponent), 
+    title: 'Engagement Hub & Telemetry | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
+    path: 'transcripts', 
+    loadComponent: () => import('./pages/transcripts/transcript-grid/transcript-grid.component').then(m => m.TranscriptGridComponent), 
+    title: 'Transcripts | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'my-transcripts', 
+    loadComponent: () => import('./pages/transcripts/my-transcripts/my-transcripts.component').then(m => m.MyTranscriptsComponent), 
+    title: 'My Transcripts | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
     path: 'plans/phases', 
     loadComponent: () => import('./pages/plans/phase-grid/phase-grid.component').then(m => m.PhaseGridComponent), 
     title: 'Phase Grid | Multi-Tenant LMS',
@@ -178,6 +204,27 @@ export const routes: Routes = [
   },
 
   // Courses & Learning Player
+  { 
+    path: 'courses/dashboard', 
+    loadComponent: () => import('./pages/courses/course-dashboard/course-dashboard.component').then(m => m.CourseDashboardComponent), 
+    title: 'Course Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'courses/create', 
+    loadComponent: () => import('./pages/courses/course-create/course-create.component').then(m => m.CourseCreateComponent), 
+    title: 'Create Course | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'courses/edit/:id', 
+    loadComponent: () => import('./pages/courses/course-create/course-create.component').then(m => m.CourseCreateComponent), 
+    title: 'Edit Course | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
   { 
     path: 'courses/templates', 
     component: CourseTemplateGridComponent, 
@@ -276,6 +323,50 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
   },
 
+  // Signatory Management (§4.8.1)
+  {
+    path: 'certificates/signatories',
+    component: SignatoryGridComponent,
+    title: 'Signatories Repository | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'certificates/signatories/dashboard',
+    component: SignatoryDashboardComponent,
+    title: 'Signatory Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { path: 'signatories', redirectTo: 'certificates/signatories', pathMatch: 'full' },
+  { path: 'signatories/dashboard', redirectTo: 'certificates/signatories/dashboard', pathMatch: 'full' },
+
+  // Badge Template Management (§4.8.2)
+  {
+    path: 'certificates/badges',
+    component: BadgeGridComponent,
+    title: 'Badge Repository | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'certificates/badges/dashboard',
+    component: BadgeDashboardComponent,
+    title: 'Badge Templates Overview | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'certificates/badges/create',
+    component: BadgeCreateComponent,
+    title: 'Create Badge Template | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { path: 'badges', redirectTo: 'certificates/badges', pathMatch: 'full' },
+  { path: 'badges/dashboard', redirectTo: 'certificates/badges/dashboard', pathMatch: 'full' },
+  { path: 'badges/create', redirectTo: 'certificates/badges/create', pathMatch: 'full' },
+
   // Certificates Vault (Legacy / Root)
   { 
     path: 'certificates', 
@@ -292,6 +383,80 @@ export const routes: Routes = [
     title: 'Live Virtual Classrooms | Multi-Tenant LMS',
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Skill Mapping Module (§4.10)
+  { 
+    path: 'skills/dashboard', 
+    loadComponent: () => import('./pages/skills/skill-dashboard/skill-dashboard.component').then(m => m.SkillDashboardComponent), 
+    title: 'Skill Mapping Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'skills/clusters', 
+    loadComponent: () => import('./pages/skills/skill-grid/skill-grid.component').then(m => m.SkillGridComponent), 
+    title: 'Competency Clusters | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'skills', 
+    loadComponent: () => import('./pages/skills/skill-grid/skill-grid.component').then(m => m.SkillGridComponent), 
+    title: 'Skill Repository & Mapping | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Assessment & Quiz Module
+  { 
+    path: 'assessments', 
+    loadComponent: () => import('./pages/assessments/assessment-grid/assessment-grid.component').then(m => m.AssessmentGridComponent), 
+    title: 'Assessments & Exam Bank | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
+    path: 'assessments/dashboard', 
+    loadComponent: () => import('./pages/assessments/assessment-dashboard/assessment-dashboard.component').then(m => m.AssessmentDashboardComponent), 
+    title: 'Assessment Studio Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'assessments/create', 
+    loadComponent: () => import('./pages/assessments/assessment-create/assessment-create.component').then(m => m.AssessmentCreateComponent), 
+    title: 'Author Assessment | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'assessments/edit/:id', 
+    loadComponent: () => import('./pages/assessments/assessment-create/assessment-create.component').then(m => m.AssessmentCreateComponent), 
+    title: 'Edit Assessment | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'assessments/take/:id', 
+    loadComponent: () => import('./pages/assessments/assessment-runtime/assessment-runtime.component').then(m => m.AssessmentRuntimeComponent), 
+    title: 'Take Assessment Exam | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { 
+    path: 'assessments/results', 
+    loadComponent: () => import('./pages/assessments/assessment-results/assessment-results.component').then(m => m.AssessmentResultsComponent), 
+    title: 'Assessment Results & Grading | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'assessments/results/:attemptId', 
+    loadComponent: () => import('./pages/assessments/assessment-results/assessment-results.component').then(m => m.AssessmentResultsComponent), 
+    title: 'Grade Assessment Attempt | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
 
   // Theming, Layout & Branding Setup (LMS Admin, Org Admin, System Admin)

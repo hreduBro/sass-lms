@@ -194,12 +194,30 @@ export const PLACEHOLDER_TOKENS: PlaceholderTokenDef[] = [
   },
   {
     key: '{{signatory_name}}',
-    label: 'Authorized Signatory',
+    label: 'Authorized Signatory Name',
     category: 'Authorities',
-    sampleValue: 'Farhana Ahmed, Executive Director',
-    description: 'Authorizing executive or registrar name',
+    sampleValue: 'Dr. Karim Rahman',
+    description: 'Name of linked authorized signatory from repository',
     icon: 'draw',
-    defaultStyle: { fontSizePt: 12, bold: false, align: 'center', color: '#334155' }
+    defaultStyle: { fontSizePt: 12, bold: true, align: 'center', color: '#1e293b' }
+  },
+  {
+    key: '{{signatory_designation}}',
+    label: 'Authorized Signatory Designation',
+    category: 'Authorities',
+    sampleValue: 'Director of Academic Affairs',
+    description: 'Designation of linked authorized signatory from repository',
+    icon: 'badge',
+    defaultStyle: { fontSizePt: 10, bold: false, align: 'center', color: '#475569' }
+  },
+  {
+    key: '{{signatory_signature_image}}',
+    label: 'Digital Signature Graphic',
+    category: 'Authorities',
+    sampleValue: '[Digital Signature Graphic]',
+    description: 'Digital signature image of linked signatory',
+    icon: 'edit',
+    defaultStyle: { fontSizePt: 10, bold: false, align: 'center', color: '#0f172a' }
   },
   {
     key: '{{verification_qr}}',

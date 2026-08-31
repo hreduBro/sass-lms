@@ -8,6 +8,7 @@ export interface NavChildItem {
   description?: string;
   roles?: UserRole[];
   matchPatterns?: (string | RegExp)[];
+  queryParams?: Record<string, string>;
 }
 
 export interface NavItem {
@@ -19,6 +20,7 @@ export interface NavItem {
   description?: string;
   children?: NavChildItem[];
   matchPatterns?: (string | RegExp)[];
+  queryParams?: Record<string, string>;
 }
 
 export const APP_NAV_ITEMS: NavItem[] = [
@@ -142,6 +144,23 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/plans/dashboard']
       },
       { 
+        label: 'Transcripts', 
+        route: '/transcripts', 
+        icon: 'receipt_long', 
+        badge: 'Official', 
+        description: 'View and export trainee transcripts across courses, phases and plans',
+        matchPatterns: ['/transcripts', '/transcripts/**']
+      },
+      { 
+        label: 'Engagement Hub', 
+        route: '/engagement', 
+        icon: 'reviews', 
+        badge: 'Community', 
+        description: 'Ratings telemetry, feedback questionnaires & discussion forums',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/engagement', '/engagement/**']
+      },
+      { 
         label: 'Create Plan', 
         route: '/plans/create', 
         icon: 'add_task', 
@@ -157,8 +176,88 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/courses',
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Curriculum library & training materials',
-    matchPatterns: ['/courses', '/courses/details/**', '/courses/*/learn', '/courses/learn/**']
+    description: 'Design, configure & manage reusable curriculum modules',
+    matchPatterns: ['/courses', '/courses/dashboard', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**'],
+    children: [
+      {
+        label: 'Course Library',
+        route: '/courses',
+        icon: 'grid_view',
+        description: 'Browse, filter & search curriculum catalog',
+        matchPatterns: ['/courses']
+      },
+      {
+        label: 'Course Dashboard',
+        route: '/courses/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Overview',
+        description: 'High-level course status, content split & publish governance',
+        matchPatterns: ['/courses/dashboard']
+      },
+      {
+        label: 'Create Course',
+        route: '/courses/create',
+        icon: 'add_circle',
+        badge: 'Builder',
+        description: '6-step structured curriculum creation wizard',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/courses/create', '/courses/edit/**']
+      },
+      {
+        label: 'Course Templates',
+        route: '/courses/templates',
+        icon: 'dashboard_customize',
+        badge: 'Blueprints',
+        description: 'Standardized blueprint architecture & slot studio',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/courses/templates', '/courses/templates/**']
+      }
+    ]
+  },
+  {
+    label: 'Assessments & Exams',
+    route: '/assessments',
+    icon: 'quiz',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'Bank',
+    description: 'Centralized Assessment Bank, Scoring Policy, Exam Runtime & Manual Grading',
+    matchPatterns: ['/assessments', '/assessments/**'],
+    children: [
+      {
+        label: 'Assessment Bank',
+        route: '/assessments',
+        icon: 'grid_view',
+        description: 'Browse, filter & manage authorable assessment instruments',
+        matchPatterns: ['/assessments', '/assessments/view/**']
+      },
+      {
+        label: 'Assessment Dashboard',
+        route: '/assessments/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Telemetry',
+        description: 'Assessment repository health, publish blockers & score telemetry',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/assessments/dashboard']
+      },
+      {
+        label: 'Create Assessment',
+        route: '/assessments/create',
+        icon: 'add_circle',
+        badge: 'Builder',
+        description: '4-step assessment, question authoring & scoring policy builder',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/assessments/create', '/assessments/edit/**']
+      },
+      {
+        label: 'Results & Analytics',
+        route: '/assessments/results',
+        icon: 'fact_check',
+        badge: 'Scores',
+        description: 'Learner attempt results, score distributions & manual grading queue',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        matchPatterns: ['/assessments/results', '/assessments/grade/**']
+      }
+    ]
   },
   {
     label: 'Course Templates',
@@ -212,6 +311,40 @@ export const APP_NAV_ITEMS: NavItem[] = [
     matchPatterns: ['/analytics/**']
   },
   {
+    label: 'Skill Mapping',
+    route: '/skills',
+    icon: 'psychology',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Competency',
+    description: 'Centralized skill repository, competency clusters, polymorphic element mappings & gap reports',
+    matchPatterns: ['/skills', '/skills/**'],
+    children: [
+      {
+        label: 'Skills Repository',
+        route: '/skills',
+        icon: 'list_alt',
+        description: 'Manage skills, statuses, domain categories & element mappings',
+        matchPatterns: ['/skills']
+      },
+      {
+        label: 'Competency Clusters',
+        route: '/skills',
+        queryParams: { tab: 'clusters' },
+        icon: 'bubble_chart',
+        description: 'Group skills into broader competency areas',
+        matchPatterns: ['/skills/clusters']
+      },
+      {
+        label: 'Skill Dashboard',
+        route: '/skills/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Analytics',
+        description: 'Skill coverage metrics, distribution, learner progress & gap reports',
+        matchPatterns: ['/skills/dashboard']
+      }
+    ]
+  },
+  {
     label: 'Certificate Templates',
     route: '/certificates/templates',
     icon: 'workspace_premium',
@@ -245,12 +378,65 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/certificates/templates/create', '/certificates/templates/edit/**']
       },
       {
+        label: 'Badge Templates',
+        route: '/certificates/badges',
+        icon: 'military_tech',
+        badge: 'Repository',
+        description: 'Design and manage earner emblem badge templates',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/badges', '/badges']
+      },
+      {
+        label: 'Create Badge',
+        route: '/certificates/badges/create',
+        icon: 'add_task',
+        badge: 'Wizard',
+        description: '3-step emblem, earning criteria & placeholder authoring',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/badges/create', '/badges/create', '/certificates/badges/edit/**']
+      },
+      {
+        label: 'Badge Dashboard',
+        route: '/certificates/badges/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Analytics',
+        description: 'Badge repository health, level/tier breakdown & usage telemetry',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/badges/dashboard', '/badges/dashboard']
+      },
+      {
         label: 'Certificates Vault',
         route: '/certificates/vault',
         icon: 'verified',
         badge: 'Issued',
         description: 'Verifiable credentials & issued student certificates',
         matchPatterns: ['/certificates/vault', '/certificates']
+      },
+      {
+        label: 'Signatories',
+        route: '/certificates/signatories',
+        icon: 'edit_note',
+        badge: 'Repository',
+        description: 'Centralized repository of authorized signatories & digital signatures',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/signatories', '/signatories']
+      },
+      {
+        label: 'Signatory Dashboard',
+        route: '/certificates/signatories/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Analytics',
+        description: 'Signatory repository health, usage & propagation telemetry',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/signatories/dashboard', '/signatories/dashboard']
+      },
+      {
+        label: 'My Transcripts',
+        route: '/my-transcripts',
+        icon: 'school',
+        badge: 'Records',
+        description: 'Personal verified academic transcripts & grades',
+        matchPatterns: ['/my-transcripts', '/my-transcripts/**']
       }
     ]
   },
@@ -312,14 +498,35 @@ export function matchesUrlPattern(url: string, pattern: string | RegExp): boolea
  * Checks if a child navigation route is active for the current URL.
  */
 export function isNavChildActive(currentUrl: string, child: NavChildItem | string): boolean {
-  const childRoute = typeof child === 'string' ? child : child.route;
-  const matchPatterns = typeof child === 'object' ? child.matchPatterns : undefined;
+  if (typeof child === 'string') {
+    return currentUrl.split('?')[0] === child;
+  }
+
+  const childRoute = child.route;
+  const childQueryParams = child.queryParams;
+
+  // Handle items with specific tab query parameters (e.g., Competency Clusters)
+  if (childQueryParams && childQueryParams['tab']) {
+    const tabVal = childQueryParams['tab'];
+    if (currentUrl.includes(`tab=${tabVal}`) || currentUrl.includes(`${childRoute}/${tabVal}`)) {
+      return true;
+    }
+  }
+
+  // If this child has no queryParams.tab, check if another tab query param is present in current URL
+  if (childRoute === '/skills' && (!childQueryParams || !childQueryParams['tab'])) {
+    if (currentUrl.includes('tab=clusters') || currentUrl.includes('tab=mappings') || currentUrl.includes('/skills/clusters') || currentUrl.includes('/skills/mappings')) {
+      return false;
+    }
+  }
+
+  const matchPatterns = child.matchPatterns;
   const url = currentUrl.split('?')[0];
 
   // 1. Explicit Custom Match Patterns
   if (matchPatterns && matchPatterns.length > 0) {
     for (const pattern of matchPatterns) {
-      if (matchesUrlPattern(url, pattern)) {
+      if (matchesUrlPattern(url, pattern) || matchesUrlPattern(currentUrl, pattern)) {
         return true;
       }
     }
