@@ -69,6 +69,49 @@ export class CoursesComponent {
     initialLessonType: 'video' as const
   };
 
+  // Save as Template Modal State
+  showSaveTemplateModal = signal<boolean>(false);
+  targetCourseForTemplate = signal<Course | null>(null);
+  templateForm = signal<{ name: string; code: string; description: string; scope: 'lms' | 'organization' }>({
+    name: '',
+    code: '',
+    description: '',
+    scope: 'lms'
+  });
+
+  openSaveAsTemplate(course: Course) {
+    this.targetCourseForTemplate.set(course);
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    this.templateForm.set({
+      name: `${course.title} Blueprint`,
+      code: `TMP-${course.category.substring(0, 3).toUpperCase()}-${rand}`,
+      description: `Modular instructional blueprint extracted from course "${course.title}".`,
+      scope: 'lms'
+    });
+    this.showSaveTemplateModal.set(true);
+  }
+
+  confirmSaveAsTemplate() {
+    const course = this.targetCourseForTemplate();
+    if (!course) return;
+
+    const form = this.templateForm();
+    if (!form.name.trim()) {
+      this.lms.showToast('Please provide a template name.', 'error', 3500, 'Name Required');
+      return;
+    }
+
+    const tpl = this.lms.saveCourseStructureAsTemplate(course.id, {
+      name: form.name.trim(),
+      code: form.code.trim() || `TMP-${Date.now()}`,
+      description: form.description.trim(),
+      scope: form.scope
+    });
+
+    this.showSaveTemplateModal.set(false);
+    this.targetCourseForTemplate.set(null);
+  }
+
   // Filtered courses
   filteredCourses = computed(() => {
     const q = this.searchQuery().toLowerCase();

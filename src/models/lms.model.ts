@@ -159,6 +159,9 @@ export interface Course {
   tags: string[];
   createdAt: string;
   targetDepartments?: string[];
+  createdFromTemplateId?: string;
+  createdFromTemplateVersion?: number;
+  templateProvenanceName?: string;
 }
 
 export interface CourseEnrollment {

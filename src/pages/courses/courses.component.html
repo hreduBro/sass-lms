@@ -13,13 +13,22 @@
     </div>
 
     @if (lms.activeRole() !== 'learner') {
-      <button 
-        id="btn-create-course"
-        (click)="openCreateModal()"
-        class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm self-start md:self-auto">
-        <span class="material-symbols-outlined text-sm">add_box</span>
-        Build New Course
-      </button>
+      <div class="flex items-center gap-2">
+        <a 
+          routerLink="/courses/templates" 
+          class="px-3.5 py-2.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all border border-base-300 shadow-sm">
+          <span class="material-symbols-outlined text-sm text-tenant-600">dashboard_customize</span>
+          <span>Course Templates</span>
+        </a>
+
+        <button 
+          id="btn-create-course"
+          (click)="openCreateModal()"
+          class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm self-start md:self-auto">
+          <span class="material-symbols-outlined text-sm">add_box</span>
+          <span>Build New Course</span>
+        </button>
+      </div>
     }
   </div>
 
@@ -88,6 +97,11 @@
               @if (course.isMandatory) {
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white flex items-center gap-1 shadow-sm">
                   <span class="material-symbols-outlined text-[12px]">gavel</span> Mandatory
+                </span>
+              }
+              @if (course.createdFromTemplateId) {
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/90 backdrop-blur-md text-white flex items-center gap-1 shadow-sm" title="Created from standardized template blueprint">
+                  <span class="material-symbols-outlined text-[11px]">dashboard_customize</span> Blueprint
                 </span>
               }
             </div>
@@ -164,6 +178,14 @@
                  title="Preview Course Curriculum">
                 <span class="material-symbols-outlined text-sm">visibility</span>
               </a>
+              @if (lms.activeRole() !== 'learner') {
+                <button 
+                  (click)="openSaveAsTemplate(course)" 
+                  class="p-2 rounded-xl bg-base-100 hover:bg-base-300 text-text-secondary hover:text-primary border border-base-300 transition-colors"
+                  title="Extract & Save as Reusable Blueprint Template">
+                  <span class="material-symbols-outlined text-sm">dashboard_customize</span>
+                </button>
+              }
             </div>
           }
         </div>
@@ -373,3 +395,73 @@
     </div>
   </div>
 }
+
+<!-- Save Course Structure as Template Modal -->
+@if (showSaveTemplateModal() && targetCourseForTemplate(); as crs) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+    <div class="w-full max-w-lg bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden flex flex-col">
+      <div class="p-5 border-b border-base-300 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">dashboard_customize</span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-text-primary">Save Course as Blueprint Template</h2>
+            <p class="text-xs text-text-secondary">Extract {{ crs.modules.length }} modules into a standardized blueprint</p>
+          </div>
+        </div>
+        <button (click)="showSaveTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-text-primary mb-1">Blueprint Template Name *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="templateForm().name"
+            class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-text-primary mb-1">Template Code</label>
+            <input 
+              type="text" 
+              [(ngModel)]="templateForm().code"
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 font-mono text-text-primary focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-text-primary mb-1">Scope</label>
+            <select 
+              [(ngModel)]="templateForm().scope"
+              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none">
+              <option value="lms">LMS Workspace</option>
+              <option value="organization">Organization-Wide</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-text-primary mb-1">Description</label>
+          <textarea 
+            rows="2"
+            [(ngModel)]="templateForm().description"
+            class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="p-4 bg-base-200 border-t border-base-300 flex items-center justify-end gap-2 text-xs">
+        <button (click)="showSaveTemplateModal.set(false)" class="px-4 py-2 rounded-xl bg-base-100 border border-base-300 text-text-secondary">
+          Cancel
+        </button>
+        <button (click)="confirmSaveAsTemplate()" class="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-sm">save</span>
+          <span>Save Blueprint Template</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

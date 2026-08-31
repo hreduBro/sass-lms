@@ -1,0 +1,686 @@
+<div class="space-y-6">
+  
+  <!-- Header Section -->
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">workspace_premium</span>
+          Credential Design Studio
+        </span>
+        <span class="text-xs text-text-secondary">{{ kpi().total }} Templates in Scope</span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Certificate Templates</h1>
+      <p class="text-xs text-text-secondary mt-0.5">
+        Design, configure, and manage dynamic certificate templates with institutional branding.
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2.5">
+      <a 
+        routerLink="/certificates/templates/dashboard" 
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm">
+        <span class="material-symbols-outlined text-base text-tenant-500">space_dashboard</span>
+        Template Dashboard
+      </a>
+
+      @if (permissions().canCreate) {
+        <button 
+          type="button"
+          (click)="openCreateWizard()"
+          class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          Create Template
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- KPI Metrics Row -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Total Templates</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().total }}</h3>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">collections_bookmark</span>
+      </div>
+    </div>
+
+    <!-- Published -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Published & Active</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().published }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpi().publishedPct }}% of library</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
+    </div>
+
+    <!-- Drafts -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-amber-600 dark:text-amber-400">In Draft</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().draft }}</h3>
+        <span class="text-[11px] text-text-secondary">Resumable authoring</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+        <span class="material-symbols-outlined">edit_note</span>
+      </div>
+    </div>
+
+    <!-- Archived -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Archived</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().archived }}</h3>
+        <span class="text-[11px] text-text-secondary">Historical records</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center text-text-secondary">
+        <span class="material-symbols-outlined">archive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls Toolbar -->
+  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-sm">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      
+      <!-- Search Input -->
+      <div class="relative flex-1 max-w-md">
+        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base">search</span>
+        <input 
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Search by template name, ID (e.g. CERT-TMP), creator..."
+          class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:ring-0 transition-colors" />
+        @if (searchQuery()) {
+          <button 
+            type="button" 
+            (click)="searchQuery.set('')"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5">
+            <span class="material-symbols-outlined text-xs">close</span>
+          </button>
+        }
+      </div>
+
+      <!-- Quick Filters & View Switcher -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- Status Filter Dropdown -->
+        <select 
+          [(ngModel)]="selectedStatus"
+          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
+          <option value="all">Status: All</option>
+          <option value="published">Published</option>
+          <option value="draft">In Draft</option>
+          <option value="archived">Archived</option>
+        </select>
+
+        <!-- Sharing Filter Dropdown -->
+        <select 
+          [(ngModel)]="selectedSharing"
+          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
+          <option value="all">Sharing: All</option>
+          <option value="lms">LMS Workspace</option>
+          <option value="organization">Organization-Wide</option>
+          <option value="private">Private</option>
+        </select>
+
+        <!-- Certificate Type Dropdown -->
+        <select 
+          [(ngModel)]="selectedType"
+          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
+          <option value="all">Type: All</option>
+          <option value="Achievement">Achievement</option>
+          <option value="Completion">Completion</option>
+          <option value="Professional">Professional</option>
+          <option value="Merit">Merit</option>
+          <option value="Participation">Participation</option>
+          <option value="Compliance">Compliance</option>
+        </select>
+
+        <!-- Sort By Dropdown -->
+        <select 
+          [(ngModel)]="sortBy"
+          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
+          <option value="updated_desc">Sort: Newest Updated</option>
+          <option value="updated_asc">Sort: Oldest Updated</option>
+          <option value="name_asc">Sort: Name (A-Z)</option>
+          <option value="usage_desc">Sort: Most Used</option>
+        </select>
+
+        <!-- View Mode Switcher -->
+        <div class="flex items-center bg-base-200 p-1 rounded-xl border border-base-300">
+          <button 
+            type="button"
+            (click)="viewMode.set('grid')"
+            class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+            [class.bg-tenant-500]="viewMode() === 'grid'"
+            [class.text-white]="viewMode() === 'grid'"
+            title="Card Grid View">
+            <span class="material-symbols-outlined text-sm">grid_view</span>
+          </button>
+          <button 
+            type="button"
+            (click)="viewMode.set('table')"
+            class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
+            [class.bg-tenant-500]="viewMode() === 'table'"
+            [class.text-white]="viewMode() === 'table'"
+            title="Table Row View">
+            <span class="material-symbols-outlined text-sm">view_list</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Filter Chips -->
+    @if (activeFilterCount() > 0) {
+      <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-base-300">
+        <span class="text-xs font-semibold text-text-secondary">Active Filters:</span>
+
+        @if (searchQuery()) {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+            Search: "{{ searchQuery() }}"
+            <button type="button" (click)="searchQuery.set('')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
+          </span>
+        }
+
+        @if (selectedStatus() !== 'all') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
+            Status: {{ selectedStatus() | uppercase }}
+            <button type="button" (click)="selectedStatus.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
+          </span>
+        }
+
+        @if (selectedSharing() !== 'all') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
+            Scope: {{ selectedSharing() | titlecase }}
+            <button type="button" (click)="selectedSharing.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
+          </span>
+        }
+
+        @if (selectedType() !== 'all') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
+            Type: {{ selectedType() }}
+            <button type="button" (click)="selectedType.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
+          </span>
+        }
+
+        <button 
+          type="button" 
+          (click)="clearAllFilters()" 
+          class="text-xs text-rose-500 hover:text-rose-600 font-medium ml-2">
+          Clear All Filters
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MAIN CONTENT: GRID VIEW                                           -->
+  <!-- ================================================================= -->
+  @if (viewMode() === 'grid') {
+    @if (filteredTemplates().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (tmpl of filteredTemplates(); track tmpl.id) {
+          <div class="bg-base-100 border border-base-300 hover:border-tenant-500/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
+            
+            <!-- Canvas Thumbnail Header -->
+            <div 
+              (click)="openPreview(tmpl)"
+              class="relative w-full aspect-[16/10] bg-base-200 cursor-pointer overflow-hidden group-hover:opacity-95 transition-opacity border-b border-base-300">
+              
+              <!-- Background Art -->
+              <img 
+                [src]="tmpl.previewThumbnail || tmpl.background.fileUrl" 
+                [alt]="tmpl.name" 
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                referrerpolicy="no-referrer" />
+
+              <!-- Overlay preview hint -->
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1.5 rounded-xl bg-base-100/90 text-xs font-semibold text-text-primary border border-base-300 flex items-center gap-1.5 backdrop-blur shadow-sm">
+                  <span class="material-symbols-outlined text-sm text-tenant-500">zoom_in</span> Click to Preview
+                </span>
+              </div>
+
+              <!-- Top Left: Status Badge -->
+              <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                <span 
+                  class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-sm backdrop-blur"
+                  [ngClass]="getStatusBadgeClass(tmpl.status)">
+                  {{ tmpl.status }}
+                </span>
+              </div>
+
+              <!-- Top Right: Sharing Scope Badge -->
+              <div class="absolute top-2.5 right-2.5">
+                <span 
+                  class="px-2.5 py-0.5 rounded-full text-[11px] font-medium border shadow-sm backdrop-blur flex items-center gap-1"
+                  [ngClass]="getSharingBadgeClass(tmpl.sharing.level)">
+                  <span class="material-symbols-outlined text-[13px]">
+                    {{ tmpl.sharing.level === 'organization' ? 'corporate_fare' : (tmpl.sharing.level === 'lms' ? 'domain' : 'lock') }}
+                  </span>
+                  {{ tmpl.sharing.level === 'organization' ? 'Org-Shared' : (tmpl.sharing.level === 'lms' ? 'LMS' : 'Private') }}
+                </span>
+              </div>
+
+              <!-- Bottom Ribbon: Paper & Orientation -->
+              <div class="absolute bottom-2 left-2.5 bg-black/70 backdrop-blur px-2 py-0.5 rounded-lg text-[10px] font-mono text-white">
+                {{ tmpl.paperSize }} • {{ tmpl.orientation | titlecase }}
+              </div>
+
+              <!-- Bottom Right: Usage Pill -->
+              <div class="absolute bottom-2 right-2.5 bg-tenant-500/90 backdrop-blur text-white px-2 py-0.5 rounded-lg text-[10px] font-semibold">
+                {{ tmpl.usageCount }} {{ tmpl.usageCount === 1 ? 'Phase' : 'Phases' }}
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-text-secondary">
+                  <span class="font-mono text-[11px]">{{ tmpl.id }}</span>
+                  <span class="text-tenant-600 dark:text-tenant-400 font-semibold">{{ tmpl.type }}</span>
+                </div>
+
+                <h3 
+                  (click)="openPreview(tmpl)"
+                  class="text-base font-bold text-text-primary hover:text-tenant-500 transition-colors cursor-pointer line-clamp-1"
+                  [title]="tmpl.name">
+                  {{ tmpl.name }}
+                </h3>
+
+                @if (tmpl.description) {
+                  <p class="text-xs text-text-secondary line-clamp-2">{{ tmpl.description }}</p>
+                }
+
+                <div class="pt-2 border-t border-base-300 grid grid-cols-2 gap-2 text-[11px] text-text-secondary">
+                  <div>
+                    <span class="block">Created by:</span>
+                    <span class="text-text-primary font-medium truncate block">{{ tmpl.createdBy }}</span>
+                  </div>
+                  <div>
+                    <span class="block">Updated:</span>
+                    <span class="text-text-primary font-medium block">{{ tmpl.updatedAt || tmpl.createdAt }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Action Footer -->
+              <div class="pt-3 border-t border-base-300 flex items-center justify-between gap-2">
+                <button 
+                  type="button"
+                  (click)="openPreview(tmpl)"
+                  class="p-2 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors"
+                  title="View Full Preview">
+                  <span class="material-symbols-outlined text-lg">visibility</span>
+                </button>
+
+                <div class="flex items-center gap-1.5">
+                  @if (tmpl.status === 'draft') {
+                    <button 
+                      type="button"
+                      (click)="publishTemplate(tmpl)"
+                      class="px-2.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 rounded-xl border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1"
+                      title="Publish Template">
+                      <span class="material-symbols-outlined text-sm">verified</span>
+                      Publish
+                    </button>
+                  }
+
+                  @if (permissions().canEdit) {
+                    <button 
+                      type="button"
+                      (click)="openEditWizard(tmpl)"
+                      class="px-2.5 py-1.5 text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/10 rounded-xl border border-tenant-200 dark:border-tenant-500/30 transition-colors flex items-center gap-1"
+                      title="Edit Template">
+                      <span class="material-symbols-outlined text-sm">edit</span>
+                      Edit
+                    </button>
+                  }
+
+                  @if (permissions().canDuplicate) {
+                    <button 
+                      type="button"
+                      (click)="duplicateTemplate(tmpl)"
+                      class="p-1.5 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors"
+                      title="Duplicate as Draft">
+                      <span class="material-symbols-outlined text-lg">content_copy</span>
+                    </button>
+                  }
+
+                  @if (tmpl.status === 'published' && permissions().canArchive) {
+                    <button 
+                      type="button"
+                      (click)="archiveTemplate(tmpl)"
+                      class="p-1.5 text-text-secondary hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
+                      title="Archive Template">
+                      <span class="material-symbols-outlined text-lg">archive</span>
+                    </button>
+                  }
+
+                  @if (tmpl.status === 'draft' && permissions().canDelete) {
+                    <button 
+                      type="button"
+                      (click)="deleteDraftTemplate(tmpl)"
+                      class="p-1.5 text-rose-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      title="Delete Draft">
+                      <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State Rendering -->
+      @if (kpi().total === 0) {
+        <!-- True Empty State -->
+        <div class="bg-base-100 border border-base-300 rounded-3xl p-12 text-center max-w-lg mx-auto my-8 space-y-4 shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-tenant-50 dark:bg-tenant-500/20 border border-tenant-500/30 text-tenant-600 dark:text-tenant-300 flex items-center justify-center mx-auto">
+            <span class="material-symbols-outlined text-3xl">workspace_premium</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-text-primary">No Certificate Templates Yet</h3>
+            <p class="text-xs text-text-secondary mt-1">
+              Create your organization's first certificate template with our interactive 3-step WYSIWYG authoring designer.
+            </p>
+          </div>
+          <button 
+            type="button"
+            (click)="openCreateWizard()"
+            class="px-5 py-2.5 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-sm transition-all inline-flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            Create Your First Template
+          </button>
+        </div>
+      } @else if (searchQuery()) {
+        <!-- Search Miss -->
+        <div class="bg-base-100 border border-base-300 rounded-3xl p-10 text-center max-w-md mx-auto my-8 space-y-3 shadow-sm">
+          <span class="material-symbols-outlined text-4xl text-text-secondary">search_off</span>
+          <h3 class="text-base font-bold text-text-primary">No Certificate Templates Found</h3>
+          <p class="text-xs text-text-secondary">
+            No certificate templates matched your search term "<span class="text-tenant-600 dark:text-tenant-400 font-semibold">{{ searchQuery() }}</span>".
+          </p>
+          <button 
+            type="button"
+            (click)="searchQuery.set('')"
+            class="px-4 py-2 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-500/20 border border-tenant-500/30 rounded-xl hover:bg-tenant-100 transition-colors">
+            Clear Search
+          </button>
+        </div>
+      } @else {
+        <!-- Filter Miss -->
+        <div class="bg-base-100 border border-base-300 rounded-3xl p-10 text-center max-w-md mx-auto my-8 space-y-3 shadow-sm">
+          <span class="material-symbols-outlined text-4xl text-text-secondary">filter_alt_off</span>
+          <h3 class="text-base font-bold text-text-primary">No Matching Templates</h3>
+          <p class="text-xs text-text-secondary">
+            No certificate template found matching the selected status, scope, or type filters.
+          </p>
+          <button 
+            type="button" 
+            (click)="clearAllFilters()" 
+            class="px-4 py-2 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-500/20 border border-tenant-500/30 rounded-xl hover:bg-tenant-100 transition-colors">
+            Reset All Filters
+          </button>
+        </div>
+      }
+    }
+  }
+
+  <!-- ================================================================= -->
+  <!-- MAIN CONTENT: TABLE VIEW                                          -->
+  <!-- ================================================================= -->
+  @if (viewMode() === 'table') {
+    <div class="bg-base-100 border border-base-300 rounded-3xl overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-text-primary">
+          <thead class="bg-base-200 text-[11px] font-bold uppercase tracking-wider text-text-secondary border-b border-base-300">
+            <tr>
+              <th class="py-3.5 px-4">Template</th>
+              <th class="py-3.5 px-4">ID & Type</th>
+              <th class="py-3.5 px-4">Status</th>
+              <th class="py-3.5 px-4">Sharing Scope</th>
+              <th class="py-3.5 px-4">Usage</th>
+              <th class="py-3.5 px-4">Created By</th>
+              <th class="py-3.5 px-4">Updated</th>
+              <th class="py-3.5 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-base-300 text-xs">
+            @for (tmpl of filteredTemplates(); track tmpl.id) {
+              <tr class="hover:bg-base-200/50 transition-colors">
+                <!-- Thumbnail & Name -->
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    <img 
+                      [src]="tmpl.previewThumbnail || tmpl.background.fileUrl" 
+                      [alt]="tmpl.name" 
+                      class="w-12 h-8 rounded-lg object-cover border border-base-300 shrink-0" 
+                      referrerpolicy="no-referrer" />
+                    <div>
+                      <a 
+                        (click)="openPreview(tmpl)"
+                        class="font-semibold text-text-primary hover:text-tenant-500 cursor-pointer block">
+                        {{ tmpl.name }}
+                      </a>
+                      <span class="text-[10px] text-text-secondary">{{ tmpl.paperSize }} • {{ tmpl.orientation | titlecase }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- ID & Type -->
+                <td class="py-3 px-4">
+                  <span class="font-mono text-text-primary block">{{ tmpl.id }}</span>
+                  <span class="text-tenant-600 dark:text-tenant-400 text-[11px]">{{ tmpl.type }}</span>
+                </td>
+
+                <!-- Status -->
+                <td class="py-3 px-4">
+                  <span 
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                    [ngClass]="getStatusBadgeClass(tmpl.status)">
+                    {{ tmpl.status }}
+                  </span>
+                </td>
+
+                <!-- Sharing -->
+                <td class="py-3 px-4">
+                  <span 
+                    class="px-2 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1 w-max"
+                    [ngClass]="getSharingBadgeClass(tmpl.sharing.level)">
+                    <span class="material-symbols-outlined text-[11px]">
+                      {{ tmpl.sharing.level === 'organization' ? 'corporate_fare' : (tmpl.sharing.level === 'lms' ? 'domain' : 'lock') }}
+                    </span>
+                    {{ tmpl.sharing.level | titlecase }}
+                  </span>
+                </td>
+
+                <!-- Usage -->
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 text-[11px] border border-tenant-500/30">
+                    {{ tmpl.usageCount }} phases
+                  </span>
+                </td>
+
+                <!-- Created By -->
+                <td class="py-3 px-4 text-text-secondary">
+                  {{ tmpl.createdBy }}
+                </td>
+
+                <!-- Updated -->
+                <td class="py-3 px-4 text-text-secondary">
+                  {{ tmpl.updatedAt || tmpl.createdAt }}
+                </td>
+
+                <!-- Actions -->
+                <td class="py-3 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button 
+                      type="button" 
+                      (click)="openPreview(tmpl)" 
+                      class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200" 
+                      title="Preview">
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                    </button>
+                    @if (permissions().canEdit) {
+                      <button 
+                        type="button" 
+                        (click)="openEditWizard(tmpl)" 
+                        class="p-1.5 text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/20 rounded-lg" 
+                        title="Edit">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                    }
+                    @if (permissions().canDuplicate) {
+                      <button 
+                        type="button" 
+                        (click)="duplicateTemplate(tmpl)" 
+                        class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200" 
+                        title="Duplicate">
+                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- FULL PREVIEW MODAL                                                -->
+  <!-- ================================================================= -->
+  @if (previewModalTemplate(); as tmpl) {
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-base-100 border border-base-300 rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 bg-base-200 border-b border-base-300 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-tenant-500">workspace_premium</span>
+            <div>
+              <h3 class="text-base font-bold text-text-primary">{{ tmpl.name }}</h3>
+              <p class="text-xs text-text-secondary">
+                {{ tmpl.id }} • {{ tmpl.type }} • {{ tmpl.paperSize }} ({{ tmpl.orientation }})
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Sample Data Toggle -->
+            <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer bg-base-100 px-3 py-1.5 rounded-xl border border-base-300 shadow-xs">
+              <input 
+                type="checkbox" 
+                [checked]="previewSampleData()" 
+                (change)="previewSampleData.set(!previewSampleData())"
+                class="rounded accent-tenant-500 focus:ring-0" />
+              <span>Realistic Sample Rendering</span>
+            </label>
+
+            <button 
+              type="button"
+              (click)="closePreview()"
+              class="p-1.5 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body: High Resolution Preview Canvas -->
+        <div class="p-6 flex-1 overflow-y-auto bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center">
+          <div 
+            class="relative w-full max-w-4xl shadow-2xl rounded overflow-hidden select-none bg-base-100"
+            [style.aspect-ratio]="tmpl.orientation === 'portrait' ? '2480 / 3508' : '3508 / 2480'">
+            
+            <img 
+              [src]="tmpl.background.fileUrl" 
+              [alt]="tmpl.name" 
+              class="w-full h-full object-cover pointer-events-none" 
+              referrerpolicy="no-referrer" />
+
+            <!-- Rendered Elements -->
+            @for (el of tmpl.elements; track el.id) {
+              <div 
+                class="absolute pointer-events-none"
+                [style.left]="el.x + '%'"
+                [style.top]="el.y + '%'"
+                [style.width]="el.w + '%'"
+                [style.height]="el.h + '%'"
+                [style.z-index]="el.z">
+                
+                <div 
+                  class="w-full h-full flex flex-col justify-center overflow-hidden px-1"
+                  [style.font-family]="el.style.fontFamily"
+                  [style.font-size]="(el.style.fontSizePt * 0.9) + 'px'"
+                  [style.font-weight]="el.style.bold ? '700' : '400'"
+                  [style.font-style]="el.style.italic ? 'italic' : 'normal'"
+                  [style.text-decoration]="el.style.underline ? 'underline' : 'none'"
+                  [style.color]="el.style.color"
+                  [style.text-align]="el.style.align">
+                  
+                  @if (el.kind === 'placeholder' && el.token === '{{verification_qr}}') {
+                    <div class="w-full h-full flex items-center justify-center">
+                      <div class="aspect-square h-full bg-white p-1 rounded shadow flex items-center justify-center">
+                        <span class="material-symbols-outlined text-slate-900 text-2xl">qr_code_2</span>
+                      </div>
+                    </div>
+                  } @else {
+                    <span class="leading-tight select-none">
+                      {{ getSampleValue(el) }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-base-200 border-t border-base-300 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span 
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border"
+              [ngClass]="getStatusBadgeClass(tmpl.status)">
+              {{ tmpl.status }}
+            </span>
+            <span class="text-xs text-text-secondary">
+              Created: {{ tmpl.createdAt }} by <strong class="text-text-primary">{{ tmpl.createdBy }}</strong>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            @if (permissions().canEdit) {
+              <button 
+                type="button"
+                (click)="openEditWizard(tmpl); closePreview()"
+                class="px-4 py-2 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                Edit in Designer
+              </button>
+            }
+
+            <button 
+              type="button"
+              (click)="closePreview()"
+              class="px-4 py-2 text-xs font-medium text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-colors">
+              Close Preview
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

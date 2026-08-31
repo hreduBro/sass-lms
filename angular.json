@@ -56,7 +56,7 @@
           "options": {
             "port": 3000,
             "allowedHosts": [
-              ".test"
+              "all"
             ]
           },
           "configurations": {

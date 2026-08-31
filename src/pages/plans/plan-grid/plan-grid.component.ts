@@ -100,13 +100,23 @@ export class PlanGridComponent implements OnInit {
   isActivatingInProgress = signal<boolean>(false);
 
   // Operational Telemetry Statistics
-  activePlansCount = computed(() => this.plans().filter(p => p.status === 'Active').length);
+  totalPlansCount = computed(() => this.plans().length);
+  activePlansCount = computed(() => this.plans().filter(p => p.status === 'Active' || p.status === 'Published').length);
   publishedPlansCount = computed(() => this.plans().filter(p => p.status === 'Published').length);
-  draftPlansCount = computed(() => this.plans().filter(p => p.status === 'Draft').length);
+  draftPlansCount = computed(() => this.plans().filter(p => p.status === 'Draft' || p.status === 'Drafted').length);
+  archivedPlansCount = computed(() => this.plans().filter(p => p.status === 'Archived').length);
   totalPhasesCount = computed(() => this.plans().reduce((acc, p) => acc + (p.phases?.length || p.phaseCount || 0), 0));
   totalEnrolledLearners = computed(() => this.plans().reduce((acc, p) => acc + (p.enrolledLearnersCount || 120), 0));
   totalCapacityLimit = computed(() => this.plans().reduce((acc, p) => acc + (p.capacityLimit || 300), 0));
   totalCertificatesIssued = computed(() => this.plans().reduce((acc, p) => acc + (p.certificatesIssuedCount || 85), 0));
+
+  kpi = computed(() => ({
+    total: this.plans().length,
+    active: this.activePlansCount(),
+    activePct: this.plans().length > 0 ? Math.round((this.activePlansCount() / this.plans().length) * 100) : 0,
+    draft: this.draftPlansCount(),
+    archived: this.archivedPlansCount()
+  }));
 
   draftPlans = computed(() => this.plans().filter(p => p.status === 'Draft'));
 

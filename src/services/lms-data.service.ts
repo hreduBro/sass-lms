@@ -64,6 +64,34 @@ import {
   validatePlanAndPhases,
   formatDateDDMMYYYY
 } from '../models/plan.model';
+import {
+  CourseTemplate,
+  CourseTemplateModule,
+  CourseTemplateSlot,
+  CourseTemplateStructure,
+  CourseTemplateStatus,
+  CourseTemplateScope,
+  CourseSlotType,
+  CourseTemplatePermissions,
+  CourseTemplateSummaryStats,
+  CourseTemplateVisibility,
+  INITIAL_COURSE_TEMPLATES,
+  DEFAULT_REQUIRED_COMPONENTS,
+  deepCopyTemplateStructure
+} from '../models/course-template.model';
+import {
+  CertificateTemplate,
+  CertificateTemplateStatus,
+  CertificateSharingLevel,
+  CertificateTemplatePermissions,
+  CertificateDashboardLayout,
+  CertificateDashboardWidget,
+  CertificateActivityEvent,
+  INITIAL_CERTIFICATE_TEMPLATES,
+  DEFAULT_CERTIFICATE_DASHBOARD_LAYOUT,
+  INITIAL_CERTIFICATE_ACTIVITIES,
+  CANVAS_SIZE_MAP
+} from '../models/certificate-template.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -5117,6 +5145,950 @@ export class LmsDataService {
 
     return { success: true };
   }
+
+  // =========================================================================
+  // CERTIFICATE TEMPLATES MANAGEMENT (§0 - §13 OneLMS Certificate Spec)
+  // =========================================================================
+  certificateTemplates = signal<CertificateTemplate[]>(INITIAL_CERTIFICATE_TEMPLATES);
+  certificateDashboardLayout = signal<CertificateDashboardLayout>(JSON.parse(JSON.stringify(DEFAULT_CERTIFICATE_DASHBOARD_LAYOUT)));
+  certificateActivities = signal<CertificateActivityEvent[]>(INITIAL_CERTIFICATE_ACTIVITIES);
+
+  // Dynamic Permission Capability Object based on active user role (§0.1)
+  certificateTemplatePermissions = computed<CertificateTemplatePermissions>(() => {
+    const role = this.activeRole();
+    const isSysAdmin = role === 'system_admin' || (role as any) === 'super_admin';
+    const isOrgAdmin = role === 'tenant_admin';
+    const isLmsAdmin = role === 'lms_admin';
+    const isTrainer = role === 'instructor';
+    const isLearner = role === 'learner';
+
+    return {
+      canViewFeature: true,
+      canCreate: isSysAdmin || isOrgAdmin || isLmsAdmin || isTrainer,
+      canEdit: isSysAdmin || isOrgAdmin || isLmsAdmin || isTrainer,
+      canDuplicate: isSysAdmin || isOrgAdmin || isLmsAdmin || isTrainer,
+      canDelete: isSysAdmin || isOrgAdmin || isLmsAdmin || isTrainer,
+      canArchive: isSysAdmin || isOrgAdmin || isLmsAdmin,
+      canPublish: isSysAdmin || isOrgAdmin || isLmsAdmin || isTrainer,
+      canSetOrgWideSharing: isSysAdmin || isOrgAdmin,
+      canManageDashboardStudio: isSysAdmin || isOrgAdmin || isLmsAdmin
+    };
+  });
+
+  // Scoped certificate templates based on sharing level and current scope
+  scopedCertificateTemplates = computed<CertificateTemplate[]>(() => {
+    const all = this.certificateTemplates();
+    const role = this.activeRole();
+    const tenantId = this.activeTenantId();
+    const lmsId = this.activeLmsId();
+    const user = this.activeUser();
+
+    // System Admins see all templates
+    if (role === 'system_admin' || (role as any) === 'super_admin') {
+      return all;
+    }
+
+    return all.filter(t => {
+      // 1. Organization-shared templates in the same organization
+      if (t.sharing.level === 'organization') {
+        return !t.sharing.organizationId || t.sharing.organizationId === tenantId;
+      }
+
+      // 2. LMS-shared templates in the same LMS workspace
+      if (t.sharing.level === 'lms') {
+        return (t.sharing.organizationId === tenantId) && (!t.sharing.lmsId || t.sharing.lmsId === lmsId);
+      }
+
+      // 3. Private templates: only the creator or Org/LMS admin in the same workspace
+      if (t.sharing.level === 'private') {
+        if (t.createdById === user.id || t.createdBy === user.name || t.createdBy === user.email) {
+          return true;
+        }
+        if (role === 'tenant_admin' && t.sharing.organizationId === tenantId) {
+          return true;
+        }
+        if (role === 'lms_admin' && t.sharing.lmsId === lmsId) {
+          return true;
+        }
+        return false;
+      }
+
+      return true;
+    });
+  });
+
+  // Published Certificate Templates (For Phase Outputs Selector and Published Views)
+  publishedCertificateTemplates = computed<CertificateTemplate[]>(() => {
+    return this.scopedCertificateTemplates().filter(t => t.status === 'published');
+  });
+
+  // Active Creation Drafts (Resumable)
+  activeCertificateDrafts = computed<CertificateTemplate[]>(() => {
+    return this.scopedCertificateTemplates().filter(t => t.status === 'draft');
+  });
+
+  // Certificate KPI Summary
+  certificateKpis = computed(() => {
+    const templates = this.scopedCertificateTemplates();
+    const total = templates.length;
+    const published = templates.filter(t => t.status === 'published').length;
+    const draft = templates.filter(t => t.status === 'draft').length;
+    const archived = templates.filter(t => t.status === 'archived').length;
+
+    const privateCount = templates.filter(t => t.sharing.level === 'private').length;
+    const lmsCount = templates.filter(t => t.sharing.level === 'lms').length;
+    const orgCount = templates.filter(t => t.sharing.level === 'organization').length;
+
+    return {
+      total,
+      published,
+      draft,
+      archived,
+      privateCount,
+      lmsCount,
+      orgCount,
+      publishedPct: total > 0 ? Math.round((published / total) * 100) : 0,
+      draftPct: total > 0 ? Math.round((draft / total) * 100) : 0,
+      archivedPct: total > 0 ? Math.round((archived / total) * 100) : 0
+    };
+  });
+
+  getCertificateTemplateById(id: string): CertificateTemplate | undefined {
+    return this.certificateTemplates().find(t => t.id === id);
+  }
+
+  // Create new Certificate Template
+  createCertificateTemplate(data: Partial<CertificateTemplate>): CertificateTemplate {
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    const tenant = this.activeTenant();
+    const lms = this.activeLms();
+    const user = this.activeUser();
+
+    const numericId = Math.floor(1000 + Math.random() * 9000);
+    const id = data.id || `CERT-TMP-${tenant.numericId || '1972'}-${numericId}`;
+
+    const newTemplate: CertificateTemplate = {
+      id,
+      name: data.name || 'Untitled Certificate Template',
+      description: data.description || '',
+      type: data.type || 'Achievement',
+      orientation: data.orientation || 'landscape',
+      paperSize: data.paperSize || 'A4',
+      canvas: data.canvas || { widthPx: 3508, heightPx: 2480, referenceDpi: 300 },
+      background: data.background || {
+        fileUrl: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=1600&q=80',
+        fileName: 'certificate-background.png',
+        mime: 'image/png'
+      },
+      elements: data.elements || [],
+      sharing: data.sharing || {
+        level: 'lms',
+        organizationId: tenant.id,
+        organizationName: tenant.name,
+        lmsId: lms?.id || 'LMS-1972-01',
+        lmsName: lms?.basicInfo.lmsName || 'Main LMS Workspace'
+      },
+      status: data.status || 'draft',
+      version: 1,
+      creationStatus: data.creationStatus || 'saved',
+      lastCompletedStep: data.lastCompletedStep || 'background-details',
+      createdBy: data.createdBy || user.name,
+      createdById: data.createdById || user.id,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      usageCount: 0,
+      previewThumbnail: data.previewThumbnail || data.background?.fileUrl
+    };
+
+    this.certificateTemplates.update(list => [newTemplate, ...list]);
+
+    this.logCertificateActivity({
+      templateId: newTemplate.id,
+      templateName: newTemplate.name,
+      eventType: newTemplate.status === 'published' ? 'published' : 'created',
+      actorName: user.name,
+      timestamp,
+      message: newTemplate.status === 'published' 
+        ? `${newTemplate.name} has been published successfully` 
+        : `Created new certificate template "${newTemplate.name}"`
+    });
+
+    return newTemplate;
+  }
+
+  // Update existing Certificate Template
+  updateCertificateTemplate(id: string, updates: Partial<CertificateTemplate>): boolean {
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+    const user = this.activeUser();
+
+    let targetName = '';
+    this.certificateTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        targetName = updates.name || t.name;
+        return {
+          ...t,
+          ...updates,
+          id: t.id, // Immutable ID
+          updatedAt: timestamp
+        };
+      }
+      return t;
+    }));
+
+    if (targetName) {
+      this.logCertificateActivity({
+        templateId: id,
+        templateName: targetName,
+        eventType: 'edited',
+        actorName: user.name,
+        timestamp,
+        message: `${targetName} details have been updated successfully`
+      });
+      return true;
+    }
+    return false;
+  }
+
+  // Publish Certificate Template
+  publishCertificateTemplate(id: string): boolean {
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+    const user = this.activeUser();
+
+    let templateName = '';
+    this.certificateTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        templateName = t.name;
+        return {
+          ...t,
+          status: 'published',
+          creationStatus: 'saved',
+          lastCompletedStep: 'preview',
+          updatedAt: timestamp
+        };
+      }
+      return t;
+    }));
+
+    if (templateName) {
+      this.logCertificateActivity({
+        templateId: id,
+        templateName,
+        eventType: 'published',
+        actorName: user.name,
+        timestamp,
+        message: `${templateName} has been published successfully`
+      });
+
+      this.showToast('Certificate template has been published successfully.', 'success', 4500, 'Template Published', 'PUBLISHED');
+      return true;
+    }
+    return false;
+  }
+
+  // Archive Certificate Template (§7.5, §9)
+  archiveCertificateTemplate(id: string): { success: boolean; error?: string } {
+    const template = this.getCertificateTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Certificate template not found.' };
+    }
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+    const user = this.activeUser();
+
+    this.certificateTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          status: 'archived',
+          updatedAt: timestamp
+        };
+      }
+      return t;
+    }));
+
+    this.logCertificateActivity({
+      templateId: id,
+      templateName: template.name,
+      eventType: 'archived',
+      actorName: user.name,
+      timestamp,
+      message: `${template.name} has been archived`
+    });
+
+    this.showToast(`${template.name} has been archived`, 'info', 4500, 'Template Archived', 'ARCHIVED');
+    return { success: true };
+  }
+
+  // Delete Draft Certificate Template (§7.5)
+  deleteCertificateTemplate(id: string): { success: boolean; error?: string } {
+    const template = this.getCertificateTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Certificate template not found.' };
+    }
+
+    if (template.status !== 'draft') {
+      return { success: false, error: 'Only draft templates can be deleted.' };
+    }
+
+    this.certificateTemplates.update(list => list.filter(t => t.id !== id));
+
+    this.showToast(`${template.name} has been deleted`, 'warning', 4500, 'Draft Deleted', 'DELETED');
+    return { success: true };
+  }
+
+  // Duplicate Certificate Template (§7.5) -> creates new Draft copy
+  duplicateCertificateTemplate(id: string): CertificateTemplate {
+    const original = this.getCertificateTemplateById(id);
+    const tenant = this.activeTenant();
+    const lms = this.activeLms();
+    const user = this.activeUser();
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    const numericId = Math.floor(1000 + Math.random() * 9000);
+    const newId = `CERT-TMP-${tenant.numericId || '1972'}-${numericId}`;
+
+    const copy: CertificateTemplate = {
+      ...(original ? JSON.parse(JSON.stringify(original)) : {}),
+      id: newId,
+      name: original ? `${original.name} (Copy)` : 'Certificate Template (Copy)',
+      status: 'draft',
+      version: 1,
+      usageCount: 0,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      createdBy: user.name,
+      createdById: user.id,
+      creationStatus: 'draft',
+      lastCompletedStep: 'designer'
+    };
+
+    this.certificateTemplates.update(list => [copy, ...list]);
+
+    this.logCertificateActivity({
+      templateId: copy.id,
+      templateName: copy.name,
+      eventType: 'duplicated',
+      actorName: user.name,
+      timestamp,
+      message: `Duplicated "${original?.name || id}" as new draft "${copy.name}"`
+    });
+
+    this.showToast(`Template duplicated as draft "${copy.name}".`, 'success', 4500, 'Template Duplicated', 'DRAFT');
+    return copy;
+  }
+
+  // Log Certificate Activity
+  private logCertificateActivity(event: Omit<CertificateActivityEvent, 'id'>) {
+    const id = `act-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const newEvent: CertificateActivityEvent = { id, ...event };
+    this.certificateActivities.update(list => [newEvent, ...list.slice(0, 19)]);
+  }
+
+  // Reset Certificate Dashboard Studio to defaults
+  resetCertificateDashboard(): CertificateDashboardLayout {
+    const defaults: CertificateDashboardLayout = {
+      isPublished: true,
+      publishedAt: '2026-08-31 00:00:00',
+      publishedBy: 'System Default',
+      version: 1,
+      widgets: JSON.parse(JSON.stringify(DEFAULT_CERTIFICATE_DASHBOARD_LAYOUT.widgets))
+    };
+    this.certificateDashboardLayout.set(defaults);
+    return defaults;
+  }
+
+  // =========================================================================
+  // COURSE TEMPLATES MANAGEMENT (BRD §4.6 - Course Template Manager)
+  // =========================================================================
+  courseTemplates = signal<CourseTemplate[]>(INITIAL_COURSE_TEMPLATES);
+
+  // Dynamic Permission Capability Object based on BRD §4.6 & §0.1
+  courseTemplatePermissions = computed<CourseTemplatePermissions>(() => {
+    const role = this.activeRole();
+    const isSysAdmin = role === 'system_admin' || (role as any) === 'super_admin';
+    const isOrgAdmin = role === 'tenant_admin';
+    const isLmsAdmin = role === 'lms_admin';
+    const isCourseOwnerOrTrainer = role === 'instructor';
+
+    return {
+      canViewFeature: true,
+      canCreateTemplate: isSysAdmin || isOrgAdmin || isLmsAdmin || isCourseOwnerOrTrainer,
+      canEditTemplate: isSysAdmin || isOrgAdmin || isLmsAdmin || isCourseOwnerOrTrainer,
+      canDeactivateTemplate: isSysAdmin || isOrgAdmin || isLmsAdmin,
+      canManageVisibility: isSysAdmin || isOrgAdmin || isLmsAdmin,
+      canUseTemplate: isSysAdmin || isOrgAdmin || isLmsAdmin || isCourseOwnerOrTrainer,
+      canManageDashboardStudio: isSysAdmin || isOrgAdmin || isLmsAdmin
+    };
+  });
+
+  // Scoped course templates (LMS by default, Org sharing future)
+  scopedCourseTemplates = computed<CourseTemplate[]>(() => {
+    const all = this.courseTemplates();
+    const role = this.activeRole();
+    const lmsId = this.activeLmsId();
+    const tenantId = this.activeTenantId();
+    const user = this.activeUser();
+
+    if (role === 'system_admin' || (role as any) === 'super_admin') {
+      return all;
+    }
+
+    return all.filter(t => {
+      // Check org match
+      if (t.organizationId && t.organizationId !== tenantId) {
+        return false;
+      }
+      // Check LMS scope or org scope
+      if (t.scope === 'lms' && t.lmsId && t.lmsId !== lmsId) {
+        return false;
+      }
+      // Check restricted visibility
+      if (t.visibility?.mode === 'restricted') {
+        const isAllowed = t.createdById === user.id || 
+          (t.visibility.allowedUserIds && t.visibility.allowedUserIds.includes(user.id)) ||
+          role === 'lms_admin' || role === 'tenant_admin';
+        if (!isAllowed) return false;
+      }
+      return true;
+    });
+  });
+
+  // Summary stats for Course Templates Grid KPI row
+  courseTemplateStats = computed<CourseTemplateSummaryStats>(() => {
+    const templates = this.scopedCourseTemplates();
+    const totalTemplates = templates.length;
+    const activeTemplates = templates.filter(t => t.status === 'active').length;
+    const inactiveTemplates = templates.filter(t => t.status === 'inactive').length;
+    const draftTemplates = templates.filter(t => t.status === 'draft').length;
+    const totalCoursesSpawned = templates.reduce((acc, t) => acc + (t.usedCount || 0), 0);
+
+    return {
+      totalTemplates,
+      activeTemplates,
+      inactiveTemplates,
+      draftTemplates,
+      totalCoursesSpawned
+    };
+  });
+
+  getCourseTemplates(lmsId?: string): CourseTemplate[] {
+    const targetLmsId = lmsId || this.activeLmsId();
+    return this.courseTemplates().filter(t => !t.lmsId || t.lmsId === targetLmsId);
+  }
+
+  getCourseTemplateById(id: string): CourseTemplate | undefined {
+    return this.courseTemplates().find(t => t.id === id);
+  }
+
+  // Path 2: Dedicated Template Builder Create (§4)
+  createCourseTemplate(templateData: Partial<CourseTemplate>): CourseTemplate {
+    const tenant = this.activeTenant();
+    const lms = this.activeLms();
+    const user = this.activeUser();
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    const numericRand = Math.floor(1000 + Math.random() * 9000);
+    const newId = `CTMP-${tenant.numericId || '1972'}-${numericRand}`;
+    const newCode = templateData.code?.trim() || `TMP-MOD-${numericRand}`;
+
+    const defaultStructure: CourseTemplateStructure = {
+      modules: templateData.structure?.modules && templateData.structure.modules.length > 0 
+        ? deepCopyTemplateStructure(templateData.structure).modules 
+        : [
+            {
+              moduleId: `m-01`,
+              order: 1,
+              title: 'Module 1: Foundational Framework & Core Principles',
+              description: 'Introductory concepts and regulatory baseline.',
+              contentSlots: [
+                { slotId: 's-01', order: 1, title: 'Orientation & Overview Video', type: 'video', required: true, estimatedMinutes: 15 },
+                { slotId: 's-02', order: 2, title: 'Foundational Knowledge Article', type: 'article', required: true, estimatedMinutes: 10 },
+                { slotId: 's-03', order: 3, title: 'Knowledge Check Quiz', type: 'quiz', required: true, estimatedMinutes: 15 }
+              ]
+            }
+          ],
+      requiredComponents: templateData.structure?.requiredComponents || JSON.parse(JSON.stringify(DEFAULT_REQUIRED_COMPONENTS)),
+      structuralDefaults: templateData.structure?.structuralDefaults || {
+        passingScorePercent: 80,
+        completionTracking: 'all_slots',
+        sequentialUnlock: true,
+        certificateEnabled: true,
+        allowRetakes: true,
+        maxRetakeAttempts: 3,
+        pace: 'cohort_scheduled'
+      }
+    };
+
+    const newTemplate: CourseTemplate = {
+      id: newId,
+      code: newCode,
+      name: templateData.name?.trim() || 'Untitled Course Template',
+      description: templateData.description?.trim() || '',
+      categoryTags: templateData.categoryTags && templateData.categoryTags.length > 0 ? templateData.categoryTags : ['General'],
+      scope: templateData.scope || 'lms',
+      lmsId: templateData.lmsId || lms.id,
+      lmsName: lms.basicInfo?.lmsName || 'Current LMS Workspace',
+      organizationId: tenant.id,
+      organizationName: tenant.name,
+      version: 1,
+      structure: defaultStructure,
+      status: templateData.status || 'active',
+      usedCount: 0,
+      visibility: templateData.visibility || { mode: 'all_lms_instructors' },
+      createdBy: user.name,
+      createdById: user.id,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    this.courseTemplates.update(list => [newTemplate, ...list]);
+
+    this.logAction(
+      'Template Created',
+      `Created course template "${newTemplate.name}" (${newTemplate.code})`,
+      'success'
+    );
+
+    this.showToast('Template has been created.', 'success', 4500, 'Template Created', 'SUCCESS');
+    return newTemplate;
+  }
+
+  // Path 1: Save Course Structure as Template (§3)
+  saveCourseStructureAsTemplate(courseId: string, metadata: { name: string; code?: string; description?: string; categoryTags?: string[]; scope?: CourseTemplateScope }): { success: boolean; template?: CourseTemplate; error?: string } {
+    const course = this.courses().find(c => c.id === courseId);
+    if (!course) {
+      return { success: false, error: 'Course not found.' };
+    }
+
+    const tenant = this.activeTenant();
+    const lms = this.activeLms();
+    const user = this.activeUser();
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    const numericRand = Math.floor(1000 + Math.random() * 9000);
+    const newId = `CTMP-${tenant.numericId || '1972'}-${numericRand}`;
+    const newCode = metadata.code?.trim() || `TMP-${course.category.slice(0, 3).toUpperCase()}-${numericRand}`;
+
+    // Extract structural blueprint from Course: modules and lessons transformed to slots, stripping content/progress (§3.2)
+    const extractedModules: CourseTemplateModule[] = (course.modules || []).map((m, mIdx) => ({
+      moduleId: `m-${String(mIdx + 1).padStart(2, '0')}`,
+      order: mIdx + 1,
+      title: m.title || `Module ${mIdx + 1}`,
+      description: `Structural blueprint extracted from ${course.title}`,
+      contentSlots: (m.lessons || []).map((l, lIdx) => ({
+        slotId: `s-${String(mIdx + 1)}-${String(lIdx + 1)}`,
+        order: lIdx + 1,
+        title: l.title || `Lesson ${lIdx + 1}`,
+        type: (l.type === 'interactive_lab' ? 'interactive_lab' : l.type === 'quiz' ? 'quiz' : l.type === 'video' ? 'video' : 'article') as CourseSlotType,
+        required: true,
+        estimatedMinutes: l.durationMinutes || 15,
+        description: `Content placeholder extracted from lesson layout.`
+      }))
+    }));
+
+    if (extractedModules.length === 0) {
+      extractedModules.push({
+        moduleId: 'm-01',
+        order: 1,
+        title: 'Module 1: General Instruction',
+        contentSlots: [
+          { slotId: 's-01', order: 1, title: 'Introduction Video Slot', type: 'video', required: true, estimatedMinutes: 15 }
+        ]
+      });
+    }
+
+    const extractedStructure: CourseTemplateStructure = {
+      modules: extractedModules,
+      requiredComponents: JSON.parse(JSON.stringify(DEFAULT_REQUIRED_COMPONENTS)),
+      structuralDefaults: {
+        passingScorePercent: 80,
+        completionTracking: 'all_slots',
+        sequentialUnlock: true,
+        certificateEnabled: course.certificateEnabled ?? true,
+        allowRetakes: true,
+        maxRetakeAttempts: 3,
+        pace: 'cohort_scheduled'
+      }
+    };
+
+    const newTemplate: CourseTemplate = {
+      id: newId,
+      code: newCode,
+      name: metadata.name.trim(),
+      description: metadata.description?.trim() || `Reusable course blueprint extracted from course "${course.title}".`,
+      categoryTags: metadata.categoryTags && metadata.categoryTags.length > 0 ? metadata.categoryTags : [course.category, 'Extracted Blueprint'],
+      scope: 'lms',
+      lmsId: lms.id,
+      lmsName: lms.basicInfo?.lmsName || 'Current LMS Workspace',
+      organizationId: tenant.id,
+      organizationName: tenant.name,
+      version: 1,
+      structure: extractedStructure,
+      status: 'active',
+      sourceCourseId: course.id,
+      sourceCourseName: course.title,
+      usedCount: 0,
+      visibility: { mode: 'all_lms_instructors' },
+      createdBy: user.name,
+      createdById: user.id,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    this.courseTemplates.update(list => [newTemplate, ...list]);
+
+    this.logAction(
+      'Course Saved as Template',
+      `Saved structure of "${course.title}" as template "${newTemplate.name}"`,
+      'success'
+    );
+
+    this.showToast('Course structure has been saved as a template.', 'success', 4500, 'Structure Saved', 'SUCCESS');
+    return { success: true, template: newTemplate };
+  }
+
+  // Update Template (THE RULE: Updating a template must NOT change existing courses created from it - §5.2)
+  updateCourseTemplate(id: string, updates: Partial<CourseTemplate>): { success: boolean; template?: CourseTemplate; error?: string } {
+    const existing = this.getCourseTemplateById(id);
+    if (!existing) {
+      return { success: false, error: 'Course template not found.' };
+    }
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    let updatedTemplate: CourseTemplate = existing;
+
+    this.courseTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        updatedTemplate = {
+          ...t,
+          ...updates,
+          structure: updates.structure ? deepCopyTemplateStructure(updates.structure) : t.structure,
+          version: t.version + 1,
+          updatedAt: timestamp
+        };
+        return updatedTemplate;
+      }
+      return t;
+    }));
+
+    this.logAction(
+      'Template Updated',
+      `Updated course template "${updatedTemplate.name}" (Existing courses remain decoupled & untouched)`,
+      'info'
+    );
+
+    this.showToast(`Template "${updatedTemplate.name}" has been updated.`, 'success', 4500, 'Template Updated', 'SUCCESS');
+    return { success: true, template: updatedTemplate };
+  }
+
+  // Duplicate Course Template (§8.4)
+  duplicateCourseTemplate(id: string): CourseTemplate {
+    const original = this.getCourseTemplateById(id);
+    const tenant = this.activeTenant();
+    const lms = this.activeLms();
+    const user = this.activeUser();
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    const numericRand = Math.floor(1000 + Math.random() * 9000);
+    const newId = `CTMP-${tenant.numericId || '1972'}-${numericRand}`;
+
+    const copy: CourseTemplate = {
+      ...(original ? JSON.parse(JSON.stringify(original)) : {}),
+      id: newId,
+      code: `TMP-COPY-${numericRand}`,
+      name: original ? `${original.name} (Copy)` : 'Course Template (Copy)',
+      status: 'draft',
+      version: 1,
+      usedCount: 0,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      createdBy: user.name,
+      createdById: user.id
+    };
+
+    this.courseTemplates.update(list => [copy, ...list]);
+
+    this.logAction(
+      'Template Duplicated',
+      `Duplicated template "${original?.name || id}" as draft "${copy.name}"`,
+      'info'
+    );
+
+    this.showToast(`Template duplicated as draft "${copy.name}".`, 'success', 4500, 'Template Duplicated', 'DRAFT');
+    return copy;
+  }
+
+  // Deactivate Course Template (§8.4)
+  deactivateCourseTemplate(id: string): { success: boolean; error?: string } {
+    const template = this.getCourseTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Course template not found.' };
+    }
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    this.courseTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          status: 'inactive',
+          updatedAt: timestamp
+        };
+      }
+      return t;
+    }));
+
+    this.logAction(
+      'Template Deactivated',
+      `Deactivated course template "${template.name}". Spawned courses remain unaffected.`,
+      'warning'
+    );
+
+    this.showToast(`${template.name} has been deactivated`, 'error', 4500, 'Template Deactivated', 'INACTIVE');
+    return { success: true };
+  }
+
+  // Reactivate Course Template (§8.4)
+  reactivateCourseTemplate(id: string): { success: boolean; error?: string } {
+    const template = this.getCourseTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Course template not found.' };
+    }
+
+    const today = new Date();
+    const dateStr = formatDateDDMMYYYY(today);
+    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}:${String(today.getSeconds()).padStart(2, '0')}`;
+    const timestamp = `${dateStr} ${timeStr}`;
+
+    this.courseTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          status: 'active',
+          updatedAt: timestamp
+        };
+      }
+      return t;
+    }));
+
+    this.logAction(
+      'Template Reactivated',
+      `Reactivated course template "${template.name}"`,
+      'success'
+    );
+
+    this.showToast(`${template.name} has been reactivated`, 'success', 4500, 'Template Reactivated', 'ACTIVE');
+    return { success: true };
+  }
+
+  // Delete Course Template (§8.4)
+  deleteCourseTemplate(id: string): { success: boolean; error?: string } {
+    const template = this.getCourseTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Course template not found.' };
+    }
+
+    this.courseTemplates.update(list => list.filter(t => t.id !== id));
+
+    this.logAction(
+      'Template Deleted',
+      `Deleted course template "${template.name}"`,
+      'warning'
+    );
+
+    this.showToast(`Template "${template.name}" has been deleted.`, 'warning', 4500, 'Template Deleted', 'DELETED');
+    return { success: true };
+  }
+
+  // Manage Template Visibility (§7 & §8.4)
+  updateTemplateVisibility(id: string, visibility: CourseTemplateVisibility): { success: boolean; error?: string } {
+    const template = this.getCourseTemplateById(id);
+    if (!template) {
+      return { success: false, error: 'Course template not found.' };
+    }
+
+    this.courseTemplates.update(list => list.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          visibility
+        };
+      }
+      return t;
+    }));
+
+    this.showToast(`Visibility settings updated for "${template.name}".`, 'info', 3500, 'Visibility Updated');
+    return { success: true };
+  }
+
+  // Consumer Flow: Create Course From Template (Snapshot Deep Copy - §6)
+  createCourseFromTemplate(
+    templateId: string,
+    courseMetadata: {
+      title: string;
+      subtitle?: string;
+      description?: string;
+      category: any;
+      level: any;
+      instructorName?: string;
+      durationMinutes?: number;
+      isMandatory?: boolean;
+      coverImage?: string;
+    }
+  ): { success: boolean; course?: Course; error?: string } {
+    const template = this.getCourseTemplateById(templateId);
+    if (!template) {
+      return { success: false, error: 'Template not found.' };
+    }
+
+    if (template.status !== 'active') {
+      return { success: false, error: 'A course can only be created from an Active template.' };
+    }
+
+    const tenant = this.activeTenant();
+    const user = this.activeUser();
+    const now = new Date();
+    const courseId = `course-from-tpl-${Date.now()}`;
+
+    // Deep copy the blueprint structure into concrete course modules and lessons (§6.3)
+    const clonedStructure = deepCopyTemplateStructure(template.structure);
+    let calculatedTotalDuration = 0;
+
+    const generatedModules = clonedStructure.modules.map((m, mIdx) => {
+      let modDuration = 0;
+      const generatedLessons = m.contentSlots.map((slot, sIdx) => {
+        const slotDuration = slot.estimatedMinutes || 15;
+        modDuration += slotDuration;
+
+        let lessonType: any = 'article';
+        if (slot.type === 'video') lessonType = 'video';
+        else if (slot.type === 'quiz') lessonType = 'quiz';
+        else if (slot.type === 'interactive_lab' || slot.type === 'simulation' || slot.type === 'scorm') lessonType = 'interactive_lab';
+
+        return {
+          id: `les-${courseId}-${mIdx + 1}-${sIdx + 1}`,
+          title: slot.title,
+          type: lessonType,
+          durationMinutes: slotDuration,
+          summary: slot.description || `Instructional content slot for "${slot.title}" created from blueprint layout.`,
+          contentHtml: `<div class="p-6">
+            <h3 class="text-xl font-bold mb-3">${slot.title}</h3>
+            <p class="text-slate-600 dark:text-slate-300 mb-4">
+              This instructional lesson was initialized from template blueprint <strong>${template.name}</strong>.
+            </p>
+            <div class="p-4 bg-primary/5 rounded-xl border border-primary/20 text-sm">
+              <span class="font-semibold text-primary">Required Component:</span> ${slot.required ? 'Yes (Mandatory for completion)' : 'Optional Supplementary Material'}
+            </div>
+          </div>`,
+          videoUrl: slot.type === 'video' ? 'https://www.w3schools.com/html/mov_bbb.mp4' : undefined
+        };
+      });
+
+      calculatedTotalDuration += modDuration;
+
+      return {
+        id: `mod-${courseId}-${mIdx + 1}`,
+        title: m.title,
+        durationMinutes: modDuration,
+        lessons: generatedLessons
+      };
+    });
+
+    const newCourse: Course = {
+      id: courseId,
+      tenantId: tenant.id,
+      title: courseMetadata.title.trim(),
+      subtitle: courseMetadata.subtitle?.trim() || `Course blueprint generated from ${template.name}`,
+      description: courseMetadata.description?.trim() || template.description || 'Instructional curriculum course created from standardized organizational blueprint.',
+      coverImage: courseMetadata.coverImage || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+      category: courseMetadata.category || 'Compliance & Security',
+      level: courseMetadata.level || 'Intermediate',
+      durationMinutes: courseMetadata.durationMinutes || calculatedTotalDuration || 60,
+      isMandatory: courseMetadata.isMandatory ?? false,
+      instructorName: courseMetadata.instructorName?.trim() || user.name,
+      instructorTitle: 'Course Owner & Certified Trainer',
+      instructorAvatar: user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      rating: 5.0,
+      reviewCount: 0,
+      enrolledCount: 0,
+      modules: generatedModules,
+      certificateEnabled: template.structure.structuralDefaults?.certificateEnabled ?? true,
+      status: 'Published',
+      tags: [...(template.categoryTags || []), 'Template Blueprint'],
+      createdAt: now.toISOString().split('T')[0],
+      createdFromTemplateId: template.id,
+      createdFromTemplateVersion: template.version,
+      templateProvenanceName: template.name
+    };
+
+    // Add generated course to catalog
+    this.courses.update(list => [newCourse, ...list]);
+
+    // Increment template adoption count (§8.3)
+    this.courseTemplates.update(list => list.map(t => {
+      if (t.id === templateId) {
+        return {
+          ...t,
+          usedCount: (t.usedCount || 0) + 1
+        };
+      }
+      return t;
+    }));
+
+    this.logAction(
+      'Course Created from Template',
+      `Spawned new independent course "${newCourse.title}" from template "${template.name}" (Snapshot Decoupled)`,
+      'success'
+    );
+
+    this.showToast(
+      'A new course has been created from the template. Add your content to finish.',
+      'success',
+      5500,
+      'Course Created',
+      'SUCCESS'
+    );
+
+    return { success: true, course: newCourse };
+  }
 }
+
+
 
 

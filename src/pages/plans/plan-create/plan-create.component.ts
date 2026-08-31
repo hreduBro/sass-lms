@@ -1433,20 +1433,32 @@ export class PlanCreateComponent implements OnInit {
   }
 
   async onCancel() {
-    const res = await this.modalService.confirmDiscard({
-      title: 'Discard Plan Creation?',
-      message: 'You have unsaved changes in this wizard. You can save your progress as a draft to resume later.'
+    this.discardChanges();
+  }
+
+  discardChanges() {
+    this.modalService.confirmDiscard({
+      title: 'Discard Plan Wizard?',
+      message: 'You have active changes in this learning plan wizard. Would you like to save your progress as a draft to resume later?',
+      draftText: 'Save as Draft & Exit',
+      discardText: 'Discard & Exit',
+      cancelText: 'Continue Editing',
+      onDraft: () => this.saveAsDraftAndExit(),
+      onDiscard: () => this.router.navigate(['/plans'])
     });
-    if (res === 'draft') {
-      this.saveDraft();
-      this.router.navigate(['/plans']);
-    } else if (res === 'discard') {
-      this.router.navigate(['/plans']);
-    }
+  }
+
+  saveAsDraftAndExit() {
+    this.saveDraft();
+    this.router.navigate(['/plans']);
+  }
+
+  saveDraftInPlace() {
+    this.saveDraft();
   }
 
   goBack() {
-    this.router.navigate(['/plans']);
+    this.discardChanges();
   }
 
   private scrollToFirstError() {

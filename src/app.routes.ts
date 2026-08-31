@@ -13,9 +13,16 @@ import { PlanCreateComponent } from './pages/plans/plan-create/plan-create.compo
 import { PlanDetailsComponent } from './pages/plans/plan-details/plan-details.component';
 import { CoursesComponent } from './pages/courses/courses.component';
 import { CoursePlayerComponent } from './pages/course-player/course-player.component';
+import { CourseTemplateGridComponent } from './pages/course-templates/template-grid/course-template-grid.component';
+import { CourseTemplateDashboardComponent } from './pages/course-templates/template-dashboard/course-template-dashboard.component';
+import { CourseTemplateCreateComponent } from './pages/course-templates/template-create/course-template-create.component';
 import { UsersComponent } from './pages/users/users.component';
 import { AnalyticsComponent } from './pages/analytics/analytics.component';
 import { CertificatesComponent } from './pages/certificates/certificates.component';
+import { CertificateTemplateGridComponent } from './pages/certificate-templates/template-grid/template-grid.component';
+import { CertificateTemplateDashboardComponent } from './pages/certificate-templates/template-dashboard/template-dashboard.component';
+import { CertificateTemplateCreateComponent } from './pages/certificate-templates/template-create/template-create.component';
+import { CertificatesVaultComponent } from './pages/certificate-templates/certificates-vault/certificates-vault.component';
 import { WebinarsComponent } from './pages/webinars/webinars.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ProfileComponent } from './pages/profile/profile.component';
@@ -172,6 +179,34 @@ export const routes: Routes = [
 
   // Courses & Learning Player
   { 
+    path: 'courses/templates', 
+    component: CourseTemplateGridComponent, 
+    title: 'Course Templates | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'courses/templates/dashboard', 
+    component: CourseTemplateDashboardComponent, 
+    title: 'Course Templates Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'courses/templates/create', 
+    component: CourseTemplateCreateComponent, 
+    title: 'Create Course Template | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'courses/templates/edit/:id', 
+    component: CourseTemplateCreateComponent, 
+    title: 'Edit Course Template | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
     path: 'courses', 
     component: CoursesComponent, 
     title: 'Courses | Multi-Tenant LMS',
@@ -204,7 +239,44 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
   },
 
-  // Certificates Vault
+  // Certificate Templates & Studio Module
+  { 
+    path: 'certificates/templates', 
+    component: CertificateTemplateGridComponent, 
+    title: 'Certificate Templates | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'certificates/templates/dashboard', 
+    component: CertificateTemplateDashboardComponent, 
+    title: 'Certificate Templates Dashboard | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'certificates/templates/create', 
+    component: CertificateTemplateCreateComponent, 
+    title: 'Create Certificate Template | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'certificates/templates/edit/:id', 
+    component: CertificateTemplateCreateComponent, 
+    title: 'Edit Certificate Template | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
+    path: 'certificates/vault', 
+    component: CertificatesVaultComponent, 
+    title: 'Issued Certificates Vault | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+
+  // Certificates Vault (Legacy / Root)
   { 
     path: 'certificates', 
     component: CertificatesComponent, 

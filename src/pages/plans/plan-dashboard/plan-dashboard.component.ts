@@ -45,29 +45,27 @@ export interface LearnerProgressRecord {
     <div class="space-y-6 pb-12 animate-fade-in">
       
       <!-- ================================================================= -->
-      <!-- TOP NAVIGATION & LMS WORKSPACE SCOPE BAR (LMS Dashboard Pattern)   -->
+      <!-- TOP NAVIGATION & LMS WORKSPACE SCOPE BAR                          -->
       <!-- ================================================================= -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <div class="flex items-center gap-2 mb-1 flex-wrap">
             <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">business</span>
-              LMS Scope
+              <span class="material-symbols-outlined text-[13px]">analytics</span>
+              Plan Analytics & Telemetry
             </span>
-            <span class="text-xs text-text-secondary flex items-center gap-1">
-              <span>Parent Org:</span> 
-              <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ activeTenant().name }}</strong>
+            <span class="text-xs text-text-secondary">
+              Parent Org: <strong class="font-bold text-text-primary capitalize">{{ activeTenant().name }}</strong>
             </span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-medium text-text-secondary hidden sm:inline">
               {{ plans().length }} Plans &bull; {{ activePlansCount() }} Active
             </span>
           </div>
 
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
-            <span class="material-symbols-outlined text-tenant-600 text-3xl">space_dashboard</span>
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">
             @if (selectedPlan()) {
               <span>{{ selectedPlan()?.name }}</span>
-              <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
+              <span class="ml-2 px-2 py-0.5 rounded-lg text-xs font-mono font-bold bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
                 {{ selectedPlan()?.planCode }}
               </span>
             } @else {
@@ -75,7 +73,7 @@ export interface LearnerProgressRecord {
             }
           </h1>
 
-          <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
+          <p class="text-xs text-text-secondary mt-0.5">
             @if (selectedPlan()) {
               Deep-dive metrics, phase progression pipelines, and individual learner milestone tracks.
             } @else {
@@ -91,7 +89,7 @@ export interface LearnerProgressRecord {
               id="back-to-portfolio-btn"
               type="button"
               (click)="clearSelectedPlan()"
-              class="px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all flex items-center gap-2 cursor-pointer">
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
               <span class="material-symbols-outlined text-sm">arrow_back</span>
               <span>Portfolio Overview</span>
             </button>
@@ -100,8 +98,8 @@ export interface LearnerProgressRecord {
               id="plan-dashboard-grid-btn"
               type="button"
               (click)="goToGrid()"
-              class="px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all flex items-center gap-2 cursor-pointer">
-              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">table_rows</span>
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
+              <span class="material-symbols-outlined text-base text-tenant-500">table_rows</span>
               <span>Plan Grid</span>
             </button>
           }
@@ -110,8 +108,8 @@ export interface LearnerProgressRecord {
             id="plan-dashboard-create-btn"
             type="button"
             (click)="goToCreate()"
-            class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all flex items-center gap-2 cursor-pointer">
-            <span class="material-symbols-outlined text-lg">add_circle</span>
+            class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+            <span class="material-symbols-outlined text-base">add_circle</span>
             <span>Create Plan</span>
           </button>
         </div>
@@ -126,7 +124,7 @@ export interface LearnerProgressRecord {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           
           <!-- Total Active Plans -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Active Plans</span>
               <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -142,7 +140,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Total Enrolled Learners -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Learners Enrolled</span>
               <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
@@ -156,7 +154,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Phase Completion Rate -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Phase Completion</span>
               <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -170,7 +168,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Learner Avg Progress Rate -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Avg. Progress</span>
               <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -184,7 +182,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Plan Owner Coverage -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Owner Coverage</span>
               <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
@@ -198,7 +196,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Total Delivery Classes -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Delivery Classes</span>
               <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -217,8 +215,8 @@ export interface LearnerProgressRecord {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           <!-- Plan Status Lifecycle (Donut / Progress Breakdown) -->
-          <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-base-300">
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">pie_chart</span>
                 Plan Status Breakdown
@@ -310,7 +308,7 @@ export interface LearnerProgressRecord {
             </div>
 
             <!-- Duration & Enrollment Distribution Pills -->
-            <div class="pt-3 border-t border-base-300 dark:border-slate-800 space-y-2">
+            <div class="pt-3 border-t border-base-300 space-y-2">
               <div class="text-[11px] font-bold text-text-secondary uppercase">Plan Duration Mix</div>
               <div class="flex items-center gap-2">
                 <span class="px-2 py-1 rounded-lg bg-base-200 text-text-primary text-[11px] font-medium">
@@ -327,8 +325,8 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Top Performing Learning Plans -->
-          <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4 lg:col-span-2">
-            <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+          <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4 lg:col-span-2">
+            <div class="flex items-center justify-between pb-3 border-b border-base-300">
               <div>
                 <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                   <span class="material-symbols-outlined text-base text-tenant-600">leaderboard</span>
@@ -346,7 +344,7 @@ export interface LearnerProgressRecord {
 
             <div class="space-y-3 text-xs">
               @for (plan of topPerformingPlans(); track plan.id) {
-                <div class="p-3.5 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 hover:border-tenant-400 dark:hover:border-tenant-600 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-300 hover:border-tenant-400 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
                       <span class="px-1.5 py-0.5 rounded font-mono font-bold text-[10px] bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
@@ -381,7 +379,7 @@ export interface LearnerProgressRecord {
                     <button 
                       type="button" 
                       (click)="selectPlan(plan.id)"
-                      class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm transition-all flex items-center gap-1">
+                      class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-sm transition-all flex items-center gap-1 cursor-pointer">
                       <span>Deep Dive</span>
                       <span class="material-symbols-outlined text-xs">arrow_forward</span>
                     </button>
@@ -396,8 +394,8 @@ export interface LearnerProgressRecord {
         <!-- ================================================================= -->
         <!-- PLAN PORTFOLIO COMPARISON TABLE (ALL PLANS)                       -->
         <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
             <div>
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">table_chart</span>
@@ -410,11 +408,55 @@ export interface LearnerProgressRecord {
             </div>
           </div>
 
+          <!-- Comparison Table Search & Filters -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2 flex-1 max-w-md">
+              <div class="relative flex-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
+                <input
+                  type="text"
+                  [ngModel]="searchQuery()"
+                  (ngModelChange)="searchQuery.set($event)"
+                  placeholder="Filter matrix by name, code, or owner..."
+                  class="w-full pl-9 pr-3 py-1.5 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors" />
+              </div>
+              @if (hasActivePortfolioFilters()) {
+                <button
+                  type="button"
+                  (click)="resetPortfolioFilters()"
+                  class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">restart_alt</span>
+                  <span>Reset</span>
+                </button>
+              }
+            </div>
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div class="w-36">
+                <app-custom-select
+                  [options]="statusFilterOptions"
+                  [ngModel]="selectedStatusFilter()"
+                  (ngModelChange)="selectedStatusFilter.set($event)"
+                  size="sm"
+                  placeholder="Status: All">
+                </app-custom-select>
+              </div>
+              <div class="w-36">
+                <app-custom-select
+                  [options]="durationFilterOptions"
+                  [ngModel]="selectedDurationFilter()"
+                  (ngModelChange)="selectedDurationFilter.set($event)"
+                  size="sm"
+                  placeholder="Duration: All">
+                </app-custom-select>
+              </div>
+            </div>
+          </div>
+
           <!-- Responsive Table -->
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-base-300 dark:border-slate-800 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
+                <tr class="border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
                   <th class="py-3 px-3">Plan Code & Title</th>
                   <th class="py-3 px-3">Assigned Owner</th>
                   <th class="py-3 px-3">Duration & Dates</th>
@@ -424,9 +466,9 @@ export interface LearnerProgressRecord {
                   <th class="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-base-300/60 dark:divide-slate-800/60">
+              <tbody class="divide-y divide-base-300">
                 @for (plan of filteredPlans(); track plan.id) {
-                  <tr class="hover:bg-base-200/50 dark:hover:bg-base-300/30 transition-colors group cursor-pointer" (click)="selectPlan(plan.id)">
+                  <tr class="hover:bg-base-200/50 transition-colors group cursor-pointer" (click)="selectPlan(plan.id)">
                     
                     <!-- Code & Title -->
                     <td class="py-3 px-3 max-w-xs">
@@ -504,7 +546,7 @@ export interface LearnerProgressRecord {
                           type="button" 
                           (click)="selectPlan(plan.id)"
                           title="Open Deep-Dive Dashboard"
-                          class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 hover:bg-tenant-600 hover:text-white transition-colors flex items-center gap-1">
+                          class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 hover:bg-tenant-600 hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
                           <span class="material-symbols-outlined text-xs">analytics</span>
                           <span>Dashboard</span>
                         </button>
@@ -513,7 +555,7 @@ export interface LearnerProgressRecord {
                           type="button" 
                           (click)="viewPlanDetails(plan.id)"
                           title="Manage Plan Details"
-                          class="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors">
+                          class="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">settings</span>
                         </button>
                       </div>
@@ -527,8 +569,8 @@ export interface LearnerProgressRecord {
         </div>
 
         <!-- Appointed Administrators Roster -->
-        <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
             <div>
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">manage_accounts</span>
@@ -546,7 +588,7 @@ export interface LearnerProgressRecord {
 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
             @for (owner of ownerRoster(); track owner.email) {
-              <div class="p-3.5 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 flex items-start gap-3">
+              <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-300 flex items-start gap-3">
                 <app-custom-avatar 
                   [name]="owner.name" 
                   size="md" 
@@ -575,9 +617,30 @@ export interface LearnerProgressRecord {
         <!-- VIEW LEVEL 2: PART B — SELECTED PLAN DEEP-DIVE DASHBOARD          -->
         <!-- ================================================================= -->
         
+        <!-- At-Risk Academic Alert Banner -->
+        @if (atRiskLearnersInSelectedPlan() > 0) {
+          <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-lg">warning</span>
+              </div>
+              <div>
+                <span class="font-bold text-sm block">{{ atRiskLearnersInSelectedPlan() }} Learner(s) Require Academic Attention</span>
+                <span class="text-[11px] opacity-90">Learners with low milestone completion or lagging phase deliverables.</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              (click)="selectedLearnerStatusFilter.set('At-Risk')"
+              class="px-3.5 py-1.5 rounded-xl bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 font-semibold transition-colors shrink-0 cursor-pointer">
+              Filter At-Risk Learners
+            </button>
+          </div>
+        }
+
         <!-- Plan Deep-Dive Header Card & Quick Switcher -->
-        <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-300 dark:border-slate-800">
+        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-300">
             <div>
               <div class="flex items-center flex-wrap gap-2.5">
                 <span 
@@ -619,7 +682,7 @@ export interface LearnerProgressRecord {
               <button 
                 type="button" 
                 (click)="openAssignOwnerModal()"
-                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-200 hover:bg-base-300 border border-base-300 dark:border-slate-700 text-text-primary transition-colors flex items-center gap-1.5">
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-200 hover:bg-base-300 border border-base-300 text-text-primary transition-colors flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-sm">person_add</span>
                 <span>Assign Owner</span>
               </button>
@@ -627,7 +690,7 @@ export interface LearnerProgressRecord {
               <button 
                 type="button" 
                 (click)="viewPlanDetails(selectedPlan()!.id)"
-                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm transition-all flex items-center gap-1.5">
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
                 <span class="material-symbols-outlined text-sm">settings</span>
                 <span>Manage Plan</span>
               </button>
@@ -638,7 +701,7 @@ export interface LearnerProgressRecord {
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-3">
               @if (selectedPlan()!.owner?.name) {
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/60 dark:bg-base-300/40 border border-base-300 dark:border-slate-800">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300">
                   <app-custom-avatar 
                     [name]="selectedPlan()!.owner.name" 
                     size="xs" 
@@ -670,7 +733,7 @@ export interface LearnerProgressRecord {
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           
           <!-- Enrolled Learners -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Enrolled</span>
               <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
@@ -684,7 +747,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Average Plan Progress -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Plan Progress</span>
               <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -698,7 +761,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Phase Milestone Progress -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Phases Health</span>
               <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -712,7 +775,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Assessment Pass Rate -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Pass Rate</span>
               <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -726,7 +789,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- At-Risk Learners -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">At-Risk Learners</span>
               <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
@@ -740,7 +803,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Certifications Issued -->
-          <div class="p-4 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Certifications</span>
               <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -758,8 +821,8 @@ export interface LearnerProgressRecord {
         <!-- ================================================================= -->
         <!-- INTERACTIVE SEQUENTIAL PHASE ROADMAP & MILESTONES PIPELINE        -->
         <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
             <div>
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">conversion_path</span>
@@ -777,7 +840,7 @@ export interface LearnerProgressRecord {
             @for (phase of selectedPlan()!.phases; track phase.id; let idx = $index) {
               <div 
                 (click)="openPhaseModal(phase)"
-                class="p-4 rounded-xl border border-base-300 dark:border-slate-800 bg-base-200/40 dark:bg-base-300/20 hover:border-tenant-500 hover:bg-base-200 dark:hover:bg-base-300/40 transition-all cursor-pointer space-y-3 relative group">
+                class="p-4 rounded-xl border border-base-300 bg-base-200/40 hover:border-tenant-500 hover:bg-base-200 transition-all cursor-pointer space-y-3 relative group">
                 
                 <!-- Phase Header Strip -->
                 <div class="flex items-start justify-between gap-2">
@@ -807,7 +870,7 @@ export interface LearnerProgressRecord {
                 </div>
 
                 <!-- Milestone Deliverables Counters -->
-                <div class="grid grid-cols-3 gap-1.5 p-2 rounded-lg bg-base-100 dark:bg-base-200 text-center text-[10px]">
+                <div class="grid grid-cols-3 gap-1.5 p-2 rounded-lg bg-base-100 text-center text-[10px]">
                   <div>
                     <div class="font-bold text-text-primary text-xs">{{ phase.courseCount }}</div>
                     <div class="text-text-secondary">Courses</div>
@@ -823,7 +886,7 @@ export interface LearnerProgressRecord {
                 </div>
 
                 <!-- Prerequisites and Certificate Badges -->
-                <div class="flex items-center justify-between text-[10px] text-text-secondary pt-1 border-t border-base-300/50">
+                <div class="flex items-center justify-between text-[10px] text-text-secondary pt-1 border-t border-base-300">
                   <span class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-xs" [class.text-emerald-500]="phase.prerequisiteStatus === 'Met' || phase.prerequisiteStatus === 'None'">
                       {{ phase.prerequisiteStatus === 'None' ? 'check_circle' : (phase.prerequisiteStatus === 'Met' ? 'task_alt' : 'hourglass_empty') }}
@@ -844,8 +907,8 @@ export interface LearnerProgressRecord {
         <!-- ================================================================= -->
         <!-- PLAN LEARNER PERFORMANCE ROSTER MATRIX                            -->
         <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
             <div>
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">people</span>
@@ -855,22 +918,24 @@ export interface LearnerProgressRecord {
             </div>
 
             <!-- Learner Filter Controls -->
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
               <div class="relative w-48">
                 <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary text-xs pointer-events-none">
                   search
                 </span>
                 <input 
                   type="text" 
-                  [(ngModel)]="learnerSearchQuery" 
+                  [ngModel]="learnerSearchQuery()"
+                  (ngModelChange)="learnerSearchQuery.set($event)"
                   placeholder="Search learner..." 
-                  class="w-full pl-8 pr-2.5 py-1 rounded-lg text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none" />
+                  class="w-full pl-8 pr-2.5 py-1 rounded-lg text-xs bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 transition-colors" />
               </div>
 
               <div class="w-36">
                 <app-custom-select
                   [options]="learnerPhaseFilterOptions()"
-                  [(ngModel)]="selectedLearnerPhaseFilter"
+                  [ngModel]="selectedLearnerPhaseFilter()"
+                  (ngModelChange)="selectedLearnerPhaseFilter.set($event)"
                   size="sm"
                   placeholder="Phase: All">
                 </app-custom-select>
@@ -879,7 +944,8 @@ export interface LearnerProgressRecord {
               <div class="w-32">
                 <app-custom-select
                   [options]="learnerStatusFilterOptions"
-                  [(ngModel)]="selectedLearnerStatusFilter"
+                  [ngModel]="selectedLearnerStatusFilter()"
+                  (ngModelChange)="selectedLearnerStatusFilter.set($event)"
                   size="sm"
                   placeholder="Status: All">
                 </app-custom-select>
@@ -891,7 +957,7 @@ export interface LearnerProgressRecord {
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-base-300 dark:border-slate-800 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
+                <tr class="border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
                   <th class="py-3 px-3">Learner Profile</th>
                   <th class="py-3 px-3">Current Enrolled Phase</th>
                   <th class="py-3 px-3">Courses Completed</th>
@@ -901,9 +967,9 @@ export interface LearnerProgressRecord {
                   <th class="py-3 px-3 text-right">Last Active</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-base-300/60 dark:divide-slate-800/60">
+              <tbody class="divide-y divide-base-300">
                 @for (learner of filteredPlanLearners(); track learner.id) {
-                  <tr class="hover:bg-base-200/50 dark:hover:bg-base-300/30 transition-colors">
+                  <tr class="hover:bg-base-200/50 transition-colors">
                     
                     <!-- Profile -->
                     <td class="py-3 px-3">
@@ -1036,15 +1102,15 @@ export class PlanDashboardComponent implements OnInit {
   selectedPlanId = signal<string | null>(null);
 
   // Portfolio Filters (Part A)
-  searchQuery = '';
-  selectedStatusFilter = 'ALL';
-  selectedDurationFilter = 'ALL';
-  selectedEnrollmentFilter = 'ALL';
+  searchQuery = signal<string>('');
+  selectedStatusFilter = signal<string>('ALL');
+  selectedDurationFilter = signal<string>('ALL');
+  selectedEnrollmentFilter = signal<string>('ALL');
 
   // Learner Filters (Part B)
-  learnerSearchQuery = '';
-  selectedLearnerPhaseFilter = 'ALL';
-  selectedLearnerStatusFilter = 'ALL';
+  learnerSearchQuery = signal<string>('');
+  selectedLearnerPhaseFilter = signal<string>('ALL');
+  selectedLearnerStatusFilter = signal<string>('ALL');
 
   // Modals state
   modalPlanForAssign = signal<Plan | null>(null);
@@ -1119,27 +1185,30 @@ export class PlanDashboardComponent implements OnInit {
 
   filteredPlans = computed<Plan[]>(() => {
     let list = this.plans();
+    const query = this.searchQuery().trim().toLowerCase();
+    const status = this.selectedStatusFilter();
+    const duration = this.selectedDurationFilter();
+    const enrollment = this.selectedEnrollmentFilter();
 
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.toLowerCase();
+    if (query) {
       list = list.filter(p => 
-        p.name.toLowerCase().includes(q) ||
-        p.planCode.toLowerCase().includes(q) ||
-        (p.owner?.name && p.owner.name.toLowerCase().includes(q)) ||
-        (p.owner?.email && p.owner.email.toLowerCase().includes(q))
+        p.name.toLowerCase().includes(query) ||
+        p.planCode.toLowerCase().includes(query) ||
+        (p.owner?.name && p.owner.name.toLowerCase().includes(query)) ||
+        (p.owner?.email && p.owner.email.toLowerCase().includes(query))
       );
     }
 
-    if (this.selectedStatusFilter !== 'ALL') {
-      list = list.filter(p => p.status === this.selectedStatusFilter);
+    if (status !== 'ALL') {
+      list = list.filter(p => p.status === status);
     }
 
-    if (this.selectedDurationFilter !== 'ALL') {
-      list = list.filter(p => p.durationType === this.selectedDurationFilter);
+    if (duration !== 'ALL') {
+      list = list.filter(p => p.durationType === duration);
     }
 
-    if (this.selectedEnrollmentFilter !== 'ALL') {
-      list = list.filter(p => p.enrollmentType === this.selectedEnrollmentFilter);
+    if (enrollment !== 'ALL') {
+      list = list.filter(p => p.enrollmentType === enrollment);
     }
 
     return list;
@@ -1270,22 +1339,24 @@ export class PlanDashboardComponent implements OnInit {
 
   filteredPlanLearners = computed<LearnerProgressRecord[]>(() => {
     let list = this.selectedPlanLearners();
+    const query = this.learnerSearchQuery().trim().toLowerCase();
+    const phase = this.selectedLearnerPhaseFilter();
+    const status = this.selectedLearnerStatusFilter();
 
-    if (this.learnerSearchQuery.trim()) {
-      const q = this.learnerSearchQuery.toLowerCase();
+    if (query) {
       list = list.filter(l => 
-        l.name.toLowerCase().includes(q) || 
-        l.email.toLowerCase().includes(q) ||
-        l.department.toLowerCase().includes(q)
+        l.name.toLowerCase().includes(query) || 
+        l.email.toLowerCase().includes(query) ||
+        l.department.toLowerCase().includes(query)
       );
     }
 
-    if (this.selectedLearnerPhaseFilter !== 'ALL') {
-      list = list.filter(l => l.enrolledPhaseId === this.selectedLearnerPhaseFilter);
+    if (phase !== 'ALL') {
+      list = list.filter(l => l.enrolledPhaseId === phase);
     }
 
-    if (this.selectedLearnerStatusFilter !== 'ALL') {
-      list = list.filter(l => l.status === this.selectedLearnerStatusFilter);
+    if (status !== 'ALL') {
+      list = list.filter(l => l.status === status);
     }
 
     return list;
@@ -1349,17 +1420,17 @@ export class PlanDashboardComponent implements OnInit {
   }
 
   hasActivePortfolioFilters(): boolean {
-    return this.searchQuery !== '' || 
-      this.selectedStatusFilter !== 'ALL' || 
-      this.selectedDurationFilter !== 'ALL' || 
-      this.selectedEnrollmentFilter !== 'ALL';
+    return this.searchQuery() !== '' || 
+      this.selectedStatusFilter() !== 'ALL' || 
+      this.selectedDurationFilter() !== 'ALL' || 
+      this.selectedEnrollmentFilter() !== 'ALL';
   }
 
   resetPortfolioFilters() {
-    this.searchQuery = '';
-    this.selectedStatusFilter = 'ALL';
-    this.selectedDurationFilter = 'ALL';
-    this.selectedEnrollmentFilter = 'ALL';
+    this.searchQuery.set('');
+    this.selectedStatusFilter.set('ALL');
+    this.selectedDurationFilter.set('ALL');
+    this.selectedEnrollmentFilter.set('ALL');
   }
 
   selectPlan(planId: string) {

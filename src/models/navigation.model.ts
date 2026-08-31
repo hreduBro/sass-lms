@@ -158,22 +158,40 @@ export const APP_NAV_ITEMS: NavItem[] = [
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Curriculum library & training materials',
-    matchPatterns: ['/courses/**'],
+    matchPatterns: ['/courses', '/courses/details/**', '/courses/*/learn', '/courses/learn/**']
+  },
+  {
+    label: 'Course Templates',
+    route: '/courses/templates',
+    icon: 'dashboard_customize',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Builder',
+    description: 'Structural blueprints, module slots, builder & studio',
+    matchPatterns: ['/courses/templates/**'],
     children: [
-      { 
-        label: 'Course Directory', 
-        route: '/courses', 
-        icon: 'auto_stories', 
-        description: 'Browse courses, modules & tracks',
-        matchPatterns: ['/courses', '/courses/details/**']
+      {
+        label: 'Template Grid',
+        route: '/courses/templates',
+        icon: 'grid_view',
+        description: 'Browse, filter & manage course blueprints',
+        matchPatterns: ['/courses/templates', '/courses/templates/view/**']
       },
-      { 
-        label: 'Interactive Player', 
-        route: '/courses/c1/learn', 
-        icon: 'play_lesson', 
-        badge: 'Player', 
-        description: 'Resume multimedia training session',
-        matchPatterns: ['/courses/*/learn', '/courses/learn/**']
+      {
+        label: 'Template Dashboard',
+        route: '/courses/templates/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Telemetry',
+        description: 'Blueprint metrics, adoption velocity & slot telemetry',
+        matchPatterns: ['/courses/templates/dashboard']
+      },
+      {
+        label: 'Create Template',
+        route: '/courses/templates/create',
+        icon: 'add_circle',
+        badge: 'Builder',
+        description: 'Multi-step modular course blueprint builder',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/courses/templates/create', '/courses/templates/edit/**']
       }
     ]
   },
@@ -194,12 +212,47 @@ export const APP_NAV_ITEMS: NavItem[] = [
     matchPatterns: ['/analytics/**']
   },
   {
-    label: 'Certificates Vault',
-    route: '/certificates',
-    icon: 'verified',
+    label: 'Certificate Templates',
+    route: '/certificates/templates',
+    icon: 'workspace_premium',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Verifiable credentials & issued certificates',
-    matchPatterns: ['/certificates/**']
+    badge: 'Studio',
+    description: 'WYSIWYG designer, template grid, sharing & credentials',
+    matchPatterns: ['/certificates/**', '/certificates'],
+    children: [
+      {
+        label: 'Template Grid',
+        route: '/certificates/templates',
+        icon: 'grid_view',
+        description: 'Browse, filter & manage certificate templates',
+        matchPatterns: ['/certificates/templates', '/certificates/templates/view/**']
+      },
+      {
+        label: 'Template Dashboard',
+        route: '/certificates/templates/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Studio',
+        description: 'KPI summary, status & sharing analytics studio',
+        matchPatterns: ['/certificates/templates/dashboard']
+      },
+      {
+        label: 'Create Template',
+        route: '/certificates/templates/create',
+        icon: 'add_circle',
+        badge: 'Wizard',
+        description: '3-step WYSIWYG canvas & placeholder authoring',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/templates/create', '/certificates/templates/edit/**']
+      },
+      {
+        label: 'Certificates Vault',
+        route: '/certificates/vault',
+        icon: 'verified',
+        badge: 'Issued',
+        description: 'Verifiable credentials & issued student certificates',
+        matchPatterns: ['/certificates/vault', '/certificates']
+      }
+    ]
   },
   {
     label: 'Live Classrooms',

@@ -1,13 +1,14 @@
 <div class="space-y-6 pb-16">
   
   <!-- ========================================================================= -->
-  <!-- 1. HEADER & WORKSPACE SCOPE BANNER (§2.1 / LMS Style)                     -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
   <!-- ========================================================================= -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
-          LMS Scope
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">assignment</span>
+          Learning Curriculum Studio
         </span>
         <span class="text-xs text-text-secondary">
           Parent Org: <strong class="font-bold text-text-primary">{{ activeTenant().name }}</strong>
@@ -16,14 +17,11 @@
       </div>
       
       <!-- Primary Heading -->
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
-        <span class="material-symbols-outlined text-tenant-600 text-3xl">event_note</span>
-        <span>Plan Management</span>
-      </h1>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Plan Management</h1>
       
       <!-- Subtitle -->
-      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
-        All structured learning tracks, milestones, and certification curricula within this LMS.
+      <p class="text-xs text-text-secondary mt-0.5">
+        All structured learning tracks, sequential phase milestones, and certification curricula within this LMS.
       </p>
     </div>
 
@@ -33,8 +31,8 @@
         type="button"
         id="btn-plan-dashboard-header"
         (click)="navigateToDashboard()"
-        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">space_dashboard</span>
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base text-tenant-500">space_dashboard</span>
         <span>Plan Dashboard</span>
       </button>
 
@@ -42,17 +40,70 @@
         type="button"
         id="btn-create-plan-header"
         (click)="navigateToCreate()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-lg">add_circle</span>
+        class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base">add_circle</span>
         <span>Create Plan</span>
       </button>
     </div>
   </div>
 
   <!-- ========================================================================= -->
+  <!-- 1.5. KPI METRICS SUMMARY ROW                                              -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Plans -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Total Plans</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().total }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ totalPhasesCount() }} total phases</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">collections_bookmark</span>
+      </div>
+    </div>
+
+    <!-- Active & Published -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active & Published</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().active }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpi().activePct }}% of curriculum</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
+    </div>
+
+    <!-- In Draft -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-amber-600 dark:text-amber-400">In Draft</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().draft }}</h3>
+        <span class="text-[11px] text-text-secondary">Resumable authoring</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+        <span class="material-symbols-outlined">edit_note</span>
+      </div>
+    </div>
+
+    <!-- Archived -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Archived</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().archived }}</h3>
+        <span class="text-[11px] text-text-secondary">Historical records</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center text-text-secondary">
+        <span class="material-symbols-outlined">archive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- 2. SEARCH & FILTER CONTROLS (LMS MATCHED DESIGN PATTERN)                 -->
   <!-- ========================================================================= -->
-  <div class="relative z-10 bg-white dark:bg-base-100 rounded-3xl border border-slate-200/90 dark:border-base-300 p-4 sm:p-5 shadow-2xs space-y-4">
+  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-sm">
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       
       <!-- Left: Search Field & Filter Button & Reset -->
@@ -60,20 +111,20 @@
         
         <!-- Search Field -->
         <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
           <input
             type="text"
             id="plan-search-input"
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
-            placeholder="Search by Plan Name or Plan Code..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/90 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
+            placeholder="Search by Plan Name, Code, or Owner..."
+            class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors shadow-2xs" />
           @if (searchQuery()) {
             <button 
-              type="button"
+              type="button" 
               (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
-              <span class="material-symbols-outlined text-sm">close</span>
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
             </button>
           }
         </div>
@@ -83,15 +134,15 @@
           type="button"
           id="btn-toggle-filter-panel"
           (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          class="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-sm"
           [class]="isFilterPanelOpen() || hasActiveFilters()
             ? 'bg-tenant-500 text-white border-tenant-500'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
+            : 'bg-base-100 hover:bg-base-200 text-text-primary border-base-300'"
           title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          <span class="material-symbols-outlined text-base" [class.text-tenant-500]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-tenant-500 text-[10px] font-bold flex items-center justify-center">
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
@@ -103,7 +154,7 @@
             type="button"
             id="btn-grid-reset"
             (click)="resetGrid()"
-            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
             title="Clear search and all active filters">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             <span>Reset</span>
@@ -114,7 +165,7 @@
 
       <!-- Right: Total Count Indicator -->
       <div class="flex items-center justify-end text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
-        <span class="px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-semibold">
+        <span class="px-3.5 py-1.5 rounded-xl bg-base-200 border border-base-300 font-medium">
           Showing <strong class="text-text-primary">{{ filteredPlans().length }}</strong> of {{ plans().length }} Plans
         </span>
       </div>
@@ -256,26 +307,26 @@
         </div>
 
         <!-- Filter Panel Footer Actions -->
-        <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+        <div class="pt-4 border-t border-base-300 flex items-center justify-between">
           <button 
             type="button"
             (click)="clearFilterPanelDraft()"
-            class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+            class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
             Clear All Selections
           </button>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2.5">
             <button 
               type="button"
               (click)="closeFilterPanel()"
-              class="px-5 py-2 rounded-full bg-[#F1F5F9] hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
+              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
               Cancel
             </button>
             <button 
               type="button"
               id="btn-apply-filters"
               (click)="applyFilterPanel()"
-              class="px-6 py-2 rounded-full bg-[#FF007A] hover:bg-[#E0006C] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer focus:outline-none">
+              class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer focus:outline-none">
               Apply Filter
             </button>
           </div>
@@ -331,7 +382,7 @@
         <button 
           type="button"
           (click)="clearAllFilters()"
-          class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FF007A] text-white hover:bg-[#E0006C] transition-colors cursor-pointer">
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-500 text-white hover:bg-tenant-600 transition-colors cursor-pointer shadow-sm">
           Clear Filters
         </button>
       }

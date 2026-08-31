@@ -1,0 +1,220 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 lg:p-8 space-y-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header & Breadcrumbs -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <a routerLink="/dashboard" class="hover:text-primary transition-colors">Dashboard</a>
+          <span>/</span>
+          <a routerLink="/courses/templates" class="hover:text-primary transition-colors">Course Templates</a>
+          <span>/</span>
+          <span class="text-slate-800 dark:text-slate-200 font-medium">Studio & Analytics</span>
+        </nav>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-2xl">space_dashboard</span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Course Template Studio</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Curriculum telemetry, standardized blueprint adoption and content slot distributions for 
+              <span class="font-semibold text-slate-700 dark:text-slate-300">{{ activeTenant().name }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <a 
+          routerLink="/courses/templates" 
+          class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-base">dashboard_customize</span>
+          <span>Template Library</span>
+        </a>
+
+        @if (permissions().canCreateTemplate) {
+          <a 
+            routerLink="/courses/templates/create" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-sm transition-all flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            <span>New Blueprint</span>
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- 4 Primary KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Blueprints</p>
+          <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats().totalTemplates }}</h3>
+          <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ stats().activeTemplates }} Active ({{ Math.round((stats().activeTemplates / (stats().totalTemplates || 1)) * 100) }}%)</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">content_copy</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Spawned Courses</p>
+          <h3 class="text-2xl font-bold text-primary mt-1">{{ stats().totalCoursesSpawned }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">Live catalog adoptions</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">auto_stories</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Avg Curriculum Time</p>
+          <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ averageMetrics().avgDuration }} mins</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">{{ averageMetrics().avgModules }} modules &bull; {{ averageMetrics().avgSlots }} slots avg</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">schedule</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Drafts & Inactive</p>
+          <h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats().draftTemplates + stats().inactiveTemplates }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">{{ stats().draftTemplates }} in authoring</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">pending_actions</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2-Column Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs">
+      
+      <!-- Top Adopted Blueprints Leaderboard (7 cols) -->
+      <div class="lg:col-span-7 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Top Adopted Blueprints</h2>
+            <p class="text-xs text-slate-500">Most utilized curriculum templates across instructional programs.</p>
+          </div>
+          <a routerLink="/courses/templates" class="text-xs text-primary font-semibold hover:underline">
+            View All &rarr;
+          </a>
+        </div>
+
+        <div class="space-y-3">
+          @for (tpl of topAdoptedTemplates(); track tpl.id; let idx = $index) {
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-7 h-7 rounded-lg font-bold text-xs flex items-center justify-center shrink-0"
+                  [class.bg-amber-500/20]="idx === 0"
+                  [class.text-amber-600]="idx === 0"
+                  [class.bg-slate-200]="idx > 0"
+                  [class.dark:bg-slate-700]="idx > 0"
+                  [class.text-slate-700]="idx > 0"
+                  [class.dark:text-slate-300]="idx > 0">
+                  #{{ idx + 1 }}
+                </span>
+                <div class="min-w-0">
+                  <p class="font-bold text-slate-900 dark:text-white truncate">{{ tpl.name }}</p>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">
+                    {{ tpl.code }} &bull; {{ tpl.structure.modules.length }} modules
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="text-right">
+                  <p class="font-bold text-primary text-sm">{{ tpl.usedCount || 0 }}</p>
+                  <p class="text-[10px] text-slate-400 uppercase">Courses</p>
+                </div>
+                <a 
+                  [routerLink]="['/courses/templates']" 
+                  class="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right Column: Slot Composition & Scope (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Content Slot Distribution -->
+        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Content Slot Distribution</h2>
+            <p class="text-xs text-slate-500">Breakdown of pedagogical slot types across active templates.</p>
+          </div>
+
+          <div class="space-y-3">
+            @for (item of slotTypeDistribution(); track item.type) {
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+                  <span class="font-mono text-slate-500">{{ item.count }} slots ({{ item.percentage }}%)</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div [class]="item.color" [style.width.%]="item.percentage" class="h-full rounded-full transition-all"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Scope Distribution Box -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider text-slate-400">Sharing Scope Coverage</h3>
+          <div class="grid grid-cols-2 gap-3 text-center">
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <p class="text-lg font-bold text-slate-900 dark:text-white">{{ scopeBreakdown().lmsCount }}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">LMS Workspace</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+              <p class="text-lg font-bold text-primary">{{ scopeBreakdown().orgCount }}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Organization-Wide</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Recent Template Updates & Audit Trail -->
+    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 text-xs">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Recent Blueprint Revisions</h2>
+          <p class="text-xs text-slate-500">Audit trail of recently modified curriculum blueprints.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (tpl of recentlyUpdatedTemplates(); track tpl.id) {
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] text-slate-500">{{ tpl.code }}</span>
+              <span class="text-[10px] text-slate-400">{{ tpl.updatedAt ? tpl.updatedAt.split(' ')[0] : tpl.createdAt.split(' ')[0] }}</span>
+            </div>
+            <p class="font-bold text-slate-900 dark:text-white truncate">{{ tpl.name }}</p>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px]">
+              <span class="text-slate-500">By {{ tpl.createdBy }}</span>
+              <span class="font-semibold text-primary">{{ tpl.usedCount || 0 }} courses</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>

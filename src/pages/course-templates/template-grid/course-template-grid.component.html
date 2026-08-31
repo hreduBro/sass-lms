@@ -1,0 +1,812 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header & Breadcrumbs -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <a routerLink="/dashboard" class="hover:text-primary transition-colors">Dashboard</a>
+          <span>/</span>
+          <a routerLink="/courses" class="hover:text-primary transition-colors">Courses & Catalog</a>
+          <span>/</span>
+          <span class="text-slate-800 dark:text-slate-200 font-medium">Course Templates</span>
+        </nav>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-2xl">dashboard_customize</span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Course Templates</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Standardized modular curriculum blueprints for 
+              <span class="font-semibold text-slate-700 dark:text-slate-300">{{ activeTenant().name }}</span> 
+              &bull; <span class="text-primary font-medium">{{ activeLms().basicInfo?.lmsName || 'Current LMS' }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <a 
+          routerLink="/courses/templates/dashboard" 
+          class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-base text-primary">space_dashboard</span>
+          <span>Template Studio</span>
+        </a>
+
+        <a 
+          routerLink="/courses" 
+          class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-base">auto_stories</span>
+          <span>Course Directory</span>
+        </a>
+
+        @if (permissions().canCreateTemplate) {
+          <a 
+            routerLink="/courses/templates/create" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-sm transition-all flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            <span>Create Blueprint</span>
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- 4 KPI Stat Cards Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Blueprints</p>
+          <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats().totalTemplates }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">Standardized curricula</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">content_copy</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Templates</p>
+          <h3 class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats().activeTemplates }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">Ready to spawn courses</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">check_circle</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Spawned Courses</p>
+          <h3 class="text-2xl font-bold text-primary mt-1">{{ stats().totalCoursesSpawned }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">Adoptions across portal</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">auto_stories</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Draft & Inactive</p>
+          <h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats().draftTemplates + stats().inactiveTemplates }}</h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">{{ stats().draftTemplates }} drafts &bull; {{ stats().inactiveTemplates }} deactivated</p>
+        </div>
+        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">pending_actions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters, Search & View Mode Controls -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1 max-w-md">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search templates by title, code, author or category..." 
+            class="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40">
+          @if (searchQuery()) {
+            <button 
+              (click)="searchQuery.set('')" 
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Selects -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Status Select -->
+          <div class="flex items-center gap-1 text-xs">
+            <span class="text-slate-500 dark:text-slate-400 hidden sm:inline">Status:</span>
+            <select 
+              [ngModel]="selectedStatus()" 
+              (ngModelChange)="selectedStatus.set($event)"
+              class="px-2.5 py-1.5 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary">
+              <option value="all">All Statuses</option>
+              <option value="active">Active Only</option>
+              <option value="draft">Draft Only</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <!-- Scope Select -->
+          <div class="flex items-center gap-1 text-xs">
+            <span class="text-slate-500 dark:text-slate-400 hidden sm:inline">Scope:</span>
+            <select 
+              [ngModel]="selectedScope()" 
+              (ngModelChange)="selectedScope.set($event)"
+              class="px-2.5 py-1.5 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary">
+              <option value="all">All Scopes</option>
+              <option value="lms">LMS Workspace</option>
+              <option value="organization">Organization-wide</option>
+            </select>
+          </div>
+
+          <!-- Sort Select -->
+          <div class="flex items-center gap-1 text-xs">
+            <span class="text-slate-500 dark:text-slate-400 hidden sm:inline">Sort:</span>
+            <select 
+              [ngModel]="sortBy()" 
+              (ngModelChange)="sortBy.set($event)"
+              class="px-2.5 py-1.5 rounded-lg text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary">
+              <option value="updated_desc">Recently Updated</option>
+              <option value="updated_asc">Oldest Updated</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="used_desc">Most Adopted</option>
+            </select>
+          </div>
+
+          <!-- View Mode Toggle -->
+          <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <button 
+              (click)="viewMode.set('grid')"
+              [class.bg-white]="viewMode() === 'grid'"
+              [class.dark:bg-slate-700]="viewMode() === 'grid'"
+              [class.shadow-xs]="viewMode() === 'grid'"
+              [class.text-primary]="viewMode() === 'grid'"
+              class="p-1 rounded text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+              title="Grid View">
+              <span class="material-symbols-outlined text-base">grid_view</span>
+            </button>
+            <button 
+              (click)="viewMode.set('table')"
+              [class.bg-white]="viewMode() === 'table'"
+              [class.dark:bg-slate-700]="viewMode() === 'table'"
+              [class.shadow-xs]="viewMode() === 'table'"
+              [class.text-primary]="viewMode() === 'table'"
+              class="p-1 rounded text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+              title="Table View">
+              <span class="material-symbols-outlined text-base">table_rows</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <span class="text-slate-400 font-medium text-[11px] whitespace-nowrap mr-1">Categories:</span>
+        <button 
+          (click)="selectedCategory.set('all')"
+          [class.bg-primary]="selectedCategory() === 'all'"
+          [class.text-white]="selectedCategory() === 'all'"
+          [class.bg-slate-100]="selectedCategory() !== 'all'"
+          [class.dark:bg-slate-800]="selectedCategory() !== 'all'"
+          [class.text-slate-600]="selectedCategory() !== 'all'"
+          [class.dark:text-slate-400]="selectedCategory() !== 'all'"
+          class="px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap">
+          All
+        </button>
+        @for (cat of categories(); track cat) {
+          <button 
+            (click)="selectedCategory.set(cat)"
+            [class.bg-primary]="selectedCategory() === cat"
+            [class.text-white]="selectedCategory() === cat"
+            [class.bg-slate-100]="selectedCategory() !== cat"
+            [class.dark:bg-slate-800]="selectedCategory() !== cat"
+            [class.text-slate-600]="selectedCategory() !== cat"
+            [class.dark:text-slate-400]="selectedCategory() !== cat"
+            class="px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap">
+            {{ cat }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    @if (filteredTemplates().length === 0) {
+      <div class="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mx-auto">
+          <span class="material-symbols-outlined text-3xl">dashboard_customize</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No Course Templates Found</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+          No templates match your current filters. Try changing your search query or create a new modular curriculum blueprint.
+        </p>
+        @if (permissions().canCreateTemplate) {
+          <div class="pt-2">
+            <a 
+              routerLink="/courses/templates/create" 
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-colors">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              <span>Create New Blueprint</span>
+            </a>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- GRID VIEW MODE -->
+    @if (viewMode() === 'grid' && filteredTemplates().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @for (tpl of filteredTemplates(); track tpl.id) {
+          <div class="flex flex-col justify-between rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-primary/30 dark:hover:border-primary/30 transition-all p-5 space-y-4">
+            
+            <!-- Card Header: Status, Code & Scope -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <!-- Status Badge -->
+                @if (tpl.status === 'active') {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                  </span>
+                } @else if (tpl.status === 'draft') {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Draft
+                  </span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inactive
+                  </span>
+                }
+
+                <!-- Code Pill -->
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {{ tpl.code }}
+                </span>
+
+                <!-- Version -->
+                <span class="text-[10px] font-medium text-slate-400">v{{ tpl.version }}</span>
+              </div>
+
+              <!-- Scope Pill -->
+              <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">
+                {{ tpl.scope === 'organization' ? 'Org Wide' : 'LMS Scope' }}
+              </span>
+            </div>
+
+            <!-- Title & Description -->
+            <div class="space-y-1.5 flex-1">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug hover:text-primary transition-colors cursor-pointer" (click)="openInspect(tpl)">
+                {{ tpl.name }}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                {{ tpl.description || 'No description provided.' }}
+              </p>
+
+              <!-- Category Tags -->
+              @if (tpl.categoryTags && tpl.categoryTags.length > 0) {
+                <div class="flex flex-wrap gap-1 pt-1">
+                  @for (tag of tpl.categoryTags.slice(0, 3); track tag) {
+                    <span class="px-2 py-0.5 rounded-md text-[10px] bg-primary/5 text-primary border border-primary/15 font-medium">
+                      {{ tag }}
+                    </span>
+                  }
+                  @if (tpl.categoryTags.length > 3) {
+                    <span class="text-[10px] text-slate-400 self-center">+{{ tpl.categoryTags.length - 3 }} more</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Blueprint Structural Telemetry Box -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2">
+              <div class="grid grid-cols-3 gap-2 text-center divide-x divide-slate-200 dark:divide-slate-700/60">
+                <div>
+                  <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Modules</p>
+                  <p class="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{{ tpl.structure.modules.length }}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Slots</p>
+                  <p class="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{{ getSlotCount(tpl) }}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Est. Time</p>
+                  <p class="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{{ getDuration(tpl) }}m</p>
+                </div>
+              </div>
+
+              <!-- Extra Governance Indicators -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/40">
+                <span class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs text-primary">verified</span>
+                  Pass: {{ tpl.structure.structuralDefaults?.passingScorePercent || 80 }}%
+                </span>
+                <span class="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-xs text-blue-500">auto_stories</span>
+                  Used: {{ tpl.usedCount || 0 }} courses
+                </span>
+              </div>
+            </div>
+
+            <!-- Creator & Date -->
+            <div class="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+              <span class="truncate">By {{ tpl.createdBy }}</span>
+              <span>{{ tpl.updatedAt ? tpl.updatedAt.split(' ')[0] : tpl.createdAt.split(' ')[0] }}</span>
+            </div>
+
+            <!-- Actions Row -->
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+              <button 
+                (click)="openInspect(tpl)" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">visibility</span>
+                <span>Inspect</span>
+              </button>
+
+              <div class="flex items-center gap-1.5">
+                <!-- Action Dropdown items -->
+                <button 
+                  (click)="duplicate(tpl)" 
+                  class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  title="Duplicate Blueprint">
+                  <span class="material-symbols-outlined text-base">content_copy</span>
+                </button>
+
+                @if (permissions().canEditTemplate) {
+                  <a 
+                    [routerLink]="['/courses/templates/edit', tpl.id]" 
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Edit Blueprint">
+                    <span class="material-symbols-outlined text-base">edit</span>
+                  </a>
+                }
+
+                @if (permissions().canDeactivateTemplate) {
+                  <button 
+                    (click)="toggleStatus(tpl)" 
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    [title]="tpl.status === 'active' ? 'Deactivate Template' : 'Reactivate Template'">
+                    <span class="material-symbols-outlined text-base">{{ tpl.status === 'active' ? 'pause_circle' : 'play_circle' }}</span>
+                  </button>
+                }
+
+                <!-- Use Template Button -->
+                @if (tpl.status === 'active' && permissions().canUseTemplate) {
+                  <button 
+                    (click)="openSpawnModal(tpl)" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-xs transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">add_task</span>
+                    <span>Use Template</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TABLE VIEW MODE -->
+    @if (viewMode() === 'table' && filteredTemplates().length > 0) {
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-semibold">
+              <tr>
+                <th class="p-3.5 pl-5">Template Name</th>
+                <th class="p-3.5">Code</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5">Modules / Slots</th>
+                <th class="p-3.5">Est. Duration</th>
+                <th class="p-3.5">Used In</th>
+                <th class="p-3.5">Scope</th>
+                <th class="p-3.5">Updated</th>
+                <th class="p-3.5 pr-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+              @for (tpl of filteredTemplates(); track tpl.id) {
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <td class="p-3.5 pl-5">
+                    <div class="font-bold text-slate-900 dark:text-white hover:text-primary cursor-pointer" (click)="openInspect(tpl)">
+                      {{ tpl.name }}
+                    </div>
+                    <div class="text-[11px] text-slate-400 truncate max-w-xs">
+                      {{ tpl.description || 'No description' }}
+                    </div>
+                  </td>
+                  <td class="p-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                    {{ tpl.code }}
+                  </td>
+                  <td class="p-3.5">
+                    @if (tpl.status === 'active') {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        Active
+                      </span>
+                    } @else if (tpl.status === 'draft') {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        Draft
+                      </span>
+                    } @else {
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                        Inactive
+                      </span>
+                    }
+                  </td>
+                  <td class="p-3.5 font-medium">
+                    {{ tpl.structure.modules.length }} mods &bull; {{ getSlotCount(tpl) }} slots
+                  </td>
+                  <td class="p-3.5">
+                    {{ getDuration(tpl) }} mins
+                  </td>
+                  <td class="p-3.5 font-bold text-primary">
+                    {{ tpl.usedCount || 0 }} courses
+                  </td>
+                  <td class="p-3.5 text-slate-500">
+                    {{ tpl.scope === 'organization' ? 'Org-Wide' : 'LMS Scope' }}
+                  </td>
+                  <td class="p-3.5 text-slate-400 text-[11px]">
+                    {{ tpl.updatedAt ? tpl.updatedAt.split(' ')[0] : tpl.createdAt.split(' ')[0] }}
+                  </td>
+                  <td class="p-3.5 pr-5 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button 
+                        (click)="openInspect(tpl)" 
+                        class="p-1 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800"
+                        title="Inspect Blueprint">
+                        <span class="material-symbols-outlined text-base">visibility</span>
+                      </button>
+
+                      @if (tpl.status === 'active' && permissions().canUseTemplate) {
+                        <button 
+                          (click)="openSpawnModal(tpl)" 
+                          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-primary text-white hover:bg-primary/90"
+                          title="Spawn Course">
+                          Use
+                        </button>
+                      }
+
+                      @if (permissions().canEditTemplate) {
+                        <a 
+                          [routerLink]="['/courses/templates/edit', tpl.id]" 
+                          class="p-1 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          title="Edit">
+                          <span class="material-symbols-outlined text-base">edit</span>
+                        </a>
+                      }
+
+                      <button 
+                        (click)="duplicate(tpl)" 
+                        class="p-1 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        title="Duplicate">
+                        <span class="material-symbols-outlined text-base">content_copy</span>
+                      </button>
+
+                      @if (permissions().canDeactivateTemplate) {
+                        <button 
+                          (click)="toggleStatus(tpl)" 
+                          class="p-1 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          [title]="tpl.status === 'active' ? 'Deactivate' : 'Reactivate'">
+                          <span class="material-symbols-outlined text-base">{{ tpl.status === 'active' ? 'pause_circle' : 'play_circle' }}</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- BLUEPRINT INSPECTION MODAL                                               -->
+<!-- ========================================================================= -->
+@if (inspectTemplate(); as tpl) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
+    <div class="w-full max-w-3xl max-h-[90vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">dashboard_customize</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ tpl.name }}</h2>
+              <span class="px-2 py-0.5 rounded-md font-mono text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                {{ tpl.code }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Modular curriculum blueprint inspection &bull; v{{ tpl.version }}
+            </p>
+          </div>
+        </div>
+        <button 
+          (click)="closeInspect()" 
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+        
+        <!-- Description & Meta Summary -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3">
+          <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+            {{ tpl.description || 'Standardized curriculum template.' }}
+          </p>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Total Modules</span>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ tpl.structure.modules.length }}</p>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Content Slots</span>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ getSlotCount(tpl) }}</p>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Estimated Time</span>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ getDuration(tpl) }} mins</p>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Passing Score</span>
+              <p class="text-sm font-bold text-primary">{{ tpl.structure.structuralDefaults?.passingScorePercent || 80 }}%</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modules & Slots Hierarchy List -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Blueprint Modular Architecture</h4>
+
+          @for (mod of tpl.structure.modules; track mod.moduleId; let mIdx = $index) {
+            <div class="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-xs">
+              <!-- Module Header -->
+              <div class="p-3.5 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center">
+                    {{ mIdx + 1 }}
+                  </span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ mod.title }}</span>
+                </div>
+                <span class="text-[11px] text-slate-500 font-medium">
+                  {{ mod.contentSlots.length }} content slots
+                </span>
+              </div>
+
+              <!-- Module Slots -->
+              <div class="p-3 divide-y divide-slate-100 dark:divide-slate-800/60 space-y-2">
+                @for (slot of mod.contentSlots; track slot.slotId; let sIdx = $index) {
+                  <div class="pt-2 first:pt-0 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                      <!-- Slot Type Badge -->
+                      <div [class]="getSlotTypeColor(slot.type)" class="w-8 h-8 rounded-lg border flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-sm">{{ getSlotTypeIcon(slot.type) }}</span>
+                      </div>
+                      
+                      <div class="min-w-0">
+                        <p class="font-semibold text-slate-800 dark:text-slate-200 truncate">{{ slot.title }}</p>
+                        @if (slot.description) {
+                          <p class="text-[11px] text-slate-400 truncate">{{ slot.description }}</p>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                      @if (slot.required) {
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          Mandatory
+                        </span>
+                      } @else {
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500">
+                          Optional
+                        </span>
+                      }
+
+                      <span class="text-slate-500 font-mono text-[11px]">
+                        {{ slot.estimatedMinutes || 15 }}m
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Governance & Tracking Defaults -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2">
+          <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Compliance & Delivery Rules</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+            <div>&bull; Sequential slot unlock: <strong class="text-slate-800 dark:text-slate-200">{{ tpl.structure.structuralDefaults?.sequentialUnlock ? 'Enforced' : 'Flexible' }}</strong></div>
+            <div>&bull; Completion tracking: <strong class="text-slate-800 dark:text-slate-200">{{ tpl.structure.structuralDefaults?.completionTracking === 'all_slots' ? 'All Mandatory Slots' : 'Passing Final Assessment' }}</strong></div>
+            <div>&bull; Certificate enabled: <strong class="text-slate-800 dark:text-slate-200">{{ tpl.structure.structuralDefaults?.certificateEnabled ? 'Yes (Auto-Issued)' : 'No' }}</strong></div>
+            <div>&bull; Retake attempts: <strong class="text-slate-800 dark:text-slate-200">{{ tpl.structure.structuralDefaults?.maxRetakeAttempts || 3 }} attempts allowed</strong></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 dark:bg-slate-850 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <button 
+          (click)="closeInspect()" 
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100">
+          Close
+        </button>
+
+        <div class="flex items-center gap-2">
+          @if (permissions().canEditTemplate) {
+            <a 
+              [routerLink]="['/courses/templates/edit', tpl.id]" 
+              (click)="closeInspect()"
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300">
+              Edit Blueprint
+            </a>
+          }
+
+          @if (tpl.status === 'active' && permissions().canUseTemplate) {
+            <button 
+              (click)="openSpawnModal(tpl)" 
+              class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-sm flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">add_task</span>
+              <span>Use Blueprint to Create Course</span>
+            </button>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- SPAWN COURSE FROM TEMPLATE CONSUMER MODAL                                -->
+<!-- ========================================================================= -->
+@if (spawnModalOpen() && spawnTemplate(); as tpl) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
+    <div class="w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">school</span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Create Course from Template</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Blueprint: <span class="font-semibold text-primary">{{ tpl.name }}</span> ({{ tpl.code }})
+            </p>
+          </div>
+        </div>
+        <button 
+          (click)="closeSpawnModal()" 
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Form (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        
+        <!-- Snapshot Decoupling Assurance Notice -->
+        <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 flex items-start gap-2.5 text-[11px]">
+          <span class="material-symbols-outlined text-base shrink-0 mt-0.5">info</span>
+          <div>
+            <strong class="font-semibold">Snapshot Decoupled Architecture:</strong>
+            Creating this course takes an independent deep copy of the blueprint's {{ tpl.structure.modules.length }} modules and {{ getSlotCount(tpl) }} content slots. Future updates to the template will never overwrite your course.
+          </div>
+        </div>
+
+        <!-- Course Title -->
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Course Title *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="spawnForm().title"
+            placeholder="e.g. Mandatory Cybersecurity Architecture 2026" 
+            class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/40 focus:outline-none">
+        </div>
+
+        <!-- Subtitle -->
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Subtitle / Cohort Label</label>
+          <input 
+            type="text" 
+            [(ngModel)]="spawnForm().subtitle"
+            placeholder="e.g. Q3 Compliance & Systems Engineering Track" 
+            class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/40 focus:outline-none">
+        </div>
+
+        <!-- Category & Level -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+            <select 
+              [(ngModel)]="spawnForm().category"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none">
+              <option value="Compliance & Security">Compliance & Security</option>
+              <option value="AI & Data">AI & Data</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Finance">Finance</option>
+              <option value="Leadership">Leadership</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Course Level</label>
+            <select 
+              [(ngModel)]="spawnForm().level"
+              class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Instructor Name -->
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Lead Instructor / Owner</label>
+          <input 
+            type="text" 
+            [(ngModel)]="spawnForm().instructorName"
+            placeholder="Instructor Name" 
+            class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/40 focus:outline-none">
+        </div>
+
+        <!-- Mandatory Toggle -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+          <div>
+            <p class="font-semibold text-slate-800 dark:text-slate-200">Mandatory Course</p>
+            <p class="text-[11px] text-slate-500">Require enrolled personnel to complete before compliance deadlines</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="spawnForm().isMandatory"
+              class="sr-only peer">
+            <div class="w-10 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 dark:bg-slate-850 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+        <button 
+          (click)="closeSpawnModal()" 
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100">
+          Cancel
+        </button>
+        <button 
+          (click)="submitSpawnCourse()" 
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">rocket_launch</span>
+          <span>Spawn Course Now</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
