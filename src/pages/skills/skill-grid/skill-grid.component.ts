@@ -11,11 +11,12 @@ import {
   SkillStatus, 
   SkillTargetType 
 } from '../../../models/skill-mapping.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-skill-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './skill-grid.component.html'
 })
 export class SkillGridComponent implements OnInit {
@@ -26,6 +27,11 @@ export class SkillGridComponent implements OnInit {
 
   // Active Tab: 'skills' | 'clusters' | 'mappings'
   activeTab = signal<'skills' | 'clusters' | 'mappings'>('skills');
+
+  // Actions Menu State (Positioned outside scroll boundaries)
+  activeMenuSkill = signal<Skill | null>(null);
+  activeMenuMapping = signal<SkillMapping | null>(null);
+  menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Search & Filter State for Skills
   searchQuery = signal<string>('');
@@ -90,6 +96,138 @@ export class SkillGridComponent implements OnInit {
     'Operations', 
     'Domain Knowledge'
   ];
+
+  // Custom Select Dropdown Options
+  statusSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses', icon: 'list' },
+    { value: 'active', label: 'Active', icon: 'check_circle', badge: 'Active', badgeClass: 'bg-emerald-500/10 text-emerald-600' },
+    { value: 'inactive', label: 'Inactive', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-rose-500/10 text-rose-600' },
+    { value: 'draft', label: 'Draft', icon: 'draft', badge: 'Draft', badgeClass: 'bg-blue-500/10 text-blue-600' }
+  ];
+
+  categorySelectOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: 'all', label: 'All Categories', icon: 'category' },
+      ...this.categories.map(c => ({ value: c, label: c, icon: 'psychology' }))
+    ];
+  });
+
+  clusterSelectOptions = computed<SelectOption[]>(() => {
+    const list = this.lmsData.skillClusters();
+    return [
+      { value: 'all', label: 'All Clusters', icon: 'bubble_chart' },
+      { value: 'uncategorized', label: 'Uncategorized', icon: 'layers_clear' },
+      ...list.map(c => ({ value: c.clusterId, label: c.name, icon: 'bubble_chart', sublabel: c.clusterCode }))
+    ];
+  });
+
+  mappedSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Skills', icon: 'list' },
+    { value: 'mapped', label: 'Mapped (≥1 element)', icon: 'link' },
+    { value: 'unmapped', label: 'Unmapped (0 elements)', icon: 'link_off' }
+  ];
+
+  targetTypeSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Targets', icon: 'account_tree' },
+    { value: 'plan', label: 'Training Plan', icon: 'assignment' },
+    { value: 'phase', label: 'Phase', icon: 'step' },
+    { value: 'course', label: 'Course / Class', icon: 'school' },
+    { value: 'content', label: 'Content Asset', icon: 'article' }
+  ];
+
+  mappingTargetTypeOptions: SelectOption[] = [
+    { value: 'course', label: 'Course / Class', icon: 'school' },
+    { value: 'plan', label: 'Training Plan', icon: 'assignment' },
+    { value: 'phase', label: 'Phase', icon: 'step' },
+    { value: 'content', label: 'Content Asset', icon: 'article' }
+  ];
+
+  mappingTargetItemOptions = computed<SelectOption[]>(() => {
+    const type = this.mappingTargetType();
+    if (type === 'course') {
+      return this.availableCourses().map(c => ({
+        value: c.id,
+        label: c.title,
+        icon: 'school'
+      }));
+    } else if (type === 'plan') {
+      return this.availablePlans().map(p => ({
+        value: p.id,
+        label: p.name,
+        icon: 'assignment'
+      }));
+    } else if (type === 'phase') {
+      return this.availablePhases().map(ph => ({
+        value: ph.id,
+        label: `${ph.title} (${ph.planName})`,
+        icon: 'step'
+      }));
+    } else if (type === 'content') {
+      return this.availableContentAssets().map(cnt => ({
+        value: cnt.id,
+        label: cnt.title,
+        icon: 'article'
+      }));
+    }
+    return [];
+  });
+
+  toggleSkillActionMenu(skill: Skill, event: MouseEvent, button: HTMLElement) {
+    event.stopPropagation();
+    this.activeMenuMapping.set(null); // Close mapping menu if open
+    if (this.activeMenuSkill()?.skillId === skill.skillId) {
+      this.closeActionMenu();
+      return;
+    }
+
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 260;
+    const menuWidth = 240; // w-60 is 240px
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
+    let left = rect.right - menuWidth; // Align perfectly flush with the right edge of the button
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    this.menuPosition.set({ top, left });
+    this.activeMenuSkill.set(skill);
+  }
+
+  toggleMappingActionMenu(mapping: SkillMapping, event: MouseEvent, button: HTMLElement) {
+    event.stopPropagation();
+    this.activeMenuSkill.set(null); // Close skill menu if open
+    if (this.activeMenuMapping()?.skillId === mapping.skillId && this.activeMenuMapping()?.targetId === mapping.targetId) {
+      this.closeActionMenu();
+      return;
+    }
+
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 150;
+    const menuWidth = 240; // w-60 is 240px
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
+    let left = rect.right - menuWidth; // Align perfectly flush with the right edge of the button
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    this.menuPosition.set({ top, left });
+    this.activeMenuMapping.set(mapping);
+  }
+
+  closeActionMenu() {
+    this.activeMenuSkill.set(null);
+    this.activeMenuMapping.set(null);
+  }
 
   ngOnInit() {
     const updateTabFromRoute = (params: any) => {

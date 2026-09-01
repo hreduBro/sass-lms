@@ -1,8 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Skill, SkillCluster, SkillMapping, LearnerSkillProgress, SkillChangeLog } from '../../../models/skill-mapping.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 export interface SkillWidgetConfig {
   id: string;
@@ -27,7 +29,7 @@ const DEFAULT_SKILL_WIDGETS: SkillWidgetConfig[] = [
 @Component({
   selector: 'app-skill-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule, CustomSelectComponent],
   templateUrl: './skill-dashboard.component.html'
 })
 export class SkillDashboardComponent {
@@ -40,18 +42,91 @@ export class SkillDashboardComponent {
   widgets = signal<SkillWidgetConfig[]>(JSON.parse(JSON.stringify(DEFAULT_SKILL_WIDGETS)));
   draftWidgets = signal<SkillWidgetConfig[]>([]);
 
+  // Selected filter states
+  selectedCategory = signal<string>('all');
+  selectedCluster = signal<string>('all');
+
+  categories: string[] = [
+    'Technical', 
+    'Behavioral', 
+    'Leadership', 
+    'Functional', 
+    'Compliance', 
+    'Operations', 
+    'Domain Knowledge'
+  ];
+
+  categorySelectOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: 'all', label: 'All Categories', icon: 'category' },
+      ...this.categories.map(c => ({ value: c, label: c, icon: 'psychology' }))
+    ];
+  });
+
+  clusterSelectOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: 'all', label: 'All Clusters', icon: 'bubble_chart' },
+      { value: 'uncategorized', label: 'Uncategorized', icon: 'layers_clear' },
+      ...this.lmsData.skillClusters().map(c => ({ value: c.clusterId, label: c.name, icon: 'bubble_chart' }))
+    ];
+  });
+
+  // Filtered skills subset for statistics
+  filteredSkillsForStats = computed(() => {
+    let list = this.lmsData.skills();
+    const cat = this.selectedCategory();
+    const cluster = this.selectedCluster();
+
+    if (cat !== 'all') {
+      list = list.filter(s => s.category === cat);
+    }
+    if (cluster !== 'all') {
+      if (cluster === 'uncategorized') {
+        list = list.filter(s => !s.clusterId);
+      } else {
+        list = list.filter(s => s.clusterId === cluster);
+      }
+    }
+    return list;
+  });
+
   // Statistics Computations
-  totalSkills = computed(() => this.lmsData.skills().length);
-  activeSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'active').length);
-  inactiveSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'inactive').length);
-  draftSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'draft').length);
+  totalSkills = computed(() => this.filteredSkillsForStats().length);
+  activeSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'active').length);
+  inactiveSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'inactive').length);
+  draftSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'draft').length);
   
-  clusterCount = computed(() => this.lmsData.skillClusters().length);
-  unmappedSkillsCount = computed(() => this.lmsData.skills().filter(s => s.mappedElementCount === 0).length);
+  clusterCount = computed(() => {
+    const activeClusters = new Set(this.filteredSkillsForStats().map(s => s.clusterId).filter(id => !!id));
+    return this.selectedCluster() === 'all' 
+      ? this.lmsData.skillClusters().length 
+      : activeClusters.size;
+  });
+  unmappedSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.mappedElementCount === 0).length);
+
+  // Widget Helpers for Dynamic Visibility and Layout Classes
+  isWidgetVisible(id: string): boolean {
+    const list = this.isStudioMode() ? this.draftWidgets() : this.widgets();
+    const w = list.find(x => x.id === id);
+    return w ? w.visible : true;
+  }
+
+  getWidgetClass(id: string): string {
+    const list = this.isStudioMode() ? this.draftWidgets() : this.widgets();
+    const w = list.find(x => x.id === id);
+    const colSpan = w ? w.colSpan : 2;
+    switch (colSpan) {
+      case 1: return 'md:col-span-1 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4';
+      case 2: return 'md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4';
+      case 3: return 'md:col-span-3 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4';
+      case 4: return 'md:col-span-4 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4';
+      default: return 'md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4';
+    }
+  }
 
   // Top Mapped Skills
   topMappedSkills = computed(() => {
-    return [...this.lmsData.skills()]
+    return [...this.filteredSkillsForStats()]
       .sort((a, b) => b.mappedElementCount - a.mappedElementCount)
       .slice(0, 5);
   });
@@ -59,8 +134,10 @@ export class SkillDashboardComponent {
   // Target Type Mapping Breakdown
   targetTypeBreakdown = computed(() => {
     const mappings = this.lmsData.skillMappings();
+    const activeSkillIds = new Set(this.filteredSkillsForStats().map(s => s.skillId));
     const map = { plan: 0, phase: 0, course: 0, content: 0 };
     mappings.forEach(m => {
+      if (!activeSkillIds.has(m.skillId)) return;
       if (m.targetType === 'plan') map.plan++;
       else if (m.targetType === 'phase') map.phase++;
       else if (m.targetType === 'course' || m.targetType === 'class') map.course++;
@@ -70,16 +147,22 @@ export class SkillDashboardComponent {
   });
 
   // Learner Skill Progress Stats
-  learnerSkillsList = computed(() => this.lmsData.learnerSkillProgress());
+  learnerSkillsList = computed(() => {
+    const activeSkillIds = new Set(this.filteredSkillsForStats().map(s => s.skillId));
+    return this.lmsData.learnerSkillProgress().filter(p => activeSkillIds.has(p.skillId));
+  });
 
   // Skill Gaps
   unacquiredSkills = computed(() => {
     const acquiredSkillIds = new Set(this.lmsData.learnerSkillProgress().filter(p => p.acquired).map(p => p.skillId));
-    return this.lmsData.skills().filter(s => s.status === 'active' && !acquiredSkillIds.has(s.skillId));
+    return this.filteredSkillsForStats().filter(s => s.status === 'active' && !acquiredSkillIds.has(s.skillId));
   });
 
   // Change Propagation Logs
-  propagationLogs = computed(() => this.lmsData.skillChangeLogs());
+  propagationLogs = computed(() => {
+    const activeSkillIds = new Set(this.filteredSkillsForStats().map(s => s.skillId));
+    return this.lmsData.skillChangeLogs().filter(l => activeSkillIds.has(l.skillId));
+  });
 
   // Studio Mode Toggle & Controls
   enterStudioMode() {

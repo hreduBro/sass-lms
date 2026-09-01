@@ -95,47 +95,35 @@
   </div>
 
   <!-- Main View Navigation Tabs -->
-  <div class="flex items-center gap-2 border-b border-base-300 pb-0">
+  <div class="flex items-center gap-6 border-b border-slate-200 dark:border-base-300 pb-0">
     <button 
       (click)="setTab('skills')"
-      [class.border-tenant-600]="activeTab() === 'skills'"
+      [class.border-tenant-500]="activeTab() === 'skills'"
       [class.text-tenant-600]="activeTab() === 'skills'"
       [class.border-transparent]="activeTab() !== 'skills'"
       [class.text-text-secondary]="activeTab() !== 'skills'"
-      class="px-4 py-2.5 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer">
-      <span class="material-symbols-outlined text-base">list_alt</span>
+      class="pb-3 pt-1 font-extrabold text-xs border-b-2 transition-all cursor-pointer">
       <span>Skills Repository</span>
-      <span class="px-2 py-0.5 rounded-full bg-tenant-50 text-tenant-700 text-[10px] font-extrabold">
-        {{ filteredSkills().length }}
-      </span>
     </button>
 
     <button 
       (click)="setTab('clusters')"
-      [class.border-tenant-600]="activeTab() === 'clusters'"
+      [class.border-tenant-500]="activeTab() === 'clusters'"
       [class.text-tenant-600]="activeTab() === 'clusters'"
       [class.border-transparent]="activeTab() !== 'clusters'"
       [class.text-text-secondary]="activeTab() !== 'clusters'"
-      class="px-4 py-2.5 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer">
-      <span class="material-symbols-outlined text-base">bubble_chart</span>
+      class="pb-3 pt-1 font-extrabold text-xs border-b-2 transition-all cursor-pointer">
       <span>Competency Clusters</span>
-      <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-extrabold">
-        {{ lmsData.skillClusters().length }}
-      </span>
     </button>
 
     <button 
       (click)="setTab('mappings')"
-      [class.border-tenant-600]="activeTab() === 'mappings'"
+      [class.border-tenant-500]="activeTab() === 'mappings'"
       [class.text-tenant-600]="activeTab() === 'mappings'"
       [class.border-transparent]="activeTab() !== 'mappings'"
       [class.text-text-secondary]="activeTab() !== 'mappings'"
-      class="px-4 py-2.5 font-bold text-xs border-b-2 flex items-center gap-2 transition-all cursor-pointer">
-      <span class="material-symbols-outlined text-base">account_tree</span>
+      class="pb-3 pt-1 font-extrabold text-xs border-b-2 transition-all cursor-pointer">
       <span>Skill Mappings Explorer</span>
-      <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold">
-        {{ lmsData.skillMappings().length }}
-      </span>
     </button>
   </div>
 
@@ -143,149 +131,166 @@
   <div *ngIf="activeTab() === 'skills'" class="space-y-4">
 
     <!-- Search & Filter Control Bar (§8.5, §8.6) -->
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm space-y-3">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <div class="space-y-3 relative z-30">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        
         <!-- Search Field (§8.5) -->
-        <div class="relative flex-1 max-w-lg">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
-          <input 
-            type="text"
-            [value]="searchQuery()"
-            (input)="searchQuery.set($any($event.target).value)"
-            placeholder="Search skills by name, code, description, or category..."
-            class="w-full pl-9 pr-4 py-2 rounded-xl border border-base-300 bg-base-100 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500">
-          <button 
-            *ngIf="searchQuery()" 
-            (click)="searchQuery.set('')"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary text-xs">
-            ✕
-          </button>
-        </div>
+        <div class="flex items-center gap-3 flex-1 max-w-2xl">
+          <div class="relative flex-1">
+            <span class="material-symbols-outlined text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 text-lg select-none pointer-events-none">search</span>
+            <input 
+              type="text"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+              placeholder="Search skills by name, code, description, or category..."
+              class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs">
+            
+            <button 
+              *ngIf="searchQuery()" 
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer border-0 bg-transparent">
+              ✕
+            </button>
+          </div>
 
-        <!-- Filter Toggle & Reset (§8.7) -->
-        <div class="flex items-center gap-2">
+          <!-- Filter Toggle Button -->
           <button 
             (click)="isFilterPanelOpen.set(!isFilterPanelOpen())"
-            [class.bg-tenant-50]="isFilterPanelOpen() || activeFilterCount() > 0"
-            [class.border-tenant-300]="isFilterPanelOpen() || activeFilterCount() > 0"
-            class="px-3 py-2 rounded-xl border border-base-300 bg-base-100 text-xs font-semibold text-text-primary flex items-center gap-2 hover:bg-base-200 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-base">filter_list</span>
+            class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+            [class]="isFilterPanelOpen() || activeFilterCount() > 0
+              ? 'bg-tenant-500 text-white border-tenant-500'
+              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'">
+            <span class="material-symbols-outlined text-base" [class.text-white]="isFilterPanelOpen()">filter_list</span>
             <span>Filters</span>
             <span *ngIf="activeFilterCount() > 0" class="w-5 h-5 rounded-full bg-tenant-600 text-white text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           </button>
 
+          <!-- Reset Button -->
           <button 
             *ngIf="searchQuery() || activeFilterCount() > 0"
             (click)="resetFilters()"
-            class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 flex items-center gap-1.5 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-base">restart_alt</span>
-            <span>Reset Grid</span>
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
           </button>
         </div>
-      </div>
 
-      <!-- Filter Panel Dropdowns (§8.6) -->
-      <div *ngIf="isFilterPanelOpen()" class="pt-3 border-t border-base-300 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <!-- Status Filter -->
-        <div>
-          <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1">Status</label>
-          <select 
-            [value]="selectedStatus()"
-            (change)="selectedStatus.set($any($event.target).value)"
-            class="w-full px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 text-xs text-text-primary">
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="draft">Draft</option>
-          </select>
-        </div>
-
-        <!-- Category Filter -->
-        <div>
-          <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1">Category / Domain</label>
-          <select 
-            [value]="selectedCategory()"
-            (change)="selectedCategory.set($any($event.target).value)"
-            class="w-full px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 text-xs text-text-primary">
-            <option value="all">All Categories</option>
-            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-          </select>
-        </div>
-
-        <!-- Cluster Filter -->
-        <div>
-          <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1">Competency Cluster</label>
-          <select 
-            [value]="selectedCluster()"
-            (change)="selectedCluster.set($any($event.target).value)"
-            class="w-full px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 text-xs text-text-primary">
-            <option value="all">All Clusters</option>
-            <option value="uncategorized">Uncategorized</option>
-            <option *ngFor="let cls of lmsData.skillClusters()" [value]="cls.clusterId">{{ cls.name }}</option>
-          </select>
-        </div>
-
-        <!-- Mapped / Unmapped Filter -->
-        <div>
-          <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1">Mapping State</label>
-          <select 
-            [value]="selectedMappedFilter()"
-            (change)="selectedMappedFilter.set($any($event.target).value)"
-            class="w-full px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 text-xs text-text-primary">
-            <option value="all">All Skills</option>
-            <option value="mapped">Mapped (≥1 element)</option>
-            <option value="unmapped">Unmapped (0 elements)</option>
-          </select>
-        </div>
-
-        <!-- Target Type Filter -->
-        <div>
-          <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1">Mapped Target Level</label>
-          <select 
-            [value]="selectedTargetType()"
-            (change)="selectedTargetType.set($any($event.target).value)"
-            class="w-full px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 text-xs text-text-primary">
-            <option value="all">All Targets</option>
-            <option value="plan">Training Plan</option>
-            <option value="phase">Phase</option>
-            <option value="course">Course / Class</option>
-            <option value="content">Content Asset</option>
-          </select>
+        <!-- Right: Results Count Badge -->
+        <div class="flex items-center justify-end shrink-0">
+          <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-mono font-semibold text-xs text-text-secondary">
+            Showing <strong class="text-text-primary">{{ filteredSkills().length }}</strong> of <strong class="text-text-primary">{{ lmsData.skills().length }}</strong> skills
+          </span>
         </div>
       </div>
 
-      <!-- Applied Filter Chips -->
-      <div *ngIf="activeFilterCount() > 0" class="flex items-center gap-2 flex-wrap pt-2">
-        <span class="text-[10px] font-bold text-text-secondary">Applied:</span>
+      <!-- Collapsible Filter Drawer Card -->
+      <div *ngIf="isFilterPanelOpen()" class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+        
+        <!-- Filter Header -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+          <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-tenant-500 text-base font-bold">tune</span>
+            <span>FILTER SKILLS REPOSITORY</span>
+          </h3>
+          <span class="text-[11px] text-text-secondary font-medium">
+            Define attributes to filter down available active and draft skills
+          </span>
+        </div>
 
-        <span *ngIf="selectedStatus() !== 'all'" class="px-2 py-0.5 rounded-md bg-tenant-50 text-tenant-700 text-[10px] font-bold flex items-center gap-1 border border-tenant-200">
-          Status: {{ selectedStatus() }}
-          <button (click)="selectedStatus.set('all')" class="hover:text-tenant-900">✕</button>
-        </span>
+        <!-- Dropdowns Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-1">
+          <!-- Status Filter -->
+          <div>
+            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Status</label>
+            <app-custom-select
+              [options]="statusSelectOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="selectedStatus.set($event)">
+            </app-custom-select>
+          </div>
 
-        <span *ngIf="selectedCategory() !== 'all'" class="px-2 py-0.5 rounded-md bg-tenant-50 text-tenant-700 text-[10px] font-bold flex items-center gap-1 border border-tenant-200">
-          Category: {{ selectedCategory() }}
-          <button (click)="selectedCategory.set('all')" class="hover:text-tenant-900">✕</button>
-        </span>
+          <!-- Category Filter -->
+          <div>
+            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Category / Domain</label>
+            <app-custom-select
+              [options]="categorySelectOptions()"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedCategory()"
+              (ngModelChange)="selectedCategory.set($event)">
+            </app-custom-select>
+          </div>
 
-        <span *ngIf="selectedCluster() !== 'all'" class="px-2 py-0.5 rounded-md bg-tenant-50 text-tenant-700 text-[10px] font-bold flex items-center gap-1 border border-tenant-200">
-          Cluster Filter
-          <button (click)="selectedCluster.set('all')" class="hover:text-tenant-900">✕</button>
-        </span>
+          <!-- Cluster Filter -->
+          <div>
+            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Competency Cluster</label>
+            <app-custom-select
+              [options]="clusterSelectOptions()"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedCluster()"
+              (ngModelChange)="selectedCluster.set($event)">
+            </app-custom-select>
+          </div>
 
-        <span *ngIf="selectedMappedFilter() !== 'all'" class="px-2 py-0.5 rounded-md bg-tenant-50 text-tenant-700 text-[10px] font-bold flex items-center gap-1 border border-tenant-200">
-          Mapping: {{ selectedMappedFilter() }}
-          <button (click)="selectedMappedFilter.set('all')" class="hover:text-tenant-900">✕</button>
-        </span>
+          <!-- Mapped Filter -->
+          <div>
+            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Mapping State</label>
+            <app-custom-select
+              [options]="mappedSelectOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedMappedFilter()"
+              (ngModelChange)="selectedMappedFilter.set($event)">
+            </app-custom-select>
+          </div>
 
-        <span *ngIf="selectedTargetType() !== 'all'" class="px-2 py-0.5 rounded-md bg-tenant-50 text-tenant-700 text-[10px] font-bold flex items-center gap-1 border border-tenant-200">
-          Target: {{ selectedTargetType() }}
-          <button (click)="selectedTargetType.set('all')" class="hover:text-tenant-900">✕</button>
-        </span>
+          <!-- Target Type Filter -->
+          <div>
+            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Mapped Target Level</label>
+            <app-custom-select
+              [options]="targetTypeSelectOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedTargetType()"
+              (ngModelChange)="selectedTargetType.set($event)">
+            </app-custom-select>
+          </div>
+        </div>
 
-        <button (click)="clearFilterPanel()" class="text-[10px] font-bold text-tenant-600 hover:underline">Clear All</button>
+        <!-- Applied Filter Chips & Footers -->
+        <div class="flex items-center justify-between flex-wrap gap-2 pt-2.5 border-t border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-2 flex-wrap text-xs">
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Applied:</span>
+            <span *ngIf="selectedStatus() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
+              Status: {{ selectedStatus() }}
+              <button (click)="selectedStatus.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
+            </span>
+            <span *ngIf="selectedCategory() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
+              Category: {{ selectedCategory() }}
+              <button (click)="selectedCategory.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
+            </span>
+            <span *ngIf="selectedCluster() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
+              Cluster Filter
+              <button (click)="selectedCluster.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
+            </span>
+            <span *ngIf="selectedMappedFilter() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
+              Mapping: {{ selectedMappedFilter() }}
+              <button (click)="selectedMappedFilter.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
+            </span>
+            <span *ngIf="selectedTargetType() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
+              Target: {{ selectedTargetType() }}
+              <button (click)="selectedTargetType.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
+            </span>
+          </div>
+
+          <button (click)="resetFilters()" class="text-xs font-bold text-tenant-600 dark:text-tenant-400 hover:underline cursor-pointer">Clear All filters</button>
+        </div>
+
       </div>
     </div>
 
@@ -427,54 +432,13 @@
 
               <!-- Actions Dropdown / Buttons (§8.4) -->
               <td class="py-3.5 px-4 text-right">
-                <div class="flex items-center justify-end gap-1">
-                  <!-- View Details -->
+                <div class="flex items-center justify-end">
                   <button 
-                    (click)="openViewDetailsModal(s)"
-                    title="View Details"
-                    class="p-1.5 rounded-lg hover:bg-base-200 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">visibility</span>
-                  </button>
-
-                  <!-- Edit Skill -->
-                  <button 
-                    (click)="openEditSkillModal(s)"
-                    title="Edit Skill"
-                    class="p-1.5 rounded-lg hover:bg-base-200 text-text-secondary hover:text-tenant-600 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">edit</span>
-                  </button>
-
-                  <!-- Map Elements -->
-                  <button 
-                    (click)="openManageMappingsModal(s)"
-                    title="Manage Mappings"
-                    class="p-1.5 rounded-lg hover:bg-base-200 text-text-secondary hover:text-blue-600 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">add_link</span>
-                  </button>
-
-                  <!-- Deactivate / Reactivate -->
-                  <button 
-                    *ngIf="s.status === 'active'"
-                    (click)="confirmDeactivate(s)"
-                    title="Deactivate Skill"
-                    class="p-1.5 rounded-lg hover:bg-red-50 text-text-secondary hover:text-red-600 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">pause_circle</span>
-                  </button>
-
-                  <button 
-                    *ngIf="s.status === 'inactive'"
-                    (click)="confirmReactivate(s)"
-                    title="Reactivate Skill"
-                    class="p-1.5 rounded-lg hover:bg-emerald-50 text-text-secondary hover:text-emerald-600 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">play_circle</span>
-                  </button>
-
-                  <!-- Delete -->
-                  <button 
-                    (click)="confirmDeleteSkill(s)"
-                    title="Delete Skill"
-                    class="p-1.5 rounded-lg hover:bg-red-50 text-text-secondary hover:text-red-600 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-base">delete</span>
+                    #btn
+                    (click)="toggleSkillActionMenu(s, $event, btn)"
+                    title="Skill Actions"
+                    class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">more_vert</span>
                   </button>
                 </div>
               </td>
@@ -596,11 +560,15 @@
                 <div>by {{ m.mappedBy }}</div>
               </td>
               <td class="py-3 px-4 text-right">
-                <button 
-                  (click)="unmapSkill(m.skillId, m.targetType, m.targetId)"
-                  class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[10px] border border-red-200">
-                  Unmap Link
-                </button>
+                <div class="flex items-center justify-end">
+                  <button 
+                    #mbtn
+                    (click)="toggleMappingActionMenu(m, $event, mbtn)"
+                    title="Mapping Actions"
+                    class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">more_vert</span>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -765,42 +733,25 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <label class="block font-semibold mb-1">Target Element Level</label>
-            <select 
-              [value]="mappingTargetType()"
-              (change)="mappingTargetType.set($any($event.target).value); mappingTargetId.set('')"
-              class="w-full px-3 py-2 rounded-xl border border-base-300 bg-base-100">
-              <option value="course">Course / Class</option>
-              <option value="plan">Training Plan</option>
-              <option value="phase">Phase</option>
-              <option value="content">Content Asset</option>
-            </select>
+            <app-custom-select
+              label="Target Element Level"
+              [options]="mappingTargetTypeOptions"
+              [ngModel]="mappingTargetType()"
+              (ngModelChange)="mappingTargetType.set($event); mappingTargetId.set('')"
+              [clearable]="false">
+            </app-custom-select>
           </div>
 
           <div>
-            <label class="block font-semibold mb-1">Select Target Item</label>
-            <select 
-              [value]="mappingTargetId()"
-              (change)="mappingTargetId.set($any($event.target).value)"
-              class="w-full px-3 py-2 rounded-xl border border-base-300 bg-base-100">
-              <option value="">-- Choose Item --</option>
-              
-              <ng-container *ngIf="mappingTargetType() === 'course'">
-                <option *ngFor="let c of availableCourses()" [value]="c.id">{{ c.title }}</option>
-              </ng-container>
-
-              <ng-container *ngIf="mappingTargetType() === 'plan'">
-                <option *ngFor="let p of availablePlans()" [value]="p.id">{{ p.name || p.title }}</option>
-              </ng-container>
-
-              <ng-container *ngIf="mappingTargetType() === 'phase'">
-                <option *ngFor="let ph of availablePhases()" [value]="ph.id">{{ ph.title }} ({{ ph.planName }})</option>
-              </ng-container>
-
-              <ng-container *ngIf="mappingTargetType() === 'content'">
-                <option *ngFor="let cnt of availableContentAssets()" [value]="cnt.id">{{ cnt.title }}</option>
-              </ng-container>
-            </select>
+            <app-custom-select
+              label="Select Target Item"
+              [options]="mappingTargetItemOptions()"
+              [ngModel]="mappingTargetId()"
+              (ngModelChange)="mappingTargetId.set($event)"
+              placeholder="-- Choose Item --"
+              [clearable]="true"
+              [searchable]="true">
+            </app-custom-select>
           </div>
         </div>
 
@@ -974,5 +925,111 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING FIXED SKILL ACTION POPMENU (Outside scroll boundaries)           -->
+  <!-- ========================================================================= -->
+  <ng-container *ngIf="activeMenuSkill(); as menuSkill">
+    <!-- Invisible backdrop to dismiss on click outside -->
+    <div class="fixed inset-0 z-[99998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+    <!-- Floating Popover -->
+    <div 
+      class="fixed w-60 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xl p-1.5 z-[99999] text-left animate-in fade-in zoom-in-95 duration-150 select-none"
+      [style.top.px]="menuPosition().top"
+      [style.left.px]="menuPosition().left"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Popover Header -->
+      <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
+        <span>Skill Actions</span>
+        <span class="font-mono text-tenant-600 dark:text-tenant-400">#{{ menuSkill.skillCode }}</span>
+      </div>
+
+      <!-- Action Buttons Stack -->
+      <button 
+        type="button"
+        (click)="openViewDetailsModal(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-slate-500">visibility</span>
+        <span>View Profile Details</span>
+      </button>
+
+      <button 
+        type="button"
+        (click)="openEditSkillModal(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-tenant-600">edit</span>
+        <span>Edit Skill Profile</span>
+      </button>
+
+      <button 
+        type="button"
+        (click)="openManageMappingsModal(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-blue-500">add_link</span>
+        <span>Manage Mapping Links</span>
+      </button>
+
+      <button 
+        *ngIf="menuSkill.status === 'active'"
+        type="button"
+        (click)="confirmDeactivate(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-amber-500">pause_circle</span>
+        <span>Deactivate Skill</span>
+      </button>
+
+      <button 
+        *ngIf="menuSkill.status === 'inactive'"
+        type="button"
+        (click)="confirmReactivate(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-emerald-500">play_circle</span>
+        <span>Reactivate Skill</span>
+      </button>
+
+      <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+
+      <button 
+        type="button"
+        (click)="confirmDeleteSkill(menuSkill); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-red-500">delete</span>
+        <span>Delete Skill</span>
+      </button>
+    </div>
+  </ng-container>
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING FIXED MAPPING ACTION POPMENU (Outside scroll boundaries)         -->
+  <!-- ========================================================================= -->
+  <ng-container *ngIf="activeMenuMapping(); as menuMapping">
+    <!-- Invisible backdrop to dismiss on click outside -->
+    <div class="fixed inset-0 z-[99998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+    <!-- Floating Popover -->
+    <div 
+      class="fixed w-60 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xl p-1.5 z-[99999] text-left animate-in fade-in zoom-in-95 duration-150 select-none"
+      [style.top.px]="menuPosition().top"
+      [style.left.px]="menuPosition().left"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Popover Header -->
+      <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1 flex items-center justify-between">
+        <span>Mapping Actions</span>
+        <span class="font-mono text-purple-600 dark:text-purple-400">#LINK</span>
+      </div>
+
+      <!-- Action Buttons Stack -->
+      <button 
+        type="button"
+        (click)="unmapSkill(menuMapping.skillId, menuMapping.targetType, menuMapping.targetId); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-red-500">link_off</span>
+        <span>Break Mapping Link</span>
+      </button>
+    </div>
+  </ng-container>
 
 </div>
