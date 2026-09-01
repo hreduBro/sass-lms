@@ -3,108 +3,319 @@
   <!-- Header Section (§10.2) -->
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-base-300">
     <div>
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-amber-600 text-3xl">space_dashboard</span>
-        <h1 class="text-2xl font-bold tracking-tight text-text-primary">Skill Mapping Overview & Analytics</h1>
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-tenant-50 dark:bg-tenant-950/40 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600">
+          <span class="material-symbols-outlined text-2xl">space_dashboard</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-text-primary">Skill Mapping Overview & Analytics</h1>
+          <p class="text-xs text-text-secondary mt-0.5">
+            Skill inventory, mapping coverage across learning elements, and learner competency distribution.
+          </p>
+        </div>
       </div>
-      <p class="text-xs text-text-secondary mt-1">
-        Skill inventory, mapping coverage across learning elements, and learner skill distribution & competency gap analysis.
-      </p>
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2.5 flex-wrap">
       <button 
         *ngIf="!isStudioMode()"
         (click)="enterStudioMode()"
-        class="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
+        class="px-4 py-2 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 text-tenant-800 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
         <span class="material-symbols-outlined text-base">dashboard_customize</span>
         <span>Customize Dashboard Studio</span>
       </button>
 
       <a 
         routerLink="/skills"
-        class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
+        class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer">
         <span class="material-symbols-outlined text-base">psychology</span>
         <span>Skill Repository</span>
       </a>
     </div>
   </div>
 
-  <!-- Dashboard Filter Toolbar -->
-  <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 relative z-30">
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-slate-400">filter_alt</span>
-      <span class="text-xs font-bold text-text-primary uppercase tracking-wider">Filter Dashboard Metrics:</span>
-    </div>
+  <!-- KPI Metrics Summary Row (Top Cards matching Skills Repository) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="w-48">
-        <app-custom-select
-          [options]="categorySelectOptions()"
-          [clearable]="false"
-          [searchable]="false"
-          [ngModel]="selectedCategory()"
-          (ngModelChange)="selectedCategory.set($event)">
-        </app-custom-select>
+    <!-- 1. Total Skills -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-start justify-between">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Skills</span>
+        <div class="w-10 h-10 rounded-2xl bg-pink-50 text-pink-600 border border-pink-100 dark:bg-pink-950/40 dark:border-pink-900/40 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">psychology</span>
+        </div>
       </div>
-
-      <div class="w-48">
-        <app-custom-select
-          [options]="clusterSelectOptions()"
-          [clearable]="false"
-          [searchable]="false"
-          [ngModel]="selectedCluster()"
-          (ngModelChange)="selectedCluster.set($event)">
-        </app-custom-select>
+      <div class="mt-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ lmsData.skills().length }}</h3>
+          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+            ↑ +1 this month
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">vs last 30 days</p>
       </div>
-
-      <button 
-        *ngIf="selectedCategory() !== 'all' || selectedCluster() !== 'all'"
-        (click)="selectedCategory.set('all'); selectedCluster.set('all')"
-        class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 text-xs font-bold transition-all cursor-pointer">
-        Clear Filters
-      </button>
     </div>
+
+    <!-- 2. Active Skills -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-start justify-between">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Skills</span>
+        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/40 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">check_circle</span>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">{{ globalActiveSkillsCount() }}</h3>
+          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+            ↑ +{{ globalActiveSkillsPercentage() }}% of total
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">Operational & Provisioned</p>
+      </div>
+    </div>
+
+    <!-- 3. Competency Clusters -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-start justify-between">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Competency Clusters</span>
+        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/40 dark:border-amber-900/40 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">bubble_chart</span>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono tracking-tight">{{ lmsData.skillClusters().length }}</h3>
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
+            ↓ {{ lmsData.skillClusters().length }} categorized
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">Cross-functional domains</p>
+      </div>
+    </div>
+
+    <!-- 4. Mapped Learning Links -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-start justify-between">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Mapped Links</span>
+        <div class="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 dark:bg-sky-950/40 dark:border-sky-900/40 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">account_tree</span>
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="text-3xl font-black text-sky-600 dark:text-sky-400 font-mono tracking-tight">{{ lmsData.skillMappings().length }}</h3>
+          <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-0.5">
+            ↑ {{ globalUnmappedSkillsCount() }} unmapped
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">Hierarchy links active</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SEARCH & FILTER TOOLBAR (Matching media_1788286392089.png)               -->
+  <!-- ========================================================================= -->
+  <div class="space-y-3">
+    
+    <!-- Top Search Toolbar Card -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-30">
+      
+      <!-- Left: Search Field + Filters Button -->
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by course title, code, tags, or owner..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
+          
+          <button 
+            *ngIf="searchQuery()" 
+            type="button" 
+            (click)="searchQuery.set('')"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+
+        <!-- Filters Button (Bright Primary Color when active/open) -->
+        <button 
+          type="button"
+          (click)="isFilterPanelOpen.set(!isFilterPanelOpen())"
+          class="px-5 py-2.5 rounded-2xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="isFilterPanelOpen() || activeFiltersCount() > 0 
+            ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs' 
+            : 'bg-white hover:bg-slate-50 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base">filter_list</span>
+          <span>Filters</span>
+          <span *ngIf="activeFiltersCount() > 0" class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+            {{ activeFiltersCount() }}
+          </span>
+        </button>
+
+        <!-- Reset Button -->
+        <button 
+          *ngIf="hasActiveFilters()"
+          type="button"
+          (click)="resetFilters()"
+          class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+          title="Reset Filters">
+          <span class="material-symbols-outlined text-sm">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+
+      <!-- Right: Blank / clean (no grid or table icon as requested) -->
+      <div></div>
+    </div>
+
+    <!-- Expandable Filter Drawer Panel (Matching Image 2nd row) -->
+    <div *ngIf="isFilterPanelOpen()" class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 relative z-20">
+      
+      <!-- Filter Panel Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-base-300">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
+          <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">FILTER COURSES</h3>
+        </div>
+        <span class="text-[11px] text-text-secondary font-medium">
+          Filter by status, category, hierarchy layer depth, content family, sorting, and grading
+        </span>
+      </div>
+
+      <!-- Dropdowns Row (Matching Image) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 pt-1">
+        <!-- 1. Status -->
+        <div>
+          <app-custom-select
+            label="Status"
+            [options]="statusSelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event)">
+          </app-custom-select>
+        </div>
+
+        <!-- 2. Category -->
+        <div>
+          <app-custom-select
+            label="Category"
+            [options]="categorySelectOptions()"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedCategory()"
+            (ngModelChange)="selectedCategory.set($event)">
+          </app-custom-select>
+        </div>
+
+        <!-- 3. Layer Depth / Cluster -->
+        <div>
+          <app-custom-select
+            label="Layer Depth"
+            [options]="clusterSelectOptions()"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedCluster()"
+            (ngModelChange)="selectedCluster.set($event)">
+          </app-custom-select>
+        </div>
+
+        <!-- 4. Content Type / Mapping Coverage -->
+        <div>
+          <app-custom-select
+            label="Content Type"
+            [options]="coverageSelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedCoverage()"
+            (ngModelChange)="selectedCoverage.set($event)">
+          </app-custom-select>
+        </div>
+
+        <!-- 5. Sort By -->
+        <div>
+          <app-custom-select
+            label="Sort By"
+            [options]="sortBySelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="sortBy()"
+            (ngModelChange)="sortBy.set($event)">
+          </app-custom-select>
+        </div>
+      </div>
+
+      <!-- Filter Panel Footer (Matching Image) -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-base-300">
+        <button 
+          type="button"
+          (click)="resetFilters()"
+          class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer">
+          Clear All Selections
+        </button>
+
+        <button 
+          type="button"
+          (click)="isFilterPanelOpen.set(false)"
+          class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer">
+          Close
+        </button>
+      </div>
+
+    </div>
+
   </div>
 
   <!-- Studio Mode Customization Control Bar (§10.5) -->
-  <div *ngIf="isStudioMode()" class="p-4 rounded-2xl bg-purple-900 text-white shadow-lg space-y-3">
+  <div *ngIf="isStudioMode()" class="p-5 rounded-3xl bg-purple-900 text-white shadow-lg space-y-4">
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-amber-400 text-xl">tune</span>
-        <span class="font-bold text-sm">Dashboard Studio Mode</span>
-        <span class="text-xs text-purple-200 font-normal">— Customize layout widths and widget visibility</span>
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-purple-800 flex items-center justify-center text-amber-400">
+          <span class="material-symbols-outlined text-lg">tune</span>
+        </div>
+        <div>
+          <span class="font-bold text-sm">Dashboard Studio Mode</span>
+          <span class="text-xs text-purple-200 font-normal ml-2">— Customize layout widths and widget visibility</span>
+        </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button (click)="resetStudioDefault()" class="px-3 py-1.5 rounded-lg bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100">
+        <button (click)="resetStudioDefault()" class="px-3 py-1.5 rounded-xl bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100 cursor-pointer">
           Reset Defaults
         </button>
-        <button (click)="discardStudio()" class="px-3 py-1.5 rounded-lg bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100">
+        <button (click)="discardStudio()" class="px-3 py-1.5 rounded-xl bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100 cursor-pointer">
           Discard
         </button>
-        <button (click)="publishStudio()" class="px-4 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs shadow-sm">
+        <button (click)="publishStudio()" class="px-4 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs shadow-sm cursor-pointer">
           Publish Live
         </button>
       </div>
     </div>
 
     <!-- Widget Visibility & Width Pills -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-purple-800/60 text-xs">
-      <div *ngFor="let w of draftWidgets()" class="p-3 rounded-xl bg-purple-950/70 border border-purple-800/80 space-y-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-purple-800/60 text-xs">
+      <div *ngFor="let w of draftWidgets()" class="p-3.5 rounded-2xl bg-purple-950/70 border border-purple-800/80 space-y-2.5">
         <div class="flex items-center justify-between">
           <span class="font-bold text-purple-100 truncate max-w-[140px]">{{ w.title }}</span>
-          <button (click)="toggleWidgetVisibility(w.id)" [class.text-amber-400]="w.visible" [class.text-purple-400]="!w.visible" class="font-bold">
+          <button (click)="toggleWidgetVisibility(w.id)" [class.text-amber-400]="w.visible" [class.text-purple-400]="!w.visible" class="font-bold cursor-pointer">
             {{ w.visible ? 'Visible' : 'Hidden' }}
           </button>
         </div>
         <div class="flex items-center gap-1 text-[10px]">
           <span class="text-purple-300 font-medium">Width:</span>
-          <button (click)="setWidgetWidth(w.id, 1)" [class.bg-amber-400]="w.colSpan === 1" [class.text-purple-950]="w.colSpan === 1" class="px-1.5 py-0.5 rounded bg-purple-800 text-purple-200 font-bold">25%</button>
-          <button (click)="setWidgetWidth(w.id, 2)" [class.bg-amber-400]="w.colSpan === 2" [class.text-purple-950]="w.colSpan === 2" class="px-1.5 py-0.5 rounded bg-purple-800 text-purple-200 font-bold">50%</button>
-          <button (click)="setWidgetWidth(w.id, 3)" [class.bg-amber-400]="w.colSpan === 3" [class.text-purple-950]="w.colSpan === 3" class="px-1.5 py-0.5 rounded bg-purple-800 text-purple-200 font-bold">75%</button>
-          <button (click)="setWidgetWidth(w.id, 4)" [class.bg-amber-400]="w.colSpan === 4" [class.text-purple-950]="w.colSpan === 4" class="px-1.5 py-0.5 rounded bg-purple-800 text-purple-200 font-bold">100%</button>
+          <button (click)="setWidgetWidth(w.id, 1)" [class.bg-amber-400]="w.colSpan === 1" [class.text-purple-950]="w.colSpan === 1" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">25%</button>
+          <button (click)="setWidgetWidth(w.id, 2)" [class.bg-amber-400]="w.colSpan === 2" [class.text-purple-950]="w.colSpan === 2" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">50%</button>
+          <button (click)="setWidgetWidth(w.id, 3)" [class.bg-amber-400]="w.colSpan === 3" [class.text-purple-950]="w.colSpan === 3" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">75%</button>
+          <button (click)="setWidgetWidth(w.id, 4)" [class.bg-amber-400]="w.colSpan === 4" [class.text-purple-950]="w.colSpan === 4" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">100%</button>
         </div>
       </div>
     </div>
@@ -113,101 +324,58 @@
   <!-- Main Dashboard Grid Layout (§10.3) -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-    <!-- Widget 1: Skill KPI Summary -->
-    <div *ngIf="isWidgetVisible('w-kpi')" [class]="getWidgetClass('w-kpi')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-tenant-600 text-base">analytics</span>
-          <span>Competency Framework & Skill Inventory KPIs</span>
-        </h3>
-        <span class="text-[10px] text-text-secondary">Live System Telemetry</span>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <!-- Total Skills -->
-        <div class="p-4 rounded-xl bg-tenant-50/60 border border-tenant-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-tenant-600 text-white flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-2xl">psychology</span>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold text-tenant-800 uppercase">Total Defined Skills</div>
-            <div class="text-2xl font-black text-tenant-900">{{ totalSkills() }}</div>
-          </div>
-        </div>
-
-        <!-- Active Skills -->
-        <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-2xl">check_circle</span>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold text-emerald-800 uppercase">Active Mappable Skills</div>
-            <div class="text-2xl font-black text-emerald-900">{{ activeSkillsCount() }}</div>
-          </div>
-        </div>
-
-        <!-- Competency Clusters -->
-        <div class="p-4 rounded-xl bg-purple-50/60 border border-purple-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-2xl">bubble_chart</span>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold text-purple-800 uppercase">Competency Clusters</div>
-            <div class="text-2xl font-black text-purple-900">{{ clusterCount() }}</div>
-          </div>
-        </div>
-
-        <!-- Unmapped Skills (Gap Signal) -->
-        <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-2xl">link_off</span>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold text-amber-800 uppercase">Unmapped Skills (Gap)</div>
-            <div class="text-2xl font-black text-amber-900">{{ unmappedSkillsCount() }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Widget 2: Skill Lifecycle Breakdown -->
     <div *ngIf="isWidgetVisible('w-status')" [class]="getWidgetClass('w-status')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-emerald-600 text-base">donut_small</span>
-          <span>Skill Lifecycle Distribution</span>
-        </h3>
-        <span class="text-[10px] text-text-secondary">{{ totalSkills() }} Total</span>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">donut_small</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Skill Lifecycle Breakdown</h3>
+            <span class="text-[10px] text-text-secondary">Distribution by operating status</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full bg-base-200 text-text-secondary text-[10px] font-bold font-mono">{{ totalSkills() }} Total</span>
       </div>
 
-      <div class="space-y-2 pt-1 text-xs">
+      <div class="space-y-3 pt-1 text-xs">
         <div>
-          <div class="flex justify-between font-bold mb-1 text-emerald-800">
-            <span>Active Skills</span>
-            <span>{{ activeSkillsCount() }} ({{ (activeSkillsCount() / (totalSkills() || 1) * 100) | number:'1.0-0' }}%)</span>
+          <div class="flex justify-between font-bold mb-1 text-emerald-700 dark:text-emerald-400 text-xs">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Active Skills</span>
+            </span>
+            <span class="font-mono">{{ activeSkillsCount() }} ({{ activeSkillsPercentage() }}%)</span>
           </div>
-          <div class="w-full h-2.5 rounded-full bg-base-200 overflow-hidden">
-            <div class="h-full bg-emerald-500 rounded-full" [style.width.%]="(activeSkillsCount() / (totalSkills() || 1) * 100)"></div>
+          <div class="w-full h-2 rounded-full bg-base-200 overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full transition-all" [style.width.%]="activeSkillsPercentage()"></div>
           </div>
         </div>
 
         <div>
-          <div class="flex justify-between font-bold mb-1 text-red-800">
-            <span>Inactive Skills</span>
-            <span>{{ inactiveSkillsCount() }} ({{ (inactiveSkillsCount() / (totalSkills() || 1) * 100) | number:'1.0-0' }}%)</span>
+          <div class="flex justify-between font-bold mb-1 text-rose-700 dark:text-rose-400 text-xs">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Inactive Skills</span>
+            </span>
+            <span class="font-mono">{{ inactiveSkillsCount() }} ({{ inactiveSkillsPercentage() }}%)</span>
           </div>
-          <div class="w-full h-2.5 rounded-full bg-base-200 overflow-hidden">
-            <div class="h-full bg-red-500 rounded-full" [style.width.%]="(inactiveSkillsCount() / (totalSkills() || 1) * 100)"></div>
+          <div class="w-full h-2 rounded-full bg-base-200 overflow-hidden">
+            <div class="h-full bg-rose-500 rounded-full transition-all" [style.width.%]="inactiveSkillsPercentage()"></div>
           </div>
         </div>
 
         <div>
-          <div class="flex justify-between font-bold mb-1 text-blue-800">
-            <span>Draft Skills</span>
-            <span>{{ draftSkillsCount() }} ({{ (draftSkillsCount() / (totalSkills() || 1) * 100) | number:'1.0-0' }}%)</span>
+          <div class="flex justify-between font-bold mb-1 text-blue-700 dark:text-blue-400 text-xs">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span>Draft Skills</span>
+            </span>
+            <span class="font-mono">{{ draftSkillsCount() }} ({{ draftSkillsPercentage() }}%)</span>
           </div>
-          <div class="w-full h-2.5 rounded-full bg-base-200 overflow-hidden">
-            <div class="h-full bg-blue-500 rounded-full" [style.width.%]="(draftSkillsCount() / (totalSkills() || 1) * 100)"></div>
+          <div class="w-full h-2 rounded-full bg-base-200 overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full transition-all" [style.width.%]="draftSkillsPercentage()"></div>
           </div>
         </div>
       </div>
@@ -215,20 +383,31 @@
 
     <!-- Widget 3: Competency Clusters Breakdown -->
     <div *ngIf="isWidgetVisible('w-clusters')" [class]="getWidgetClass('w-clusters')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-purple-600 text-base">bubble_chart</span>
-          <span>Skills per Cluster Breakdown</span>
-        </h3>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">bubble_chart</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Skills per Cluster</h3>
+            <span class="text-[10px] text-text-secondary">Competency domain groupings</span>
+          </div>
+        </div>
+        <span class="text-[10px] text-text-secondary font-bold">{{ lmsData.skillClusters().length }} Clusters</span>
       </div>
 
       <div class="space-y-2 text-xs">
-        <div *ngFor="let cls of lmsData.skillClusters()" class="flex items-center justify-between p-2 rounded-xl bg-purple-50/50 border border-purple-100">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-600 text-base">bubble_chart</span>
-            <span class="font-bold text-text-primary">{{ cls.name }}</span>
+        <div *ngFor="let cls of lmsData.skillClusters()" class="flex items-center justify-between p-3 rounded-2xl bg-base-100 hover:bg-base-200/50 border border-slate-200/80 dark:border-base-300 transition-all">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">bubble_chart</span>
+            </div>
+            <div>
+              <span class="font-bold text-text-primary text-xs">{{ cls.name }}</span>
+              <span class="font-mono text-[9px] text-text-secondary block">{{ cls.clusterCode }}</span>
+            </div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white font-extrabold text-[10px]">
+          <span class="px-2.5 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold text-[10px] font-mono">
             {{ cls.skillCount || 0 }} skills
           </span>
         </div>
@@ -237,58 +416,84 @@
 
     <!-- Widget 4: Learning Hierarchy Mapping Coverage -->
     <div *ngIf="isWidgetVisible('w-coverage')" [class]="getWidgetClass('w-coverage')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-blue-600 text-base">account_tree</span>
-          <span>Mapping Coverage Across Learning Hierarchy</span>
-        </h3>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">account_tree</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Hierarchy Mapping Coverage</h3>
+            <span class="text-[10px] text-text-secondary">Connections across learning levels</span>
+          </div>
+        </div>
+        <span class="text-[10px] text-text-secondary font-mono font-bold">{{ totalMappingsCount() }} total</span>
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
-          <div class="text-[10px] font-bold text-purple-700 uppercase">Plan Mappings</div>
-          <div class="text-xl font-extrabold text-purple-900 mt-0.5">{{ targetTypeBreakdown().plan }}</div>
+        <div class="p-3.5 rounded-2xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Plan Mappings</div>
+            <div class="text-2xl font-black text-purple-900 dark:text-purple-200 mt-0.5 font-mono">{{ targetTypeBreakdown().plan }}</div>
+          </div>
+          <span class="material-symbols-outlined text-2xl text-purple-400">assignment</span>
         </div>
 
-        <div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
-          <div class="text-[10px] font-bold text-blue-700 uppercase">Phase Mappings</div>
-          <div class="text-xl font-extrabold text-blue-900 mt-0.5">{{ targetTypeBreakdown().phase }}</div>
+        <div class="p-3.5 rounded-2xl bg-sky-50/50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/40 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider">Phase Mappings</div>
+            <div class="text-2xl font-black text-sky-900 dark:text-sky-200 mt-0.5 font-mono">{{ targetTypeBreakdown().phase }}</div>
+          </div>
+          <span class="material-symbols-outlined text-2xl text-sky-400">step</span>
         </div>
 
-        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-          <div class="text-[10px] font-bold text-emerald-700 uppercase">Course Mappings</div>
-          <div class="text-xl font-extrabold text-emerald-900 mt-0.5">{{ targetTypeBreakdown().course }}</div>
+        <div class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Course Mappings</div>
+            <div class="text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-0.5 font-mono">{{ targetTypeBreakdown().course }}</div>
+          </div>
+          <span class="material-symbols-outlined text-2xl text-emerald-400">school</span>
         </div>
 
-        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
-          <div class="text-[10px] font-bold text-amber-700 uppercase">Content Mappings</div>
-          <div class="text-xl font-extrabold text-amber-900 mt-0.5">{{ targetTypeBreakdown().content }}</div>
+        <div class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Content Mappings</div>
+            <div class="text-2xl font-black text-amber-900 dark:text-amber-200 mt-0.5 font-mono">{{ targetTypeBreakdown().content }}</div>
+          </div>
+          <span class="material-symbols-outlined text-2xl text-amber-400">article</span>
         </div>
       </div>
     </div>
 
     <!-- Widget 5: Most-Mapped Competency Skills -->
     <div *ngIf="isWidgetVisible('w-top')" [class]="getWidgetClass('w-top')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-amber-600 text-base">workspace_premium</span>
-          <span>Top Most-Mapped Skills</span>
-        </h3>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">workspace_premium</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Top Most-Mapped Skills</h3>
+            <span class="text-[10px] text-text-secondary">Highest curriculum presence</span>
+          </div>
+        </div>
       </div>
 
       <div class="space-y-2 text-xs">
-        <div *ngFor="let s of topMappedSkills(); let i = index" class="p-2.5 rounded-xl bg-base-200/40 border border-base-300 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-amber-500 text-white font-black text-[10px] flex items-center justify-center">
-              #{{ i + 1 }}
+        <div *ngFor="let s of topMappedSkills(); let i = index" class="p-3 rounded-2xl bg-base-100 hover:bg-base-200/50 border border-slate-200/80 dark:border-base-300 flex items-center justify-between transition-all">
+          <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-xl bg-amber-500 text-white font-black text-[11px] flex items-center justify-center font-mono shadow-2xs">
+              {{ i + 1 }}
             </span>
             <div>
-              <div class="font-bold text-text-primary">{{ s.name }}</div>
-              <div class="text-[10px] text-text-secondary">{{ s.category }} • {{ s.skillCode }}</div>
+              <div class="font-bold text-text-primary text-xs">{{ s.name }}</div>
+              <div class="text-[10px] text-text-secondary flex items-center gap-1.5 mt-0.5">
+                <span class="font-mono bg-base-200 px-1 py-0.2 rounded">{{ s.skillCode }}</span>
+                <span>• {{ s.category }}</span>
+              </div>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-lg bg-tenant-50 text-tenant-800 font-bold border border-tenant-200 text-[11px]">
-            {{ s.mappedElementCount }} elements
+          <span class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-800 dark:text-tenant-300 font-bold border border-tenant-200 dark:border-tenant-800 text-[11px] font-mono">
+            {{ s.mappedElementCount }} links
           </span>
         </div>
       </div>
@@ -296,23 +501,28 @@
 
     <!-- Widget 6: Learner Skill Distribution Report (§7.4) -->
     <div *ngIf="isWidgetVisible('w-distribution')" [class]="getWidgetClass('w-distribution')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-tenant-600 text-base">school</span>
-          <span>Learner Skill Distribution & Attainment</span>
-        </h3>
-        <span class="text-[10px] text-text-secondary">Automatic Tracking Report</span>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">school</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Learner Skill Attainment</h3>
+            <span class="text-[10px] text-text-secondary">Cohort mastery status</span>
+          </div>
+        </div>
+        <span class="text-[10px] text-text-secondary font-bold">Auto-tracked</span>
       </div>
 
       <div class="space-y-2 text-xs">
-        <div *ngFor="let p of learnerSkillsList()" class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between">
+        <div *ngFor="let p of learnerSkillsList()" class="p-3 rounded-2xl bg-base-100 hover:bg-base-200/50 border border-slate-200/80 dark:border-base-300 flex items-center justify-between transition-all">
           <div>
-            <div class="font-bold text-text-primary">{{ p.skillName }}</div>
-            <div class="text-[10px] text-text-secondary">Learner: {{ p.learnerName }} • Level: {{ p.level }}</div>
+            <div class="font-bold text-text-primary text-xs">{{ p.skillName }}</div>
+            <div class="text-[10px] text-text-secondary mt-0.5">{{ p.learnerName }} • Level: <span class="font-bold text-tenant-700">{{ p.level }}</span></div>
           </div>
           <div class="text-right">
-            <span *ngIf="p.acquired" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold">Acquired</span>
-            <span *ngIf="!p.acquired" class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold">In Progress ({{ p.progressPercent }}%)</span>
+            <span *ngIf="p.acquired" class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Acquired</span>
+            <span *ngIf="!p.acquired" class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">In Progress ({{ p.progressPercent }}%)</span>
           </div>
         </div>
       </div>
@@ -320,27 +530,36 @@
 
     <!-- Widget 7: Skill Gaps Analysis (§7.4) -->
     <div *ngIf="isWidgetVisible('w-gaps')" [class]="getWidgetClass('w-gaps')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-red-600 text-base">report_problem</span>
-          <span>Actionable Skill Gaps Analysis</span>
-        </h3>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">report_problem</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Actionable Skill Gaps</h3>
+            <span class="text-[10px] text-text-secondary">Unmapped & unearned elements</span>
+          </div>
+        </div>
       </div>
 
-      <div class="space-y-2 text-xs">
-        <div *ngIf="unmappedSkillsCount() > 0" class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2">
-          <span class="material-symbols-outlined text-base text-amber-700">warning</span>
-          <div>
+      <div class="space-y-2.5 text-xs">
+        <div *ngIf="unmappedSkillsCount() > 0" class="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-lg text-amber-600 mt-0.5">warning</span>
+          <div class="flex-1">
             <div class="font-bold">{{ unmappedSkillsCount() }} Skills Unmapped</div>
-            <div class="text-[11px] text-amber-800 mt-0.5">These skills exist in the repository but have 0 mappings to courses or plans. Map them to ensure learners can acquire them.</div>
+            <div class="text-[11px] text-amber-800/90 dark:text-amber-300/90 mt-0.5">These skills exist in repository but lack course or plan mappings.</div>
+            <a routerLink="/skills" [queryParams]="{ mapped: 'unmapped' }" class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 dark:text-amber-200 underline mt-1.5 hover:text-amber-700">
+              <span>View unmapped skills</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
           </div>
         </div>
 
-        <div *ngIf="unacquiredSkills().length > 0" class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-2">
-          <span class="material-symbols-outlined text-base text-blue-700">info</span>
-          <div>
+        <div *ngIf="unacquiredSkills().length > 0" class="p-3.5 rounded-2xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 text-sky-900 dark:text-sky-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-lg text-sky-600 mt-0.5">info</span>
+          <div class="flex-1">
             <div class="font-bold">{{ unacquiredSkills().length }} Active Skills Unearned</div>
-            <div class="text-[11px] text-blue-800 mt-0.5">Skills defined and mapped but not yet earned by any learner cohort. Check course assessment difficulty.</div>
+            <div class="text-[11px] text-sky-800/90 dark:text-sky-300/90 mt-0.5">Skills provisioned in courses but not yet earned by learner cohorts.</div>
           </div>
         </div>
       </div>
@@ -348,25 +567,30 @@
 
     <!-- Widget 8: Centralized Propagation Audit Feed (§6.5, §10.3) -->
     <div *ngIf="isWidgetVisible('w-propagation')" [class]="getWidgetClass('w-propagation')">
-      <div class="flex items-center justify-between pb-2 border-b border-base-300">
-        <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-purple-600 text-base">sync</span>
-          <span>Centralized Propagation & Skill Edit Audit Feed</span>
-        </h3>
-        <span class="text-[10px] text-text-secondary">Live Audit Trail</span>
+      <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">sync</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-text-primary uppercase tracking-wider">Propagation & Skill Edit Audit Feed</h3>
+            <span class="text-[10px] text-text-secondary">Live change trail across learning elements</span>
+          </div>
+        </div>
+        <span class="text-[10px] text-text-secondary font-bold">Automated audit</span>
       </div>
 
-      <div class="space-y-2 text-xs">
+      <div class="space-y-2.5 text-xs">
         <div *ngIf="propagationLogs().length === 0" class="p-6 text-center text-text-secondary">
           No recent skill changes or propagation logs.
         </div>
 
-        <div *ngFor="let log of propagationLogs()" class="p-3 rounded-xl bg-base-200/40 border border-base-300 flex items-start justify-between">
+        <div *ngFor="let log of propagationLogs()" class="p-3.5 rounded-2xl bg-base-100 hover:bg-base-200/50 border border-slate-200/80 dark:border-base-300 flex items-start justify-between transition-all">
           <div class="space-y-1">
             <div class="font-bold text-text-primary flex items-center gap-2">
               <span class="material-symbols-outlined text-base text-purple-600">published_with_changes</span>
               <span>{{ log.skillName }}</span>
-              <span class="font-mono text-[10px] text-text-secondary bg-base-200 px-1.5 py-0.5 rounded">
+              <span class="font-mono text-[10px] text-text-secondary bg-base-200 px-1.5 py-0.5 rounded-md">
                 Updated fields: {{ log.changedFields.join(', ') }}
               </span>
             </div>
@@ -374,7 +598,7 @@
           </div>
 
           <div class="text-right text-[10px] text-text-secondary">
-            <div class="font-bold text-purple-700">{{ log.propagatedTargetCount }} targets updated</div>
+            <div class="font-bold text-purple-700 dark:text-purple-400 font-mono">{{ log.propagatedTargetCount }} targets updated</div>
             <div>{{ log.changedAt }}</div>
             <div>by {{ log.changedBy }}</div>
           </div>

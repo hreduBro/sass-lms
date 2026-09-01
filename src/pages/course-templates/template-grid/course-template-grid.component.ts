@@ -42,14 +42,51 @@ export class CourseTemplateGridComponent {
   private router = inject(Router);
   private confirmModal = inject(ConfirmationModalService);
 
+  // View Mode: 'grid' | 'table'
+  viewMode = signal<'grid' | 'table'>('table');
+
   // Search & Filter State
   searchQuery = signal<string>('');
+  selectedStatus = signal<string>('all');
+  selectedCategory = signal<string>('all');
+  selectedScope = signal<string>('all');
+  sortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'used_desc'>('updated_desc');
   selectedCategoryQuick = signal<string>('All');
-  selectedStatusQuick = signal<string>('all');
-  selectedScopeQuick = signal<string>('all');
 
   // Filter Panel Drawer State
   isFilterPanelOpen = signal<boolean>(false);
+
+  // Custom Select Options for Filter Drawer
+  statusSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses', icon: 'all_inclusive' },
+    { value: 'active', label: 'Active', icon: 'check_circle', badge: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' },
+    { value: 'draft', label: 'Draft', icon: 'draft', badge: 'Draft', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' },
+    { value: 'inactive', label: 'Inactive', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }
+  ];
+
+  scopeSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Scopes', icon: 'public' },
+    { value: 'lms', label: 'LMS Workspace Only', icon: 'domain', sublabel: 'Available within this LMS instance' },
+    { value: 'organization', label: 'Organization-wide', icon: 'corporate_fare', sublabel: 'Shared across all LMS workspaces' }
+  ];
+
+  categorySelectOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: 'all', label: 'All Categories', icon: 'category' },
+      ...this.categories.map(c => ({
+        value: c,
+        label: c,
+        icon: 'auto_stories'
+      }))
+    ];
+  });
+
+  sortSelectOptions: SelectOption[] = [
+    { value: 'updated_desc', label: 'Recently Updated', icon: 'schedule' },
+    { value: 'updated_asc', label: 'Oldest Updated', icon: 'history' },
+    { value: 'name_asc', label: 'Name (A-Z)', icon: 'sort_by_alpha' },
+    { value: 'used_desc', label: 'Most Adopted', icon: 'trending_up' }
+  ];
 
   draftFilters = signal<TemplateGridFilters>({
     status: [],
@@ -74,8 +111,8 @@ export class CourseTemplateGridComponent {
   menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Pagination / Load More
-  displayedCount = signal<number>(10);
-  pageSizeIncrement = 10;
+  displayedCount = signal<number>(12);
+  pageSizeIncrement = 12;
 
   // Blueprint Inspection Modal State
   inspectTemplate = signal<CourseTemplate | null>(null);
@@ -167,148 +204,27 @@ export class CourseTemplateGridComponent {
 
   // Active filter checks
   hasActiveFilters = computed<boolean>(() => {
-    const f = this.appliedFilters();
     return (
-      f.status.length > 0 ||
-      f.scope.length > 0 ||
-      f.category.length > 0 ||
-      !!f.createdDateFrom ||
-      !!f.createdDateTo ||
-      f.sortBy !== 'updated_desc'
+      this.selectedStatus() !== 'all' ||
+      this.selectedScope() !== 'all' ||
+      this.selectedCategory() !== 'all' ||
+      this.sortBy() !== 'updated_desc' ||
+      this.searchQuery().trim().length > 0
     );
   });
 
   isResetVisible = computed<boolean>(() => {
-    return (
-      !!this.searchQuery().trim() ||
-      this.hasActiveFilters() ||
-      this.selectedCategoryQuick() !== 'All' ||
-      this.selectedStatusQuick() !== 'all' ||
-      this.selectedScopeQuick() !== 'all'
-    );
+    return this.hasActiveFilters();
   });
 
   activeFilterCount = computed<number>(() => {
-    const f = this.appliedFilters();
     let count = 0;
-    if (f.status.length > 0) count += f.status.length;
-    if (f.scope.length > 0) count += f.scope.length;
-    if (f.category.length > 0) count += f.category.length;
-    if (f.createdDateFrom || f.createdDateTo) count++;
-    if (f.sortBy !== 'updated_desc') count++;
-    if (this.selectedCategoryQuick() !== 'All') count++;
-    if (this.selectedStatusQuick() !== 'all') count++;
-    if (this.selectedScopeQuick() !== 'all') count++;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedScope() !== 'all') count++;
+    if (this.selectedCategory() !== 'all') count++;
+    if (this.sortBy() !== 'updated_desc') count++;
     return count;
   });
-
-  activeFilterBadges = computed<{ id: string; label: string; value: string; remove: () => void }[]>(() => {
-    const badges: { id: string; label: string; value: string; remove: () => void }[] = [];
-    const f = this.appliedFilters();
-
-    if (this.searchQuery().trim()) {
-      badges.push({
-        id: 'search',
-        label: 'Search',
-        value: this.searchQuery(),
-        remove: () => this.onSearchChange('')
-      });
-    }
-
-    if (this.selectedCategoryQuick() !== 'All') {
-      badges.push({
-        id: 'quickCat',
-        label: 'Category',
-        value: this.selectedCategoryQuick(),
-        remove: () => this.selectedCategoryQuick.set('All')
-      });
-    }
-
-    if (this.selectedStatusQuick() !== 'all') {
-      badges.push({
-        id: 'quickStatus',
-        label: 'Status',
-        value: this.selectedStatusQuick(),
-        remove: () => this.selectedStatusQuick.set('all')
-      });
-    }
-
-    if (this.selectedScopeQuick() !== 'all') {
-      badges.push({
-        id: 'quickScope',
-        label: 'Scope',
-        value: this.selectedScopeQuick() === 'organization' ? 'Organization-wide' : 'LMS Workspace',
-        remove: () => this.selectedScopeQuick.set('all')
-      });
-    }
-
-    f.status.forEach(st => {
-      badges.push({
-        id: `status-${st}`,
-        label: 'Status',
-        value: st.toUpperCase(),
-        remove: () => this.removeFilterStatus(st)
-      });
-    });
-
-    f.scope.forEach(sc => {
-      badges.push({
-        id: `scope-${sc}`,
-        label: 'Scope',
-        value: sc === 'organization' ? 'Organization-wide' : 'LMS Workspace',
-        remove: () => this.removeFilterScope(sc)
-      });
-    });
-
-    f.category.forEach(cat => {
-      badges.push({
-        id: `cat-${cat}`,
-        label: 'Category',
-        value: cat,
-        remove: () => this.removeFilterCategory(cat)
-      });
-    });
-
-    if (f.createdDateFrom) {
-      badges.push({
-        id: 'createdDateFrom',
-        label: 'From',
-        value: f.createdDateFrom,
-        remove: () => this.removeFilterCreatedDateFrom()
-      });
-    }
-
-    if (f.createdDateTo) {
-      badges.push({
-        id: 'createdDateTo',
-        label: 'To',
-        value: f.createdDateTo,
-        remove: () => this.removeFilterCreatedDateTo()
-      });
-    }
-
-    return badges;
-  });
-
-  removeFilterStatus(st: CourseTemplateStatus) {
-    this.appliedFilters.update(f => ({ ...f, status: f.status.filter(s => s !== st) }));
-  }
-
-  removeFilterScope(sc: CourseTemplateScope) {
-    this.appliedFilters.update(f => ({ ...f, scope: f.scope.filter(s => s !== sc) }));
-  }
-
-  removeFilterCategory(cat: string) {
-    this.appliedFilters.update(f => ({ ...f, category: f.category.filter(c => c !== cat) }));
-  }
-
-  removeFilterCreatedDateFrom() {
-    this.appliedFilters.update(f => ({ ...f, createdDateFrom: '' }));
-  }
-
-  removeFilterCreatedDateTo() {
-    this.appliedFilters.update(f => ({ ...f, createdDateTo: '' }));
-  }
 
   // Filtered and Sorted list
   parseDateTimestamp(dateStr: string | undefined | null): number {
@@ -340,10 +256,10 @@ export class CourseTemplateGridComponent {
   filteredTemplates = computed<CourseTemplate[]>(() => {
     let list = this.lms.scopedCourseTemplates();
     const query = this.searchQuery().trim().toLowerCase();
-    const quickCat = this.selectedCategoryQuick();
-    const quickStatus = this.selectedStatusQuick();
-    const quickScope = this.selectedScopeQuick();
-    const filters = this.appliedFilters();
+    const status = this.selectedStatus();
+    const category = this.selectedCategory();
+    const scope = this.selectedScope();
+    const sort = this.sortBy();
 
     // 1. Search Query
     if (query) {
@@ -356,44 +272,22 @@ export class CourseTemplateGridComponent {
       );
     }
 
-    // 2. Quick Toolbar Filters
-    if (quickCat !== 'All') {
-      list = list.filter(t => t.categoryTags && t.categoryTags.includes(quickCat));
-    }
-    if (quickStatus !== 'all') {
-      list = list.filter(t => t.status === quickStatus);
-    }
-    if (quickScope !== 'all') {
-      list = list.filter(t => t.scope === quickScope);
+    // 2. Status Filter
+    if (status !== 'all') {
+      list = list.filter(t => t.status === status);
     }
 
-    // 3. Filter Drawer Panel Applied Criteria
-    if (filters.status.length > 0) {
-      list = list.filter(t => filters.status.includes(t.status));
-    }
-    if (filters.scope.length > 0) {
-      list = list.filter(t => filters.scope.includes(t.scope));
-    }
-    if (filters.category.length > 0) {
-      list = list.filter(t => t.categoryTags && t.categoryTags.some(tag => filters.category.includes(tag)));
-    }
-    if (filters.createdDateFrom) {
-      const from = new Date(filters.createdDateFrom).getTime();
-      list = list.filter(t => {
-        const itemDate = this.parseDateTimestamp(t.createdAt);
-        return itemDate === 0 || itemDate >= from;
-      });
-    }
-    if (filters.createdDateTo) {
-      const to = new Date(filters.createdDateTo).getTime() + 86400000;
-      list = list.filter(t => {
-        const itemDate = this.parseDateTimestamp(t.createdAt);
-        return itemDate === 0 || itemDate <= to;
-      });
+    // 3. Scope Filter
+    if (scope !== 'all') {
+      list = list.filter(t => t.scope === scope);
     }
 
-    // 4. Sorting
-    const sort = filters.sortBy;
+    // 4. Category Filter
+    if (category !== 'all') {
+      list = list.filter(t => t.categoryTags && t.categoryTags.includes(category));
+    }
+
+    // 5. Sorting
     return [...list].sort((a, b) => {
       if (sort === 'updated_desc') {
         const bTime = this.parseDateTimestamp(b.updatedAt || b.createdAt);
@@ -498,75 +392,14 @@ export class CourseTemplateGridComponent {
     this.isFilterPanelOpen.set(false);
   }
 
-  applyFilterPanel() {
-    this.appliedFilters.set({ ...this.draftFilters() });
-    this.isFilterPanelOpen.set(false);
-    this.displayedCount.set(10);
-  }
-
-  clearFilterPanelDraft() {
-    this.draftFilters.set({
-      status: [],
-      scope: [],
-      category: [],
-      createdDateFrom: '',
-      createdDateTo: '',
-      sortBy: 'updated_desc'
-    });
-  }
-
-  toggleDraftStatus(st: CourseTemplateStatus) {
-    this.draftFilters.update(f => {
-      const current = [...f.status];
-      const idx = current.indexOf(st);
-      if (idx > -1) current.splice(idx, 1);
-      else current.push(st);
-      return { ...f, status: current };
-    });
-  }
-
-  toggleDraftScope(sc: CourseTemplateScope) {
-    this.draftFilters.update(f => {
-      const current = [...f.scope];
-      const idx = current.indexOf(sc);
-      if (idx > -1) current.splice(idx, 1);
-      else current.push(sc);
-      return { ...f, scope: current };
-    });
-  }
-
-  toggleDraftCategory(cat: string) {
-    this.draftFilters.update(f => {
-      const current = [...f.category];
-      const idx = current.indexOf(cat);
-      if (idx > -1) current.splice(idx, 1);
-      else current.push(cat);
-      return { ...f, category: current };
-    });
-  }
-
   resetGrid() {
     this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedCategory.set('all');
+    this.selectedScope.set('all');
+    this.sortBy.set('updated_desc');
     this.selectedCategoryQuick.set('All');
-    this.selectedStatusQuick.set('all');
-    this.selectedScopeQuick.set('all');
-    this.draftFilters.set({
-      status: [],
-      scope: [],
-      category: [],
-      createdDateFrom: '',
-      createdDateTo: '',
-      sortBy: 'updated_desc'
-    });
-    this.appliedFilters.set({
-      status: [],
-      scope: [],
-      category: [],
-      createdDateFrom: '',
-      createdDateTo: '',
-      sortBy: 'updated_desc'
-    });
-    this.displayedCount.set(10);
+    this.displayedCount.set(12);
   }
 
   // Duration & Slot helpers

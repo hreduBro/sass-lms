@@ -1,17 +1,19 @@
-<div class="space-y-6">
+<div class="space-y-6 pb-16">
   
-  <!-- Header Section -->
-  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER SECTION                                                         -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
-          <span class="material-symbols-outlined text-[13px]">workspace_premium</span>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">workspace_premium</span>
           Credential Design Studio
         </span>
         <span class="text-xs text-text-secondary">{{ kpi().total }} Templates in Scope</span>
       </div>
-      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Certificate Templates</h1>
-      <p class="text-xs text-text-secondary mt-0.5">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Certificate Templates</h1>
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
         Design, configure, and manage dynamic certificate templates with institutional branding.
       </p>
     </div>
@@ -20,221 +22,277 @@
     <div class="flex items-center gap-2.5">
       <a 
         routerLink="/certificates/templates/dashboard" 
-        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm">
-        <span class="material-symbols-outlined text-base text-tenant-500">space_dashboard</span>
-        Template Dashboard
+        class="px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-white dark:bg-base-100 hover:bg-slate-50 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-base-300 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+        <span class="material-symbols-outlined text-base text-pink-600">space_dashboard</span>
+        <span>Template Dashboard</span>
       </a>
 
       @if (permissions().canCreate) {
         <button 
           type="button"
           (click)="openCreateWizard()"
-          class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-tenant-500/20 active:scale-95 cursor-pointer">
           <span class="material-symbols-outlined text-base">add_circle</span>
-          Create Template
+          <span>Create Template</span>
         </button>
       }
     </div>
   </div>
 
-  <!-- KPI Metrics Row -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Total -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+  <!-- ========================================================================= -->
+  <!-- 2. KPI METRICS CARDS ROW                                                  -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    
+    <!-- 1. Total Templates -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
-        <p class="text-xs font-medium text-text-secondary">Total Templates</p>
-        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().total }}</h3>
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Templates</p>
+        <h3 class="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ kpi().total }}</h3>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
-        <span class="material-symbols-outlined">collections_bookmark</span>
+      <div class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined text-xl">collections_bookmark</span>
       </div>
     </div>
 
-    <!-- Published -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <!-- 2. Published & Active -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
-        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Published & Active</p>
-        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().published }}</h3>
-        <span class="text-[11px] text-text-secondary">{{ kpi().publishedPct }}% of library</span>
+        <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Published & Active</p>
+        <h3 class="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ kpi().published }}</h3>
+        <span class="text-[11px] text-slate-400 dark:text-slate-500">{{ kpi().publishedPct }}% of library</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-        <span class="material-symbols-outlined">verified</span>
+      <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined text-xl">verified</span>
       </div>
     </div>
 
-    <!-- Drafts -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <!-- 3. In Draft -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
-        <p class="text-xs font-medium text-amber-600 dark:text-amber-400">In Draft</p>
-        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().draft }}</h3>
-        <span class="text-[11px] text-text-secondary">Resumable authoring</span>
+        <p class="text-xs font-bold text-amber-600 dark:text-amber-400">In Draft</p>
+        <h3 class="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ kpi().draft }}</h3>
+        <span class="text-[11px] text-slate-400 dark:text-slate-500">Resumable authoring</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-        <span class="material-symbols-outlined">edit_note</span>
+      <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 flex items-center justify-center text-amber-600 dark:text-amber-400">
+        <span class="material-symbols-outlined text-xl">edit_note</span>
       </div>
     </div>
 
-    <!-- Archived -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <!-- 4. Archived -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
-        <p class="text-xs font-medium text-text-secondary">Archived</p>
-        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().archived }}</h3>
-        <span class="text-[11px] text-text-secondary">Historical records</span>
+        <p class="text-xs font-bold text-slate-600 dark:text-slate-400">Archived</p>
+        <h3 class="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ kpi().archived }}</h3>
+        <span class="text-[11px] text-slate-400 dark:text-slate-500">Historical records</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center text-text-secondary">
-        <span class="material-symbols-outlined">archive</span>
+      <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+        <span class="material-symbols-outlined text-xl">inventory_2</span>
       </div>
     </div>
   </div>
 
-  <!-- Search & Filter Controls Toolbar -->
-  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-sm">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+  <!-- ========================================================================= -->
+  <!-- 3. SEARCH & FILTER CONTROLS (MATCHING IMAGE TOOLBAR + FILTER DRAWER)      -->
+  <!-- ========================================================================= -->
+  <div class="space-y-3">
+
+    <!-- Search & Filter Toolbar Card -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-30">
       
-      <!-- Search Input -->
-      <div class="relative flex-1 max-w-md">
-        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base">search</span>
-        <input 
-          type="text"
-          [(ngModel)]="searchQuery"
-          placeholder="Search by template name, ID (e.g. CERT-TMP), creator..."
-          class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:ring-0 transition-colors" />
-        @if (searchQuery()) {
-          <button 
-            type="button" 
-            (click)="searchQuery.set('')"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5">
-            <span class="material-symbols-outlined text-xs">close</span>
+      <!-- Left: Search Field + Filters Button -->
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+          <input 
+            type="text"
+            id="input-certificate-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by Organization Name..."
+            class="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 rounded-2xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
+          @if (searchQuery()) {
+            <button 
+              type="button" 
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filters Toggle Button -->
+        <button
+          type="button"
+          id="btn-toggle-certificate-filter-panel"
+          (click)="toggleFilterPanel()"
+          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="isFilterPanelOpen() || activeFilterCount() > 0
+            ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs font-bold'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base">filter_list</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Reset Button -->
+        @if (activeFilterCount() > 0) {
+          <button
+            type="button"
+            id="btn-certificate-grid-reset"
+            (click)="clearAllFilters()"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
+            title="Reset Filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
           </button>
         }
+
       </div>
 
-      <!-- Quick Filters & View Switcher -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        
-        <!-- Status Filter Dropdown -->
-        <select 
-          [(ngModel)]="selectedStatus"
-          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
-          <option value="all">Status: All</option>
-          <option value="published">Published</option>
-          <option value="draft">In Draft</option>
-          <option value="archived">Archived</option>
-        </select>
-
-        <!-- Sharing Filter Dropdown -->
-        <select 
-          [(ngModel)]="selectedSharing"
-          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
-          <option value="all">Sharing: All</option>
-          <option value="lms">LMS Workspace</option>
-          <option value="organization">Organization-Wide</option>
-          <option value="private">Private</option>
-        </select>
-
-        <!-- Certificate Type Dropdown -->
-        <select 
-          [(ngModel)]="selectedType"
-          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
-          <option value="all">Type: All</option>
-          <option value="Achievement">Achievement</option>
-          <option value="Completion">Completion</option>
-          <option value="Professional">Professional</option>
-          <option value="Merit">Merit</option>
-          <option value="Participation">Participation</option>
-          <option value="Compliance">Compliance</option>
-        </select>
-
-        <!-- Sort By Dropdown -->
-        <select 
-          [(ngModel)]="sortBy"
-          class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
-          <option value="updated_desc">Sort: Newest Updated</option>
-          <option value="updated_asc">Sort: Oldest Updated</option>
-          <option value="name_asc">Sort: Name (A-Z)</option>
-          <option value="usage_desc">Sort: Most Used</option>
-        </select>
-
-        <!-- View Mode Switcher -->
-        <div class="flex items-center bg-base-200 p-1 rounded-xl border border-base-300">
+      <!-- Right: Grid / Table View Mode Toggle -->
+      <div class="flex items-center justify-end gap-2.5">
+        <div class="flex items-center gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 shadow-2xs">
+          <!-- Grid View Button -->
           <button 
             type="button"
+            id="btn-cert-view-grid"
             (click)="viewMode.set('grid')"
-            class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
-            [class.bg-tenant-500]="viewMode() === 'grid'"
-            [class.text-white]="viewMode() === 'grid'"
-            title="Card Grid View">
-            <span class="material-symbols-outlined text-sm">grid_view</span>
+            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+            title="Grid View">
+            <span class="material-symbols-outlined text-base">grid_view</span>
           </button>
+
+          <!-- Table View Button -->
           <button 
             type="button"
+            id="btn-cert-view-table"
             (click)="viewMode.set('table')"
-            class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors"
-            [class.bg-tenant-500]="viewMode() === 'table'"
-            [class.text-white]="viewMode() === 'table'"
-            title="Table Row View">
-            <span class="material-symbols-outlined text-sm">view_list</span>
+            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+            title="Table View">
+            <span class="material-symbols-outlined text-base">table_rows</span>
           </button>
         </div>
       </div>
+
     </div>
 
-    <!-- Active Filter Chips -->
-    @if (activeFilterCount() > 0) {
-      <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-base-300">
-        <span class="text-xs font-semibold text-text-secondary">Active Filters:</span>
+    <!-- ========================================================================= -->
+    <!-- 3.1 EXPANDABLE FILTER PANEL DRAWER (CONTAINING ALL CUSTOM-SELECTS)        -->
+    <!-- ========================================================================= -->
+    @if (isFilterPanelOpen()) {
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200 space-y-4 relative z-20">
 
-        @if (searchQuery()) {
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
-            Search: "{{ searchQuery() }}"
-            <button type="button" (click)="searchQuery.set('')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
+            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">
+              FILTER CERTIFICATE TEMPLATES
+            </h3>
+          </div>
+          <span class="text-[11px] text-text-secondary font-medium">
+            Filter templates across status, sharing scope, certificate type and sorting order
           </span>
-        }
+        </div>
 
-        @if (selectedStatus() !== 'all') {
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
-            Status: {{ selectedStatus() | uppercase }}
-            <button type="button" (click)="selectedStatus.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
-          </span>
-        }
+        <!-- Filter Custom Selects Grid Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
 
-        @if (selectedSharing() !== 'all') {
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
-            Scope: {{ selectedSharing() | titlecase }}
-            <button type="button" (click)="selectedSharing.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
-          </span>
-        }
+          <!-- 1. Status Dropdown -->
+          <div>
+            <app-custom-select
+              label="Status"
+              [options]="statusOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="selectedStatus.set($event)">
+            </app-custom-select>
+          </div>
 
-        @if (selectedType() !== 'all') {
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-base-200 text-text-primary border border-base-300">
-            Type: {{ selectedType() }}
-            <button type="button" (click)="selectedType.set('all')" class="hover:opacity-75"><span class="material-symbols-outlined text-[12px]">close</span></button>
-          </span>
-        }
+          <!-- 2. Sharing Scope Dropdown -->
+          <div>
+            <app-custom-select
+              label="Sharing Scope"
+              [options]="sharingOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedSharing()"
+              (ngModelChange)="selectedSharing.set($event)">
+            </app-custom-select>
+          </div>
 
-        <button 
-          type="button" 
-          (click)="clearAllFilters()" 
-          class="text-xs text-rose-500 hover:text-rose-600 font-medium ml-2">
-          Clear All Filters
-        </button>
+          <!-- 3. Type / Category Dropdown -->
+          <div>
+            <app-custom-select
+              label="Certificate Type"
+              [options]="typeOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="selectedType()"
+              (ngModelChange)="selectedType.set($event)">
+            </app-custom-select>
+          </div>
+
+          <!-- 4. Sort By Dropdown -->
+          <div>
+            <app-custom-select
+              label="Sort Order"
+              [options]="sortOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="sortBy()"
+              (ngModelChange)="sortBy.set($event)">
+            </app-custom-select>
+          </div>
+
+        </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
+          <button
+            type="button"
+            (click)="clearAllFilters()"
+            class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer">
+            Clear All Selections
+          </button>
+
+          <button
+            type="button"
+            (click)="closeFilterPanel()"
+            class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer">
+            Close
+          </button>
+        </div>
+
       </div>
     }
+
   </div>
 
-  <!-- ================================================================= -->
-  <!-- MAIN CONTENT: GRID VIEW                                           -->
-  <!-- ================================================================= -->
+  <!-- ========================================================================= -->
+  <!-- 4. MAIN CONTENT: GRID VIEW                                                -->
+  <!-- ========================================================================= -->
   @if (viewMode() === 'grid') {
     @if (filteredTemplates().length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (tmpl of filteredTemplates(); track tmpl.id) {
-          <div class="bg-base-100 border border-base-300 hover:border-tenant-500/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
+          <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 hover:border-tenant-300 dark:hover:border-tenant-700/60 rounded-3xl overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col group">
             
-            <!-- Canvas Thumbnail Header -->
+            <!-- Canvas Thumbnail Header with Image and Badges -->
             <div 
               (click)="openPreview(tmpl)"
-              class="relative w-full aspect-[16/10] bg-base-200 cursor-pointer overflow-hidden group-hover:opacity-95 transition-opacity border-b border-base-300">
+              class="relative w-full aspect-[16/10] bg-slate-100 dark:bg-base-200 cursor-pointer overflow-hidden border-b border-slate-200/80 dark:border-base-300">
               
               <!-- Background Art -->
               <img 
@@ -245,80 +303,100 @@
 
               <!-- Overlay preview hint -->
               <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span class="px-3 py-1.5 rounded-xl bg-base-100/90 text-xs font-semibold text-text-primary border border-base-300 flex items-center gap-1.5 backdrop-blur shadow-sm">
-                  <span class="material-symbols-outlined text-sm text-tenant-500">zoom_in</span> Click to Preview
+                <span class="px-3.5 py-2 rounded-2xl bg-white/95 text-xs font-bold text-slate-800 flex items-center gap-1.5 backdrop-blur-xs shadow-md">
+                  <span class="material-symbols-outlined text-sm text-pink-600">zoom_in</span> Click to Preview
                 </span>
               </div>
 
               <!-- Top Left: Status Badge -->
-              <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                <span 
-                  class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-sm backdrop-blur"
-                  [ngClass]="getStatusBadgeClass(tmpl.status)">
-                  {{ tmpl.status }}
-                </span>
+              <div class="absolute top-3 left-3">
+                @if (tmpl.status === 'draft') {
+                  <span class="bg-[#B45309] text-white text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">
+                    DRAFT
+                  </span>
+                } @else if (tmpl.status === 'published') {
+                  <span class="bg-[#10B981] text-white text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">
+                    PUBLISHED
+                  </span>
+                } @else {
+                  <span class="bg-slate-700 text-white text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">
+                    ARCHIVED
+                  </span>
+                }
               </div>
 
               <!-- Top Right: Sharing Scope Badge -->
-              <div class="absolute top-2.5 right-2.5">
-                <span 
-                  class="px-2.5 py-0.5 rounded-full text-[11px] font-medium border shadow-sm backdrop-blur flex items-center gap-1"
-                  [ngClass]="getSharingBadgeClass(tmpl.sharing.level)">
-                  <span class="material-symbols-outlined text-[13px]">
-                    {{ tmpl.sharing.level === 'organization' ? 'corporate_fare' : (tmpl.sharing.level === 'lms' ? 'domain' : 'lock') }}
+              <div class="absolute top-3 right-3">
+                @if (tmpl.sharing.level === 'private') {
+                  <span class="bg-black/75 backdrop-blur-xs text-white text-[10px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-xs">lock</span>
+                    <span>Private</span>
                   </span>
-                  {{ tmpl.sharing.level === 'organization' ? 'Org-Shared' : (tmpl.sharing.level === 'lms' ? 'LMS' : 'Private') }}
-                </span>
+                } @else if (tmpl.sharing.level === 'lms') {
+                  <span class="bg-sky-600 text-white text-[10px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-xs">domain</span>
+                    <span>LMS</span>
+                  </span>
+                } @else {
+                  <span class="bg-purple-600 text-white text-[10px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-xs">corporate_fare</span>
+                    <span>Org-Wide</span>
+                  </span>
+                }
               </div>
 
-              <!-- Bottom Ribbon: Paper & Orientation -->
-              <div class="absolute bottom-2 left-2.5 bg-black/70 backdrop-blur px-2 py-0.5 rounded-lg text-[10px] font-mono text-white">
+              <!-- Bottom Left: Paper & Orientation -->
+              <div class="absolute bottom-2.5 left-3 bg-black/75 backdrop-blur-xs px-2.5 py-1 rounded-lg text-[10px] font-mono text-white">
                 {{ tmpl.paperSize }} • {{ tmpl.orientation | titlecase }}
               </div>
 
-              <!-- Bottom Right: Usage Pill -->
-              <div class="absolute bottom-2 right-2.5 bg-tenant-500/90 backdrop-blur text-white px-2 py-0.5 rounded-lg text-[10px] font-semibold">
-                {{ tmpl.usageCount }} {{ tmpl.usageCount === 1 ? 'Phase' : 'Phases' }}
+              <!-- Bottom Right: Usage / Phases Count -->
+              <div class="absolute bottom-2.5 right-3 bg-black/75 backdrop-blur-xs text-white px-2.5 py-1 rounded-lg text-[10px] font-mono">
+                {{ tmpl.usageCount || 0 }} {{ tmpl.usageCount === 1 ? 'Phase' : 'Phases' }}
               </div>
             </div>
 
-            <!-- Card Body -->
+            <!-- Card Body below Image -->
             <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
               <div class="space-y-2">
-                <div class="flex items-center justify-between text-xs text-text-secondary">
-                  <span class="font-mono text-[11px]">{{ tmpl.id }}</span>
-                  <span class="text-tenant-600 dark:text-tenant-400 font-semibold">{{ tmpl.type }}</span>
+                <!-- ID & Type Row -->
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">{{ tmpl.id }}</span>
+                  <span class="text-xs font-bold text-pink-600 dark:text-pink-400">{{ tmpl.type }}</span>
                 </div>
 
+                <!-- Title -->
                 <h3 
                   (click)="openPreview(tmpl)"
-                  class="text-base font-bold text-text-primary hover:text-tenant-500 transition-colors cursor-pointer line-clamp-1"
+                  class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer line-clamp-1 leading-snug"
                   [title]="tmpl.name">
                   {{ tmpl.name }}
                 </h3>
 
-                @if (tmpl.description) {
-                  <p class="text-xs text-text-secondary line-clamp-2">{{ tmpl.description }}</p>
-                }
+                <!-- Description -->
+                <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                  {{ tmpl.description || 'Custom credential design template for automated certification issuance.' }}
+                </p>
 
-                <div class="pt-2 border-t border-base-300 grid grid-cols-2 gap-2 text-[11px] text-text-secondary">
+                <!-- Created & Updated Info -->
+                <div class="pt-3 border-t border-slate-100 dark:border-base-300 grid grid-cols-2 gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                   <div>
-                    <span class="block">Created by:</span>
-                    <span class="text-text-primary font-medium truncate block">{{ tmpl.createdBy }}</span>
+                    <span class="block text-[10px] text-slate-400 dark:text-slate-500">Created by:</span>
+                    <span class="text-slate-800 dark:text-slate-200 font-medium truncate block">{{ tmpl.createdBy }}</span>
                   </div>
                   <div>
-                    <span class="block">Updated:</span>
-                    <span class="text-text-primary font-medium block">{{ tmpl.updatedAt || tmpl.createdAt }}</span>
+                    <span class="block text-[10px] text-slate-400 dark:text-slate-500">Updated:</span>
+                    <span class="text-slate-800 dark:text-slate-200 font-medium block truncate">{{ tmpl.updatedAt || tmpl.createdAt }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Card Action Footer -->
-              <div class="pt-3 border-t border-base-300 flex items-center justify-between gap-2">
+              <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between gap-2">
                 <button 
                   type="button"
                   (click)="openPreview(tmpl)"
-                  class="p-2 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors"
+                  class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 transition-colors cursor-pointer"
                   title="View Full Preview">
                   <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
@@ -328,10 +406,10 @@
                     <button 
                       type="button"
                       (click)="publishTemplate(tmpl)"
-                      class="px-2.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 rounded-xl border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1"
+                      class="px-2.5 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 rounded-xl border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1 cursor-pointer"
                       title="Publish Template">
                       <span class="material-symbols-outlined text-sm">verified</span>
-                      Publish
+                      <span>Publish</span>
                     </button>
                   }
 
@@ -339,10 +417,10 @@
                     <button 
                       type="button"
                       (click)="openEditWizard(tmpl)"
-                      class="px-2.5 py-1.5 text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/10 rounded-xl border border-tenant-200 dark:border-tenant-500/30 transition-colors flex items-center gap-1"
+                      class="px-2.5 py-1.5 text-xs font-bold text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/10 rounded-xl border border-tenant-200 dark:border-tenant-500/30 transition-colors flex items-center gap-1 cursor-pointer"
                       title="Edit Template">
                       <span class="material-symbols-outlined text-sm">edit</span>
-                      Edit
+                      <span>Edit</span>
                     </button>
                   }
 
@@ -350,7 +428,7 @@
                     <button 
                       type="button"
                       (click)="duplicateTemplate(tmpl)"
-                      class="p-1.5 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors"
+                      class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 transition-colors cursor-pointer"
                       title="Duplicate as Draft">
                       <span class="material-symbols-outlined text-lg">content_copy</span>
                     </button>
@@ -360,7 +438,7 @@
                     <button 
                       type="button"
                       (click)="archiveTemplate(tmpl)"
-                      class="p-1.5 text-text-secondary hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
+                      class="p-1.5 text-slate-500 hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
                       title="Archive Template">
                       <span class="material-symbols-outlined text-lg">archive</span>
                     </button>
@@ -370,7 +448,7 @@
                     <button 
                       type="button"
                       (click)="deleteDraftTemplate(tmpl)"
-                      class="p-1.5 text-rose-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      class="p-1.5 text-rose-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                       title="Delete Draft">
                       <span class="material-symbols-outlined text-lg">delete</span>
                     </button>
@@ -412,7 +490,7 @@
             No certificate templates matched your search term "<span class="text-tenant-600 dark:text-tenant-400 font-semibold">{{ searchQuery() }}</span>".
           </p>
           <button 
-            type="button"
+            type="button" 
             (click)="searchQuery.set('')"
             class="px-4 py-2 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-500/20 border border-tenant-500/30 rounded-xl hover:bg-tenant-100 transition-colors">
             Clear Search
@@ -564,8 +642,12 @@
   <!-- FULL PREVIEW MODAL                                                -->
   <!-- ================================================================= -->
   @if (previewModalTemplate(); as tmpl) {
-    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div class="bg-base-100 border border-base-300 rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+      (click)="closePreview()">
+      <div 
+        class="relative bg-base-100 border border-base-300 rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-modal-card m-auto"
+        (click)="$event.stopPropagation()">
         
         <!-- Modal Header -->
         <div class="px-6 py-4 bg-base-200 border-b border-base-300 flex items-center justify-between gap-4">

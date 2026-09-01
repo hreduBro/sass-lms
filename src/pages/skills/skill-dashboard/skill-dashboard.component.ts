@@ -42,9 +42,14 @@ export class SkillDashboardComponent {
   widgets = signal<SkillWidgetConfig[]>(JSON.parse(JSON.stringify(DEFAULT_SKILL_WIDGETS)));
   draftWidgets = signal<SkillWidgetConfig[]>([]);
 
-  // Selected filter states
+  // Search & filter states
+  searchQuery = signal<string>('');
+  isFilterPanelOpen = signal<boolean>(true);
+  selectedStatus = signal<string>('all');
   selectedCategory = signal<string>('all');
   selectedCluster = signal<string>('all');
+  selectedCoverage = signal<string>('all');
+  sortBy = signal<string>('created_desc');
 
   categories: string[] = [
     'Technical', 
@@ -54,6 +59,13 @@ export class SkillDashboardComponent {
     'Compliance', 
     'Operations', 
     'Domain Knowledge'
+  ];
+
+  statusSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses', icon: 'all_inclusive' },
+    { value: 'active', label: 'Active', icon: 'check_circle', badge: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700' },
+    { value: 'inactive', label: 'Inactive', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-rose-50 text-rose-700' },
+    { value: 'draft', label: 'Draft', icon: 'draft', badge: 'Draft', badgeClass: 'bg-blue-50 text-blue-700' }
   ];
 
   categorySelectOptions = computed<SelectOption[]>(() => {
@@ -71,15 +83,71 @@ export class SkillDashboardComponent {
     ];
   });
 
+  coverageSelectOptions: SelectOption[] = [
+    { value: 'all', label: 'All Depths & Levels', icon: 'account_tree' },
+    { value: 'mapped', label: 'Mapped (>0 Elements)', icon: 'link' },
+    { value: 'unmapped', label: 'Unmapped (0 Links)', icon: 'link_off' }
+  ];
+
+  sortBySelectOptions: SelectOption[] = [
+    { value: 'created_desc', label: 'Recently Created', icon: 'schedule' },
+    { value: 'name_asc', label: 'Name (A-Z)', icon: 'sort_by_alpha' },
+    { value: 'name_desc', label: 'Name (Z-A)', icon: 'sort_by_alpha' },
+    { value: 'most_mapped', label: 'Most Mapped', icon: 'account_tree' },
+    { value: 'most_acquired', label: 'Most Acquired', icon: 'school' }
+  ];
+
+  activeFiltersCount = computed<number>(() => {
+    let count = 0;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedCategory() !== 'all') count++;
+    if (this.selectedCluster() !== 'all') count++;
+    if (this.selectedCoverage() !== 'all') count++;
+    if (this.sortBy() !== 'created_desc') count++;
+    return count;
+  });
+
+  hasActiveFilters = computed<boolean>(() => {
+    return this.activeFiltersCount() > 0 || this.searchQuery().trim() !== '';
+  });
+
+  resetFilters(): void {
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedCategory.set('all');
+    this.selectedCluster.set('all');
+    this.selectedCoverage.set('all');
+    this.sortBy.set('created_desc');
+  }
+
   // Filtered skills subset for statistics
   filteredSkillsForStats = computed(() => {
     let list = this.lmsData.skills();
+    const q = this.searchQuery().trim().toLowerCase();
+    const status = this.selectedStatus();
     const cat = this.selectedCategory();
     const cluster = this.selectedCluster();
+    const cov = this.selectedCoverage();
+    const sort = this.sortBy();
+
+    if (q) {
+      list = list.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.skillCode.toLowerCase().includes(q) ||
+        (s.description && s.description.toLowerCase().includes(q)) ||
+        (s.category && s.category.toLowerCase().includes(q)) ||
+        (s.clusterName && s.clusterName.toLowerCase().includes(q))
+      );
+    }
+
+    if (status !== 'all') {
+      list = list.filter(s => s.status === status);
+    }
 
     if (cat !== 'all') {
       list = list.filter(s => s.category === cat);
     }
+
     if (cluster !== 'all') {
       if (cluster === 'uncategorized') {
         list = list.filter(s => !s.clusterId);
@@ -87,6 +155,25 @@ export class SkillDashboardComponent {
         list = list.filter(s => s.clusterId === cluster);
       }
     }
+
+    if (cov === 'mapped') {
+      list = list.filter(s => s.mappedElementCount > 0);
+    } else if (cov === 'unmapped') {
+      list = list.filter(s => s.mappedElementCount === 0);
+    }
+
+    list = [...list].sort((a, b) => {
+      switch (sort) {
+        case 'name_asc': return a.name.localeCompare(b.name);
+        case 'name_desc': return b.name.localeCompare(a.name);
+        case 'most_mapped': return b.mappedElementCount - a.mappedElementCount;
+        case 'most_acquired': return b.learnersAcquiredCount - a.learnersAcquiredCount;
+        case 'created_desc':
+        default:
+          return (b.createdAt || '').localeCompare(a.createdAt || '');
+      }
+    });
+
     return list;
   });
 
@@ -95,6 +182,34 @@ export class SkillDashboardComponent {
   activeSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'active').length);
   inactiveSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'inactive').length);
   draftSkillsCount = computed(() => this.filteredSkillsForStats().filter(s => s.status === 'draft').length);
+  totalMappingsCount = computed(() => this.lmsData.skillMappings().length);
+
+  // Global telemetry for top cards
+  globalActiveSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'active').length);
+  globalActiveSkillsPercentage = computed<number>(() => {
+    const total = this.lmsData.skills().length;
+    if (!total) return 0;
+    return Math.round((this.globalActiveSkillsCount() / total) * 100);
+  });
+  globalUnmappedSkillsCount = computed(() => this.lmsData.skills().filter(s => s.mappedElementCount === 0).length);
+
+  activeSkillsPercentage = computed<number>(() => {
+    const total = this.totalSkills();
+    if (!total) return 0;
+    return Math.round((this.activeSkillsCount() / total) * 100);
+  });
+
+  inactiveSkillsPercentage = computed<number>(() => {
+    const total = this.totalSkills();
+    if (!total) return 0;
+    return Math.round((this.inactiveSkillsCount() / total) * 100);
+  });
+
+  draftSkillsPercentage = computed<number>(() => {
+    const total = this.totalSkills();
+    if (!total) return 0;
+    return Math.round((this.draftSkillsCount() / total) * 100);
+  });
   
   clusterCount = computed(() => {
     const activeClusters = new Set(this.filteredSkillsForStats().map(s => s.clusterId).filter(id => !!id));

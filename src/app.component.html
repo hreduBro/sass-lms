@@ -5,11 +5,11 @@
   <app-sidebar [isOpen]="isSidebarOpen()" (close)="closeSidebar()"></app-sidebar>
   
   <div class="flex-1 flex flex-col min-w-0">
-    <app-header class="relative z-40 flex-shrink-0" (toggleSidebar)="toggleSidebar()"></app-header>
+    <app-header class="relative flex-shrink-0" (toggleSidebar)="toggleSidebar()"></app-header>
 
     <!-- Top Menu Bar (Rendered on Desktop when navigationMode is 'top_menu') -->
     @if (lms.adminLayoutPreferences().navigationMode === 'top_menu') {
-      <div class="hidden lg:block flex-shrink-0 relative z-35">
+      <div class="hidden lg:block flex-shrink-0 relative">
         <app-top-menu></app-top-menu>
       </div>
     }

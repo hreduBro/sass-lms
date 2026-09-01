@@ -12,13 +12,15 @@ import {
   PLACEHOLDER_TOKENS,
   CanvasElement
 } from '../../../models/certificate-template.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-certificate-template-grid',
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    CustomSelectComponent
   ],
   templateUrl: './template-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -37,7 +39,47 @@ export class CertificateTemplateGridComponent {
   selectedSharing = signal<string>('all');
   selectedType = signal<string>('all');
   sortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'usage_desc'>('updated_desc');
-  showFilterDrawer = signal<boolean>(false);
+  isFilterPanelOpen = signal<boolean>(false);
+
+  toggleFilterPanel() {
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  closeFilterPanel() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  // Custom Select Options for Filter Drawer
+  statusOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses', icon: 'all_inclusive' },
+    { value: 'published', label: 'Published & Active', icon: 'verified', badge: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' },
+    { value: 'draft', label: 'In Draft', icon: 'edit_note', badge: 'Draft', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' },
+    { value: 'archived', label: 'Archived', icon: 'archive', badge: 'Archived', badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }
+  ];
+
+  sharingOptions: SelectOption[] = [
+    { value: 'all', label: 'All Scopes', icon: 'public' },
+    { value: 'lms', label: 'LMS Workspace Only', icon: 'domain', sublabel: 'Available in this LMS instance' },
+    { value: 'organization', label: 'Organization-Wide', icon: 'corporate_fare', sublabel: 'Shared across all tenant workspaces' },
+    { value: 'private', label: 'Private Restricted', icon: 'lock', sublabel: 'Restricted access' }
+  ];
+
+  typeOptions: SelectOption[] = [
+    { value: 'all', label: 'All Certificate Types', icon: 'category' },
+    { value: 'Achievement', label: 'Achievement', icon: 'emoji_events' },
+    { value: 'Completion', label: 'Completion', icon: 'task_alt' },
+    { value: 'Professional', label: 'Professional', icon: 'verified_user' },
+    { value: 'Merit', label: 'Merit', icon: 'military_tech' },
+    { value: 'Participation', label: 'Participation', icon: 'group' },
+    { value: 'Compliance', label: 'Compliance', icon: 'shield' }
+  ];
+
+  sortOptions: SelectOption[] = [
+    { value: 'updated_desc', label: 'Recently Updated', icon: 'schedule' },
+    { value: 'updated_asc', label: 'Oldest Updated', icon: 'history' },
+    { value: 'name_asc', label: 'Name (A-Z)', icon: 'sort_by_alpha' },
+    { value: 'usage_desc', label: 'Most Used', icon: 'trending_up' }
+  ];
 
   // Preview Modal State
   previewModalTemplate = signal<CertificateTemplate | null>(null);

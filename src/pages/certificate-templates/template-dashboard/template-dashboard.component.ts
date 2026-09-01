@@ -8,7 +8,9 @@ import {
   CertificateDashboardWidget,
   CertificateDashboardLayout,
   CertificateWidgetType,
-  CertificateTemplate
+  CertificateTemplate,
+  CanvasElement,
+  PLACEHOLDER_TOKENS
 } from '../../../models/certificate-template.model';
 
 @Component({
@@ -30,6 +32,10 @@ export class CertificateTemplateDashboardComponent {
   isStudioMode = signal<boolean>(false);
   draftWidgets = signal<CertificateDashboardWidget[]>([]);
   showAddWidgetModal = signal<boolean>(false);
+
+  // Preview Modal State
+  previewModalTemplate = signal<CertificateTemplate | null>(null);
+  previewSampleData = signal<boolean>(true);
 
   // Published Layout & Computeds
   publishedLayout = this.lms.certificateDashboardLayout;
@@ -128,6 +134,22 @@ export class CertificateTemplateDashboardComponent {
     this.lms.showToast('Auto-arranged widget layout', 'success');
   }
 
+  // Widget Helpers for Dynamic Layout Classes
+  getWidgetSpanClass(widget: CertificateDashboardWidget): string {
+    switch (widget.colSpan) {
+      case 1:
+        return 'col-span-1';
+      case 2:
+        return 'col-span-1 md:col-span-2';
+      case 3:
+        return 'col-span-1 md:col-span-2 lg:col-span-3';
+      case 4:
+        return 'col-span-1 md:col-span-2 lg:col-span-4';
+      default:
+        return 'col-span-1 md:col-span-2';
+    }
+  }
+
   // Widget manipulation in Studio
   updateWidgetColSpan(widgetId: string, span: 1 | 2 | 3 | 4) {
     this.draftWidgets.update(widgets =>
@@ -172,12 +194,61 @@ export class CertificateTemplateDashboardComponent {
     this.lms.showToast(`Added "${item.title}" widget`, 'success');
   }
 
-  // Quick Action Navigators
+  // Quick Action Navigators & Preview
   resumeDraft(draft: CertificateTemplate) {
     this.router.navigate(['/certificates/templates/edit', draft.id]);
   }
 
   openCreateWizard() {
     this.router.navigate(['/certificates/templates/create']);
+  }
+
+  openPreview(template: CertificateTemplate) {
+    this.previewModalTemplate.set(template);
+    this.previewSampleData.set(true);
+  }
+
+  closePreview() {
+    this.previewModalTemplate.set(null);
+  }
+
+  getSampleValue(element: CanvasElement): string {
+    if (element.kind === 'static-text') {
+      return element.text || '';
+    }
+    if (element.kind === 'placeholder' && element.token) {
+      if (this.previewSampleData()) {
+        const def = PLACEHOLDER_TOKENS.find(t => t.key === element.token);
+        return def?.sampleValue || element.token;
+      }
+      return element.token;
+    }
+    return '';
+  }
+
+  publishTemplate(template: CertificateTemplate) {
+    this.confirmModal.confirm({
+      title: 'Publish Certificate Template?',
+      message: `Publishing "${template.name}" will make it immediately selectable in Phase Outputs and active for student certifications.`,
+      iconType: 'success',
+      confirmText: 'Publish Template'
+    }).then(ok => {
+      if (ok) {
+        this.lms.publishCertificateTemplate(template.id);
+      }
+    });
+  }
+
+  archiveTemplate(template: CertificateTemplate) {
+    this.confirmModal.confirm({
+      title: 'Archive Certificate Template?',
+      message: `Are you sure you want to archive "${template.name}"? Archived templates remain verifiable for existing graduates but cannot be assigned to new curriculum phases.`,
+      iconType: 'warning',
+      confirmText: 'Archive Template'
+    }).then(ok => {
+      if (ok) {
+        this.lms.archiveCertificateTemplate(template.id);
+      }
+    });
   }
 }

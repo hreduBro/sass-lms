@@ -979,14 +979,6 @@ export const INITIAL_CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
 
 export const DEFAULT_CERTIFICATE_DASHBOARD_WIDGETS: CertificateDashboardWidget[] = [
   {
-    id: 'w-cert-kpi-1',
-    type: 'kpi_summary',
-    title: 'Template KPI Summary',
-    subtitle: 'Scope-wide template counts and lifecycle status distribution',
-    colSpan: 4,
-    rowSpan: 1
-  },
-  {
     id: 'w-cert-status-2',
     type: 'status_breakdown',
     title: 'Status Breakdown',

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -142,6 +142,30 @@ export class SkillGridComponent implements OnInit {
     { value: 'content', label: 'Content Asset', icon: 'article' }
   ];
 
+  formSkillCategoryOptions: SelectOption[] = this.categories.map(c => ({
+    value: c,
+    label: c,
+    icon: 'psychology'
+  }));
+
+  formSkillClusterOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'None (Uncategorized)', icon: 'layers_clear' },
+      ...this.lmsData.skillClusters().map(cls => ({
+        value: cls.clusterId,
+        label: cls.name,
+        icon: 'bubble_chart',
+        sublabel: cls.clusterCode
+      }))
+    ];
+  });
+
+  formSkillStatusOptions: SelectOption[] = [
+    { value: 'active', label: 'Active (Available for mapping)', icon: 'check_circle', badge: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700' },
+    { value: 'inactive', label: 'Inactive (Cannot be newly mapped)', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-rose-50 text-rose-700' },
+    { value: 'draft', label: 'Draft', icon: 'draft', badge: 'Draft', badgeClass: 'bg-blue-50 text-blue-700' }
+  ];
+
   mappingTargetItemOptions = computed<SelectOption[]>(() => {
     const type = this.mappingTargetType();
     if (type === 'course') {
@@ -172,7 +196,7 @@ export class SkillGridComponent implements OnInit {
     return [];
   });
 
-  toggleSkillActionMenu(skill: Skill, event: MouseEvent, button: HTMLElement) {
+  toggleSkillActionMenu(skill: Skill, event: MouseEvent, buttonEl?: HTMLElement) {
     event.stopPropagation();
     this.activeMenuMapping.set(null); // Close mapping menu if open
     if (this.activeMenuSkill()?.skillId === skill.skillId) {
@@ -180,25 +204,26 @@ export class SkillGridComponent implements OnInit {
       return;
     }
 
+    const button = buttonEl || (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
     const rect = button.getBoundingClientRect();
-    const menuHeight = 260;
-    const menuWidth = 240; // w-60 is 240px
+    const menuHeight = 220;
+    const menuWidth = 208; // w-52 is 208px
 
     const spaceBelow = window.innerHeight - rect.bottom;
     const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
 
-    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
-    let left = rect.right - menuWidth; // Align perfectly flush with the right edge of the button
+    const top = placeAbove ? Math.max(8, rect.top - menuHeight - 4) : (rect.bottom + 4);
+    let left = rect.right - menuWidth; // Pin directly flush with the right edge of the button
     if (left < 10) left = 10;
     if (left + menuWidth > window.innerWidth - 10) {
       left = window.innerWidth - menuWidth - 10;
     }
 
     this.menuPosition.set({ top, left });
-    this.activeMenuSkill.set(skill);
+    this.activeMenuSkill.set({ ...skill });
   }
 
-  toggleMappingActionMenu(mapping: SkillMapping, event: MouseEvent, button: HTMLElement) {
+  toggleMappingActionMenu(mapping: SkillMapping, event: MouseEvent, buttonEl?: HTMLElement) {
     event.stopPropagation();
     this.activeMenuSkill.set(null); // Close skill menu if open
     if (this.activeMenuMapping()?.skillId === mapping.skillId && this.activeMenuMapping()?.targetId === mapping.targetId) {
@@ -206,27 +231,141 @@ export class SkillGridComponent implements OnInit {
       return;
     }
 
+    const button = buttonEl || (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
     const rect = button.getBoundingClientRect();
-    const menuHeight = 150;
-    const menuWidth = 240; // w-60 is 240px
+    const menuHeight = 120;
+    const menuWidth = 208; // w-52 is 208px
 
     const spaceBelow = window.innerHeight - rect.bottom;
     const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
 
-    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
-    let left = rect.right - menuWidth; // Align perfectly flush with the right edge of the button
+    const top = placeAbove ? Math.max(8, rect.top - menuHeight - 4) : (rect.bottom + 4);
+    let left = rect.right - menuWidth; // Pin directly flush with the right edge of the button
     if (left < 10) left = 10;
     if (left + menuWidth > window.innerWidth - 10) {
       left = window.innerWidth - menuWidth - 10;
     }
 
     this.menuPosition.set({ top, left });
-    this.activeMenuMapping.set(mapping);
+    this.activeMenuMapping.set({ ...mapping });
   }
 
   closeActionMenu() {
     this.activeMenuSkill.set(null);
     this.activeMenuMapping.set(null);
+  }
+
+  isSkillActionMenuOpen(skillId: string): boolean {
+    return this.activeMenuSkill()?.skillId === skillId;
+  }
+
+  isMappingActionMenuOpen(skillId: string, targetId: string): boolean {
+    return this.activeMenuMapping()?.skillId === skillId && this.activeMenuMapping()?.targetId === targetId;
+  }
+
+  viewSkillDetails(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.selectedSkillDetails.set({ ...s });
+      this.isDetailsModalOpen.set(true);
+    }
+    this.closeActionMenu();
+  }
+
+  viewSkillDetailsFromMenu() {
+    this.viewSkillDetails(this.activeMenuSkill());
+  }
+
+  getSkillInitials(name?: string): string {
+    if (!name) return 'SK';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
+  getSkillStatusBadgeClass(status?: string): string {
+    switch (status) {
+      case 'active':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300';
+      case 'inactive':
+        return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300';
+      case 'draft':
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300';
+      default:
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300';
+    }
+  }
+
+  getSkillStatusDotClass(status?: string): string {
+    switch (status) {
+      case 'active':
+        return 'bg-emerald-500';
+      case 'inactive':
+        return 'bg-rose-500';
+      case 'draft':
+        return 'bg-blue-500';
+      default:
+        return 'bg-emerald-500';
+    }
+  }
+
+  editSkillFromMenu(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.openEditSkillModal(s);
+    }
+    this.closeActionMenu();
+  }
+
+  manageMappingsFromMenu(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.openManageMappingsModal(s);
+    }
+    this.closeActionMenu();
+  }
+
+  deactivateSkillFromMenu(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.confirmDeactivate(s);
+    }
+    this.closeActionMenu();
+  }
+
+  reactivateSkillFromMenu(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.confirmReactivate(s);
+    }
+    this.closeActionMenu();
+  }
+
+  deleteSkillFromMenu(skill?: Skill | null) {
+    const s = skill || this.activeMenuSkill();
+    if (s) {
+      this.confirmDeleteSkill(s);
+    }
+    this.closeActionMenu();
+  }
+
+  unmapFromMenu(mapping?: SkillMapping | null) {
+    const m = mapping || this.activeMenuMapping();
+    if (m) {
+      this.unmapSkill(m.skillId, m.targetType, m.targetId);
+    }
+    this.closeActionMenu();
+  }
+
+  @HostListener('document:click')
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onDocumentInteraction() {
+    if (this.activeMenuSkill() || this.activeMenuMapping()) {
+      this.closeActionMenu();
+    }
   }
 
   ngOnInit() {
@@ -391,6 +530,11 @@ export class SkillGridComponent implements OnInit {
 
   // Telemetry Computed Helpers for Template
   activeSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'active').length);
+  activeSkillsPercentage = computed<number>(() => {
+    const total = this.lmsData.skills().length;
+    if (!total) return 0;
+    return Math.round((this.activeSkillsCount() / total) * 100);
+  });
   acquiredLearnersCount = computed(() => this.lmsData.learnerSkillProgress().filter(p => p.acquired).length);
 
   // Helper options for target selection
@@ -419,7 +563,23 @@ export class SkillGridComponent implements OnInit {
   // Set active tab
   setTab(tab: 'skills' | 'clusters' | 'mappings') {
     this.activeTab.set(tab);
+    this.closeActionMenu();
     this.router.navigate([], { queryParams: { tab }, queryParamsHandling: 'merge' });
+  }
+
+  onTargetTypeChange(type: SkillTargetType) {
+    this.mappingTargetType.set(type);
+    this.mappingTargetId.set('');
+    this.mappingTargetName.set('');
+    if (type === 'course') {
+      this.mappingAchievementRule.set('Complete course assessment with passing grade');
+    } else if (type === 'plan') {
+      this.mappingAchievementRule.set('Complete all training plan requirements and obtain passing score');
+    } else if (type === 'phase') {
+      this.mappingAchievementRule.set('Pass phase evaluation milestone');
+    } else if (type === 'content') {
+      this.mappingAchievementRule.set('Complete and review content asset');
+    }
   }
 
   // Reset Grid Filters
@@ -537,7 +697,8 @@ export class SkillGridComponent implements OnInit {
 
   // Open View Details Modal
   openViewDetailsModal(skill: Skill) {
-    this.selectedSkillDetails.set(skill);
+    if (!skill) return;
+    this.selectedSkillDetails.set({ ...skill });
     this.isDetailsModalOpen.set(true);
   }
 
