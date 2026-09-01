@@ -149,7 +149,7 @@ export interface SelectOption {
           [ngClass]="[
             actualPlacement() === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
             dropdownAlign() === 'right' ? 'right-0' : 'left-0',
-            'w-full min-w-full max-w-[calc(100vw-2rem)]',
+            'w-full min-w-[240px] max-w-[calc(100vw-2rem)]',
             customDropdownClass()
           ]"
           role="listbox">
@@ -351,6 +351,9 @@ export class CustomSelectComponent implements ControlValueAccessor {
         if ('stored' in item && 'display' in item) {
           return { value: item.stored, label: item.display };
         }
+        if ('value' in item && 'display' in item) {
+          return { value: item.value, label: item.display };
+        }
         if ('value' in item && 'label' in item) {
           return {
             value: item.value,
@@ -461,8 +464,23 @@ export class CustomSelectComponent implements ControlValueAccessor {
     if (willOpen) {
       if (this.dropdownPosition() === 'top') {
         this.actualPlacement.set('top');
-      } else {
+      } else if (this.dropdownPosition() === 'bottom') {
         this.actualPlacement.set('bottom');
+      } else {
+        // 'auto' positioning based on viewport space
+        try {
+          const rect = this.elementRef.nativeElement.getBoundingClientRect();
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+          // If less than 240px space below and more space above, flip to top
+          if (spaceBelow < 240 && spaceAbove > spaceBelow) {
+            this.actualPlacement.set('top');
+          } else {
+            this.actualPlacement.set('bottom');
+          }
+        } catch (e) {
+          this.actualPlacement.set('bottom');
+        }
       }
       
       this.searchQuery.set('');

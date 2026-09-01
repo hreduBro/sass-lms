@@ -81,9 +81,9 @@ const PALETTES: ColorPair[] = [
       [attr.title]="titleText()">
       
       <!-- If Image is provided and has not errored -->
-      @if (imageUrl() && !imageFailed()) {
+      @if (effectiveImageUrl() && !imageFailed()) {
         <img 
-          [src]="imageUrl()" 
+          [src]="effectiveImageUrl()" 
           [alt]="alt() || name() || 'Avatar'"
           (error)="handleImageError()"
           referrerpolicy="no-referrer"
@@ -118,6 +118,7 @@ const PALETTES: ColorPair[] = [
 export class CustomAvatarComponent {
   name = input<string>('');
   imageUrl = input<string | null | undefined>('');
+  url = input<string | null | undefined>('');
   size = input<AvatarSize>('md');
   shape = input<AvatarShape>('squircle');
   status = input<AvatarStatus>(null);
@@ -131,6 +132,10 @@ export class CustomAvatarComponent {
   showTooltip = input<boolean>(true);
 
   imageFailed = signal<boolean>(false);
+
+  effectiveImageUrl = computed(() => {
+    return this.imageUrl() || this.url() || '';
+  });
 
   handleImageError() {
     this.imageFailed.set(true);

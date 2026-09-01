@@ -12,18 +12,19 @@ import {
   AttachmentType 
 } from '../../../models/engagement.model';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-forum-workspace',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
   template: `
     <div class="space-y-6">
       
       <!-- Forum Header & Permissions Banner -->
-      <div class="p-6 rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <div class="flex items-center flex-wrap gap-2">
-            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-tenant-50 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20">
               Plan Discussion Forum
             </span>
             <span class="text-xs text-text-secondary">• Topics: <strong>{{ currentForum().topics.length }}</strong></span>
@@ -37,7 +38,7 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
 
         <!-- Permissions Chips & Create Topic Button -->
         <div class="flex items-center flex-wrap gap-3">
-          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/60 dark:bg-base-300/40 border border-base-300 dark:border-slate-800 text-[11px] text-text-secondary">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-2xl bg-base-200 border border-base-300 text-[11px] text-text-secondary shadow-2xs">
             <span class="material-symbols-outlined text-xs text-indigo-500">lock_person</span>
             <span>Creation: <strong>{{ currentForum().topicCreationPermission === 'instructorsOnly' ? 'Instructors Only' : 'Instructors & Trainees' }}</strong></span>
           </div>
@@ -45,7 +46,7 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
           <button 
             type="button" 
             (click)="openCreateTopicModal()"
-            class="px-4 py-2.5 rounded-xl btn-gradient text-white text-xs font-bold flex items-center gap-1.5 shadow-sm hover:opacity-95 transition-opacity cursor-pointer">
+            class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">add_comment</span>
             <span>Start New Topic</span>
           </button>
@@ -75,41 +76,44 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
               </div>
 
               <!-- Category Filter -->
-              <select 
-                [ngModel]="selectedCategory()"
-                (ngModelChange)="selectedCategory.set($event)"
-                class="px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary focus:outline-none">
-                <option value="all">All Categories</option>
-                <option value="Announcements">📢 Announcements</option>
-                <option value="Field Q&A">💬 Field Q&A</option>
-                <option value="Disaster Relief">🛡️ Disaster Relief</option>
-                <option value="General Discussion">💡 General Discussion</option>
-              </select>
+              <div class="w-48">
+                <app-custom-select
+                  [options]="categoryOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  placeholder="All Categories"
+                  [ngModel]="selectedCategory()"
+                  (ngModelChange)="selectedCategory.set($event)">
+                </app-custom-select>
+              </div>
 
               <!-- Status Filter -->
-              <select 
-                [ngModel]="selectedStatusFilter()"
-                (ngModelChange)="selectedStatusFilter.set($event)"
-                class="px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary focus:outline-none">
-                <option value="all">All Statuses</option>
-                <option value="pinned">📌 Pinned Only</option>
-                <option value="locked">🔒 Locked Topics</option>
-                <option value="active">⚡ Active / Open</option>
-              </select>
+              <div class="w-44">
+                <app-custom-select
+                  [options]="statusOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  placeholder="All Statuses"
+                  [ngModel]="selectedStatusFilter()"
+                  (ngModelChange)="selectedStatusFilter.set($event)">
+                </app-custom-select>
+              </div>
 
             </div>
 
             <!-- Sort -->
-            <div class="flex items-center gap-2 text-xs text-text-secondary">
-              <span>Sort by:</span>
-              <select 
-                [ngModel]="selectedSort()"
-                (ngModelChange)="selectedSort.set($event)"
-                class="px-2.5 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs font-semibold text-text-primary focus:outline-none">
-                <option value="latest">Latest Activity</option>
-                <option value="replies">Most Replies</option>
-                <option value="oldest">Oldest First</option>
-              </select>
+            <div class="flex items-center gap-2 text-xs text-text-secondary min-w-[180px]">
+              <span class="shrink-0">Sort by:</span>
+              <div class="flex-1">
+                <app-custom-select
+                  [options]="sortOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  placeholder="Latest Activity"
+                  [ngModel]="selectedSort()"
+                  (ngModelChange)="selectedSort.set($event)">
+                </app-custom-select>
+              </div>
             </div>
 
           </div>
@@ -558,21 +562,22 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="font-bold text-text-primary block mb-1">Category Tag</label>
-                  <select formControlName="categoryTag" class="w-full px-3 py-2 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary">
-                    <option value="General Discussion">General Discussion</option>
-                    <option value="Announcements">Announcements</option>
-                    <option value="Field Q&A">Field Q&A</option>
-                    <option value="Disaster Relief">Disaster Relief</option>
-                    <option value="Technical Setup">Technical Setup</option>
-                  </select>
+                  <app-custom-select
+                    [options]="categoryFormOptions"
+                    [clearable]="false"
+                    [searchable]="false"
+                    formControlName="categoryTag">
+                  </app-custom-select>
                 </div>
 
                 <div>
                   <label class="font-bold text-text-primary block mb-1">Posting Permissions</label>
-                  <select formControlName="postPermission" class="w-full px-3 py-2 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary">
-                    <option value="instructorsAndTrainees">Instructors & Trainees</option>
-                    <option value="instructorsOnly">Instructors Only</option>
-                  </select>
+                  <app-custom-select
+                    [options]="permissionOptions"
+                    [clearable]="false"
+                    [searchable]="false"
+                    formControlName="postPermission">
+                  </app-custom-select>
                 </div>
               </div>
 
@@ -672,6 +677,40 @@ export class ForumWorkspaceComponent implements OnInit {
   private lmsData = inject(LmsDataService);
 
   planId = input.required<string>();
+
+  categoryOptions = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'Announcements', label: '📢 Announcements' },
+    { value: 'Field Q&A', label: '💬 Field Q&A' },
+    { value: 'Disaster Relief', label: '🛡️ Disaster Relief' },
+    { value: 'General Discussion', label: '💡 General Discussion' }
+  ];
+
+  statusOptions = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'pinned', label: '📌 Pinned Only' },
+    { value: 'locked', label: '🔒 Locked Topics' },
+    { value: 'active', label: '⚡ Active / Open' }
+  ];
+
+  sortOptions = [
+    { value: 'latest', label: 'Latest Activity' },
+    { value: 'replies', label: 'Most Replies' },
+    { value: 'oldest', label: 'Oldest First' }
+  ];
+
+  categoryFormOptions = [
+    { value: 'General Discussion', label: 'General Discussion' },
+    { value: 'Announcements', label: 'Announcements' },
+    { value: 'Field Q&A', label: 'Field Q&A' },
+    { value: 'Disaster Relief', label: 'Disaster Relief' },
+    { value: 'Technical Setup', label: 'Technical Setup' }
+  ];
+
+  permissionOptions = [
+    { value: 'instructorsAndTrainees', label: 'Instructors & Trainees' },
+    { value: 'instructorsOnly', label: 'Instructors Only' }
+  ];
 
   searchQuery = signal<string>('');
   selectedCategory = signal<string>('all');

@@ -10,18 +10,19 @@ import {
   FeedbackQuestionType 
 } from '../../../models/engagement.model';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-feedback-studio',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
   template: `
     <div class="space-y-6">
       
       <!-- Studio Header & Sub-Tab Switcher -->
-      <div class="p-6 rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-tenant-50 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20">
               One per Plan • Immutable Versioning Engine
             </span>
             <span class="text-xs text-text-secondary">• Active Version: <strong>{{ activeForm()?.versions?.slice(-1)?.[0]?.versionLabel || 'v1' }}</strong></span>
@@ -33,7 +34,7 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
         </div>
 
         <!-- Mode / Sub-Tabs -->
-        <div class="flex items-center gap-2 p-1 bg-base-200 dark:bg-base-300/50 rounded-xl border border-base-300 dark:border-slate-800 self-start md:self-auto">
+        <div class="flex items-center gap-1.5 p-1 bg-base-200 rounded-2xl border border-base-300 self-start md:self-auto">
           <button 
             type="button" 
             (click)="activeSubTab.set('responses')"
@@ -41,7 +42,7 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
             [class.shadow-xs]="activeSubTab() === 'responses'"
             [class.text-text-primary]="activeSubTab() === 'responses'"
             [class.text-text-secondary]="activeSubTab() !== 'responses'"
-            class="px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+            class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">analytics</span>
             <span>Responses Grid ({{ planResponses().length }})</span>
           </button>
@@ -53,7 +54,7 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
             [class.shadow-xs]="activeSubTab() === 'versions'"
             [class.text-text-primary]="activeSubTab() === 'versions'"
             [class.text-text-secondary]="activeSubTab() !== 'versions'"
-            class="px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+            class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">history_edu</span>
             <span>Versions & Builder</span>
           </button>
@@ -65,9 +66,9 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
             [class.shadow-xs]="activeSubTab() === 'submit-simulator'"
             [class.text-text-primary]="activeSubTab() === 'submit-simulator'"
             [class.text-text-secondary]="activeSubTab() !== 'submit-simulator'"
-            class="px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+            class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">rate_review</span>
-            <span>Trainee Submission Form</span>
+            <span>Trainee Form Simulator</span>
           </button>
         </div>
       </div>
@@ -94,30 +95,33 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
               </div>
 
               <!-- Version Filter -->
-              <div class="flex items-center gap-1.5">
-                <span class="text-[11px] font-semibold text-text-secondary">Version:</span>
-                <select 
-                  [ngModel]="selectedVersionFilter()"
-                  (ngModelChange)="selectedVersionFilter.set($event)"
-                  class="px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary focus:outline-none">
-                  <option value="all">All Form Versions</option>
-                  @for (v of activeForm()?.versions || []; track v.versionId) {
-                    <option [value]="v.versionId">{{ v.versionLabel }} ({{ v.state }})</option>
-                  }
-                </select>
+              <div class="flex items-center gap-1.5 min-w-[180px]">
+                <span class="text-[11px] font-semibold text-text-secondary shrink-0">Version:</span>
+                <div class="flex-1">
+                  <app-custom-select
+                    [options]="versionOptions()"
+                    [clearable]="false"
+                    [searchable]="false"
+                    placeholder="All Form Versions"
+                    [ngModel]="selectedVersionFilter()"
+                    (ngModelChange)="selectedVersionFilter.set($event)">
+                  </app-custom-select>
+                </div>
               </div>
 
               <!-- Privacy / Anonymity Filter -->
-              <div class="flex items-center gap-1.5">
-                <span class="text-[11px] font-semibold text-text-secondary">Privacy:</span>
-                <select 
-                  [ngModel]="selectedPrivacyFilter()"
-                  (ngModelChange)="selectedPrivacyFilter.set($event)"
-                  class="px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary focus:outline-none">
-                  <option value="all">All Submissions</option>
-                  <option value="identified">Identified Trainees</option>
-                  <option value="anonymous">Anonymous Only</option>
-                </select>
+              <div class="flex items-center gap-1.5 min-w-[180px]">
+                <span class="text-[11px] font-semibold text-text-secondary shrink-0">Privacy:</span>
+                <div class="flex-1">
+                  <app-custom-select
+                    [options]="privacyOptions"
+                    [clearable]="false"
+                    [searchable]="false"
+                    placeholder="All Submissions"
+                    [ngModel]="selectedPrivacyFilter()"
+                    (ngModelChange)="selectedPrivacyFilter.set($event)">
+                  </app-custom-select>
+                </div>
               </div>
 
             </div>
@@ -707,6 +711,23 @@ export class FeedbackStudioComponent implements OnInit {
   activeForm = computed<FeedbackForm | undefined>(() => {
     return this.lmsData.getFeedbackFormForPlan(this.planId());
   });
+
+  versionOptions = computed(() => {
+    const versions = this.activeForm()?.versions || [];
+    return [
+      { value: 'all', label: 'All Form Versions' },
+      ...versions.map(v => ({
+        value: v.versionId,
+        label: `${v.versionLabel} (${v.state})`
+      }))
+    ];
+  });
+
+  privacyOptions = [
+    { value: 'all', label: 'All Submissions' },
+    { value: 'identified', label: 'Identified Trainees' },
+    { value: 'anonymous', label: 'Anonymous Only' }
+  ];
 
   currentPublishedVersion = computed<FeedbackFormVersion | undefined>(() => {
     const form = this.activeForm();
