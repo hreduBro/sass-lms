@@ -903,11 +903,15 @@ export function calculateAssessmentAttemptScore(
         }
       }
     } else if (q.type === 'matching') {
-      if (ans.matchedPairs && q.matchingPairs) {
+      const matchedPairsList = ans.matchedPairs || (ans.matchingSelections ? Object.entries(ans.matchingSelections).map(([l, r]) => ({ leftId: l, rightId: r })) : undefined);
+      if (matchedPairsList && q.matchingPairs) {
         let correctMatches = 0;
         q.matchingPairs.forEach(mp => {
-          const userMatch = ans.matchedPairs?.find(u => u.leftId === mp.leftId);
-          if (userMatch && userMatch.rightId === mp.rightId) {
+          const lKey = mp.leftId || mp.pairId || mp.leftText || mp.leftItem;
+          const userMatch = matchedPairsList.find(u => u.leftId === lKey || (mp.leftId && u.leftId === mp.leftId));
+          const targetRightId = mp.rightId;
+          const targetRightText = mp.rightText || mp.rightItem;
+          if (userMatch && (userMatch.rightId === targetRightId || userMatch.rightId === targetRightText)) {
             correctMatches++;
           }
         });

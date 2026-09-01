@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
+import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 import {
   CourseEntity,
   CourseStructureNode,
@@ -15,10 +16,12 @@ import {
   validateCourseEntity,
   summarizeCourseMetrics
 } from '../../../models/course.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
 
 @Component({
   selector: 'app-course-create',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule, CustomSelectComponent, StepperComponent],
   templateUrl: './course-create.component.html'
 })
 export class CourseCreateComponent implements OnInit {
@@ -26,6 +29,7 @@ export class CourseCreateComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
+  private confirmModal = inject(ConfirmationModalService);
 
   // Mode: creating new vs editing existing
   isEditMode = signal<boolean>(false);
@@ -34,15 +38,17 @@ export class CourseCreateComponent implements OnInit {
 
   // Active Wizard Step (1 to 6)
   currentStep = signal<number>(1);
+  completedSteps = signal<Set<number>>(new Set<number>());
+  formErrorAlert = signal<string | null>(null);
 
   // Stepper Definition
-  steps = [
-    { number: 1, label: 'Course Details', icon: 'info' },
-    { number: 2, label: 'Structure Setup', icon: 'account_tree' },
-    { number: 3, label: 'Build Content', icon: 'format_list_bulleted' },
-    { number: 4, label: 'Tagging & Authors', icon: 'group' },
-    { number: 5, label: 'Reviews & Grading', icon: 'rate_review' },
-    { number: 6, label: 'Review & Publish', icon: 'verified' }
+  steps: StepperStep[] = [
+    { id: 1, shortTitle: 'Course Details', sublabel: 'Identity & Taxonomy', icon: 'info' },
+    { id: 2, shortTitle: 'Structure Setup', sublabel: 'Hierarchy & Tiers', icon: 'account_tree' },
+    { id: 3, shortTitle: 'Build Content', sublabel: 'Curriculum Nodes', icon: 'format_list_bulleted' },
+    { id: 4, shortTitle: 'Tagging', sublabel: 'Instructors & Authors', icon: 'group' },
+    { id: 5, shortTitle: 'Reviews & Grading', sublabel: 'Feedback & Coverage', icon: 'rate_review' },
+    { id: 6, shortTitle: 'Review & Publish', sublabel: 'Audit & Activation', icon: 'verified' }
   ];
 
   // Forms
@@ -69,6 +75,49 @@ export class CourseCreateComponent implements OnInit {
     'Customer Experience'
   ];
 
+  categoryOptions: SelectOption[] = this.categories.map(c => ({ value: c, label: c }));
+  difficultyOptions: SelectOption[] = [
+    { value: 'Beginner', label: 'Beginner' },
+    { value: 'Intermediate', label: 'Intermediate' },
+    { value: 'Advanced', label: 'Advanced' },
+    { value: 'Expert', label: 'Expert' }
+  ];
+  ownerOptions = computed<SelectOption[]>(() => {
+    return this.lmsService.tenantUsers().map(u => ({
+      value: u.id,
+      label: `${u.name} (${u.email}) — ${u.role}`
+    }));
+  });
+
+  scaleOptions: SelectOption[] = [
+    { value: '5-star-likert', label: '5-Star Likert Scale (Standard)', sublabel: '1 to 5 star rating model' },
+    { value: 'csat-10', label: '10-Point CSAT Scale', sublabel: '1 to 10 customer satisfaction index' }
+  ];
+
+  familyOptions: SelectOption[] = [
+    { value: 'learning', label: 'Learning Material', sublabel: 'Video, audio, documents, readings', icon: 'play_lesson' },
+    { value: 'assessment', label: 'Assessment / Quiz', sublabel: 'Quizzes, assignments, evaluations', icon: 'quiz' }
+  ];
+
+  learningSubtypeOptions: SelectOption[] = [
+    { value: 'video', label: 'Video Lecture', icon: 'smart_display' },
+    { value: 'audio', label: 'Audio / Podcast', icon: 'headphones' },
+    { value: 'document', label: 'Document / PDF', icon: 'description' },
+    { value: 'reading', label: 'Reading Article', icon: 'article' },
+    { value: 'interactive', label: 'Interactive Lab', icon: 'extension' }
+  ];
+
+  assessmentSubtypeOptions: SelectOption[] = [
+    { value: 'quiz', label: 'Knowledge Quiz (Objective)', icon: 'quiz' },
+    { value: 'assignment', label: 'Project / Assignment (Subjective)', icon: 'assignment' },
+    { value: 'survey', label: 'Diagnostic Survey', icon: 'ballot' }
+  ];
+
+  gradingModeOptions: SelectOption[] = [
+    { value: 'auto', label: 'Auto-Graded System', sublabel: 'Immediate automated scoring' },
+    { value: 'manual', label: 'Manual Instructor Grading', sublabel: 'Requires faculty review' }
+  ];
+
   // Cover Image Presets
   coverImagePresets = [
     { label: 'Workspace Tech', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80' },
@@ -77,6 +126,11 @@ export class CourseCreateComponent implements OnInit {
     { label: 'Community & Field', url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=800&q=80' },
     { label: 'Finance & Growth', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80' }
   ];
+
+  coverPresetOptions: SelectOption[] = this.coverImagePresets.map(p => ({
+    value: p.url,
+    label: p.label
+  }));
 
   // Tags state
   courseTags = signal<string[]>(['Curriculum', 'Core']);
@@ -125,6 +179,11 @@ export class CourseCreateComponent implements OnInit {
   tplName = signal<string>('');
   tplScope = signal<'lms' | 'organization'>('lms');
 
+  scopeOptions: SelectOption[] = [
+    { value: 'lms', label: 'Current LMS Instance Only', sublabel: 'Available only within this LMS' },
+    { value: 'organization', label: 'Entire Organization', sublabel: 'Accessible to all LMS portals under org' }
+  ];
+
   ngOnInit() {
     const courseId = this.route.snapshot.paramMap.get('id');
     if (courseId) {
@@ -133,6 +192,7 @@ export class CourseCreateComponent implements OnInit {
       this.loadExistingCourse(courseId);
     } else {
       this.initDefaultCourse();
+      this.showStepAlert(1, 'entered');
     }
   }
 
@@ -792,26 +852,189 @@ export class CourseCreateComponent implements OnInit {
     return summarizeCourseMetrics(this.courseEntitySnapshot());
   });
 
+  // Helper for field validation
+  isFieldInvalid(form: FormGroup, field: string): boolean {
+    const ctrl = form.get(field);
+    return !!(ctrl && ctrl.invalid && (ctrl.dirty || ctrl.touched));
+  }
+
+  /**
+   * Dispatches a prominent step alert mentioning the exact step number and description, matching Organization Create
+   */
+  private showStepAlert(step: number, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
+    const stepTitles: Record<number, string> = {
+      1: 'Step 1 of 6: Course Details',
+      2: 'Step 2 of 6: Structure Setup',
+      3: 'Step 3 of 6: Build Content',
+      4: 'Step 4 of 6: Tagging & Instructors',
+      5: 'Step 5 of 6: Reviews & Grading',
+      6: 'Step 6 of 6: Review & Publish'
+    };
+
+    const stepDescriptions: Record<number, string> = {
+      1: 'Step 1 of 6 — Course Details: Define core identifiers, ownership, category, and visual identity.',
+      2: 'Step 2 of 6 — Structure Setup: Select layer depth and configure hierarchical naming conventions.',
+      3: 'Step 3 of 6 — Build Content: Assemble curriculum tree, learning modules, and attached assessments.',
+      4: 'Step 4 of 6 — Tagging & Instructors: Configure instructor exclusivity and assign authors across tiers.',
+      5: 'Step 5 of 6 — Reviews & Grading: Configure feedback collection and audit grading coverage.',
+      6: 'Step 6 of 6 — Review & Publish: Audit compliance gates and publish course to catalog.'
+    };
+
+    let title = stepTitles[step] || `Step ${step} of 6`;
+    let badge = `STEP ${step} / 6`;
+    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
+
+    let msg = stepDescriptions[step] || `Active: Step ${step} of 6`;
+    if (action === 'completed') {
+      const prev = step - 1;
+      const prevName = stepTitles[prev]?.split(': ')[1] || `Step ${prev}`;
+      const nextName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
+      title = `Step ${prev} Completed Successfully`;
+      badge = `STEP ${prev} COMPLETED`;
+      msg = `Step ${prev} (${prevName}) saved. Now on Step ${step} of 6: ${nextName}.`;
+      type = 'success';
+    } else if (action === 'back') {
+      msg = `Navigated back to Step ${step} of 6 (${stepTitles[step]?.split(': ')[1] || ''}).`;
+      type = 'info';
+    } else if (action === 'jump') {
+      msg = `Active: Step ${step} of 6 (${stepTitles[step]?.split(': ')[1] || ''}).`;
+      type = 'info';
+    }
+
+    this.lmsService.showToast(msg, type, 4000, title, badge);
+  }
+
   // Navigation between steps
-  goToStep(stepNum: number) {
-    if (stepNum > this.currentStep() && this.currentStep() === 1 && this.detailsForm.invalid) {
-      this.detailsForm.markAllAsTouched();
-      this.lmsService.showToast('Please complete mandatory course details before proceeding.', 'warning', 3500, 'Required Fields');
+  jumpToStep(stepId: number) {
+    if (stepId > this.currentStep() && this.currentStep() === 1 && this.detailsForm.invalid) {
+      this.markFormGroupTouched(this.detailsForm);
+      this.formErrorAlert.set('All mandatory fields are not filled up.');
+      this.lmsService.showToast('Step 1 Validation: All mandatory fields are not filled up before proceeding.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 6');
+      this.scrollToFirstError();
       return;
     }
-    this.currentStep.set(stepNum);
+    this.formErrorAlert.set(null);
+
+    // Track completed steps
+    this.completedSteps.update(set => {
+      const next = new Set(set);
+      if (this.currentStep() === 1 && this.detailsForm.valid) {
+        next.add(1);
+      } else if (this.currentStep() > 1) {
+        next.add(this.currentStep());
+      }
+      return next;
+    });
+
+    this.currentStep.set(stepId);
+    this.showStepAlert(stepId, 'jump');
+    this.scrollTop();
   }
 
   nextStep() {
-    if (this.currentStep() < 6) {
-      this.goToStep(this.currentStep() + 1);
+    this.formErrorAlert.set(null);
+    const step = this.currentStep();
+
+    if (step === 1) {
+      if (this.detailsForm.invalid) {
+        this.markFormGroupTouched(this.detailsForm);
+        this.formErrorAlert.set('All mandatory fields are not filled up.');
+        this.lmsService.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 6');
+        this.scrollToFirstError();
+        return;
+      }
+
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(1);
+        return next;
+      });
+
+      this.currentStep.set(2);
+      this.lmsService.showToast('Step 1 (Course Details) saved. Proceeding to Step 2 of 6: Structure Setup.', 'success', 4500, 'Step 1 Completed', 'STEP 2 / 6');
+      this.scrollTop();
+    } else if (step === 2) {
+      if (!this.layer1Label()?.trim() || (this.selectedLayerCount() >= 2 && !this.layer2Label()?.trim()) || (this.selectedLayerCount() === 3 && !this.layer3Label()?.trim())) {
+        this.formErrorAlert.set('Layer label names cannot be empty.');
+        this.lmsService.showToast('Step 2 Validation: Layer labels cannot be empty.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 6');
+        this.scrollToFirstError();
+        return;
+      }
+
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(2);
+        return next;
+      });
+
+      this.currentStep.set(3);
+      this.lmsService.showToast('Step 2 (Structure Setup) saved. Proceeding to Step 3 of 6: Build Content.', 'success', 4500, 'Step 2 Completed', 'STEP 3 / 6');
+      this.scrollTop();
+    } else if (step === 3) {
+      if (!this.structureNodes() || this.structureNodes().length === 0) {
+        this.formErrorAlert.set('At least one curriculum section/chapter is required.');
+        this.lmsService.showToast('Step 3 Validation: Add at least one curriculum chapter before proceeding.', 'error', 4500, 'Step 3 Error', 'STEP 3 / 6');
+        this.scrollToFirstError();
+        return;
+      }
+
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(3);
+        return next;
+      });
+
+      this.currentStep.set(4);
+      this.lmsService.showToast('Step 3 (Build Content) saved. Proceeding to Step 4 of 6: Tagging & Instructors.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 6');
+      this.scrollTop();
+    } else if (step === 4) {
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(4);
+        return next;
+      });
+
+      this.currentStep.set(5);
+      this.lmsService.showToast('Step 4 (Tagging & Instructors) saved. Proceeding to Step 5 of 6: Reviews & Grading.', 'success', 4500, 'Step 4 Completed', 'STEP 5 / 6');
+      this.scrollTop();
+    } else if (step === 5) {
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(5);
+        return next;
+      });
+
+      this.currentStep.set(6);
+      this.lmsService.showToast('Step 5 (Reviews & Grading) saved. Proceeding to Step 6 of 6: Review & Publish.', 'success', 4500, 'Step 5 Completed', 'STEP 6 / 6');
+      this.scrollTop();
     }
   }
 
   prevStep() {
-    if (this.currentStep() > 1) {
-      this.goToStep(this.currentStep() - 1);
+    this.formErrorAlert.set(null);
+    const step = this.currentStep();
+    if (step > 1) {
+      const prevStep = step - 1;
+      this.currentStep.set(prevStep);
+      this.showStepAlert(prevStep, 'back');
+      this.scrollTop();
     }
+  }
+
+  onCancel() {
+    this.confirmModal.confirmDiscard({
+      title: 'Discard Course Changes?',
+      message: 'Are you sure you want to discard your course progress? You can save as a draft to resume later.',
+      onDraft: () => this.saveAsDraft(),
+      onDiscard: () => this.router.navigate(['/courses'])
+    });
+  }
+
+  onReset() {
+    this.initDefaultCourse();
+    this.formErrorAlert.set(null);
+    this.completedSteps.set(new Set<number>());
+    this.lmsService.showToast('Step 1 form fields have been reset to default state.', 'info', 4000, 'Step 1 Reset', 'STEP 1 / 6');
   }
 
   // Save / Publish Actions
@@ -822,6 +1045,8 @@ export class CourseCreateComponent implements OnInit {
     } else {
       this.lmsService.addCourseEntity(entity);
     }
+    const title = this.detailsForm.value.title || 'Untitled Course';
+    this.lmsService.showToast(`Draft saved at Step ${this.currentStep()} of 6 for "${title}". You can resume anytime from the course library.`, 'success', 5000, `Step ${this.currentStep()} Draft Saved`, `STEP ${this.currentStep()} / 6`);
     this.router.navigate(['/courses']);
   }
 
@@ -829,7 +1054,9 @@ export class CourseCreateComponent implements OnInit {
     const val = this.validationResult();
     if (!val.publishable) {
       const err = val.warnings[0] || val.missingMandatoryFields[0] || 'Course failed validation gates.';
-      this.lmsService.showToast(err, 'error', 4500, 'Publish Gate Blocked');
+      this.formErrorAlert.set(err);
+      this.lmsService.showToast('Publish Validation Failed: ' + err, 'error', 5000, 'Publish Gate Blocked', 'STEP 6 / 6');
+      this.scrollToFirstError();
       return;
     }
 
@@ -843,8 +1070,41 @@ export class CourseCreateComponent implements OnInit {
 
     const pub = this.lmsService.publishCourseEntity(targetId);
     if (pub.success) {
+      this.lmsService.showToast(`Course "${this.detailsForm.value.title}" has been published and activated successfully!`, 'success', 5000, 'Course Published', 'LIVE');
       this.router.navigate(['/courses']);
     }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if ((control as any).controls) {
+        this.markFormGroupTouched(control as FormGroup);
+      }
+    });
+  }
+
+  private scrollTop() {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.ng-invalid, select.ng-invalid, textarea.ng-invalid, app-custom-select.ng-invalid, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 
   // Extract Course Structure as Template Blueprint (§8.3)

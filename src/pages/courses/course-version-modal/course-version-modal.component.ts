@@ -126,9 +126,9 @@ import { CourseEntity } from '../../../models/course.model';
                       </p>
                       @if (snap.lockedInPhases && snap.lockedInPhases.length > 0) {
                         <div class="mt-2 flex flex-wrap gap-1">
-                          @for (phase of snap.lockedInPhases; track phase) {
+                          @for (phase of snap.lockedInPhases; track ($index)) {
                             <span class="text-[10px] px-2 py-0.5 rounded bg-base-200 text-text-secondary border border-base-300 font-mono">
-                              📌 {{ phase }}
+                              📌 {{ phase.phaseName || phase }}
                             </span>
                           }
                         </div>

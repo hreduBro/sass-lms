@@ -202,15 +202,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: '6-step structured curriculum creation wizard',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/courses/create', '/courses/edit/**']
-      },
-      {
-        label: 'Course Templates',
-        route: '/courses/templates',
-        icon: 'dashboard_customize',
-        badge: 'Blueprints',
-        description: 'Standardized blueprint architecture & slot studio',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/courses/templates', '/courses/templates/**']
       }
     ]
   },

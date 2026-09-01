@@ -1,27 +1,36 @@
-<div class="p-5 rounded-2xl bg-base-100 border border-base-300 shadow-sm hover:shadow transition-shadow flex flex-col justify-between">
+<div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
   <div class="flex items-center justify-between mb-3">
-    <span class="text-xs font-semibold text-text-secondary uppercase tracking-wider">{{ resolvedData().title }}</span>
-    <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/20 flex items-center justify-center">
-      <span class="material-symbols-outlined text-lg">{{ iconMap[resolvedData().icon] || 'analytics' }}</span>
+    <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">{{ resolvedData().title }}</span>
+    <div class="w-9 h-9 rounded-full flex items-center justify-center"
+         [class]="getIconBgClass()">
+      <span class="material-symbols-outlined text-[19px]">{{ iconMap[resolvedData().icon] || 'analytics' }}</span>
     </div>
   </div>
 
-  <div class="flex items-baseline justify-between mt-1">
-    <span class="text-2xl font-bold text-text-primary tracking-tight font-sans">{{ resolvedData().value }}</span>
-    
-    <div class="flex items-center gap-1 text-xs font-medium" 
-         [class]="isPositiveChange() ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
-      <span class="material-symbols-outlined text-sm">
-        {{ isPositiveChange() ? 'arrow_upward' : 'arrow_downward' }}
+  <div>
+    <div class="flex items-baseline justify-between">
+      <span class="text-3xl font-extrabold tracking-tight font-sans"
+            [class]="getValueColorClass()">
+        {{ resolvedData().value }}
       </span>
-      <span>{{ resolvedData().change }}</span>
+      
+      @if (resolvedData().change) {
+        <div class="flex items-center gap-0.5 text-xs font-medium" 
+             [class]="isPositiveChange() ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+          <span class="material-symbols-outlined text-xs">
+            {{ isPositiveChange() ? 'arrow_upward' : 'arrow_downward' }}
+          </span>
+          <span>{{ resolvedData().change }}</span>
+        </div>
+      }
     </div>
-  </div>
 
-  @if (resolvedData().subtext) {
-    <div class="mt-2 pt-2 border-t border-base-300/50 text-[11px] text-text-secondary">
-      {{ resolvedData().subtext }}
-    </div>
-  }
+    @if (resolvedData().subtext) {
+      <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+        {{ resolvedData().subtext }}
+      </div>
+    }
+  </div>
 </div>
+
 

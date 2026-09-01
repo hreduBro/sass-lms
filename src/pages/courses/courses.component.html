@@ -1,591 +1,876 @@
-<div class="space-y-6 pb-16 animate-fade-in">
-  <!-- Page Header (BRD §4.4) -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-base-100 p-6 rounded-3xl border border-base-300 shadow-xs">
+<div class="space-y-6 pb-16">
+
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="text-xs font-bold text-tenant-600 uppercase tracking-wider">Curriculum Catalog</span>
-        <span class="text-xs text-text-secondary">•</span>
-        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 border border-tenant-500/20">
-          {{ lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name }}
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Curriculum Catalog
+        </span>
+        <span class="text-xs text-text-secondary">
+          Active LMS: <strong class="font-bold text-text-primary">{{ lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name }}</strong>
         </span>
       </div>
-      <h1 class="text-2xl font-bold text-text-primary">Courses</h1>
-      <p class="text-xs text-text-secondary mt-1 max-w-2xl">
+
+      <!-- Primary Heading -->
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">school</span>
+        <span>Courses</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         Design and manage reusable courses with multi-tiered structure, instructor governance, and independent version snapshots.
       </p>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2.5">
+    <!-- Top-Right Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a 
+        id="btn-course-dashboard-header"
         routerLink="/courses/dashboard"
-        class="px-4 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 transition-colors">
-        <span class="material-symbols-outlined text-base text-tenant-600">space_dashboard</span>
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">space_dashboard</span>
         <span>Course Dashboard</span>
-      </a>
-
-      <a 
-        routerLink="/courses/templates"
-        class="px-4 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 transition-colors">
-        <span class="material-symbols-outlined text-base text-indigo-600">dashboard_customize</span>
-        <span>Templates</span>
       </a>
 
       @if (lms.coursePermissions().canCreateCourse) {
         <a 
+          id="btn-create-course-header"
           routerLink="/courses/create"
-          class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
-          <span class="material-symbols-outlined text-base">add_circle</span>
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
           <span>Create Course</span>
         </a>
       }
     </div>
   </div>
 
-  <!-- Search & Filter Controls Bar -->
-  <div class="bg-base-100 p-4 rounded-3xl border border-base-300 shadow-xs space-y-3">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-      <!-- Search Input -->
-      <div class="relative flex-1 min-w-[280px]">
-        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-lg">
-          search
-        </span>
-        <input 
-          type="text" 
-          [value]="searchQuery()"
-          (input)="onSearchChange($any($event.target).value)"
-          placeholder="Search by course title, code, tags, or owner..." 
-          class="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
-        @if (searchQuery()) {
-          <button 
-            (click)="onSearchChange('')"
-            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
-            <span class="material-symbols-outlined text-base">close</span>
-          </button>
-        }
+  <!-- ========================================================================= -->
+  <!-- 2. GLOBAL CURRICULUM TELEMETRY SNAPSHOT BANNER                            -->
+  <!-- ========================================================================= -->
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs relative overflow-hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-300">
+          <span class="material-symbols-outlined text-lg">analytics</span>
+        </div>
+        <div>
+          <h2 class="text-xs font-bold text-text-primary">
+            Curriculum Catalog & Governance Metrics
+          </h2>
+          <span class="text-[11px] text-text-secondary">
+            Multi-tiered reusable courses across published live and draft states
+          </span>
+        </div>
       </div>
 
-      <!-- Quick Filter Dropdowns -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Status Filter -->
-        <select 
-          [value]="selectedStatus()"
-          (change)="selectedStatus.set($any($event.target).value); currentPage.set(1)"
-          class="px-3 py-2 rounded-2xl bg-base-200/60 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
-          <option value="All">All Statuses</option>
-          <option value="published">Published (Live)</option>
-          <option value="draft">Drafts (In-Progress)</option>
-          <option value="inactive">Inactive</option>
-          <option value="superseded">Superseded</option>
-        </select>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="px-2.5 py-1 rounded-lg bg-base-200 border border-base-300 font-mono text-[11px] font-semibold text-text-secondary">
+          {{ courseLibraryStats().total }} Total Courses &bull; {{ courseLibraryStats().published }} Published Live
+        </span>
+      </div>
+    </div>
 
-        <!-- Category Filter -->
-        <select 
-          [value]="selectedCategory()"
-          (change)="selectedCategory.set($any($event.target).value); currentPage.set(1)"
-          class="px-3 py-2 rounded-2xl bg-base-200/60 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none max-w-[180px] truncate">
-          @for (cat of categories; track cat) {
-            <option [value]="cat">{{ cat }}</option>
+    <!-- Live Telemetry KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 pt-3">
+      <!-- Published Live -->
+      <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Published Live</span>
+          <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+            {{ courseLibraryStats().published }} <span class="text-xs font-normal text-slate-400">/ {{ courseLibraryStats().total }}</span>
+          </div>
+          <div class="w-full bg-slate-100 dark:bg-base-200 h-1.5 rounded-full overflow-hidden mt-2">
+            <div
+              class="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              [style.width.%]="(courseLibraryStats().published / (courseLibraryStats().total || 1)) * 100"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-Progress Drafts -->
+      <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Drafts In-Progress</span>
+          <div class="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">edit_document</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-2xl font-extrabold tracking-tight text-sky-600 dark:text-sky-400">{{ courseLibraryStats().draft }}</div>
+          <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Unpublished curriculum</p>
+        </div>
+      </div>
+
+      <!-- Average Duration -->
+      <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Avg Duration</span>
+          <div class="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">schedule</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-2xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
+            {{ courseLibraryStats().avgDuration }} <span class="text-xs font-normal text-slate-400">mins</span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Per course syllabus</p>
+        </div>
+      </div>
+
+      <!-- Inactive / Superseded -->
+      <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Archived / Inactive</span>
+          <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-base-200 text-slate-500 dark:text-slate-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">inventory_2</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-2xl font-extrabold tracking-tight text-slate-700 dark:text-slate-200">{{ courseLibraryStats().inactive }}</div>
+          <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Superseded versions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. UNPUBLISHED COURSE DRAFTS (If any)                                     -->
+  <!-- ========================================================================= -->
+  @if (draftCourses().length > 0) {
+    <div class="bg-[#fef9ee] dark:bg-amber-950/20 border border-[#fed7aa] dark:border-amber-800/40 rounded-3xl p-4 sm:p-5 shadow-2xs animate-in fade-in duration-200">
+      <div class="flex items-center gap-1.5 text-xs mb-3 flex-wrap">
+        <span class="material-symbols-outlined text-amber-600 text-sm font-bold">bookmark</span>
+        <span class="font-bold text-text-primary text-xs">Unpublished Course Drafts ({{ draftCourses().length }})</span>
+        <span class="text-text-secondary text-xs font-normal">Curriculum in drafting stage awaiting publishing or review</span>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        @for (draft of draftCourses(); track draft.courseId) {
+          <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 px-4 py-3 flex items-center justify-between gap-4 shadow-2xs w-full sm:w-auto min-w-[320px] max-w-md">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-xs text-text-primary truncate">
+                  {{ draft.title }}
+                </span>
+                <span class="text-[11px] font-mono font-bold bg-[#f1f5f9] dark:bg-base-200 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-base-300">
+                  #{{ draft.code }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <span class="material-symbols-outlined text-amber-500 text-[13px] font-bold">pending_actions</span>
+                <span>{{ draft.structureConfig.layerCount }}-Tier &bull; {{ draft.category }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                (click)="editCourse(draft)"
+                class="px-3.5 py-1.5 rounded-full bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                title="Resume Editing Course">
+                <span>Edit</span>
+                <span class="material-symbols-outlined text-sm font-bold">east</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 4. SEARCH & FILTER CONTROLS (Matched to All Organizations Design)        -->
+  <!-- ========================================================================= -->
+  <div class="space-y-3 relative z-30">
+
+    <!-- Top Search Toolbar Card matching All Organizations design -->
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+
+      <!-- Left: Search Field + Filters Button + Reset Button -->
+      <div class="flex items-center gap-3 flex-1 max-w-2xl">
+
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+          <input 
+            type="text" 
+            id="input-course-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by course title, code, tags, or owner..." 
+            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
+
+          @if (searchQuery()) {
+            <button 
+              type="button"
+              (click)="onSearchChange('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
           }
-        </select>
+        </div>
 
-        <!-- Toggle Advanced Filters Drawer -->
+        <!-- Filter Button beside Search -->
         <button 
+          type="button"
+          id="btn-toggle-course-filter-panel"
           (click)="showFilterDrawer.set(!showFilterDrawer())"
-          [class]="showFilterDrawer() || activeFilterCount() > 0 ? 'border-tenant-500 bg-tenant-500/10 text-tenant-700 font-bold' : 'border-base-300 bg-base-200/60 text-text-primary'"
-          class="px-3.5 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-colors">
-          <span class="material-symbols-outlined text-base">tune</span>
+          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="showFilterDrawer() || activeFilterCount() > 0 
+            ? 'bg-tenant-500 text-white border-tenant-500' 
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base" [class.text-white]="showFilterDrawer() || activeFilterCount() > 0" [class.text-slate-600]="!showFilterDrawer() && !activeFilterCount()">filter_list</span>
           <span>Filters</span>
           @if (activeFilterCount() > 0) {
-            <span class="w-5 h-5 rounded-full bg-tenant-500 text-white text-[10px] flex items-center justify-center font-bold font-mono">
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-500 text-[10px] font-bold flex items-center justify-center">
               {{ activeFilterCount() }}
             </span>
           }
         </button>
 
-        <!-- View Mode Grid/Table Toggle -->
-        <div class="flex items-center bg-base-200 rounded-2xl p-1 border border-base-300">
+        @if (activeFilterCount() > 0 || searchQuery()) {
           <button 
+            type="button"
+            id="btn-course-grid-reset"
+            (click)="resetAllFilters()"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
+            title="Reset Filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+
+      </div>
+
+      <!-- Right: View Mode Toggle (Grid / Table) - Without raw standalone select! -->
+      <div class="flex items-center justify-end gap-2.5 self-end sm:self-auto flex-shrink-0">
+        <!-- View Mode Toggle -->
+        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
+          <button 
+            type="button"
             (click)="viewMode.set('grid')"
-            [class]="viewMode() === 'grid' ? 'bg-base-100 text-text-primary shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'"
-            class="p-1.5 rounded-xl transition-colors"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Grid View">
-            <span class="material-symbols-outlined text-lg">grid_view</span>
+            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
           </button>
           <button 
+            type="button"
             (click)="viewMode.set('table')"
-            [class]="viewMode() === 'table' ? 'bg-base-100 text-text-primary shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'"
-            class="p-1.5 rounded-xl transition-colors"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
             title="Table View">
-            <span class="material-symbols-outlined text-lg">table_rows</span>
+            <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
           </button>
         </div>
       </div>
+
     </div>
 
-    <!-- Expandable Multi-Facet Filter Panel -->
+    <!-- Filter Panel Dropdown / Card -->
     @if (showFilterDrawer()) {
-      <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-4 animate-scale-up">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-text-primary uppercase tracking-wider">Advanced Curriculum Filters</span>
-          <button (click)="resetAllFilters()" class="text-xs text-tenant-600 hover:text-tenant-700 font-semibold">
-            Reset All Filters
-          </button>
+      <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+          <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+            FILTER COURSES
+          </h3>
+          <span class="text-[11px] text-text-secondary font-medium">
+            Filter by status, category, hierarchy layer depth, content family, sorting, and grading
+          </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <!-- Filter Body Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-xs pt-1">
+          <!-- Status Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Status</label>
+            <app-custom-select
+              [options]="statusOptions"
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="selectedStatus.set($event); currentPage.set(1)"
+              placeholder="All Statuses">
+            </app-custom-select>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Category</label>
+            <app-custom-select
+              [options]="categoryOptions"
+              [ngModel]="selectedCategory()"
+              (ngModelChange)="selectedCategory.set($event); currentPage.set(1)"
+              placeholder="All Categories">
+            </app-custom-select>
+          </div>
+
           <!-- Layer Depth -->
           <div class="space-y-1.5">
-            <label class="font-bold text-text-primary">Structure Layer Depth</label>
-            <select 
-              [value]="selectedLayerCount()"
-              (change)="selectedLayerCount.set($any($event.target).value); currentPage.set(1)"
-              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
-              <option value="All">All Depths</option>
-              <option value="1">1-Tier (Flat Single Layer)</option>
-              <option value="2">2-Tier (Two-Level Hierarchy)</option>
-              <option value="3">3-Tier (Deep 3-Level)</option>
-            </select>
+            <label class="font-bold text-text-primary block">Layer Depth</label>
+            <app-custom-select
+              [options]="layerOptions"
+              [ngModel]="selectedLayerCount()"
+              (ngModelChange)="selectedLayerCount.set($event); currentPage.set(1)"
+              placeholder="All Depths">
+            </app-custom-select>
           </div>
 
           <!-- Content Family -->
           <div class="space-y-1.5">
-            <label class="font-bold text-text-primary">Content Family</label>
-            <select 
-              [value]="selectedFamily()"
-              (change)="selectedFamily.set($any($event.target).value); currentPage.set(1)"
-              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
-              <option value="All">All Content Types</option>
-              <option value="learning">Contains Learning Units</option>
-              <option value="assessment">Contains Assessments</option>
-            </select>
+            <label class="font-bold text-text-primary block">Content Type</label>
+            <app-custom-select
+              [options]="familyOptions"
+              [ngModel]="selectedFamily()"
+              (ngModelChange)="selectedFamily.set($event); currentPage.set(1)"
+              placeholder="All Types">
+            </app-custom-select>
           </div>
 
           <!-- Grading Mode -->
           <div class="space-y-1.5">
-            <label class="font-bold text-text-primary">Grading Mechanism</label>
-            <select 
-              [value]="selectedGradingMode()"
-              (change)="selectedGradingMode.set($any($event.target).value); currentPage.set(1)"
-              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
-              <option value="All">All Grading Modes</option>
-              <option value="manual">Has Manual Graded Items</option>
-              <option value="auto">Auto-Graded Only</option>
-            </select>
+            <label class="font-bold text-text-primary block">Grading Mode</label>
+            <app-custom-select
+              [options]="gradingOptions"
+              [ngModel]="selectedGradingMode()"
+              (ngModelChange)="selectedGradingMode.set($event); currentPage.set(1)"
+              placeholder="All Modes">
+            </app-custom-select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Sort By</label>
+            <app-custom-select
+              [options]="sortOptions"
+              [ngModel]="sortBy()"
+              (ngModelChange)="sortBy.set($event); currentPage.set(1)"
+              placeholder="Sort Order">
+            </app-custom-select>
           </div>
 
           <!-- Course Owner -->
           <div class="space-y-1.5">
-            <label class="font-bold text-text-primary">Course Owner</label>
-            <select 
-              [value]="selectedOwnerId()"
-              (change)="selectedOwnerId.set($any($event.target).value); currentPage.set(1)"
-              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
-              <option value="All">All Owners</option>
-              @for (user of lms.tenantUsers(); track user.id) {
-                <option [value]="user.id">{{ user.name }}</option>
-              }
-            </select>
+            <label class="font-bold text-text-primary block">Course Owner</label>
+            <app-custom-select
+              [options]="ownerOptions()"
+              [ngModel]="selectedOwnerId()"
+              (ngModelChange)="selectedOwnerId.set($event); currentPage.set(1)"
+              placeholder="All Owners">
+            </app-custom-select>
           </div>
         </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
+          <button 
+            type="button"
+            (click)="resetAllFilters()" 
+            class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+            Clear All Selections
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button 
+              type="button"
+              (click)="showFilterDrawer.set(false)" 
+              class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+              Close
+            </button>
+          </div>
+        </div>
+
       </div>
     }
 
-    <!-- Active Filter Chips Bar -->
+    <!-- Active Filter Chips Row -->
     @if (activeFilterCount() > 0 || searchQuery()) {
-      <div class="flex flex-wrap items-center gap-2 pt-1">
-        <span class="text-[11px] text-text-secondary font-medium">Active Filters:</span>
+      <div class="bg-base-100 rounded-xl border border-base-300 px-4 py-2.5 flex items-center gap-2 flex-wrap text-xs shadow-2xs animate-in fade-in">
+        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mr-1">
+          Active Filters:
+        </span>
 
         @if (searchQuery()) {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>Query: "{{ searchQuery() }}"</span>
-            <button (click)="onSearchChange('')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Query: <strong>"{{ searchQuery() }}"</strong></span>
+            <button type="button" (click)="onSearchChange('')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
         @if (selectedStatus() !== 'All') {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>Status: {{ selectedStatus() }}</span>
-            <button (click)="selectedStatus.set('All')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Status: <strong>{{ selectedStatus() | uppercase }}</strong></span>
+            <button type="button" (click)="selectedStatus.set('All')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
         @if (selectedCategory() !== 'All') {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>Category: {{ selectedCategory() }}</span>
-            <button (click)="selectedCategory.set('All')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Category: <strong>{{ selectedCategory() }}</strong></span>
+            <button type="button" (click)="selectedCategory.set('All')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
         @if (selectedLayerCount() !== 'All') {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>{{ selectedLayerCount() }}-Tier</span>
-            <button (click)="selectedLayerCount.set('All')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Tier: <strong>{{ selectedLayerCount() }}-Tier</strong></span>
+            <button type="button" (click)="selectedLayerCount.set('All')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
         @if (selectedFamily() !== 'All') {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>Family: {{ selectedFamily() }}</span>
-            <button (click)="selectedFamily.set('All')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Family: <strong>{{ selectedFamily() }}</strong></span>
+            <button type="button" (click)="selectedFamily.set('All')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
         @if (selectedGradingMode() !== 'All') {
-          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
-            <span>Grading: {{ selectedGradingMode() }}</span>
-            <button (click)="selectedGradingMode.set('All')" class="text-tenant-500 hover:text-error">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Grading: <strong>{{ selectedGradingMode() }}</strong></span>
+            <button type="button" (click)="selectedGradingMode.set('All')" class="hover:text-rose-600 cursor-pointer">
               <span class="material-symbols-outlined text-xs">close</span>
             </button>
           </span>
         }
 
-        <button (click)="resetAllFilters()" class="text-[11px] text-error hover:underline font-semibold ml-1">
+        @if (selectedOwnerId() !== 'All') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Owner Active</span>
+            <button type="button" (click)="selectedOwnerId.set('All')" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Clear all chips button -->
+        <button 
+          type="button"
+          (click)="resetAllFilters()" 
+          class="text-xs text-tenant-600 dark:text-tenant-400 hover:underline font-bold ml-auto cursor-pointer">
           Clear All
         </button>
       </div>
     }
+
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3 DISTINCT EMPTY STATES (BRD Requirement) -->
+  <!-- 5. EMPTY STATES                                                           -->
   <!-- ========================================================================= -->
   @if (emptyStateType() === 'true_empty') {
-    <!-- True Empty State -->
-    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
-      <div class="w-16 h-16 rounded-3xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center mx-auto border border-tenant-500/20">
+    <!-- True Empty State matching All Organizations design -->
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center mx-auto">
         <span class="material-symbols-outlined text-3xl">school</span>
       </div>
-      <div>
-        <h2 class="text-base font-bold text-text-primary">No course information is available to display.</h2>
-        <p class="text-xs text-text-secondary mt-1">Get started by creating your organization's first structured curriculum course.</p>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          No Course information is available to display.
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          No curriculum courses have been created yet. Create your first reusable structured course to get started.
+        </p>
       </div>
       <a 
-        routerLink="/courses/create" 
-        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-md">
+        routerLink="/courses/create"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
         <span class="material-symbols-outlined text-base">add_circle</span>
         <span>Create Course</span>
       </a>
     </div>
   } @else if (emptyStateType() === 'search_miss') {
     <!-- Search Miss State -->
-    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
-      <div class="w-16 h-16 rounded-3xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-base-200 text-text-secondary border border-base-300 flex items-center justify-center mx-auto">
         <span class="material-symbols-outlined text-3xl">search_off</span>
       </div>
-      <div>
-        <h2 class="text-base font-bold text-text-primary">No courses found matching "{{ searchQuery() }}"</h2>
-        <p class="text-xs text-text-secondary mt-1">Check for spelling errors or try searching for a broader category or tag.</p>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          No courses found matching "{{ searchQuery() }}"
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          Check for spelling errors or try searching for a broader course code, category, or keyword.
+        </p>
       </div>
       <button 
+        type="button"
         (click)="onSearchChange('')" 
-        class="px-5 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold">
-        Clear Search Query
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-sm">close</span>
+        <span>Clear Search Query</span>
       </button>
     </div>
   } @else if (emptyStateType() === 'filter_miss') {
     <!-- Filter Miss State -->
-    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
-      <div class="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto border border-amber-500/20">
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 border border-amber-200 dark:border-amber-800 flex items-center justify-center mx-auto">
         <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
       </div>
-      <div>
-        <h2 class="text-base font-bold text-text-primary">No course found matching the selected filters.</h2>
-        <p class="text-xs text-text-secondary mt-1">Try broadening your criteria or reset filters to see all available curriculum.</p>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          No courses found matching the selected filters.
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          Try expanding your filter criteria, choosing different statuses, or clearing filters to view all courses.
+        </p>
       </div>
       <button 
+        type="button"
         (click)="resetAllFilters()" 
-        class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-md">
-        Reset All Filters
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-sm">restart_alt</span>
+        <span>Reset All Filters</span>
       </button>
     </div>
   } @else {
+
     <!-- ========================================================================= -->
-    <!-- COURSE GRID VIEW -->
+    <!-- 6. COURSES LISTING (GRID & TABLE)                                          -->
+    <!-- ========================================================================= -->
+
+    <!-- ========================================================================= -->
+    <!-- 6.1 GRID VIEW (MATCHED TO EXISTING ALL ORGANIZATIONS CARD DESIGN)         -->
     <!-- ========================================================================= -->
     @if (viewMode() === 'grid') {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (crs of paginatedCourses(); track crs.courseId) {
           @let metrics = getMetrics(crs);
-          <div class="rounded-3xl bg-base-100 border border-base-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
-            <!-- Card Image & Header Overlay -->
-            <div class="relative h-40 w-full overflow-hidden bg-base-300">
+
+          <!-- Course Card -->
+          <div 
+            [id]="'course-card-' + crs.courseId"
+            (click)="openStructureDrawer(crs)"
+            class="bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-base-200">
+
+            <!-- Card Top Image & Header Overlays -->
+            <div class="relative h-48 w-full overflow-hidden bg-base-300 flex-shrink-0">
               <img 
                 [src]="crs.coverImage" 
                 [alt]="crs.title" 
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 referrerpolicy="no-referrer" />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
 
-              <!-- Top Badges -->
-              <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
-                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/60 text-white backdrop-blur-xs border border-white/10 uppercase tracking-wide">
+              <!-- Top Badges Row -->
+              <div class="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
+                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/60 text-white backdrop-blur-xs border border-white/10 uppercase tracking-wide truncate max-w-[220px]">
                   {{ crs.category }}
                 </span>
 
                 <!-- Status Badge -->
                 <span 
-                  class="text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs shadow-xs"
-                  [class]="crs.status === 'published' ? 'bg-emerald-500/90 text-white' : (crs.status === 'draft' ? 'bg-sky-500/90 text-white' : 'bg-slate-700 text-white')">
+                  class="text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs shadow-xs border border-white/10"
+                  [class]="crs.status === 'published' ? 'bg-emerald-500/90 text-white' : (crs.status === 'draft' ? 'bg-sky-500/90 text-white' : 'bg-slate-700/90 text-white')">
                   {{ crs.status | uppercase }}
                 </span>
               </div>
 
-              <!-- Bottom Image Overlay info -->
-              <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-                <div class="flex items-center gap-1.5 font-mono">
-                  <span class="px-2 py-0.5 rounded bg-white/20 backdrop-blur-xs text-[11px] font-bold">
-                    {{ crs.code }}
+              <!-- Bottom Image Info: Code & Version -->
+              <div class="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between text-white text-xs">
+                <div class="flex items-center gap-1.5 font-mono" (click)="$event.stopPropagation()">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-white/20 backdrop-blur-xs text-[11px] font-bold border border-white/20">
+                    #{{ crs.code }}
                   </span>
-                  <button (click)="copyCourseCode(crs.code, $event)" title="Copy Code" class="hover:text-tenant-300">
+                  <button 
+                    type="button"
+                    (click)="copyCourseCode(crs.code, $event)" 
+                    title="Copy Course Code" 
+                    class="hover:text-tenant-300 text-white/80 p-0.5 transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-sm">content_copy</span>
                   </button>
                 </div>
 
-                <span class="px-2 py-0.5 rounded-full bg-indigo-500/80 backdrop-blur-xs text-[10px] font-bold">
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/80 backdrop-blur-xs text-[10px] font-bold border border-white/10">
                   {{ crs.version.label }}
                 </span>
               </div>
             </div>
 
             <!-- Card Body -->
-            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-              <div>
+            <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+              <div class="space-y-2.5">
                 <!-- Structure Layer Depth Badge -->
-                <div class="flex items-center gap-1.5 mb-2">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 font-mono">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-tenant-500/10 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20 font-mono">
                     {{ crs.structureConfig.layerCount }}-Tier
                   </span>
-                  <span class="text-[11px] text-text-secondary truncate">
+                  <span class="text-[11px] text-text-secondary truncate font-medium">
                     {{ crs.structureConfig.layerLabels.join(' → ') }}
                   </span>
                 </div>
 
                 <!-- Course Title -->
-                <h3 class="text-sm font-bold text-text-primary line-clamp-2 leading-snug">
+                <h3 class="text-sm sm:text-base font-bold text-text-primary group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors line-clamp-2 leading-snug">
                   {{ crs.title }}
                 </h3>
 
                 <!-- Description excerpt -->
                 @if (crs.description) {
-                  <p class="text-xs text-text-secondary line-clamp-2 mt-1.5">
+                  <p class="text-xs text-text-secondary leading-relaxed line-clamp-2">
                     {{ crs.description }}
                   </p>
                 }
               </div>
 
-              <!-- Composition & Telemetry Metrics -->
-              <div class="space-y-2.5 pt-2 border-t border-base-200">
-                <div class="flex items-center justify-between text-xs text-text-secondary">
-                  <span class="flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm text-emerald-500">play_lesson</span>
-                    <span><strong>{{ metrics.learningCount }}</strong> Learning</span>
-                  </span>
-
-                  <span class="flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm text-indigo-500">quiz</span>
-                    <span><strong>{{ metrics.assessmentCount }}</strong> Assessment</span>
-                  </span>
-
-                  <span class="font-mono text-[11px]">
-                    {{ crs.durationMinutes }}m
-                  </span>
-                </div>
-
-                <!-- Phase Locks & Manual Grading Indicators -->
-                <div class="flex items-center justify-between text-[11px]">
-                  <span class="flex items-center gap-1 text-amber-700 font-medium">
-                    <span class="material-symbols-outlined text-xs text-amber-600">lock</span>
-                    <span>{{ crs.usedInPhasesCount || 0 }} phases locked</span>
-                  </span>
-
-                  @if (metrics.manualGradingCount > 0) {
-                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-700 border border-amber-500/20 font-semibold">
-                      {{ metrics.manualGradingCount }} Manual Graded
+              <div class="space-y-3.5">
+                <!-- Composition Metrics 3-Column Box (matching Organization resource allocation box) -->
+                <div class="rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-base-300/60 p-3 grid grid-cols-3 text-center">
+                  <div>
+                    <span class="text-xs sm:text-sm font-extrabold text-text-primary block font-mono">
+                      {{ metrics.learningCount }}
                     </span>
-                  }
-                </div>
-
-                <!-- Owner Row -->
-                <div class="flex items-center justify-between pt-2 border-t border-base-200 text-xs">
-                  <div class="flex items-center gap-2">
-                    <img [src]="crs.ownerAvatar" [alt]="crs.ownerName" class="w-5 h-5 rounded-full object-cover" referrerpolicy="no-referrer" />
-                    <span class="text-text-secondary text-[11px] truncate max-w-[120px]">{{ crs.ownerName }}</span>
+                    <span class="text-[10px] sm:text-[11px] text-text-secondary block mt-0.5">Learning</span>
                   </div>
-                  <span class="text-[10px] text-text-secondary font-mono">{{ crs.updatedAt }}</span>
+                  <div>
+                    <span class="text-xs sm:text-sm font-extrabold text-text-primary block font-mono">
+                      {{ metrics.assessmentCount }}
+                    </span>
+                    <span class="text-[10px] sm:text-[11px] text-text-secondary block mt-0.5">Assess</span>
+                  </div>
+                  <div>
+                    <span class="text-xs sm:text-sm font-extrabold block font-mono text-tenant-600 dark:text-tenant-400">
+                      {{ crs.durationMinutes }}m
+                    </span>
+                    <span class="text-[10px] sm:text-[11px] text-text-secondary block mt-0.5">Duration</span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- Card Action Buttons -->
-              <div class="pt-3 border-t border-base-200 flex items-center justify-between gap-2">
-                <button 
-                  (click)="openStructureDrawer(crs)"
-                  class="flex-1 py-2 px-2.5 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
-                  <span class="material-symbols-outlined text-sm text-tenant-600">account_tree</span>
-                  <span>Structure</span>
-                </button>
-
-                <button 
-                  (click)="editCourse(crs)"
-                  class="p-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary transition-colors"
-                  title="Edit Course">
-                  <span class="material-symbols-outlined text-base">edit</span>
-                </button>
-
-                <!-- More Actions Dropdown -->
-                <div class="dropdown dropdown-top dropdown-end">
-                  <button tabindex="0" class="p-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary">
-                    <span class="material-symbols-outlined text-base">more_vert</span>
-                  </button>
-                  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl border border-base-300 w-52 text-xs space-y-1">
-                    @if (crs.status === 'draft') {
-                      <li>
-                        <button (click)="publishCourse(crs)" class="text-emerald-600 font-semibold">
-                          <span class="material-symbols-outlined text-base">rocket_launch</span>
-                          <span>Publish Live</span>
-                        </button>
-                      </li>
+                <!-- Locks & Governance Box -->
+                <div class="rounded-2xl border border-base-300/80 p-3.5 space-y-2.5 bg-slate-50/40 dark:bg-base-200/20">
+                  <!-- Phase Locks & Grading -->
+                  <div class="flex items-center justify-between text-xs text-text-secondary">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="material-symbols-outlined text-sm text-amber-500">lock</span>
+                      <span class="truncate font-medium text-amber-800 dark:text-amber-300">{{ crs.usedInPhasesCount || 0 }} Phase Locks</span>
+                    </div>
+                    @if (metrics.manualGradingCount > 0) {
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-semibold flex-shrink-0">
+                        {{ metrics.manualGradingCount }} Manual Graded
+                      </span>
+                    } @else {
+                      <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex-shrink-0">
+                        Auto-Graded
+                      </span>
                     }
-                    <li>
-                      <button (click)="openVersionModal(crs)">
-                        <span class="material-symbols-outlined text-base">history_edu</span>
-                        <span>Version History</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button (click)="duplicateCourse(crs)">
-                        <span class="material-symbols-outlined text-base">content_copy</span>
-                        <span>Duplicate Course</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button (click)="openSaveAsTemplate(crs)">
-                        <span class="material-symbols-outlined text-base">dashboard_customize</span>
-                        <span>Save as Template</span>
-                      </button>
-                    </li>
+                  </div>
+
+                  <div class="h-px bg-base-300/60 w-full"></div>
+
+                  <!-- Owner & Update Date -->
+                  <div class="flex items-center justify-between text-xs text-text-secondary">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <app-custom-avatar [src]="crs.ownerAvatar" [name]="crs.ownerName" size="xs"></app-custom-avatar>
+                      <span class="font-medium text-text-primary truncate">{{ crs.ownerName }}</span>
+                    </div>
+                    <span class="font-mono text-[11px] text-text-secondary flex-shrink-0">
+                      {{ crs.updatedAt }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Footer Actions Row (Matching All Organizations Card Footer) -->
+                <div class="pt-3.5 mt-3 border-t border-base-300 flex items-center justify-between gap-2" (click)="$event.stopPropagation()">
+                  <!-- Left Action Icons (4 Sleek Icons) -->
+                  <div class="flex items-center gap-1 text-text-secondary">
+                    <button 
+                      type="button"
+                      (click)="editCourse(crs)"
+                      class="p-1 rounded-lg text-slate-400 hover:text-tenant-500 hover:bg-base-200 transition-colors cursor-pointer"
+                      title="Edit Course">
+                      <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      (click)="openStructureDrawer(crs)"
+                      class="p-1 rounded-lg text-tenant-500 hover:opacity-80 hover:bg-base-200 transition-opacity cursor-pointer"
+                      title="View Course Structure">
+                      <span class="material-symbols-outlined text-base">account_tree</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      (click)="openVersionModal(crs)"
+                      class="p-1 rounded-lg text-slate-400 hover:text-tenant-500 hover:bg-base-200 transition-colors cursor-pointer"
+                      title="Version Snapshots & History">
+                      <span class="material-symbols-outlined text-base">history_edu</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      (click)="duplicateCourse(crs)"
+                      class="p-1 rounded-lg text-slate-400 hover:text-tenant-500 hover:bg-base-200 transition-colors cursor-pointer"
+                      title="Duplicate Course">
+                      <span class="material-symbols-outlined text-base">content_copy</span>
+                    </button>
+                  </div>
+
+                  <!-- Right Primary CTA Button (Matching All Organizations right button) -->
+                  <div>
                     @if (crs.status === 'published') {
-                      <li>
-                        <button (click)="confirmDeactivate(crs)" class="text-amber-600">
-                          <span class="material-symbols-outlined text-base">pause_circle</span>
-                          <span>Deactivate</span>
-                        </button>
-                      </li>
-                    } @else if (crs.status === 'inactive') {
-                      <li>
-                        <button (click)="confirmReactivate(crs)" class="text-emerald-600">
-                          <span class="material-symbols-outlined text-base">play_circle</span>
-                          <span>Reactivate</span>
-                        </button>
-                      </li>
+                      <button 
+                        type="button"
+                        (click)="openStructureDrawer(crs)"
+                        class="px-3.5 py-1.5 rounded-lg bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Open Course Structure">
+                        <span class="material-symbols-outlined text-sm">account_tree</span>
+                        <span>Structure</span>
+                      </button>
+                    } @else if (crs.status === 'draft') {
+                      <button 
+                        type="button"
+                        (click)="publishCourse(crs)"
+                        class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Publish Live">
+                        <span class="material-symbols-outlined text-sm">rocket_launch</span>
+                        <span>Publish</span>
+                      </button>
+                    } @else {
+                      <button 
+                        type="button"
+                        (click)="confirmReactivate(crs)"
+                        class="px-3.5 py-1.5 rounded-lg bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs active:scale-95"
+                        title="Reactivate Course">
+                        <span class="material-symbols-outlined text-sm">play_circle</span>
+                        <span>Reactivate</span>
+                      </button>
                     }
-                  </ul>
+                  </div>
                 </div>
               </div>
             </div>
+
           </div>
         }
       </div>
     } @else {
+
       <!-- ========================================================================= -->
-      <!-- COURSE TABLE VIEW -->
+      <!-- 6.2 TABLE VIEW (MATCHED TO EXISTING PAGE TABLE DESIGN)                    -->
       <!-- ========================================================================= -->
-      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-xs overflow-hidden">
+      <div class="bg-base-100 rounded-3xl border border-base-300 overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-base-200/60 border-b border-base-300 text-text-secondary font-bold uppercase tracking-wider">
-                <th class="py-3.5 px-4">Code & Title</th>
-                <th class="py-3.5 px-4">Category</th>
-                <th class="py-3.5 px-4">Hierarchy</th>
-                <th class="py-3.5 px-4">Composition</th>
-                <th class="py-3.5 px-4">Version</th>
-                <th class="py-3.5 px-4">Status</th>
-                <th class="py-3.5 px-4">Phase Locks</th>
-                <th class="py-3.5 px-4">Owner</th>
-                <th class="py-3.5 px-4 text-right">Actions</th>
+          <table class="min-w-[1050px] w-full text-left text-xs border-separate border-spacing-0">
+            <thead class="bg-base-200/90 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th class="py-3.5 px-4 min-w-[260px] border-b border-base-300">Course Details</th>
+                <th class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Category</th>
+                <th class="py-3.5 px-4 min-w-[110px] border-b border-base-300">Hierarchy</th>
+                <th class="py-3.5 px-4 min-w-[160px] border-b border-base-300">Composition</th>
+                <th class="py-3.5 px-4 min-w-[100px] border-b border-base-300">Version</th>
+                <th class="py-3.5 px-4 min-w-[130px] border-b border-base-300">Status</th>
+                <th class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Owner</th>
+                <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-base-200">
+            <tbody>
               @for (crs of paginatedCourses(); track crs.courseId) {
                 @let metrics = getMetrics(crs);
-                <tr class="hover:bg-base-200/30 transition-colors">
-                  <!-- Code & Title -->
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-3">
-                      <img [src]="crs.coverImage" class="w-10 h-10 rounded-xl object-cover border border-base-300" referrerpolicy="no-referrer" />
-                      <div>
-                        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-tenant-500/10 text-tenant-600 font-mono">
-                          {{ crs.code }}
+                <tr 
+                  (click)="openStructureDrawer(crs)"
+                  class="group hover:bg-base-200/50 transition-colors cursor-pointer">
+
+                  <!-- Course Details -->
+                  <td class="py-3 px-4 border-b border-base-300/60">
+                    <div class="flex items-center gap-3 min-w-[220px]">
+                      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-2xs">
+                        <img [src]="crs.coverImage" [alt]="crs.title" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+                      </div>
+                      <div class="min-w-0">
+                        <span class="font-bold text-text-primary block truncate group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors max-w-[200px]">
+                          {{ crs.title }}
                         </span>
-                        <h4 class="font-bold text-text-primary text-xs mt-0.5 line-clamp-1 max-w-[200px]">{{ crs.title }}</h4>
+                        <span class="font-mono text-[10px] text-text-secondary">#{{ crs.code }} &bull; {{ crs.durationMinutes }}m</span>
                       </div>
                     </div>
                   </td>
 
                   <!-- Category -->
-                  <td class="py-3.5 px-4 font-medium text-text-secondary">
+                  <td class="py-3 px-4 text-text-secondary font-medium border-b border-base-300/60">
                     {{ crs.category }}
                   </td>
 
                   <!-- Hierarchy -->
-                  <td class="py-3.5 px-4">
-                    <span class="px-2 py-0.5 rounded bg-base-200 border border-base-300 font-mono text-[11px] font-bold">
+                  <td class="py-3 px-4 border-b border-base-300/60">
+                    <span class="px-2 py-0.5 rounded bg-base-200 border border-base-300 font-mono text-[10px] font-bold">
                       {{ crs.structureConfig.layerCount }}-Tier
                     </span>
                   </td>
 
                   <!-- Composition -->
-                  <td class="py-3.5 px-4">
-                    <div class="text-[11px] space-y-0.5">
-                      <span class="text-emerald-600 font-medium">{{ metrics.learningCount }} Learning</span> • 
-                      <span class="text-indigo-600 font-medium">{{ metrics.assessmentCount }} Assess</span>
-                    </div>
+                  <td class="py-3 px-4 font-mono text-[11px] text-text-secondary border-b border-base-300/60">
+                    <span class="text-emerald-700 dark:text-emerald-400 font-bold">{{ metrics.learningCount }}</span> Learn &bull;
+                    <span class="text-indigo-700 dark:text-indigo-400 font-bold">{{ metrics.assessmentCount }}</span> Assess
                   </td>
 
                   <!-- Version -->
-                  <td class="py-3.5 px-4 font-mono font-bold text-tenant-700">
+                  <td class="py-3 px-4 font-mono font-bold text-tenant-700 dark:text-tenant-300 border-b border-base-300/60">
                     {{ crs.version.label }}
                   </td>
 
                   <!-- Status -->
-                  <td class="py-3.5 px-4">
-                    <span 
-                      class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      [class]="crs.status === 'published' ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20' : (crs.status === 'draft' ? 'bg-sky-500/10 text-sky-700 border border-sky-500/20' : 'bg-slate-500/10 text-slate-700')">
-                      {{ crs.status | uppercase }}
+                  <td class="py-3 px-4 min-w-[130px] whitespace-nowrap border-b border-base-300/60">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1"
+                          [class]="getStatusBadgeClass(crs.status)">
+                      @if (crs.status === 'published') {
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Published
+                      } @else if (crs.status === 'draft') {
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                        Draft
+                      } @else {
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        {{ crs.status | titlecase }}
+                      }
                     </span>
                   </td>
 
-                  <!-- Phase Locks -->
-                  <td class="py-3.5 px-4 font-mono font-semibold text-amber-700">
-                    {{ crs.usedInPhasesCount || 0 }}
-                  </td>
-
                   <!-- Owner -->
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-1.5">
-                      <img [src]="crs.ownerAvatar" class="w-5 h-5 rounded-full object-cover" referrerpolicy="no-referrer" />
-                      <span class="truncate max-w-[100px]">{{ crs.ownerName }}</span>
+                  <td class="py-3 px-4 border-b border-base-300/60">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <app-custom-avatar [src]="crs.ownerAvatar" [name]="crs.ownerName" size="xs"></app-custom-avatar>
+                      <span class="text-[11px] font-medium text-text-primary truncate max-w-[100px]">{{ crs.ownerName }}</span>
                     </div>
                   </td>
 
                   <!-- Actions -->
-                  <td class="py-3.5 px-4 text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                      <button (click)="openStructureDrawer(crs)" class="p-1.5 rounded-lg hover:bg-base-200 text-tenant-600" title="View Structure">
+                  <td class="py-3 px-4 text-right sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                    <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
+                      <button
+                        type="button"
+                        (click)="openStructureDrawer(crs)"
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                        title="View Course Structure">
                         <span class="material-symbols-outlined text-base">account_tree</span>
                       </button>
-                      <button (click)="editCourse(crs)" class="p-1.5 rounded-lg hover:bg-base-200 text-text-primary" title="Edit Course">
+
+                      <button
+                        type="button"
+                        (click)="editCourse(crs)"
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-tenant-50 dark:hover:bg-tenant-950 text-tenant-600 hover:text-tenant-700 transition-colors cursor-pointer"
+                        title="Edit Course">
                         <span class="material-symbols-outlined text-base">edit</span>
                       </button>
                     </div>
@@ -598,9 +883,9 @@
       </div>
     }
 
-    <!-- Pagination Controls -->
+    <!-- Pagination Controls (Matching All Organizations & LMS pages) -->
     @if (totalPages() > 1) {
-      <div class="flex items-center justify-between pt-4 text-xs text-text-secondary">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 text-xs text-text-secondary">
         <span>
           Showing <strong>{{ ((currentPage() - 1) * pageSize()) + 1 }}</strong> to 
           <strong>{{ Math.min(currentPage() * pageSize(), filteredCourses().length) }}</strong> of 
@@ -609,25 +894,28 @@
 
         <div class="flex items-center gap-1">
           <button 
+            type="button"
             (click)="goToPage(currentPage() - 1)"
             [disabled]="currentPage() === 1"
-            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40">
+            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40 cursor-pointer">
             <span class="material-symbols-outlined text-sm">chevron_left</span>
           </button>
 
           @for (p of pagesList(); track p) {
             <button 
+              type="button"
               (click)="goToPage(p)"
               [class]="currentPage() === p ? 'bg-tenant-500 text-white font-bold' : 'hover:bg-base-200 text-text-primary border border-base-300'"
-              class="w-8 h-8 rounded-xl text-xs font-mono transition-colors">
+              class="w-8 h-8 rounded-xl text-xs font-mono transition-colors cursor-pointer">
               {{ p }}
             </button>
           }
 
           <button 
+            type="button"
             (click)="goToPage(currentPage() + 1)"
             [disabled]="currentPage() === totalPages()"
-            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40">
+            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40 cursor-pointer">
             <span class="material-symbols-outlined text-sm">chevron_right</span>
           </button>
         </div>
@@ -635,10 +923,11 @@
     }
   }
 
-  <!-- Interactive Structure Drawer Integration -->
+  <!-- Interactive Structure Modal Integration -->
   <app-course-structure-drawer 
     [course]="activeStructureCourse()" 
-    (close)="activeStructureCourse.set(null)" />
+    (close)="activeStructureCourse.set(null)"
+    (edit)="activeStructureCourse.set(null); editCourse($event)" />
 
   <!-- Version Modal Integration -->
   <app-course-version-modal 
@@ -649,10 +938,10 @@
   <!-- Save as Blueprint Template Modal (§8.3) -->
   @if (showSaveTemplateModal()) {
     <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-      <div class="w-full max-w-md bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
+      <div class="w-full max-w-md bg-base-100 rounded-2xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
         <div class="p-6 border-b border-base-300 bg-base-200/50 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
               <span class="material-symbols-outlined text-xl">dashboard_customize</span>
             </div>
             <div>
@@ -660,7 +949,7 @@
               <p class="text-xs text-text-secondary">Extract structure for reusable adoption</p>
             </div>
           </div>
-          <button (click)="showSaveTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300">
+          <button (click)="showSaveTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 cursor-pointer">
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -672,7 +961,7 @@
               type="text" 
               [value]="templateForm().name"
               (input)="templateForm().name = $any($event.target).value"
-              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-primary font-semibold" />
+              class="w-full px-4 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-xs text-text-primary font-semibold" />
           </div>
 
           <div class="space-y-1.5">
@@ -680,7 +969,7 @@
             <select 
               [value]="templateForm().scope"
               (change)="templateForm().scope = $any($event.target).value"
-              class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-semibold text-text-primary">
+              class="w-full px-4 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-xs font-semibold text-text-primary cursor-pointer">
               <option value="lms">Current LMS Instance Only</option>
               <option value="organization">Entire Organization</option>
             </select>
@@ -688,12 +977,12 @@
         </div>
 
         <div class="p-6 border-t border-base-300 bg-base-200/50 flex items-center justify-between">
-          <button (click)="showSaveTemplateModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold">
+          <button (click)="showSaveTemplateModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold cursor-pointer">
             Cancel
           </button>
           <button 
             (click)="confirmSaveAsTemplate()" 
-            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md">
+            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md cursor-pointer">
             Create Blueprint
           </button>
         </div>
@@ -704,9 +993,9 @@
   <!-- Action Confirmation Modal -->
   @if (confirmModal().isOpen) {
     <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-      <div class="w-full max-w-md bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
+      <div class="w-full max-w-md bg-base-100 rounded-2xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
         <div class="p-6 space-y-3">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
             <span class="material-symbols-outlined text-2xl">warning</span>
           </div>
           <h2 class="text-base font-bold text-text-primary">{{ confirmModal().title }}</h2>
@@ -716,13 +1005,13 @@
         <div class="p-4 bg-base-200/50 border-t border-base-300 flex items-center justify-end gap-3">
           <button 
             (click)="closeConfirmModal()" 
-            class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold hover:bg-base-200">
+            class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold hover:bg-base-200 cursor-pointer">
             Cancel
           </button>
           <button 
             (click)="confirmModal().action()" 
             [class]="confirmModal().variant === 'danger' ? 'bg-error text-white' : 'bg-tenant-500 text-white'"
-            class="px-5 py-2 rounded-xl text-xs font-bold shadow-sm">
+            class="px-5 py-2 rounded-xl text-xs font-bold shadow-sm cursor-pointer">
             {{ confirmModal().confirmLabel }}
           </button>
         </div>

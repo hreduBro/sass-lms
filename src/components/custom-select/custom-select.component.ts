@@ -16,7 +16,9 @@ export interface SelectOption {
   selector: 'app-custom-select',
   imports: [CommonModule, FormsModule],
   host: {
-    class: 'block w-full'
+    class: 'block w-full relative',
+    '[class.z-[100]]': 'isOpen()',
+    '[class.z-10]': '!isOpen()'
   },
   providers: [
     {
@@ -26,7 +28,7 @@ export interface SelectOption {
     }
   ],
   template: `
-    <div class="relative w-full text-left custom-select-root" [class.opacity-60]="disabled()">
+    <div class="relative w-full text-left custom-select-root" [class.z-[100]]="isOpen()" [class.opacity-60]="disabled()">
       @if (label()) {
         <label class="block text-xs font-semibold text-text-primary mb-1">
           {{ label() }}
@@ -140,13 +142,14 @@ export interface SelectOption {
         </div>
       </button>
 
-      <!-- Dropdown Popover Menu (Matching Image 2 Floating Overlay) -->
+      <!-- Dropdown Popover Menu -->
       @if (isOpen()) {
         <div 
-          class="absolute z-[999] mt-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
+          class="absolute z-[999] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
           [ngClass]="[
+            actualPlacement() === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
             dropdownAlign() === 'right' ? 'right-0' : 'left-0',
-            'w-full min-w-[280px] sm:min-w-[340px] max-w-[calc(100vw-2rem)]',
+            'w-full min-w-full max-w-[calc(100vw-2rem)]',
             customDropdownClass()
           ]"
           role="listbox">
@@ -202,7 +205,7 @@ export interface SelectOption {
           }
 
           <!-- Options List with Custom Smooth Scrollbar -->
-          <div class="overflow-y-auto p-1.5 space-y-1 max-h-60 flex-1 custom-select-scrollbar">
+          <div class="overflow-y-auto p-1.5 space-y-1 max-h-52 flex-1 custom-select-scrollbar">
             @if (normalizedFilteredOptions().length === 0) {
               <div class="px-3 py-4 text-center text-xs text-text-secondary">
                 No matching options found
@@ -215,7 +218,7 @@ export interface SelectOption {
                   [disabled]="opt.disabled"
                   role="option"
                   [attr.aria-selected]="isSelected(opt)"
-                  class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-left cursor-pointer group"
+                  class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer group"
                   [ngClass]="[
                     isSelected(opt) 
                       ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-semibold' 
@@ -322,6 +325,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
   error = input<string>('');
   size = input<'sm' | 'md' | 'lg'>('md');
   dropdownAlign = input<'left' | 'right' | 'auto'>('auto');
+  dropdownPosition = input<'auto' | 'top' | 'bottom'>('auto');
   customTriggerClass = input<string>('');
   customDropdownClass = input<string>('');
 
@@ -331,6 +335,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
 
   // State
   isOpen = signal<boolean>(false);
+  actualPlacement = signal<'top' | 'bottom'>('bottom');
   selectedValue = signal<any>(null);
   searchQuery = signal<string>('');
   highlightedIndex = signal<number>(-1);
@@ -451,16 +456,25 @@ export class CustomSelectComponent implements ControlValueAccessor {
 
   toggleOpen() {
     if (this.disabled()) return;
-    this.isOpen.update(v => !v);
-    if (this.isOpen()) {
+    const willOpen = !this.isOpen();
+    
+    if (willOpen) {
+      if (this.dropdownPosition() === 'top') {
+        this.actualPlacement.set('top');
+      } else {
+        this.actualPlacement.set('bottom');
+      }
+      
       this.searchQuery.set('');
       this.highlightedIndex.set(-1);
+      this.isOpen.set(true);
       setTimeout(() => {
         if (this.shouldShowSearch()) {
           this.searchInput?.nativeElement.focus();
         }
       }, 50);
     } else {
+      this.isOpen.set(false);
       this.onTouched();
     }
   }

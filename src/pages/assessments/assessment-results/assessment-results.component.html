@@ -1,352 +1,1240 @@
-<div class="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8">
-  <!-- Top Bar -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
+<div class="space-y-6 pb-16">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-sm font-medium text-emerald-600 mb-1">
-        <span class="material-icons text-base">fact_check</span>
-        <span>Results & Manual Grading Queue</span>
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">assignment</span>
+          Learning Assessment Studio
+        </span>
+        <span class="text-xs text-text-secondary">
+          Parent Org: <strong class="font-bold text-text-primary">{{ activeTenant().name }}</strong>
+          (ID: <strong class="font-mono text-text-primary">{{ activeTenant().numericId || activeTenant().id }}</strong>)
+        </span>
+        @if (isAnonymized()) {
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">visibility_off</span>
+            Privacy Mode
+          </span>
+        }
       </div>
-      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Assessment Results</h1>
-      <p class="text-slate-500 text-sm mt-1">Trainee attempt score analytics, pass/fail status & instructor manual grading queue</p>
+      
+      <!-- Primary Heading -->
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Assessment Results</h1>
+      
+      <!-- Subtitle -->
+      <p class="text-xs text-text-secondary mt-0.5">
+        All structured learning evaluations, sequential attempt telemetry, score breakdowns, and grading queues within this LMS.
+      </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <!-- Top-Right Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <!-- Privacy Toggle -->
+      <button
+        (click)="togglePrivacyMode()"
+        type="button"
+        [class]="isAnonymized() ? 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800' : 'bg-base-100 hover:bg-base-200 text-text-primary border-base-300'"
+        class="px-3 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+        [title]="isAnonymized() ? 'Disable Privacy Anonymization' : 'Enable Privacy Anonymization for Blind Grading / FERPA'">
+        <span class="material-symbols-outlined text-base text-purple-600 dark:text-purple-400">
+          {{ isAnonymized() ? 'visibility' : 'visibility_off' }}
+        </span>
+        <span>{{ isAnonymized() ? 'Show PII' : 'Anonymize PII' }}</span>
+      </button>
+
+      <!-- Export CSV -->
       <button
         (click)="exportResultsCsv()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50"
-      >
-        <span class="material-icons text-slate-500 text-base">download</span>
+        type="button"
+        class="px-3 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+        title="Export Filtered Submissions to CSV">
+        <span class="material-symbols-outlined text-base text-text-secondary">download</span>
         <span>Export CSV</span>
       </button>
 
-      <a
-        routerLink="/assessments"
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
-      >
-        <span class="material-icons text-base">quiz</span>
-        <span>Assessment Bank</span>
+      <!-- Assessment Dashboard -->
+      <a 
+        routerLink="/assessments/dashboard"
+        id="btn-assessment-dashboard-header"
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base text-tenant-500">space_dashboard</span>
+        <span>Assessment Dashboard</span>
+      </a>
+
+      <!-- Create Assessment Primary CTA -->
+      <a 
+        routerLink="/assessments/create"
+        id="btn-create-assessment-header"
+        class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base">add_circle</span>
+        <span>Create Assessment</span>
       </a>
     </div>
   </div>
 
-  <!-- KPI Metrics -->
+  <!-- ========================================================================= -->
+  <!-- 1.5. KPI METRICS SUMMARY ROW (MATCHED PLAN GRID STYLE)                   -->
+  <!-- ========================================================================= -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
-        <span>Total Attempts</span>
-        <span class="material-icons text-indigo-500 text-lg">history</span>
+    <!-- Total Submissions -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Total Submissions</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpiStats().totalAttempts }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpiStats().uniqueTrainees }} total learners</span>
       </div>
-      <div class="text-2xl font-bold text-slate-900">{{ kpis().total }}</div>
-      <div class="text-xs text-slate-500">Submitted exam attempts</div>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">collections_bookmark</span>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
-        <span>Overall Pass Rate</span>
-        <span class="material-icons text-emerald-500 text-lg">verified</span>
+    <!-- Active & Passing -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active & Passing</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpiStats().passRate }}%</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpiStats().passedCount }} qualified • {{ kpiStats().failedCount }} remediation</span>
       </div>
-      <div class="text-2xl font-bold text-emerald-600">{{ kpis().passRate }}%</div>
-      <div class="text-xs text-slate-500">{{ kpis().passed }} attempts passed</div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
-        <span>Average Percentage</span>
-        <span class="material-icons text-blue-500 text-lg">insights</span>
+    <!-- Mean Score -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-amber-600 dark:text-amber-400">Mean Score</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpiStats().avgPercentage }}%</h3>
+        <span class="text-[11px] text-text-secondary">Average overall score</span>
       </div>
-      <div class="text-2xl font-bold text-slate-900">{{ kpis().avgScore }}%</div>
-      <div class="text-xs text-slate-500">Mean score percentage</div>
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+        <span class="material-symbols-outlined">edit_note</span>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
-        <span>Pending Manual Grading</span>
-        <span class="material-icons text-purple-500 text-lg">hourglass_top</span>
+    <!-- Grading Queue -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Grading Queue</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpiStats().pendingGradingCount }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpiStats().pendingGradingCount > 0 ? 'Pending manual review' : 'Queue clear' }}</span>
       </div>
-      <div class="text-2xl font-bold text-purple-600">{{ kpis().pendingGrading }}</div>
-      <div class="text-xs text-slate-500">Requires instructor review</div>
+      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center text-text-secondary">
+        <span class="material-symbols-outlined">archive</span>
+      </div>
     </div>
   </div>
 
-  <!-- Filter & Controls -->
-  <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="relative flex-1">
-        <span class="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-        <input
-          type="text"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
-          placeholder="Search by trainee name, email, or assessment title..."
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400"
-        />
+  <!-- ========================================================================= -->
+  <!-- 2. SEARCH & FILTER CONTROLS (PLAN GRID MATCHED DESIGN PATTERN)            -->
+  <!-- ========================================================================= -->
+  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-sm relative z-30">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left: Search Field & Filter Button & Reset -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+        
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
+          <input
+            type="text"
+            id="assessment-search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by Trainee Name, Code, or Owner..."
+            class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors shadow-2xs" />
+          @if (searchQuery()) {
+            <button 
+              type="button" 
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Button -->
+        <button 
+          type="button"
+          id="btn-toggle-filter-panel"
+          (click)="toggleFilterDrawer()"
+          class="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-sm"
+          [class]="showFilterDrawer() || activeFiltersCount() > 0
+            ? 'bg-tenant-500 text-white border-tenant-500'
+            : 'bg-base-100 hover:bg-base-200 text-text-primary border-base-300'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base" [class.text-text-primary]="!showFilterDrawer() && activeFiltersCount() === 0" [class.text-white]="showFilterDrawer() || activeFiltersCount() > 0">tune</span>
+          <span>Filters</span>
+          @if (activeFiltersCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+              {{ activeFiltersCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Grid-Level Reset Button -->
+        @if (activeFiltersCount() > 0 || searchQuery()) {
+          <button 
+            type="button"
+            id="btn-grid-reset"
+            (click)="resetAllFilters()"
+            class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            title="Clear search and all active filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+
       </div>
 
-      <!-- Privacy / Anonymize Toggle -->
+      <!-- Right: View Mode & Total Count Indicator -->
+      <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+        <!-- View Mode Switcher (Grid vs Column/Table - Only Icons) -->
+        <div class="flex items-center rounded-xl bg-base-200 p-0.5 border border-base-300 shrink-0">
+          <button
+            (click)="setViewMode('grid')"
+            type="button"
+            [class]="viewMode() === 'grid' ? 'bg-base-100 text-tenant-600 dark:text-tenant-400 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'"
+            class="flex items-center justify-center p-2 rounded-lg text-xs transition-all cursor-pointer"
+            title="Grid View">
+            <span class="material-symbols-outlined text-base">grid_view</span>
+          </button>
+          <button
+            (click)="setViewMode('table')"
+            type="button"
+            [class]="viewMode() === 'table' ? 'bg-base-100 text-tenant-600 dark:text-tenant-400 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'"
+            class="flex items-center justify-center p-2 rounded-lg text-xs transition-all cursor-pointer"
+            title="Column / Table View">
+            <span class="material-symbols-outlined text-base">view_column</span>
+          </button>
+        </div>
+
+        <!-- Total Count Indicator -->
+        <span class="px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs text-text-secondary font-medium whitespace-nowrap">
+          Showing <strong class="text-text-primary">{{ filteredAttempts().length }}</strong> of {{ rawAttempts().length }} Submissions
+        </span>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- FILTER PANEL DROPDOWN / DRAWER (§ PLAN GRID MATCHED SECTIONS)             -->
+    <!-- ========================================================================= -->
+    @if (showFilterDrawer()) {
+      <div class="pt-5 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in slide-in-from-top-2 duration-200 space-y-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          <!-- 1. Pass / Fail Status Multi-select -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              1. Outcome Status
+            </h4>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              <!-- Passed -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="selectedPassStatuses().includes('passed')"
+                  (change)="togglePassStatus('passed')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all"
+                  [class]="selectedPassStatuses().includes('passed')
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                    : 'bg-base-100 text-text-secondary border-base-300'">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Passed
+                </span>
+              </label>
+
+              <!-- Failed -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="selectedPassStatuses().includes('failed')"
+                  (change)="togglePassStatus('failed')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all"
+                  [class]="selectedPassStatuses().includes('failed')
+                    ? 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'
+                    : 'bg-base-100 text-text-secondary border-base-300'">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                  Failed
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Manual Grading Status -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              2. Grading Queue
+            </h4>
+            <div class="flex flex-wrap gap-2">
+              <!-- Pending -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="selectedGradingStatuses().includes('pending')"
+                  (change)="toggleGradingStatus('pending')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all"
+                  [class]="selectedGradingStatuses().includes('pending')
+                    ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                    : 'bg-base-100 text-text-secondary border-base-300'">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Pending Review
+                </span>
+              </label>
+
+              <!-- Graded -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="selectedGradingStatuses().includes('graded')"
+                  (change)="toggleGradingStatus('graded')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all"
+                  [class]="selectedGradingStatuses().includes('graded')
+                    ? 'bg-tenant-50 text-tenant-700 border-tenant-300 dark:bg-tenant-950/40 dark:text-tenant-300 dark:border-tenant-800'
+                    : 'bg-base-100 text-text-secondary border-base-300'">
+                  <span class="w-2 h-2 rounded-full bg-tenant-500"></span>
+                  Graded
+                </span>
+              </label>
+
+              <!-- Auto-Evaluated -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="selectedGradingStatuses().includes('notRequired')"
+                  (change)="toggleGradingStatus('notRequired')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all"
+                  [class]="selectedGradingStatuses().includes('notRequired')
+                    ? 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                    : 'bg-base-100 text-text-secondary border-base-300'">
+                  <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                  Auto Only
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. Assessment Instrument Select -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              3. Assessment Instrument
+            </h4>
+            <div class="w-full">
+              <app-custom-select
+                [options]="assessmentOptions()"
+                [ngModel]="selectedAssessmentId()"
+                (ngModelChange)="selectedAssessmentId.set(String($event))"
+                size="sm"
+                [searchable]="true"
+                [leadingIcon]="'quiz'"
+                placeholder="All Assessment Instruments">
+              </app-custom-select>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. Score Bracket & Submission Date Range -->
+        <div class="pt-5 border-t border-slate-100 dark:border-slate-800/60 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Score Bracket -->
+          <div class="lg:col-span-5 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              4. Score Range Bracket
+            </h4>
+            <div class="w-full relative">
+              <app-custom-select
+                [options]="scoreBracketOptions"
+                [ngModel]="selectedScoreBracket()"
+                (ngModelChange)="selectedScoreBracket.set(String($event))"
+                size="sm"
+                [searchable]="false"
+                [leadingIcon]="'analytics'"
+                dropdownAlign="left"
+                placeholder="All Score Ranges">
+              </app-custom-select>
+            </div>
+          </div>
+
+          <!-- Date Range -->
+          <div class="lg:col-span-7 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                5. Submission Date Range
+              </h4>
+              @if (filterDateFrom() || filterDateTo()) {
+                <span class="text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2.5 py-0.5 rounded-full border border-tenant-200 dark:border-tenant-800/40">
+                  Date Filter Active
+                </span>
+              }
+            </div>
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-4">
+              <div class="w-full sm:w-1/2">
+                <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">From Date:</label>
+                <input 
+                  type="date"
+                  [ngModel]="filterDateFrom()"
+                  (ngModelChange)="filterDateFrom.set($event)"
+                  placeholder="mm/dd/yyyy"
+                  class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all shadow-2xs cursor-pointer" />
+              </div>
+              <div class="w-full sm:w-1/2">
+                <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">To Date:</label>
+                <input 
+                  type="date"
+                  [ngModel]="filterDateTo()"
+                  (ngModelChange)="filterDateTo.set($event)"
+                  placeholder="mm/dd/yyyy"
+                  class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all shadow-2xs cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-5 pb-1 border-t border-base-300 flex items-center justify-between">
+          <button 
+            type="button"
+            (click)="resetAllFilters()"
+            class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+            Clear All Selections
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button 
+              type="button"
+              (click)="toggleFilterDrawer()"
+              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
+              Cancel
+            </button>
+            <button 
+              type="button"
+              id="btn-apply-assessment-filters"
+              (click)="toggleFilterDrawer()"
+              class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer focus:outline-none">
+              Apply Filter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Active Filter Badges Bar -->
+    @if (activeFiltersCount() > 0) {
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center flex-wrap gap-2 text-xs">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Filters:</span>
+        
+        @if (selectedAssessmentId() !== 'all') {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>Assessment: <strong>{{ selectedAssessmentId() }}</strong></span>
+            <button type="button" (click)="removeFilterChip('assessment')" class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedPassStatuses().length < 2) {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>Outcome: <strong>{{ selectedPassStatuses().join(', ') }}</strong></span>
+            <button type="button" (click)="removeFilterChip('pass')" class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedGradingStatuses().length < 3) {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>Grading: <strong>{{ selectedGradingStatuses().join(', ') }}</strong></span>
+            <button type="button" (click)="removeFilterChip('grading')" class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedScoreBracket() !== 'all') {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>Score: <strong>{{ selectedScoreBracket() }}</strong></span>
+            <button type="button" (click)="removeFilterChip('score')" class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+
+        @if (filterDateFrom() || filterDateTo()) {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>Date: <strong>{{ filterDateFrom() || 'Any' }} – {{ filterDateTo() || 'Any' }}</strong></span>
+            <button type="button" (click)="removeFilterChip('date')" class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+
+        <button 
+          type="button" 
+          (click)="resetAllFilters()"
+          class="text-[11px] text-slate-500 hover:text-rose-500 hover:underline ml-1 font-semibold cursor-pointer">
+          Reset All
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- Header Info / Result Count Row -->
+  <div class="flex items-center justify-between text-xs text-text-secondary px-1">
+    <div>
+      Showing <strong class="text-text-primary font-bold">{{ paginatedAttempts().length }}</strong>
+      of <strong class="text-text-primary font-bold">{{ filteredAttempts().length }}</strong>
+      matching assessment submission(s)
+      @if (filteredAttempts().length !== rawAttempts().length) {
+        <span class="text-text-tertiary"> (filtered from {{ rawAttempts().length }} total)</span>
+      }
+    </div>
+
+    @if (viewMode() === 'grid') {
+      <div class="text-text-tertiary hidden sm:block">
+        Card Grid Layout • Click card for complete telemetry
+      </div>
+    }
+  </div>
+
+  <!-- MAIN RESULTS CONTENT -->
+
+  <!-- 1. GRID CARDS VIEW (Plan Grid Style Pattern) -->
+  @if (viewMode() === 'grid') {
+    @if (paginatedAttempts().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        @for (attempt of paginatedAttempts(); track attempt.attemptId) {
+          @let asm = getAssessmentForAttempt(attempt);
+          <div
+            (click)="openInspectionModal(attempt)"
+            class="bg-base-100 border border-base-300 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between group cursor-pointer relative space-y-4">
+
+            <!-- Card Header: Code Badge, Outcome Status, Attempt & Menu Button -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <!-- Assessment Code -->
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-900/60">
+                  #{{ asm?.code || 'ASM-RECORD' }}
+                </span>
+
+                <!-- Pass / Fail Badge -->
+                @if (attempt.passed) {
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                    PASSED
+                  </span>
+                } @else {
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[13px]">cancel</span>
+                    FAILED
+                  </span>
+                }
+
+                <!-- Attempt Pill -->
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-base-200 text-text-secondary border border-base-300">
+                  Attempt #{{ attempt.attemptNumber }}
+                </span>
+              </div>
+
+              <!-- Top-Right Actions -->
+              <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
+                <!-- Version Pill -->
+                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 bg-base-200 text-text-secondary rounded border border-base-300">
+                  {{ attempt.versionLabel || 'v1' }}
+                </span>
+                <!-- 3-Dot Menu Button -->
+                <button
+                  (click)="openActionMenu($event, attempt)"
+                  type="button"
+                  class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+                  title="Actions">
+                  <span class="material-symbols-outlined text-base">more_vert</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Learner Profile Info -->
+            <div class="flex items-center gap-3">
+              <app-custom-avatar
+                [name]="getDisplayName(attempt)"
+                [src]="undefined"
+                size="md"
+                shape="squircle">
+              </app-custom-avatar>
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-bold text-text-primary truncate group-hover:text-tenant-600 transition-colors">
+                  {{ getDisplayName(attempt) }}
+                </div>
+                <div class="text-xs text-text-secondary truncate mt-0.5">
+                  {{ getDisplayEmail(attempt) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Assessment Title & Details -->
+            <div class="p-3 rounded-xl bg-base-200/50 border border-base-300/80 space-y-1">
+              <div class="flex items-center gap-1.5 text-xs text-text-secondary">
+                <span class="material-symbols-outlined text-tenant-500 text-sm">quiz</span>
+                <span class="font-bold text-text-primary truncate">{{ asm?.title || 'Assessment Instrument' }}</span>
+              </div>
+              @if (asm?.category) {
+                <div class="text-[11px] text-text-secondary flex items-center gap-1">
+                  <span>Category:</span>
+                  <span class="font-medium text-text-primary">{{ asm?.category }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Score Breakdown & Gauge -->
+            <div class="space-y-2">
+              <div class="flex items-baseline justify-between text-xs">
+                <span class="text-text-secondary font-medium">Evaluation Score</span>
+                <div class="flex items-baseline gap-1.5">
+                  <span class="text-xl font-black" [class]="attempt.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                    {{ attempt.percentage }}%
+                  </span>
+                  <span class="text-xs text-text-secondary font-medium">
+                    ({{ attempt.totalScore }} / {{ attempt.maxScore }} pts)
+                  </span>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="w-full h-2 rounded-full bg-base-200 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  [style.width.%]="attempt.percentage"
+                  [class]="attempt.passed ? 'bg-emerald-500' : 'bg-rose-500'">
+                </div>
+              </div>
+
+              <!-- Auto vs Manual points + Grading Status -->
+              <div class="flex items-center justify-between text-[11px] text-text-secondary pt-0.5">
+                <div class="flex items-center gap-2">
+                  <span>Auto: <strong class="text-text-primary">{{ attempt.autoScore }} pts</strong></span>
+                  <span>•</span>
+                  <span>Manual: <strong class="text-text-primary">{{ attempt.manualScore }} pts</strong></span>
+                </div>
+
+                <!-- Grading Pill -->
+                @if (attempt.manualGradingStatus === 'pending') {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700/60 flex items-center gap-1 animate-pulse">
+                    <span class="material-symbols-outlined text-[11px]">pending_actions</span>
+                    Pending Review
+                  </span>
+                } @else if (attempt.manualGradingStatus === 'graded') {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[11px]">rate_review</span>
+                    Instructor Graded
+                  </span>
+                } @else {
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-base-200 text-text-secondary border border-base-300 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[11px]">auto_mode</span>
+                    Auto Scored
+                  </span>
+                }
+              </div>
+            </div>
+
+            <!-- Metadata Footer: Submitted Time & Duration -->
+            <div class="pt-3 border-t border-base-300/80 flex items-center justify-between text-xs text-text-secondary">
+              <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-text-secondary">event</span>
+                <span>{{ attempt.submittedAt }}</span>
+              </div>
+              <div class="flex items-center gap-1 font-mono">
+                <span class="material-symbols-outlined text-sm text-text-secondary">timer</span>
+                <span>{{ formatDuration(attempt.timeTakenSeconds) }}</span>
+              </div>
+            </div>
+
+            <!-- Card Bottom Buttons -->
+            <div class="pt-1 flex items-center gap-2" (click)="$event.stopPropagation()">
+              @if (attempt.manualGradingStatus === 'pending') {
+                <button
+                  (click)="openGradingModal(attempt)"
+                  type="button"
+                  class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-base">rate_review</span>
+                  <span>Grade Submission</span>
+                </button>
+              } @else {
+                <button
+                  (click)="openInspectionModal(attempt)"
+                  type="button"
+                  class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold bg-base-200 hover:bg-base-300 text-text-primary transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-base">visibility</span>
+                  <span>View Breakdown</span>
+                </button>
+              }
+
+              <button
+                (click)="downloadAttemptReport(attempt)"
+                type="button"
+                class="p-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                title="Download Telemetry Report">
+                <span class="material-symbols-outlined text-base">download</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Zero State -->
+      <div class="p-12 text-center bg-base-100 border border-base-300 rounded-3xl space-y-4">
+        <div class="w-16 h-16 rounded-full bg-base-200 text-text-tertiary flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-3xl">fact_check</span>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-text-primary">No Assessment Records Found</h3>
+          <p class="text-xs text-text-secondary max-w-md mx-auto">
+            No assessment attempts match the current search filters or criteria. Try modifying your search term or clearing filters.
+          </p>
+        </div>
+        <button
+          (click)="resetAllFilters()"
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs transition-colors">
+          Clear All Filters
+        </button>
+      </div>
+    }
+  }
+
+  <!-- 2. DATA TABLE VIEW (Plan Grid Pattern) -->
+  @if (viewMode() === 'table') {
+    @if (paginatedAttempts().length > 0) {
+      <div class="rounded-3xl border border-base-300 bg-base-100 shadow-sm overflow-hidden transition-all">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-base-300 bg-base-200/50 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                <th class="py-3.5 px-4">Trainee Personnel</th>
+                <th class="py-3.5 px-4">Assessment Instrument</th>
+                <th class="py-3.5 px-4">Evaluation Score</th>
+                <th class="py-3.5 px-4">Outcome</th>
+                <th class="py-3.5 px-4">Grading Queue</th>
+                <th class="py-3.5 px-4">Submitted At</th>
+                <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-200 text-xs">
+              @for (attempt of paginatedAttempts(); track attempt.attemptId) {
+                @let asm = getAssessmentForAttempt(attempt);
+                <tr class="hover:bg-base-200/40 transition-colors group cursor-pointer" (click)="openInspectionModal(attempt)">
+                  <!-- Trainee Column -->
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-3">
+                      <app-custom-avatar
+                        [name]="getDisplayName(attempt)"
+                        [src]="undefined"
+                        size="sm"
+                        shape="circle">
+                      </app-custom-avatar>
+                      <div class="min-w-0">
+                        <div class="font-bold text-text-primary truncate group-hover:text-tenant-600 transition-colors">
+                          {{ getDisplayName(attempt) }}
+                        </div>
+                        <div class="text-text-tertiary text-xs truncate">
+                          {{ getDisplayEmail(attempt) }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Assessment Column -->
+                  <td class="py-3.5 px-4">
+                    <div class="space-y-0.5">
+                      <div class="font-semibold text-text-primary line-clamp-1">
+                        {{ asm?.title || 'Assessment Instrument' }}
+                      </div>
+                      <div class="flex items-center gap-1.5 text-text-tertiary text-xs">
+                        <span class="font-mono font-medium">{{ asm?.code || 'ASM-CODE' }}</span>
+                        <span>•</span>
+                        <span class="font-mono">Att #{{ attempt.attemptNumber }}</span>
+                        <span>•</span>
+                        <span class="font-mono">{{ attempt.versionLabel || 'v1' }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Score Column -->
+                  <td class="py-3.5 px-4">
+                    <div class="space-y-1 w-32">
+                      <div class="flex items-baseline justify-between font-medium">
+                        <span class="font-bold text-sm" [class]="attempt.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                          {{ attempt.percentage }}%
+                        </span>
+                        <span class="text-text-tertiary text-xs">
+                          {{ attempt.totalScore }}/{{ attempt.maxScore }} pts
+                        </span>
+                      </div>
+                      <div class="w-full h-1.5 rounded-full bg-base-200 overflow-hidden">
+                        <div
+                          class="h-full rounded-full"
+                          [style.width.%]="attempt.percentage"
+                          [class]="attempt.passed ? 'bg-emerald-500' : 'bg-rose-500'">
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Outcome Column -->
+                  <td class="py-3.5 px-4">
+                    @if (attempt.passed) {
+                      <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">check_circle</span>
+                        PASSED
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">cancel</span>
+                        FAILED
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Grading Queue Column -->
+                  <td class="py-3.5 px-4">
+                    @if (attempt.manualGradingStatus === 'pending') {
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">pending_actions</span>
+                        Pending Review
+                      </span>
+                    } @else if (attempt.manualGradingStatus === 'graded') {
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">rate_review</span>
+                        Instructor Graded
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-base-200 text-text-tertiary border border-base-300 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">auto_mode</span>
+                        Auto-Scored
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Submitted At & Duration -->
+                  <td class="py-3.5 px-4 text-text-secondary">
+                    <div>{{ attempt.submittedAt }}</div>
+                    <div class="text-text-tertiary text-xs font-mono">{{ formatDuration(attempt.timeTakenSeconds) }}</div>
+                  </td>
+
+                  <!-- Sticky Actions Column -->
+                  <td class="py-3.5 px-4 text-right sticky right-0 bg-base-100 group-hover:bg-base-200/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.03)]" (click)="$event.stopPropagation()">
+                    <div class="flex items-center justify-end gap-1.5">
+                      @if (attempt.manualGradingStatus === 'pending') {
+                        <button
+                          (click)="openGradingModal(attempt)"
+                          type="button"
+                          class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-colors flex items-center gap-1">
+                          <span class="material-symbols-outlined" style="font-size: 14px; width: 14px; height: 14px;">rate_review</span>
+                          <span>Grade</span>
+                        </button>
+                      } @else {
+                        <button
+                          (click)="openInspectionModal(attempt)"
+                          type="button"
+                          class="p-1.5 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary hover:text-text-primary transition-colors"
+                          title="View Question Breakdown">
+                          <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">visibility</span>
+                        </button>
+                      }
+
+                      <button
+                        (click)="downloadAttemptReport(attempt)"
+                        type="button"
+                        class="p-1.5 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary hover:text-text-primary transition-colors"
+                        title="Download Telemetry Report">
+                        <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">download</span>
+                      </button>
+
+                      <button
+                        (click)="openActionMenu($event, attempt)"
+                        type="button"
+                        class="p-1.5 rounded-xl hover:bg-base-200 text-text-tertiary hover:text-text-primary transition-colors"
+                        title="More Options">
+                        <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    } @else {
+      <!-- Zero State for Table -->
+      <div class="p-12 text-center bg-base-100 border border-base-300 rounded-3xl space-y-4">
+        <div class="w-16 h-16 rounded-full bg-base-200 text-text-tertiary flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-3xl">fact_check</span>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-text-primary">No Matching Submissions Found</h3>
+          <p class="text-xs text-text-secondary max-w-md mx-auto">
+            Adjust your search parameters, date range, or score brackets to reveal assessment attempts.
+          </p>
+        </div>
+        <button
+          (click)="resetAllFilters()"
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs transition-colors">
+          Clear All Filters
+        </button>
+      </div>
+    }
+  }
+
+  <!-- Load More Button (Plan Grid Infinite Scroll Pattern) -->
+  @if (remainingAttemptsCount() > 0) {
+    <div class="text-center pt-2">
       <button
-        (click)="isAnonymized.set(!isAnonymized())"
-        [class.bg-indigo-50]="isAnonymized()"
-        [class.border-indigo-300]="isAnonymized()"
-        [class.text-indigo-700]="isAnonymized()"
-        class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-2 transition-all self-end md:self-auto"
-      >
-        <span class="material-icons text-sm">{{ isAnonymized() ? 'visibility_off' : 'visibility' }}</span>
-        <span>{{ isAnonymized() ? 'Privacy Mode ON (Anonymized)' : 'Privacy Mode OFF' }}</span>
+        (click)="loadMoreAttempts()"
+        type="button"
+        class="px-6 py-2.5 rounded-2xl text-xs font-bold border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary shadow-xs transition-all hover:scale-[1.01]">
+        Load More ({{ remainingAttemptsCount() }} remaining)
       </button>
     </div>
-
-    <!-- Multi Filters -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Assessment</label>
-        <select
-          [ngModel]="selectedAssessmentFilter()"
-          (ngModelChange)="selectedAssessmentFilter.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-        >
-          <option value="all">All Assessments</option>
-          @for (asm of assessments(); track asm.assessmentId) {
-            <option [value]="asm.assessmentId">{{ asm.title }} ({{ asm.code }})</option>
-          }
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Pass / Fail Status</label>
-        <select
-          [ngModel]="selectedPassFilter()"
-          (ngModelChange)="selectedPassFilter.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-        >
-          <option value="all">All Outcome Statuses</option>
-          <option value="passed">Passed</option>
-          <option value="failed">Failed</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Manual Grading Queue</label>
-        <select
-          [ngModel]="selectedGradingFilter()"
-          (ngModelChange)="selectedGradingFilter.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-        >
-          <option value="all">All Grading Statuses</option>
-          <option value="pending">Pending Manual Review</option>
-          <option value="graded">Graded / Finalized</option>
-          <option value="notRequired">Auto-Scored Only</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <!-- Results Table -->
-  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm text-slate-700">
-        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
-          <tr>
-            <th class="px-4 py-3">Trainee Personnel</th>
-            <th class="px-4 py-3">Assessment Instrument</th>
-            <th class="px-4 py-3">Score & Percentage</th>
-            <th class="px-4 py-3">Outcome</th>
-            <th class="px-4 py-3">Grading Queue</th>
-            <th class="px-4 py-3">Submitted At</th>
-            <th class="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          @for (att of filteredAttempts(); track att.attemptId) {
-            <tr class="hover:bg-slate-50/80 transition-colors">
-              <td class="px-4 py-3.5">
-                <div class="font-bold text-slate-900">{{ getTraineeDisplayName(att) }}</div>
-                <div class="text-xs text-slate-500 font-mono">{{ getTraineeDisplayEmail(att) }}</div>
-              </td>
-
-              <td class="px-4 py-3.5">
-                <div class="font-semibold text-slate-900">{{ getAssessmentTitle(att.assessmentId) }}</div>
-                <div class="text-xs text-slate-500 font-mono">
-                  Code: {{ getAssessmentCode(att.assessmentId) }} &bull; Attempt #{{ att.attemptNumber }}
-                </div>
-              </td>
-
-              <td class="px-4 py-3.5">
-                <div class="font-bold text-slate-900 text-base">{{ att.percentage }}%</div>
-                <div class="text-xs text-slate-500 font-mono">
-                  {{ att.totalScore }} / {{ att.maxScore }} pts (Auto: {{ att.autoScore }})
-                </div>
-              </td>
-
-              <td class="px-4 py-3.5">
-                <span
-                  [class.bg-emerald-50]="att.passed"
-                  [class.text-emerald-700]="att.passed"
-                  [class.border-emerald-200]="att.passed"
-                  [class.bg-rose-50]="!att.passed"
-                  [class.text-rose-700]="!att.passed"
-                  [class.border-rose-200]="!att.passed"
-                  class="px-2.5 py-1 rounded-full text-xs font-bold border uppercase"
-                >
-                  {{ att.passed ? 'PASSED' : 'FAILED' }}
-                </span>
-              </td>
-
-              <td class="px-4 py-3.5">
-                <span
-                  [class.bg-purple-100]="att.manualGradingStatus === 'pending'"
-                  [class.text-purple-800]="att.manualGradingStatus === 'pending'"
-                  [class.bg-emerald-100]="att.manualGradingStatus === 'graded'"
-                  [class.text-emerald-800]="att.manualGradingStatus === 'graded'"
-                  [class.bg-slate-100]="att.manualGradingStatus === 'notRequired'"
-                  [class.text-slate-600]="att.manualGradingStatus === 'notRequired'"
-                  class="px-2.5 py-1 rounded-md text-xs font-semibold capitalize"
-                >
-                  {{ att.manualGradingStatus === 'pending' ? 'Pending Review' : att.manualGradingStatus }}
-                </span>
-              </td>
-
-              <td class="px-4 py-3.5 text-xs text-slate-500 font-mono">
-                {{ att.submittedAt }}
-              </td>
-
-              <td class="px-4 py-3.5 text-right">
-                <button
-                  (click)="openGradingModal(att)"
-                  [class.bg-purple-600]="att.manualGradingStatus === 'pending'"
-                  [class.hover:bg-purple-700]="att.manualGradingStatus === 'pending'"
-                  [class.text-white]="att.manualGradingStatus === 'pending'"
-                  [class.bg-slate-100]="att.manualGradingStatus !== 'pending'"
-                  [class.hover:bg-slate-200]="att.manualGradingStatus !== 'pending'"
-                  [class.text-slate-700]="att.manualGradingStatus !== 'pending'"
-                  class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                >
-                  {{ att.manualGradingStatus === 'pending' ? 'Grade Submission' : 'View Details' }}
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
+  }
 </div>
 
-<!-- Manual Grading Modal / Drawer -->
-@if (showGradingModal() && selectedAttemptForGrading()) {
-  @let att = selectedAttemptForGrading()!;
-  @let questions = getAttemptQuestions(att);
-  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+<!-- ========================================================================= -->
+<!-- FLOATING CONTEXT / ACTION 3-DOT MENU -->
+<!-- ========================================================================= -->
+@if (showActionMenu() && activeActionAttempt()) {
+  @let att = activeActionAttempt()!;
+  <div
+    class="fixed z-50 w-60 rounded-2xl bg-base-100 border border-base-300 shadow-xl p-1.5 space-y-1 text-xs animate-fadeIn"
+    [style.top.px]="actionMenuPosition().top"
+    [style.left.px]="actionMenuPosition().left"
+    (click)="$event.stopPropagation()">
+
+    <div class="px-3 py-1.5 text-xs text-text-tertiary border-b border-base-200 font-mono truncate">
+      Attempt #{{ att.attemptNumber }} • {{ att.attemptId }}
+    </div>
+
+    @if (att.manualGradingStatus === 'pending') {
+      <button
+        (click)="openGradingModal(att)"
+        type="button"
+        class="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-700 dark:text-amber-300 font-semibold text-left transition-colors">
+        <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">rate_review</span>
+        <span>Grade Submission Now</span>
+      </button>
+    }
+
+    <button
+      (click)="openInspectionModal(att)"
+      type="button"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-base-200 text-text-primary text-left transition-colors">
+      <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">visibility</span>
+      <span>Inspect Full Answers Breakdown</span>
+    </button>
+
+    <button
+      (click)="downloadAttemptReport(att)"
+      type="button"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-base-200 text-text-primary text-left transition-colors">
+      <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">download</span>
+      <span>Download Telemetry Report</span>
+    </button>
+
+    <div class="border-t border-base-200 my-1"></div>
+
+    <button
+      (click)="openResetModal(att)"
+      type="button"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-medium text-left transition-colors">
+      <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">restart_alt</span>
+      <span>Reset & Allow Re-take</span>
+    </button>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MANUAL GRADING MODAL / DRAWER -->
+<!-- ========================================================================= -->
+@if (gradingAttempt()) {
+  @let att = gradingAttempt()!;
+  @let asm = getAssessmentForAttempt(att);
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
       <!-- Modal Header -->
-      <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-2 text-xs text-purple-400 font-mono">
-            <span>Attempt {{ att.attemptId }}</span>
-            <span>&bull;</span>
-            <span>{{ att.manualGradingStatus.toUpperCase() }}</span>
+      <div class="p-6 border-b border-base-300 bg-base-200/40 flex items-center justify-between shrink-0">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200">
+              Instructor Manual Grading Studio
+            </span>
+            <span class="text-xs text-text-tertiary font-mono">Attempt #{{ att.attemptNumber }}</span>
           </div>
-          <h2 class="text-lg font-bold">Grade Submission: {{ getTraineeDisplayName(att) }}</h2>
+          <h2 class="text-xl font-bold text-text-primary">
+            Grading: {{ getDisplayName(att) }}
+          </h2>
+          <p class="text-xs text-text-secondary">
+            {{ asm?.title }} ({{ asm?.code }}) • Submitted on {{ att.submittedAt }}
+          </p>
         </div>
-        <button (click)="closeGradingModal()" class="text-slate-400 hover:text-white">
-          <span class="material-icons">close</span>
+        <button
+          (click)="closeGradingModal()"
+          class="p-2 rounded-full hover:bg-base-200 text-text-tertiary hover:text-text-primary transition-colors">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 overflow-y-auto space-y-6 text-slate-800 text-sm">
-        <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-          <div>
-            <span class="text-slate-500 block font-semibold">Trainee Name:</span>
-            <strong class="text-slate-900 text-sm">{{ getTraineeDisplayName(att) }}</strong>
+      <!-- Live Score Floating Gauge Bar -->
+      <div class="px-6 py-3 bg-tenant-50 dark:bg-tenant-900/20 border-b border-tenant-200 dark:border-tenant-800/40 flex flex-wrap items-center justify-between gap-4 shrink-0 text-xs">
+        <div class="flex items-center gap-3">
+          <span class="text-text-secondary font-medium">Live Calculated Total:</span>
+          <span class="text-base font-black text-tenant-600 dark:text-tenant-400">
+            {{ modalLiveTotalScore }} / {{ modalLiveMaxScore }} pts
+          </span>
+          <span class="px-2 py-0.5 rounded-full font-bold" [class]="modalLivePassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200'">
+            {{ modalLivePercentage }}% • {{ modalLivePassed ? 'QUALIFIED (PASS)' : 'FAILED' }}
+          </span>
+        </div>
+        <div class="text-text-tertiary">
+          Auto: {{ att.autoScore }} pts • Manual rubric live updates
+        </div>
+      </div>
+
+      <!-- Questions List Body -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1">
+        @for (item of gradingQuestions(); track item.question.questionId; let i = $index) {
+          <div class="p-5 rounded-2xl border border-base-300 bg-base-200/30 space-y-4">
+            <!-- Question Header -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="space-y-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-base-200 text-text-secondary">
+                    Q{{ i + 1 }}
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-tenant-100 dark:bg-tenant-900/30 text-tenant-700 dark:text-tenant-300 uppercase">
+                    {{ item.question.type }}
+                  </span>
+                  <span class="text-xs text-text-tertiary">
+                    Max: {{ item.question.points }} pts
+                  </span>
+                </div>
+                <div class="text-sm font-semibold text-text-primary mt-1">
+                  {{ item.question.text }}
+                </div>
+              </div>
+
+              <!-- Score Input -->
+              <div class="flex items-center gap-2 shrink-0 bg-base-100 p-2 rounded-xl border border-base-300">
+                <label class="text-xs font-semibold text-text-secondary">Awarded:</label>
+                <input
+                  type="number"
+                  min="0"
+                  [max]="item.question.points"
+                  [ngModel]="item.awardedPoints"
+                  (ngModelChange)="updateQuestionScore(i, $event)"
+                  class="w-16 px-2 py-1 text-center font-bold text-sm rounded-lg border border-base-300 bg-base-200/60 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                <span class="text-xs text-text-tertiary">/ {{ item.question.points }}</span>
+              </div>
+            </div>
+
+            <!-- Trainee Response Display -->
+            <div class="p-3.5 rounded-xl bg-base-100 border border-base-300 space-y-1">
+              <div class="text-xs font-semibold text-text-secondary">Trainee Submission:</div>
+              <div class="text-xs font-mono text-text-primary whitespace-pre-wrap">
+                {{ item.answer?.value !== undefined ? (item.answer?.value | json) : 'No response provided.' }}
+              </div>
+            </div>
+
+            <!-- Instructor Feedback Field -->
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text-secondary">Instructor Scoring Feedback & Remediation Notes:</label>
+              <textarea
+                [ngModel]="item.feedback"
+                (ngModelChange)="updateQuestionFeedback(i, $event)"
+                rows="2"
+                placeholder="Add constructive notes or rubric guidance for this question..."
+                class="w-full px-3.5 py-2 text-xs rounded-xl border border-base-300 bg-base-100 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"></textarea>
+            </div>
           </div>
-          <div>
-            <span class="text-slate-500 block font-semibold">Current Score:</span>
-            <strong class="text-indigo-600 text-sm">{{ att.totalScore }} / {{ att.maxScore }} ({{ att.percentage }}%)</strong>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-base-300 bg-base-200/40 flex items-center justify-between shrink-0">
+        <button
+          (click)="closeGradingModal()"
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-medium border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary transition-colors">
+          Cancel
+        </button>
+        <button
+          (click)="submitManualGrades()"
+          type="button"
+          class="px-6 py-2 rounded-xl text-xs font-bold bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">verified</span>
+          <span>Finalize & Publish Grades</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- ATTEMPT BREAKDOWN / INSPECTOR MODAL -->
+<!-- ========================================================================= -->
+@if (inspectAttempt()) {
+  @let att = inspectAttempt()!;
+  @let asm = getAssessmentForAttempt(att);
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-base-300 bg-base-200/40 flex items-center justify-between shrink-0">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-base-200 text-text-secondary font-mono">
+              Attempt #{{ att.attemptNumber }}
+            </span>
+            @if (att.passed) {
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                PASSED
+              </span>
+            } @else {
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200">
+                FAILED
+              </span>
+            }
           </div>
-          <div>
-            <span class="text-slate-500 block font-semibold">Submitted At:</span>
-            <strong class="text-slate-900">{{ att.submittedAt }}</strong>
+          <h2 class="text-xl font-bold text-text-primary">
+            {{ getDisplayName(att) }} • {{ asm?.title }}
+          </h2>
+          <p class="text-xs text-text-secondary">
+            ID: {{ att.attemptId }} • Submitted {{ att.submittedAt }} • Duration: {{ formatDuration(att.timeTakenSeconds) }}
+          </p>
+        </div>
+        <button
+          (click)="closeInspectionModal()"
+          class="p-2 rounded-full hover:bg-base-200 text-text-tertiary hover:text-text-primary transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Score Summary Banner -->
+      <div class="p-6 bg-base-200/20 border-b border-base-200 grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0 text-center">
+        <div>
+          <div class="text-xs text-text-tertiary uppercase font-semibold">Total Score</div>
+          <div class="text-xl font-black text-text-primary">{{ att.totalScore }} / {{ att.maxScore }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-text-tertiary uppercase font-semibold">Percentage</div>
+          <div class="text-xl font-black" [class]="att.passed ? 'text-emerald-600' : 'text-rose-600'">{{ att.percentage }}%</div>
+        </div>
+        <div>
+          <div class="text-xs text-text-tertiary uppercase font-semibold">Auto / Manual Split</div>
+          <div class="text-sm font-bold text-text-secondary mt-1">{{ att.autoScore }} pts / {{ att.manualScore }} pts</div>
+        </div>
+        <div>
+          <div class="text-xs text-text-tertiary uppercase font-semibold">Grading Status</div>
+          <div class="text-xs font-bold text-text-primary mt-1">
+            {{ att.manualGradingStatus === 'graded' ? 'Instructor Graded' : (att.manualGradingStatus === 'pending' ? 'Pending Review' : 'Auto Evaluated') }}
           </div>
         </div>
+      </div>
 
-        <!-- Question Submissions Review -->
-        <div class="space-y-4">
-          <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Questions & Trainee Answers</h3>
-
-          @for (q of questions; track q.questionId; let qIdx = $index) {
-            @let ans = getAnswerForQuestion(att, q.questionId);
-            @let draft = manualGradeDrafts()[q.questionId];
-
-            <div
-              [class.bg-purple-50/50]="q.manualGraded"
-              [class.border-purple-200]="q.manualGraded"
-              class="p-4 rounded-xl border border-slate-200 bg-white space-y-3"
-            >
-              <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
-                <span>Q{{ qIdx + 1 }}: {{ q.prompt }}</span>
-                <span class="text-indigo-600 font-bold">Max Points: {{ q.points }}</span>
+      <!-- Answers List Body -->
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <h4 class="text-xs font-bold text-text-secondary uppercase tracking-wider">
+          Question Responses & Evaluation Telemetry
+        </h4>
+        @if (att.answers && att.answers.length > 0) {
+          @for (ans of att.answers; track ans.questionId; let i = $index) {
+            <div class="p-4 rounded-2xl border border-base-300 bg-base-200/20 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-mono font-bold text-text-secondary">Question {{ i + 1 }}</span>
+                <span class="font-bold px-2 py-0.5 rounded-md" [class]="ans.isCorrect || ans.earnedPoints > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200'">
+                  Earned: {{ ans.earnedPoints }} pts
+                </span>
               </div>
-
-              <!-- Trainee Response Display -->
-              <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-800 space-y-1">
-                <div class="font-bold text-slate-500 uppercase text-[10px]">Trainee Submitted Answer:</div>
-                <div class="font-mono text-slate-900">
-                  {{ ans?.textResponse || ans?.selectedOptionId || (ans?.selectedOptionIds?.join(', ')) || 'No answer submitted' }}
-                </div>
+              <div class="p-3 rounded-xl bg-base-100 border border-base-300 font-mono text-xs text-text-primary whitespace-pre-wrap">
+                Response: {{ ans.value | json }}
               </div>
-
-              <!-- Manual Points Input for essay / file / text -->
-              @if (q.manualGraded) {
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-purple-100/60 rounded-lg border border-purple-200">
-                  <div>
-                    <label class="block text-xs font-bold text-purple-900 mb-1">Awarded Points (0 - {{ q.points }}):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      [max]="q.points"
-                      [ngModel]="draft?.points || 0"
-                      (ngModelChange)="updateDraftPoint(q.questionId, $event)"
-                      class="w-full px-3 py-1.5 bg-white border border-purple-300 rounded-lg font-bold text-indigo-700 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label class="block text-xs font-bold text-purple-900 mb-1">Instructor Comments:</label>
-                    <input
-                      type="text"
-                      [ngModel]="draft?.feedback || ''"
-                      (ngModelChange)="updateDraftFeedback(q.questionId, $event)"
-                      placeholder="Add feedback for student..."
-                      class="w-full px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-              } @else {
-                <div class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
-                  <span class="material-icons text-sm">check_circle</span>
-                  <span>Auto-graded: {{ ans?.earnedPoints || 0 }} / {{ q.points }} Points</span>
+              @if (ans.instructorFeedback) {
+                <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-200">
+                  <strong>Instructor Feedback:</strong> {{ ans.instructorFeedback }}
                 </div>
               }
             </div>
           }
-        </div>
+        } @else {
+          <div class="p-8 text-center text-text-tertiary text-xs">
+            No detailed question logs recorded for this submission.
+          </div>
+        }
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+      <div class="p-6 border-t border-base-300 bg-base-200/40 flex items-center justify-between shrink-0">
         <button
-          (click)="closeGradingModal()"
-          class="px-4 py-2 border border-slate-300 rounded-xl text-slate-700 font-semibold text-xs hover:bg-slate-100"
-        >
-          Cancel
+          (click)="downloadAttemptReport(att)"
+          type="button"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary transition-colors">
+          <span class="material-symbols-outlined" style="font-size: 16px; width: 16px; height: 16px;">download</span>
+          <span>Download Report</span>
         </button>
 
         <button
-          (click)="saveManualGrades()"
-          class="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs flex items-center gap-1 shadow-sm"
-        >
-          <span class="material-icons text-base">save</span>
-          <span>Finalize & Record Grades</span>
+          (click)="closeInspectionModal()"
+          type="button"
+          class="px-5 py-2 rounded-xl text-xs font-bold bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs transition-colors">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- RESET / ALLOW RETAKE MODAL -->
+<!-- ========================================================================= -->
+@if (resetModalAttempt()) {
+  @let att = resetModalAttempt()!;
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-fadeIn">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800">
+        <span class="material-symbols-outlined text-2xl">restart_alt</span>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">Reset Assessment Attempt?</h3>
+        <p class="text-xs text-text-secondary leading-relaxed">
+          Are you sure you want to reset <strong>Attempt #{{ att.attemptNumber }}</strong> for
+          <strong>{{ getDisplayName(att) }}</strong>? This will clear the score telemetry and permit the learner to re-take the assessment instrument.
+        </p>
+      </div>
+      <div class="pt-3 flex items-center justify-end gap-2.5">
+        <button
+          (click)="closeResetModal()"
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-medium border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary transition-colors">
+          Cancel
+        </button>
+        <button
+          (click)="confirmResetAttempt()"
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-colors">
+          Confirm & Allow Re-take
         </button>
       </div>
     </div>

@@ -1,584 +1,800 @@
-<div class="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8">
-  <!-- Top Title Bar -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
+<div class="space-y-6 pb-16 animate-step-in">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-sm font-medium text-indigo-600 mb-1">
-        <span class="material-icons text-base">quiz</span>
-        <span>Assessment Engine & Question Bank</span>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Fixed LMS Workspace Scope
+        </span>
+        <span class="text-xs text-text-secondary">
+          Parent LMS: <strong class="font-bold text-text-primary">{{ activeLms()?.basicInfo?.lmsName || 'Enterprise LMS' }}</strong>
+          (ID: <strong class="font-mono text-text-primary">{{ activeLms()?.id || 'LMS-01' }}</strong>) &bull; Org: <strong class="text-text-primary">{{ activeTenant()?.name || 'Global HQ' }}</strong>
+        </span>
       </div>
-      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Assessment Bank</h1>
-      <p class="text-slate-500 text-sm mt-1">Authorable assessment instruments, scoring policies, version governance & exam runtime</p>
+      
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">quiz</span>
+        <span>Assessment Bank</span>
+      </h1>
+      
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
+        Authorable assessment instruments, scoring policies, version governance & runtime exam engine.
+      </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <!-- Top-Right Actions -->
+    <div class="flex items-center gap-2.5 flex-wrap">
       @if (lmsService.assessmentPermissions().canManageDashboardStudio) {
         <a
           routerLink="/assessments/dashboard"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50"
+          class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-base-100 hover:bg-slate-50 dark:hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-slate-200/80 dark:border-base-300 transition-all shadow-2xs cursor-pointer"
         >
-          <span class="material-icons text-indigo-600 text-lg">space_dashboard</span>
+          <span class="material-symbols-outlined text-indigo-600 text-lg">space_dashboard</span>
           <span>Dashboard Studio</span>
         </a>
       }
 
       <a
         routerLink="/assessments/results"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-base-100 hover:bg-slate-50 dark:hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-slate-200/80 dark:border-base-300 transition-all shadow-2xs cursor-pointer"
       >
-        <span class="material-icons text-emerald-600 text-lg">fact_check</span>
+        <span class="material-symbols-outlined text-emerald-600 text-lg">fact_check</span>
         <span>Results & Grading</span>
       </a>
 
       @if (lmsService.assessmentPermissions().canCreateAssessment) {
         <button
+          type="button"
           (click)="onCreateNew()"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all hover:shadow-md"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl btn-gradient active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer"
         >
-          <span class="material-icons text-lg">add_circle</span>
+          <span class="material-symbols-outlined text-lg">add_circle</span>
           <span>Create Assessment</span>
         </button>
       }
     </div>
   </div>
 
-  <!-- KPI Metrics Matrix -->
-  <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
-        <span>Total Assessments</span>
-        <span class="material-icons text-indigo-500 text-lg">inventory_2</span>
+  <!-- ========================================================================= -->
+  <!-- 2. LIVE TELEMETRY KPI CARDS (Standardized rounded-[24px]/[28px] Design)   -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+    
+    <!-- Total Assessments -->
+    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Total Assessments</span>
+        <div class="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">inventory_2</span>
+        </div>
       </div>
-      <div class="text-2xl font-bold text-slate-900">{{ kpis().total }}</div>
-      <div class="text-xs text-slate-500">Across active LMS bank</div>
+      <div>
+        <div class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ kpis().total }}</div>
+        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Across active LMS bank</p>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
-        <span>Published</span>
-        <span class="material-icons text-emerald-500 text-lg">check_circle</span>
+    <!-- Published Live -->
+    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Published Live</span>
+        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+        </div>
       </div>
-      <div class="text-2xl font-bold text-emerald-600">{{ kpis().published }}</div>
-      <div class="text-xs text-slate-500">Active & ready for exam takers</div>
+      <div>
+        <div class="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+          {{ kpis().published }} <span class="text-xs font-normal text-slate-400">/ {{ kpis().total }}</span>
+        </div>
+        <div class="w-full bg-slate-100 dark:bg-base-200 h-1.5 rounded-full overflow-hidden mt-2">
+          <div
+            class="bg-emerald-500 h-full rounded-full transition-all duration-500"
+            [style.width.%]="(kpis().published / (kpis().total || 1)) * 100"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
-        <span>Draft / Revision</span>
-        <span class="material-icons text-amber-500 text-lg">edit_note</span>
+    <!-- Draft / Revision -->
+    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Drafts In-Progress</span>
+        <div class="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">edit_note</span>
+        </div>
       </div>
-      <div class="text-2xl font-bold text-amber-600">{{ kpis().draft }}</div>
-      <div class="text-xs text-slate-500">Under construction / forked</div>
+      <div>
+        <div class="text-2xl font-extrabold tracking-tight text-sky-600 dark:text-sky-400">{{ kpis().draft }}</div>
+        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Under composition / forked</p>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
-        <span>Manual Graded</span>
-        <span class="material-icons text-purple-500 text-lg">assignment_ind</span>
+    <!-- Manual Graded -->
+    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Manual Graded</span>
+        <div class="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">assignment_ind</span>
+        </div>
       </div>
-      <div class="text-2xl font-bold text-purple-600">{{ kpis().manualGradedCount }}</div>
-      <div class="text-xs text-slate-500">Requires instructor evaluation</div>
+      <div>
+        <div class="text-2xl font-extrabold tracking-tight text-purple-600 dark:text-purple-400">{{ kpis().manualGradedCount }}</div>
+        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Requires instructor evaluation</p>
+      </div>
     </div>
 
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1 col-span-2 lg:col-span-1">
-      <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
-        <span>Avg Pass Rate</span>
-        <span class="material-icons text-blue-500 text-lg">verified</span>
+    <!-- Avg Pass Rate -->
+    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Avg Pass Rate</span>
+        <div class="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">military_tech</span>
+        </div>
       </div>
-      <div class="text-2xl font-bold text-slate-900">{{ kpis().passRate }}%</div>
-      <div class="text-xs text-slate-500">From {{ kpis().totalAttempts }} total attempts</div>
+      <div>
+        <div class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          {{ kpis().passRate }}%
+        </div>
+        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">From {{ kpis().totalAttempts }} total attempts</p>
+      </div>
     </div>
   </div>
 
-  <!-- Search & Filter Controls -->
-  <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <!-- Search Input -->
-      <div class="relative flex-1">
-        <span class="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-        <input
-          type="text"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
-          placeholder="Search by title, code (e.g. ASM-101), tags, or description..."
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-        />
-        @if (searchQuery()) {
-          <button
-            (click)="searchQuery.set('')"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-          >
-            <span class="material-icons text-sm">close</span>
+  <!-- ========================================================================= -->
+  <!-- 3. UNPUBLISHED ASSESSMENT DRAFTS CALLOUT (If any)                         -->
+  <!-- ========================================================================= -->
+  @if (draftAssessments().length > 0) {
+    <div class="bg-[#fef9ee] dark:bg-amber-950/20 border border-[#fed7aa] dark:border-amber-800/40 rounded-3xl p-4 sm:p-5 shadow-2xs animate-in fade-in duration-200">
+      <div class="flex items-center gap-1.5 text-xs mb-3 flex-wrap">
+        <span class="material-symbols-outlined text-amber-600 text-sm font-bold">bookmark</span>
+        <span class="font-bold text-text-primary text-xs">Unpublished Assessment Drafts ({{ draftAssessments().length }})</span>
+        <span class="text-text-secondary text-xs font-normal">Instruments under construction or version revision</span>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        @for (draft of draftAssessments(); track draft.assessmentId) {
+          @let curVer = getCurrentVersion(draft);
+          <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 px-4 py-3 flex items-center justify-between gap-4 shadow-2xs w-full sm:w-auto min-w-[320px] max-w-md">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-xs text-text-primary truncate">
+                  {{ draft.title }}
+                </span>
+                <span class="text-[11px] font-mono font-bold bg-[#f1f5f9] dark:bg-base-200 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-base-300">
+                  #{{ draft.code }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <span class="material-symbols-outlined text-amber-500 text-[13px] font-bold">pending_actions</span>
+                <span>{{ curVer?.questions?.length || 0 }} Questions &bull; {{ draft.type | uppercase }} &bull; {{ curVer?.versionLabel || 'v1' }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                (click)="onEdit(draft)"
+                class="px-3.5 py-1.5 rounded-full bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                title="Resume Editing Assessment">
+                <span>Edit</span>
+              </button>
+
+              @if (lmsService.assessmentPermissions().canPublishAssessment) {
+                <button
+                  type="button"
+                  (click)="onPublish(draft)"
+                  class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                  title="Publish Assessment Live">
+                  <span class="material-symbols-outlined text-[13px]">publish</span>
+                  <span>Publish</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 4. SEARCH & FILTER CONTROLS (Custom Selects & Badge Filters)              -->
+  <!-- ========================================================================= -->
+  <div class="relative z-10 bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs space-y-3">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left: Search Field + Filter Button + Reset Button -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+        
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+          <input
+            type="text"
+            id="input-assessment-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search by title, code (e.g. ASM-101), tags, or description..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
+          @if (searchQuery()) {
+            <button 
+              type="button"
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Button beside Search -->
+        <button 
+          type="button"
+          id="btn-toggle-assessment-filter"
+          (click)="toggleFilterDrawer()"
+          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="showFilterDrawer() || isFiltered()
+            ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!showFilterDrawer() && !isFiltered()" [class.text-white]="showFilterDrawer() || isFiltered()">tune</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Grid-Level Reset Button -->
+        @if (isFiltered()) {
+          <button 
+            type="button"
+            id="btn-assessment-reset"
+            (click)="resetFilters()"
+            class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Reset Filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span class="hidden sm:inline">Reset</span>
           </button>
         }
       </div>
 
-      <!-- View Switcher & Sort -->
-      <div class="flex items-center gap-3 self-end lg:self-auto">
-        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <!-- Right: View Mode Toggle (Grid vs Table) -->
+      <div class="flex items-center gap-2 self-end sm:self-auto">
+        <div class="flex items-center bg-slate-100 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/60 dark:border-base-300">
           <button
+            type="button"
             (click)="viewMode.set('grid')"
-            [class.bg-white]="viewMode() === 'grid'"
-            [class.shadow-xs]="viewMode() === 'grid'"
-            [class.text-indigo-600]="viewMode() === 'grid'"
-            [class.text-slate-600]="viewMode() !== 'grid'"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
-          >
-            <span class="material-icons text-base">grid_view</span>
-            <span>Grid</span>
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+            title="Grid View">
+            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
           </button>
           <button
+            type="button"
             (click)="viewMode.set('table')"
-            [class.bg-white]="viewMode() === 'table'"
-            [class.shadow-xs]="viewMode() === 'table'"
-            [class.text-indigo-600]="viewMode() === 'table'"
-            [class.text-slate-600]="viewMode() !== 'table'"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
-          >
-            <span class="material-icons text-base">format_list_bulleted</span>
-            <span>Table</span>
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+            title="Table View">
+            <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
           </button>
         </div>
-
-        <select
-          [ngModel]="sortBy()"
-          (ngModelChange)="sortBy.set($event)"
-          class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-        >
-          <option value="latest">Sort: Recently Created</option>
-          <option value="title">Sort: Title (A-Z)</option>
-          <option value="code">Sort: Code</option>
-          <option value="attempts">Sort: Most Attempts</option>
-        </select>
       </div>
     </div>
 
-    <!-- Multi-faceted Filter Row -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 border-t border-slate-100">
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Status</label>
-        <select
-          [ngModel]="selectedStatus()"
-          (ngModelChange)="selectedStatus.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All Statuses</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
+    <!-- Filter Drawer Panel with Custom Selects -->
+    @if (showFilterDrawer()) {
+      <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+          <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+            FILTER ASSESSMENTS
+          </h3>
+          <span class="text-[11px] text-text-secondary font-medium">
+            Filter by lifecycle status, instrument type, scoring modes, category tags, manual grading & sorting
+          </span>
+        </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Type</label>
-        <select
-          [ngModel]="selectedType()"
-          (ngModelChange)="selectedType.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All Types</option>
-          <option value="exam">Exam</option>
-          <option value="quiz">Quiz</option>
-          <option value="assignment">Assignment</option>
-          <option value="survey">Survey</option>
-          <option value="diagnostic">Diagnostic</option>
-        </select>
-      </div>
+        <!-- Filter Body Grid with Custom Selects -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-xs pt-1">
+          
+          <!-- Status Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Status</label>
+            <app-custom-select
+              [options]="statusOptions"
+              [ngModel]="selectedStatus()"
+              (ngModelChange)="selectedStatus.set($event)"
+              placeholder="All Statuses">
+            </app-custom-select>
+          </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Scoring Mode</label>
-        <select
-          [ngModel]="selectedScoringMode()"
-          (ngModelChange)="selectedScoringMode.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All Modes</option>
-          <option value="scored">Scored</option>
-          <option value="unscored">Unscored</option>
-        </select>
-      </div>
+          <!-- Type Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Assessment Type</label>
+            <app-custom-select
+              [options]="typeOptions"
+              [ngModel]="selectedType()"
+              (ngModelChange)="selectedType.set($event)"
+              placeholder="All Types">
+            </app-custom-select>
+          </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Category</label>
-        <select
-          [ngModel]="selectedCategory()"
-          (ngModelChange)="selectedCategory.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All Categories</option>
-          @for (cat of categories(); track cat) {
-            <option [value]="cat">{{ cat }}</option>
-          }
-        </select>
-      </div>
+          <!-- Scoring Mode Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Scoring Mode</label>
+            <app-custom-select
+              [options]="scoringModeOptions"
+              [ngModel]="selectedScoringMode()"
+              (ngModelChange)="selectedScoringMode.set($event)"
+              placeholder="All Modes">
+            </app-custom-select>
+          </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Manual Grading</label>
-        <select
-          [ngModel]="filterHasManualGrading()"
-          (ngModelChange)="filterHasManualGrading.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All</option>
-          <option value="yes">Required</option>
-          <option value="no">Auto-only</option>
-        </select>
-      </div>
+          <!-- Category Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Category</label>
+            <app-custom-select
+              [options]="categoryOptions()"
+              [ngModel]="selectedCategory()"
+              (ngModelChange)="selectedCategory.set($event)"
+              placeholder="All Categories">
+            </app-custom-select>
+          </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 mb-1">Pass Mark Set</label>
-        <select
-          [ngModel]="filterHasPassMark()"
-          (ngModelChange)="filterHasPassMark.set($event)"
-          class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800"
-        >
-          <option value="all">All</option>
-          <option value="yes">Has Pass Mark</option>
-          <option value="no">No Pass Mark</option>
-        </select>
-      </div>
-    </div>
+          <!-- Manual Grading Filter -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Manual Grading</label>
+            <app-custom-select
+              [options]="manualGradingOptions"
+              [ngModel]="filterHasManualGrading()"
+              (ngModelChange)="filterHasManualGrading.set($event)"
+              placeholder="All Modes">
+            </app-custom-select>
+          </div>
 
+          <!-- Pass Mark Policy -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Pass Mark Set</label>
+            <app-custom-select
+              [options]="passMarkOptions"
+              [ngModel]="filterHasPassMark()"
+              (ngModelChange)="filterHasPassMark.set($event)"
+              placeholder="All Policies">
+            </app-custom-select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary block">Sort By</label>
+            <app-custom-select
+              [options]="sortOptions"
+              [ngModel]="sortBy()"
+              (ngModelChange)="sortBy.set($event)"
+              placeholder="Sort Order">
+            </app-custom-select>
+          </div>
+        </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
+          <button 
+            type="button"
+            (click)="resetFilters()" 
+            class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+            Reset Filters
+          </button>
+          
+          <div class="text-xs text-text-secondary font-medium">
+            Showing <strong class="text-text-primary font-bold">{{ filteredAssessments().length }}</strong> of {{ lmsService.assessments().length }} assessments
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Active Filter Tags Row -->
     @if (isFiltered()) {
-      <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-        <span>Showing {{ filteredAssessments().length }} of {{ lmsService.assessments().length }} assessments</span>
+      <div class="flex items-center gap-2 flex-wrap pt-1 text-xs border-t border-slate-100 dark:border-base-300">
+        <span class="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">Active Filters:</span>
+        
+        @if (selectedStatus() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Status: {{ selectedStatus() }}</span>
+            <button (click)="selectedStatus.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
+        @if (selectedType() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Type: {{ selectedType() }}</span>
+            <button (click)="selectedType.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
+        @if (selectedScoringMode() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Mode: {{ selectedScoringMode() }}</span>
+            <button (click)="selectedScoringMode.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
+        @if (selectedCategory() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Category: {{ selectedCategory() }}</span>
+            <button (click)="selectedCategory.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
+        @if (filterHasManualGrading() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Manual: {{ filterHasManualGrading() === 'yes' ? 'Required' : 'Auto-only' }}</span>
+            <button (click)="filterHasManualGrading.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
+        @if (filterHasPassMark() !== 'all') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+            <span>Pass Mark: {{ filterHasPassMark() === 'yes' ? 'Required' : 'None' }}</span>
+            <button (click)="filterHasPassMark.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+          </span>
+        }
+
         <button
           (click)="resetFilters()"
-          class="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
-        >
-          <span class="material-icons text-xs">filter_alt_off</span>
-          <span>Reset Filters</span>
+          class="text-tenant-600 dark:text-tenant-400 hover:underline text-[11px] font-semibold cursor-pointer ml-auto">
+          Clear All
         </button>
       </div>
     }
   </div>
 
-  <!-- Content Section -->
+  <!-- ========================================================================= -->
+  <!-- 5. MAIN CONTENT DISPLAY (Grid View vs Table View)                         -->
+  <!-- ========================================================================= -->
   @if (lmsService.assessments().length === 0) {
-    <!-- True Empty State -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center max-w-lg mx-auto space-y-4">
-      <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto">
-        <span class="material-icons text-3xl">quiz</span>
+    <!-- True Zero State -->
+    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 p-12 text-center max-w-lg mx-auto space-y-4 shadow-2xs">
+      <div class="w-16 h-16 bg-slate-100 dark:bg-base-200 text-slate-400 rounded-2xl flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">quiz</span>
       </div>
-      <h3 class="text-lg font-bold text-slate-900">No assessment information is available to display.</h3>
-      <p class="text-sm text-slate-500">Create your first authorable assessment instrument to start building questions and conducting exams.</p>
-      <button
-        (click)="onCreateNew()"
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl"
-      >
-        <span class="material-icons text-base">add_circle</span>
-        <span>Create Assessment</span>
-      </button>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment instruments in this LMS bank</h3>
+      <p class="text-sm text-slate-500 dark:text-text-secondary">Create your first authorable assessment instrument to start building questions and conducting exams.</p>
+      @if (lmsService.assessmentPermissions().canCreateAssessment) {
+        <button
+          type="button"
+          (click)="onCreateNew()"
+          class="inline-flex items-center gap-2 px-5 py-2.5 btn-gradient text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          <span>Create Assessment</span>
+        </button>
+      }
     </div>
   } @else if (filteredAssessments().length === 0) {
-    <!-- Search / Filter Miss States -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center max-w-lg mx-auto space-y-4">
-      <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto">
-        <span class="material-icons text-3xl">search_off</span>
+    <!-- Filtered Empty State -->
+    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 p-12 text-center max-w-lg mx-auto space-y-4 shadow-2xs">
+      <div class="w-16 h-16 bg-tenant-50 dark:bg-tenant-950/40 text-tenant-600 dark:text-tenant-400 rounded-2xl flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">search_off</span>
       </div>
 
       @if (searchQuery().trim() !== '') {
-        <h3 class="text-lg font-bold text-slate-900">No assessment found</h3>
-        <p class="text-sm text-slate-500">No assessment matching "{{ searchQuery() }}" was found in the question bank.</p>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment found</h3>
+        <p class="text-sm text-slate-500 dark:text-text-secondary">No assessment matching "{{ searchQuery() }}" was found in the question bank.</p>
       } @else {
-        <h3 class="text-lg font-bold text-slate-900">No assessment found matching the selected filters.</h3>
-        <p class="text-sm text-slate-500">Try adjusting or clearing your active filters to view available assessments.</p>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment matching filters</h3>
+        <p class="text-sm text-slate-500 dark:text-text-secondary">Try adjusting or clearing your active filters to view available assessments.</p>
       }
 
       <button
+        type="button"
         (click)="resetFilters()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary font-semibold text-xs rounded-xl cursor-pointer"
       >
-        <span class="material-icons text-base">restart_alt</span>
+        <span class="material-symbols-outlined text-base">restart_alt</span>
         <span>Clear Search & Filters</span>
       </button>
     </div>
   } @else if (viewMode() === 'grid') {
-    <!-- Grid View Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Grid View of Assessment Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
       @for (asm of filteredAssessments(); track asm.assessmentId) {
         @let curVer = getCurrentVersion(asm);
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
-          <!-- Card Header -->
-          <div class="p-6 space-y-3">
+        <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
+          
+          <!-- Card Header & Body -->
+          <div class="p-6 space-y-3.5">
             <div class="flex items-start justify-between gap-2">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
-                  {{ asm.code }}
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <!-- Code Badge -->
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-base-300">
+                  #{{ asm.code }}
                 </span>
 
+                <!-- Custom Status Badge -->
                 <span
                   [class.bg-emerald-50]="asm.status === 'published'"
                   [class.text-emerald-700]="asm.status === 'published'"
                   [class.border-emerald-200]="asm.status === 'published'"
+                  [class.dark:bg-emerald-950/60]="asm.status === 'published'"
+                  [class.dark:text-emerald-400]="asm.status === 'published'"
+                  [class.dark:border-emerald-800/60]="asm.status === 'published'"
                   [class.bg-amber-50]="asm.status === 'draft'"
                   [class.text-amber-700]="asm.status === 'draft'"
                   [class.border-amber-200]="asm.status === 'draft'"
+                  [class.dark:bg-amber-950/60]="asm.status === 'draft'"
+                  [class.dark:text-amber-400]="asm.status === 'draft'"
+                  [class.dark:border-amber-800/60]="asm.status === 'draft'"
                   [class.bg-slate-100]="asm.status === 'inactive'"
                   [class.text-slate-600]="asm.status === 'inactive'"
                   [class.border-slate-200]="asm.status === 'inactive'"
+                  [class.dark:bg-base-200]="asm.status === 'inactive'"
+                  [class.dark:text-slate-400]="asm.status === 'inactive'"
                   class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize border"
                 >
                   {{ asm.status }}
                 </span>
 
-                <span class="px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase">
+                <!-- Type Badge -->
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 uppercase">
                   {{ asm.type }}
                 </span>
               </div>
 
-              <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
+              <!-- Version Tag -->
+              <span class="text-[11px] font-bold font-mono px-2 py-0.5 bg-slate-100 dark:bg-base-200 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200/60 dark:border-base-300">
                 {{ curVer?.versionLabel || 'v1' }}
               </span>
             </div>
 
+            <!-- Title & Description -->
             <div>
-              <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+              <h3 class="text-base font-bold text-text-primary group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors line-clamp-2">
                 {{ asm.title }}
               </h3>
-              <p class="text-xs text-slate-500 mt-1 line-clamp-2">
-                {{ asm.description || 'No description provided.' }}
+              <p class="text-xs text-text-secondary mt-1 line-clamp-2">
+                {{ asm.description || 'No detailed syllabus or rubric description provided.' }}
               </p>
             </div>
 
-            <!-- Tags -->
+            <!-- Category Tags -->
             <div class="flex items-center gap-1.5 flex-wrap">
               @for (tag of asm.categoryTags; track tag) {
-                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-md">#{{ tag }}</span>
+                <span class="px-2 py-0.5 bg-slate-100 dark:bg-base-200 text-slate-600 dark:text-slate-300 text-[11px] rounded-md border border-slate-200/40 dark:border-base-300">#{{ tag }}</span>
               }
             </div>
 
-            <!-- Metadata Pills -->
-            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 text-xs text-slate-600">
+            <!-- Metadata Metrics Row -->
+            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 dark:border-base-300 text-xs text-text-secondary">
               <div class="flex items-center gap-1.5">
-                <span class="material-icons text-slate-400 text-sm">quiz</span>
-                <span><strong>{{ getQuestionCount(asm) }}</strong> Questions</span>
+                <span class="material-symbols-outlined text-slate-400 text-sm">quiz</span>
+                <span><strong class="text-text-primary">{{ getQuestionCount(asm) }}</strong> Questions</span>
               </div>
 
               <div class="flex items-center gap-1.5">
-                <span class="material-icons text-slate-400 text-sm">military_tech</span>
-                <span>Pass: <strong>{{ getPassMark(asm) }}%</strong></span>
+                <span class="material-symbols-outlined text-slate-400 text-sm">military_tech</span>
+                <span>Pass: <strong class="text-emerald-600 dark:text-emerald-400">{{ getPassMark(asm) }}%</strong></span>
               </div>
 
               <div class="flex items-center gap-1.5">
-                <span class="material-icons text-slate-400 text-sm">how_to_reg</span>
-                <span>Attempts: <strong>{{ getAttemptCount(asm.assessmentId) }}</strong></span>
+                <span class="material-symbols-outlined text-slate-400 text-sm">how_to_reg</span>
+                <span>Attempts: <strong class="text-text-primary">{{ getAttemptCount(asm.assessmentId) }}</strong></span>
               </div>
 
               <div class="flex items-center gap-1.5">
                 @if (hasManualGrading(asm)) {
-                  <span class="material-icons text-purple-500 text-sm">assignment_ind</span>
-                  <span class="text-purple-700 font-medium">Manual Grade</span>
+                  <span class="material-symbols-outlined text-purple-500 text-sm">assignment_ind</span>
+                  <span class="text-purple-700 dark:text-purple-400 font-medium">Manual Grade</span>
                 } @else {
-                  <span class="material-icons text-emerald-500 text-sm">bolt</span>
-                  <span class="text-emerald-700 font-medium">Auto Scored</span>
+                  <span class="material-symbols-outlined text-emerald-500 text-sm">bolt</span>
+                  <span class="text-emerald-700 dark:text-emerald-400 font-medium">Auto Scored</span>
                 }
               </div>
             </div>
 
+            <!-- Responsible Instructor Badge -->
             @if (asm.responsibleInstructorName) {
-              <div class="flex items-center gap-2 pt-2 text-xs text-slate-500">
-                <span class="material-icons text-slate-400 text-sm">person</span>
-                <span>Instructor: <strong class="text-slate-700">{{ asm.responsibleInstructorName }}</strong></span>
+              <div class="flex items-center gap-2 pt-1 text-xs text-text-secondary">
+                <app-custom-avatar
+                  [name]="asm.responsibleInstructorName"
+                  size="xs"
+                  shape="circle">
+                </app-custom-avatar>
+                <span>Instructor: <strong class="text-text-primary">{{ asm.responsibleInstructorName }}</strong></span>
               </div>
             } @else if (hasManualGrading(asm)) {
-              <div class="flex items-center gap-1.5 p-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs">
-                <span class="material-icons text-amber-600 text-sm">warning</span>
-                <span>Missing instructor (Publish blocker)</span>
+              <div class="flex items-center gap-1.5 p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-300 rounded-xl text-xs">
+                <span class="material-symbols-outlined text-amber-600 text-sm">warning</span>
+                <span>Missing instructor (Evaluation blocker)</span>
               </div>
             }
           </div>
 
-          <!-- Card Footer Actions -->
-          <div class="p-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+          <!-- Card Actions Footer -->
+          <div class="p-3.5 sm:p-4 bg-slate-50/80 dark:bg-base-200/50 border-t border-slate-100 dark:border-base-300 flex items-center justify-between gap-2">
             <div class="flex items-center gap-1">
               <button
+                type="button"
                 (click)="onPreview(asm)"
-                title="Preview Assessment"
-                class="p-2 text-slate-600 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                title="Preview Assessment Instrument"
+                class="p-2 text-slate-600 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 hover:bg-white dark:hover:bg-base-100 rounded-xl transition-all cursor-pointer"
               >
-                <span class="material-icons text-lg">visibility</span>
+                <span class="material-symbols-outlined text-lg">visibility</span>
               </button>
 
               <button
+                type="button"
                 (click)="onViewHistory(asm)"
-                title="Version History"
-                class="p-2 text-slate-600 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                title="Version Audit & History"
+                class="p-2 text-slate-600 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 hover:bg-white dark:hover:bg-base-100 rounded-xl transition-all cursor-pointer"
               >
-                <span class="material-icons text-lg">history</span>
+                <span class="material-symbols-outlined text-lg">history</span>
               </button>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               @if (asm.status === 'published') {
                 <button
+                  type="button"
                   (click)="onTakeExam(asm)"
-                  class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-all flex items-center gap-1"
+                  class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
                 >
-                  <span class="material-icons text-sm">play_arrow</span>
+                  <span class="material-symbols-outlined text-sm">play_arrow</span>
                   <span>Take Exam</span>
                 </button>
               }
 
               @if (lmsService.assessmentPermissions().canEditAssessment) {
                 <button
+                  type="button"
                   (click)="onEdit(asm)"
-                  class="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold text-xs rounded-lg transition-all flex items-center gap-1"
+                  class="px-3 py-1.5 bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 hover:border-slate-300 text-text-primary font-semibold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
                 >
-                  <span class="material-icons text-sm">edit</span>
+                  <span class="material-symbols-outlined text-sm">edit</span>
                   <span>Edit</span>
                 </button>
               }
 
               @if (asm.status === 'draft' && lmsService.assessmentPermissions().canPublishAssessment) {
                 <button
+                  type="button"
                   (click)="onPublish(asm)"
-                  class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition-all flex items-center gap-1"
+                  class="px-3 py-1.5 bg-tenant-600 hover:bg-tenant-700 text-white font-semibold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
                 >
-                  <span class="material-icons text-sm">publish</span>
+                  <span class="material-symbols-outlined text-sm">publish</span>
                   <span>Publish</span>
                 </button>
               }
 
               <!-- Overflow Menu -->
-              <div class="relative group/menu">
-                <button class="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-200">
-                  <span class="material-icons text-base">more_vert</span>
-                </button>
-
-                <div class="absolute right-0 bottom-full mb-1 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 hidden group-hover/menu:block z-20">
-                  @if (asm.status === 'published') {
-                    <button
-                      (click)="onForkVersion(asm)"
-                      class="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                    >
-                      <span class="material-icons text-sm text-indigo-500">call_split</span>
-                      <span>Fork New Version</span>
-                    </button>
-                  }
-
-                  <button
-                    (click)="onDuplicate(asm)"
-                    class="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                  >
-                    <span class="material-icons text-sm text-slate-500">content_copy</span>
-                    <span>Duplicate</span>
-                  </button>
-
-                  @if (asm.status === 'published') {
-                    <button
-                      (click)="onDeactivate(asm)"
-                      class="w-full px-3 py-2 text-left text-xs text-amber-700 hover:bg-amber-50 flex items-center gap-2"
-                    >
-                      <span class="material-icons text-sm text-amber-500">block</span>
-                      <span>Deactivate</span>
-                    </button>
-                  } @else if (asm.status === 'inactive') {
-                    <button
-                      (click)="onReactivate(asm)"
-                      class="w-full px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 flex items-center gap-2"
-                    >
-                      <span class="material-icons text-sm text-emerald-500">power_settings_new</span>
-                      <span>Reactivate</span>
-                    </button>
-                  }
-
-                  <button
-                    (click)="onConfirmDelete(asm)"
-                    class="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 border-t border-slate-100"
-                  >
-                    <span class="material-icons text-sm text-rose-500">delete</span>
-                    <span>Delete</span>
-                  </button>
-                </div>
-              </div>
+              <button 
+                type="button"
+                [id]="'btn-card-assessment-menu-' + asm.assessmentId"
+                (click)="toggleActionMenu(asm, $event)"
+                class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl hover:bg-slate-200 dark:hover:bg-base-200 cursor-pointer transition-colors"
+                [class.ring-2]="isActionMenuOpen(asm.assessmentId)"
+                [class.ring-tenant-500]="isActionMenuOpen(asm.assessmentId)"
+                title="Assessment Actions">
+                <span class="material-symbols-outlined text-base">more_vert</span>
+              </button>
             </div>
           </div>
         </div>
       }
     </div>
   } @else {
-    <!-- Table View -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <!-- Table View of Assessment Bank -->
+    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 shadow-2xs overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-700">
-          <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+        <table class="w-full text-left text-sm text-slate-700 dark:text-slate-200">
+          <thead class="bg-slate-50 dark:bg-base-200/70 border-b border-slate-200/80 dark:border-base-300 text-xs uppercase font-semibold text-slate-500 dark:text-text-secondary">
             <tr>
-              <th class="px-4 py-3">Code & Title</th>
-              <th class="px-4 py-3">Type / Mode</th>
-              <th class="px-4 py-3">Questions & Score</th>
-              <th class="px-4 py-3">Status / Version</th>
-              <th class="px-4 py-3">Attempts</th>
-              <th class="px-4 py-3">Instructor</th>
-              <th class="px-4 py-3 text-right">Actions</th>
+              <th class="px-5 py-3.5">Code & Title</th>
+              <th class="px-4 py-3.5">Type / Mode</th>
+              <th class="px-4 py-3.5">Questions & Threshold</th>
+              <th class="px-4 py-3.5">Status & Version</th>
+              <th class="px-4 py-3.5">Attempts</th>
+              <th class="px-4 py-3.5">Instructor</th>
+              <th class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-base-200/90 z-20 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-slate-100 dark:divide-base-300">
             @for (asm of filteredAssessments(); track asm.assessmentId) {
               @let curVer = getCurrentVersion(asm);
-              <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="px-4 py-3.5">
-                  <div class="font-bold text-slate-900">{{ asm.title }}</div>
-                  <div class="text-xs text-slate-500 font-mono">{{ asm.code }} &bull; {{ asm.categoryTags.join(', ') }}</div>
-                </td>
-                <td class="px-4 py-3.5">
-                  <div class="flex items-center gap-1.5">
-                    <span class="px-2 py-0.5 rounded text-xs font-semibold uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
-                      {{ asm.type }}
-                    </span>
-                    <span class="text-xs text-slate-500 capitalize">({{ asm.scoringMode }})</span>
+              <tr class="group hover:bg-slate-50/80 dark:hover:bg-base-200/40 transition-colors">
+                <td class="px-5 py-4">
+                  <div class="font-bold text-text-primary">{{ asm.title }}</div>
+                  <div class="text-xs text-text-secondary font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-slate-600 dark:text-slate-300">#{{ asm.code }}</span>
+                    <span>&bull;</span>
+                    <span>{{ asm.categoryTags.join(', ') }}</span>
                   </div>
                 </td>
-                <td class="px-4 py-3.5 text-xs text-slate-700">
-                  <div><strong>{{ getQuestionCount(asm) }}</strong> Qs &bull; Pass <strong>{{ getPassMark(asm) }}%</strong></div>
-                  @if (hasManualGrading(asm)) {
-                    <span class="text-purple-600 font-medium">Requires Manual Grading</span>
-                  } @else {
-                    <span class="text-emerald-600 font-medium">100% Auto Scored</span>
-                  }
+
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60">
+                      {{ asm.type }}
+                    </span>
+                    <span class="text-xs text-text-secondary capitalize">({{ asm.scoringMode }})</span>
+                  </div>
                 </td>
-                <td class="px-4 py-3.5">
+
+                <td class="px-4 py-4 text-xs">
+                  <div><strong class="text-text-primary">{{ getQuestionCount(asm) }}</strong> Qs &bull; Pass <strong class="text-emerald-600 dark:text-emerald-400">{{ getPassMark(asm) }}%</strong></div>
+                  <div class="mt-0.5">
+                    @if (hasManualGrading(asm)) {
+                      <span class="text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">assignment_ind</span> Requires Manual
+                      </span>
+                    } @else {
+                      <span class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">bolt</span> 100% Auto Scored
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <td class="px-4 py-4">
                   <div class="flex items-center gap-1.5">
                     <span
                       [class.bg-emerald-50]="asm.status === 'published'"
                       [class.text-emerald-700]="asm.status === 'published'"
+                      [class.dark:bg-emerald-950/60]="asm.status === 'published'"
+                      [class.dark:text-emerald-400]="asm.status === 'published'"
                       [class.bg-amber-50]="asm.status === 'draft'"
                       [class.text-amber-700]="asm.status === 'draft'"
+                      [class.dark:bg-amber-950/60]="asm.status === 'draft'"
+                      [class.dark:text-amber-400]="asm.status === 'draft'"
                       [class.bg-slate-100]="asm.status === 'inactive'"
                       [class.text-slate-600]="asm.status === 'inactive'"
-                      class="px-2 py-0.5 rounded-full text-xs font-semibold capitalize"
+                      [class.dark:bg-base-200]="asm.status === 'inactive'"
+                      [class.dark:text-slate-400]="asm.status === 'inactive'"
+                      class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize"
                     >
                       {{ asm.status }}
                     </span>
-                    <span class="text-xs font-mono text-slate-500">({{ curVer?.versionLabel }})</span>
+                    <span class="text-xs font-mono text-text-secondary">({{ curVer?.versionLabel }})</span>
                   </div>
                 </td>
-                <td class="px-4 py-3.5 text-xs font-bold text-slate-900">
+
+                <td class="px-4 py-4 text-xs font-bold text-text-primary">
                   {{ getAttemptCount(asm.assessmentId) }}
                 </td>
-                <td class="px-4 py-3.5 text-xs text-slate-600">
-                  {{ asm.responsibleInstructorName || 'Unassigned' }}
-                </td>
-                <td class="px-4 py-3.5 text-right space-x-1">
-                  @if (asm.status === 'published') {
-                    <button
-                      (click)="onTakeExam(asm)"
-                      class="px-2.5 py-1 bg-emerald-600 text-white rounded text-xs font-semibold hover:bg-emerald-700"
-                    >
-                      Take
-                    </button>
+
+                <td class="px-4 py-4 text-xs text-text-secondary">
+                  @if (asm.responsibleInstructorName) {
+                    <div class="flex items-center gap-1.5">
+                      <app-custom-avatar
+                        [name]="asm.responsibleInstructorName"
+                        size="xs"
+                        shape="circle">
+                      </app-custom-avatar>
+                      <span class="text-text-primary font-medium">{{ asm.responsibleInstructorName }}</span>
+                    </div>
+                  } @else {
+                    <span class="italic text-slate-400">Unassigned</span>
                   }
-                  <button
-                    (click)="onPreview(asm)"
-                    class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-xs font-semibold hover:bg-slate-200"
-                  >
-                    Preview
-                  </button>
-                  <button
-                    (click)="onEdit(asm)"
-                    class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded text-xs font-semibold hover:bg-indigo-100"
-                  >
-                    Edit
-                  </button>
+                </td>
+
+                <!-- Three-dot Actions Column -->
+                <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-20 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]" (click)="$event.stopPropagation()">
+                  <div class="flex items-center justify-center">
+                    <button 
+                      type="button"
+                      [id]="'btn-table-assessment-menu-' + asm.assessmentId"
+                      (click)="toggleActionMenu(asm, $event)"
+                      class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                      [class.ring-2]="isActionMenuOpen(asm.assessmentId)"
+                      [class.ring-tenant-500]="isActionMenuOpen(asm.assessmentId)"
+                      title="Assessment Actions">
+                      <span class="material-symbols-outlined text-lg">more_vert</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             }
@@ -589,68 +805,193 @@
   }
 </div>
 
+<!-- ========================================================================= -->
+<!-- FLOATING FIXED ACTION MENU (Positioned outside scroll boundaries)        -->
+<!-- ========================================================================= -->
+@if (activeMenuAssessment(); as menuAsm) {
+  <!-- Invisible backdrop to dismiss on click outside -->
+  <div class="fixed inset-0 z-[99998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+  <!-- Floating Popover -->
+  <div 
+    class="fixed w-56 bg-white dark:bg-base-100 rounded-2xl border border-slate-200/90 dark:border-base-300 shadow-2xl p-1.5 z-[99999] text-left animate-in fade-in zoom-in-95 duration-150 select-none"
+    [style.top.px]="menuPosition().top"
+    [style.left.px]="menuPosition().left"
+    (click)="$event.stopPropagation()">
+    
+    <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-base-300/80 mb-1 flex items-center justify-between">
+      <span>Assessment Actions</span>
+      <span class="font-mono text-tenant-600 dark:text-tenant-400">#{{ menuAsm.code }}</span>
+    </div>
+
+    @if (menuAsm.status === 'published') {
+      <button 
+        type="button"
+        (click)="onTakeExam(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-emerald-600">play_arrow</span>
+        <span>Take Exam</span>
+      </button>
+    }
+
+    <button 
+      type="button"
+      (click)="onPreview(menuAsm); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-slate-500">visibility</span>
+      <span>Preview Instrument</span>
+    </button>
+
+    @if (lmsService.assessmentPermissions().canEditAssessment) {
+      <button 
+        type="button"
+        (click)="onEdit(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-slate-500">edit</span>
+        <span>Edit Assessment</span>
+      </button>
+    }
+
+    @if (menuAsm.status === 'draft' && lmsService.assessmentPermissions().canPublishAssessment) {
+      <button 
+        type="button"
+        (click)="onPublish(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-tenant-700 dark:text-tenant-300 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-tenant-500">publish</span>
+        <span>Publish Live</span>
+      </button>
+    }
+
+    <button 
+      type="button"
+      (click)="onViewHistory(menuAsm); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-indigo-500">history</span>
+      <span>Version History</span>
+    </button>
+
+    @if (menuAsm.status === 'published') {
+      <button 
+        type="button"
+        (click)="onForkVersion(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-indigo-500">call_split</span>
+        <span>Fork New Version</span>
+      </button>
+    }
+
+    <button 
+      type="button"
+      (click)="onDuplicate(menuAsm); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-slate-400">content_copy</span>
+      <span>Duplicate</span>
+    </button>
+
+    @if (menuAsm.status === 'published') {
+      <div class="border-t border-slate-100 dark:border-base-300/80 my-1"></div>
+      <button 
+        type="button"
+        (click)="onDeactivate(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-amber-500">block</span>
+        <span>Deactivate</span>
+      </button>
+    } @else if (menuAsm.status === 'inactive') {
+      <div class="border-t border-slate-100 dark:border-base-300/80 my-1"></div>
+      <button 
+        type="button"
+        (click)="onReactivate(menuAsm); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-emerald-500">power_settings_new</span>
+        <span>Reactivate</span>
+      </button>
+    }
+
+    <div class="border-t border-slate-100 dark:border-base-300/80 my-1"></div>
+    <button 
+      type="button"
+      (click)="onConfirmDelete(menuAsm); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-rose-500">delete</span>
+      <span>Delete Assessment</span>
+    </button>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- 6. MODALS: PREVIEW, VERSION AUDIT & DELETE CONFIRMATION                   -->
+<!-- ========================================================================= -->
+
 <!-- Preview Modal -->
 @if (showPreviewModal() && previewAssessment()) {
   @let asm = previewAssessment()!;
   @let curVer = getCurrentVersion(asm);
   <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+    <div class="bg-white dark:bg-base-100 rounded-[28px] max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-slate-200/80 dark:border-base-300 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
       <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
         <div>
-          <div class="text-xs text-indigo-400 font-mono">{{ asm.code }} &bull; {{ curVer?.versionLabel }}</div>
+          <div class="text-xs text-indigo-400 font-mono">#{{ asm.code }} &bull; {{ curVer?.versionLabel }}</div>
           <h2 class="text-lg font-bold">{{ asm.title }}</h2>
         </div>
-        <button (click)="showPreviewModal.set(false)" class="text-slate-400 hover:text-white">
-          <span class="material-icons">close</span>
+        <button (click)="showPreviewModal.set(false)" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <div class="p-6 overflow-y-auto space-y-6 text-slate-800 text-sm">
-        <p class="text-slate-600">{{ asm.description }}</p>
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 text-text-primary text-sm">
+        <p class="text-text-secondary">{{ asm.description || 'No description provided for this assessment instrument.' }}</p>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <!-- Quick Spec Matrix -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 dark:bg-base-200/50 rounded-2xl border border-slate-200/80 dark:border-base-300">
           <div>
-            <div class="text-xs text-slate-500 font-semibold">Total Questions</div>
-            <div class="text-base font-bold text-slate-900">{{ curVer?.questions?.length || 0 }}</div>
+            <div class="text-xs text-slate-500 dark:text-text-secondary font-semibold">Total Questions</div>
+            <div class="text-base font-bold text-text-primary">{{ curVer?.questions?.length || 0 }}</div>
           </div>
           <div>
-            <div class="text-xs text-slate-500 font-semibold">Total Marks</div>
-            <div class="text-base font-bold text-slate-900">{{ curVer?.scoringPolicy?.totalMarks || 0 }}</div>
+            <div class="text-xs text-slate-500 dark:text-text-secondary font-semibold">Total Marks</div>
+            <div class="text-base font-bold text-text-primary">{{ curVer?.scoringPolicy?.totalMarks || 0 }}</div>
           </div>
           <div>
-            <div class="text-xs text-slate-500 font-semibold">Pass Threshold</div>
-            <div class="text-base font-bold text-emerald-600">{{ curVer?.scoringPolicy?.passMarkPercent || 0 }}%</div>
+            <div class="text-xs text-slate-500 dark:text-text-secondary font-semibold">Pass Threshold</div>
+            <div class="text-base font-bold text-emerald-600 dark:text-emerald-400">{{ curVer?.scoringPolicy?.passMarkPercent || 0 }}%</div>
           </div>
           <div>
-            <div class="text-xs text-slate-500 font-semibold">Time Limit</div>
-            <div class="text-base font-bold text-slate-900">
+            <div class="text-xs text-slate-500 dark:text-text-secondary font-semibold">Time Limit</div>
+            <div class="text-base font-bold text-text-primary">
               {{ curVer?.scoringPolicy?.timeLimitMinutes ? (curVer?.scoringPolicy?.timeLimitMinutes + ' mins') : 'Untimed' }}
             </div>
           </div>
         </div>
 
+        <!-- Questions Preview Section -->
         <div class="space-y-4">
-          <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Questions Preview</h3>
+          <h3 class="text-sm font-bold text-text-primary border-b border-slate-100 dark:border-base-300 pb-2">Questions Preview</h3>
           @for (q of curVer?.questions; track q.questionId; let idx = $index) {
-            <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-              <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-                <span>Question {{ idx + 1 }} ({{ q.type }})</span>
-                <span class="text-indigo-600">{{ q.points }} Points</span>
+            <div class="p-4 rounded-2xl border border-slate-200/80 dark:border-base-300 bg-white dark:bg-base-100 space-y-2">
+              <div class="flex items-center justify-between text-xs font-semibold text-text-secondary">
+                <span>Question {{ idx + 1 }} ({{ q.type | uppercase }})</span>
+                <span class="text-tenant-600 dark:text-tenant-400">{{ q.points }} Points</span>
               </div>
-              <div class="font-medium text-slate-900">{{ q.prompt }}</div>
+              <div class="font-medium text-text-primary">{{ q.prompt }}</div>
 
               @if (q.options && q.options.length > 0) {
-                <div class="space-y-1 pt-2">
+                <div class="space-y-1.5 pt-2">
                   @for (opt of q.options; track opt.optionId) {
                     <div
                       [class.bg-emerald-50]="opt.isCorrect"
                       [class.border-emerald-200]="opt.isCorrect"
-                      class="p-2 rounded-lg border text-xs flex items-center justify-between"
+                      [class.dark:bg-emerald-950/40]="opt.isCorrect"
+                      [class.dark:border-emerald-800/40]="opt.isCorrect"
+                      class="p-2.5 rounded-xl border border-slate-200/60 dark:border-base-300 text-xs flex items-center justify-between"
                     >
-                      <span>{{ opt.text }}</span>
+                      <span class="text-text-primary">{{ opt.text }}</span>
                       @if (opt.isCorrect) {
-                        <span class="text-emerald-700 font-bold text-xs flex items-center gap-1">
-                          <span class="material-icons text-xs">check_circle</span> Correct
+                        <span class="text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs">check_circle</span> Correct
                         </span>
                       }
                     </div>
@@ -662,20 +1003,23 @@
         </div>
       </div>
 
-      <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-base-300 bg-slate-50 dark:bg-base-200/50 flex items-center justify-between">
         <button
+          type="button"
           (click)="showPreviewModal.set(false)"
-          class="px-4 py-2 border border-slate-300 rounded-xl text-slate-700 font-semibold text-xs hover:bg-slate-100"
+          class="px-4 py-2 border border-slate-300 dark:border-base-300 rounded-xl text-text-primary font-semibold text-xs hover:bg-slate-100 dark:hover:bg-base-200 cursor-pointer"
         >
           Close Preview
         </button>
 
         @if (asm.status === 'published') {
           <button
+            type="button"
             (click)="showPreviewModal.set(false); onTakeExam(asm)"
-            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-xs flex items-center gap-1"
+            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-xs flex items-center gap-1 cursor-pointer"
           >
-            <span class="material-icons text-base">play_arrow</span>
+            <span class="material-symbols-outlined text-base">play_arrow</span>
             <span>Launch Exam Taker</span>
           </button>
         }
@@ -684,31 +1028,35 @@
   </div>
 }
 
-<!-- Version History Modal -->
+<!-- Version Audit & History Modal -->
 @if (showVersionHistoryModal() && historyAssessment()) {
   @let asm = historyAssessment()!;
   <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[85vh] overflow-hidden shadow-2xl flex flex-col">
+    <div class="bg-white dark:bg-base-100 rounded-[28px] max-w-xl w-full max-h-[85vh] overflow-hidden shadow-2xl flex flex-col border border-slate-200/80 dark:border-base-300 animate-in fade-in zoom-in-95 duration-200">
       <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold">Version Audit & History</h2>
-          <div class="text-xs text-indigo-400 font-mono">{{ asm.title }} ({{ asm.code }})</div>
+          <div class="text-xs text-indigo-400 font-mono">{{ asm.title }} (#{{ asm.code }})</div>
         </div>
-        <button (click)="showVersionHistoryModal.set(false)" class="text-slate-400 hover:text-white">
-          <span class="material-icons">close</span>
+        <button (click)="showVersionHistoryModal.set(false)" class="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
       <div class="p-6 overflow-y-auto space-y-4">
         @for (ver of asm.versions; track ver.versionId) {
-          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+          <div class="p-4 rounded-2xl border border-slate-200/80 dark:border-base-300 bg-slate-50/50 dark:bg-base-200/40 space-y-2">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 text-sm">{{ ver.versionLabel }}</span>
+              <span class="font-bold text-text-primary text-sm font-mono">{{ ver.versionLabel }}</span>
               <span
                 [class.bg-emerald-100]="ver.state === 'published-current'"
                 [class.text-emerald-800]="ver.state === 'published-current'"
+                [class.dark:bg-emerald-950/60]="ver.state === 'published-current'"
+                [class.dark:text-emerald-300]="ver.state === 'published-current'"
                 [class.bg-amber-100]="ver.state === 'draft'"
                 [class.text-amber-800]="ver.state === 'draft'"
+                [class.dark:bg-amber-950/60]="ver.state === 'draft'"
+                [class.dark:text-amber-300]="ver.state === 'draft'"
                 [class.bg-slate-200]="ver.state === 'published-superseded'"
                 [class.text-slate-700]="ver.state === 'published-superseded'"
                 class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize"
@@ -717,9 +1065,9 @@
               </span>
             </div>
 
-            <p class="text-xs text-slate-600">{{ ver.changeSummary || 'No version summary logged.' }}</p>
+            <p class="text-xs text-text-secondary">{{ ver.changeSummary || 'No version summary logged.' }}</p>
 
-            <div class="text-xs text-slate-500 pt-2 border-t flex justify-between">
+            <div class="text-xs text-slate-500 dark:text-text-secondary pt-2 border-t border-slate-200/60 dark:border-base-300 flex justify-between">
               <span>Published: {{ ver.publishedAt || 'Not published' }}</span>
               <span>Responses: {{ ver.responseCount }}</span>
             </div>
@@ -727,10 +1075,11 @@
         }
       </div>
 
-      <div class="p-4 border-t border-slate-100 bg-slate-50 text-right">
+      <div class="p-4 border-t border-slate-100 dark:border-base-300 bg-slate-50 dark:bg-base-200/50 text-right">
         <button
+          type="button"
           (click)="showVersionHistoryModal.set(false)"
-          class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-slate-800 text-xs font-semibold"
+          class="px-4 py-2 bg-slate-200 dark:bg-base-200 hover:bg-slate-300 dark:hover:bg-base-300 rounded-xl text-text-primary text-xs font-semibold cursor-pointer"
         >
           Close
         </button>
@@ -743,33 +1092,35 @@
 @if (showDeleteConfirmModal() && deleteTargetAssessment()) {
   @let asm = deleteTargetAssessment()!;
   <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+    <div class="bg-white dark:bg-base-100 rounded-[28px] max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200/80 dark:border-base-300 animate-in fade-in zoom-in-95 duration-200">
       <div class="flex items-center gap-3 text-rose-600">
-        <span class="material-icons text-3xl">warning</span>
-        <h3 class="text-lg font-bold text-slate-900">Confirm Assessment Deletion</h3>
+        <span class="material-symbols-outlined text-3xl">warning</span>
+        <h3 class="text-lg font-bold text-text-primary">Confirm Assessment Deletion</h3>
       </div>
 
-      <p class="text-sm text-slate-600">
-        Are you sure you want to delete <strong>"{{ asm.title }}"</strong> ({{ asm.code }})?
+      <p class="text-sm text-text-secondary">
+        Are you sure you want to delete <strong>"{{ asm.title }}"</strong> (#{{ asm.code }})?
       </p>
 
       @if (asm.usedInCount > 0) {
-        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs">
+        <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-300 rounded-xl text-xs">
           <strong>Cannot Delete:</strong> This assessment is currently used in {{ asm.usedInCount }} course/plan modules. Please deactivate it instead.
         </div>
       }
 
       <div class="flex items-center justify-end gap-2 pt-2">
         <button
+          type="button"
           (click)="showDeleteConfirmModal.set(false)"
-          class="px-4 py-2 border border-slate-300 rounded-xl text-slate-700 text-xs font-semibold hover:bg-slate-100"
+          class="px-4 py-2 border border-slate-300 dark:border-base-300 rounded-xl text-text-primary text-xs font-semibold hover:bg-slate-100 dark:hover:bg-base-200 cursor-pointer"
         >
           Cancel
         </button>
         <button
+          type="button"
           (click)="executeDelete()"
           [disabled]="asm.usedInCount > 0"
-          class="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold"
+          class="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold cursor-pointer"
         >
           Confirm Delete
         </button>

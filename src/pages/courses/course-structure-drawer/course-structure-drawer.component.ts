@@ -7,69 +7,90 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
   imports: [CommonModule],
   template: `
     @if (course(); as crs) {
-      <div class="fixed inset-0 z-[999999] flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in">
-        <div class="w-full max-w-2xl bg-base-100 h-full shadow-2xl border-l border-base-300 flex flex-col overflow-hidden animate-slide-left">
-          <!-- Drawer Header -->
-          <div class="p-5 border-b border-base-300 bg-base-200/50 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center border border-tenant-500/20">
-                <span class="material-symbols-outlined text-xl">account_tree</span>
+      @let metrics = getMetrics(crs);
+
+      <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+        <div class="w-full max-w-2xl bg-base-100 rounded-3xl shadow-2xl border border-base-300 flex flex-col overflow-hidden animate-scale-up max-h-[90vh]">
+          
+          <!-- Modal Header (Matching Exact Version Management Modal Style) -->
+          <div class="p-6 border-b border-base-300 bg-base-200/50 flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center border border-indigo-500/20">
+                <span class="material-symbols-outlined text-2xl">account_tree</span>
               </div>
-              <div>
+              <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-tenant-500/10 text-tenant-600 border border-tenant-500/20 font-mono">
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 font-mono">
                     {{ crs.code }}
                   </span>
-                  <span class="text-xs text-text-secondary font-medium">
-                    {{ crs.structureConfig.layerCount }}-Tier: {{ crs.structureConfig.layerLabels.join(' / ') }}
-                  </span>
+                  <span class="text-xs font-semibold text-text-secondary">Structure & Hierarchy</span>
                 </div>
-                <h2 class="text-base font-bold text-text-primary line-clamp-1 mt-0.5">{{ crs.title }}</h2>
+                <h2 class="text-base font-bold text-text-primary mt-0.5 truncate">{{ crs.title }}</h2>
               </div>
             </div>
             <button 
+              type="button"
               (click)="close.emit()" 
-              class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 transition-colors"
-              title="Close Drawer">
+              class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 transition-colors cursor-pointer"
+              title="Close Modal">
               <span class="material-symbols-outlined text-xl">close</span>
             </button>
           </div>
 
-          <!-- Drawer Quick Summary Bar -->
-          <div class="px-6 py-3 bg-base-100 border-b border-base-300 flex items-center justify-between text-xs text-text-secondary">
-            @let metrics = getMetrics(crs);
-            <div class="flex items-center gap-4">
-              <span class="flex items-center gap-1.5 font-medium">
-                <span class="material-symbols-outlined text-sm text-tenant-500">layers</span>
-                <strong class="text-text-primary">{{ metrics.totalNodes }}</strong> structural nodes
-              </span>
-              <span class="flex items-center gap-1.5 font-medium">
-                <span class="material-symbols-outlined text-sm text-emerald-500">play_lesson</span>
-                <strong class="text-text-primary">{{ metrics.learningCount }}</strong> learning
-              </span>
-              <span class="flex items-center gap-1.5 font-medium">
-                <span class="material-symbols-outlined text-sm text-indigo-500">quiz</span>
-                <strong class="text-text-primary">{{ metrics.assessmentCount }}</strong> assessments
-                @if (metrics.manualGradingCount > 0) {
-                  <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-600 border border-amber-500/30 font-semibold">
-                    {{ metrics.manualGradingCount }} manual
+          <!-- Current Structure Highlights Card (Matching Version Modal Top Card) -->
+          <div class="p-6 border-b border-base-300 bg-base-100">
+            <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <span class="px-2.5 py-1 rounded-lg bg-tenant-500 text-white font-bold text-xs font-mono">
+                    {{ crs.structureConfig.layerCount }}-Tier
                   </span>
-                }
-              </span>
-            </div>
+                  <div>
+                    <span class="text-xs font-bold text-text-primary">
+                      {{ crs.structureConfig.layerLabels.join(' → ') }}
+                    </span>
+                    <p class="text-[11px] text-text-secondary">
+                      {{ metrics.totalNodes }} node(s) &bull; {{ metrics.learningCount }} learning &bull; {{ metrics.assessmentCount }} assessments &bull; {{ crs.durationMinutes }}m duration
+                    </p>
+                  </div>
+                </div>
 
-            <button 
-              (click)="toggleExpandAll()"
-              class="text-xs text-tenant-600 hover:text-tenant-700 font-semibold flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">{{ allExpanded() ? 'unfold_less' : 'unfold_more' }}</span>
-              <span>{{ allExpanded() ? 'Collapse All' : 'Expand All' }}</span>
-            </button>
+                <div class="text-right">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                    {{ crs.usedInPhasesCount || 0 }} Phases Locked
+                  </span>
+                </div>
+              </div>
+
+              <!-- Explanation Notice Card (Matching Independent Snapshot Box Style) -->
+              <div class="p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-xs text-text-secondary flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-indigo-500 text-base mt-0.5">verified_user</span>
+                <div>
+                  <strong class="text-indigo-600 block mb-0.5">Hierarchical Curriculum Architecture</strong>
+                  Structured across {{ crs.structureConfig.layerCount }} tier(s) ({{ crs.structureConfig.layerLabels.join(' → ') }}). Preserves sequential progression, content prerequisite gating, and grading integrity.
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Tree Hierarchy View -->
+          <!-- Curriculum Nodes Section Header & Tree Body -->
           <div class="flex-1 overflow-y-auto p-6 space-y-4">
-            @if (crs.structure && crs.structure.length > 0) {
-              <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">Curriculum Nodes & Content</h3>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-text-secondary font-mono">{{ metrics.totalNodes }} sections</span>
+                <button 
+                  type="button"
+                  (click)="toggleExpandAll()"
+                  class="text-xs text-tenant-600 hover:text-tenant-700 font-semibold flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-sm">{{ allExpanded() ? 'unfold_less' : 'unfold_more' }}</span>
+                  <span>{{ allExpanded() ? 'Collapse All' : 'Expand All' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              @if (crs.structure && crs.structure.length > 0) {
                 @for (node1 of crs.structure; track node1.nodeId; let idx1 = $index) {
                   <!-- Layer 1 Node Card -->
                   <div class="rounded-2xl border border-base-300 bg-base-100 overflow-hidden shadow-xs">
@@ -80,7 +101,7 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
                         <span class="material-symbols-outlined text-text-secondary text-base transition-transform" [class.rotate-90]="isExpanded(node1.nodeId)">
                           chevron_right
                         </span>
-                        <div class="w-6 h-6 rounded-lg bg-tenant-500 text-white font-bold text-xs flex items-center justify-center">
+                        <div class="w-6 h-6 rounded-lg bg-tenant-500 text-white font-bold text-xs flex items-center justify-center font-mono">
                           {{ idx1 + 1 }}
                         </div>
                         <div>
@@ -108,7 +129,7 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
                       <div class="p-3 space-y-3 bg-base-100 border-t border-base-300">
                         @if (crs.structureConfig.layerCount === 1) {
                           <!-- Direct leaf content under Layer 1 -->
-                          <div class="pl-4 border-l-2 border-tenant-500/20 space-y-2">
+                          <div class="pl-3 border-l-2 border-tenant-500/20 space-y-2">
                             @for (item of node1.content || []; track item.contentId) {
                               <div class="p-3 rounded-xl bg-base-200/50 border border-base-300/80 flex items-start justify-between gap-3 text-xs">
                                 <div class="flex items-start gap-2.5">
@@ -122,7 +143,7 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
                                       </span>
                                       @if (item.assessment?.gradingMode) {
                                         <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded" [class]="item.assessment?.gradingMode === 'manual' ? 'bg-amber-500/15 text-amber-700' : 'bg-slate-500/10 text-slate-600'">
-                                          {{ item.assessment?.gradingMode === 'manual' ? 'Manual Grading' : 'Auto Grading' }}
+                                          {{ item.assessment?.gradingMode === 'manual' ? 'Manual Grading' : 'Auto-Graded' }}
                                         </span>
                                       }
                                     </div>
@@ -200,6 +221,9 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
                                                 <h5 class="font-semibold text-text-primary text-xs">{{ item.title }}</h5>
                                               </div>
                                             </div>
+                                            <span class="text-[10px] text-text-secondary font-mono">
+                                              {{ item.learning?.durationMinutes || item.assessment?.durationMinutes || 15 }}m
+                                            </span>
                                           </div>
                                         }
                                       </div>
@@ -254,24 +278,30 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
                     }
                   </div>
                 }
-              </div>
-            } @else {
-              <div class="p-8 text-center bg-base-200/50 rounded-2xl border border-base-300 text-text-secondary">
-                <span class="material-symbols-outlined text-4xl text-text-secondary/60 mb-2">account_tree</span>
-                <p class="text-xs font-medium">No structure defined for this course yet.</p>
-              </div>
-            }
+              } @else {
+                <div class="p-8 text-center bg-base-200/50 rounded-2xl border border-base-300 text-text-secondary">
+                  <span class="material-symbols-outlined text-4xl text-text-secondary/60 mb-2">account_tree</span>
+                  <p class="text-xs font-medium">No structure defined for this course yet.</p>
+                </div>
+              }
+            </div>
           </div>
 
-          <!-- Drawer Footer -->
-          <div class="p-4 border-t border-base-300 bg-base-200/40 flex items-center justify-between text-xs">
-            <div class="flex items-center gap-2 text-text-secondary">
-              <span>Owner: <strong class="text-text-primary">{{ crs.ownerName }}</strong></span>
-            </div>
+          <!-- Modal Footer (Matching Version Modal Footer) -->
+          <div class="p-6 border-t border-base-300 bg-base-200/50 flex items-center justify-between">
             <button 
+              type="button"
               (click)="close.emit()" 
-              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary font-semibold transition-colors">
-              Close Preview
+              class="px-4 py-2.5 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary font-semibold text-xs transition-colors cursor-pointer">
+              Close
+            </button>
+
+            <button 
+              type="button"
+              (click)="edit.emit(crs)" 
+              class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-sm">edit</span>
+              <span>Open in Course Editor</span>
             </button>
           </div>
         </div>
@@ -282,12 +312,12 @@ import { CourseEntity, CourseStructureNode, CourseContentItem, summarizeCourseMe
 export class CourseStructureDrawerComponent {
   course = input<CourseEntity | null>(null);
   close = output<void>();
+  edit = output<CourseEntity>();
 
   expandedNodes = signal<Set<string>>(new Set<string>());
   allExpanded = signal<boolean>(true);
 
   constructor() {
-    // Default all nodes to expanded
     this.expandAll();
   }
 

@@ -1,311 +1,444 @@
-<div class="space-y-6 pb-16 animate-fade-in max-w-6xl mx-auto">
-  <!-- Stepper Header -->
-  <div class="bg-base-100 p-6 rounded-3xl border border-base-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="max-w-6xl mx-auto space-y-6 pb-16">
+  <!-- Header & Breadcrumb Context -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <a routerLink="/courses" class="text-xs text-text-secondary hover:text-tenant-600 flex items-center gap-1 font-semibold">
-          <span class="material-symbols-outlined text-sm">arrow_back</span>
-          <span>Course Library</span>
+      <div class="flex items-center gap-2 mb-1.5">
+        <a routerLink="/courses" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">school</span>
+          Courses
         </a>
-        <span class="text-xs text-text-secondary">•</span>
-        <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 border border-tenant-500/20">
-          {{ isEditMode() ? 'Curriculum Editor' : 'Curriculum Builder' }}
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          @if (isEditMode()) { Edit Course } @else { Creation Wizard }
         </span>
       </div>
-      <h1 class="text-2xl font-bold text-text-primary">
-        {{ isEditMode() ? 'Edit Course: ' + (existingCourse()?.title || 'Untitled') : 'Create Course' }}
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        @if (isEditMode()) {
+          @if (currentStep() === 1) { Edit Course – Basic Details }
+          @else if (currentStep() === 2) { Edit Course – Structure Setup }
+          @else if (currentStep() === 3) { Edit Course – Build Content }
+          @else if (currentStep() === 4) { Edit Course – Tagging & Instructors }
+          @else if (currentStep() === 5) { Edit Course – Reviews & Grading }
+          @else { Edit Course – Review & Publish }
+        } @else {
+          @if (currentStep() === 1) { Create Course – Basic Details }
+          @else if (currentStep() === 2) { Create Course – Structure Setup }
+          @else if (currentStep() === 3) { Create Course – Build Content }
+          @else if (currentStep() === 4) { Create Course – Tagging & Instructors }
+          @else if (currentStep() === 5) { Create Course – Reviews & Grading }
+          @else { Create Course – Review & Publish }
+        }
       </h1>
-      <p class="text-xs text-text-secondary mt-1">
-        6-step structured curriculum wizard with layered hierarchy and live governance gates.
+      <p class="text-xs text-text-secondary mt-0.5">
+        @if (currentStep() === 1) { Define core identifiers, ownership, category, and visual identity. }
+        @else if (currentStep() === 2) { Select layer depth and configure hierarchical naming conventions. }
+        @else if (currentStep() === 3) { Build sections, add learning modules, and attach assessments. }
+        @else if (currentStep() === 4) { Configure instructor exclusivity and assign authors. }
+        @else if (currentStep() === 5) { Configure feedback collection and audit grading coverage. }
+        @else { Audit compliance gates and publish course to catalog. }
       </p>
     </div>
 
-    <div class="flex items-center gap-2.5">
+    <!-- Quick Draft Badge / Action -->
+    <div class="flex items-center gap-2">
       <button 
-        (click)="saveAsDraft()" 
-        class="px-4 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 transition-colors">
-        <span class="material-symbols-outlined text-base">save</span>
-        <span>Save Draft</span>
+        type="button"
+        (click)="saveAsDraft()"
+        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer"
+        title="Save progress and resume later">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        Save as draft
       </button>
 
       <button 
-        (click)="openSaveAsTemplateModal()" 
-        class="px-4 py-2.5 rounded-2xl border border-tenant-500/30 bg-tenant-500/5 hover:bg-tenant-500/10 text-tenant-700 text-xs font-semibold flex items-center gap-2 transition-colors">
-        <span class="material-symbols-outlined text-base">dashboard_customize</span>
-        <span>Save as Template</span>
+        type="button"
+        (click)="onCancel()"
+        class="px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
+        Cancel
       </button>
     </div>
   </div>
 
-  <!-- Stepper Tabs Indicator -->
-  <div class="bg-base-100 p-3 rounded-2xl border border-base-300 shadow-xs overflow-x-auto">
-    <div class="flex items-center justify-between min-w-[700px] gap-2">
-      @for (step of steps; track step.number) {
-        <button 
-          (click)="goToStep(step.number)"
-          [class]="currentStep() === step.number 
-            ? 'bg-tenant-500 text-white shadow-xs font-bold' 
-            : (currentStep() > step.number ? 'bg-base-200 text-text-primary hover:bg-base-300 font-semibold' : 'text-text-secondary hover:text-text-primary hover:bg-base-200')"
-          class="flex-1 py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer select-none">
-          <div 
-            class="w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono"
-            [class]="currentStep() === step.number ? 'bg-white/20 text-white font-bold' : (currentStep() > step.number ? 'bg-emerald-500 text-white' : 'bg-base-300 text-text-secondary')">
-            {{ currentStep() > step.number ? '✓' : step.number }}
-          </div>
-          <span class="truncate">{{ step.label }}</span>
-        </button>
-      }
-    </div>
-  </div>
+  <!-- Custom Stepper Component -->
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="jumpToStep($event)">
+  </app-stepper>
 
-  <!-- ========================================================================= -->
-  <!-- STEP 1: COURSE DETAILS -->
-  <!-- ========================================================================= -->
-  @if (currentStep() === 1) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in" [formGroup]="detailsForm">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Step 1: Course Details & Metadata</h2>
-        <p class="text-xs text-text-secondary mt-0.5">Define core identifiers, ownership, category, and visual identity.</p>
+  <!-- Mandatory Field Error Alert (Matching Organization Create §7.1) -->
+  @if (formErrorAlert()) {
+    <div id="form-error-banner" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+        <span>{{ formErrorAlert() }}</span>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Title -->
-        <div class="md:col-span-2 space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Course Title <span class="text-error">*</span></label>
-          <input 
-            type="text" 
-            formControlName="title"
-            placeholder="e.g., Enterprise Data Governance & Ethics" 
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-medium" />
-        </div>
-
-        <!-- Code -->
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Course Code <span class="text-error">*</span></label>
-          <input 
-            type="text" 
-            formControlName="code"
-            placeholder="e.g., CRS-SEC-DAT-01" 
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs font-mono font-bold text-text-primary" />
-        </div>
-
-        <!-- Description -->
-        <div class="md:col-span-3 space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Course Description</label>
-          <textarea 
-            rows="3" 
-            formControlName="description"
-            placeholder="Provide a comprehensive syllabus overview for learners and curriculum managers..." 
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary"></textarea>
-        </div>
-
-        <!-- Category -->
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Category Taxonomy <span class="text-error">*</span></label>
-          <select 
-            formControlName="category"
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-medium">
-            @for (cat of categories; track cat) {
-              <option [value]="cat">{{ cat }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Difficulty -->
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Target Proficiency <span class="text-error">*</span></label>
-          <select 
-            formControlName="difficulty"
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-medium">
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-            <option value="Expert">Expert</option>
-          </select>
-        </div>
-
-        <!-- Duration -->
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Estimated Duration (Minutes) <span class="text-error">*</span></label>
-          <input 
-            type="number" 
-            formControlName="durationMinutes"
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs font-mono text-text-primary font-medium" />
-        </div>
-
-        <!-- Course Owner -->
-        <div class="md:col-span-2 space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Designated Course Owner <span class="text-error">*</span></label>
-          <select 
-            formControlName="ownerId"
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-medium">
-            @for (user of lmsService.tenantUsers(); track user.id) {
-              <option [value]="user.id">{{ user.name }} ({{ user.email }}) — {{ user.role }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Tags -->
-        <div class="md:col-span-3 space-y-2">
-          <label class="text-xs font-bold text-text-primary">Curriculum Tags & Keywords</label>
-          <div class="flex flex-wrap items-center gap-2">
-            @for (tag of courseTags(); track tag) {
-              <span class="px-3 py-1 rounded-xl bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs font-semibold flex items-center gap-1.5">
-                <span>{{ tag }}</span>
-                <button (click)="removeTag(tag)" class="text-tenant-500 hover:text-error">
-                  <span class="material-symbols-outlined text-xs">close</span>
-                </button>
-              </span>
-            }
-            <div class="flex items-center gap-1.5">
-              <input 
-                type="text" 
-                [value]="newTagInput()"
-                (input)="newTagInput.set($any($event.target).value)"
-                (keydown.enter)="$event.preventDefault(); addTag()"
-                placeholder="Add tag and press Enter..." 
-                class="px-3 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500" />
-              <button 
-                (click)="addTag()" 
-                class="px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold">
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cover Image URL & Presets -->
-        <div class="md:col-span-3 space-y-2">
-          <label class="text-xs font-bold text-text-primary">Cover Image</label>
-          <div class="flex flex-wrap items-center gap-2 mb-2">
-            <span class="text-xs text-text-secondary">Quick Presets:</span>
-            @for (preset of coverImagePresets; track preset.label) {
-              <button 
-                (click)="detailsForm.patchValue({ coverImage: preset.url })"
-                class="px-2.5 py-1 rounded-lg bg-base-200 hover:bg-base-300 text-[11px] font-medium text-text-primary border border-base-300">
-                {{ preset.label }}
-              </button>
-            }
-          </div>
-          <input 
-            type="text" 
-            formControlName="coverImage"
-            placeholder="https://..." 
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-mono" />
-        </div>
-      </div>
+      <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
     </div>
   }
 
   <!-- ========================================================================= -->
-  <!-- STEP 2: STRUCTURE SETUP -->
+  <!-- STEP 1: COURSE BASIC DETAILS -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 1) {
+    <form [formGroup]="detailsForm" class="space-y-6 animate-fade-in">
+      <!-- Section 1: Basic Information -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">info</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">1. Basic Information</h2>
+            <p class="text-[11px] text-text-secondary">Core course identity, code, and taxonomy</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Course Title -->
+          <div class="md:col-span-2 space-y-1">
+            <label class="text-xs font-semibold text-text-primary">
+              Course Title <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="title"
+              placeholder="e.g. Advanced Enterprise Security & Privacy Compliance"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [class]="isFieldInvalid(detailsForm, 'title') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(detailsForm, 'title')) {
+              <p class="text-[11px] text-rose-500 mt-1">Course title is required.</p>
+            }
+          </div>
+
+          <!-- Course Code -->
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">
+              Course Code <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="text" 
+                formControlName="code"
+                placeholder="e.g. SEC-2026-01"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs font-mono uppercase focus:outline-none focus:border-tenant-500 transition-all"
+                [class]="isFieldInvalid(detailsForm, 'code') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            </div>
+            @if (isFieldInvalid(detailsForm, 'code')) {
+              <p class="text-[11px] text-rose-500 mt-1">Course code is required.</p>
+            }
+          </div>
+
+          <!-- Target Duration -->
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">
+              Estimated Duration (Minutes) <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              formControlName="durationMinutes"
+              min="5"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
+              [class]="isFieldInvalid(detailsForm, 'durationMinutes') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(detailsForm, 'durationMinutes')) {
+              <p class="text-[11px] text-rose-500 mt-1">Duration must be at least 5 minutes.</p>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="md:col-span-2 space-y-1">
+            <label class="text-xs font-semibold text-text-primary">Course Description &amp; Objectives</label>
+            <textarea 
+              formControlName="description"
+              rows="3"
+              placeholder="Outline what learners will achieve, prerequisites, and learning objectives..."
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Classification & Ownership -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">category</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">2. Classification &amp; Ownership</h2>
+            <p class="text-[11px] text-text-secondary">Categorization, difficulty rating, and lead author/owner</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Category Custom Select -->
+          <div>
+            <app-custom-select
+              label="Course Category"
+              [required]="true"
+              [options]="categoryOptions"
+              formControlName="category"
+              placeholder="Select category..."
+              [error]="isFieldInvalid(detailsForm, 'category') ? 'Category is required' : ''">
+            </app-custom-select>
+          </div>
+
+          <!-- Difficulty Rating Custom Select -->
+          <div>
+            <app-custom-select
+              label="Target Proficiency"
+              [required]="true"
+              [options]="difficultyOptions"
+              formControlName="difficulty"
+              placeholder="Select difficulty..."
+              [error]="isFieldInvalid(detailsForm, 'difficulty') ? 'Difficulty is required' : ''">
+            </app-custom-select>
+          </div>
+
+          <!-- Course Owner Custom Select -->
+          <div>
+            <app-custom-select
+              label="Designated Course Owner"
+              [required]="true"
+              [options]="ownerOptions()"
+              formControlName="ownerId"
+              placeholder="Select course lead..."
+              [error]="isFieldInvalid(detailsForm, 'ownerId') ? 'Owner is required' : ''">
+            </app-custom-select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Visual Identity & Tags -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">palette</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">3. Visual Identity &amp; Tags</h2>
+            <p class="text-[11px] text-text-secondary">Banner artwork, theme styling, and discovery keywords</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Cover Preset Selector -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-text-primary">Cover Image Artwork Preset</label>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              @for (preset of coverImagePresets; track preset.url) {
+                <button 
+                  type="button"
+                  (click)="detailsForm.patchValue({ coverImage: preset.url })"
+                  class="relative rounded-2xl overflow-hidden border-2 transition-all p-1 text-left cursor-pointer group"
+                  [class]="detailsForm.value.coverImage === preset.url ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-200' : 'border-base-300 hover:border-tenant-400 bg-base-100'">
+                  <div class="h-16 w-full rounded-xl overflow-hidden relative">
+                    <img [src]="preset.url" [alt]="preset.label" class="w-full h-full object-cover group-hover:scale-105 transition-transform" referrerpolicy="no-referrer" />
+                    @if (detailsForm.value.coverImage === preset.url) {
+                      <div class="absolute inset-0 bg-tenant-600/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-base">check_circle</span>
+                      </div>
+                    }
+                  </div>
+                  <span class="block text-[11px] font-semibold text-text-primary truncate mt-1 px-1">{{ preset.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Custom Cover URL -->
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">Or Custom Cover Image URL</label>
+            <input 
+              type="text" 
+              formControlName="coverImage"
+              placeholder="https://images.unsplash.com/..."
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono focus:outline-none focus:border-tenant-500 transition-all" />
+          </div>
+
+          <!-- Course Tags -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-text-primary">Search &amp; Catalog Discovery Tags</label>
+            <div class="flex flex-wrap items-center gap-2">
+              @for (tag of courseTags(); track tag) {
+                <span class="px-3 py-1 rounded-xl bg-tenant-500/10 text-tenant-700 dark:text-tenant-300 text-xs font-semibold flex items-center gap-1.5 border border-tenant-500/20">
+                  <span>#{{ tag }}</span>
+                  <button type="button" (click)="removeTag(tag)" class="hover:text-rose-500 cursor-pointer">
+                    <span class="material-symbols-outlined text-xs">close</span>
+                  </button>
+                </span>
+              }
+
+              <div class="flex items-center gap-1.5">
+                <input 
+                  type="text" 
+                  [value]="newTagInput()"
+                  (input)="newTagInput.set($any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); addTag()"
+                  placeholder="Add tag (press Enter)..."
+                  class="px-3 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 w-44" />
+                <button 
+                  type="button"
+                  (click)="addTag()"
+                  class="px-2.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 cursor-pointer">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 2: STRUCTURE CONFIGURATION (BRD Rule Engine #1) -->
   <!-- ========================================================================= -->
   @if (currentStep() === 2) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Step 2: Structural Approach & Hierarchy</h2>
-        <p class="text-xs text-text-secondary mt-0.5">
-          Select layer depth (1, 2, or 3 tiers) and define customizable semantic labels for each level.
-        </p>
+    <div class="space-y-6 animate-fade-in">
+      <!-- Layer Depth Selection -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">account_tree</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">1. Hierarchy Depth (Rule Engine #1)</h2>
+            <p class="text-[11px] text-text-secondary">Choose the organizational tier model for your course curriculum</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 1 Tier -->
+          <button 
+            type="button"
+            (click)="changeLayerCount(1)"
+            [class]="selectedLayerCount() === 1 ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-tenant-50/20 dark:bg-tenant-950/20' : 'border-base-300 bg-base-200/40 hover:bg-base-200'"
+            class="p-5 rounded-2xl border-2 text-left space-y-3 transition-all cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl bg-tenant-500 text-white font-bold text-xs flex items-center justify-center font-mono">1</span>
+              @if (selectedLayerCount() === 1) {
+                <span class="material-symbols-outlined text-tenant-600 text-lg">check_circle</span>
+              }
+            </div>
+            <div>
+              <strong class="text-xs font-bold text-text-primary block">1-Tier Flat Structure</strong>
+              <p class="text-[11px] text-text-secondary mt-1">Single top-level section holding direct learning units and quizzes.</p>
+            </div>
+            <div class="text-[10px] font-mono text-text-secondary px-2.5 py-1 rounded-lg bg-base-100 border border-base-300">
+              {{ layer1Label() }} &rarr; [Leaf Content]
+            </div>
+          </button>
+
+          <!-- 2 Tiers -->
+          <button 
+            type="button"
+            (click)="changeLayerCount(2)"
+            [class]="selectedLayerCount() === 2 ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-tenant-50/20 dark:bg-tenant-950/20' : 'border-base-300 bg-base-200/40 hover:bg-base-200'"
+            class="p-5 rounded-2xl border-2 text-left space-y-3 transition-all cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl bg-tenant-500 text-white font-bold text-xs flex items-center justify-center font-mono">2</span>
+              @if (selectedLayerCount() === 2) {
+                <span class="material-symbols-outlined text-tenant-600 text-lg">check_circle</span>
+              }
+            </div>
+            <div>
+              <strong class="text-xs font-bold text-text-primary block">2-Tier Standard Structure</strong>
+              <p class="text-[11px] text-text-secondary mt-1">Modules broken into topics containing learning items and tests.</p>
+            </div>
+            <div class="text-[10px] font-mono text-text-secondary px-2.5 py-1 rounded-lg bg-base-100 border border-base-300">
+              {{ layer1Label() }} &rarr; {{ layer2Label() }} &rarr; [Leaf Content]
+            </div>
+          </button>
+
+          <!-- 3 Tiers -->
+          <button 
+            type="button"
+            (click)="changeLayerCount(3)"
+            [class]="selectedLayerCount() === 3 ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-tenant-50/20 dark:bg-tenant-950/20' : 'border-base-300 bg-base-200/40 hover:bg-base-200'"
+            class="p-5 rounded-2xl border-2 text-left space-y-3 transition-all cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-8 h-8 rounded-xl bg-tenant-500 text-white font-bold text-xs flex items-center justify-center font-mono">3</span>
+              @if (selectedLayerCount() === 3) {
+                <span class="material-symbols-outlined text-tenant-600 text-lg">check_circle</span>
+              }
+            </div>
+            <div>
+              <strong class="text-xs font-bold text-text-primary block">3-Tier Deep Enterprise</strong>
+              <p class="text-[11px] text-text-secondary mt-1">Deep structure with chapters, topics, and sub-units.</p>
+            </div>
+            <div class="text-[10px] font-mono text-text-secondary px-2.5 py-1 rounded-lg bg-base-100 border border-base-300">
+              {{ layer1Label() }} &rarr; {{ layer2Label() }} &rarr; {{ layer3Label() }} &rarr; [Leaf]
+            </div>
+          </button>
+        </div>
       </div>
 
-      <!-- Layer Count Selection Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- 1 Layer -->
-        <div 
-          (click)="changeLayerCount(1)"
-          [class]="selectedLayerCount() === 1 ? 'border-tenant-500 bg-tenant-500/5 shadow-sm' : 'border-base-300 bg-base-200/30 hover:bg-base-200/60'"
-          class="p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-tenant-500/10 text-tenant-600 font-mono">1-Tier</span>
-            <span class="material-symbols-outlined text-lg" [class]="selectedLayerCount() === 1 ? 'text-tenant-600' : 'text-text-secondary'">
-              {{ selectedLayerCount() === 1 ? 'radio_button_checked' : 'radio_button_unchecked' }}
-            </span>
+      <!-- Layer Nomenclature & Label Customization -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">format_shapes</span>
           </div>
-          <h3 class="text-sm font-bold text-text-primary">Flat Single Layer</h3>
-          <p class="text-xs text-text-secondary">Direct modules containing leaf content items. Ideal for microlearning and short compliance modules.</p>
-        </div>
-
-        <!-- 2 Layers -->
-        <div 
-          (click)="changeLayerCount(2)"
-          [class]="selectedLayerCount() === 2 ? 'border-tenant-500 bg-tenant-500/5 shadow-sm' : 'border-base-300 bg-base-200/30 hover:bg-base-200/60'"
-          class="p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-tenant-500/10 text-tenant-600 font-mono">2-Tier</span>
-            <span class="material-symbols-outlined text-lg" [class]="selectedLayerCount() === 2 ? 'text-tenant-600' : 'text-text-secondary'">
-              {{ selectedLayerCount() === 2 ? 'radio_button_checked' : 'radio_button_unchecked' }}
-            </span>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">2. Layer Nomenclature &amp; Labels</h2>
+            <p class="text-[11px] text-text-secondary">Customize titles for each hierarchy tier or choose a preset</p>
           </div>
-          <h3 class="text-sm font-bold text-text-primary">Two-Tier Hierarchy</h3>
-          <p class="text-xs text-text-secondary">Parent modules (e.g. Modules) with child units (e.g. Lessons). Great for standard structured courses.</p>
         </div>
 
-        <!-- 3 Layers -->
-        <div 
-          (click)="changeLayerCount(3)"
-          [class]="selectedLayerCount() === 3 ? 'border-tenant-500 bg-tenant-500/5 shadow-sm' : 'border-base-300 bg-base-200/30 hover:bg-base-200/60'"
-          class="p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-tenant-500/10 text-tenant-600 font-mono">3-Tier</span>
-            <span class="material-symbols-outlined text-lg" [class]="selectedLayerCount() === 3 ? 'text-tenant-600' : 'text-text-secondary'">
-              {{ selectedLayerCount() === 3 ? 'radio_button_checked' : 'radio_button_unchecked' }}
-            </span>
+        <div class="space-y-4">
+          <!-- Presets -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-text-primary">Nomenclature Presets</label>
+            <div class="flex flex-wrap items-center gap-2">
+              @for (preset of layerLabelPresets; track preset.presetKey) {
+                <button 
+                  type="button"
+                  (click)="applyLayerPreset(preset)"
+                  class="px-3.5 py-2 rounded-xl border border-base-300 bg-base-200/50 hover:bg-base-200 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+                  <span class="material-symbols-outlined text-xs text-tenant-600">tune</span>
+                  <span>{{ preset.label }}</span>
+                </button>
+              }
+            </div>
           </div>
-          <h3 class="text-sm font-bold text-text-primary">Deep Three-Tier Hierarchy</h3>
-          <p class="text-xs text-text-secondary">Full multi-level curriculum (e.g. Chapter &gt; Topic &gt; Lesson). Recommended for comprehensive masterclasses.</p>
-        </div>
-      </div>
 
-      <!-- Presets for Layer Labels -->
-      <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-text-primary">Recommended Nomenclature Presets:</span>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          @for (preset of layerLabelPresets; track preset.presetName) {
-            <button 
-              (click)="applyLayerPreset(preset)"
-              class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-300 text-xs font-semibold text-text-primary border border-base-300 flex items-center gap-1.5 transition-colors">
-              <span class="material-symbols-outlined text-xs text-tenant-600">label</span>
-              <span>{{ preset.labels.slice(0, selectedLayerCount()).join(' → ') }}</span>
-            </button>
-          }
-        </div>
-      </div>
+          <!-- Label Inputs -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text-primary">Layer 1 Label (Top Tier)</label>
+              <input 
+                type="text" 
+                [value]="layer1Label()"
+                (input)="layer1Label.set($any($event.target).value)"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
+            </div>
 
-      <!-- Custom Labels Inputs -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-text-primary">Layer 1 Label (Top Tier) <span class="text-error">*</span></label>
-          <input 
-            type="text" 
-            [value]="layer1Label()"
-            (input)="layer1Label.set($any($event.target).value)"
-            class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
-        </div>
+            @if (selectedLayerCount() >= 2) {
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-text-primary">Layer 2 Label (Mid Tier)</label>
+                <input 
+                  type="text" 
+                  [value]="layer2Label()"
+                  (input)="layer2Label.set($any($event.target).value)"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
+              </div>
+            }
 
-        @if (selectedLayerCount() >= 2) {
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Layer 2 Label (Sub Tier) <span class="text-error">*</span></label>
-            <input 
-              type="text" 
-              [value]="layer2Label()"
-              (input)="layer2Label.set($any($event.target).value)"
-              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
+            @if (selectedLayerCount() === 3) {
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-text-primary">Layer 3 Label (Leaf Tier)</label>
+                <input 
+                  type="text" 
+                  [value]="layer3Label()"
+                  (input)="layer3Label.set($any($event.target).value)"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
+              </div>
+            }
           </div>
-        }
-
-        @if (selectedLayerCount() === 3) {
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Layer 3 Label (Leaf Unit) <span class="text-error">*</span></label>
-            <input 
-              type="text" 
-              [value]="layer3Label()"
-              (input)="layer3Label.set($any($event.target).value)"
-              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
-          </div>
-        }
+        </div>
       </div>
     </div>
   }
@@ -314,17 +447,22 @@
   <!-- STEP 3: BUILD STRUCTURE & CONTENT -->
   <!-- ========================================================================= -->
   @if (currentStep() === 3) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-text-primary">Step 3: Build Structure & Content</h2>
-          <p class="text-xs text-text-secondary mt-0.5">
-            Create structural sections and attach learning modules and assessments.
-          </p>
+    <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-6 animate-fade-in">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-base-300">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">format_list_bulleted</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">Build Structure &amp; Content Items</h2>
+            <p class="text-[11px] text-text-secondary">Create structural hierarchy and attach lessons, videos, and quizzes</p>
+          </div>
         </div>
+
         <button 
+          type="button"
           (click)="addLayer1Node()"
-          class="px-4 py-2 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
           <span class="material-symbols-outlined text-base">add</span>
           <span>Add {{ layer1Label() }}</span>
         </button>
@@ -333,7 +471,7 @@
       <!-- Recursive Tree Structure -->
       <div class="space-y-4">
         @for (node1 of structureNodes(); track node1.nodeId; let idx1 = $index) {
-          <div class="p-5 rounded-3xl bg-base-200/40 border border-base-300 space-y-4 shadow-2xs">
+          <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-4 shadow-2xs">
             <!-- Layer 1 Header -->
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2.5 flex-1">
@@ -350,23 +488,26 @@
               <div class="flex items-center gap-2">
                 @if (selectedLayerCount() > 1) {
                   <button 
+                    type="button"
                     (click)="addChildNode(node1)"
-                    class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1">
+                    class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1 cursor-pointer">
                     <span class="material-symbols-outlined text-xs">add</span>
                     <span>Add {{ layer2Label() }}</span>
                   </button>
                 } @else {
                   <button 
+                    type="button"
                     (click)="openAddContentModal(node1.nodeId)"
-                    class="px-3 py-1.5 rounded-xl bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 text-xs font-semibold flex items-center gap-1">
+                    class="px-3 py-1.5 rounded-xl bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 text-xs font-semibold flex items-center gap-1 cursor-pointer">
                     <span class="material-symbols-outlined text-xs">add</span>
                     <span>Add Content</span>
                   </button>
                 }
 
                 <button 
+                  type="button"
                   (click)="removeLayer1Node(node1.nodeId)"
-                  class="p-1.5 rounded-xl text-text-secondary hover:text-error hover:bg-base-200"
+                  class="p-1.5 rounded-xl text-text-secondary hover:text-rose-500 hover:bg-base-200 cursor-pointer"
                   title="Remove Section">
                   <span class="material-symbols-outlined text-base">delete</span>
                 </button>
@@ -383,15 +524,15 @@
                         {{ item.family === 'learning' ? 'play_lesson' : 'quiz' }}
                       </span>
                       <span class="font-bold text-text-primary">{{ item.title }}</span>
-                      <span class="text-[10px] font-semibold px-2 py-0.2 rounded" [class]="item.family === 'learning' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-indigo-500/10 text-indigo-600'">
+                      <span class="text-[10px] font-semibold px-2 py-0.5 rounded" [class]="item.family === 'learning' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-indigo-500/10 text-indigo-600'">
                         {{ item.family | uppercase }}
                       </span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button (click)="openEditContentModal(node1.nodeId, item)" class="text-text-secondary hover:text-tenant-600">
+                      <button (click)="openEditContentModal(node1.nodeId, item)" class="text-text-secondary hover:text-tenant-600 cursor-pointer">
                         <span class="material-symbols-outlined text-sm">edit</span>
                       </button>
-                      <button (click)="deleteContentItem(node1.nodeId, item.contentId)" class="text-text-secondary hover:text-error">
+                      <button (click)="deleteContentItem(node1.nodeId, item.contentId)" class="text-text-secondary hover:text-rose-500 cursor-pointer">
                         <span class="material-symbols-outlined text-sm">delete</span>
                       </button>
                     </div>
@@ -420,23 +561,26 @@
                       <div class="flex items-center gap-2">
                         @if (selectedLayerCount() === 3) {
                           <button 
+                            type="button"
                             (click)="addChildNode(node2)"
-                            class="px-2.5 py-1 rounded-lg bg-base-200 hover:bg-base-300 text-text-primary text-[11px] font-semibold flex items-center gap-1">
+                            class="px-2.5 py-1 rounded-lg bg-base-200 hover:bg-base-300 text-text-primary text-[11px] font-semibold flex items-center gap-1 cursor-pointer">
                             <span class="material-symbols-outlined text-xs">add</span>
                             <span>Add {{ layer3Label() }}</span>
                           </button>
                         } @else {
                           <button 
+                            type="button"
                             (click)="openAddContentModal(node2.nodeId)"
-                            class="px-2.5 py-1 rounded-lg bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 text-[11px] font-semibold flex items-center gap-1">
+                            class="px-2.5 py-1 rounded-lg bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 text-[11px] font-semibold flex items-center gap-1 cursor-pointer">
                             <span class="material-symbols-outlined text-xs">add</span>
                             <span>Add Content</span>
                           </button>
                         }
 
                         <button 
+                          type="button"
                           (click)="removeChildNode(node1, node2.nodeId)"
-                          class="p-1 rounded-lg text-text-secondary hover:text-error hover:bg-base-200">
+                          class="p-1 rounded-lg text-text-secondary hover:text-rose-500 hover:bg-base-200 cursor-pointer">
                           <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                       </div>
@@ -454,10 +598,10 @@
                               <span class="font-medium text-text-primary">{{ item.title }}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                              <button (click)="openEditContentModal(node2.nodeId, item)" class="text-text-secondary hover:text-tenant-600">
+                              <button (click)="openEditContentModal(node2.nodeId, item)" class="text-text-secondary hover:text-tenant-600 cursor-pointer">
                                 <span class="material-symbols-outlined text-xs">edit</span>
                               </button>
-                              <button (click)="deleteContentItem(node2.nodeId, item.contentId)" class="text-text-secondary hover:text-error">
+                              <button (click)="deleteContentItem(node2.nodeId, item.contentId)" class="text-text-secondary hover:text-rose-500 cursor-pointer">
                                 <span class="material-symbols-outlined text-xs">delete</span>
                               </button>
                             </div>
@@ -485,14 +629,16 @@
 
                               <div class="flex items-center gap-1.5">
                                 <button 
+                                  type="button"
                                   (click)="openAddContentModal(node3.nodeId)"
-                                  class="px-2 py-0.5 rounded-md bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 text-[10px] font-semibold flex items-center gap-1">
+                                  class="px-2 py-0.5 rounded-md bg-tenant-500/10 hover:bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 text-[10px] font-semibold flex items-center gap-1 cursor-pointer">
                                   <span class="material-symbols-outlined text-xs">add</span>
                                   <span>Add Content</span>
                                 </button>
                                 <button 
+                                  type="button"
                                   (click)="removeChildNode(node2, node3.nodeId)"
-                                  class="p-1 rounded text-text-secondary hover:text-error">
+                                  class="p-1 rounded text-text-secondary hover:text-rose-500 cursor-pointer">
                                   <span class="material-symbols-outlined text-xs">delete</span>
                                 </button>
                               </div>
@@ -512,10 +658,10 @@
                                     }
                                   </div>
                                   <div class="flex items-center gap-1.5">
-                                    <button (click)="openEditContentModal(node3.nodeId, item)" class="text-text-secondary hover:text-tenant-600">
+                                    <button (click)="openEditContentModal(node3.nodeId, item)" class="text-text-secondary hover:text-tenant-600 cursor-pointer">
                                       <span class="material-symbols-outlined text-xs">edit</span>
                                     </button>
-                                    <button (click)="deleteContentItem(node3.nodeId, item.contentId)" class="text-text-secondary hover:text-error">
+                                    <button (click)="deleteContentItem(node3.nodeId, item.contentId)" class="text-text-secondary hover:text-rose-500 cursor-pointer">
                                       <span class="material-symbols-outlined text-xs">delete</span>
                                     </button>
                                   </div>
@@ -540,12 +686,15 @@
   <!-- STEP 4: TAGGING (INSTRUCTORS & AUTHORS) -->
   <!-- ========================================================================= -->
   @if (currentStep() === 4) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Step 4: Tagging (Instructors & Authors)</h2>
-        <p class="text-xs text-text-secondary mt-0.5">
-          Enforce Rule Engine #2: Instructor Exclusivity and assign leaf content authors.
-        </p>
+    <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-6 animate-fade-in">
+      <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+        <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+          <span class="material-symbols-outlined text-base">group</span>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-text-primary">Step 4: Tagging (Instructors &amp; Authors)</h2>
+          <p class="text-[11px] text-text-secondary">Enforce Rule Engine #2: Instructor Exclusivity and assign faculty</p>
+        </div>
       </div>
 
       <!-- Rule Engine #2: Instructor Exclusivity Banner -->
@@ -553,7 +702,7 @@
         <div class="flex items-start gap-2.5">
           <span class="material-symbols-outlined text-indigo-600 text-lg mt-0.5">shield</span>
           <div>
-            <strong class="text-xs text-indigo-700 block">Rule Engine #2: Instructor Exclusivity</strong>
+            <strong class="text-xs text-indigo-700 dark:text-indigo-400 block">Rule Engine #2: Instructor Exclusivity</strong>
             <p class="text-xs text-text-secondary">
               Instructors can only be tagged at one layer depth. Tagging instructors at a higher layer automatically blocks tagging at lower layers.
             </p>
@@ -561,28 +710,31 @@
         </div>
 
         <!-- Layer Depth Selector for Instructors -->
-        <div class="flex items-center gap-3 pt-2">
+        <div class="flex flex-wrap items-center gap-3 pt-2">
           <span class="text-xs font-bold text-text-primary">Tag Instructors At:</span>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <button 
+              type="button"
               (click)="setInstructorTaggedLayer(1)"
               [class]="instructorTaggedLayer() === 1 ? 'bg-tenant-500 text-white font-bold' : 'bg-base-200 text-text-primary hover:bg-base-300 font-medium'"
-              class="px-3 py-1.5 rounded-xl text-xs transition-colors">
+              class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer">
               Layer 1: {{ layer1Label() }}
             </button>
             @if (selectedLayerCount() >= 2) {
               <button 
+                type="button"
                 (click)="setInstructorTaggedLayer(2)"
                 [class]="instructorTaggedLayer() === 2 ? 'bg-tenant-500 text-white font-bold' : 'bg-base-200 text-text-primary hover:bg-base-300 font-medium'"
-                class="px-3 py-1.5 rounded-xl text-xs transition-colors">
+                class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer">
                 Layer 2: {{ layer2Label() }}
               </button>
             }
             @if (selectedLayerCount() === 3) {
               <button 
+                type="button"
                 (click)="setInstructorTaggedLayer(3)"
                 [class]="instructorTaggedLayer() === 3 ? 'bg-tenant-500 text-white font-bold' : 'bg-base-200 text-text-primary hover:bg-base-300 font-medium'"
-                class="px-3 py-1.5 rounded-xl text-xs transition-colors">
+                class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer">
                 Layer 3: {{ layer3Label() }}
               </button>
             }
@@ -608,9 +760,10 @@
               <div class="flex flex-wrap items-center gap-1.5">
                 @for (inst of lmsService.instructorsRepo(); track inst.id) {
                   <button 
+                    type="button"
                     (click)="toggleInstructorTag(node1, inst)"
                     [class]="isInstructorTagged(node1, inst.id) ? 'bg-indigo-600 text-white font-bold' : 'bg-base-100 text-text-primary border border-base-300 hover:bg-base-200'"
-                    class="px-2.5 py-1 rounded-xl text-xs flex items-center gap-1.5 transition-colors">
+                    class="px-2.5 py-1 rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer">
                     <img [src]="inst.avatar" [alt]="inst.name" class="w-4 h-4 rounded-full object-cover" referrerpolicy="no-referrer" />
                     <span>{{ inst.name }}</span>
                     @if (isInstructorTagged(node1, inst.id)) {
@@ -627,33 +780,36 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- STEP 5: REVIEWS & GRADING REVIEW -->
+  <!-- STEP 5: REVIEWS & GRADING MATRIX -->
   <!-- ========================================================================= -->
   @if (currentStep() === 5) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Step 5: Reviews & Grading Matrix</h2>
-        <p class="text-xs text-text-secondary mt-0.5">Configure learner feedback collection and audit assessment grading coverage.</p>
-      </div>
-
+    <div class="space-y-6 animate-fade-in">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Review Controls -->
-        <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-4">
-          <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">Learner Feedback Settings</h3>
+        <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+          <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">rate_review</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Learner Feedback Settings</h2>
+              <p class="text-[11px] text-text-secondary">Configure rating models and review toggles</p>
+            </div>
+          </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-base-200/40 border border-base-300">
             <div>
               <span class="text-xs font-bold text-text-primary">Content Reviews</span>
-              <p class="text-[11px] text-text-secondary">Allow learners to rate curriculum content</p>
+              <p class="text-[11px] text-text-secondary">Allow learners to rate curriculum modules</p>
             </div>
             <input 
               type="checkbox" 
               [checked]="reviewsConfig().contentReviewsEnabled"
               (change)="reviewsConfig().contentReviewsEnabled = !reviewsConfig().contentReviewsEnabled"
-              class="toggle toggle-primary" />
+              class="w-4 h-4 accent-tenant-500 cursor-pointer" />
           </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-base-200/40 border border-base-300">
             <div>
               <span class="text-xs font-bold text-text-primary">Instructor Reviews</span>
               <p class="text-[11px] text-text-secondary">Allow learners to evaluate tagged instructors</p>
@@ -662,35 +818,37 @@
               type="checkbox" 
               [checked]="reviewsConfig().instructorReviewsEnabled"
               (change)="reviewsConfig().instructorReviewsEnabled = !reviewsConfig().instructorReviewsEnabled"
-              class="toggle toggle-primary" />
+              class="w-4 h-4 accent-tenant-500 cursor-pointer" />
           </div>
 
-          <div class="space-y-1.5 pt-2 border-t border-base-300">
-            <label class="text-xs font-bold text-text-primary">Rating Scale Model</label>
-            <select 
-              [value]="reviewsConfig().scale"
-              (change)="reviewsConfig().scale = $any($event.target).value"
-              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary">
-              <option value="5-star-likert">5-Star Likert Scale (Standard)</option>
-              <option value="csat-10">10-Point CSAT Scale</option>
-            </select>
+          <!-- Custom Select for Rating Scale -->
+          <div>
+            <app-custom-select
+              label="Rating Scale Model"
+              [options]="scaleOptions"
+              [(value)]="reviewsConfig().scale"
+              placeholder="Select rating scale...">
+            </app-custom-select>
           </div>
         </div>
 
         <!-- Rule Engine #3: Manual Grading Audit -->
-        <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">Rule Engine #3 Audit</h3>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700">
-              Manual Assessments Guard
-            </span>
+        <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+          <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">gavel</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Rule Engine #3 Audit</h2>
+              <p class="text-[11px] text-text-secondary">Manual assessments faculty coverage guard</p>
+            </div>
           </div>
 
           <p class="text-xs text-text-secondary">
-            Manual-graded assessments (assignments/projects) must be backed by a tagged instructor in their ancestor node.
+            Manual-graded assessments (assignments/projects) must be backed by a tagged instructor in their ancestor node to ensure evaluation coverage.
           </p>
 
-          <div class="p-3 rounded-xl bg-base-100 border border-base-300 space-y-2 text-xs">
+          <div class="p-4 rounded-2xl bg-base-200/40 border border-base-300 space-y-2.5 text-xs">
             <div class="flex items-center justify-between">
               <span class="text-text-secondary">Total Assessments:</span>
               <strong class="text-text-primary font-mono">{{ courseMetrics().assessmentCount }}</strong>
@@ -699,9 +857,12 @@
               <span class="text-text-secondary">Manual Graded Assessments:</span>
               <strong class="text-amber-600 font-mono">{{ courseMetrics().manualGradingCount }}</strong>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between pt-1 border-t border-base-300">
               <span class="text-text-secondary">Instructor Coverage Status:</span>
-              <strong class="text-emerald-600 font-semibold">✓ Verified</strong>
+              <strong class="text-emerald-600 font-semibold flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">check_circle</span>
+                <span>Verified Active</span>
+              </strong>
             </div>
           </div>
         </div>
@@ -713,24 +874,19 @@
   <!-- STEP 6: REVIEW & PUBLISH -->
   <!-- ========================================================================= -->
   @if (currentStep() === 6) {
-    <div class="bg-base-100 p-8 rounded-3xl border border-base-300 shadow-xs space-y-6 animate-fade-in">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Step 6: Review & Final Quality Verification</h2>
-        <p class="text-xs text-text-secondary mt-0.5">Audit compliance gates before releasing the course live to catalog.</p>
-      </div>
-
+    <div class="space-y-6 animate-fade-in">
       <!-- Live Governance Checklist -->
-      <div class="p-5 rounded-2xl border space-y-3" [class]="validationResult().publishable ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'">
+      <div class="p-6 rounded-3xl border shadow-xs space-y-4" [class]="validationResult().publishable ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <span class="material-symbols-outlined text-xl" [class]="validationResult().publishable ? 'text-emerald-600' : 'text-amber-600'">
               {{ validationResult().publishable ? 'verified' : 'gavel' }}
             </span>
-            <strong class="text-sm font-bold" [class]="validationResult().publishable ? 'text-emerald-800' : 'text-amber-900'">
+            <strong class="text-sm font-bold" [class]="validationResult().publishable ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-900 dark:text-amber-300'">
               {{ validationResult().publishable ? 'Ready for Live Publication' : 'Publication Gates Incomplete' }}
             </strong>
           </div>
-          <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-md" [class]="validationResult().publishable ? 'bg-emerald-500/20 text-emerald-800' : 'bg-amber-500/20 text-amber-800'">
+          <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-md" [class]="validationResult().publishable ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-200' : 'bg-amber-500/20 text-amber-800 dark:text-amber-200'">
             {{ validationResult().publishable ? 'GATE PASSED' : 'GATE BLOCKED' }}
           </span>
         </div>
@@ -757,7 +913,7 @@
         </div>
 
         @if (validationResult().warnings.length > 0 || validationResult().missingMandatoryFields.length > 0) {
-          <div class="pt-2 border-t border-amber-500/20 space-y-1 text-xs text-amber-900">
+          <div class="pt-2 border-t border-amber-500/20 space-y-1 text-xs text-amber-900 dark:text-amber-300">
             @for (w of validationResult().warnings; track w) {
               <p class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-xs">warning</span>
@@ -769,7 +925,7 @@
       </div>
 
       <!-- Final Course Summary Card -->
-      <div class="p-6 rounded-2xl bg-base-200/40 border border-base-300 space-y-4">
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div class="flex items-center gap-2">
@@ -787,41 +943,89 @@
             <span><strong>{{ detailsForm.value.durationMinutes }}</strong> Minutes</span>
           </div>
         </div>
+
+        <div class="pt-3 border-t border-base-300 flex items-center justify-between">
+          <span class="text-xs text-text-secondary">Save this structure blueprint for other courses?</span>
+          <button 
+            type="button"
+            (click)="openSaveAsTemplateModal()"
+            class="px-3.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">dashboard_customize</span>
+            <span>Extract as Template Blueprint</span>
+          </button>
+        </div>
       </div>
     </div>
   }
 
-  <!-- Wizard Navigation Buttons -->
-  <div class="flex items-center justify-between pt-4">
-    <button 
-      (click)="prevStep()"
-      [disabled]="currentStep() === 1"
-      class="px-5 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 disabled:opacity-40 transition-colors">
-      <span class="material-symbols-outlined text-base">arrow_back</span>
-      <span>Previous Step</span>
-    </button>
-
-    <div class="flex items-center gap-3">
-      @if (currentStep() < 6) {
+  <!-- ========================================================================= -->
+  <!-- STEP NAVIGATION FOOTER (Identical in position & layout to Organization Create) -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+    <div class="flex items-center gap-2">
+      @if (currentStep() === 1) {
         <button 
-          (click)="nextStep()"
-          class="px-6 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
-          <span>Continue to Step {{ currentStep() + 1 }}</span>
-          <span class="material-symbols-outlined text-base">arrow_forward</span>
+          type="button" 
+          (click)="onCancel()" 
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+          Cancel
+        </button>
+
+        <button 
+          type="button" 
+          (click)="onReset()" 
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">restart_alt</span>
+          Reset
         </button>
       } @else {
         <button 
-          (click)="publishCourse()"
+          type="button" 
+          (click)="prevStep()" 
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Back</span>
+        </button>
+      }
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button 
+        type="button" 
+        (click)="saveAsDraft()" 
+        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        Save as draft
+      </button>
+
+      @if (currentStep() < 6) {
+        <button 
+          type="button" 
+          (click)="nextStep()" 
+          class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+          <span>Next</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      } @else {
+        <button 
+          type="button" 
+          (click)="publishCourse()" 
           [disabled]="!validationResult().publishable"
-          class="px-7 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-          <span class="material-symbols-outlined text-base">rocket_launch</span>
-          <span>Publish Course to Catalog</span>
+          class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          <span class="material-symbols-outlined text-base">
+            {{ isEditMode() ? 'check_circle' : 'rocket_launch' }}
+          </span>
+          <span>
+            {{ isEditMode() ? 'Update & Publish Course' : 'Create & Publish Course' }}
+          </span>
         </button>
       }
     </div>
   </div>
 
-  <!-- Content Item Add/Edit Modal -->
+  <!-- ========================================================================= -->
+  <!-- MODAL: Content Item Add/Edit Modal (with Custom Selects) -->
+  <!-- ========================================================================= -->
   @if (showContentModal()) {
     <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
       <div class="w-full max-w-lg bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up" [formGroup]="contentForm">
@@ -834,120 +1038,103 @@
               <h2 class="text-base font-bold text-text-primary">
                 {{ activeEditContentId() ? 'Edit Content Item' : 'Add Content Item' }}
               </h2>
-              <p class="text-xs text-text-secondary">Learning material or assessment</p>
+              <p class="text-xs text-text-secondary">Learning material or assessment module</p>
             </div>
           </div>
-          <button (click)="showContentModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300">
+          <button (click)="showContentModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 cursor-pointer">
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
         <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <!-- Title -->
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Content Title <span class="text-error">*</span></label>
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">Content Title <span class="text-rose-500">*</span></label>
             <input 
               type="text" 
               formControlName="title"
               placeholder="e.g. Introduction to Safety Protocols"
-              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 focus:border-tenant-500 focus:outline-none text-xs text-text-primary font-semibold" />
           </div>
 
-          <!-- Family: Learning vs Assessment -->
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Content Family <span class="text-error">*</span></label>
-            <div class="grid grid-cols-2 gap-3">
-              <button 
-                type="button"
-                (click)="contentForm.patchValue({ family: 'learning' })"
-                [class]="contentForm.value.family === 'learning' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 font-bold' : 'border-base-300 bg-base-200/40 text-text-secondary'"
-                class="p-3 rounded-2xl border-2 text-xs flex items-center justify-center gap-2 transition-all">
-                <span class="material-symbols-outlined text-base">play_lesson</span>
-                <span>Learning Unit</span>
-              </button>
-              <button 
-                type="button"
-                (click)="contentForm.patchValue({ family: 'assessment' })"
-                [class]="contentForm.value.family === 'assessment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700 font-bold' : 'border-base-300 bg-base-200/40 text-text-secondary'"
-                class="p-3 rounded-2xl border-2 text-xs flex items-center justify-center gap-2 transition-all">
-                <span class="material-symbols-outlined text-base">quiz</span>
-                <span>Assessment</span>
-              </button>
-            </div>
+          <!-- Family: Custom Select -->
+          <div>
+            <app-custom-select
+              label="Content Family"
+              [required]="true"
+              [options]="familyOptions"
+              formControlName="family"
+              placeholder="Select content type...">
+            </app-custom-select>
           </div>
 
           @if (contentForm.value.family === 'learning') {
-            <!-- Learning Subtype -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-text-primary">Learning Format</label>
-              <select 
+            <!-- Learning Subtype: Custom Select -->
+            <div>
+              <app-custom-select
+                label="Learning Format"
+                [options]="learningSubtypeOptions"
                 formControlName="learningSubtype"
-                class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-medium text-text-primary">
-                <option value="video">Video Lesson</option>
-                <option value="audio">Audio Podcast</option>
-                <option value="reading">Article / Text Reading</option>
-                <option value="document">PDF / Document Download</option>
-                <option value="interactive">Interactive Simulation / Lab</option>
-              </select>
+                placeholder="Select format...">
+              </app-custom-select>
             </div>
 
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-text-primary">Media / Resource URL</label>
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text-primary">Media / Resource URL</label>
               <input 
                 type="text" 
                 formControlName="mediaUrl"
                 placeholder="https://..."
-                class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-mono text-text-primary" />
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-primary focus:outline-none focus:border-tenant-500" />
             </div>
           } @else {
-            <!-- Assessment Subtype -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-text-primary">Assessment Format</label>
-              <select 
+            <!-- Assessment Subtype: Custom Select -->
+            <div>
+              <app-custom-select
+                label="Assessment Format"
+                [options]="assessmentSubtypeOptions"
                 formControlName="assessmentSubtype"
-                class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-medium text-text-primary">
-                <option value="quiz">Objective Quiz (Multiple Choice)</option>
-                <option value="assignment">Subjective Assignment / Project</option>
-                <option value="questionnaire">Survey / Questionnaire</option>
-              </select>
+                placeholder="Select assessment format...">
+              </app-custom-select>
             </div>
 
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-text-primary">Grading Mode</label>
-              <select 
+            <!-- Grading Mode: Custom Select -->
+            <div>
+              <app-custom-select
+                label="Grading Mode"
+                [options]="gradingModeOptions"
                 formControlName="gradingMode"
-                class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-medium text-text-primary">
-                <option value="auto">Auto-Graded (Instant score calculation)</option>
-                <option value="manual">Manual-Graded (Requires instructor evaluation)</option>
-              </select>
+                placeholder="Select grading mode...">
+              </app-custom-select>
             </div>
 
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-text-primary">Passing Score (%)</label>
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text-primary">Passing Score (%)</label>
               <input 
                 type="number" 
                 formControlName="passingScorePct"
-                class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-mono text-text-primary" />
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-primary focus:outline-none focus:border-tenant-500" />
             </div>
           }
 
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Estimated Duration (Minutes)</label>
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">Estimated Duration (Minutes)</label>
             <input 
               type="number" 
               formControlName="durationMinutes"
-              class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-mono text-text-primary" />
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-primary focus:outline-none focus:border-tenant-500" />
           </div>
         </div>
 
         <div class="p-6 border-t border-base-300 bg-base-200/50 flex items-center justify-between">
-          <button (click)="showContentModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold">
+          <button (click)="showContentModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold cursor-pointer">
             Cancel
           </button>
           <button 
+            type="button"
             (click)="saveContentItem()" 
             [disabled]="contentForm.invalid"
-            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md disabled:opacity-40">
+            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md disabled:opacity-40 cursor-pointer">
             Save Item
           </button>
         </div>
@@ -955,7 +1142,9 @@
     </div>
   }
 
-  <!-- Save as Blueprint Template Modal (§8.3) -->
+  <!-- ========================================================================= -->
+  <!-- MODAL: Save as Blueprint Template Modal (with Custom Select) -->
+  <!-- ========================================================================= -->
   @if (showSaveAsTemplateModal()) {
     <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
       <div class="w-full max-w-md bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
@@ -969,41 +1158,40 @@
               <p class="text-xs text-text-secondary">Extract structure for reusable adoption</p>
             </div>
           </div>
-          <button (click)="showSaveAsTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300">
+          <button (click)="showSaveAsTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300 cursor-pointer">
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
         <div class="p-6 space-y-4">
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Template Name</label>
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-text-primary">Template Name</label>
             <input 
               type="text" 
               [value]="tplName()"
               (input)="tplName.set($any($event.target).value)"
-              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-primary font-semibold" />
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary font-semibold focus:outline-none focus:border-tenant-500" />
           </div>
 
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-text-primary">Template Scope</label>
-            <select 
-              [value]="tplScope()"
-              (change)="tplScope.set($any($event.target).value)"
-              class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-semibold text-text-primary">
-              <option value="lms">Current LMS Instance Only</option>
-              <option value="organization">Entire Organization</option>
-              <option value="global">Global Catalog</option>
-            </select>
+          <!-- Scope: Custom Select -->
+          <div>
+            <app-custom-select
+              label="Template Scope"
+              [options]="scopeOptions"
+              [(value)]="tplScope"
+              placeholder="Select template scope...">
+            </app-custom-select>
           </div>
         </div>
 
         <div class="p-6 border-t border-base-300 bg-base-200/50 flex items-center justify-between">
-          <button (click)="showSaveAsTemplateModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold">
+          <button (click)="showSaveAsTemplateModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold cursor-pointer">
             Cancel
           </button>
           <button 
+            type="button"
             (click)="confirmSaveAsTemplate()" 
-            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md">
+            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md cursor-pointer">
             Create Blueprint Template
           </button>
         </div>

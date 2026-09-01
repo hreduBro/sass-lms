@@ -1,113 +1,172 @@
-<div class="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8">
-  <!-- Top Bar -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
+<div class="space-y-6 pb-16">
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-sm font-medium text-indigo-600 mb-1">
-        <span class="material-icons text-base">space_dashboard</span>
-        <span>Dashboard Studio & Telemetry</span>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Assessment Analytics Studio
+        </span>
+        <span class="text-xs text-text-secondary">
+          <strong class="font-bold text-text-primary">{{ totalAssessments() }} Registered Instruments</strong> &bull; {{ activeTenant().name }} ({{ activeLms().basicInfo?.lmsName || 'LMS Workspace' }})
+        </span>
       </div>
-      <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Assessment Telemetry</h1>
-      <p class="text-slate-500 text-sm mt-1">Repository health, publish blocker detection, score velocity & customizable widget studio</p>
+
+      <!-- Primary Heading -->
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">space_dashboard</span>
+        <span>Assessment Studio & Telemetry</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
+        Repository health, publish blocker detection, scoring velocity, question taxonomy & customizable studio.
+      </p>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button
-        (click)="showStudioDrawer.set(true)"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50"
-      >
-        <span class="material-icons text-indigo-600 text-base">tune</span>
-        <span>Customize Widgets</span>
-      </button>
-
+    <!-- Top-Right Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a
         routerLink="/assessments"
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer"
       >
-        <span class="material-icons text-base">quiz</span>
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">quiz</span>
         <span>Assessment Bank</span>
+      </a>
+
+      <a
+        routerLink="/assessments/results"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-lg">fact_check</span>
+        <span>Results & Grading</span>
+      </a>
+
+      <a
+        routerLink="/assessments/create"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span>Author Assessment</span>
       </a>
     </div>
   </div>
 
-  <!-- Dynamic Widget Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <!-- ========================================================================= -->
+  <!-- 2. PRIMARY KPI CARDS (USING APP-KPI-CARD)                                 -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <app-kpi-card [kpi]="kpiTotalInstruments()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiPublished()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiPassVelocity()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiManualGraded()"></app-kpi-card>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. MODULAR ANALYTICAL WIDGET GRID                                         -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 text-xs">
     @for (w of visibleWidgets(); track w.id) {
-      <!-- Widget 1: KPI Grid -->
-      @if (w.type === 'asm_kpi_summary') {
-        <div class="col-span-1 md:col-span-2 lg:col-span-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-              <span class="material-icons text-indigo-600 text-lg">speed</span>
-              <span>High-Level Assessment Repository Telemetry</span>
-            </h3>
-            <span class="text-xs text-slate-400 font-mono">Live Sync</span>
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: KPI Summary Strip                                           -->
+      <!-- ------------------------------------------------------------------- -->
+      @if (w.type === 'kpi_summary') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-tenant-600 text-lg">speed</span>
+                <span>{{ w.title || 'High-Level Assessment Repository Telemetry' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Live aggregated repository health and question inventory metrics.</p>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200">
+              Live Sync
+            </span>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
-              <div class="text-xs text-slate-500 font-semibold uppercase">Total Instruments</div>
-              <div class="text-2xl font-bold text-slate-900 mt-1">{{ totalAssessments() }}</div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5 pt-1">
+            <div class="p-3.5 bg-base-200/60 rounded-xl border border-base-300/80">
+              <div class="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Total Instruments</div>
+              <div class="text-2xl font-black text-text-primary mt-1">{{ totalAssessments() }}</div>
+              <div class="text-[10px] text-text-secondary mt-0.5">Across catalog</div>
             </div>
 
-            <div class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-100">
-              <div class="text-xs text-emerald-800 font-semibold uppercase">Published</div>
-              <div class="text-2xl font-bold text-emerald-600 mt-1">{{ publishedCount() }}</div>
+            <div class="p-3.5 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60">
+              <div class="text-[10px] text-emerald-800 dark:text-emerald-400 font-bold uppercase tracking-wider">Published</div>
+              <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ publishedCount() }}</div>
+              <div class="text-[10px] text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">Live examinees</div>
             </div>
 
-            <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-100">
-              <div class="text-xs text-amber-800 font-semibold uppercase">Draft / Revision</div>
-              <div class="text-2xl font-bold text-amber-600 mt-1">{{ draftCount() }}</div>
+            <div class="p-3.5 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-900/60">
+              <div class="text-[10px] text-amber-800 dark:text-amber-400 font-bold uppercase tracking-wider">Draft / Revision</div>
+              <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ draftCount() }}</div>
+              <div class="text-[10px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">In authoring</div>
             </div>
 
-            <div class="p-4 bg-purple-50/60 rounded-xl border border-purple-100">
-              <div class="text-xs text-purple-800 font-semibold uppercase">Manual Graded</div>
-              <div class="text-2xl font-bold text-purple-600 mt-1">{{ manualGradedCount() }}</div>
+            <div class="p-3.5 bg-purple-50/60 dark:bg-purple-950/30 rounded-xl border border-purple-200/60 dark:border-purple-900/60">
+              <div class="text-[10px] text-purple-800 dark:text-purple-400 font-bold uppercase tracking-wider">Question Bank</div>
+              <div class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ totalQuestionsInBank() }}</div>
+              <div class="text-[10px] text-purple-700/80 dark:text-purple-400/80 mt-0.5">Authored items</div>
             </div>
 
-            <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 col-span-2 sm:col-span-1">
-              <div class="text-xs text-indigo-800 font-semibold uppercase">Pass Velocity</div>
-              <div class="text-2xl font-bold text-indigo-600 mt-1">{{ passRate() }}%</div>
+            <div class="p-3.5 bg-sky-50/60 dark:bg-sky-950/30 rounded-xl border border-sky-200/60 dark:border-sky-900/60 col-span-2 sm:col-span-1">
+              <div class="text-[10px] text-sky-800 dark:text-sky-400 font-bold uppercase tracking-wider">Average Score</div>
+              <div class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{{ avgScore() }}%</div>
+              <div class="text-[10px] text-sky-700/80 dark:text-sky-400/80 mt-0.5">Overall cohort</div>
             </div>
           </div>
         </div>
       }
 
-      <!-- Widget 2: Publish Blockers -->
-      @else if (w.type === 'asm_blockers') {
-        <div
-          [class.col-span-1]="w.colSpan === 1"
-          [class.col-span-2]="w.colSpan === 2"
-          [class.col-span-3]="w.colSpan === 3"
-          [class.col-span-4]="w.colSpan === 4"
-          class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4"
-        >
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-              <span class="material-icons text-amber-500 text-lg">warning</span>
-              <span>Governance & Publish Blockers</span>
-            </h3>
-            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: Governance & Publish Blockers                               -->
+      <!-- ------------------------------------------------------------------- -->
+      @else if (w.type === 'publish_blockers') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-lg">gavel</span>
+                <span>{{ w.title || 'Governance & Publish Blockers' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Quality gate audits and prerequisite validations.</p>
+            </div>
+            <span
+              [class.bg-emerald-50]="publishBlockers().length === 0"
+              [class.text-emerald-700]="publishBlockers().length === 0"
+              [class.border-emerald-200]="publishBlockers().length === 0"
+              [class.bg-amber-50]="publishBlockers().length > 0"
+              [class.text-amber-700]="publishBlockers().length > 0"
+              [class.border-amber-200]="publishBlockers().length > 0"
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+            >
               {{ publishBlockers().length }} Warnings
             </span>
           </div>
 
           @if (publishBlockers().length === 0) {
-            <div class="p-6 bg-emerald-50/60 border border-emerald-100 rounded-xl text-center text-xs text-emerald-800 space-y-1">
-              <span class="material-icons text-2xl text-emerald-600">check_circle</span>
-              <div class="font-bold text-sm">All Assessments Gate Compliant</div>
-              <div>No assessments currently blocked by unassigned instructors.</div>
+            <div class="p-6 bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/60 rounded-xl text-center text-xs text-emerald-800 dark:text-emerald-300 space-y-1">
+              <span class="material-symbols-outlined text-3xl text-emerald-600 dark:text-emerald-400">task_alt</span>
+              <div class="font-bold text-sm">All Assessment Quality Gates Passed</div>
+              <div class="text-slate-600 dark:text-slate-400">All authored instruments satisfy instructor assignments and question quotas.</div>
             </div>
           } @else {
             <div class="space-y-3">
               @for (blk of publishBlockers(); track blk.assessmentId) {
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <div class="font-bold text-amber-900">{{ blk.title }}</div>
-                    <div class="text-amber-700">Code: {{ blk.code }} &bull; Missing assigned responsible instructor</div>
+                <div class="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-xl flex items-center justify-between gap-3 text-xs">
+                  <div class="min-w-0">
+                    <div class="font-bold text-amber-900 dark:text-amber-200 truncate">{{ blk.title }}</div>
+                    <div class="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span class="font-mono font-semibold">{{ blk.code }}</span>
+                      <span>&bull;</span>
+                      <span>{{ blk.reason }}</span>
+                    </div>
                   </div>
                   <a
                     [routerLink]="['/assessments/edit', blk.assessmentId]"
-                    class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shrink-0"
+                    class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shrink-0 transition-all cursor-pointer shadow-2xs"
                   >
                     Fix Gate
                   </a>
@@ -118,40 +177,177 @@
         </div>
       }
 
-      <!-- Widget 3: Recent Attempts Stream -->
-      @else if (w.type === 'asm_recent_attempts') {
-        <div
-          [class.col-span-1]="w.colSpan === 1"
-          [class.col-span-2]="w.colSpan === 2"
-          [class.col-span-3]="w.colSpan === 3"
-          [class.col-span-4]="w.colSpan === 4"
-          class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4"
-        >
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-              <span class="material-icons text-indigo-600 text-lg">history</span>
-              <span>Recent Attempt Stream</span>
-            </h3>
-            <a routerLink="/assessments/results" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">View All</a>
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: Assessment Types Breakdown                                  -->
+      <!-- ------------------------------------------------------------------- -->
+      @else if (w.type === 'type_distribution') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-tenant-500 text-lg">pie_chart</span>
+                <span>{{ w.title || 'Assessment Types Breakdown' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Distribution across pedagogical evaluation formats.</p>
+            </div>
+            <span class="text-[11px] font-mono text-text-secondary font-semibold">{{ totalAssessments() }} Total</span>
           </div>
 
-          <div class="space-y-3">
-            @for (att of attempts().slice(0, 4); track att.attemptId) {
-              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between text-xs">
-                <div>
-                  <div class="font-bold text-slate-900">{{ att.traineeName }}</div>
-                  <div class="text-slate-500 font-mono">{{ att.submittedAt }}</div>
+          <div class="space-y-3 pt-1">
+            @for (item of typeDistribution(); track item.type) {
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-medium text-text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-text-secondary">{{ item.icon }}</span>
+                    <span>{{ item.label }}</span>
+                  </span>
+                  <span class="font-mono font-bold text-text-primary">{{ item.count }} ({{ item.percent }}%)</span>
+                </div>
+                <div class="h-2 w-full bg-base-200 rounded-full overflow-hidden">
+                  <div [class]="item.color + ' h-full rounded-full transition-all duration-500'" [style.width.%]="item.percent"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: Pass Rate & Qualification Metrics                           -->
+      <!-- ------------------------------------------------------------------- -->
+      @else if (w.type === 'pass_rate_trend' || w.type === 'score_distribution') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-lg">bar_chart</span>
+                <span>{{ w.title || 'Score Distribution & Qualification Tiers' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Cohort performance segmented by mastery levels.</p>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200">
+              Avg: {{ avgScore() }}%
+            </span>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            @for (tier of scoreTiers(); track tier.label) {
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-medium text-text-primary">{{ tier.label }}</span>
+                  <span class="font-mono font-bold text-text-primary">{{ tier.count }} examinees ({{ tier.pct }}%)</span>
+                </div>
+                <div class="h-2 w-full bg-base-200 rounded-full overflow-hidden">
+                  <div [class]="tier.color + ' h-full rounded-full transition-all duration-500'" [style.width.%]="tier.pct"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: Top Referenced & Attempted Assessments                     -->
+      <!-- ------------------------------------------------------------------- -->
+      @else if (w.type === 'top_attempted_exams') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-lg">military_tech</span>
+                <span>{{ w.title || 'Top Attempted Assessment Instruments' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Most active examinations across enrolled training cohorts.</p>
+            </div>
+            <a routerLink="/assessments" class="text-xs text-tenant-600 dark:text-tenant-400 font-bold hover:underline">
+              View Bank &rarr;
+            </a>
+          </div>
+
+          <div class="space-y-3 pt-1">
+            @for (asm of topAttemptedAssessments().slice(0, 4); track asm.assessmentId; let idx = $index) {
+              <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300/80 flex items-center justify-between gap-3 hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span
+                    class="w-7 h-7 rounded-lg font-bold text-xs flex items-center justify-center shrink-0"
+                    [class.bg-amber-500/20]="idx === 0"
+                    [class.text-amber-600]="idx === 0"
+                    [class.bg-base-300]="idx > 0"
+                    [class.text-text-primary]="idx > 0"
+                  >
+                    #{{ idx + 1 }}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="font-bold text-text-primary truncate">{{ asm.title }}</p>
+                    <p class="text-[11px] text-text-secondary font-mono mt-0.5">
+                      {{ asm.code }} &bull; {{ asm.versionLabel }} &bull; {{ asm.questionCount }} questions &bull; {{ asm.passRate }}% pass
+                    </p>
+                  </div>
                 </div>
 
-                <div class="text-right">
-                  <div class="font-bold text-slate-900">{{ att.percentage }}%</div>
-                  <span
-                    [class.text-emerald-600]="att.passed"
-                    [class.text-rose-600]="!att.passed"
-                    class="font-bold uppercase text-[10px]"
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="text-right">
+                    <p class="font-black text-tenant-600 dark:text-tenant-400 text-sm font-mono">{{ asm.attemptCount }}</p>
+                    <p class="text-[10px] text-text-secondary uppercase font-semibold">Attempts</p>
+                  </div>
+                  <a
+                    [routerLink]="['/assessments/take', asm.assessmentId]"
+                    class="p-1.5 rounded-lg bg-base-100 hover:bg-base-300 border border-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                    title="Take Exam"
                   >
-                    {{ att.passed ? 'PASSED' : 'FAILED' }}
+                    <span class="material-symbols-outlined text-sm">play_arrow</span>
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ------------------------------------------------------------------- -->
+      <!-- WIDGET: Recent Assessment Activity Feed                             -->
+      <!-- ------------------------------------------------------------------- -->
+      @else if (w.type === 'recent_activity') {
+        <div [class]="getWidgetColClass(w.columnSpan) + ' bg-base-100 rounded-2xl border border-base-300 p-5 shadow-xs space-y-4'">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-tenant-600 text-lg">history</span>
+                <span>{{ w.title || 'Recent Assessment Activity & Submissions' }}</span>
+              </h2>
+              <p class="text-xs text-text-secondary mt-0.5">Live audit log of trainee attempts, evaluations, and authoring actions.</p>
+            </div>
+            <a routerLink="/assessments/results" class="text-xs text-tenant-600 dark:text-tenant-400 font-bold hover:underline">
+              View All Results &rarr;
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            @for (act of recentActivities(); track act.id) {
+              <div class="p-3.5 bg-base-200/50 rounded-xl border border-base-300/80 flex items-start justify-between gap-3 text-xs">
+                <div class="flex items-start gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-lg bg-base-300 flex items-center justify-center shrink-0 text-text-primary mt-0.5">
+                    <span class="material-symbols-outlined text-base">{{ act.icon }}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="font-bold text-text-primary truncate">{{ act.title }}</div>
+                    <div class="text-[11px] text-text-secondary mt-0.5 truncate">{{ act.subtitle }}</div>
+                    <div class="text-[10px] text-text-secondary font-mono mt-1">{{ act.timestamp }}</div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-1.5 shrink-0">
+                  <span [class]="act.badgeClass + ' px-2 py-0.5 rounded text-[10px] font-bold border'">
+                    {{ act.badgeText }}
                   </span>
+                  @if (act.link) {
+                    <a
+                      [routerLink]="act.link"
+                      class="text-[11px] text-tenant-600 dark:text-tenant-400 font-bold hover:underline"
+                    >
+                      View &rarr;
+                    </a>
+                  }
                 </div>
               </div>
             }
@@ -161,67 +357,3 @@
     }
   </div>
 </div>
-
-<!-- Studio Drawer Modal -->
-@if (showStudioDrawer()) {
-  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex justify-end">
-    <div class="bg-white max-w-md w-full h-full p-6 shadow-2xl space-y-6 overflow-y-auto">
-      <div class="flex items-center justify-between border-b pb-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Customize Studio Layout</h2>
-          <p class="text-xs text-slate-500">Toggle widget visibility and change column spans.</p>
-        </div>
-        <button (click)="showStudioDrawer.set(false)" class="text-slate-400 hover:text-slate-700">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-
-      <div class="space-y-4">
-        @for (w of layout().widgets; track w.id) {
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-sm text-slate-900">{{ w.title }}</span>
-              <input
-                type="checkbox"
-                [checked]="w.visible"
-                (change)="toggleWidgetVisibility(w.id)"
-                class="w-4 h-4 text-indigo-600 rounded"
-              />
-            </div>
-
-            @if (w.visible) {
-              <div class="flex items-center gap-2 text-xs">
-                <span class="text-slate-500 font-semibold">Column Span:</span>
-                <button
-                  *for="let s of [1, 2, 3, 4]"
-                  (click)="updateWidgetSpan(w.id, s)"
-                  [class.bg-indigo-600]="w.colSpan === s"
-                  [class.text-white]="w.colSpan === s"
-                  [class.bg-white]="w.colSpan !== s"
-                  class="px-2.5 py-1 rounded border border-slate-300 font-bold"
-                >
-                  {{ s }}x
-                </button>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <div class="pt-4 border-t flex justify-between">
-        <button
-          (click)="resetDefaultLayout()"
-          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl"
-        >
-          Reset Defaults
-        </button>
-        <button
-          (click)="showStudioDrawer.set(false)"
-          class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl"
-        >
-          Done
-        </button>
-      </div>
-    </div>
-  </div>
-}

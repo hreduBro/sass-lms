@@ -4,6 +4,8 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { CourseEntity, validateCourseEntity, summarizeCourseMetrics } from '../../../models/course.model';
+import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
+import { Kpi } from '../../../models/dashboard.model';
 
 export interface DashboardWidgetConfig {
   id: string;
@@ -15,7 +17,7 @@ export interface DashboardWidgetConfig {
 
 @Component({
   selector: 'app-course-dashboard',
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, KpiCardComponent],
   templateUrl: './course-dashboard.component.html'
 })
 export class CourseDashboardComponent {
@@ -80,6 +82,55 @@ export class CourseDashboardComponent {
       totalPhasesLocked
     };
   });
+
+  // KPI Computations for standardized app-kpi-card design matching LMS Dashboard
+  kpiTotalCourses = computed<Kpi>(() => ({
+    title: 'Total Courses',
+    value: String(this.stats().total),
+    subtext: `${this.stats().totalNodes} structural nodes`,
+    icon: 'school',
+    color: 'rose'
+  }));
+
+  kpiPublished = computed<Kpi>(() => ({
+    title: 'Published Live',
+    value: String(this.stats().published),
+    subtext: 'Active curriculum catalog',
+    icon: 'check',
+    color: 'emerald'
+  }));
+
+  kpiDrafts = computed<Kpi>(() => ({
+    title: 'Drafts',
+    value: String(this.stats().drafts),
+    subtext: 'Under active composition',
+    icon: 'draft',
+    color: 'sky'
+  }));
+
+  kpiLearningUnits = computed<Kpi>(() => ({
+    title: 'Learning Units',
+    value: String(this.stats().totalLearning),
+    subtext: 'Videos, slides & labs',
+    icon: 'layers',
+    color: 'teal'
+  }));
+
+  kpiAssessments = computed<Kpi>(() => ({
+    title: 'Assessments',
+    value: String(this.stats().totalAssessments),
+    subtext: `${this.stats().totalManualGrading} manual graded`,
+    icon: 'hub',
+    color: 'violet'
+  }));
+
+  kpiPlanUsages = computed<Kpi>(() => ({
+    title: 'Plan Usages',
+    value: String(this.stats().totalPhasesLocked),
+    subtext: 'Active phase snapshots',
+    icon: 'pending',
+    color: 'amber'
+  }));
 
   // Blocked Draft Courses needing attention (Rule Engines 1, 2, 3 check)
   governanceBlockers = computed(() => {

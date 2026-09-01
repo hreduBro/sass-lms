@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
+import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 import {
   Assessment,
   AssessmentVersion,
@@ -14,7 +15,7 @@ import {
 @Component({
   selector: 'app-assessment-runtime',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './assessment-runtime.component.html',
   styleUrls: ['./assessment-runtime.component.css']
 })
@@ -117,6 +118,25 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
     this.userAnswers.update(answers => ({ ...answers, [questionId]: updated }));
   }
 
+  getPairId(pair: any, index: number): string {
+    return pair.leftId || pair.pairId || pair.id || `pair-${index}`;
+  }
+
+  getPairLeft(pair: any, index: number): string {
+    return pair.leftText || pair.leftItem || pair.leftId || `Item ${index + 1}`;
+  }
+
+  getMatchingOptions(q: AssessmentQuestion): { value: string; label: string }[] {
+    return (q.matchingPairs || []).map((p: any, idx: number) => {
+      const label = p.rightText || p.rightItem || p.rightId || `Option ${idx + 1}`;
+      const value = p.rightId || p.rightText || p.rightItem || label;
+      return {
+        value,
+        label
+      };
+    });
+  }
+
   // Flag for review
   toggleFlag(questionId: string): void {
     const set = new Set(this.flaggedQuestions());
@@ -213,6 +233,7 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
       let textResponse: string | undefined;
       let numericResponse: number | undefined;
       let matchingSelections: Record<string, string> | undefined;
+      let matchedPairs: { leftId: string; rightId: string }[] | undefined;
 
       if (q.type === 'singleSelect' || q.type === 'trueFalse') {
         selectedOptionId = rawVal;
@@ -222,6 +243,10 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
         numericResponse = rawVal !== undefined && rawVal !== '' ? Number(rawVal) : undefined;
       } else if (q.type === 'matching') {
         matchingSelections = rawVal || {};
+        matchedPairs = Object.entries(matchingSelections).map(([leftId, rightId]) => ({
+          leftId,
+          rightId
+        }));
       } else if (q.type === 'essay' || q.type === 'fileUpload' || q.type === 'fillBlank' || q.type === 'ordering' || q.type === 'text') {
         textResponse = typeof rawVal === 'string' ? rawVal : JSON.stringify(rawVal);
       }
@@ -233,6 +258,7 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
         textResponse,
         numericResponse,
         matchingSelections,
+        matchedPairs,
         earnedPoints: 0 // Will be calculated by submission service
       };
     });

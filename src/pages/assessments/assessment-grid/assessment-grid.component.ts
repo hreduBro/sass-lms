@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -10,17 +10,30 @@ import {
   AssessmentStatus,
   AssessmentVersion
 } from '../../../models/assessment.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 
 @Component({
   selector: 'app-assessment-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule,
+    CustomSelectComponent,
+    CustomAvatarComponent
+  ],
   templateUrl: './assessment-grid.component.html',
-  styleUrls: ['./assessment-grid.component.css']
+  styleUrls: ['./assessment-grid.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssessmentGridComponent {
   lmsService = inject(LmsDataService);
   router = inject(Router);
+
+  // Active LMS Context
+  activeLms = this.lmsService.activeLms;
+  activeTenant = this.lmsService.activeTenant;
 
   // Search & Filter state
   searchQuery = signal<string>('');
@@ -30,8 +43,15 @@ export class AssessmentGridComponent {
   selectedCategory = signal<string>('all');
   filterHasManualGrading = signal<string>('all'); // 'all', 'yes', 'no'
   filterHasPassMark = signal<string>('all'); // 'all', 'yes', 'no'
-  sortBy = signal<'latest' | 'title' | 'attempts' | 'code'>('latest');
+  sortBy = signal<string>('latest');
   viewMode = signal<'grid' | 'table'>('grid');
+
+  // Filter Drawer toggle
+  showFilterDrawer = signal<boolean>(false);
+
+  // Action Menu Dropdown State (Floating Fixed Menu like plan grid)
+  activeMenuAssessment = signal<Assessment | null>(null);
+  menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Modal states
   showPreviewModal = signal<boolean>(false);
@@ -43,6 +63,49 @@ export class AssessmentGridComponent {
   showDeleteConfirmModal = signal<boolean>(false);
   deleteTargetAssessment = signal<Assessment | null>(null);
 
+  // Options for Custom Selects
+  statusOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'published', label: 'Published (Live)', badge: 'Live', badgeClass: 'bg-emerald-500/10 text-emerald-600' },
+    { value: 'draft', label: 'Drafts (In-Progress)', badge: 'Draft', badgeClass: 'bg-amber-500/10 text-amber-600' },
+    { value: 'inactive', label: 'Archived / Inactive' }
+  ];
+
+  typeOptions: SelectOption[] = [
+    { value: 'all', label: 'All Assessment Types' },
+    { value: 'exam', label: 'Exam (Formal)', icon: 'school' },
+    { value: 'quiz', label: 'Quiz (Formative)', icon: 'quiz' },
+    { value: 'assignment', label: 'Assignment / Project', icon: 'assignment' },
+    { value: 'survey', label: 'Survey / Questionnaire', icon: 'poll' },
+    { value: 'diagnostic', label: 'Diagnostic Assessment', icon: 'health_and_safety' }
+  ];
+
+  scoringModeOptions: SelectOption[] = [
+    { value: 'all', label: 'All Scoring Modes' },
+    { value: 'scored', label: 'Scored (Point Graded)', icon: 'grade' },
+    { value: 'unscored', label: 'Unscored (Participation/Survey)', icon: 'check_circle' }
+  ];
+
+  manualGradingOptions: SelectOption[] = [
+    { value: 'all', label: 'All Grading Modes' },
+    { value: 'yes', label: 'Requires Manual Grading', icon: 'assignment_ind' },
+    { value: 'no', label: '100% Auto-Scored Only', icon: 'bolt' }
+  ];
+
+  passMarkOptions: SelectOption[] = [
+    { value: 'all', label: 'All Pass Mark Policies' },
+    { value: 'yes', label: 'Has Minimum Pass Mark', icon: 'military_tech' },
+    { value: 'no', label: 'No Pass Mark Requirement', icon: 'do_not_disturb_on' }
+  ];
+
+  sortOptions: SelectOption[] = [
+    { value: 'latest', label: 'Recently Created' },
+    { value: 'title', label: 'Title (A-Z)' },
+    { value: 'code', label: 'Assessment Code' },
+    { value: 'attempts', label: 'Most Attempts' },
+    { value: 'questions', label: 'Question Count' }
+  ];
+
   // Available categories derived from data
   categories = computed<string[]>(() => {
     const set = new Set<string>();
@@ -50,6 +113,31 @@ export class AssessmentGridComponent {
       a.categoryTags.forEach(cat => set.add(cat));
     });
     return Array.from(set);
+  });
+
+  categoryOptions = computed<SelectOption[]>(() => {
+    const list: SelectOption[] = [{ value: 'all', label: 'All Categories' }];
+    this.categories().forEach(cat => {
+      list.push({ value: cat, label: cat });
+    });
+    return list;
+  });
+
+  // Drafts needing attention
+  draftAssessments = computed<Assessment[]>(() => {
+    return this.lmsService.assessments().filter(a => a.status === 'draft');
+  });
+
+  // Active filter count
+  activeFilterCount = computed<number>(() => {
+    let count = 0;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedType() !== 'all') count++;
+    if (this.selectedScoringMode() !== 'all') count++;
+    if (this.selectedCategory() !== 'all') count++;
+    if (this.filterHasManualGrading() !== 'all') count++;
+    if (this.filterHasPassMark() !== 'all') count++;
+    return count;
   });
 
   // KPI Metrics
@@ -149,6 +237,10 @@ export class AssessmentGridComponent {
         const attA = this.lmsService.assessmentAttempts().filter(att => att.assessmentId === a.assessmentId).length;
         const attB = this.lmsService.assessmentAttempts().filter(att => att.assessmentId === b.assessmentId).length;
         return attB - attA;
+      } else if (sort === 'questions') {
+        const qA = this.getQuestionCount(a);
+        const qB = this.getQuestionCount(b);
+        return qB - qA;
       } else {
         // latest first
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -170,6 +262,10 @@ export class AssessmentGridComponent {
       this.filterHasPassMark() !== 'all'
     );
   });
+
+  toggleFilterDrawer(): void {
+    this.showFilterDrawer.update(v => !v);
+  }
 
   resetFilters(): void {
     this.searchQuery.set('');
@@ -204,6 +300,50 @@ export class AssessmentGridComponent {
   }
 
   // Actions
+  // Floating Action Menu Handlers (Popover like plan grid)
+  toggleActionMenu(asm: Assessment, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.activeMenuAssessment()?.assessmentId === asm.assessmentId) {
+      this.closeActionMenu();
+      return;
+    }
+
+    const button = (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 320;
+    const menuWidth = 224; // w-56 is 224px
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    const top = placeAbove ? Math.max(10, rect.top - menuHeight - 4) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 4);
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    this.menuPosition.set({ top, left });
+    this.activeMenuAssessment.set(asm);
+  }
+
+  closeActionMenu(): void {
+    this.activeMenuAssessment.set(null);
+  }
+
+  isActionMenuOpen(asmId: string): boolean {
+    return this.activeMenuAssessment()?.assessmentId === asmId;
+  }
+
+  @HostListener('document:click')
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onDocumentInteraction(): void {
+    if (this.activeMenuAssessment()) {
+      this.closeActionMenu();
+    }
+  }
+
   onPreview(asm: Assessment): void {
     this.previewAssessment.set(asm);
     this.showPreviewModal.set(true);

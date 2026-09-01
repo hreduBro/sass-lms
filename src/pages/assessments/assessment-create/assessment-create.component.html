@@ -1,913 +1,918 @@
-<div class="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8">
-  <!-- Top Navigation Header -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-6">
-    <div class="flex items-center gap-3">
-      <a
-        routerLink="/assessments"
-        class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-all"
-      >
-        <span class="material-icons">arrow_back</span>
-      </a>
-      <div>
-        <div class="flex items-center gap-2 text-sm font-medium text-indigo-600">
-          <span>Assessment Studio Builder</span>
-          <span>&bull;</span>
-          <span class="font-mono">{{ code() }}</span>
-        </div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-          {{ isEditMode() ? 'Edit Assessment' : 'Author New Assessment' }}
-        </h1>
+<div class="max-w-6xl mx-auto space-y-6 pb-12">
+
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & BREADCRUMB CONTEXT                                            -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5">
+        <a routerLink="/assessments" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">quiz</span>
+          Assessments
+        </a>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          @if (isEditMode()) { Edit Assessment } @else { Creation Wizard }
+        </span>
       </div>
+
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        @if (isEditMode()) {
+          @if (currentStep() === 1) { Edit Assessment – Basic Information }
+          @else if (currentStep() === 2) { Edit Assessment – Question Studio }
+          @else if (currentStep() === 3) { Edit Assessment – Scoring & Rules }
+          @else { Edit Assessment – Preview & Confirm }
+        } @else {
+          @if (currentStep() === 1) { Create Assessment – Basic Information }
+          @else if (currentStep() === 2) { Create Assessment – Question Studio }
+          @else if (currentStep() === 3) { Create Assessment – Scoring & Rules }
+          @else { Create Assessment – Preview & Confirm }
+        }
+      </h1>
+
+      <p class="text-xs text-text-secondary mt-0.5">
+        @if (currentStep() === 1) { Configure assessment identity, type, scoring mode, and assigned instructor. }
+        @else if (currentStep() === 2) { Author test questions, matching pairs, multiple choice keys, and point allocations. }
+        @else if (currentStep() === 3) { Establish passing benchmarks, retake limits, time windows, and result visibility rules. }
+        @else { Review assessment governance checklist and publish live to trainees. }
+      </p>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button
-        (click)="saveAsDraft()"
-        class="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-semibold rounded-xl shadow-xs transition-all hover:bg-slate-50 flex items-center gap-2"
-      >
-        <span class="material-icons text-slate-500 text-base">save</span>
-        <span>Save Draft</span>
+    <!-- Quick Draft Badge / Action (Matching Create Organization) -->
+    <div class="flex items-center gap-2">
+      <button 
+        type="button"
+        id="btn-quick-save-draft"
+        (click)="onSaveAsDraft()"
+        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all cursor-pointer shadow-2xs"
+        title="Save progress and resume later">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        Save as draft
       </button>
 
-      @if (currentStep() === 4) {
-        <button
-          (click)="publishNow()"
-          [disabled]="!validationChecklist().isValid"
-          class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-sm transition-all flex items-center gap-2"
-        >
-          <span class="material-icons text-base">publish</span>
-          <span>Publish Assessment</span>
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- Wizard Stepper Navigation -->
-  <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-      <!-- Step 1 -->
-      <button
-        (click)="goToStep(1)"
-        [class.bg-indigo-50]="currentStep() === 1"
-        [class.border-indigo-200]="currentStep() === 1"
-        class="p-3 rounded-xl border text-left transition-all flex items-center gap-3"
-      >
-        <div
-          [class.bg-indigo-600]="currentStep() === 1"
-          [class.text-white]="currentStep() === 1"
-          [class.bg-slate-100]="currentStep() !== 1"
-          [class.text-slate-600]="currentStep() !== 1"
-          class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
-        >
-          1
-        </div>
-        <div>
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Step 1</div>
-          <div class="text-sm font-bold text-slate-900">Basic Details</div>
-        </div>
-      </button>
-
-      <!-- Step 2 -->
-      <button
-        (click)="goToStep(2)"
-        [class.bg-indigo-50]="currentStep() === 2"
-        [class.border-indigo-200]="currentStep() === 2"
-        class="p-3 rounded-xl border text-left transition-all flex items-center gap-3"
-      >
-        <div
-          [class.bg-indigo-600]="currentStep() === 2"
-          [class.text-white]="currentStep() === 2"
-          [class.bg-slate-100]="currentStep() !== 2"
-          [class.text-slate-600]="currentStep() !== 2"
-          class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
-        >
-          2
-        </div>
-        <div>
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Step 2</div>
-          <div class="text-sm font-bold text-slate-900">Question Studio ({{ questions().length }})</div>
-        </div>
-      </button>
-
-      <!-- Step 3 -->
-      <button
-        (click)="goToStep(3)"
-        [class.bg-indigo-50]="currentStep() === 3"
-        [class.border-indigo-200]="currentStep() === 3"
-        class="p-3 rounded-xl border text-left transition-all flex items-center gap-3"
-      >
-        <div
-          [class.bg-indigo-600]="currentStep() === 3"
-          [class.text-white]="currentStep() === 3"
-          [class.bg-slate-100]="currentStep() !== 3"
-          [class.text-slate-600]="currentStep() !== 3"
-          class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
-        >
-          3
-        </div>
-        <div>
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Step 3</div>
-          <div class="text-sm font-bold text-slate-900">Scoring & Rules</div>
-        </div>
-      </button>
-
-      <!-- Step 4 -->
-      <button
-        (click)="goToStep(4)"
-        [class.bg-indigo-50]="currentStep() === 4"
-        [class.border-indigo-200]="currentStep() === 4"
-        class="p-3 rounded-xl border text-left transition-all flex items-center gap-3"
-      >
-        <div
-          [class.bg-indigo-600]="currentStep() === 4"
-          [class.text-white]="currentStep() === 4"
-          [class.bg-slate-100]="currentStep() !== 4"
-          [class.text-slate-600]="currentStep() !== 4"
-          class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
-        >
-          4
-        </div>
-        <div>
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Step 4</div>
-          <div class="text-sm font-bold text-slate-900">Review & Governance</div>
-        </div>
+      <button 
+        type="button"
+        id="btn-quick-cancel"
+        (click)="onCancel()"
+        class="px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
+        Cancel
       </button>
     </div>
   </div>
 
-  <!-- STEP 1: Basic Details -->
+  <!-- ========================================================================= -->
+  <!-- 2. REUSABLE STEPPER COMPONENT                                             -->
+  <!-- ========================================================================= -->
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="jumpToStep($event)">
+  </app-stepper>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MANDATORY FIELD & VALIDATION ERROR ALERT                               -->
+  <!-- ========================================================================= -->
+  @if (formErrorAlert()) {
+    <div 
+      id="form-error-banner"
+      class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs"
+      role="alert">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-rose-600 dark:text-rose-400 text-lg">error</span>
+        <span>{{ formErrorAlert() }}</span>
+      </div>
+      <button 
+        type="button"
+        (click)="formErrorAlert.set(null)" 
+        class="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-200 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 1: BASIC INFORMATION                                                 -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 1) {
-    <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-6 max-w-4xl mx-auto">
-      <div class="border-b pb-4">
-        <h2 class="text-lg font-bold text-slate-900">Assessment Metadata & Identity</h2>
-        <p class="text-xs text-slate-500">Configure core metadata, assessment type, scoring mode, and responsible instructor.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assessment Code</label>
-          <input
-            type="text"
-            [ngModel]="code()"
-            (ngModelChange)="code.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 font-mono"
-          />
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 1.1: Assessment Identity Details -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">school</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">1. Assessment Identity & Classification</h2>
+            <p class="text-[11px] text-text-secondary">Core assessment nomenclature, tracking code, and delivery category</p>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assessment Type</label>
-          <select
-            [ngModel]="type()"
-            (ngModelChange)="type.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          >
-            <option value="exam font-bold">Exam / High Stakes</option>
-            <option value="quiz">Quiz / Module Check</option>
-            <option value="assignment">Assignment</option>
-            <option value="survey">Survey / Feedback</option>
-            <option value="diagnostic">Diagnostic Assessment</option>
-          </select>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Assessment Title * -->
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Assessment Title <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="input-assessment-title"
+              [ngModel]="title()" 
+              (ngModelChange)="title.set($event); titleTouched.set(true)"
+              maxlength="120"
+              placeholder="e.g. Q3 SOC-2 Security & Information Privacy Mastery Exam"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="titleTouched() && !title().trim() ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (titleTouched() && !title().trim()) {
+              <p class="text-[11px] text-rose-500 mt-1" data-error="true">Assessment Title is required (min 3 characters).</p>
+            }
+          </div>
 
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Assessment Title *</label>
-          <input
-            type="text"
-            [ngModel]="title()"
-            (ngModelChange)="title.set($event)"
-            placeholder="e.g. Annual Microfinance Compliance & Ethics Final Exam (2026)"
-            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          />
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Description / Instructions</label>
-          <textarea
-            rows="3"
-            [ngModel]="description()"
-            (ngModelChange)="description.set($event)"
-            placeholder="Provide guidance to students before launching the exam..."
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          ></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Scoring Mode</label>
-          <select
-            [ngModel]="scoringMode()"
-            (ngModelChange)="scoringMode.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          >
-            <option value="scored">Scored (Points & Pass Threshold)</option>
-            <option value="unscored">Unscored / Diagnostic Survey</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Sharing & Visibility</label>
-          <select
-            [ngModel]="sharingLevel()"
-            (ngModelChange)="sharingLevel.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          >
-            <option value="lms">LMS Workspace Scope</option>
-            <option value="organization">Organization Wide</option>
-            <option value="private">Private Author Only</option>
-          </select>
-        </div>
-
-        <!-- Responsible Instructor Picker -->
-        <div class="md:col-span-2 p-4 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="block text-xs font-bold uppercase text-indigo-900">
-                Responsible Instructor Assignment
-              </label>
-              <p class="text-xs text-indigo-700">
-                Required for manual-graded questions (essays, files). Assigned instructor reviews student submissions.
-              </p>
+          <!-- Assessment Code (Readonly) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Assessment Code <span class="text-rose-500">*</span> 
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(System-generated identifier)</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="text" 
+                id="input-assessment-code"
+                [ngModel]="code()" 
+                readonly
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-300/80 border border-base-300 text-xs font-mono font-bold text-text-primary cursor-not-allowed tracking-wider select-all" />
+              <span class="material-symbols-outlined absolute right-3 top-2.5 text-text-secondary text-sm">lock</span>
             </div>
-            @if (hasManualQuestions() && (!responsibleInstructorId() || !responsibleInstructorName())) {
-              <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
-                Publish Blocker
-              </span>
+          </div>
+
+          <!-- Assessment Type (Custom Select) -->
+          <div>
+            <app-custom-select
+              id="select-assessment-type"
+              [ngModel]="type()"
+              (ngModelChange)="type.set($event)"
+              label="Assessment Type"
+              hint="(Delivery format)"
+              [options]="typeOptions"
+              leadingIcon="military_tech" />
+          </div>
+
+          <!-- Scoring Mode (Custom Select) -->
+          <div>
+            <app-custom-select
+              id="select-scoring-mode"
+              [ngModel]="scoringMode()"
+              (ngModelChange)="scoringMode.set($event)"
+              label="Scoring Mode"
+              hint="(Grading methodology)"
+              [options]="scoringModeOptions"
+              leadingIcon="score" />
+          </div>
+
+          <!-- Sharing Scope (Custom Select) -->
+          <div>
+            <app-custom-select
+              id="select-sharing-scope"
+              [ngModel]="sharingLevel()"
+              (ngModelChange)="sharingLevel.set($event)"
+              label="Sharing Scope"
+              hint="(Branch accessibility)"
+              [options]="sharingLevelOptions"
+              leadingIcon="share" />
+          </div>
+
+          <!-- Responsible Instructor (Custom Select) -->
+          <div class="md:col-span-2">
+            <app-custom-select
+              id="select-responsible-instructor"
+              [ngModel]="responsibleInstructorId()"
+              (ngModelChange)="onInstructorChange($event)"
+              label="Responsible Instructor"
+              hint="(Required for manual essay and portfolio evaluations)"
+              placeholder="Search or select responsible instructor..."
+              [options]="instructorOptions()"
+              [searchable]="true"
+              [clearable]="true"
+              leadingIcon="person" />
+            @if (hasManualQuestions() && !responsibleInstructorId()) {
+              <p class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">info</span>
+                Notice: Responsible instructor assignment is required when manual essay questions exist.
+              </p>
             }
           </div>
 
-          <select
-            [ngModel]="responsibleInstructorId() || ''"
-            (ngModelChange)="onSelectInstructor($event)"
-            class="w-full px-3 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm text-slate-900 font-medium"
-          >
-            <option value="">-- Select Responsible Instructor --</option>
-            @for (inst of instructors(); track inst.id) {
-              <option [value]="inst.id">{{ inst.name }} ({{ inst.email }})</option>
-            }
-          </select>
+          <!-- Description / Instructions -->
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Description & Trainee Instructions
+            </label>
+            <textarea
+              id="textarea-assessment-desc"
+              [ngModel]="description()"
+              (ngModelChange)="description.set($event)"
+              rows="3"
+              placeholder="Provide context, required prerequisites, or rules for examinees prior to starting..."
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all"></textarea>
+          </div>
+
+          <!-- Category Tags -->
+          <div class="md:col-span-2 space-y-2">
+            <label class="block text-xs font-semibold text-text-primary">
+              Category Tags
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Organize assessment bank)</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="input-category-tag"
+                [ngModel]="categoryTagInput()"
+                (ngModelChange)="categoryTagInput.set($event)"
+                (keydown.enter)="$event.preventDefault(); addCategoryTag()"
+                placeholder="Type tag (e.g. Safety, Compliance, JavaScript) and press Enter or Add..."
+                class="flex-1 px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all" />
+              <button
+                type="button"
+                id="btn-add-category-tag"
+                (click)="addCategoryTag()"
+                class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold border border-base-300 transition-all cursor-pointer">
+                Add Tag
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              @for (tag of categoryTags(); track tag) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950/60 text-tenant-800 dark:text-tenant-200 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+                  <span>{{ tag }}</span>
+                  <button type="button" (click)="removeCategoryTag(tag)" class="text-tenant-500 hover:text-rose-500 cursor-pointer">
+                    <span class="material-symbols-outlined text-xs">close</span>
+                  </button>
+                </span>
+              }
+            </div>
+          </div>
+
         </div>
-
-        <!-- Category Tags -->
-        <div class="md:col-span-2 space-y-2">
-          <label class="block text-xs font-bold uppercase text-slate-700">Category Tags</label>
-          <div class="flex items-center gap-2">
-            <input
-              type="text"
-              [ngModel]="categoryTagInput()"
-              (ngModelChange)="categoryTagInput.set($event)"
-              (keyup.enter)="addCategoryTag()"
-              placeholder="Add tag (e.g. Compliance, Risk, Security) and press Enter..."
-              class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-            />
-            <button
-              (click)="addCategoryTag()"
-              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl"
-            >
-              Add Tag
-            </button>
-          </div>
-
-          <div class="flex items-center gap-1.5 flex-wrap pt-1">
-            @for (tag of categoryTags(); track tag) {
-              <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg flex items-center gap-1">
-                <span>#{{ tag }}</span>
-                <button (click)="removeCategoryTag(tag)" class="hover:text-indigo-900">
-                  <span class="material-icons text-xs">close</span>
-                </button>
-              </span>
-            }
-          </div>
-        </div>
-      </div>
-
-      <div class="flex justify-end pt-4 border-t">
-        <button
-          (click)="nextStep()"
-          class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl flex items-center gap-2"
-        >
-          <span>Continue to Question Studio</span>
-          <span class="material-icons text-base">arrow_forward</span>
-        </button>
       </div>
     </div>
   }
 
-  <!-- STEP 2: Question Authoring Studio -->
+  <!-- ========================================================================= -->
+  <!-- STEP 2: QUESTION STUDIO                                                   -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 2) {
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Question Type Selector Sidebar -->
-      <div class="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 h-fit">
-        <div>
-          <h3 class="text-sm font-bold text-slate-900">Add Questions by Type</h3>
-          <p class="text-xs text-slate-500">Select an item type to append to your assessment instrument.</p>
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Studio Header & Summary Bar -->
+      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-xl">quiz</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-bold text-text-primary">2. Question Studio & Item Bank</h2>
+              <span class="px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold border border-tenant-200 dark:border-tenant-800">
+                {{ questions().length }} Questions
+              </span>
+            </div>
+            <p class="text-[11px] text-text-secondary">
+              Total Maximum Marks: <span class="font-bold text-text-primary">{{ totalMarks() }} pts</span> &bull; 
+              Manual Review Items: <span class="font-bold text-text-primary">{{ hasManualQuestions() ? 'Yes (Requires Instructor)' : 'No (Auto-Graded)' }}</span>
+            </p>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+        <!-- Quick Add Question Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
           <button
+            type="button"
+            id="btn-add-mcq-question"
             (click)="addQuestion('singleSelect')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">radio_button_checked</span>
-            <span>Single Select (Multiple Choice)</span>
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-sm text-tenant-600">radio_button_checked</span>
+            + Single Choice
           </button>
-
           <button
+            type="button"
+            id="btn-add-multiselect-question"
             (click)="addQuestion('multiSelect')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">check_box</span>
-            <span>Multi-Select (Multiple Answers)</span>
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-sm text-tenant-600">check_box</span>
+            + Multi-Select
           </button>
-
           <button
-            (click)="addQuestion('trueFalse')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">toggle_on</span>
-            <span>True / False</span>
-          </button>
-
-          <button
-            (click)="addQuestion('numeric')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">pin</span>
-            <span>Numeric Exact / Tolerance</span>
-          </button>
-
-          <button
+            type="button"
+            id="btn-add-matching-question"
             (click)="addQuestion('matching')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">compare_arrows</span>
-            <span>Matching Pairs</span>
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-sm text-tenant-600">sync_alt</span>
+            + Matching
           </button>
-
           <button
-            (click)="addQuestion('ordering')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">format_list_numbered</span>
-            <span>Sequence / Ordering</span>
-          </button>
-
-          <button
-            (click)="addQuestion('fillBlank')"
-            class="p-2.5 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border border-slate-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-slate-700"
-          >
-            <span class="material-icons text-indigo-600 text-base">space_bar</span>
-            <span>Fill in the Blank</span>
-          </button>
-
-          <button
+            type="button"
+            id="btn-add-essay-question"
             (click)="addQuestion('essay')"
-            class="p-2.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-purple-900"
-          >
-            <span class="material-icons text-purple-600 text-base">article</span>
-            <span>Essay (Manual Graded)</span>
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-sm text-tenant-600">article</span>
+            + Essay
           </button>
-
-          <button
-            (click)="addQuestion('fileUpload')"
-            class="p-2.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl text-left transition-all flex items-center gap-2 text-xs font-semibold text-purple-900"
-          >
-            <span class="material-icons text-purple-600 text-base">upload_file</span>
-            <span>File Submission (Manual)</span>
-          </button>
-        </div>
-
-        <div class="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-1 text-xs text-slate-600">
-          <div class="font-bold text-slate-900">Total Instrument Score:</div>
-          <div class="text-xl font-bold text-indigo-600">{{ totalMarks() }} Points</div>
-          <div>{{ questions().length }} Questions added</div>
         </div>
       </div>
 
-      <!-- Question Items List & Detail Editors -->
-      <div class="lg:col-span-8 space-y-4">
-        @if (questions().length === 0) {
-          <div class="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
-            <span class="material-icons text-4xl text-slate-300">post_add</span>
-            <h3 class="text-base font-bold text-slate-900">No questions added yet.</h3>
-            <p class="text-xs text-slate-500">Select a question type from the left sidebar to add your first question.</p>
+      <!-- Question List & Authoring Canvas -->
+      @if (questions().length === 0) {
+        <div class="p-12 rounded-3xl bg-base-100 border border-dashed border-base-300 text-center space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+            <span class="material-symbols-outlined text-2xl">post_add</span>
           </div>
-        } @else {
-          @for (q of questions(); track q.questionId; let qIdx = $index) {
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-              <!-- Question Card Header -->
-              <div class="flex items-center justify-between border-b pb-3">
+          <h3 class="text-sm font-bold text-text-primary">No Questions in Assessment Yet</h3>
+          <p class="text-xs text-text-secondary max-w-md mx-auto">
+            Add questions using the quick action buttons above or add a standard multiple choice item to begin authoring.
+          </p>
+          <button
+            type="button"
+            id="btn-add-first-question"
+            (click)="addSampleQuestion()"
+            class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
+            + Add First Question
+          </button>
+        </div>
+      } @else {
+        <div class="space-y-4">
+          @for (q of questions(); track q.questionId; let qIndex = $index) {
+            <div 
+              [id]="'question-card-' + qIndex"
+              class="p-6 rounded-3xl bg-base-100 border transition-all shadow-sm space-y-4"
+              [ngClass]="activeQuestionIndex() === qIndex ? 'border-tenant-400 ring-2 ring-tenant-500/10' : 'border-base-300'">
+              
+              <!-- Question Header Toolbar -->
+              <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-base-300">
                 <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                    {{ qIdx + 1 }}
+                  <span class="w-7 h-7 rounded-lg bg-tenant-600 text-white font-bold text-xs flex items-center justify-center">
+                    {{ qIndex + 1 }}
                   </span>
-                  <span class="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-mono font-bold rounded uppercase">
+                  <span class="text-xs font-bold text-text-primary">Question {{ qIndex + 1 }}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-base-200 text-[10px] font-mono font-bold text-text-secondary uppercase">
                     {{ q.type }}
                   </span>
                   @if (q.manualGraded) {
-                    <span class="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-bold rounded-full">
+                    <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-200 dark:border-amber-800">
                       Manual Graded
                     </span>
                   }
                 </div>
 
-                <!-- Points & Reorder Actions -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
+                  <!-- Points Weight Input -->
                   <div class="flex items-center gap-1 text-xs">
-                    <span class="font-bold text-slate-600">Points:</span>
+                    <span class="text-text-secondary text-[11px] font-medium">Points:</span>
                     <input
                       type="number"
+                      [id]="'input-question-points-' + qIndex"
                       [ngModel]="q.points"
-                      (ngModelChange)="q.points = $event"
+                      (ngModelChange)="updateQuestionPoints(qIndex, $event)"
                       min="1"
-                      class="w-16 px-2 py-1 bg-slate-50 border border-slate-200 rounded-md font-bold text-indigo-600 text-center"
-                    />
+                      max="100"
+                      class="w-16 px-2 py-1 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-tenant-500" />
                   </div>
 
+                  <!-- Move Up -->
                   <button
-                    (click)="moveQuestion(qIdx, 'up')"
-                    [disabled]="qIdx === 0"
-                    class="p-1 hover:bg-slate-100 disabled:opacity-30 rounded"
-                  >
-                    <span class="material-icons text-base text-slate-500">arrow_upward</span>
+                    type="button"
+                    [id]="'btn-move-up-' + qIndex"
+                    [disabled]="qIndex === 0"
+                    (click)="moveQuestion(qIndex, 'up')"
+                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 disabled:opacity-30 cursor-pointer"
+                    title="Move up">
+                    <span class="material-symbols-outlined text-base">arrow_upward</span>
                   </button>
+
+                  <!-- Move Down -->
                   <button
-                    (click)="moveQuestion(qIdx, 'down')"
-                    [disabled]="qIdx === questions().length - 1"
-                    class="p-1 hover:bg-slate-100 disabled:opacity-30 rounded"
-                  >
-                    <span class="material-icons text-base text-slate-500">arrow_downward</span>
+                    type="button"
+                    [id]="'btn-move-down-' + qIndex"
+                    [disabled]="qIndex === questions().length - 1"
+                    (click)="moveQuestion(qIndex, 'down')"
+                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 disabled:opacity-30 cursor-pointer"
+                    title="Move down">
+                    <span class="material-symbols-outlined text-base">arrow_downward</span>
                   </button>
-                  <button (click)="duplicateQuestion(qIdx)" title="Duplicate" class="p-1 hover:bg-slate-100 rounded">
-                    <span class="material-icons text-base text-slate-500">content_copy</span>
+
+                  <!-- Duplicate -->
+                  <button
+                    type="button"
+                    [id]="'btn-dup-question-' + qIndex"
+                    (click)="duplicateQuestion(qIndex)"
+                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 cursor-pointer"
+                    title="Duplicate question">
+                    <span class="material-symbols-outlined text-base">content_copy</span>
                   </button>
-                  <button (click)="deleteQuestion(qIdx)" title="Delete" class="p-1 hover:bg-rose-50 rounded text-rose-600">
-                    <span class="material-icons text-base">delete</span>
+
+                  <!-- Delete -->
+                  <button
+                    type="button"
+                    [id]="'btn-delete-question-' + qIndex"
+                    (click)="deleteQuestion(qIndex)"
+                    class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                    title="Delete question">
+                    <span class="material-symbols-outlined text-base">delete</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Question Prompt Input -->
+              <!-- Question Prompt Text -->
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Question Prompt *</label>
-                <input
-                  type="text"
-                  [ngModel]="q.prompt"
-                  (ngModelChange)="q.prompt = $event"
-                  placeholder="Enter the question statement..."
-                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900"
-                />
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Question Prompt / Problem Statement <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  [id]="'input-question-text-' + qIndex"
+                  [ngModel]="q.text || q.prompt"
+                  (ngModelChange)="updateQuestionPrompt(qIndex, $event)"
+                  rows="2"
+                  placeholder="Enter the question text or instructions..."
+                  class="w-full px-3.5 py-2 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+                  [ngClass]="questionsTouched() && !(q.text || q.prompt)?.trim() ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'"></textarea>
+                @if (questionsTouched() && !(q.text || q.prompt)?.trim()) {
+                  <p class="text-[11px] text-rose-500 mt-1" data-error="true">Question prompt cannot be blank.</p>
+                }
               </div>
 
-              <!-- Options Editors depending on type -->
-              @if (q.type === 'singleSelect' || q.type === 'trueFalse') {
-                <div class="space-y-2 pt-2">
-                  <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-                    <span>Options (Select Radio for Correct Answer)</span>
-                    @if (q.type === 'singleSelect') {
-                      <button (click)="addOption(qIdx)" class="text-indigo-600 hover:text-indigo-800 font-bold">+ Add Option</button>
+              <!-- SINGLE SELECT & MULTI SELECT OPTIONS -->
+              @if (q.type === 'singleSelect' || q.type === 'multiSelect') {
+                <div class="space-y-2.5 pt-2 border-t border-base-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-text-primary">
+                      Answer Choices & Correct Key
+                      <span class="text-[10px] text-text-secondary font-normal ml-1">
+                        ({{ q.type === 'singleSelect' ? 'Select single correct radio' : 'Select all applicable checkboxes' }})
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      [id]="'btn-add-option-' + qIndex"
+                      (click)="addOption(qIndex)"
+                      class="px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[11px] font-bold border border-tenant-200 dark:border-tenant-800 hover:bg-tenant-100 cursor-pointer">
+                      + Add Option
+                    </button>
+                  </div>
+
+                  <div class="space-y-2">
+                    @for (opt of q.options || []; track opt.optionId; let optIndex = $index) {
+                      <div class="flex items-center gap-2.5 p-2 rounded-xl bg-base-200 border border-base-300">
+                        @if (q.type === 'singleSelect') {
+                          <input
+                            type="radio"
+                            [id]="'opt-radio-' + qIndex + '-' + optIndex"
+                            [name]="'correct-radio-' + q.questionId"
+                            [checked]="opt.correct || opt.isCorrect"
+                            (change)="toggleSingleSelectCorrect(qIndex, opt.optionId)"
+                            class="text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+                        } @else {
+                          <input
+                            type="checkbox"
+                            [id]="'opt-check-' + qIndex + '-' + optIndex"
+                            [checked]="opt.correct || opt.isCorrect"
+                            (change)="toggleMultiSelectCorrect(qIndex, opt.optionId)"
+                            class="rounded text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+                        }
+
+                        <input
+                          type="text"
+                          [id]="'opt-text-' + qIndex + '-' + optIndex"
+                          [ngModel]="opt.text"
+                          (ngModelChange)="opt.text = $event"
+                          placeholder="Option text..."
+                          class="flex-1 px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+
+                        @if ((opt.correct || opt.isCorrect)) {
+                          <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                            Correct
+                          </span>
+                        }
+
+                        <button
+                          type="button"
+                          [id]="'btn-remove-opt-' + qIndex + '-' + optIndex"
+                          [disabled]="(q.options?.length || 0) <= 2"
+                          (click)="removeOption(qIndex, optIndex)"
+                          class="p-1 rounded-lg text-text-secondary hover:text-rose-500 disabled:opacity-20 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      </div>
                     }
                   </div>
-
-                  @for (opt of q.options; track opt.optionId; let oIdx = $index) {
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        [name]="'correct-radio-' + q.questionId"
-                        [checked]="opt.isCorrect"
-                        (change)="toggleSingleSelectCorrect(qIdx, opt.optionId)"
-                        class="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <input
-                        type="text"
-                        [ngModel]="opt.text"
-                        (ngModelChange)="opt.text = $event"
-                        class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                      />
-                      @if (q.type === 'singleSelect' && (q.options?.length || 0) > 2) {
-                        <button (click)="removeOption(qIdx, oIdx)" class="text-slate-400 hover:text-rose-600">
-                          <span class="material-icons text-sm">close</span>
-                        </button>
-                      }
-                    </div>
-                  }
                 </div>
-              } @else if (q.type === 'multiSelect') {
-                <div class="space-y-2 pt-2">
-                  <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-                    <span>Options (Check all correct answers)</span>
-                    <button (click)="addOption(qIdx)" class="text-indigo-600 hover:text-indigo-800 font-bold">+ Add Option</button>
-                  </div>
+              }
 
-                  <div class="flex items-center gap-4 text-xs bg-slate-50 p-2 rounded-lg border border-slate-200 my-1">
-                    <span class="font-bold text-slate-700">Multi-select Rule:</span>
-                    <label class="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        [name]="'ms-rule-' + q.questionId"
-                        value="allOrNothing"
-                        [ngModel]="q.multiSelectScoring || 'allOrNothing'"
-                        (ngModelChange)="q.multiSelectScoring = $event"
-                      />
-                      <span>All or Nothing</span>
-                    </label>
-                    <label class="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        [name]="'ms-rule-' + q.questionId"
-                        value="partial"
-                        [ngModel]="q.multiSelectScoring || 'allOrNothing'"
-                        (ngModelChange)="q.multiSelectScoring = $event"
-                      />
-                      <span>Partial Credit</span>
-                    </label>
+              <!-- TRUE / FALSE -->
+              @if (q.type === 'trueFalse') {
+                <div class="space-y-2 pt-2 border-t border-base-200">
+                  <span class="text-xs font-bold text-text-primary">Correct Assertion</span>
+                  <div class="flex items-center gap-4">
+                    @for (opt of q.options || []; track opt.optionId) {
+                      <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-bold cursor-pointer">
+                        <input
+                          type="radio"
+                          [name]="'tf-correct-' + q.questionId"
+                          [checked]="opt.correct || opt.isCorrect"
+                          (change)="toggleSingleSelectCorrect(qIndex, opt.optionId)"
+                          class="text-tenant-600 focus:ring-tenant-500" />
+                        <span>{{ opt.text }}</span>
+                      </label>
+                    }
                   </div>
-
-                  @for (opt of q.options; track opt.optionId; let oIdx = $index) {
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        [checked]="opt.isCorrect"
-                        (change)="toggleMultiSelectCorrect(qIdx, opt.optionId)"
-                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                      />
-                      <input
-                        type="text"
-                        [ngModel]="opt.text"
-                        (ngModelChange)="opt.text = $event"
-                        class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                      />
-                      @if ((q.options?.length || 0) > 2) {
-                        <button (click)="removeOption(qIdx, oIdx)" class="text-slate-400 hover:text-rose-600">
-                          <span class="material-icons text-sm">close</span>
-                        </button>
-                      }
-                    </div>
-                  }
                 </div>
-              } @else if (q.type === 'matching') {
-                <div class="space-y-2 pt-2">
-                  <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-                    <span>Matching Pairs</span>
-                    <button (click)="addMatchingPair(qIdx)" class="text-indigo-600 hover:text-indigo-800 font-bold">+ Add Pair</button>
+              }
+
+              <!-- MATCHING PAIRS -->
+              @if (q.type === 'matching') {
+                <div class="space-y-2.5 pt-2 border-t border-base-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-text-primary">Matching Pairs (Premise &rarr; Target)</span>
+                    <button
+                      type="button"
+                      (click)="addMatchingPair(qIndex)"
+                      class="px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[11px] font-bold border border-tenant-200 dark:border-tenant-800 hover:bg-tenant-100 cursor-pointer">
+                      + Add Pair
+                    </button>
                   </div>
 
-                  @for (pair of q.matchingPairs; track pair.pairId; let pIdx = $index) {
-                    <div class="grid grid-cols-12 gap-2 items-center">
-                      <input
-                        type="text"
-                        [ngModel]="pair.leftItem"
-                        (ngModelChange)="pair.leftItem = $event"
-                        placeholder="Left premise..."
-                        class="col-span-5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                      />
-                      <span class="col-span-1 text-center font-bold text-slate-400">&rarr;</span>
-                      <input
-                        type="text"
-                        [ngModel]="pair.rightItem"
-                        (ngModelChange)="pair.rightItem = $event"
-                        placeholder="Right match..."
-                        class="col-span-5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                      />
-                      <button (click)="removeMatchingPair(qIdx, pIdx)" class="col-span-1 text-slate-400 hover:text-rose-600">
-                        <span class="material-icons text-sm">close</span>
-                      </button>
+                  <div class="space-y-2">
+                    @for (pair of q.matchingPairs || []; track pair.pairId || $index; let pIdx = $index) {
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 rounded-xl bg-base-200 border border-base-300 items-center">
+                        <input
+                          type="text"
+                          [ngModel]="pair.leftItem || pair.leftText"
+                          (ngModelChange)="pair.leftItem = $event; pair.leftText = $event"
+                          placeholder="Left premise / concept..."
+                          class="px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+
+                        <div class="flex items-center gap-2">
+                          <span class="text-text-secondary text-xs">&rarr;</span>
+                          <input
+                            type="text"
+                            [ngModel]="pair.rightItem || pair.rightText"
+                            (ngModelChange)="pair.rightItem = $event; pair.rightText = $event"
+                            placeholder="Right target / match..."
+                            class="flex-1 px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+                          <button
+                            type="button"
+                            [disabled]="(q.matchingPairs?.length || 0) <= 1"
+                            (click)="removeMatchingPair(qIndex, pIdx)"
+                            class="p-1 text-text-secondary hover:text-rose-500 disabled:opacity-20 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- ESSAY / FILE UPLOAD NOTICE -->
+              @if (q.type === 'essay' || q.type === 'fileUpload') {
+                <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-[11px] text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base text-amber-600">rate_review</span>
+                  <span>This item requires manual grading by the responsible instructor upon examinee submission.</span>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 3: SCORING & RULES                                                   -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 3) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 3.1: Pass Mark & Benchmarking -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">tune</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">3. Scoring Policy, Attempts & Time Limit</h2>
+            <p class="text-[11px] text-text-secondary">Determine passing threshold percentages, allowed attempts, and session duration</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Pass Mark Percent (%) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Pass Mark Benchmark (%) <span class="text-rose-500">*</span>
+            </label>
+            <div class="flex items-center gap-3">
+              <input
+                type="number"
+                id="input-pass-mark"
+                [ngModel]="passMarkPercent()"
+                (ngModelChange)="passMarkPercent.set(+$event)"
+                min="0"
+                max="100"
+                class="w-24 px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-tenant-500" />
+              <div class="flex-1">
+                <div class="h-2 w-full bg-base-300 rounded-full overflow-hidden">
+                  <div 
+                    class="h-full transition-all duration-300"
+                    [ngClass]="passMarkPercent() >= 70 ? 'bg-emerald-500' : passMarkPercent() >= 50 ? 'bg-amber-500' : 'bg-rose-500'"
+                    [style.width.%]="passMarkPercent()"></div>
+                </div>
+                <span class="text-[10px] text-text-secondary font-medium mt-0.5 block">
+                  Examinee needs at least {{ ((passMarkPercent() / 100) * totalMarks()).toFixed(1) }} / {{ totalMarks() }} points to pass.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Limit Minutes -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Time Limit (Minutes)
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Leave blank or 0 for untimed)</span>
+            </label>
+            <input
+              type="number"
+              id="input-time-limit"
+              [ngModel]="timeLimitMinutes()"
+              (ngModelChange)="timeLimitMinutes.set($event ? +$event : null)"
+              min="0"
+              placeholder="e.g. 45"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-medium focus:outline-none focus:border-tenant-500" />
+          </div>
+
+          <!-- Allowed Attempts -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Allowed Attempts Count
+            </label>
+            <input
+              type="number"
+              id="input-allowed-attempts"
+              [ngModel]="allowedAttempts()"
+              (ngModelChange)="allowedAttempts.set(+$event)"
+              min="1"
+              max="20"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-medium focus:outline-none focus:border-tenant-500" />
+          </div>
+
+          <!-- Keep Score Rule (Custom Select) -->
+          <div>
+            <app-custom-select
+              id="select-keep-score-rule"
+              [ngModel]="keepScoreRule()"
+              (ngModelChange)="keepScoreRule.set($event)"
+              label="Retake Score Selection"
+              hint="(Which attempt grade is recorded)"
+              [options]="keepScoreOptions"
+              leadingIcon="star" />
+          </div>
+
+          <!-- Result Display Policy (Custom Select) -->
+          <div class="md:col-span-2">
+            <app-custom-select
+              id="select-result-display-policy"
+              [ngModel]="showScorePolicy()"
+              (ngModelChange)="showScorePolicy.set($event)"
+              label="Result & Score Release Policy"
+              hint="(When results become visible to examinees)"
+              [options]="resultDisplayOptions"
+              leadingIcon="visibility" />
+          </div>
+
+          <!-- Feedback & Answer Visibility Toggles -->
+          <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-base-200">
+            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer">
+              <input
+                type="checkbox"
+                id="check-show-correct-answers"
+                [ngModel]="showCorrectAnswers()"
+                (ngModelChange)="showCorrectAnswers.set($event)"
+                class="rounded text-tenant-600 focus:ring-tenant-500" />
+              <div>
+                <span class="text-xs font-bold text-text-primary block">Reveal Correct Answers</span>
+                <span class="text-[10px] text-text-secondary">Allow examinee to see answer keys after submission</span>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer">
+              <input
+                type="checkbox"
+                id="check-show-feedback"
+                [ngModel]="showFeedback()"
+                (ngModelChange)="showFeedback.set($event)"
+                class="rounded text-tenant-600 focus:ring-tenant-500" />
+              <div>
+                <span class="text-xs font-bold text-text-primary block">Show Explanations & Feedback</span>
+                <span class="text-[10px] text-text-secondary">Provide detailed feedback comments on completed questions</span>
+              </div>
+            </label>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 4: PREVIEW & CONFIRM                                                 -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 4) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 4.1: Governance & Publish Quality Gate -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">verified_user</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">4. Governance Quality Gates</h2>
+              <p class="text-[11px] text-text-secondary">Automatic pre-publish verification checks</p>
+            </div>
+          </div>
+
+          @if (validationChecklist().isValid) {
+            <span class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              Quality Gates Passed
+            </span>
+          } @else {
+            <span class="px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-xs font-bold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">warning</span>
+              Publish Blockers Present
+            </span>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <!-- Check 1: Title -->
+          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().titleOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
+            <div class="flex items-center gap-1.5 font-bold mb-0.5">
+              <span class="material-symbols-outlined text-base">{{ validationChecklist().titleOk ? 'check_circle' : 'cancel' }}</span>
+              <span>Title Defined</span>
+            </div>
+            <p class="text-[10px] opacity-80">{{ title() || 'Missing title' }}</p>
+          </div>
+
+          <!-- Check 2: Question Count -->
+          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().questionsOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
+            <div class="flex items-center gap-1.5 font-bold mb-0.5">
+              <span class="material-symbols-outlined text-base">{{ validationChecklist().questionsOk ? 'check_circle' : 'cancel' }}</span>
+              <span>Item Bank Items</span>
+            </div>
+            <p class="text-[10px] opacity-80">{{ questions().length }} authored questions</p>
+          </div>
+
+          <!-- Check 3: Points Weight -->
+          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().pointsOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
+            <div class="flex items-center gap-1.5 font-bold mb-0.5">
+              <span class="material-symbols-outlined text-base">{{ validationChecklist().pointsOk ? 'check_circle' : 'cancel' }}</span>
+              <span>Score Allocation</span>
+            </div>
+            <p class="text-[10px] opacity-80">{{ totalMarks() }} total maximum points</p>
+          </div>
+
+          <!-- Check 4: Instructor Rule -->
+          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().instructorOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
+            <div class="flex items-center gap-1.5 font-bold mb-0.5">
+              <span class="material-symbols-outlined text-base">{{ validationChecklist().instructorOk ? 'check_circle' : 'cancel' }}</span>
+              <span>Instructor Assigned</span>
+            </div>
+            <p class="text-[10px] opacity-80">{{ responsibleInstructorName() || (hasManualQuestions() ? 'Mandatory for essays' : 'Auto-graded') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4.2: Summary Parameters -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <h3 class="text-sm font-bold text-text-primary">Assessment Metadata Summary</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div>
+            <span class="text-text-secondary text-[11px] block">Assessment Code</span>
+            <span class="font-mono font-bold text-text-primary">{{ code() }}</span>
+          </div>
+          <div>
+            <span class="text-text-secondary text-[11px] block">Format & Mode</span>
+            <span class="font-bold text-text-primary capitalize">{{ type() }} &bull; {{ scoringMode() }}</span>
+          </div>
+          <div>
+            <span class="text-text-secondary text-[11px] block">Pass Benchmark</span>
+            <span class="font-bold text-emerald-600">{{ passMarkPercent() }}%</span>
+          </div>
+          <div>
+            <span class="text-text-secondary text-[11px] block">Time Window</span>
+            <span class="font-bold text-text-primary">{{ timeLimitMinutes() ? timeLimitMinutes() + ' minutes' : 'Untimed' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4.3: Authored Questions Preview -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <h3 class="text-sm font-bold text-text-primary">Authored Questions ({{ questions().length }})</h3>
+        <div class="space-y-3">
+          @for (q of questions(); track q.questionId; let i = $index) {
+            <div class="p-4 rounded-2xl bg-base-200 border border-base-300 text-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-text-primary">Q{{ i + 1 }}. {{ q.text || q.prompt }}</span>
+                <span class="font-bold text-tenant-600">{{ q.points }} pts</span>
+              </div>
+              @if (q.options?.length) {
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-2 text-[11px] text-text-secondary">
+                  @for (opt of q.options; track opt.optionId) {
+                    <div class="flex items-center gap-1.5" [class.text-emerald-600]="opt.correct || opt.isCorrect" [class.font-bold]="opt.correct || opt.isCorrect">
+                      <span class="material-symbols-outlined text-xs">{{ (opt.correct || opt.isCorrect) ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                      <span>{{ opt.text }}</span>
                     </div>
                   }
                 </div>
               }
-
-              <!-- Explanation / Feedback -->
-              <div class="pt-2">
-                <label class="block text-xs font-semibold text-slate-500 mb-1">Answer Explanation / Feedback</label>
-                <input
-                  type="text"
-                  [ngModel]="q.explanation"
-                  (ngModelChange)="q.explanation = $event"
-                  placeholder="Explanations shown to learners after review..."
-                  class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700"
-                />
-              </div>
             </div>
           }
-        }
-
-        <div class="flex items-center justify-between pt-4">
-          <button
-            (click)="prevStep()"
-            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl"
-          >
-            Back
-          </button>
-          <button
-            (click)="nextStep()"
-            class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl flex items-center gap-2"
-          >
-            <span>Continue to Scoring Policy</span>
-            <span class="material-icons text-base">arrow_forward</span>
-          </button>
         </div>
       </div>
+
     </div>
   }
 
-  <!-- STEP 3: Scoring Policy & Rules -->
-  @if (currentStep() === 3) {
-    <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-6 max-w-4xl mx-auto">
-      <div class="border-b pb-4">
-        <h2 class="text-lg font-bold text-slate-900">Scoring Policy & Runtime Settings</h2>
-        <p class="text-xs text-slate-500">Configure pass mark thresholds, attempt limits, timers, and result display policies.</p>
-      </div>
+  <!-- ========================================================================= -->
+  <!-- 5. UNIFIED BOTTOM NAVIGATION & ACTION BAR                                  -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-base-300">
+    <!-- Left: Cancel & Reset Step -->
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        id="btn-bottom-cancel"
+        (click)="onCancel()"
+        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+        Cancel
+      </button>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Pass Mark Threshold (%)</label>
-          <div class="flex items-center gap-3">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="5"
-              [ngModel]="passMarkPercent()"
-              (ngModelChange)="passMarkPercent.set($event)"
-              class="flex-1 accent-indigo-600"
-            />
-            <span class="text-lg font-bold text-indigo-600 font-mono w-12 text-right">{{ passMarkPercent() }}%</span>
-          </div>
-        </div>
+      <button
+        type="button"
+        id="btn-bottom-reset"
+        (click)="onReset(currentStep())"
+        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold text-text-secondary hover:text-rose-600 border border-base-300/80 transition-all cursor-pointer"
+        title="Reset fields on this step">
+        Reset Step
+      </button>
+    </div>
 
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Time Limit (Minutes)</label>
-          <input
-            type="number"
-            [ngModel]="timeLimitMinutes()"
-            (ngModelChange)="timeLimitMinutes.set($event)"
-            placeholder="Leave empty for untimed exam"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Attempts Allowed</label>
-          <select
-            [ngModel]="allowedAttempts()"
-            (ngModelChange)="allowedAttempts.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          >
-            <option [value]="1">1 Attempt Only</option>
-            <option [value]="2">2 Attempts</option>
-            <option [value]="3">3 Attempts</option>
-            <option [value]="99">Unlimited Attempts</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Score Retention Policy</label>
-          <select
-            [ngModel]="keepScoreRule()"
-            (ngModelChange)="keepScoreRule.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
-          >
-            <option value="highest">Keep Highest Score</option>
-            <option value="latest">Keep Latest Score</option>
-            <option value="average">Average Score</option>
-            <option value="first">First Attempt Score</option>
-          </select>
-        </div>
-
-        <!-- Negative Marking -->
-        <div class="md:col-span-2 p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-sm font-bold text-slate-900">Negative Marking</span>
-              <p class="text-xs text-slate-500">Deduct score points for wrong auto-scored answers.</p>
-            </div>
-            <input
-              type="checkbox"
-              [checked]="negativeMarkingEnabled()"
-              (change)="negativeMarkingEnabled.set(!negativeMarkingEnabled())"
-              class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-            />
-          </div>
-
-          @if (negativeMarkingEnabled()) {
-            <div class="flex items-center gap-3 pt-2">
-              <label class="text-xs font-semibold text-slate-700">Penalty per incorrect question:</label>
-              <input
-                type="number"
-                step="0.25"
-                [ngModel]="negativePenalty()"
-                (ngModelChange)="negativePenalty.set($event)"
-                class="w-24 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-rose-600"
-              />
-              <span class="text-xs text-slate-500">Points</span>
-            </div>
-          }
-        </div>
-
-        <!-- Result Display Policy -->
-        <div class="md:col-span-2 space-y-3">
-          <label class="block text-xs font-bold uppercase text-slate-700">Result Display Policy</label>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">Show Score</label>
-              <select
-                [ngModel]="showScorePolicy()"
-                (ngModelChange)="showScorePolicy.set($event)"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900"
-              >
-                <option value="afterSubmit">Immediately Upon Submit</option>
-                <option value="afterGrading">After All Manual Grading Done</option>
-                <option value="afterWindowClose">After Window Closes</option>
-                <option value="never">Never (Instructor Only)</option>
-              </select>
-            </div>
-
-            <div class="flex items-center gap-2 pt-5">
-              <input
-                type="checkbox"
-                [checked]="showCorrectAnswers()"
-                (change)="showCorrectAnswers.set(!showCorrectAnswers())"
-                class="w-4 h-4 text-indigo-600 rounded"
-              />
-              <span class="text-xs font-semibold text-slate-800">Show Correct Answers in Review</span>
-            </div>
-
-            <div class="flex items-center gap-2 pt-5">
-              <input
-                type="checkbox"
-                [checked]="showFeedback()"
-                (change)="showFeedback.set(!showFeedback())"
-                class="w-4 h-4 text-indigo-600 rounded"
-              />
-              <span class="text-xs font-semibold text-slate-800">Show Answer Explanations</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between pt-4 border-t">
+    <!-- Right: Navigation Wizards (Back, Save Draft, Next / Publish) -->
+    <div class="flex items-center gap-2.5">
+      @if (currentStep() > 1) {
         <button
-          (click)="prevStep()"
-          class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl"
-        >
+          type="button"
+          id="btn-wizard-back"
+          (click)="onPrev()"
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-bold border border-base-300 transition-all cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
           Back
         </button>
+      }
+
+      <button
+        type="button"
+        id="btn-bottom-save-draft"
+        (click)="onSaveAsDraft()"
+        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all cursor-pointer shadow-2xs">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        Save as draft
+      </button>
+
+      @if (currentStep() < 4) {
         <button
-          (click)="nextStep()"
-          class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl flex items-center gap-2"
-        >
-          <span>Continue to Governance Review</span>
-          <span class="material-icons text-base">arrow_forward</span>
+          type="button"
+          id="btn-wizard-next"
+          (click)="onNext()"
+          class="px-5 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:scale-95 text-white text-xs font-extrabold shadow-md shadow-tenant-500/20 transition-all cursor-pointer flex items-center gap-1.5">
+          <span>Next: Step {{ currentStep() + 1 }}</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
-      </div>
-    </div>
-  }
-
-  <!-- STEP 4: Review & Governance -->
-  @if (currentStep() === 4) {
-    <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-6 max-w-4xl mx-auto">
-      <div class="border-b pb-4">
-        <h2 class="text-lg font-bold text-slate-900">Pre-Publish Governance Checklist</h2>
-        <p class="text-xs text-slate-500">Verify assessment metadata and publish validation gates before publishing.</p>
-      </div>
-
-      <!-- Checklist Items -->
-      <div class="space-y-3">
-        <!-- Title check -->
-        <div
-          [class.bg-emerald-50]="validationChecklist().titleOk"
-          [class.border-emerald-200]="validationChecklist().titleOk"
-          [class.bg-rose-50]="!validationChecklist().titleOk"
-          [class.border-rose-200]="!validationChecklist().titleOk"
-          class="p-4 rounded-xl border flex items-center justify-between"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              [class.text-emerald-600]="validationChecklist().titleOk"
-              [class.text-rose-600]="!validationChecklist().titleOk"
-              class="material-icons text-xl"
-            >
-              {{ validationChecklist().titleOk ? 'check_circle' : 'cancel' }}
-            </span>
-            <div>
-              <div class="text-sm font-bold text-slate-900">Assessment Title Configured</div>
-              <div class="text-xs text-slate-500">{{ title() || 'Missing title' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Questions count check -->
-        <div
-          [class.bg-emerald-50]="validationChecklist().questionsOk"
-          [class.border-emerald-200]="validationChecklist().questionsOk"
-          [class.bg-rose-50]="!validationChecklist().questionsOk"
-          [class.border-rose-200]="!validationChecklist().questionsOk"
-          class="p-4 rounded-xl border flex items-center justify-between"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              [class.text-emerald-600]="validationChecklist().questionsOk"
-              [class.text-rose-600]="!validationChecklist().questionsOk"
-              class="material-icons text-xl"
-            >
-              {{ validationChecklist().questionsOk ? 'check_circle' : 'cancel' }}
-            </span>
-            <div>
-              <div class="text-sm font-bold text-slate-900">At Least 1 Question Configured</div>
-              <div class="text-xs text-slate-500">{{ questions().length }} Questions added</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Points check -->
-        <div
-          [class.bg-emerald-50]="validationChecklist().pointsOk"
-          [class.border-emerald-200]="validationChecklist().pointsOk"
-          [class.bg-rose-50]="!validationChecklist().pointsOk"
-          [class.border-rose-200]="!validationChecklist().pointsOk"
-          class="p-4 rounded-xl border flex items-center justify-between"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              [class.text-emerald-600]="validationChecklist().pointsOk"
-              [class.text-rose-600]="!validationChecklist().pointsOk"
-              class="material-icons text-xl"
-            >
-              {{ validationChecklist().pointsOk ? 'check_circle' : 'cancel' }}
-            </span>
-            <div>
-              <div class="text-sm font-bold text-slate-900">Total Marks > 0</div>
-              <div class="text-xs text-slate-500">Total: {{ totalMarks() }} Marks</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mandatory Responsible Instructor Gate Rule (§6.4 & §8) -->
-        <div
-          [class.bg-emerald-50]="validationChecklist().instructorOk"
-          [class.border-emerald-200]="validationChecklist().instructorOk"
-          [class.bg-amber-50]="!validationChecklist().instructorOk"
-          [class.border-amber-200]="!validationChecklist().instructorOk"
-          class="p-4 rounded-xl border flex items-center justify-between"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              [class.text-emerald-600]="validationChecklist().instructorOk"
-              [class.text-amber-600]="!validationChecklist().instructorOk"
-              class="material-icons text-xl"
-            >
-              {{ validationChecklist().instructorOk ? 'check_circle' : 'warning' }}
-            </span>
-            <div>
-              <div class="text-sm font-bold text-slate-900">
-                Responsible Instructor Assignment Gate Rule
-              </div>
-              <div class="text-xs text-slate-600">
-                @if (validationChecklist().manualGraded) {
-                  Manual questions exist. Assigned instructor:
-                  <strong>{{ responsibleInstructorName() || 'NONE (Publish Blocked!)' }}</strong>
-                } @else {
-                  All questions are auto-graded. Instructor assignment optional.
-                }
-              </div>
-            </div>
-          </div>
-
-          @if (!validationChecklist().instructorOk) {
-            <button
-              (click)="goToStep(1)"
-              class="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700"
-            >
-              Assign Instructor
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between pt-6 border-t">
+      } @else {
         <button
-          (click)="prevStep()"
-          class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl"
-        >
-          Back
+          type="button"
+          id="btn-wizard-publish"
+          (click)="publishNow()"
+          [disabled]="!validationChecklist().isValid"
+          class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white text-xs font-extrabold shadow-md shadow-emerald-600/30 transition-all cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">verified</span>
+          <span>Publish Assessment Live</span>
         </button>
-
-        <div class="flex items-center gap-3">
-          <button
-            (click)="saveAsDraft()"
-            class="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-xl"
-          >
-            Save as Draft
-          </button>
-          <button
-            (click)="publishNow()"
-            [disabled]="!validationChecklist().isValid"
-            class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-sm rounded-xl flex items-center gap-2 shadow-sm"
-          >
-            <span class="material-icons text-base">publish</span>
-            <span>Publish Assessment Now</span>
-          </button>
-        </div>
-      </div>
+      }
     </div>
-  }
+  </div>
+
 </div>
