@@ -1,0 +1,172 @@
+/* Universal Select and Input Dropdown System */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  font-size: 0.75rem !important; /* text-xs: 12px */
+  line-height: 1rem !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  box-sizing: border-box !important;
+  background-color: var(--base-200) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--base-300) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.625rem 2.35rem 0.625rem 0.875rem !important; /* 10px top/bottom (py-2.5), 14px left (px-3.5) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 1.125rem 1.125rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+select.py-1,
+select.py-1\.5,
+select.h-8,
+select.h-9,
+select.text-xs.py-1,
+select.text-xs.py-1\.5 {
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+  padding-right: 1.85rem !important;
+  padding-left: 0.625rem !important;
+  background-size: 1rem 1rem !important;
+  background-position: right 0.55rem center !important;
+}
+
+select.py-2 {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+select:hover:not(:disabled) {
+  border-color: #94a3b8 !important;
+}
+
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  border-color: var(--tenant-primary, #EC008C) !important;
+  box-shadow: 0 0 0 2px rgba(236, 0, 140, 0.15) !important;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========================================================================= */
+/* UNIVERSAL BULLETPROOF STICKY TABLE COLUMN & HEADER SYSTEM                 */
+/* Prevents text overlap, clipping, and translucent bleed-through on all     */
+/* data tables across light mode, dark mode, and glassmorphism themes        */
+/* ========================================================================= */
+th.sticky,
+td.sticky,
+th[class*="sticky"],
+td[class*="sticky"],
+[class*="sticky right-0"],
+[class*="sticky left-0"] {
+  background-clip: padding-box !important;
+}
+
+/* Sticky Header Cells: Solid opaque background & Highest Z-Index (z-30) */
+thead th.sticky,
+thead th[class*="sticky"],
+thead [class*="sticky right-0"],
+thead [class*="sticky left-0"] {
+  background-color: #f8fafc !important;
+  color: inherit !important;
+  z-index: 30 !important;
+  opacity: 1 !important;
+}
+
+html.dark thead th.sticky,
+html.dark thead th[class*="sticky"],
+html.dark thead [class*="sticky right-0"],
+html.dark thead [class*="sticky left-0"] {
+  background-color: #1e293b !important;
+  color: inherit !important;
+  z-index: 30 !important;
+  opacity: 1 !important;
+}
+
+/* Sticky Body Cells: Solid opaque background & Medium Z-Index (z-20) */
+tbody td.sticky,
+tbody td[class*="sticky"],
+tbody [class*="sticky right-0"],
+tbody [class*="sticky left-0"] {
+  background-color: #ffffff !important;
+  z-index: 20 !important;
+  opacity: 1 !important;
+}
+
+html.dark tbody td.sticky,
+html.dark tbody td[class*="sticky"],
+html.dark tbody [class*="sticky right-0"],
+html.dark tbody [class*="sticky left-0"] {
+  background-color: #0f172a !important;
+  z-index: 20 !important;
+  opacity: 1 !important;
+}
+
+/* Sticky Body Row Hover State */
+tbody tr:hover td.sticky,
+tbody tr:hover td[class*="sticky"],
+tbody tr:hover [class*="sticky right-0"],
+tbody tr:hover [class*="sticky left-0"] {
+  background-color: #f1f5f9 !important;
+}
+
+html.dark tbody tr:hover td.sticky,
+html.dark tbody tr:hover td[class*="sticky"],
+html.dark tbody tr:hover [class*="sticky right-0"],
+html.dark tbody tr:hover [class*="sticky left-0"] {
+  background-color: #1e293b !important;
+}
+
+/* Glassmorphism theme override to prevent background bleed */
+html.theme-glassmorphism thead th.sticky,
+html.theme-glassmorphism thead [class*="sticky right-0"],
+html.theme-glassmorphism thead [class*="sticky left-0"] {
+  background-color: #f1f5f9 !important;
+}
+
+html.theme-glassmorphism.dark thead th.sticky,
+html.theme-glassmorphism.dark thead [class*="sticky right-0"],
+html.theme-glassmorphism.dark thead [class*="sticky left-0"] {
+  background-color: #1e293b !important;
+}
+
+html.theme-glassmorphism tbody td.sticky,
+html.theme-glassmorphism tbody [class*="sticky right-0"],
+html.theme-glassmorphism tbody [class*="sticky left-0"] {
+  background-color: #ffffff !important;
+}
+
+html.theme-glassmorphism.dark tbody td.sticky,
+html.theme-glassmorphism.dark tbody [class*="sticky right-0"],
+html.theme-glassmorphism.dark tbody [class*="sticky left-0"] {
+  background-color: #0f172a !important;
+}
+
+
+

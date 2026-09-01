@@ -1,0 +1,747 @@
+<div class="space-y-4 pb-16 lg:pb-6">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. TOP NAVIGATION & PROGRESS HEADER (Mobile & Desktop Responsive) -->
+  <!-- ========================================================================= -->
+  <div class="p-3 sm:p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <a 
+        routerLink="/courses" 
+        class="w-10 h-10 rounded-xl bg-base-200 hover:bg-base-300 flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors flex-shrink-0 active:scale-95" 
+        title="Back to Courses"
+        aria-label="Back to Courses">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+      </a>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+            {{ course().category }}
+          </span>
+          <span class="text-xs text-text-secondary font-medium truncate">
+            Unit {{ currentLessonIndex() + 1 }} of {{ allLessons().length }}
+          </span>
+        </div>
+        <h1 class="font-bold text-sm sm:text-base text-text-primary truncate mt-0.5">{{ course().title }}</h1>
+      </div>
+    </div>
+
+    <!-- Progress & Action Bar -->
+    <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-base-300/60">
+      <!-- Progress pill -->
+      <div class="w-32 sm:w-44 flex flex-col gap-1">
+        <div class="flex justify-between text-[11px] font-semibold">
+          <span class="text-text-secondary">Progress</span>
+          <span class="text-tenant-600 dark:text-tenant-300 font-bold font-mono">{{ enrollment()?.progressPercent || 0 }}%</span>
+        </div>
+        <div class="w-full bg-base-300 h-2 rounded-full overflow-hidden">
+          <div class="bg-tenant-500 h-full rounded-full transition-all duration-300" [style.width.%]="enrollment()?.progressPercent || 0"></div>
+        </div>
+      </div>
+
+      <!-- Certificate Button -->
+      @if (enrollment()?.progressPercent === 100) {
+        <button 
+          (click)="viewCertificate()"
+          class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm animate-pulse min-h-[40px]">
+          <span class="material-symbols-outlined text-sm">military_tech</span>
+          <span class="hidden sm:inline">Certificate</span>
+        </button>
+      }
+
+      <!-- Desktop Sidebar Toggle Button -->
+      <button 
+        (click)="isSidebarOpen.set(!isSidebarOpen())"
+        class="hidden lg:flex p-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary transition-colors"
+        title="Toggle Curriculum Sidebar">
+        <span class="material-symbols-outlined text-lg">
+          {{ isSidebarOpen() ? 'dock_to_right' : 'view_sidebar' }}
+        </span>
+      </button>
+
+      <!-- Mobile Curriculum Drawer Trigger -->
+      <button 
+        (click)="showCurriculumDrawer.set(true)"
+        class="lg:hidden p-2 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-secondary flex items-center gap-1 text-xs font-semibold"
+        title="Open Syllabus Drawer">
+        <span class="material-symbols-outlined text-lg text-tenant-600">format_list_bulleted</span>
+        <span class="text-[11px]">Syllabus</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN STAGE: CURRICULUM SIDEBAR + PLAYER CANVAS -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    
+    <!-- DESKTOP COLLAPSIBLE CURRICULUM SIDEBAR (Hidden on mobile < lg) -->
+    @if (isSidebarOpen()) {
+      <div class="hidden lg:block lg:col-span-4 rounded-3xl bg-base-100 border border-base-300 shadow-sm p-4 space-y-4 max-h-[850px] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <h2 class="font-bold text-xs text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-tenant-600 text-sm">format_list_bulleted</span>
+            Course Curriculum
+          </h2>
+          <span class="text-[11px] text-text-secondary font-mono">{{ allLessons().length }} units</span>
+        </div>
+
+        <div class="space-y-4">
+          @for (mod of course().modules; track mod.id) {
+            <div class="space-y-1.5">
+              <div class="font-bold text-xs text-text-primary px-2 py-1 bg-base-200 rounded-lg flex items-center justify-between">
+                <span class="truncate">{{ mod.title }}</span>
+                <span class="text-[10px] text-text-secondary font-mono">{{ mod.durationMinutes }}m</span>
+              </div>
+
+              <div class="space-y-1 pl-1">
+                @for (les of mod.lessons; track les.id) {
+                  @let completed = isLessonCompleted(les.id);
+                  @let isCurrent = les.id === activeLesson().id;
+                  
+                  <button 
+                    (click)="selectLesson(les.id)"
+                    class="w-full p-2.5 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2.5 focus:outline-none focus:ring-0 outline-none"
+                    [class]="isCurrent ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-semibold border-2 border-tenant-500' : 'hover:bg-base-200 text-text-secondary hover:text-text-primary border border-transparent'">
+                    
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="material-symbols-outlined text-sm flex-shrink-0"
+                            [class]="completed ? 'text-emerald-500 fill' : isCurrent ? 'text-tenant-500' : 'text-text-secondary'">
+                        @if (completed) { check_circle }
+                        @else if (les.type === 'video') { play_circle }
+                        @else if (les.type === 'quiz') { quiz }
+                        @else { article }
+                      </span>
+                      <span class="truncate leading-tight">{{ les.title }}</span>
+                    </div>
+
+                    <span class="text-[10px] text-text-secondary font-mono flex-shrink-0">{{ les.durationMinutes }}m</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- PLAYER CONTENT COLUMN -->
+    <div [class]="isSidebarOpen() ? 'lg:col-span-8' : 'lg:col-span-12'" class="space-y-5">
+      
+      <!-- Video / Interactive Player Card -->
+      <div class="rounded-3xl bg-base-100 border border-base-300 shadow-sm overflow-hidden p-3.5 sm:p-6 space-y-4">
+        
+        <!-- Video Header Info Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-base-300/80">
+          <div>
+            <div class="flex items-center gap-2 text-xs text-text-secondary mb-1">
+              <span class="capitalize flex items-center gap-1 font-semibold text-tenant-600 dark:text-tenant-300">
+                <span class="material-symbols-outlined text-sm">
+                  @if (activeLesson().type === 'video') { play_circle }
+                  @else if (activeLesson().type === 'quiz') { quiz }
+                  @else { article }
+                </span>
+                {{ activeLesson().type }} Lesson
+              </span>
+              <span>&bull;</span>
+              <span>{{ activeLesson().durationMinutes }} mins</span>
+            </div>
+            <h2 class="text-base sm:text-xl font-bold text-text-primary tracking-tight">{{ activeLesson().title }}</h2>
+          </div>
+
+          <!-- Unit Skipper Controls -->
+          <div class="flex items-center gap-1.5 self-end sm:self-auto">
+            <button 
+              (click)="goToPrevLesson()" 
+              [disabled]="currentLessonIndex() === 0"
+              class="p-2 rounded-xl bg-base-200 hover:bg-base-300 disabled:opacity-30 text-text-primary text-xs transition-colors flex items-center gap-1 min-h-[38px]"
+              title="Previous Lesson">
+              <span class="material-symbols-outlined text-base">skip_previous</span>
+              <span class="text-[11px] hidden sm:inline">Prev</span>
+            </button>
+            <button 
+              (click)="goToNextLesson()" 
+              [disabled]="currentLessonIndex() === allLessons().length - 1"
+              class="p-2 rounded-xl bg-base-200 hover:bg-base-300 disabled:opacity-30 text-text-primary text-xs transition-colors flex items-center gap-1 min-h-[38px]"
+              title="Next Lesson">
+              <span class="text-[11px] hidden sm:inline">Next</span>
+              <span class="material-symbols-outlined text-base">skip_next</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2A. VIDEO LESSON STAGE (NATIVE TOUCH CONTROLS & CAPTIONS) -->
+        <!-- ========================================================================= -->
+        @if (activeLesson().type === 'video') {
+          <div class="space-y-3">
+            <!-- Simulated HD Video Canvas -->
+            <div class="relative w-full rounded-2xl overflow-hidden bg-zinc-950 aspect-video flex flex-col justify-between p-3 sm:p-4 shadow-2xl border border-white/10 select-none group">
+              
+              <!-- Video Top Bar -->
+              <div class="flex items-center justify-between text-white/90 text-xs z-10">
+                <span class="font-medium tracking-wide truncate max-w-[200px] sm:max-w-md">{{ activeLesson().title }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-white/20 text-[10px] font-mono">1080p HD</span>
+                  <button 
+                    (click)="isCaptionsOn.set(!isCaptionsOn())" 
+                    class="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                    [class]="isCaptionsOn() ? 'bg-tenant-500 text-white' : 'bg-white/20 text-white/70'">
+                    CC
+                  </button>
+                </div>
+              </div>
+
+              <!-- Center Interactive Play / Seek Area -->
+              <div class="self-center my-auto flex items-center gap-4 sm:gap-8 z-10">
+                <!-- 10s Rewind Button -->
+                <button 
+                  (click)="seekRelative(-10)"
+                  class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 active:scale-90 text-white flex items-center justify-center backdrop-blur-sm transition-all"
+                  title="Rewind 10 seconds">
+                  <span class="material-symbols-outlined text-xl sm:text-2xl">replay_10</span>
+                </button>
+
+                <!-- Big Main Play/Pause Button -->
+                <button 
+                  (click)="togglePlay()"
+                  class="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-tenant-500/95 hover:bg-tenant-500 active:scale-95 text-white flex items-center justify-center transition-all shadow-xl"
+                  title="Play / Pause">
+                  <span class="material-symbols-outlined text-3xl sm:text-4xl fill">
+                    {{ isPlaying() ? 'pause' : 'play_arrow' }}
+                  </span>
+                </button>
+
+                <!-- 10s Forward Button -->
+                <button 
+                  (click)="seekRelative(10)"
+                  class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 active:scale-90 text-white flex items-center justify-center backdrop-blur-sm transition-all"
+                  title="Forward 10 seconds">
+                  <span class="material-symbols-outlined text-xl sm:text-2xl">forward_10</span>
+                </button>
+              </div>
+
+              <!-- Live Closed Caption Subtitle Display -->
+              @if (isCaptionsOn()) {
+                <div class="self-center text-center z-10 px-3 py-1.5 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[11px] sm:text-xs max-w-lg leading-snug">
+                  "In this module, we examine regulatory compliance requirements and enterprise-grade data privacy frameworks."
+                </div>
+              }
+
+              <!-- Bottom Video Scrubber & Playback Speed Controls -->
+              <div class="space-y-1.5 z-10 pt-2">
+                <!-- Scrubber Progress Bar -->
+                <div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden cursor-pointer">
+                  <div 
+                    class="bg-tenant-500 h-full rounded-full transition-all duration-200" 
+                    [style.width.%]="(currentPlaybackTime() / totalDurationSeconds()) * 100">
+                  </div>
+                </div>
+
+                <!-- Timestamp & Action Controls -->
+                <div class="flex items-center justify-between text-white/80 text-[11px]">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono">{{ formatTime(currentPlaybackTime()) }} / {{ formatTime(totalDurationSeconds()) }}</span>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <!-- Playback Speed Pill -->
+                    <div class="relative">
+                      <button 
+                        (click)="showSpeedMenu.set(!showSpeedMenu())"
+                        class="px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 text-white font-mono text-[10px] flex items-center gap-0.5">
+                        <span>{{ playbackSpeed() }}x</span>
+                        <span class="material-symbols-outlined text-[12px]">expand_more</span>
+                      </button>
+
+                      @if (showSpeedMenu()) {
+                        <div class="absolute right-0 bottom-full mb-1 bg-zinc-900 rounded-xl border border-white/20 p-1 shadow-2xl flex flex-col gap-0.5 z-30">
+                          @for (spd of [0.75, 1, 1.25, 1.5, 2]; track spd) {
+                            <button 
+                              (click)="setPlaybackSpeed(spd)"
+                              class="px-2.5 py-1 text-[10px] font-mono rounded hover:bg-white/20 text-left"
+                              [class.text-tenant-400]="playbackSpeed() === spd">
+                              {{ spd }}x
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Autoplay toggle -->
+                    <button 
+                      (click)="isAutoplayNext.set(!isAutoplayNext())" 
+                      class="text-[10px] hidden sm:flex items-center gap-1"
+                      [class.text-tenant-400]="isAutoplayNext()">
+                      <span class="material-symbols-outlined text-xs">{{ isAutoplayNext() ? 'toggle_on' : 'toggle_off' }}</span>
+                      <span>Autoplay</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================================= -->
+        <!-- 2B. QUIZ LESSON STAGE -->
+        <!-- ========================================================================= -->
+        @if (activeLesson().type === 'quiz' && activeLesson().quizQuestions) {
+          @let questions = activeLesson().quizQuestions!;
+          
+          <div class="space-y-4">
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-base-200 border border-base-300 flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-xs sm:text-sm text-text-primary">Knowledge Check & Certification Assessment</h3>
+                <p class="text-[11px] text-text-secondary">Answer all questions correctly (Min 75% to pass and unlock credentials)</p>
+              </div>
+              <div class="px-2.5 py-1 rounded-xl bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 font-bold text-xs font-mono">
+                {{ answeredCount() }} / {{ questions.length }} Answered
+              </div>
+            </div>
+
+            <!-- Quiz Questions List -->
+            <div class="space-y-4">
+              @for (q of questions; track q.id; let qIdx = $index) {
+                <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300 space-y-3">
+                  <div class="flex items-start gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-tenant-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {{ qIdx + 1 }}
+                    </span>
+                    <h4 class="font-bold text-xs sm:text-sm text-text-primary leading-snug">{{ q.question }}</h4>
+                  </div>
+
+                  <!-- Options -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+                    @for (opt of q.options; track opt; let optIdx = $index) {
+                      @let isSelected = selectedAnswers()[q.id] === optIdx;
+                      @let isCorrect = q.correctAnswerIndex === optIdx;
+                      
+                      <button 
+                        (click)="selectQuizOption(q.id, optIdx)"
+                        [disabled]="quizSubmitted()"
+                        class="p-3 rounded-xl border text-left text-xs transition-all flex items-center gap-2.5 min-h-[44px]"
+                        [class]="quizSubmitted() 
+                          ? (isCorrect ? 'bg-emerald-500/20 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-semibold' 
+                            : isSelected ? 'bg-rose-500/20 border-rose-500 text-rose-800 dark:text-rose-200' : 'bg-base-100 border-base-300 opacity-60')
+                          : (isSelected ? 'bg-tenant-50 dark:bg-tenant-500/20 border-tenant-500 text-tenant-700 dark:text-tenant-200 font-semibold' : 'bg-base-100 border-base-300 hover:bg-base-200')">
+                        <span class="w-4 h-4 rounded-full border flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                              [class]="isSelected ? 'bg-tenant-500 text-white border-tenant-500' : 'border-base-300 text-text-secondary'">
+                          {{ ['A', 'B', 'C', 'D'][optIdx] }}
+                        </span>
+                        <span class="leading-tight">{{ opt }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Quiz Submit / Score Banner -->
+            @if (quizSubmitted()) {
+              <div class="p-4 sm:p-5 rounded-2xl border text-center space-y-2"
+                   [class]="quizPassed() ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-800 dark:text-emerald-200' : 'bg-rose-500/10 border-rose-500/40 text-rose-800 dark:text-rose-200'">
+                <span class="material-symbols-outlined text-3xl">
+                  {{ quizPassed() ? 'verified' : 'cancel' }}
+                </span>
+                <h4 class="font-bold text-base">
+                  {{ quizPassed() ? 'Congratulations! Assessment Passed' : 'Assessment Not Passed' }}
+                </h4>
+                <p class="text-xs">Your Score: <span class="font-bold font-mono">{{ quizScore() }}%</span> (Passing: 75%)</p>
+                
+                <div class="flex items-center justify-center gap-3 pt-2">
+                  @if (!quizPassed()) {
+                    <button (click)="retryQuiz()" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold min-h-[40px]">
+                      Retry Assessment
+                    </button>
+                  } @else {
+                    <button (click)="goToNextLesson()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold min-h-[40px]">
+                      Continue Next Lesson
+                    </button>
+                  }
+                </div>
+              </div>
+            } @else {
+              <button 
+                (click)="submitQuiz(questions)"
+                [disabled]="answeredCount() < questions.length"
+                class="w-full py-3.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 disabled:opacity-40 text-white text-xs font-bold shadow-md transition-all min-h-[44px]">
+                Submit Assessment ({{ answeredCount() }}/{{ questions.length }})
+              </button>
+            }
+          </div>
+        }
+
+        <!-- ========================================================================= -->
+        <!-- 3. MOBILE & DESKTOP TAB NAVIGATION (Overview, Notes, Q&A, Resources) -->
+        <!-- ========================================================================= -->
+        <div class="pt-2 border-t border-base-300">
+          
+          <!-- Segmented Tab Bar -->
+          <div class="flex items-center gap-1 bg-base-200 p-1 rounded-2xl overflow-x-auto scrollbar-none">
+            <button 
+              (click)="activeMobileTab.set('overview')"
+              class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[38px]"
+              [class]="activeMobileTab() === 'overview' ? 'bg-base-100 text-tenant-600 dark:text-tenant-300 shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-sm">info</span>
+              <span>Overview</span>
+            </button>
+
+            <button 
+              (click)="activeMobileTab.set('syllabus')"
+              class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[38px]"
+              [class]="activeMobileTab() === 'syllabus' ? 'bg-base-100 text-tenant-600 dark:text-tenant-300 shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-sm">toc</span>
+              <span>Curriculum</span>
+            </button>
+
+            <button 
+              (click)="activeMobileTab.set('notes')"
+              class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[38px]"
+              [class]="activeMobileTab() === 'notes' ? 'bg-base-100 text-tenant-600 dark:text-tenant-300 shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-sm">edit_note</span>
+              <span>My Notes</span>
+            </button>
+
+            <button 
+              (click)="activeMobileTab.set('discussion')"
+              class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[38px]"
+              [class]="activeMobileTab() === 'discussion' ? 'bg-base-100 text-tenant-600 dark:text-tenant-300 shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-sm">forum</span>
+              <span>Q&A</span>
+            </button>
+
+            <button 
+              (click)="activeMobileTab.set('resources')"
+              class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[38px]"
+              [class]="activeMobileTab() === 'resources' ? 'bg-base-100 text-tenant-600 dark:text-tenant-300 shadow-xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-sm">download</span>
+              <span>Resources</span>
+            </button>
+          </div>
+
+          <!-- TAB CONTENT PANELS -->
+          <div class="py-4 space-y-4">
+            
+            <!-- 3A. OVERVIEW TAB -->
+            @if (activeMobileTab() === 'overview') {
+              <div class="space-y-4 animate-in fade-in duration-150">
+                <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-2">
+                  <h4 class="font-bold text-xs uppercase tracking-wider text-text-secondary">Lesson Summary</h4>
+                  <p class="text-xs text-text-primary leading-relaxed">
+                    {{ activeLesson().content || 'This lecture introduces foundational principles, key frameworks, and hands-on compliance requirements tailored for enterprise teams.' }}
+                  </p>
+                </div>
+
+                <!-- Instructor Card -->
+                <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center gap-3">
+                  <img [src]="course().instructorAvatar" [alt]="course().instructorName" class="w-10 h-10 rounded-full object-cover border-2 border-tenant-500/40" referrerpolicy="no-referrer" />
+                  <div>
+                    <span class="font-bold text-xs text-text-primary block">{{ course().instructorName }}</span>
+                    <span class="text-[11px] text-text-secondary">{{ course().instructorTitle || 'Instructor' }} &bull; {{ lms.activeTenant().name }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- 3B. SYLLABUS TAB (Interactive for mobile/tablet) -->
+            @if (activeMobileTab() === 'syllabus') {
+              <div class="space-y-3 animate-in fade-in duration-150">
+                @for (mod of course().modules; track mod.id) {
+                  <div class="rounded-2xl bg-base-200/60 border border-base-300 overflow-hidden">
+                    <div class="p-3 font-bold text-xs text-text-primary flex items-center justify-between bg-base-200">
+                      <span>{{ mod.title }}</span>
+                      <span class="text-[10px] text-text-secondary font-mono">{{ mod.durationMinutes }}m</span>
+                    </div>
+
+                    <div class="p-2 space-y-1">
+                      @for (les of mod.lessons; track les.id) {
+                        @let completed = isLessonCompleted(les.id);
+                        @let isCurrent = les.id === activeLesson().id;
+
+                        <button 
+                          (click)="selectLesson(les.id)"
+                          class="w-full p-2.5 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2.5 min-h-[44px] focus:outline-none focus:ring-0 outline-none"
+                          [class]="isCurrent ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-semibold border-2 border-tenant-500' : 'hover:bg-base-200 text-text-secondary hover:text-text-primary border border-transparent'">
+                          
+                          <div class="flex items-center gap-2 min-w-0">
+                            <span class="material-symbols-outlined text-base flex-shrink-0"
+                                  [class]="completed ? 'text-emerald-500 fill' : isCurrent ? 'text-tenant-500' : 'text-text-secondary'">
+                              @if (completed) { check_circle }
+                              @else if (les.type === 'video') { play_circle }
+                              @else if (les.type === 'quiz') { quiz }
+                              @else { article }
+                            </span>
+                            <span class="truncate leading-tight">{{ les.title }}</span>
+                          </div>
+
+                          <span class="text-[10px] text-text-secondary font-mono flex-shrink-0">{{ les.durationMinutes }}m</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- 3C. NOTES TAB -->
+            @if (activeMobileTab() === 'notes') {
+              <div class="space-y-3 animate-in fade-in duration-150">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-tenant-600">note_alt</span>
+                    Personal Study Notes
+                  </label>
+                  
+                  @if (savedNoteAlert()) {
+                    <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold animate-fade-in flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs">check</span> Saved!
+                    </span>
+                  }
+                </div>
+
+                <textarea 
+                  [ngModel]="lessonNotes()"
+                  (ngModelChange)="lessonNotes.set($event)"
+                  rows="4"
+                  placeholder="Type key takeaways, formulas, or reminders for this lecture..."
+                  class="w-full p-3 rounded-2xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 leading-relaxed"></textarea>
+                
+                <div class="flex justify-end">
+                  <button 
+                    (click)="saveNotes()"
+                    class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm min-h-[40px]">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    Save Notes
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- 3D. DISCUSSION / Q&A TAB -->
+            @if (activeMobileTab() === 'discussion') {
+              <div class="space-y-4 animate-in fade-in duration-150">
+                <!-- Post Question Form -->
+                <div class="flex gap-2">
+                  <input 
+                    type="text" 
+                    [ngModel]="newQuestionText()"
+                    (ngModelChange)="newQuestionText.set($event)"
+                    placeholder="Ask instructor or peers a question..."
+                    class="flex-1 px-3.5 py-2.5 rounded-2xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none min-h-[44px]" />
+                  <button 
+                    (click)="postQuestion()"
+                    [disabled]="!newQuestionText().trim()"
+                    class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 disabled:opacity-40 text-white text-xs font-bold min-h-[44px] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Post</span>
+                  </button>
+                </div>
+
+                <!-- Discussion Items -->
+                <div class="space-y-3">
+                  @for (item of discussions(); track item.id) {
+                    <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 space-y-2">
+                      <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                          <app-custom-avatar 
+                            [imageUrl]="item.avatar" 
+                            [name]="item.user" 
+                            size="xs" 
+                            shape="squircle">
+                          </app-custom-avatar>
+                          <span class="font-bold text-text-primary">{{ item.user }}</span>
+                        </div>
+                        <span class="text-[10px] text-text-secondary">{{ item.time }}</span>
+                      </div>
+                      <p class="text-xs text-text-primary leading-relaxed pl-8">{{ item.text }}</p>
+                      
+                      <div class="flex items-center justify-end gap-2 pl-8 pt-1">
+                        <button 
+                          (click)="toggleLike(item)"
+                          class="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg transition-colors"
+                          [class]="item.isLiked ? 'bg-tenant-500/20 text-tenant-600 font-bold' : 'text-text-secondary hover:bg-base-200'">
+                          <span class="material-symbols-outlined text-sm">thumb_up</span>
+                          <span>{{ item.likes }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 3E. RESOURCES TAB -->
+            @if (activeMobileTab() === 'resources') {
+              <div class="space-y-2.5 animate-in fade-in duration-150">
+                <div class="p-3 rounded-2xl bg-base-200/70 border border-base-300 flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-rose-500 text-2xl">picture_as_pdf</span>
+                    <div>
+                      <span class="font-bold text-xs text-text-primary block">Official Syllabus & Slide Deck (PDF)</span>
+                      <span class="text-[10px] text-text-secondary">4.2 MB &bull; Updated for 2026 standards</span>
+                    </div>
+                  </div>
+                  <button class="p-2.5 rounded-xl bg-base-100 hover:bg-base-300 text-text-primary flex items-center gap-1 text-xs font-semibold shadow-xs">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                  </button>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-base-200/70 border border-base-300 flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-emerald-500 text-2xl">table_chart</span>
+                    <div>
+                      <span class="font-bold text-xs text-text-primary block">Compliance Audit Checklist (XLSX)</span>
+                      <span class="text-[10px] text-text-secondary">1.8 MB &bull; Template with formulas</span>
+                    </div>
+                  </div>
+                  <button class="p-2.5 rounded-xl bg-base-100 hover:bg-base-300 text-text-primary flex items-center gap-1 text-xs font-semibold shadow-xs">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                  </button>
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Floating Action Bar (Sticky or In-Card on Mobile/Desktop) -->
+      <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between gap-3">
+        <button 
+          (click)="goToPrevLesson()" 
+          [disabled]="currentLessonIndex() === 0"
+          class="px-3 sm:px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 disabled:opacity-30 text-text-primary text-xs font-semibold transition-colors flex items-center gap-1 min-h-[44px]">
+          <span class="material-symbols-outlined text-base">arrow_back</span>
+          <span class="hidden sm:inline">Previous Unit</span>
+        </button>
+
+        <button 
+          (click)="markLessonComplete()"
+          class="flex-1 max-w-sm py-3 px-4 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md min-h-[44px]">
+          <span class="material-symbols-outlined text-base">check_circle</span>
+          <span>Mark Completed & Next</span>
+        </button>
+
+        <button 
+          (click)="goToNextLesson()" 
+          [disabled]="currentLessonIndex() === allLessons().length - 1"
+          class="px-3 sm:px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 disabled:opacity-30 text-text-primary text-xs font-semibold transition-colors flex items-center gap-1 min-h-[44px]">
+          <span class="hidden sm:inline">Next Unit</span>
+          <span class="material-symbols-outlined text-base">arrow_forward</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 4. MOBILE NATIVE CURRICULUM BOTTOM DRAWER (Slide Up) -->
+<!-- ========================================================================= -->
+@if (showCurriculumDrawer()) {
+  <div 
+    class="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex flex-col justify-end animate-modal-backdrop"
+    (click)="showCurriculumDrawer.set(false)">
+    
+    <div 
+      class="bg-base-100 rounded-t-3xl border-t border-base-300 p-5 space-y-4 max-h-[85vh] overflow-y-auto text-text-primary shadow-2xl animate-slide-up-drawer"
+      (click)="$event.stopPropagation()">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-base-300">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600 text-xl">format_list_bulleted</span>
+          <div>
+            <h3 class="font-bold text-sm">Course Curriculum</h3>
+            <span class="text-[11px] text-text-secondary">{{ allLessons().length }} units &bull; {{ enrollment()?.progressPercent || 0 }}% completed</span>
+          </div>
+        </div>
+        
+        <button 
+          (click)="showCurriculumDrawer.set(false)" 
+          class="w-9 h-9 rounded-full bg-base-200 flex items-center justify-center text-text-secondary">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modules Accordion in Drawer -->
+      <div class="space-y-3">
+        @for (mod of course().modules; track mod.id) {
+          <div class="rounded-2xl bg-base-200/60 border border-base-300 overflow-hidden">
+            <div class="p-3 font-bold text-xs text-text-primary flex items-center justify-between bg-base-200">
+              <span class="truncate">{{ mod.title }}</span>
+              <span class="text-[10px] text-text-secondary font-mono">{{ mod.durationMinutes }}m</span>
+            </div>
+
+            <div class="p-2 space-y-1">
+              @for (les of mod.lessons; track les.id) {
+                @let completed = isLessonCompleted(les.id);
+                @let isCurrent = les.id === activeLesson().id;
+
+                <button 
+                  (click)="selectLesson(les.id)"
+                  class="w-full p-3 rounded-xl text-left text-xs transition-all flex items-center justify-between gap-2.5 min-h-[44px] focus:outline-none focus:ring-0 outline-none"
+                  [class]="isCurrent ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 font-semibold border-2 border-tenant-500' : 'hover:bg-base-200 text-text-secondary hover:text-text-primary border border-transparent'">
+                  
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="material-symbols-outlined text-base flex-shrink-0"
+                          [class]="completed ? 'text-emerald-500 fill' : isCurrent ? 'text-tenant-500' : 'text-text-secondary'">
+                      @if (completed) { check_circle }
+                      @else if (les.type === 'video') { play_circle }
+                      @else if (les.type === 'quiz') { quiz }
+                      @else { article }
+                    </span>
+                    <span class="truncate leading-tight">{{ les.title }}</span>
+                  </div>
+
+                  <span class="text-[10px] text-text-secondary font-mono flex-shrink-0">{{ les.durationMinutes }}m</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Certificate Modal -->
+@if (showCertificateModal() && earnedCertificate()) {
+  @let cert = earnedCertificate()!;
+  
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/70 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl p-6 sm:p-8 space-y-6 animate-modal-card">
+      <div class="flex items-center justify-between pb-4 border-b border-base-300">
+        <h3 class="font-bold text-base text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-amber-500">verified</span>
+          Verified Certificate of Completion
+        </h3>
+        <button (click)="showCertificateModal.set(false)" class="text-text-secondary hover:text-text-primary p-1">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Certificate Preview Container -->
+      <div class="p-6 sm:p-8 rounded-2xl border-4 border-double border-amber-500/40 bg-amber-500/5 text-center space-y-4">
+        <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-2xl">military_tech</span>
+        </div>
+        
+        <span class="text-[11px] font-mono uppercase tracking-widest text-text-secondary block">Certificate of Completion</span>
+        <h2 class="text-xl sm:text-2xl font-black text-text-primary">{{ course().title }}</h2>
+        <p class="text-xs text-text-secondary">Awarded to</p>
+        <p class="text-lg font-bold text-tenant-600 dark:text-tenant-300">{{ cert.userName || lms.activeUser().name }}</p>
+        <p class="text-[11px] text-text-secondary">Issued on {{ cert.issuedDate | date:'mediumDate' }} &bull; Verification Code: <span class="font-mono">{{ cert.verificationCode }}</span></p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button (click)="showCertificateModal.set(false)" class="px-4 py-2.5 rounded-xl bg-base-200 text-xs font-semibold text-text-secondary min-h-[44px]">Close</button>
+        <button (click)="printCertificate()" class="px-4 py-2.5 rounded-xl bg-tenant-500 text-white text-xs font-semibold flex items-center gap-1.5 min-h-[44px]">
+          <span class="material-symbols-outlined text-sm">print</span> Print / Download
+        </button>
+      </div>
+    </div>
+  </div>
+}

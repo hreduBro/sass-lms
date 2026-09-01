@@ -1,0 +1,1202 @@
+<div class="max-w-6xl mx-auto space-y-6 pb-16">
+
+  <!-- Header & Breadcrumb Context -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5">
+        <a routerLink="/lms" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">layers</span>
+          LMS Instances
+        </a>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          @if (isEditMode()) { Edit LMS Instance } @else { Creation Wizard }
+        </span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-medium text-text-secondary">Org: <strong class="text-text-primary">{{ parentOrg().name }}</strong></span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        @if (isEditMode()) {
+          @if (currentStep() === 1) { Edit LMS – Basic Information }
+          @else if (currentStep() === 2) { Edit LMS – Resource Allocation }
+          @else if (currentStep() === 3) { Edit LMS – Admin Setup }
+          @else { Edit LMS – Preview & Confirm }
+        } @else {
+          @if (currentStep() === 1) { Create LMS – Basic Information }
+          @else if (currentStep() === 2) { Create LMS – Resource Allocation }
+          @else if (currentStep() === 3) { Create LMS – Admin Setup }
+          @else { Create LMS – Preview & Confirm }
+        }
+      </h1>
+      <p class="text-xs text-text-secondary mt-0.5">
+        @if (currentStep() === 1) { Capture the basic information, department binding, and subdomain of the LMS instance. }
+        @else if (currentStep() === 2) { Allocate database and file storage from the available {{ parentOrg().name }} platform capacity. }
+        @else if (currentStep() === 3) { Assign primary & co-administrators and dispatch setup notifications. }
+        @else { Review all LMS instance parameters before saving changes. }
+      </p>
+    </div>
+
+    <!-- Quick Draft Badge / Action -->
+    <div class="flex items-center gap-2">
+      <button 
+        type="button"
+        (click)="onSaveAsDraft()"
+        class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+        title="Save progress and resume later">
+        <span class="material-symbols-outlined text-sm text-amber-500">bookmark</span>
+        Save as draft
+      </button>
+
+      <button 
+        type="button"
+        (click)="onCancel()"
+        class="px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Common Reusable Stepper Bar (§2) -->
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="jumpToStep($event)">
+  </app-stepper>
+
+  <!-- Mandatory Field Error Alert (§7.1) -->
+  @if (formErrorAlert()) {
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+        <span>{{ formErrorAlert() }}</span>
+      </div>
+      <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 1: BASIC INFORMATION                                                 -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 1) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 1: LMS Details -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">layers</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">1. LMS Instance Details</h2>
+            <p class="text-[11px] text-text-secondary">Core LMS identity, organization binding, program/department, and subdomain URL</p>
+          </div>
+        </div>
+
+        <!-- Parent Org Context (Read-only) -->
+        <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-tenant-500/10 border border-tenant-500/30 flex items-center justify-center text-tenant-600 font-bold">
+              <span class="material-symbols-outlined text-xl">corporate_fare</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Target Parent Organization</span>
+              <strong class="text-xs text-text-primary">{{ parentOrg().name }}</strong>
+              <span class="text-[11px] font-mono text-text-secondary ml-1.5">(ID: {{ parentOrg().numericId || parentOrg().id }})</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              Active Organization
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- LMS Name * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              LMS Name <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              [ngModel]="lmsName()" 
+              (ngModelChange)="onLmsNameChange($event)"
+              maxlength="99"
+              placeholder="e.g. BRAC Microfinance Learning Portal"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="errors()['lmsName'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (errors()['lmsName']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['lmsName'] }}</p>
+            } @else {
+              <p class="text-[10px] text-text-secondary mt-1">Must be unique within {{ parentOrg().name }} (max 99 characters).</p>
+            }
+          </div>
+
+          <!-- Programme / Department * -->
+          <div>
+            @if (!isAddingNewDept()) {
+              <app-custom-select 
+                [ngModel]="programmeDepartment()" 
+                (ngModelChange)="selectDepartment($event)"
+                label="Programme / Department"
+                [required]="true"
+                placeholder="Select Programme / Department"
+                [options]="departmentOptions()"
+                [searchable]="true"
+                leadingIcon="corporate_fare"
+                [error]="errors()['programmeDepartment'] || ''" />
+            } @else {
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Programme / Department <span class="text-rose-500">*</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  [ngModel]="customDepartment()" 
+                  (ngModelChange)="customDepartment.set($event)"
+                  placeholder="Enter new department name..."
+                  class="flex-1 px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 font-medium" />
+                <button 
+                  type="button" 
+                  (click)="saveCustomDepartment()"
+                  class="px-3.5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer">
+                  Save
+                </button>
+                <button 
+                  type="button" 
+                  (click)="isAddingNewDept.set(false)"
+                  class="px-3 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold transition-all cursor-pointer">
+                  Cancel
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- LMS URL / Domain * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              LMS URL / Domain <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Subdomain endpoint)</span>
+            </label>
+            <input 
+              type="text" 
+              [ngModel]="urlDomain()" 
+              (ngModelChange)="onUrlChange($event)"
+              placeholder="e.g. microfinance.learn.brac.net"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
+              [ngClass]="errors()['urlDomain'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (errors()['urlDomain']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['urlDomain'] }}</p>
+            } @else {
+              <p class="text-[10px] text-text-secondary mt-1">Unique subdomain routing endpoint for trainees and staff.</p>
+            }
+          </div>
+
+          <!-- Timezone * -->
+          <div>
+            <app-custom-select 
+              [ngModel]="selectedTimezone()" 
+              (ngModelChange)="selectedTimezone.set($event)"
+              label="Timezone"
+              [required]="true"
+              [hint]="'(Inherited from ' + parentOrg().name + ')'"
+              placeholder="Select Timezone..."
+              [options]="timezones"
+              [searchable]="true"
+              leadingIcon="schedule" />
+          </div>
+
+          <!-- Summary / Description -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">LMS Summary / Description</label>
+            <textarea 
+              [ngModel]="summary()" 
+              (ngModelChange)="summary.set($event)"
+              rows="2" 
+              maxlength="255"
+              placeholder="Brief summary of this LMS's scope, workforce audience, and training priorities..."
+              class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all resize-none"></textarea>
+          </div>
+
+          <!-- Goal / Purpose -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">LMS Strategic Goal / Target</label>
+            <textarea 
+              [ngModel]="goal()" 
+              (ngModelChange)="goal.set($event)"
+              rows="2" 
+              maxlength="255"
+              placeholder="Key target learning outcomes, certificates reach, or compliance objectives..."
+              class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all resize-none"></textarea>
+          </div>
+
+          <!-- LMS Logo Upload -->
+          <div class="col-span-full">
+            <label class="block text-xs font-semibold text-text-primary mb-1">LMS Instance Logo</label>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+              <!-- Upload dropzone -->
+              <div 
+                class="sm:col-span-2 p-4 rounded-2xl border-2 border-dashed border-base-300 hover:border-tenant-500 flex flex-col items-center justify-center gap-2 bg-base-200/50 cursor-pointer transition-all text-center"
+                (click)="logoInput.click()">
+                <input 
+                  #logoInput
+                  type="file" 
+                  accept="image/png, image/jpeg, image/svg+xml, image/webp" 
+                  (change)="onLogoSelected($event)" 
+                  class="hidden" />
+                <div class="w-10 h-10 rounded-xl bg-base-100 flex items-center justify-center text-tenant-600 shadow-2xs">
+                  <span class="material-symbols-outlined text-xl">upload_file</span>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-text-primary">Click to upload or drag and drop</p>
+                  <p class="text-[10px] text-text-secondary mt-0.5">PNG, JPG, SVG, WebP (Max 5MB, square 1:1 recommended)</p>
+                </div>
+              </div>
+
+              <!-- Preview Box -->
+              <div class="p-3 rounded-2xl bg-base-200 border border-base-300 flex items-center gap-3">
+                @if (logoUrl()) {
+                  <img [src]="logoUrl()" alt="Logo preview" class="w-14 h-14 object-contain rounded-xl bg-base-100 p-1 border border-base-300" referrerpolicy="no-referrer" />
+                  <div class="min-w-0 flex-1">
+                    <span class="text-xs font-bold text-text-primary block truncate">{{ logoFileName() || 'logo.png' }}</span>
+                    <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Attached ({{ logoSizeKb() }} KB)</span>
+                    <button 
+                      type="button" 
+                      (click)="removeLogo(); $event.stopPropagation()" 
+                      class="text-[10px] text-rose-500 hover:underline mt-1 cursor-pointer">
+                      Remove
+                    </button>
+                  </div>
+                } @else {
+                  <div class="w-14 h-14 rounded-xl bg-base-100 border border-base-300 flex items-center justify-center text-text-secondary text-xs font-bold">
+                    1:1
+                  </div>
+                  <div class="text-[11px] text-text-secondary">
+                    No custom logo.<br>Default emblem used.
+                  </div>
+                }
+              </div>
+            </div>
+            @if (errors()['logo']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['logo'] }}</p>
+            }
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Buttons — Step 1 (Cancel, Reset, Save as draft, Next) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="onCancel()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onReset()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            Reset
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button 
+            type="button" 
+            (click)="onSaveAsDraft()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">bookmark</span>
+            Save as draft
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onNext()" 
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+            <span>Next</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 2: RESOURCE ALLOCATION                                               -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 2) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 1: Organization Platform Capacity Card -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">pie_chart</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">1. Organization Capacity Pool</h2>
+              <p class="text-[11px] text-text-secondary">Available resources allotted to {{ parentOrg().name }}</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-base-200 border border-base-300 text-text-primary">
+            Org Total: {{ capacity().dbTotalGb }} GB DB / {{ capacity().fileTotalGb }} GB File
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <div class="p-4 rounded-2xl bg-base-200 border border-base-300 space-y-1">
+            <span class="text-[10px] text-text-secondary uppercase font-semibold">Total DB Quota</span>
+            <div class="text-lg font-mono font-bold text-text-primary">{{ capacity().dbTotalGb }} GB</div>
+            <div class="text-[10px] text-text-secondary">Full database pool</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-1">
+            <span class="text-[10px] text-emerald-800 dark:text-emerald-300 uppercase font-semibold">Available DB</span>
+            <div class="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-200">{{ capacity().dbAvailableGb }} GB</div>
+            <div class="text-[10px] text-emerald-600 dark:text-emerald-400">Ready to allocate</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-base-200 border border-base-300 space-y-1">
+            <span class="text-[10px] text-text-secondary uppercase font-semibold">Total File Storage</span>
+            <div class="text-lg font-mono font-bold text-text-primary">{{ capacity().fileTotalGb }} GB</div>
+            <div class="text-[10px] text-text-secondary">SCORM, Video & Assets</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-1">
+            <span class="text-[10px] text-emerald-800 dark:text-emerald-300 uppercase font-semibold">Available File Storage</span>
+            <div class="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-200">{{ capacity().fileAvailableGb }} GB</div>
+            <div class="text-[10px] text-emerald-600 dark:text-emerald-400">Ready to allocate</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 2: Resource Allocation Inputs -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">storage</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">2. LMS Storage Allocation & Quotas</h2>
+            <p class="text-[11px] text-text-secondary">Partition dedicated database and file storage for this LMS instance</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Database Size (GB) * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Database Size (GB) <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Max available: {{ capacity().dbAvailableGb }} GB)</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="number" 
+                min="1" 
+                [max]="capacity().dbAvailableGb"
+                [ngModel]="databaseSizeGb()" 
+                (ngModelChange)="databaseSizeGb.set($event)"
+                placeholder="e.g. 50"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-bold"
+                [ngClass]="errors()['databaseSizeGb'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              <span class="absolute right-3.5 top-2.5 text-xs font-bold text-text-secondary font-mono">GB</span>
+            </div>
+            @if (errors()['databaseSizeGb']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['databaseSizeGb'] }}</p>
+            }
+          </div>
+
+          <!-- File Storage (GB) * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              File Storage (GB) <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Max available: {{ capacity().fileAvailableGb }} GB)</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="number" 
+                min="1" 
+                [max]="capacity().fileAvailableGb"
+                [ngModel]="fileStorageGb()" 
+                (ngModelChange)="fileStorageGb.set($event)"
+                placeholder="e.g. 100"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-bold"
+                [ngClass]="errors()['fileStorageGb'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              <span class="absolute right-3.5 top-2.5 text-xs font-bold text-text-secondary font-mono">GB</span>
+            </div>
+            @if (errors()['fileStorageGb']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['fileStorageGb'] }}</p>
+            }
+          </div>
+
+          <!-- Usage Alert Threshold (%) * -->
+          <div class="col-span-full">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-semibold text-text-primary">
+                Usage Alert Threshold (%) <span class="text-rose-500">*</span>
+              </label>
+              <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                Trigger warning at {{ usageAlertThresholdPct() || 80 }}% capacity
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <input 
+                type="range" 
+                min="50" 
+                max="95" 
+                step="5"
+                [ngModel]="usageAlertThresholdPct() || 80"
+                (ngModelChange)="usageAlertThresholdPct.set($event)"
+                class="flex-1 accent-tenant-500 cursor-pointer" />
+              <div class="relative w-28">
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="100" 
+                  [ngModel]="usageAlertThresholdPct()"
+                  (ngModelChange)="usageAlertThresholdPct.set($event)"
+                  class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-mono font-bold text-center focus:outline-none focus:border-tenant-500" />
+                <span class="absolute right-3 top-2 text-xs font-bold text-text-secondary">%</span>
+              </div>
+            </div>
+            @if (errors()['usageAlertThresholdPct']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['usageAlertThresholdPct'] }}</p>
+            } @else {
+              <p class="text-[10px] text-text-secondary mt-1">Platform automatically notifies LMS Admin & Org Admin when consumption exceeds threshold.</p>
+            }
+          </div>
+
+        </div>
+
+        <!-- Live Impact Summary Panel -->
+        <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2 text-xs">
+          <span class="font-bold text-text-primary block text-xs">Real-time Parent Organization Capacity Impact:</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-base-100 border border-base-300">
+              <span class="text-text-secondary text-[11px]">Remaining Org DB:</span>
+              <strong class="font-mono text-xs" [class]="remainingOrgDbAvailable() < 0 ? 'text-rose-600' : 'text-text-primary'">
+                {{ remainingOrgDbAvailable() }} GB
+              </strong>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-base-100 border border-base-300">
+              <span class="text-text-secondary text-[11px]">Remaining Org File Storage:</span>
+              <strong class="font-mono text-xs" [class]="remainingOrgFileAvailable() < 0 ? 'text-rose-600' : 'text-text-primary'">
+                {{ remainingOrgFileAvailable() }} GB
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Save as draft, Next) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="onBack()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onCancel()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onReset()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            Reset
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button 
+            type="button" 
+            (click)="onSaveAsDraft()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">bookmark</span>
+            Save as draft
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onNext()" 
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+            <span>Next</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 3: ADMIN SETUP                                                       -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 3) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Section 1: Primary LMS Admin Form -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">1. Primary LMS Administrator Information</h2>
+            <p class="text-[11px] text-text-secondary">Assigned administrator for {{ lmsName() || 'this LMS instance' }} under {{ parentOrg().name }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- LMS Admin Name * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              LMS Admin Name <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              [ngModel]="adminName()" 
+              (ngModelChange)="adminName.set($event)"
+              placeholder="e.g. Shakil Mahmud"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="errors()['adminName'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (errors()['adminName']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminName'] }}</p>
+            }
+          </div>
+
+          <!-- Contact Number * (11 digits) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Contact Number <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(11 digits, starts 013–019)</span>
+            </label>
+            <input 
+              type="text" 
+              [ngModel]="adminContactNumber()" 
+              (ngModelChange)="adminContactNumber.set($event)"
+              maxlength="11"
+              placeholder="01712345678"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
+              [ngClass]="errors()['adminContactNumber'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (errors()['adminContactNumber']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminContactNumber'] }}</p>
+            }
+          </div>
+
+          <!-- LMS Admin Email * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              LMS Admin Email <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="email" 
+              [ngModel]="adminEmail()" 
+              (ngModelChange)="adminEmail.set($event)"
+              placeholder="shakil.m@brac.net"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="errors()['adminEmail'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (errors()['adminEmail']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminEmail'] }}</p>
+            }
+          </div>
+
+        </div>
+
+        <!-- Business Rule Notice -->
+        <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[11px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base mt-0.5">mark_email_read</span>
+          <div>
+            <span class="font-bold">Automated User Provisioning Hook:</span>
+            While the LMS instance is in progress, the system registers the Contact Email with the role <span class="font-bold">LMS Admin</span> and dispatches setup progress notifications.
+          </div>
+        </div>
+
+        <!-- Trigger Email Button -->
+        <div class="flex items-center justify-between pt-2">
+          <span class="text-xs text-text-secondary font-medium">Test administrator notification dispatch:</span>
+          <button 
+            type="button" 
+            (click)="triggerAdminNoticeEmail()"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            [ngClass]="adminEmailSent() 
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-200 border border-emerald-300' 
+              : 'bg-tenant-500 hover:bg-tenant-600 text-white'">
+            <span class="material-symbols-outlined text-sm">
+              {{ adminEmailSent() ? 'done_all' : 'send' }}
+            </span>
+            {{ adminEmailSent() ? 'Update Email Sent' : 'Send Setup Notice Email' }}
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Section 2: Co-Administrators (Optional) -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">group_add</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">2. Co-Administrators (Optional)</h2>
+              <p class="text-[11px] text-text-secondary">Delegate instance operations to secondary personnel</p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            id="btn-add-co-admin"
+            (click)="openAddCoAdminModal()" 
+            class="px-3.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-bold text-tenant-600 dark:text-tenant-400 flex items-center gap-1 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">add</span>
+            Add Co-Admin
+          </button>
+        </div>
+
+        @if (coAdmins().length > 0) {
+          <div class="space-y-2.5">
+            @for (adm of coAdmins(); track adm.email; let i = $index) {
+              <div class="flex items-center justify-between p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs">
+                <div class="flex items-center gap-3">
+                  <app-custom-avatar 
+                    [name]="adm.name" 
+                    size="sm" 
+                    shape="squircle">
+                  </app-custom-avatar>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <strong class="text-text-primary text-xs">{{ adm.name }}</strong>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                        {{ adm.role }}
+                      </span>
+                    </div>
+                    <span class="text-[11px] text-text-secondary">{{ adm.email }} • {{ adm.contactNumber }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="removeCoAdmin(i)" 
+                    class="px-2.5 py-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 text-center text-xs text-text-secondary">
+            No secondary co-administrators assigned yet. The primary admin above manages all access permissions.
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Save as draft, Next) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="onBack()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onCancel()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onReset()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            Reset
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button 
+            type="button" 
+            (click)="onSaveAsDraft()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">bookmark</span>
+            Save as draft
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onNext()" 
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+            <span>Next</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 4: PREVIEW                                                           -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 4) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Read-only Summary Cards (§6.1) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: LMS Instance Identity Card -->
+        <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4 lg:col-span-1">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-tenant-600 text-base">badge</span>
+              LMS Identity & Scope
+            </span>
+            <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
+          </div>
+
+          <div class="flex items-center gap-3.5">
+            @if (logoUrl()) {
+              <img [src]="logoUrl()" alt="Logo" class="w-14 h-14 object-contain rounded-2xl bg-base-200 p-1 border border-base-300" referrerpolicy="no-referrer" />
+            } @else {
+              <div class="w-14 h-14 rounded-2xl bg-tenant-500/10 border border-tenant-500/30 flex items-center justify-center text-tenant-600 font-bold text-lg">
+                {{ lmsName().charAt(0) || 'L' }}
+              </div>
+            }
+            <div>
+              <h3 class="font-bold text-sm text-text-primary">{{ lmsName() }}</h3>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-base-200 border border-base-300 font-mono text-text-primary">
+                  {{ programmeDepartment() }}
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-200">
+                  Status: Under Processing
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-xs pt-2">
+            <div>
+              <span class="text-[10px] text-text-secondary block">Parent Organization</span>
+              <span class="text-text-primary font-bold">{{ parentOrg().name }}</span>
+            </div>
+
+            <div>
+              <span class="text-[10px] text-text-secondary block">Subdomain Endpoint</span>
+              <span class="text-tenant-600 font-mono font-medium block truncate">{{ urlDomain() }}</span>
+            </div>
+
+            <div>
+              <span class="text-[10px] text-text-secondary block">Timezone</span>
+              <span class="text-text-primary font-medium">{{ getTimezoneDisplay(selectedTimezone()) }}</span>
+            </div>
+
+            @if (summary()) {
+              <div>
+                <span class="text-[10px] text-text-secondary block">Summary</span>
+                <p class="text-text-secondary text-[11px] leading-relaxed">{{ summary() }}</p>
+              </div>
+            }
+
+            @if (goal()) {
+              <div>
+                <span class="text-[10px] text-text-secondary block">Strategic Goal</span>
+                <p class="text-text-secondary text-[11px] leading-relaxed">{{ goal() }}</p>
+              </div>
+            }
+
+            <div class="pt-2 border-t border-base-300">
+              <span class="text-[10px] text-text-secondary block">Parent Theme Preset</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="w-4 h-4 rounded-full border border-white/20 shadow-xs" [style.backgroundColor]="lms.activeTenant().branding.primaryColor"></div>
+                <span class="text-text-primary text-[11px] font-semibold">{{ lms.activeTenant().name }}</span>
+                <span class="text-[10px] font-mono text-text-secondary">({{ lms.activeTenant().branding.primaryColor }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle & Right: Scope, Admin & Resources -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Administration Card -->
+          <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-base-300">
+              <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-indigo-600 text-base">admin_panel_settings</span>
+                Administration & Access
+              </span>
+              <button (click)="jumpToStep(3)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
+                <div class="text-[10px] text-text-secondary uppercase font-semibold">Primary Administrator</div>
+                <div class="font-bold text-text-primary">{{ adminName() }}</div>
+                <div class="font-mono text-text-secondary text-[11px]">{{ adminContactNumber() }}</div>
+                <div class="text-tenant-600 font-medium text-[11px] truncate">{{ adminEmail() }}</div>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
+                <div class="text-[10px] text-text-secondary uppercase font-semibold">Operational Routing</div>
+                <div class="font-medium text-text-primary">{{ programmeDepartment() }}</div>
+                <div class="text-text-secondary text-[11px]">Subdomain: <span class="font-mono text-tenant-600">{{ urlDomain() }}</span></div>
+              </div>
+            </div>
+
+            <!-- Co-Administrators Preview in Step 4 -->
+            <div class="pt-3 border-t border-base-300 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-purple-600 text-sm">group</span>
+                  Co-Administrators
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-base-200 text-text-secondary">
+                  {{ coAdmins().length }} {{ coAdmins().length === 1 ? 'Admin' : 'Admins' }} Assigned
+                </span>
+              </div>
+
+              @if (coAdmins().length > 0) {
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  @for (coAdm of coAdmins(); track coAdm.email) {
+                    <div class="p-3 rounded-2xl bg-base-200/60 border border-base-300 flex items-start gap-2.5 text-xs">
+                      <app-custom-avatar 
+                        [name]="coAdm.name" 
+                        size="xs" 
+                        shape="squircle"
+                        class="mt-0.5">
+                      </app-custom-avatar>
+                      <div class="min-w-0 flex-1 space-y-0.5">
+                        <div class="flex items-center justify-between gap-1">
+                          <span class="font-bold text-text-primary truncate">{{ coAdm.name }}</span>
+                          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shrink-0">
+                            {{ coAdm.role }}
+                          </span>
+                        </div>
+                        <div class="text-[11px] text-text-secondary truncate">{{ coAdm.email }}</div>
+                        <div class="text-[10px] font-mono text-text-secondary">{{ coAdm.contactNumber }}</div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="p-3 rounded-2xl bg-base-200/40 border border-base-300/60 text-center text-[11px] text-text-secondary italic">
+                  No co-administrators assigned (optional).
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Resource Allocation Card -->
+          <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-base-300">
+              <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-cyan-600 text-base">storage</span>
+                Allocated Capacity & Partitioning
+              </span>
+              <button (click)="jumpToStep(2)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs">
+              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
+                <div class="text-[10px] text-text-secondary uppercase">Database Size</div>
+                <div class="font-bold text-base text-text-primary mt-0.5">{{ databaseSizeGb() }} GB</div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
+                <div class="text-[10px] text-text-secondary uppercase">File Storage</div>
+                <div class="font-bold text-base text-text-primary mt-0.5">{{ fileStorageGb() }} GB</div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
+                <div class="text-[10px] text-text-secondary uppercase">Alert Trigger</div>
+                <div class="font-bold text-base text-amber-600 mt-0.5">{{ usageAlertThresholdPct() }}%</div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-text-secondary">Remaining {{ parentOrg().name }} DB Capacity:</span>
+                <strong class="font-mono text-text-primary">{{ remainingOrgDbAvailable() }} GB</strong>
+              </div>
+              <div class="flex items-center justify-between text-[11px] mt-1">
+                <span class="text-text-secondary">Remaining {{ parentOrg().name }} File Capacity:</span>
+                <strong class="font-mono text-text-primary">{{ remainingOrgFileAvailable() }} GB</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Action Buttons — Step 4 (Back, Save as draft, Create LMS) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="onBack()" 
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Back to Admin Setup</span>
+        </button>
+
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="onSaveAsDraft()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">bookmark</span>
+            Save as draft
+          </button>
+
+          <button 
+            type="button" 
+            id="btn-create-lms"
+            (click)="onCreateLms()" 
+            class="px-6 py-3 rounded-xl btn-gradient text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">rocket_launch</span>
+            <span>Create LMS</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- FINAL CREATION CONFIRMATION MODAL                                         -->
+<!-- ========================================================================= -->
+@if (showConfirmModal()) {
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+       (click)="closeConfirmModal()">
+    
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-md w-full p-6 space-y-5 animate-modal-card m-auto"
+          (click)="$event.stopPropagation()">
+      
+      <div class="w-12 h-12 rounded-2xl bg-tenant-50 dark:bg-tenant-950/80 border border-tenant-200 dark:border-tenant-800 text-tenant-600 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-2xl">layers</span>
+      </div>
+
+      <div class="text-center space-y-1.5">
+        <h3 class="text-base font-bold text-text-primary">
+          Confirm LMS Instance Creation
+        </h3>
+        <p class="text-xs text-text-secondary leading-relaxed">
+          Are you sure you want to create LMS instance <strong class="text-text-primary">"{{ lmsName() }}"</strong>? 
+          The instance will be queued for automated microservice provisioning under status <span class="font-bold text-amber-600">"Under Processing"</span>.
+        </p>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs space-y-1.5 text-text-secondary">
+        <div class="flex justify-between">
+          <span>Parent Organization:</span>
+          <strong class="text-text-primary">{{ parentOrg().name }}</strong>
+        </div>
+        <div class="flex justify-between">
+          <span>Allocated Storage:</span>
+          <strong class="text-text-primary font-mono">{{ databaseSizeGb() }}GB DB / {{ fileStorageGb() }}GB File</strong>
+        </div>
+        <div class="flex justify-between">
+          <span>Primary Admin:</span>
+          <strong class="text-text-primary">{{ adminName() }}</strong>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button 
+          type="button" 
+          (click)="closeConfirmModal()"
+          [disabled]="isSubmitting()"
+          class="flex-1 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          id="btn-confirm-lms-create"
+          (click)="finalizeCreation()"
+          [disabled]="isSubmitting()"
+          class="flex-1 py-2.5 rounded-xl btn-gradient text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          @if (isSubmitting()) {
+            <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            <span>Creating...</span>
+          } @else {
+            <span class="material-symbols-outlined text-sm">check</span>
+            <span>Confirm & Create</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+
+
+<!-- ========================================================================= -->
+<!-- ADD CO-ADMINISTRATOR MODAL                                                -->
+<!-- ========================================================================= -->
+@if (showCoAdminModal()) {
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+       (click)="closeAddCoAdminModal()">
+    
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-modal-card m-auto"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-base-300">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">group_add</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-text-primary">Add Co-Administrator</h3>
+            <p class="text-xs text-text-secondary">Delegate secondary management access for this instance</p>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          (click)="closeAddCoAdminModal()"
+          class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="space-y-4">
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">
+            Full Name <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+              person
+            </span>
+            <input 
+              type="text"
+              [ngModel]="coAdminName()"
+              (ngModelChange)="coAdminName.set($event)"
+              placeholder="e.g. Dr. Mahmudul Hasan"
+              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="coAdminErrors()['name'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+          </div>
+          @if (coAdminErrors()['name']) {
+            <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['name'] }}</p>
+          }
+        </div>
+
+        <!-- Email Address -->
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">
+            Email Address <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+              mail
+            </span>
+            <input 
+              type="email"
+              [ngModel]="coAdminEmail()"
+              (ngModelChange)="coAdminEmail.set($event)"
+              placeholder="e.g. mahmud.hasan@organization.edu.bd"
+              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="coAdminErrors()['email'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+          </div>
+          @if (coAdminErrors()['email']) {
+            <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['email'] }}</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Contact Number -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Contact Number
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Optional, 11 digits)</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
+                call
+              </span>
+              <input 
+                type="tel"
+                [ngModel]="coAdminContact()"
+                (ngModelChange)="coAdminContact.set($event)"
+                maxlength="11"
+                placeholder="01XXXXXXXXX"
+                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
+                [ngClass]="coAdminErrors()['contact'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            </div>
+            @if (coAdminErrors()['contact']) {
+              <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['contact'] }}</p>
+            }
+          </div>
+
+          <!-- Role / Title -->
+          <div>
+            <app-custom-select 
+              [ngModel]="coAdminRole()"
+              (ngModelChange)="coAdminRole.set($event)"
+              label="Administrative Role"
+              [options]="coAdminRoleOptions"
+              leadingIcon="badge" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="flex items-center gap-3 pt-3 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="closeAddCoAdminModal()"
+          class="flex-1 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          id="btn-save-co-admin"
+          (click)="saveCoAdmin()"
+          class="flex-1 py-2.5 rounded-xl btn-gradient text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">person_add</span>
+          <span>Add Co-Administrator</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+

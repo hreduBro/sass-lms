@@ -1,0 +1,703 @@
+<div class="space-y-6 pb-16">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">assignment</span>
+          Learning Curriculum Studio
+        </span>
+        <span class="text-xs text-text-secondary">
+          Parent Org: <strong class="font-bold text-text-primary">{{ activeTenant().name }}</strong>
+          (ID: <strong class="font-mono text-text-primary">{{ activeTenant().numericId || activeTenant().id }}</strong>)
+        </span>
+      </div>
+      
+      <!-- Primary Heading -->
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">Plan Management</h1>
+      
+      <!-- Subtitle -->
+      <p class="text-xs text-text-secondary mt-0.5">
+        All structured learning tracks, sequential phase milestones, and certification curricula within this LMS.
+      </p>
+    </div>
+
+    <!-- Top-Right Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <button 
+        type="button"
+        id="btn-plan-dashboard-header"
+        (click)="navigateToDashboard()"
+        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base text-tenant-500">space_dashboard</span>
+        <span>Plan Dashboard</span>
+      </button>
+
+      <button 
+        type="button"
+        id="btn-create-plan-header"
+        (click)="navigateToCreate()"
+        class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base">add_circle</span>
+        <span>Create Plan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 1.5. KPI METRICS SUMMARY ROW                                              -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Plans -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Total Plans</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().total }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ totalPhasesCount() }} total phases</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">collections_bookmark</span>
+      </div>
+    </div>
+
+    <!-- Active & Published -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active & Published</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().active }}</h3>
+        <span class="text-[11px] text-text-secondary">{{ kpi().activePct }}% of curriculum</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
+    </div>
+
+    <!-- In Draft -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-amber-600 dark:text-amber-400">In Draft</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().draft }}</h3>
+        <span class="text-[11px] text-text-secondary">Resumable authoring</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+        <span class="material-symbols-outlined">edit_note</span>
+      </div>
+    </div>
+
+    <!-- Archived -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Archived</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpi().archived }}</h3>
+        <span class="text-[11px] text-text-secondary">Historical records</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center text-text-secondary">
+        <span class="material-symbols-outlined">archive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. SEARCH & FILTER CONTROLS (LMS MATCHED DESIGN PATTERN)                 -->
+  <!-- ========================================================================= -->
+  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-sm">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left: Search Field & Filter Button & Reset -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+        
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
+          <input
+            type="text"
+            id="plan-search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by Plan Name, Code, or Owner..."
+            class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors shadow-2xs" />
+          @if (searchQuery()) {
+            <button 
+              type="button" 
+              (click)="onSearchChange('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Button -->
+        <button 
+          type="button"
+          id="btn-toggle-filter-panel"
+          (click)="toggleFilterPanel()"
+          class="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-sm"
+          [class]="isFilterPanelOpen() || hasActiveFilters()
+            ? 'bg-tenant-500 text-white border-tenant-500'
+            : 'bg-base-100 hover:bg-base-200 text-text-primary border-base-300'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base" [class.text-tenant-500]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Grid-Level Reset Button -->
+        @if (isResetVisible()) {
+          <button 
+            type="button"
+            id="btn-grid-reset"
+            (click)="resetGrid()"
+            class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            title="Clear search and all active filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+
+      </div>
+
+      <!-- Right: Total Count Indicator -->
+      <div class="flex items-center justify-end text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
+        <span class="px-3.5 py-1.5 rounded-xl bg-base-200 border border-base-300 font-medium">
+          Showing <strong class="text-text-primary">{{ filteredPlans().length }}</strong> of {{ plans().length }} Plans
+        </span>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 4.1 FILTER PANEL DROPDOWN / DRAWER (§2.3 - 2 KEY SECTIONS)               -->
+    <!-- ========================================================================= -->
+    @if (isFilterPanelOpen()) {
+      <div class="pt-5 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in slide-in-from-top-2 duration-200 space-y-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          
+          <!-- 1. Status Multi-select -->
+          <div class="lg:col-span-5 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              1. Status
+            </h4>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+              <!-- Active -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().status.includes('Active')"
+                  (change)="toggleStatusDraft('Active')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Active')">
+                  <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Active')"></span>
+                  Active
+                </span>
+              </label>
+
+              <!-- Under Processing -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().status.includes('Under Processing')"
+                  (change)="toggleStatusDraft('Under Processing')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Under Processing')">
+                  <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Under Processing')"></span>
+                  Under Processing
+                </span>
+              </label>
+
+              <!-- Drafted -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().status.includes('Drafted')"
+                  (change)="toggleStatusDraft('Drafted')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Drafted')">
+                  <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Drafted')"></span>
+                  Drafted
+                </span>
+              </label>
+
+              <!-- Trial -->
+              <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().status.includes('Trial')"
+                  (change)="toggleStatusDraft('Trial')"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-500 accent-tenant-500 focus:ring-0 focus:outline-none cursor-pointer" />
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass('Trial')">
+                  <span class="w-2 h-2 rounded-full" [class]="getStatusDotClass('Trial')"></span>
+                  Trial
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Assign Plan Owner Multi-select Dropdown -->
+          <div class="lg:col-span-7 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                2. Assign Plan Owner
+              </h4>
+              @if ((draftFilters().planOwnerEmails?.length || 0) > 0) {
+                <span class="text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2.5 py-0.5 rounded-full border border-tenant-200 dark:border-tenant-800/40">
+                  {{ draftFilters().planOwnerEmails?.length }} Selected
+                </span>
+              }
+            </div>
+            <div class="w-full">
+              <app-custom-select
+                [options]="ownerOptions()"
+                [multiple]="true"
+                [clearable]="true"
+                [searchable]="true"
+                [leadingIcon]="'person'"
+                placeholder="Select plan owner(s)..."
+                [ngModel]="draftFilters().planOwnerEmails || []"
+                (ngModelChange)="onDraftOwnersChange($event)">
+              </app-custom-select>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. Created Date Range -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              3. Created Date Range
+            </h4>
+            @if (draftFilters().createdDateFrom || draftFilters().createdDateTo) {
+              <span class="text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2.5 py-0.5 rounded-full border border-tenant-200 dark:border-tenant-800/40">
+                Date Filter Active
+              </span>
+            }
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-4 max-w-2xl">
+            <div class="w-full sm:w-64">
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">From Date:</label>
+              <div class="relative">
+                <input 
+                  type="date"
+                  [ngModel]="draftFilters().createdDateFrom"
+                  (ngModelChange)="setCreatedDateFromDraft($event)"
+                  placeholder="mm/dd/yyyy"
+                  class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all shadow-2xs cursor-pointer" />
+              </div>
+            </div>
+            <div class="w-full sm:w-64">
+              <label class="text-xs text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">To Date:</label>
+              <div class="relative">
+                <input 
+                  type="date"
+                  [ngModel]="draftFilters().createdDateTo"
+                  (ngModelChange)="setCreatedDateToDraft($event)"
+                  placeholder="mm/dd/yyyy"
+                  class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all shadow-2xs cursor-pointer" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-4 border-t border-base-300 flex items-center justify-between">
+          <button 
+            type="button"
+            (click)="clearFilterPanelDraft()"
+            class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+            Clear All Selections
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button 
+              type="button"
+              (click)="closeFilterPanel()"
+              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
+              Cancel
+            </button>
+            <button 
+              type="button"
+              id="btn-apply-filters"
+              (click)="applyFilterPanel()"
+              class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer focus:outline-none">
+              Apply Filter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Active Filter Badges Bar -->
+    @if (activeFilterBadges().length > 0) {
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center flex-wrap gap-2 text-xs">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Filters:</span>
+        @for (badge of activeFilterBadges(); track badge.id) {
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>{{ badge.label }}: <strong>{{ badge.value }}</strong></span>
+            <button 
+              type="button" 
+              (click)="badge.remove()" 
+              class="hover:text-rose-500 focus:outline-none cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">close</span>
+            </button>
+          </span>
+        }
+        <button 
+          type="button" 
+          (click)="clearAllFilters()"
+          class="text-[11px] text-slate-500 hover:text-rose-500 hover:underline ml-1 font-semibold cursor-pointer">
+          Reset All
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. MAIN CONTENT: DUAL VIEW (GRID CARDS OR TABLE)                          -->
+  <!-- ========================================================================= -->
+  @if (filteredPlans().length === 0) {
+    <!-- Empty State -->
+    <div class="p-12 text-center text-xs space-y-3 bg-base-100 rounded-2xl border border-base-300 shadow-xs">
+      <div class="w-14 h-14 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">event_busy</span>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-text-primary">
+          {{ activeFilterCount() > 0 || searchQuery() ? 'No Plan found matching the selected filters.' : 'No Plan information is available to display.' }}
+        </h3>
+        <p class="text-text-secondary mt-1 max-w-sm mx-auto">
+          {{ activeFilterCount() > 0 || searchQuery() ? 'Try clearing or modifying your filter parameters to view other learning plans.' : 'No learning plans have been created inside this LMS workspace yet.' }}
+        </p>
+      </div>
+      @if (activeFilterCount() > 0 || searchQuery()) {
+        <button 
+          type="button"
+          (click)="clearAllFilters()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-tenant-500 text-white hover:bg-tenant-600 transition-colors cursor-pointer shadow-sm">
+          Clear Filters
+        </button>
+      }
+    </div>
+  } @else {
+
+    <!-- ===================================================================== -->
+    <!-- LEARNING PLANS DATA TABLE                                             -->
+    <!-- ===================================================================== -->
+    <div class="rounded-2xl border border-base-300 bg-base-100 shadow-xs">
+      <div class="overflow-x-auto min-h-[360px]">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-base-300 bg-base-200/50 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
+                <th class="py-3 px-4 min-w-[220px]">Plan Name</th>
+                <th class="py-3 px-4 min-w-[130px] whitespace-nowrap">Plan Code</th>
+                <th class="py-3 px-4 min-w-[180px] whitespace-nowrap">Plan Owner</th>
+                <th class="py-3 px-4 min-w-[90px] whitespace-nowrap">Duration</th>
+                <th class="py-3 px-4 min-w-[110px] whitespace-nowrap">Start Date</th>
+                <th class="py-3 px-4 min-w-[110px] whitespace-nowrap">End Date</th>
+                <th class="py-3 px-4 min-w-[80px] text-center whitespace-nowrap">Phases</th>
+                <th class="py-3 px-4 min-w-[110px] whitespace-nowrap">Enrollment</th>
+                <th class="py-3 px-4 min-w-[100px] whitespace-nowrap">Status</th>
+                <th class="py-3 px-4 min-w-[110px] whitespace-nowrap cursor-pointer hover:text-text-primary" (click)="toggleSort('createdDate')">
+                  <div class="flex items-center gap-1">
+                    <span>Created</span>
+                    <span class="material-symbols-outlined text-xs">{{ sortField() === 'createdDate' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                  </div>
+                </th>
+                <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-300">
+              @for (plan of displayedPlans(); track plan.id; let i = $index) {
+                <tr 
+                  class="hover:bg-base-200/50 transition-colors group cursor-pointer"
+                  (click)="viewPlanDetails(plan)">
+                  
+                  <!-- Plan Name -->
+                  <td class="py-3.5 px-4 font-semibold text-text-primary">
+                    <div class="flex items-start gap-2">
+                      <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 mt-0.5 border border-tenant-500/20">
+                        <span class="material-symbols-outlined text-sm">event_note</span>
+                      </div>
+                      <div class="min-w-0">
+                        <span class="group-hover:text-tenant-600 transition-colors">{{ plan.name || 'Untitled Plan' }}</span>
+                        @if (plan.description) {
+                          <div class="text-[11px] font-normal text-text-secondary line-clamp-1 mt-0.5">
+                            {{ plan.description }}
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Plan Code -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-900/60">
+                      {{ plan.planCode || 'PLN-DRAFT' }}
+                    </span>
+                  </td>
+
+                  <!-- Plan Owner -->
+                  <td class="py-3.5 px-4">
+                    @if (plan.owner?.name) {
+                      <div class="flex items-center gap-2.5">
+                        <app-custom-avatar 
+                          [name]="plan.owner.name" 
+                          size="sm" 
+                          shape="squircle">
+                        </app-custom-avatar>
+                        <div class="min-w-0">
+                          <div class="font-medium text-text-primary truncate">{{ plan.owner.name }}</div>
+                          <div class="text-[10px] text-text-secondary truncate">{{ plan.owner.email || '—' }}</div>
+                        </div>
+                      </div>
+                    } @else {
+                      <button 
+                        type="button"
+                        (click)="$event.stopPropagation(); openAssignModal(plan)"
+                        class="px-2 py-1 rounded text-[11px] font-semibold text-tenant-600 bg-tenant-50 border border-tenant-200 hover:bg-tenant-100 flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-xs">person_add</span>
+                        <span>Assign</span>
+                      </button>
+                    }
+                  </td>
+
+                  <!-- Duration -->
+                  <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-medium">
+                    {{ plan.durationType || 'Yearly' }}
+                  </td>
+
+                  <!-- Start Date -->
+                  <td class="py-3.5 px-4 whitespace-nowrap text-text-primary font-mono">
+                    {{ plan.startDate || '—' }}
+                  </td>
+
+                  <!-- End Date -->
+                  <td class="py-3.5 px-4 whitespace-nowrap text-text-primary font-mono">
+                    {{ plan.endDate || '—' }}
+                  </td>
+
+                  <!-- Phases Count -->
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[11px] bg-base-200 text-text-primary">
+                      <span class="material-symbols-outlined text-xs text-tenant-500">timeline</span>
+                      {{ plan.phases?.length || plan.phaseCount || 0 }}
+                    </span>
+                  </td>
+
+                  <!-- Enrollment Model -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span 
+                      class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                      [ngClass]="plan.enrollmentType === 'Open' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
+                      {{ plan.enrollmentType || 'Open' }}
+                    </span>
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span 
+                      class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border uppercase tracking-wider"
+                      [ngClass]="getStatusBadgeClass(plan.status || 'Draft')">
+                      {{ plan.status || 'Draft' }}
+                    </span>
+                  </td>
+
+                  <!-- Created Date -->
+                  <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-mono">
+                    {{ plan.createdDate || '—' }}
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-20 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]" (click)="$event.stopPropagation()">
+                    <div class="flex items-center justify-center">
+                      <!-- Three-dot vertical menu trigger -->
+                      <button 
+                        type="button"
+                        [id]="'btn-table-plan-menu-' + plan.id"
+                        (click)="toggleActionMenu(plan, $event)"
+                        class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                        [class.ring-2]="isActionMenuOpen(plan.id)"
+                        [class.ring-tenant-500]="isActionMenuOpen(plan.id)"
+                        title="Plan Actions">
+                        <span class="material-symbols-outlined text-lg">more_vert</span>
+                      </button>
+                    </div>
+                  </td>
+
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    <!-- Infinite Scroll / Load More Footer -->
+    @if (displayedPlans().length < filteredPlans().length) {
+      <div class="pt-4 flex justify-center">
+        <button 
+          type="button" 
+          (click)="loadMore()"
+          class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 border border-base-300 text-text-primary shadow-xs transition-all flex items-center gap-2">
+          <span>Load More ({{ filteredPlans().length - displayedPlans().length }} remaining)</span>
+          <span class="material-symbols-outlined text-sm">expand_more</span>
+        </button>
+      </div>
+    }
+
+  }
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- FLOATING FIXED ACTION MENU (Positioned outside scroll boundaries)        -->
+<!-- ========================================================================= -->
+@if (activeMenuPlan(); as menuPlan) {
+  <!-- Invisible backdrop to dismiss on click outside -->
+  <div class="fixed inset-0 z-[99998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+  <!-- Floating Popover -->
+  <div 
+    class="fixed w-56 bg-white dark:bg-base-100 rounded-2xl border border-slate-200/90 dark:border-base-300 shadow-2xl p-1.5 z-[99999] text-left animate-in fade-in zoom-in-95 duration-150 select-none"
+    [style.top.px]="menuPosition().top"
+    [style.left.px]="menuPosition().left"
+    (click)="$event.stopPropagation()">
+    
+    <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-base-300/80 mb-1 flex items-center justify-between">
+      <span>Plan Actions</span>
+      <span class="font-mono text-tenant-600 dark:text-tenant-400">#{{ menuPlan.planCode }}</span>
+    </div>
+
+    <button 
+      type="button"
+      (click)="showPhaseGrid(menuPlan); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-indigo-500">timeline</span>
+      <span>Show Phase Grid</span>
+    </button>
+
+    <button 
+      type="button"
+      (click)="navigateToCreatePhase(menuPlan); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-emerald-500">add_circle</span>
+      <span>Create Phase</span>
+    </button>
+
+    <button 
+      type="button"
+      (click)="viewPlanDetails(menuPlan); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-tenant-500">diamond</span>
+      <span>View Plan Details</span>
+    </button>
+
+    <button 
+      type="button"
+      (click)="openEditModal(menuPlan); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-slate-400">edit</span>
+      <span>Edit Plan</span>
+    </button>
+
+    <button 
+      type="button"
+      (click)="openAssignModal(menuPlan); closeActionMenu()"
+      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-tenant-500/10 hover:text-tenant-600 transition-colors cursor-pointer text-left">
+      <span class="material-symbols-outlined text-base text-purple-500">person_add</span>
+      <span>Assign Plan Owner</span>
+    </button>
+
+    @if (menuPlan.status === 'Draft' || menuPlan.status === 'Published') {
+      <div class="border-t border-slate-100 dark:border-base-300/80 my-1"></div>
+      <button 
+        type="button"
+        (click)="openActivateDialog(menuPlan); closeActionMenu()"
+        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer text-left">
+        <span class="material-symbols-outlined text-base text-emerald-500">bolt</span>
+        <span>Activate Plan</span>
+      </button>
+    }
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODALS                                                                    -->
+<!-- ========================================================================= -->
+
+<!-- Assign Plan Owner Modal -->
+@if (selectedPlanForAssign()) {
+  <app-assign-owner-modal
+    [plan]="selectedPlanForAssign()!"
+    (close)="selectedPlanForAssign.set(null)"
+    (assigned)="onOwnerAssigned()">
+  </app-assign-owner-modal>
+}
+
+<!-- Edit Plan Modal -->
+@if (selectedPlanForEdit()) {
+  <app-edit-plan-modal
+    [plan]="selectedPlanForEdit()!"
+    (close)="selectedPlanForEdit.set(null)"
+    (updated)="onPlanUpdated()">
+  </app-edit-plan-modal>
+}
+
+<!-- Activation Confirmation Dialog -->
+@if (activatingPlan()) {
+  <div 
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
+    (click)="activatingPlan.set(null)">
+    <div 
+      class="w-full max-w-md bg-base-100 rounded-3xl border border-base-300 p-6 shadow-2xl space-y-4 animate-modal-card m-auto"
+      (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800">
+          <span class="material-symbols-outlined text-xl">bolt</span>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-text-primary">Activate Learning Plan</h3>
+          <p class="text-xs text-text-secondary">Confirm readiness to transition to Active lifecycle state.</p>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-300 text-xs space-y-1.5">
+        <div class="font-bold text-text-primary">{{ activatingPlan()?.name }}</div>
+        <div class="font-mono text-tenant-600 dark:text-tenant-400 font-bold text-[11px]">{{ activatingPlan()?.planCode }}</div>
+        <p class="text-text-secondary text-[11px] pt-1">
+          Activating this plan unlocks candidate enrollment and progression tracking. Core schedule bounds (Start Date, End Date, Duration) will become protected against arbitrary deletion.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button 
+          type="button" 
+          (click)="activatingPlan.set(null)"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-base-200 transition-colors">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          (click)="confirmActivatePlan()"
+          [disabled]="isActivatingInProgress()"
+          class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 disabled:opacity-50">
+          @if (isActivatingInProgress()) {
+            <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            <span>Activating...</span>
+          } @else {
+            <span class="material-symbols-outlined text-sm">check</span>
+            <span>Confirm Activation</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,264 @@
+
+<div class="flex h-screen bg-base-200 font-sans overflow-hidden">
+
+  <!-- Dynamic Sidebar (Handles Desktop Classic, Desktop Rail, and Mobile Slide-Out Drawer) -->
+  <app-sidebar [isOpen]="isSidebarOpen()" (close)="closeSidebar()"></app-sidebar>
+  
+  <div class="flex-1 flex flex-col min-w-0">
+    <app-header class="relative z-40 flex-shrink-0" (toggleSidebar)="toggleSidebar()"></app-header>
+
+    <!-- Top Menu Bar (Rendered on Desktop when navigationMode is 'top_menu') -->
+    @if (lms.adminLayoutPreferences().navigationMode === 'top_menu') {
+      <div class="hidden lg:block flex-shrink-0 relative z-35">
+        <app-top-menu></app-top-menu>
+      </div>
+    }
+    
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6">
+      <div [class]="lms.adminLayoutPreferences().contentWidth === 'fluid' ? 'w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6' : 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6'">
+        <!-- The main content will be rendered here based on the route. -->
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+    <!-- Fixed Bottom Platform Footer -->
+    <app-footer class="flex-shrink-0"></app-footer>
+
+    <!-- Mobile Bottom Tab Navigation -->
+    <app-mobile-nav></app-mobile-nav>
+  </div>
+</div>
+
+<!-- Global Unified Alert Toast Container — Top Right of Screen -->
+<div 
+  id="global-toast-container" 
+  class="fixed right-4 sm:right-6 pointer-events-none flex flex-col gap-2.5 max-w-[430px] w-full px-3 sm:px-0 transition-all duration-200 z-[50]"
+  [style.top.px]="lms.adminLayoutPreferences().navigationMode === 'top_menu' ? 124 : (lms.adminLayoutPreferences().headerDensity === 'compact' ? 60 : 76)"
+  aria-live="polite">
+  @for (toast of lms.toasts(); track toast.id) {
+    <div 
+      [id]="'toast-alert-' + toast.id"
+      class="pointer-events-auto alert-toast-card animate-toast-slide-right group shadow-lg w-full"
+      [class.alert-toast-success]="toast.type === 'success'"
+      [class.alert-toast-warning]="toast.type === 'warning'"
+      [class.alert-toast-error]="toast.type === 'error'"
+      [class.alert-toast-info]="toast.type === 'info'">
+      
+      <div class="relative flex items-start gap-3">
+        <!-- Status Icon Concentric Double-Ring Circle Badge (Design Inspiration Match) -->
+        <div class="flex-shrink-0 pt-0.5">
+          @if (toast.type === 'success') {
+            <div class="w-9 h-9 rounded-full bg-[#96F2D7]/70 dark:bg-[#0CA678]/40 flex items-center justify-center shadow-2xs">
+              <div class="w-6 h-6 rounded-full bg-white dark:bg-[#072a20] flex items-center justify-center shadow-xs border border-[#63E6BE]">
+                <span class="material-symbols-outlined text-[15px] font-bold text-[#087F5B] dark:text-[#63E6BE]">check</span>
+              </div>
+            </div>
+          } @else if (toast.type === 'warning') {
+            <div class="w-9 h-9 rounded-full bg-[#FFE066]/70 dark:bg-[#F59F00]/40 flex items-center justify-center shadow-2xs">
+              <div class="w-6 h-6 rounded-full bg-white dark:bg-[#332402] flex items-center justify-center shadow-xs border border-[#FFD43B]">
+                <span class="material-symbols-outlined text-[15px] font-bold text-[#D97706] dark:text-[#FFD43B]">priority_high</span>
+              </div>
+            </div>
+          } @else if (toast.type === 'error') {
+            <div class="w-9 h-9 rounded-full bg-[#FFC9C9]/70 dark:bg-[#F03E3E]/40 flex items-center justify-center shadow-2xs">
+              <div class="w-6 h-6 rounded-full bg-white dark:bg-[#330a13] flex items-center justify-center shadow-xs border border-[#FFA8A8]">
+                <span class="material-symbols-outlined text-[15px] font-bold text-[#E03131] dark:text-[#FFA8A8]">close</span>
+              </div>
+            </div>
+          } @else {
+            <div class="w-9 h-9 rounded-full bg-[#A5D8FF]/70 dark:bg-[#228BE6]/40 flex items-center justify-center shadow-2xs">
+              <div class="w-6 h-6 rounded-full bg-white dark:bg-[#091e36] flex items-center justify-center shadow-xs border border-[#74C0FC]">
+                <span class="material-symbols-outlined text-[15px] font-bold text-[#1971C2] dark:text-[#74C0FC]">info</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Content Details -->
+        <div class="flex-1 min-w-0 pt-0.5">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span 
+                class="text-sm font-bold tracking-tight"
+                [class.text-\[\#087F5B\]]="toast.type === 'success'"
+                [class.dark\:text-\[\#A9ECD5\]]="toast.type === 'success'"
+                [class.text-\[\#7A5A00\]]="toast.type === 'warning'"
+                [class.dark\:text-\[\#FFE066\]]="toast.type === 'warning'"
+                [class.text-\[\#C92A2A\]]="toast.type === 'error'"
+                [class.dark\:text-\[\#FFC9C9\]]="toast.type === 'error'"
+                [class.text-\[\#1864AB\]]="toast.type === 'info'"
+                [class.dark\:text-\[\#D0EBFF\]]="toast.type === 'info'">
+                @if (toast.title) {
+                  {{ toast.title }}
+                } @else if (toast.type === 'success') {
+                  Successfully updated.
+                } @else if (toast.type === 'warning') {
+                  Notice
+                } @else if (toast.type === 'error') {
+                  Error occurred
+                } @else {
+                  Information
+                }
+              </span>
+              <span 
+                class="text-[12px] opacity-75 font-normal"
+                [class.text-\[\#099268\]]="toast.type === 'success'"
+                [class.dark\:text-\[\#63E6BE\]]="toast.type === 'success'"
+                [class.text-\[\#8C5800\]]="toast.type === 'warning'"
+                [class.dark\:text-\[\#FFD43B\]]="toast.type === 'warning'"
+                [class.text-\[\#E03131\]]="toast.type === 'error'"
+                [class.dark\:text-\[\#FFA8A8\]]="toast.type === 'error'"
+                [class.text-\[\#1C7ED6\]]="toast.type === 'info'"
+                [class.dark\:text-\[\#74C0FC\]]="toast.type === 'info'">
+                Just now
+              </span>
+              @if (toast.badgeText) {
+                <span 
+                  class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border shadow-2xs"
+                  [class.bg-\[\#C3FAE8\]]="toast.type === 'success'"
+                  [class.text-\[\#087F5B\]]="toast.type === 'success'"
+                  [class.border-\[\#96F2D7\]]="toast.type === 'success'"
+                  [class.dark\:bg-\[\#0CA678\]\/30]="toast.type === 'success'"
+                  [class.dark\:text-\[\#A9ECD5\]]="toast.type === 'success'"
+                  [class.dark\:border-\[\#0CA678\]\/40]="toast.type === 'success'"
+                  
+                  [class.bg-\[\#FFF3BF\]]="toast.type === 'warning'"
+                  [class.text-\[\#7A5A00\]]="toast.type === 'warning'"
+                  [class.border-\[\#FFE066\]]="toast.type === 'warning'"
+                  [class.dark\:bg-\[\#F59F00\]\/30]="toast.type === 'warning'"
+                  [class.dark\:text-\[\#FFE066\]]="toast.type === 'warning'"
+                  [class.dark\:border-\[\#F59F00\]\/40]="toast.type === 'warning'"
+                  
+                  [class.bg-\[\#FFE3E3\]]="toast.type === 'error'"
+                  [class.text-\[\#A61E4D\]]="toast.type === 'error'"
+                  [class.border-\[\#FFC9C9\]]="toast.type === 'error'"
+                  [class.dark\:bg-\[\#F03E3E\]\/30]="toast.type === 'error'"
+                  [class.dark\:text-\[\#FFC9C9\]]="toast.type === 'error'"
+                  [class.dark\:border-\[\#F03E3E\]\/40]="toast.type === 'error'"
+                  
+                  [class.bg-\[\#D0EBFF\]]="toast.type === 'info'"
+                  [class.text-\[\#1864AB\]]="toast.type === 'info'"
+                  [class.border-\[\#A5D8FF\]]="toast.type === 'info'"
+                  [class.dark\:bg-\[\#228BE6\]\/30]="toast.type === 'info'"
+                  [class.dark\:text-\[\#D0EBFF\]]="toast.type === 'info'"
+                  [class.dark\:border-\[\#228BE6\]\/40]="toast.type === 'info'">
+                  {{ toast.badgeText }}
+                </span>
+              }
+            </div>
+            
+            <!-- Dismiss Button -->
+            <button 
+              type="button"
+              (click)="lms.removeToast(toast.id)"
+              class="p-1 -mr-1 -mt-0.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer opacity-70 hover:opacity-100"
+              [class.text-\[\#087F5B\]]="toast.type === 'success'"
+              [class.hover\:bg-\[\#96F2D7\]\/60]="toast.type === 'success'"
+              [class.dark\:text-\[\#A9ECD5\]]="toast.type === 'success'"
+              [class.dark\:hover\:bg-\[\#0CA678\]\/30]="toast.type === 'success'"
+              
+              [class.text-\[\#7A5A00\]]="toast.type === 'warning'"
+              [class.hover\:bg-\[\#FFE066\]\/60]="toast.type === 'warning'"
+              [class.dark\:text-\[\#FFE066\]]="toast.type === 'warning'"
+              [class.dark\:hover\:bg-\[\#F59F00\]\/30]="toast.type === 'warning'"
+              
+              [class.text-\[\#C92A2A\]]="toast.type === 'error'"
+              [class.hover\:bg-\[\#FFC9C9\]\/60]="toast.type === 'error'"
+              [class.dark\:text-\[\#FFC9C9\]]="toast.type === 'error'"
+              [class.dark\:hover\:bg-\[\#F03E3E\]\/30]="toast.type === 'error'"
+              
+              [class.text-\[\#1864AB\]]="toast.type === 'info'"
+              [class.hover\:bg-\[\#A5D8FF\]\/60]="toast.type === 'info'"
+              [class.dark\:text-\[\#D0EBFF\]]="toast.type === 'info'"
+              [class.dark\:hover\:bg-\[\#228BE6\]\/30]="toast.type === 'info'"
+              title="Dismiss alert">
+              <span class="material-symbols-outlined text-[17px]">close</span>
+            </button>
+          </div>
+
+          <p 
+            class="text-[13px] font-normal leading-relaxed break-words mt-0.5"
+            [class.text-\[\#087F5B\]]="toast.type === 'success'"
+            [class.dark\:text-\[\#A9ECD5\]\/90]="toast.type === 'success'"
+            [class.text-\[\#7A5A00\]]="toast.type === 'warning'"
+            [class.dark\:text-\[\#FFE066\]\/90]="toast.type === 'warning'"
+            [class.text-\[\#C92A2A\]]="toast.type === 'error'"
+            [class.dark\:text-\[\#FFC9C9\]\/90]="toast.type === 'error'"
+            [class.text-\[\#1864AB\]]="toast.type === 'info'"
+            [class.dark\:text-\[\#D0EBFF\]\/90]="toast.type === 'info'">
+            {{ toast.message }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Animated Progress Countdown Bar -->
+      @if ((toast.durationMs || 4500) > 0) {
+        <div 
+          class="absolute bottom-0 left-0 right-0 h-[2.5px] overflow-hidden rounded-b-2xl opacity-40"
+          [class.bg-\[\#96F2D7\]]="toast.type === 'success'"
+          [class.bg-\[\#FFE066\]]="toast.type === 'warning'"
+          [class.bg-\[\#FFC9C9\]]="toast.type === 'error'"
+          [class.bg-\[\#A5D8FF\]]="toast.type === 'info'">
+          <div 
+            class="h-full origin-left transition-none"
+            [class.bg-\[\#0CA678\]]="toast.type === 'success'"
+            [class.bg-\[\#F59F00\]]="toast.type === 'warning'"
+            [class.bg-\[\#F03E3E\]]="toast.type === 'error'"
+            [class.bg-\[\#228BE6\]]="toast.type === 'info'"
+            [style.animation]="'toastProgress ' + (toast.durationMs || 4500) + 'ms linear forwards'">
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Admin Layout & Appearance Architecture Modal (Rendered at root level with z-[100] above toast notifications) -->
+@if (lms.showLayoutModal()) {
+  <app-layout-switcher-modal (close)="lms.closeLayoutModal()"></app-layout-switcher-modal>
+}
+
+<!-- Backend REST API & Telemetry Console Modal (Rendered at root level with z-[100] above toast notifications) -->
+@if (lms.showBackendConsole()) {
+  <app-backend-console-modal (close)="lms.closeBackendConsole()"></app-backend-console-modal>
+}
+
+<!-- Reusable Global Confirmation & Discard Modal (Controlled via ConfirmationModalService) -->
+<app-confirmation-modal></app-confirmation-modal>
+
+<!-- Global Sign Out Confirmation Modal (Rendered at root level to guarantee true 100vw x 100vh full-screen coverage) -->
+@if (lms.showSignOutModal()) {
+  <div 
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+    (click)="lms.closeSignOutModal()">
+    <div 
+      class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-sm p-6 animate-modal-card text-center space-y-4"
+      (click)="$event.stopPropagation()">
+      <div class="w-14 h-14 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">logout</span>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-base text-text-primary">Sign Out of Session?</h3>
+        <p class="text-xs text-text-secondary mt-1">You are currently logged in as <span class="font-semibold text-text-primary">{{ lms.activeUser().name }}</span> on <span class="font-semibold text-text-primary">{{ lms.activeTenant().name }}</span>.</p>
+      </div>
+
+      <div class="flex items-center justify-center gap-2.5 pt-2">
+        <button 
+          type="button" 
+          (click)="lms.closeSignOutModal()" 
+          class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold flex-1 cursor-pointer">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          (click)="confirmGlobalSignOut()" 
+          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex-1 cursor-pointer shadow-xs">
+          Confirm Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+

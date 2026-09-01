@@ -1,0 +1,231 @@
+<div class="space-y-6">
+  <!-- ========================================================================= -->
+  <!-- 1. VIEW MODE HEADER                                                       -->
+  <!-- ========================================================================= -->
+  @if (!isStudioMode()) {
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">corporate_fare</span>
+            Platform Level
+          </span>
+          <span class="text-xs text-text-secondary flex items-center gap-1">
+            <span>Role:</span> 
+            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.activeRole().replace('_', ' ') }}</strong>
+          </span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
+            Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
+          </span>
+        </div>
+        
+        <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+          Organization Overview
+        </h1>
+        <p class="text-xs text-text-secondary mt-0.5">
+          Platform-wide status and activity across all Organizations on OneLMS.
+        </p>
+      </div>
+
+      <!-- Action Button: Open Customize Studio -->
+      <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+        <button 
+          id="btn-open-org-studio"
+          (click)="enterStudioMode()"
+          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] group cursor-pointer">
+          <span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
+          <span>Customize Dashboard Studio</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 2. STUDIO MODE TOP BAR & CONTROLS                                         -->
+  <!-- ========================================================================= -->
+  @if (isStudioMode()) {
+    <div class="p-4 lg:p-5 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xl space-y-4 animate-in fade-in transition-all">
+      
+      <!-- Top Row: Studio Header + Main Actions -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <!-- Left: Title & Version Draft Tag -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+            <span class="material-symbols-outlined text-xl animate-pulse">tune</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-bold text-sm text-text-primary">Custom Dashboard Studio</h2>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold border border-tenant-500/20">
+                Organization Scope
+              </span>
+              <span class="text-[10px] px-2 py-0.2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-300 font-mono font-bold">
+                v{{ publishedLayout().version + 1 }} Draft
+              </span>
+            </div>
+            <p class="text-xs text-text-secondary mt-0.5">
+              Drag cards to reorder, click width pills (25%–100%), or configure role audiences.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: Studio Actions (Add, Auto-Arrange, Reset, Discard, Publish) -->
+        <div class="flex items-center gap-2 flex-wrap">
+          
+          <!-- Add Widget -->
+          <button 
+            type="button"
+            id="btn-add-widget-catalog"
+            (click)="showAddWidgetModal.set(true)"
+            class="px-3 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95">
+            <span class="material-symbols-outlined text-base font-bold">add</span>
+            <span>Add Widget</span>
+          </button>
+
+          <!-- Auto-Arrange -->
+          <button 
+            type="button"
+            (click)="autoArrangeLayout()"
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Automatically balance columns & clean spacing">
+            <span class="material-symbols-outlined text-base text-tenant-500">auto_fix_high</span>
+            <span class="hidden sm:inline">Auto-Arrange</span>
+          </button>
+
+          <!-- Reset to Factory Defaults -->
+          <button 
+            type="button"
+            (click)="resetLayout()"
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Reset to factory default layout">
+            <span class="material-symbols-outlined text-base">restart_alt</span>
+            <span class="hidden sm:inline">Reset</span>
+          </button>
+
+          <!-- Discard Draft Changes -->
+          <button 
+            type="button"
+            (click)="discardStudioChanges()"
+            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-base">close</span>
+            <span>Discard</span>
+          </button>
+
+          <!-- Publish Live -->
+          <button 
+            type="button"
+            id="btn-publish-org-dashboard"
+            (click)="publishDashboard()"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+            <span>Publish Live</span>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Presets Row -->
+      <div class="pt-3 border-t border-base-300/80 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1 flex-shrink-0 mr-1">
+          <span class="material-symbols-outlined text-sm">dashboard</span>
+          Presets:
+        </span>
+
+        @for (preset of presets; track preset.id) {
+          <button 
+            type="button"
+            (click)="applyPreset(preset)"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-base-200/80 hover:bg-base-300 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all flex-shrink-0 cursor-pointer group">
+            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 group-hover:scale-110 transition-transform">{{ preset.icon }}</span>
+            <span>{{ preset.name }}</span>
+            @if (preset.badge) {
+              <span class="text-[9px] px-1 py-0.2 rounded-md bg-tenant-500/15 text-tenant-600 dark:text-tenant-300 font-bold">
+                {{ preset.badge }}
+              </span>
+            }
+          </button>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 3. DASHBOARD CANVAS (12-COLUMN CSS GRID)                                  -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 auto-rows-auto items-stretch">
+    
+    @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
+      <div 
+        [id]="'widget-slot-' + widget.id"
+        [class]="getColSpanClass(widget.colSpan) + ' ' + getRowSpanClass(widget.rowSpan)"
+        [draggable]="isStudioMode()"
+        (dragstart)="onDragStart($event, idx)"
+        (dragover)="onDragOver($event, idx)"
+        (dragleave)="onDragLeave(idx)"
+        (drop)="onDrop($event, idx)"
+        (dragend)="onDragEnd()"
+        class="transition-all duration-200"
+        [class.opacity-40]="draggedIndex() === idx"
+        [class.ring-2]="dragOverIndex() === idx"
+        [class.ring-tenant-500]="dragOverIndex() === idx"
+        [class.rounded-3xl]="dragOverIndex() === idx">
+        
+        <app-org-widget-renderer
+          [widget]="widget"
+          [isBuilderMode]="isStudioMode()"
+          (editWidget)="editingWidget.set($event)"
+          (removeWidget)="onRemoveWidget($event)"
+          (duplicateWidget)="onDuplicateWidget($event)"
+          (moveUp)="onMoveUp($event)"
+          (moveDown)="onMoveDown($event)"
+          (changeColSpan)="onChangeColSpan($event)"
+          (changeRowSpan)="onChangeRowSpan($event)"
+          (changeDimensions)="onChangeDimensions($event)"
+          class="h-full block">
+        </app-org-widget-renderer>
+
+      </div>
+    }
+
+    <!-- Empty Canvas Placeholder -->
+    @if (displayedWidgets().length === 0) {
+      <div class="col-span-12 py-16 text-center rounded-3xl border-2 border-dashed border-base-300 space-y-3 bg-base-100/50">
+        <span class="material-symbols-outlined text-5xl text-text-secondary/60">dashboard_customize</span>
+        <h3 class="text-sm font-bold text-text-primary">Dashboard Canvas is Empty</h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          No widgets are currently placed on this canvas. Click below to add modular components from the catalog.
+        </p>
+        <button 
+          type="button"
+          (click)="showAddWidgetModal.set(true)"
+          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-sm font-bold">add</span>
+          <span>Add Widget from Catalog</span>
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. MODALS (Add Widget Catalog & Widget Configuration)                      -->
+  <!-- ========================================================================= -->
+  @if (showAddWidgetModal()) {
+    <app-org-add-widget-modal
+      (close)="showAddWidgetModal.set(false)"
+      (selectWidget)="onAddWidget($event)">
+    </app-org-add-widget-modal>
+  }
+
+  @if (editingWidget()) {
+    <app-org-widget-config-modal
+      [widget]="editingWidget()!"
+      (close)="editingWidget.set(null)"
+      (save)="onSaveWidgetConfig($event)">
+    </app-org-widget-config-modal>
+  }
+
+</div>

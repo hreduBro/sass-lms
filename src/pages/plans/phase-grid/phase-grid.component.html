@@ -1,0 +1,653 @@
+<div class="space-y-6 pb-16 animate-step-in">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & WORKSPACE SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Fixed LMS Workspace Scope
+        </span>
+        <span class="text-xs text-text-secondary">
+          Parent LMS: <strong class="font-bold text-text-primary">{{ activeLms().basicInfo.lmsName }}</strong>
+          (ID: <strong class="font-mono text-text-primary">{{ activeLms().id }}</strong>) &bull; Org: <strong class="text-text-primary">{{ activeTenant().name }}</strong>
+        </span>
+      </div>
+      
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">account_tree</span>
+        <span>Learning Phases Grid</span>
+      </h1>
+      
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
+        All structured curriculum phases, prerequisite milestones, and accredited outputs under this LMS.
+      </p>
+    </div>
+
+    <!-- Top-Right Actions -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <a 
+        [routerLink]="['/plans']"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-tenant-600 text-lg">event_note</span>
+        <span>Plans Grid</span>
+      </a>
+
+      <button 
+        type="button"
+        (click)="navigateToCreatePhase()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl btn-gradient active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span>Create Phase (Flow)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. SEARCH & FILTER CONTROLS (Exact Match to Plan Grid Design)             -->
+  <!-- ========================================================================= -->
+  <div class="relative z-10 bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs space-y-3">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left: Search Field + Filter Button + Reset Button -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+        
+        <!-- Search Field -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
+          <input
+            type="text"
+            id="input-phase-name-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by Phase Name, Code or Parent Plan..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
+          @if (searchQuery()) {
+            <button 
+              type="button"
+              (click)="onSearchChange('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Button beside Search -->
+        <button 
+          type="button"
+          id="btn-toggle-phase-filter"
+          (click)="toggleFilterPanel()"
+          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          [class]="isFilterPanelOpen() || hasActiveFilters()
+            ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
+          title="Filters">
+          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Grid-Level Reset Button -->
+        @if (isResetVisible()) {
+          <button 
+            type="button"
+            id="btn-phase-grid-reset"
+            (click)="resetGrid()"
+            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
+            title="Clear search and all active filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+
+      </div>
+
+      <!-- Right: Total Count Indicator -->
+      <div class="flex items-center justify-end text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
+        <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-semibold">
+          Showing <strong class="text-text-primary">{{ filteredPhases().length }}</strong> of {{ allPhasesWithContext().length }} Phases
+        </span>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2.1 EXPANDABLE FILTER PANEL DRAWER (Exact Match to Plan Grid)             -->
+    <!-- ========================================================================= -->
+    @if (isFilterPanelOpen()) {
+      <div class="pt-5 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in slide-in-from-top-2 duration-200 space-y-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          <!-- 1. Status Multi-select Checkboxes -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              1. Phase Status
+            </h4>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              @for (st of availableStatuses; track st) {
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox"
+                    [checked]="draftFilters().status.includes(st)"
+                    (change)="toggleStatusDraft(st)"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-600 focus:ring-0 focus:outline-none cursor-pointer" />
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass(st)">
+                    <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(st)"></span>
+                    {{ st }}
+                  </span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- 2. Prerequisite Unlock Rules -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              2. Prerequisite Rules
+            </h4>
+            <div class="flex flex-col gap-2">
+              @for (pr of availablePrerequisites; track pr) {
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox"
+                    [checked]="draftFilters().prerequisites.includes(pr)"
+                    (change)="togglePrerequisiteDraft(pr)"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-600 focus:ring-0 focus:outline-none cursor-pointer" />
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700">
+                    {{ pr }}
+                  </span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- 3. Parent Plan Filter -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              3. Parent Plan Scope
+            </h4>
+            <div class="relative">
+              <app-custom-select
+                id="select-phase-parent-plan"
+                [ngModel]="draftFilters().planId"
+                (ngModelChange)="setPlanDraft($event)"
+                [options]="planFilterOptions()"
+                placeholder="All Learning Plans (Workspace)"
+                leadingIcon="layers"
+                dropdownAlign="right"
+                [searchable]="true" />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+          <button 
+            type="button"
+            (click)="clearFilterPanelDraft()"
+            class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+            Clear All Selections
+          </button>
+
+          <div class="flex items-center gap-3">
+            <button 
+              type="button"
+              (click)="closeFilterPanel()"
+              class="px-5 py-2 rounded-xl sm:rounded-full bg-[#F1F5F9] hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
+              Cancel
+            </button>
+            <button 
+              type="button"
+              id="btn-apply-phase-filters"
+              (click)="applyFilterPanel()"
+              class="px-6 py-2 rounded-xl sm:rounded-full btn-gradient text-white text-xs font-bold shadow-xs transition-colors cursor-pointer focus:outline-none">
+              Apply Filter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 2.2 ACTIVE FILTER CHIPS ROW (Exact Match to Plan Grid)                    -->
+    <!-- ========================================================================= -->
+    @if (hasActiveFilters()) {
+      <div class="pt-3 border-t border-base-300 flex items-center gap-2 flex-wrap text-xs">
+        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+          Active Filters:
+        </span>
+
+        <!-- Status Chips -->
+        @for (st of appliedFilters().status; track st) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Status: <strong>{{ st }}</strong></span>
+            <button type="button" (click)="removeStatusFilter(st)" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Prerequisite Chips -->
+        @for (pr of appliedFilters().prerequisites; track pr) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Prereq: <strong>{{ pr }}</strong></span>
+            <button type="button" (click)="removePrerequisiteFilter(pr)" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Plan Chip -->
+        @if (appliedFilters().planId) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Plan Filter Active</span>
+            <button type="button" (click)="removePlanFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MASTER PHASE GRID TABLE WITH STICKY ACTION COLUMN (Exact Plan Match)  -->
+  <!-- ========================================================================= -->
+  @if (filteredPhases().length === 0) {
+    <div class="bg-base-100 dark:bg-base-200 rounded-3xl border border-base-300 dark:border-slate-800 p-12 text-center text-xs text-text-secondary space-y-3">
+      <div class="w-16 h-16 rounded-2xl bg-base-200 flex items-center justify-center mx-auto text-text-secondary">
+        <span class="material-symbols-outlined text-3xl">search_off</span>
+      </div>
+      <h3 class="text-base font-bold text-text-primary">No Phases Match Criteria</h3>
+      <p class="max-w-sm mx-auto">No learning phases match your search and filter parameters.</p>
+      <button 
+        type="button" 
+        (click)="resetGrid()"
+        class="mt-2 px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary font-bold shadow-sm cursor-pointer inline-flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm">restart_alt</span>
+        <span>Reset Filters</span>
+      </button>
+    </div>
+  } @else {
+    <div class="bg-base-100 dark:bg-base-200 rounded-3xl border border-base-300 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-base-300 dark:border-slate-800 bg-base-200/50 dark:bg-base-300/40 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
+              
+              <!-- Seq Column -->
+              <th (click)="setSorting('sequence')" class="py-3.5 px-4 w-12 text-center cursor-pointer hover:bg-base-300/50 transition-colors">
+                <div class="flex items-center justify-center gap-1">
+                  <span>Seq</span>
+                  <span class="material-symbols-outlined text-xs">{{ sortField() === 'sequence' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                </div>
+              </th>
+
+              <!-- Phase Name Column -->
+              <th (click)="setSorting('name')" class="py-3.5 px-4 cursor-pointer hover:bg-base-300/50 transition-colors min-w-[200px]">
+                <div class="flex items-center gap-1">
+                  <span>Phase Details</span>
+                  <span class="material-symbols-outlined text-xs">{{ sortField() === 'name' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                </div>
+              </th>
+
+              <!-- Parent Plan Column -->
+              <th class="py-3.5 px-4 min-w-[180px]">Parent Plan</th>
+
+              <!-- Start Date Column -->
+              <th (click)="setSorting('startDate')" class="py-3.5 px-4 cursor-pointer hover:bg-base-300/50 transition-colors whitespace-nowrap">
+                <div class="flex items-center gap-1">
+                  <span>Start Date</span>
+                  <span class="material-symbols-outlined text-xs">{{ sortField() === 'startDate' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                </div>
+              </th>
+
+              <!-- End Date Column -->
+              <th (click)="setSorting('endDate')" class="py-3.5 px-4 cursor-pointer hover:bg-base-300/50 transition-colors whitespace-nowrap">
+                <div class="flex items-center gap-1">
+                  <span>End Date</span>
+                  <span class="material-symbols-outlined text-xs">{{ sortField() === 'endDate' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                </div>
+              </th>
+
+              <!-- Courses Column -->
+              <th class="py-3.5 px-4 text-center">Courses</th>
+
+              <!-- Tasks Column -->
+              <th class="py-3.5 px-4 text-center">Tasks</th>
+
+              <!-- Delivery Classes Column -->
+              <th class="py-3.5 px-4 text-center">Classes</th>
+
+              <!-- Status Column -->
+              <th (click)="setSorting('status')" class="py-3.5 px-4 cursor-pointer hover:bg-base-300/50 transition-colors min-w-[120px]">
+                <div class="flex items-center gap-1">
+                  <span>Status</span>
+                  <span class="material-symbols-outlined text-xs">{{ sortField() === 'status' && sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</span>
+                </div>
+              </th>
+
+              <!-- Credentials Output Column -->
+              <th class="py-3.5 px-4">Outputs</th>
+
+              <!-- STICKY ACTION HEADER (Exact Plan Design Match) -->
+              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                Actions
+              </th>
+
+            </tr>
+          </thead>
+          <tbody>
+            @for (phase of filteredPhases(); track phase.id) {
+              <tr 
+                (click)="viewPhaseDetails(phase)"
+                class="group hover:bg-base-200/50 transition-colors cursor-pointer">
+                
+                <!-- 1. Seq Number -->
+                <td class="py-3 px-4 text-center border-b border-base-300/60">
+                  <span class="w-7 h-7 rounded-lg bg-base-200 dark:bg-base-300 font-bold text-text-primary text-xs inline-flex items-center justify-center font-mono">
+                    #{{ phase.sequence }}
+                  </span>
+                </td>
+
+                <!-- 2. Phase Name & Code -->
+                <td class="py-3 px-4 border-b border-base-300/60">
+                  <div class="flex items-center gap-3 min-w-[220px]">
+                    <div class="w-9 h-9 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center flex-shrink-0 text-tenant-600 dark:text-tenant-400">
+                      <span class="material-symbols-outlined text-base">account_tree</span>
+                    </div>
+                    <div class="min-w-0">
+                      <span class="font-bold text-text-primary group-hover:text-tenant-600 transition-colors block line-clamp-1">{{ phase.name || 'Untitled Phase' }}</span>
+                      <span class="text-[10px] text-text-secondary font-mono block">{{ phase.id || 'PHASE' }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 3. Parent Plan -->
+                <td class="py-3 px-4 border-b border-base-300/60" (click)="$event.stopPropagation()">
+                  <a [routerLink]="['/plans/details', phase.planId]" class="hover:underline font-semibold text-tenant-600 dark:text-tenant-400 block truncate max-w-[180px]">
+                    {{ phase.parentPlanName || 'Parent Plan' }}
+                  </a>
+                  <span class="text-[10px] font-mono text-text-secondary bg-base-200 px-1.5 py-0.2 rounded font-bold border border-base-300/60 mt-0.5 inline-block">
+                    {{ phase.parentPlanCode || 'PLN' }}
+                  </span>
+                </td>
+
+                <!-- 4. Start Date -->
+                <td class="py-3 px-4 whitespace-nowrap font-mono text-text-primary border-b border-base-300/60">
+                  {{ phase.startDate || '—' }}
+                </td>
+
+                <!-- 5. End Date -->
+                <td class="py-3 px-4 whitespace-nowrap font-mono text-text-primary border-b border-base-300/60">
+                  {{ phase.endDate || '—' }}
+                </td>
+
+                <!-- 6. Courses Count -->
+                <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    <span class="material-symbols-outlined text-xs">school</span>
+                    {{ phase.courseCount || 0 }}
+                  </span>
+                </td>
+
+                <!-- 7. Tasks Count -->
+                <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-base-200 text-text-primary border border-base-300">
+                    <span class="material-symbols-outlined text-xs text-text-secondary">task_alt</span>
+                    {{ phase.taskCount || 0 }}
+                  </span>
+                </td>
+
+                <!-- 8. Delivery Classes Count -->
+                <td class="py-3 px-4 text-center whitespace-nowrap border-b border-base-300/60">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <span class="material-symbols-outlined text-xs">co_present</span>
+                    {{ phase.deliveryClassCount || 0 }}
+                  </span>
+                </td>
+
+                <!-- 9. Status -->
+                <td class="py-3 px-4 min-w-[130px] whitespace-nowrap border-b border-base-300/60">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1.5"
+                        [class]="getStatusBadgeClass(phase.status || 'Ready')">
+                    <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(phase.status || 'Ready')"></span>
+                    {{ phase.status || 'Ready' }}
+                  </span>
+                </td>
+
+                <!-- 10. Credentials Outputs -->
+                <td class="py-3 px-4 whitespace-nowrap border-b border-base-300/60">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                        [ngClass]="getCertificateBadgeClass(phase.certificateBadgeStatus || 'Configured')">
+                    {{ phase.certificateBadgeStatus || 'Configured' }}
+                  </span>
+                </td>
+
+                <!-- 11. STICKY ACTION COLUMN (Exact Plan Design Match) -->
+                <td class="py-3 px-4 text-right sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                  <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
+                    
+                    <!-- Edit Phase in 8-Step Wizard Button -->
+                    <button 
+                      type="button"
+                      [id]="'btn-edit-phase-' + phase.id"
+                      (click)="navigateToEditPhase(phase.planId, phase.id)"
+                      class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-600 transition-colors cursor-pointer"
+                      title="Edit Phase in 8-Step Wizard">
+                      <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+
+                    <!-- View Phase Details Modal Button -->
+                    <button 
+                      type="button"
+                      [id]="'btn-details-phase-' + phase.id"
+                      (click)="viewPhaseDetails(phase)"
+                      class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 transition-colors cursor-pointer"
+                      title="View Phase Details">
+                      <span class="material-symbols-outlined text-base">visibility</span>
+                    </button>
+
+                    <!-- Delete Phase Button -->
+                    <button 
+                      type="button"
+                      [id]="'btn-delete-phase-' + phase.id"
+                      (click)="promptDeletePhase(phase.planId, phase.id, phase.name)"
+                      class="p-1.5 rounded-lg bg-base-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Delete Phase">
+                      <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+
+                  </div>
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- Phase Details Modal -->
+@if (selectedPhaseForDetails() && selectedPlanForDetails()) {
+  <app-phase-details-modal
+    [phase]="selectedPhaseForDetails()!"
+    [plan]="selectedPlanForDetails()!"
+    [totalPhases]="selectedPlanForDetails()!.phases ? selectedPlanForDetails()!.phases.length : 1"
+    (close)="selectedPhaseForDetails.set(null)">
+  </app-phase-details-modal>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (phaseToDelete()) {
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-modal-backdrop">
+    <div class="bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4 animate-modal-card">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">delete_forever</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-text-primary">Delete Phase?</h3>
+          <p class="text-xs text-text-secondary">This action cannot be undone.</p>
+        </div>
+      </div>
+
+      <p class="text-text-secondary leading-relaxed">
+        Are you sure you want to delete <strong class="text-text-primary">{{ phaseToDelete()!.phaseName }}</strong>?
+        Associated course mappings and operational tasks for this phase will be removed from the plan.
+      </p>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button 
+          type="button" 
+          (click)="phaseToDelete.set(null)"
+          class="px-4 py-2 rounded-xl bg-base-200 text-text-primary font-semibold hover:bg-base-300 cursor-pointer">
+          Cancel
+        </button>
+
+        <button 
+          type="button" 
+          (click)="confirmDeletePhase()"
+          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold cursor-pointer">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Plan Selection Modal for Phase Creation -->
+@if (showSelectPlanModal()) {
+  <div 
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
+    (click)="closeCreatePhaseModal()">
+    <div 
+      class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl p-6 sm:p-7 space-y-5 animate-modal-card m-auto"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-3 pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl">account_tree</span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-text-primary">Select Target Learning Plan</h2>
+            <p class="text-xs text-text-secondary mt-0.5">
+              Choose which parent learning plan this new phase curriculum will belong to.
+            </p>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          (click)="closeCreatePhaseModal()"
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
+        <input 
+          type="text" 
+          [ngModel]="modalPlanSearchQuery()"
+          (ngModelChange)="modalPlanSearchQuery.set($event)"
+          placeholder="Search plans by name or code..."
+          class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-base-200/60 dark:bg-base-300/40 border border-base-300 dark:border-slate-700 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all" />
+      </div>
+
+      <!-- Plan Selection List -->
+      <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+        @if (filteredModalPlans().length === 0) {
+          <div class="p-6 rounded-2xl border border-dashed border-base-300 text-center text-xs text-text-secondary">
+            <p>No learning plans found matching your search.</p>
+          </div>
+        } @else {
+          @for (plan of filteredModalPlans(); track plan.id) {
+            <div 
+              (click)="selectedPlanIdForCreate.set(plan.id)"
+              class="p-3.5 rounded-2xl border transition-all cursor-pointer select-none flex items-start justify-between gap-3"
+              [class]="selectedPlanIdForCreate() === plan.id 
+                ? 'bg-tenant-500/10 border-tenant-500 shadow-xs ring-1 ring-tenant-500/30' 
+                : 'bg-base-200/40 hover:bg-base-200/80 border-base-300 dark:border-slate-800'">
+              
+              <div class="flex items-start gap-3 min-w-0 flex-1">
+                <!-- Custom Radio Indicator -->
+                <div 
+                  class="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-all"
+                  [class]="selectedPlanIdForCreate() === plan.id 
+                    ? 'border-tenant-500 bg-tenant-500 text-white' 
+                    : 'border-base-300 dark:border-slate-700 bg-base-100'">
+                  @if (selectedPlanIdForCreate() === plan.id) {
+                    <span class="w-2 h-2 rounded-full bg-white"></span>
+                  }
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-xs text-text-primary truncate">{{ plan.name }}</span>
+                    <span class="px-2 py-0.2 rounded font-mono font-bold text-[10px] bg-base-100 dark:bg-base-300 text-tenant-700 dark:text-tenant-300 border border-base-300 dark:border-slate-700">
+                      {{ plan.planCode }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-3 text-[11px] text-text-secondary mt-1 flex-wrap">
+                    <span class="flex items-center gap-1 font-mono">
+                      <span class="material-symbols-outlined text-xs">calendar_today</span>
+                      {{ plan.startDate }} &rarr; {{ plan.endDate }}
+                    </span>
+                    <span>&bull;</span>
+                    <span class="font-semibold text-text-primary">
+                      {{ plan.phases?.length || plan.phaseCount || 0 }} {{ (plan.phases?.length || plan.phaseCount || 0) === 1 ? 'Phase' : 'Phases' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status Badge -->
+              <span 
+                class="px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider shrink-0"
+                [class]="getStatusBadgeClass(plan.status)">
+                {{ plan.status }}
+              </span>
+
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-between pt-3 border-t border-base-300 dark:border-slate-800">
+        <button 
+          type="button" 
+          (click)="closeCreatePhaseModal()"
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+          Cancel
+        </button>
+
+        <button 
+          type="button" 
+          (click)="confirmPlanAndCreatePhase()"
+          [disabled]="!selectedPlanIdForCreate()"
+          class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-2 shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all">
+          <span>Proceed to Create Phase</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

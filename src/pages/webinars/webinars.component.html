@@ -1,0 +1,620 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+          {{ lms.activeTenant().name }} Virtual Campus
+        </span>
+        <span class="text-xs text-text-secondary">HD WebRTC & Teleconferencing</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">Live Webinars & Virtual Classrooms</h1>
+      <p class="text-xs text-text-secondary">Synchronous training sessions, interactive Q&A workshops, and instructor office hours</p>
+    </div>
+
+    @if (lms.activeRole() !== 'learner') {
+      <button 
+        id="btn-schedule-webinar"
+        (click)="openScheduleModal()"
+        class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm self-start md:self-auto min-h-[44px]">
+        <span class="material-symbols-outlined text-sm">video_call</span>
+        Schedule Live Session
+      </button>
+    }
+  </div>
+
+  <!-- Upcoming Live Sessions Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    @for (webinar of lms.webinars(); track webinar.id) {
+      <div class="rounded-3xl bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between p-5 space-y-4">
+        <div>
+          <div class="flex items-start justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+              {{ webinar.platform }}
+            </span>
+            <span class="text-[11px] font-mono text-text-secondary">
+              {{ webinar.durationMinutes }} mins
+            </span>
+          </div>
+
+          <h3 class="font-bold text-base text-text-primary mt-3 line-clamp-2 leading-snug">{{ webinar.title }}</h3>
+          
+          @if (webinar.courseTitle) {
+            <p class="text-xs text-text-secondary mt-1">Associated with: <span class="font-medium text-text-primary">{{ webinar.courseTitle }}</span></p>
+          }
+
+          <!-- Scheduled date box -->
+          <div class="mt-4 p-3 rounded-2xl bg-base-200 border border-base-300/60 flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-tenant-500 text-white flex flex-col items-center justify-center min-w-10">
+              <span class="text-[10px] uppercase font-bold">{{ webinar.scheduledAt | date:'MMM' }}</span>
+              <span class="text-base font-black leading-none">{{ webinar.scheduledAt | date:'d' }}</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-text-primary">{{ webinar.scheduledAt | date:'EEEE, h:mm a' }}</div>
+              <div class="text-[11px] text-text-secondary">{{ webinar.attendeesCount || webinar.attendeeCount }} learners registered</div>
+            </div>
+          </div>
+
+          <!-- Host Info -->
+          <div class="flex items-center gap-2.5 mt-4 pt-3 border-t border-base-300/60">
+            <img [src]="webinar.hostAvatar || webinar.instructorAvatar" [alt]="webinar.hostName || webinar.instructor" class="w-7 h-7 rounded-full object-cover border border-base-300" referrerpolicy="no-referrer" />
+            <div class="text-xs">
+              <span class="font-bold text-text-primary">{{ webinar.hostName || webinar.instructor }}</span>
+              <span class="text-text-secondary text-[11px] block">Session Host</span>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          (click)="joinSession(webinar)"
+          class="w-full py-3 px-4 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-[0.98] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm min-h-[44px]">
+          <span class="material-symbols-outlined text-sm">videocam</span>
+          Enter Virtual Classroom
+        </button>
+      </div>
+    } @empty {
+      <div class="col-span-full p-10 sm:p-12 rounded-3xl bg-base-100 border border-base-300 text-center space-y-2">
+        <span class="material-symbols-outlined text-4xl text-text-secondary">videocam_off</span>
+        <h4 class="font-bold text-sm text-text-primary">No live sessions scheduled</h4>
+        <p class="text-xs text-text-secondary">Instructors can schedule synchronous workshops and office hours.</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- NATIVE MOBILE & DESKTOP VIRTUAL CLASSROOM FULLSCREEN EXPERIENCE -->
+<!-- ========================================================================= -->
+@if (activeVirtualRoom()) {
+  @let room = activeVirtualRoom()!;
+  
+  <div class="fixed inset-0 z-50 bg-zinc-950 text-white flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
+    
+    <!-- Floating Emoji Reaction Bubbles (Mobile & Desktop) -->
+    <div class="absolute inset-0 pointer-events-none z-40 overflow-hidden">
+      @for (rec of activeReactions(); track rec.id) {
+        <div 
+          class="absolute bottom-24 text-3xl sm:text-4xl animate-bounce-up transition-all"
+          [style.left.%]="rec.left">
+          {{ rec.emoji }}
+        </div>
+      }
+    </div>
+
+    <!-- 1. Top Call Bar (Mobile Safe Header) -->
+    <header class="h-14 sm:h-16 px-3 sm:px-6 bg-zinc-900/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between flex-shrink-0 z-30">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold uppercase tracking-wider flex-shrink-0">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span>LIVE</span>
+        </div>
+
+        <div class="min-w-0">
+          <h2 class="font-bold text-xs sm:text-sm text-white truncate max-w-[160px] sm:max-w-md">{{ room.title }}</h2>
+          <p class="text-[10px] text-white/60 truncate hidden sm:block">Host: {{ room.hostName || room.instructor }} &bull; {{ lms.activeTenant().name }} Secure WebRTC</p>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- View Toggle (Speaker vs Grid) on desktop/tablet -->
+        <button 
+          (click)="isSpeakerView.set(!isSpeakerView())"
+          class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 text-xs transition-colors"
+          title="Toggle Speaker / Grid View">
+          <span class="material-symbols-outlined text-sm">{{ isSpeakerView() ? 'grid_view' : 'person' }}</span>
+          <span class="text-[11px]">{{ isSpeakerView() ? 'Grid' : 'Speaker' }}</span>
+        </button>
+
+        <!-- Hand Raised Badge Indicator -->
+        @if (isHandRaised()) {
+          <div class="flex items-center gap-1 px-2 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs animate-pulse">
+            <span class="material-symbols-outlined text-sm">front_hand</span>
+            <span class="text-[10px] font-semibold hidden sm:inline">Hand Raised</span>
+          </div>
+        }
+
+        <!-- Leave Call Button -->
+        <button 
+          (click)="leaveSession()" 
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-semibold flex items-center gap-1 shadow-md transition-all">
+          <span class="material-symbols-outlined text-sm">call_end</span>
+          <span class="hidden sm:inline">Leave</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. Main Stage (Adapts to Mobile and Desktop Grid) -->
+    <main class="flex-1 relative flex flex-col lg:flex-row overflow-hidden p-2 sm:p-4 gap-3 min-h-0">
+      
+      <!-- Video Presentation Stage -->
+      <div class="flex-1 bg-zinc-900 rounded-2xl sm:rounded-3xl overflow-hidden relative flex flex-col justify-between p-3 sm:p-6 border border-white/10 shadow-2xl">
+        
+        <!-- Center Stage: Speaker / Presentation Screen -->
+        <div class="flex-1 flex flex-col items-center justify-center text-center p-4 relative">
+          
+          <!-- Presentation Simulation Card -->
+          <div class="w-full max-w-xl aspect-video rounded-2xl bg-zinc-950 border border-white/10 p-4 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+            <!-- Simulated presentation slide header -->
+            <div class="flex items-center justify-between text-xs text-white/60 pb-2 border-b border-white/10">
+              <span class="flex items-center gap-1.5 text-tenant-400 font-medium">
+                <span class="material-symbols-outlined text-sm">slideshow</span>
+                {{ room.courseTitle || 'Live Interactive Lecture' }}
+              </span>
+              <span class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded">Slide 4/18</span>
+            </div>
+
+            <!-- Slide Graphic Content -->
+            <div class="my-auto flex flex-col items-center justify-center space-y-2">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-tenant-500 overflow-hidden shadow-lg mb-1">
+                <img [src]="room.hostAvatar || room.instructorAvatar" [alt]="room.hostName || room.instructor" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+              </div>
+              <h3 class="text-white font-bold text-sm sm:text-base leading-tight">{{ room.hostName || room.instructor }}</h3>
+              <p class="text-[11px] sm:text-xs text-white/70 max-w-xs sm:max-w-md">"Standardizing Quality Assurance & Global Compliance in 2026"</p>
+              
+              <!-- Audio waveform visualization -->
+              <div class="flex items-center gap-1 pt-2">
+                <span class="w-1 h-3 bg-tenant-400 rounded-full animate-pulse"></span>
+                <span class="w-1 h-6 bg-tenant-400 rounded-full animate-pulse" style="animation-delay: 100ms"></span>
+                <span class="w-1 h-4 bg-tenant-400 rounded-full animate-pulse" style="animation-delay: 200ms"></span>
+                <span class="w-1 h-7 bg-tenant-400 rounded-full animate-pulse" style="animation-delay: 300ms"></span>
+                <span class="w-1 h-3 bg-tenant-400 rounded-full animate-pulse" style="animation-delay: 150ms"></span>
+              </div>
+            </div>
+
+            <!-- Presenter Status Badge in corner -->
+            <div class="flex items-center justify-between text-[10px] text-white/70 pt-2 border-t border-white/10">
+              <span class="flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 1080p HD &bull; 60 FPS
+              </span>
+              <span class="font-mono">{{ lms.tenantUsers().length + 8 }} Active Learners</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Self PiP Camera (Mobile & Desktop corner tile) -->
+        <div 
+          class="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 transition-all cursor-pointer shadow-2xl rounded-2xl overflow-hidden border border-white/20 bg-zinc-950/90 backdrop-blur-md"
+          [class]="isPiPMinimized() ? 'w-12 h-12 flex items-center justify-center' : 'w-28 sm:w-36 aspect-video p-1.5'">
+          
+          @if (!isPiPMinimized()) {
+            <div class="relative w-full h-full rounded-xl overflow-hidden bg-zinc-900 flex flex-col justify-between p-1.5">
+              @if (isVideoOn()) {
+                <img [src]="lms.activeUser().avatar" [alt]="lms.activeUser().name" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" />
+              } @else {
+                <div class="absolute inset-0 bg-zinc-800 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-white/40 text-xl">videocam_off</span>
+                </div>
+              }
+
+              <!-- Self name & mute overlay -->
+              <div class="relative z-10 flex items-center justify-between">
+                <span class="text-[9px] font-bold bg-black/60 px-1 py-0.2 rounded text-white/90">You</span>
+                <button (click)="isPiPMinimized.set(true)" class="text-white/60 hover:text-white">
+                  <span class="material-symbols-outlined text-xs">close_fullscreen</span>
+                </button>
+              </div>
+
+              <div class="relative z-10 flex items-center justify-between">
+                <span class="text-[9px] px-1 py-0.2 rounded" [class]="isMuted() ? 'bg-rose-500 text-white' : 'bg-black/60 text-white/80'">
+                  <span class="material-symbols-outlined text-[10px]">{{ isMuted() ? 'mic_off' : 'mic' }}</span>
+                </span>
+              </div>
+            </div>
+          } @else {
+            <button (click)="isPiPMinimized.set(false)" class="text-white/80 p-1" title="Expand Self-View">
+              <span class="material-symbols-outlined text-lg">open_in_full</span>
+            </button>
+          }
+        </div>
+
+        <!-- Horizontal Attendees Camera Strip (Thumb swipeable on mobile) -->
+        <div class="flex items-center gap-2 overflow-x-auto py-1 sm:py-2 px-1 scrollbar-none">
+          @for (user of lms.tenantUsers().slice(0, 5); track user.id) {
+            <div class="px-2.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center gap-2 text-white text-xs flex-shrink-0 min-w-32">
+              <app-custom-avatar 
+                [imageUrl]="user.avatar" 
+                [name]="user.name" 
+                size="xs" 
+                shape="squircle">
+              </app-custom-avatar>
+              <div class="truncate">
+                <span class="block truncate text-[11px] font-medium leading-none">{{ user.name }}</span>
+                <span class="text-[9px] text-white/50 capitalize">{{ user.role.replace('_', ' ') }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- Desktop Side Chat & Q&A Panel (Hidden on mobile < lg; mobile uses slide-up sheet) -->
+      <div class="hidden lg:flex w-80 bg-zinc-900 rounded-3xl p-4 flex-col justify-between border border-white/10 min-h-0 shadow-xl">
+        <div class="pb-3 border-b border-white/10 text-white font-bold text-xs flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-tenant-400">forum</span>
+            Classroom Chat & Q&A
+          </span>
+          <span class="text-[10px] text-white/50 font-mono">{{ liveChatMessages().length }}</span>
+        </div>
+
+        <!-- Chat Stream -->
+        <div class="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1 text-xs">
+          @for (msg of liveChatMessages(); track msg.time + msg.sender + $index) {
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="font-bold flex items-center gap-1" [class]="msg.isHost ? 'text-tenant-400' : 'text-white/80'">
+                  {{ msg.sender }}
+                  @if (msg.isHost) {
+                    <span class="text-[8px] px-1 py-0.2 rounded bg-tenant-500/30 text-tenant-300 font-normal">Host</span>
+                  }
+                </span>
+                <span class="text-white/40">{{ msg.time }}</span>
+              </div>
+              <p class="text-white/90 bg-white/5 p-2 rounded-xl border border-white/5 leading-relaxed">{{ msg.text }}</p>
+            </div>
+          }
+        </div>
+
+        <!-- Chat Input -->
+        <form (submit)="sendChatMessage()" class="flex items-center gap-2 pt-2 border-t border-white/10">
+          <input 
+            type="text" 
+            [(ngModel)]="chatInput" 
+            name="chatDesktop" 
+            placeholder="Ask question or message class..."
+            class="flex-1 px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-xs placeholder-white/40 focus:outline-none" />
+          <button type="submit" [disabled]="!chatInput().trim()" class="p-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 disabled:opacity-40 text-white">
+            <span class="material-symbols-outlined text-sm">send</span>
+          </button>
+        </form>
+      </div>
+
+    </main>
+
+    <!-- 3. Bottom Native Touch Control Dock (Thumb-Accessible for Mobile & Tablet) -->
+    <footer class="px-3 py-2 sm:py-3 bg-zinc-900/90 backdrop-blur-lg border-t border-white/10 flex items-center justify-center flex-shrink-0 z-30 safe-area-bottom">
+      <div class="flex items-center gap-2 sm:gap-4 max-w-lg w-full justify-around sm:justify-center">
+        
+        <!-- Mic Toggle -->
+        <button 
+          (click)="isMuted.set(!isMuted())"
+          class="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-all active:scale-95 shadow-md"
+          [class]="isMuted() ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'"
+          [title]="isMuted() ? 'Unmute Mic' : 'Mute Mic'">
+          <span class="material-symbols-outlined text-xl">{{ isMuted() ? 'mic_off' : 'mic' }}</span>
+          <span class="text-[9px] mt-0.5 sm:hidden font-medium">{{ isMuted() ? 'Muted' : 'Mic' }}</span>
+        </button>
+
+        <!-- Camera Toggle -->
+        <button 
+          (click)="isVideoOn.set(!isVideoOn())"
+          class="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-all active:scale-95 shadow-md"
+          [class]="!isVideoOn() ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'"
+          [title]="isVideoOn() ? 'Turn Off Camera' : 'Turn On Camera'">
+          <span class="material-symbols-outlined text-xl">{{ !isVideoOn() ? 'videocam_off' : 'videocam' }}</span>
+          <span class="text-[9px] mt-0.5 sm:hidden font-medium">{{ isVideoOn() ? 'Cam' : 'Off' }}</span>
+        </button>
+
+        <!-- Hand Raise Toggle -->
+        <button 
+          (click)="toggleHandRaise()"
+          class="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl transition-all active:scale-95 shadow-md"
+          [class]="isHandRaised() ? 'bg-amber-500 text-black font-bold' : 'bg-white/15 hover:bg-white/25 text-white'"
+          title="Raise / Lower Hand">
+          <span class="material-symbols-outlined text-xl">front_hand</span>
+          <span class="text-[9px] mt-0.5 sm:hidden font-medium">Hand</span>
+        </button>
+
+        <!-- Reactions Trigger -->
+        <button 
+          (click)="toggleMobileSheet('reactions')"
+          class="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white transition-all shadow-md"
+          title="React with Emoji">
+          <span class="material-symbols-outlined text-xl">add_reaction</span>
+          <span class="text-[9px] mt-0.5 sm:hidden font-medium">React</span>
+        </button>
+
+        <!-- Mobile Chat Bottom Sheet Trigger (on mobile/tablet) -->
+        <button 
+          (click)="toggleMobileSheet('chat')"
+          class="lg:hidden flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white transition-all relative shadow-md"
+          title="Open Classroom Chat">
+          <div class="relative">
+            <span class="material-symbols-outlined text-xl">forum</span>
+            @if (unreadChatCount() > 0) {
+              <span class="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-tenant-500 text-white text-[9px] font-bold flex items-center justify-center">
+                {{ unreadChatCount() }}
+              </span>
+            }
+          </div>
+          <span class="text-[9px] mt-0.5 font-medium">Chat</span>
+        </button>
+
+        <!-- Participants List Trigger -->
+        <button 
+          (click)="toggleMobileSheet('participants')"
+          class="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white transition-all shadow-md"
+          title="View Attendees">
+          <span class="material-symbols-outlined text-xl">groups</span>
+          <span class="text-[9px] mt-0.5 sm:hidden font-medium">People</span>
+        </button>
+
+      </div>
+    </footer>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NATIVE BOTTOM SHEETS (Slide up on Mobile/Tablet) -->
+    <!-- ========================================================================= -->
+    
+    <!-- 1. Native Mobile Chat & Q&A Bottom Sheet -->
+    @if (activeMobileSheet() === 'chat') {
+      <div 
+        class="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex flex-col justify-end animate-modal-backdrop"
+        (click)="activeMobileSheet.set(null)">
+        
+        <div 
+          class="bg-zinc-900 rounded-t-3xl border-t border-white/15 p-4 flex flex-col h-[75vh] max-h-[600px] text-white shadow-2xl animate-slide-up-drawer"
+          (click)="$event.stopPropagation()">
+          
+          <!-- Sheet Drag Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-400 text-lg">forum</span>
+              <h3 class="font-bold text-sm">Classroom Chat & Q&A</h3>
+              <span class="text-[10px] text-white/50 font-mono">({{ liveChatMessages().length }})</span>
+            </div>
+            
+            <button 
+              (click)="activeMobileSheet.set(null)" 
+              class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="flex-1 overflow-y-auto space-y-3 py-3 pr-1 text-xs">
+            @for (msg of liveChatMessages(); track msg.time + msg.sender + $index) {
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-[10px]">
+                  <span class="font-bold flex items-center gap-1" [class]="msg.isHost ? 'text-tenant-400' : 'text-white/80'">
+                    {{ msg.sender }}
+                    @if (msg.isHost) {
+                      <span class="text-[8px] px-1 py-0.2 rounded bg-tenant-500/30 text-tenant-300 font-normal">Host</span>
+                    }
+                  </span>
+                  <span class="text-white/40">{{ msg.time }}</span>
+                </div>
+                <p class="text-white/90 bg-white/5 p-2.5 rounded-2xl border border-white/5 leading-relaxed">{{ msg.text }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Mobile Chat Input -->
+          <form (submit)="sendChatMessage()" class="flex items-center gap-2 pt-2 border-t border-white/10 safe-area-bottom">
+            <input 
+              type="text" 
+              [(ngModel)]="chatInput" 
+              name="chatMobile" 
+              placeholder="Ask question or message class..."
+              class="flex-1 px-3.5 py-2.5 rounded-2xl bg-white/10 border border-white/20 text-white text-xs placeholder-white/40 focus:outline-none" />
+            <button 
+              type="submit" 
+              [disabled]="!chatInput().trim()" 
+              class="p-2.5 rounded-2xl bg-tenant-500 active:scale-95 disabled:opacity-40 text-white flex items-center justify-center min-w-10">
+              <span class="material-symbols-outlined text-base">send</span>
+            </button>
+          </form>
+
+        </div>
+      </div>
+    }
+
+    <!-- 2. Native Mobile Participants Bottom Sheet -->
+    @if (activeMobileSheet() === 'participants') {
+      <div 
+        class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex flex-col justify-end animate-modal-backdrop"
+        (click)="activeMobileSheet.set(null)">
+        
+        <div 
+          class="bg-zinc-900 rounded-t-3xl border-t border-white/15 p-4 flex flex-col max-h-[70vh] text-white shadow-2xl animate-slide-up-drawer"
+          (click)="$event.stopPropagation()">
+          
+          <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-400 text-lg">groups</span>
+              <h3 class="font-bold text-sm">Active Participants</h3>
+              <span class="text-[10px] text-white/50 font-mono">({{ lms.tenantUsers().length + 1 }})</span>
+            </div>
+            
+            <button 
+              (click)="activeMobileSheet.set(null)" 
+              class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <!-- Participants List -->
+          <div class="flex-1 overflow-y-auto space-y-2 py-3">
+            <!-- Host -->
+            <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <img [src]="room.hostAvatar || room.instructorAvatar" [alt]="room.hostName" class="w-8 h-8 rounded-full object-cover border-2 border-tenant-500" referrerpolicy="no-referrer" />
+                <div>
+                  <span class="font-bold text-xs text-white block">{{ room.hostName || room.instructor }}</span>
+                  <span class="text-[10px] text-tenant-300 font-semibold">Session Host / Presenter</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-tenant-500/20 text-tenant-300 text-[10px] font-bold">HOST</span>
+            </div>
+
+            <!-- You -->
+            <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <app-custom-avatar 
+                  [imageUrl]="lms.activeUser().avatar" 
+                  [name]="lms.activeUser().name" 
+                  size="xs" 
+                  shape="squircle">
+                </app-custom-avatar>
+                <div>
+                  <span class="font-bold text-xs text-white block">{{ lms.activeUser().name }} (You)</span>
+                  <span class="text-[10px] text-white/50 capitalize">{{ lms.activeRole() }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                @if (isHandRaised()) {
+                  <span class="material-symbols-outlined text-amber-400 text-sm">front_hand</span>
+                }
+                <span class="material-symbols-outlined text-sm" [class]="isMuted() ? 'text-rose-400' : 'text-emerald-400'">
+                  {{ isMuted() ? 'mic_off' : 'mic' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Other users -->
+            @for (user of lms.tenantUsers(); track user.id) {
+              <div class="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <app-custom-avatar 
+                    [imageUrl]="user.avatar" 
+                    [name]="user.name" 
+                    size="xs" 
+                    shape="squircle">
+                  </app-custom-avatar>
+                  <div>
+                    <span class="font-bold text-xs text-white block">{{ user.name }}</span>
+                    <span class="text-[10px] text-white/50 capitalize">{{ user.role.replace('_', ' ') }}</span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-emerald-400 text-sm">mic</span>
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- 3. Native Mobile Reactions Quick Sheet -->
+    @if (activeMobileSheet() === 'reactions') {
+      <div 
+        class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex flex-col justify-end animate-in fade-in duration-200"
+        (click)="activeMobileSheet.set(null)">
+        
+        <div 
+          class="bg-zinc-900 rounded-t-3xl border-t border-white/15 p-5 text-white shadow-2xl animate-in slide-in-from-bottom duration-200"
+          (click)="$event.stopPropagation()">
+          
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-white/80">Send Live Reaction</h3>
+            <button (click)="activeMobileSheet.set(null)" class="text-white/60">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-around py-2">
+            @for (emoji of reactions; track emoji) {
+              <button 
+                (click)="triggerReaction(emoji)"
+                class="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-125 transition-transform flex items-center justify-center text-2xl">
+                {{ emoji }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+}
+
+<!-- Schedule Webinar Modal -->
+@if (showScheduleModal()) {
+  <div 
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+    (click)="showScheduleModal.set(false)">
+    <div 
+      class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-md p-5 sm:p-6 animate-modal-card m-auto"
+      (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between pb-4 border-b border-base-300 mb-4">
+        <h3 class="font-bold text-base text-text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-tenant-600">video_call</span>
+          Schedule Live Session
+        </h3>
+        <button (click)="showScheduleModal.set(false)" class="text-text-secondary hover:text-text-primary p-1">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <form (submit)="scheduleWebinar()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Session Topic *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="newWebinar.title" 
+            name="title" 
+            placeholder="e.g. Q3 SOC2 Security Briefing & Live Q&A" 
+            required
+            class="w-full px-3 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none text-text-primary" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <app-custom-select
+              [(ngModel)]="newWebinar.platform" 
+              name="platform"
+              label="Platform"
+              [options]="platformOptions"
+              leadingIcon="videocam" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Duration (Mins)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="newWebinar.durationMinutes" 
+              name="duration" 
+              class="w-full px-3 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none text-text-primary" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Date & Time</label>
+          <input 
+            type="datetime-local" 
+            [(ngModel)]="newWebinar.scheduledAt" 
+            name="datetime" 
+            class="w-full px-3 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none text-text-primary" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
+          <button type="button" (click)="showScheduleModal.set(false)" class="px-4 py-2.5 rounded-xl bg-base-200 text-xs font-semibold text-text-secondary min-h-[44px]">Cancel</button>
+          <button type="submit" [disabled]="!newWebinar.title.trim()" class="px-4 py-2.5 rounded-xl bg-tenant-500 text-white text-xs font-semibold flex items-center gap-1 min-h-[44px]">
+            <span class="material-symbols-outlined text-sm">schedule_send</span> Schedule
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

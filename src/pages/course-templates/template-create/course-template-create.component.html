@@ -1,0 +1,775 @@
+<div class="space-y-6 pb-16 max-w-7xl mx-auto">
+  
+  <!-- Header & Breadcrumb Context -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <button type="button" (click)="discardChanges()" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0">
+          <span class="material-symbols-outlined text-sm">view_carousel</span>
+          Course Templates
+        </button>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          {{ isEditMode() ? 'Edit Template' : 'Creation Wizard' }}
+        </span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-medium text-text-secondary">LMS: <strong class="text-text-primary">{{ activeLms().basicInfo.lmsName }}</strong></span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40 flex items-center gap-1">
+          {{ code() }}
+          <button type="button" (click)="copyTemplateCode()" title="Copy Template Code" class="hover:opacity-75 cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">content_copy</span>
+          </button>
+        </span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        {{ isEditMode() ? 'Edit Template – ' + getCurrentStepTitle() : 'Create Template – ' + getCurrentStepTitle() }}
+      </h1>
+      <p class="text-xs text-text-secondary mt-0.5">
+        {{ getCurrentStepSubtitle() }}
+      </p>
+    </div>
+
+    <!-- Quick Draft Badge / Action -->
+    <div class="flex items-center gap-2">
+      <button 
+        type="button"
+        (click)="saveDraftInPlace()"
+        [disabled]="isSubmitting()"
+        class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+        title="Save progress and resume later">
+        <span class="material-symbols-outlined text-sm text-amber-500">bookmark</span>
+        Save as draft
+      </button>
+
+      <button 
+        type="button" 
+        (click)="discardChanges()"
+        class="px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- HORIZONTAL STEPPER NAVIGATION BAR                                 -->
+  <!-- ================================================================= -->
+  <div class="w-full">
+    <app-stepper
+      [steps]="wizardSteps"
+      [currentStep]="currentStep()"
+      [completedSteps]="completedSteps()"
+      orientation="horizontal"
+      (stepChange)="goToStep($event)">
+    </app-stepper>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MAIN FORM CONTAINER & ALERTS                                      -->
+  <!-- ================================================================= -->
+  <div class="space-y-6">
+
+    <!-- Mandatory Field Error Alert (Like Create Plan) -->
+    @if (formErrorAlert()) {
+      <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+          <span>{{ formErrorAlert() }}</span>
+        </div>
+        <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+    }
+
+    <!-- Success Alert (Like Create Plan) -->
+    @if (formSuccessAlert()) {
+      <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
+          <span>{{ formSuccessAlert() }}</span>
+        </div>
+        <button (click)="formSuccessAlert.set(null)" class="text-emerald-600 hover:text-emerald-800 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+    }
+
+      <!-- ================================================================= -->
+      <!-- STEP 1: BASIC INFORMATION & SHARING SCOPE                         -->
+      <!-- ================================================================= -->
+      @if (currentStep() === 1) {
+        <div class="p-6 sm:p-8 rounded-3xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-6 animate-fade-in">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-base-300 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-2xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+                <span class="material-symbols-outlined text-lg">info</span>
+              </div>
+              <div>
+                <h2 class="text-base font-bold text-text-primary">1. Blueprint Identification & Scope</h2>
+                <p class="text-xs text-text-secondary mt-0.5">Define core blueprint identification, taxonomy and instructor sharing permissions.</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-base-200 text-text-secondary border border-base-300">
+              Code: {{ code() }}
+            </span>
+          </div>
+
+          <!-- Form Inputs Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            
+            <!-- Template Name -->
+            <div class="space-y-1.5 md:col-span-2">
+              <label class="font-bold text-text-primary block">
+                Blueprint Title / Template Name <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="input-template-name"
+                [ngModel]="name()"
+                (ngModelChange)="onNameChange($event)"
+                placeholder="e.g. Standard Modular Onboarding & Compliance Blueprint"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-2 focus:ring-tenant-500/20 transition-all font-medium"
+                [ngClass]="errors()['name'] ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border-base-300'" />
+              @if (errors()['name']) {
+                <p class="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">error</span>
+                  <span>{{ errors()['name'] }}</span>
+                </p>
+              } @else {
+                <span class="text-[10px] text-text-secondary">A descriptive curriculum title used when course creators select blueprints from the library.</span>
+              }
+            </div>
+
+            <!-- Template Description -->
+            <div class="space-y-1.5 md:col-span-2">
+              <label class="font-bold text-text-primary block">
+                Blueprint Pedagogical Overview / Description
+              </label>
+              <textarea
+                rows="3"
+                id="input-template-desc"
+                [ngModel]="description()"
+                (ngModelChange)="description.set($event)"
+                placeholder="Describe the intended learning outcomes, target cohort level, and structure..."
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-2 focus:ring-tenant-500/20 transition-all resize-none"></textarea>
+            </div>
+
+            <!-- Scope Selection -->
+            <div>
+              <app-custom-select
+                label="Template Sharing Scope"
+                [options]="scopeOptions"
+                [ngModel]="scope()"
+                (ngModelChange)="scope.set($event)">
+              </app-custom-select>
+            </div>
+
+            <!-- Visibility Mode Selection -->
+            <div>
+              <app-custom-select
+                label="Instructor Visibility Mode"
+                [options]="visibilityOptions"
+                [ngModel]="visibilityMode()"
+                (ngModelChange)="visibilityMode.set($event)">
+              </app-custom-select>
+            </div>
+
+            <!-- Category Tags Section -->
+            <div class="space-y-2 md:col-span-2 pt-2 border-t border-base-300">
+              <label class="font-bold text-text-primary block">
+                Category Tags & Taxonomy
+              </label>
+              
+              <!-- Selected Tags Display -->
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                @for (tag of categoryTags(); track tag) {
+                  <span class="px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-xs font-semibold flex items-center gap-1.5">
+                    <span>{{ tag }}</span>
+                    <button
+                      type="button"
+                      (click)="removeTag(tag)"
+                      class="text-tenant-500 hover:text-rose-600 transition-colors p-0.5 rounded cursor-pointer">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  </span>
+                }
+              </div>
+
+              <!-- Add Preset Tags -->
+              <div class="flex flex-wrap gap-1 items-center">
+                <span class="text-[11px] text-text-secondary mr-1">Quick Presets:</span>
+                @for (preset of presetCategories; track preset) {
+                  @if (!categoryTags().includes(preset)) {
+                    <button
+                      type="button"
+                      (click)="addTag(preset)"
+                      class="px-2 py-0.5 rounded-md bg-base-200 hover:bg-base-300 text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer flex items-center gap-0.5">
+                      <span class="material-symbols-outlined text-xs">add</span>
+                      <span>{{ preset }}</span>
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+      <!-- ================================================================= -->
+      <!-- STEP 2: MODULAR CURRICULUM BLUEPRINT BUILDER                      -->
+      <!-- ================================================================= -->
+      @if (currentStep() === 2) {
+        <div class="space-y-6 animate-fade-in">
+          
+          <!-- Top Blueprint Capacity Metric Bar -->
+          <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-300">
+                <span class="material-symbols-outlined text-2xl">account_tree</span>
+              </div>
+              <div>
+                <h2 class="text-sm font-bold text-text-primary">Modular Blueprint Structure</h2>
+                <p class="text-xs text-text-secondary">Organize curriculum modules and configure pedagogical delivery slots.</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 text-xs">
+              <div class="text-center sm:text-right">
+                <span class="text-text-secondary block">Total Curriculum Time</span>
+                <strong class="text-tenant-600 dark:text-tenant-400 font-mono text-sm font-black">~{{ totalDuration() }} Minutes</strong>
+              </div>
+              <button
+                type="button"
+                id="btn-add-module"
+                (click)="addModule()"
+                class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-base">add</span>
+                <span>Add Module</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Modules Accordion / List -->
+          <div class="space-y-4">
+            @for (mod of modules(); track mod.moduleId; let mIdx = $index) {
+              <div class="bg-base-100 rounded-3xl border border-base-300 shadow-xs overflow-hidden transition-all duration-200">
+                
+                <!-- Module Header Row -->
+                <div class="p-4 bg-base-200/60 border-b border-base-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <span class="w-8 h-8 rounded-xl bg-tenant-500 text-white font-mono text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                      {{ mIdx + 1 }}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        [ngModel]="mod.title"
+                        (ngModelChange)="onModuleTitleChange(mIdx, $event)"
+                        placeholder="Module Title..."
+                        class="w-full font-bold text-sm text-text-primary bg-transparent focus:bg-base-100 px-2 py-1 rounded-lg border focus:outline-none transition-colors"
+                        [ngClass]="errors()['module_' + mIdx] ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border-transparent focus:border-base-300'" />
+                      @if (errors()['module_' + mIdx]) {
+                        <p class="text-[11px] text-rose-500 mt-0.5 px-2 flex items-center gap-1 font-normal">
+                          <span class="material-symbols-outlined text-[12px]">error</span>
+                          <span>{{ errors()['module_' + mIdx] }}</span>
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Module Action Buttons -->
+                  <div class="flex items-center gap-1 self-end sm:self-auto shrink-0">
+                    <button
+                      type="button"
+                      (click)="moveModuleUp(mIdx)"
+                      [disabled]="mIdx === 0"
+                      class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed hover:bg-base-300 transition-colors"
+                      title="Move Module Up">
+                      <span class="material-symbols-outlined text-base">arrow_upward</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="moveModuleDown(mIdx)"
+                      [disabled]="mIdx === modules().length - 1"
+                      class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed hover:bg-base-300 transition-colors"
+                      title="Move Module Down">
+                      <span class="material-symbols-outlined text-base">arrow_downward</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeModule(mIdx)"
+                      class="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors ml-1"
+                      title="Remove Module">
+                      <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Content Slots inside this module -->
+                <div class="p-5 space-y-3">
+                  <div class="flex items-center justify-between text-xs text-text-secondary pb-1">
+                    <span class="font-semibold uppercase tracking-wider text-[10px]">Content Delivery Slots ({{ mod.contentSlots.length }})</span>
+                    
+                    <!-- Quick Add Slot Dropdown / Buttons -->
+                    <div class="flex items-center gap-1">
+                      <span class="text-[11px] mr-1 hidden sm:inline">Add Slot:</span>
+                      @for (slotType of slotTypeOptions; track slotType.type) {
+                        <button
+                          type="button"
+                          (click)="addSlot(mIdx, slotType.type)"
+                          class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-text-primary transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
+                          [title]="'Add ' + slotType.label">
+                          <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">{{ slotType.icon }}</span>
+                          <span class="hidden md:inline">{{ slotType.label.split(' ')[0] }}</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Slots List -->
+                  <div class="space-y-2">
+                    @for (slot of mod.contentSlots; track slot.slotId; let sIdx = $index) {
+                      <div class="p-3 rounded-2xl bg-base-200/40 border border-base-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                          <div class="w-8 h-8 rounded-lg bg-base-100 border border-base-300 flex items-center justify-center text-tenant-600 dark:text-tenant-400 shrink-0">
+                            <span class="material-symbols-outlined text-base">{{ getSlotTypeIcon(slot.type) }}</span>
+                          </div>
+                          
+                          <div class="flex-1 min-w-0 space-y-1">
+                            <input
+                              type="text"
+                              [ngModel]="slot.title"
+                              (ngModelChange)="onSlotTitleChange(mIdx, sIdx, $event)"
+                              placeholder="Slot Title..."
+                              class="w-full font-semibold text-xs text-text-primary bg-transparent focus:bg-base-100 px-2 py-0.5 rounded border focus:outline-none transition-colors"
+                              [ngClass]="errors()['slot_' + mIdx + '_' + sIdx] ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border-transparent focus:border-base-300'" />
+                            @if (errors()['slot_' + mIdx + '_' + sIdx]) {
+                              <p class="text-[10px] text-rose-500 px-2 flex items-center gap-1 font-normal">
+                                <span class="material-symbols-outlined text-[11px]">error</span>
+                                <span>{{ errors()['slot_' + mIdx + '_' + sIdx] }}</span>
+                              </p>
+                            }
+                            <input
+                              type="text"
+                              [ngModel]="slot.description"
+                              (ngModelChange)="slot.description = $event"
+                              placeholder="Slot description / learning guidance (optional)..."
+                              class="w-full text-[11px] text-text-secondary bg-transparent focus:bg-base-100 px-2 py-0.5 rounded border border-transparent focus:border-base-300 focus:outline-none" />
+                          </div>
+                        </div>
+
+                        <!-- Slot Attributes: Duration, Required, Delete -->
+                        <div class="flex items-center gap-3 self-end sm:self-auto shrink-0 font-mono text-xs">
+                          
+                          <!-- Estimated Minutes -->
+                          <div class="flex items-center gap-1 bg-base-100 px-2 py-1 rounded-lg border border-base-300">
+                            <span class="material-symbols-outlined text-xs text-text-secondary">schedule</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="300"
+                              [ngModel]="slot.estimatedMinutes"
+                              (ngModelChange)="slot.estimatedMinutes = $event"
+                              class="w-12 bg-transparent text-center font-bold text-xs text-text-primary focus:outline-none" />
+                            <span class="text-[10px] text-text-secondary">min</span>
+                          </div>
+
+                          <!-- Mandatory Toggle -->
+                          <label class="flex items-center gap-1.5 cursor-pointer bg-base-100 px-2 py-1 rounded-lg border border-base-300 select-none">
+                            <input
+                              type="checkbox"
+                              [ngModel]="slot.required"
+                              (ngModelChange)="slot.required = $event"
+                              class="rounded border-base-300 text-tenant-500 focus:ring-tenant-500 w-3.5 h-3.5 cursor-pointer" />
+                            <span class="text-[11px] font-semibold text-text-primary">Required</span>
+                          </label>
+
+                          <!-- Remove Slot -->
+                          <button
+                            type="button"
+                            (click)="removeSlot(mIdx, sIdx)"
+                            class="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            title="Remove Slot">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                          </button>
+
+                        </div>
+
+                      </div>
+                    }
+                  </div>
+
+                </div>
+
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      <!-- ================================================================= -->
+      <!-- STEP 3: GOVERNANCE & STRUCTURAL DEFAULTS                          -->
+      <!-- ================================================================= -->
+      @if (currentStep() === 3) {
+        <div class="p-6 sm:p-8 rounded-3xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-6 animate-fade-in">
+          
+          <!-- Header -->
+          <div class="pb-4 border-b border-base-300 dark:border-slate-800">
+            <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-tenant-600 text-lg">verified</span>
+              <span>3. Governance & Delivery Defaults</span>
+            </h2>
+            <p class="text-xs text-text-secondary mt-0.5">Configure automated completion policies, passing thresholds, and cohort pacing standards.</p>
+          </div>
+
+          <!-- Form Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            
+            <!-- Passing Score Slider -->
+            <div class="space-y-3 p-5 rounded-2xl bg-base-200/50 border border-base-300">
+              <div class="flex items-center justify-between">
+                <label class="font-bold text-text-primary block">Passing Score Standard</label>
+                <span class="text-base font-black font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  {{ passingScorePercent() }}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="50"
+                max="100"
+                step="5"
+                [ngModel]="passingScorePercent()"
+                (ngModelChange)="passingScorePercent.set($event)"
+                class="w-full accent-tenant-500 cursor-pointer" />
+              <p class="text-[11px] text-text-secondary">Minimum assessment score required to receive course completion certificates.</p>
+            </div>
+
+            <!-- Completion Tracking Rules -->
+            <div class="space-y-3 p-5 rounded-2xl bg-base-200/50 border border-base-300">
+              <app-custom-select
+                label="Completion Tracking Rule"
+                [options]="completionTrackingOptions"
+                [ngModel]="completionTracking()"
+                (ngModelChange)="completionTracking.set($event)">
+              </app-custom-select>
+            </div>
+
+            <!-- Delivery Pace -->
+            <div>
+              <app-custom-select
+                label="Instructional Delivery Pace"
+                [options]="paceOptions"
+                [ngModel]="pace()"
+                (ngModelChange)="pace.set($event)">
+              </app-custom-select>
+            </div>
+
+            <!-- Retake Attempts -->
+            <div class="space-y-2 p-5 rounded-2xl bg-base-200/50 border border-base-300">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-text-primary">Allow Retake Attempts</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    [ngModel]="allowRetakes()"
+                    (ngModelChange)="allowRetakes.set($event)"
+                    class="sr-only peer" />
+                  <div class="w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-500"></div>
+                </label>
+              </div>
+              @if (allowRetakes()) {
+                <div class="flex items-center justify-between pt-2 border-t border-base-300 text-[11px]">
+                  <span class="text-text-secondary">Maximum Retake Attempts:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    [ngModel]="maxRetakeAttempts()"
+                    (ngModelChange)="maxRetakeAttempts.set($event)"
+                    class="w-16 px-2 py-1 rounded bg-base-100 border border-base-300 text-center font-bold text-xs text-text-primary" />
+                </div>
+              }
+            </div>
+
+            <!-- Sequential Unlock Switch -->
+            <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+              <div class="space-y-0.5">
+                <span class="font-bold text-text-primary block">Sequential Module Unlock</span>
+                <span class="text-[11px] text-text-secondary">Requires learners to complete preceding slots before advancing.</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-3">
+                <input
+                  type="checkbox"
+                  [ngModel]="sequentialUnlock()"
+                  (ngModelChange)="sequentialUnlock.set($event)"
+                  class="sr-only peer" />
+                <div class="w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-500"></div>
+              </label>
+            </div>
+
+            <!-- Certificate Issuance Switch -->
+            <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between">
+              <div class="space-y-0.5">
+                <span class="font-bold text-text-primary block">Automated Certificate Issuance</span>
+                <span class="text-[11px] text-text-secondary">Issues verifiable completion credential upon passing final standard.</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-3">
+                <input
+                  type="checkbox"
+                  [ngModel]="certificateEnabled()"
+                  (ngModelChange)="certificateEnabled.set($event)"
+                  class="sr-only peer" />
+                <div class="w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-500"></div>
+              </label>
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+      <!-- ================================================================= -->
+      <!-- STEP 4: REVIEW & PUBLISH TEMPLATE BLUEPRINT                       -->
+      <!-- ================================================================= -->
+      @if (currentStep() === 4) {
+        <div class="space-y-6 animate-fade-in">
+          
+          <!-- Validation Issues Audit Panel (Like Plan Create Review) -->
+          @if (criticalErrors().length > 0) {
+            <div class="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-xs space-y-2">
+              <div class="flex items-center gap-2 font-bold text-rose-800 dark:text-rose-200">
+                <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+                <span>Critical Validation Issues ({{ criticalErrors().length }}) — Must resolve before publishing</span>
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-rose-700 dark:text-rose-300 pl-2">
+                @for (err of criticalErrors(); track err.message) {
+                  <li>{{ err.message }}</li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <div class="p-5 rounded-3xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-3">
+              <div class="w-9 h-9 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+              </div>
+              <div>
+                <p class="font-bold text-emerald-800 dark:text-emerald-200">All Validation Audits Passed</p>
+                <p class="text-emerald-700 dark:text-emerald-300 text-[11px]">This Course Template Blueprint meets all pedagogical and compliance standards for catalog release.</p>
+              </div>
+            </div>
+          }
+
+          <!-- Executive Summary Card -->
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-6">
+            <div class="pb-4 border-b border-base-300 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-bold text-text-primary flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-500 text-lg">task_alt</span>
+                  <span>4. Final Blueprint Architecture Review</span>
+                </h2>
+                <p class="text-xs text-text-secondary mt-0.5">Validate the complete curriculum configuration before publishing to the LMS catalog.</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-base-200 text-text-secondary border border-base-300">
+                {{ code() }}
+              </span>
+            </div>
+
+            <!-- Key Blueprint Telemetry Snapshot -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-base-200/60 border border-base-300/80 text-center">
+              <div>
+                <p class="text-[10px] text-text-secondary uppercase font-semibold">Modules</p>
+                <p class="text-lg font-black font-mono text-text-primary mt-0.5">{{ totalModules() }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-text-secondary uppercase font-semibold">Total Content Slots</p>
+                <p class="text-lg font-black font-mono text-text-primary mt-0.5">{{ totalSlots() }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-text-secondary uppercase font-semibold">Est. Curriculum Time</p>
+                <p class="text-lg font-black font-mono text-tenant-600 dark:text-tenant-400 mt-0.5">~{{ totalDuration() }}m</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-text-secondary uppercase font-semibold">Passing Standard</p>
+                <p class="text-lg font-black font-mono text-emerald-600 mt-0.5">{{ passingScorePercent() }}%</p>
+              </div>
+            </div>
+
+            <!-- Specifications Breakdown -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-2">
+                <span class="font-bold text-text-primary block text-xs uppercase tracking-wider text-text-secondary">Identification & Scope</span>
+                <p><strong class="text-text-primary">Name:</strong> {{ name() }}</p>
+                <p><strong class="text-text-primary">Description:</strong> {{ description() || 'None provided' }}</p>
+                <p><strong class="text-text-primary">Scope:</strong> {{ scope() === 'organization' ? 'Organization-Wide' : 'LMS Workspace' }}</p>
+                <p><strong class="text-text-primary">Categories:</strong> {{ categoryTags().join(', ') }}</p>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-base-200/40 border border-base-300 space-y-2">
+                <span class="font-bold text-text-primary block text-xs uppercase tracking-wider text-text-secondary">Governance & Compliance</span>
+                <p><strong class="text-text-primary">Passing Threshold:</strong> {{ passingScorePercent() }}%</p>
+                <p><strong class="text-text-primary">Sequential Lock:</strong> {{ sequentialUnlock() ? 'Enabled (Required order)' : 'Disabled (Free access)' }}</p>
+                <p><strong class="text-text-primary">Certificates:</strong> {{ certificateEnabled() ? 'Automated Issuance' : 'Disabled' }}</p>
+                <p><strong class="text-text-primary">Pace:</strong> {{ pace() | titlecase }}</p>
+              </div>
+            </div>
+
+            <!-- Full Modules Hierarchy Preview -->
+            <div class="space-y-3 pt-2">
+              <h3 class="font-bold text-text-primary text-xs uppercase tracking-wider text-text-secondary">
+                Modular Content Tree Hierarchy
+              </h3>
+
+              <div class="space-y-3">
+                @for (mod of modules(); track mod.moduleId; let mIdx = $index) {
+                  <div class="rounded-2xl border border-base-300 overflow-hidden bg-base-100">
+                    <div class="p-3.5 bg-base-200/60 font-bold text-xs text-text-primary flex items-center justify-between border-b border-base-300">
+                      <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-md bg-tenant-500 text-white font-mono text-[10px] flex items-center justify-center font-bold">
+                          {{ mIdx + 1 }}
+                        </span>
+                        <span>{{ mod.title }}</span>
+                      </div>
+                      <span class="text-[11px] font-mono text-text-secondary">{{ mod.contentSlots.length }} slots</span>
+                    </div>
+
+                    <div class="p-3 divide-y divide-base-300 space-y-2 text-xs">
+                      @for (slot of mod.contentSlots; track slot.slotId) {
+                        <div class="pt-2 first:pt-0 flex items-center justify-between">
+                          <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">
+                              {{ getSlotTypeIcon(slot.type) }}
+                            </span>
+                            <span class="text-text-primary">{{ slot.title }}</span>
+                          </div>
+                          <div class="flex items-center gap-2 font-mono text-[11px] text-text-secondary">
+                            @if (slot.required) {
+                              <span class="text-amber-600 font-bold text-[9px] px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200">Required</span>
+                            }
+                            <span>{{ slot.estimatedMinutes }}m</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+      <!-- Action Buttons (Cancel, Reset, Previous, Save as draft, Next / Publish) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
+        
+        <!-- Left buttons: Cancel, Reset, Previous -->
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="discardChanges()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button 
+            type="button" 
+            (click)="resetCurrentStep()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+
+          @if (currentStep() > 1) {
+            <button 
+              type="button" 
+              (click)="prevStep()" 
+              class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-sm">arrow_back</span>
+              <span>Previous</span>
+            </button>
+          }
+        </div>
+
+        <!-- Right buttons: Save as draft & Next / Publish -->
+        <div class="flex items-center gap-2.5">
+          <button 
+            type="button" 
+            (click)="saveDraftInPlace()" 
+            [disabled]="isSubmitting()"
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">bookmark</span>
+            <span>Save as draft</span>
+          </button>
+
+          @if (currentStep() < 4) {
+            <button 
+              id="next-step-btn"
+              type="button" 
+              (click)="nextStep()" 
+              class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+              <span>Next</span>
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+          } @else {
+            <button 
+              id="publish-template-action-btn"
+              type="button" 
+              (click)="onPublishClick()" 
+              [disabled]="isSubmitting() || criticalErrors().length > 0"
+              class="px-6 py-3 rounded-xl btn-gradient text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 cursor-pointer">
+              <span class="material-symbols-outlined text-base">
+                {{ isEditMode() ? 'check_circle' : 'rocket_launch' }}
+              </span>
+              <span>{{ isEditMode() ? 'Update Template' : 'Publish Template' }}</span>
+            </button>
+          }
+        </div>
+
+      </div>
+
+    </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: CONFIRM PUBLISH (MATCHING CREATE PLAN)                     -->
+  <!-- ================================================================= -->
+  @if (showPublishModal()) {
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
+      (click)="showPublishModal.set(false)">
+      <div 
+        class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-7 space-y-4 animate-modal-card m-auto"
+        (click)="$event.stopPropagation()">
+        <div class="w-12 h-12 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl">publish</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-text-primary">Publish Course Template?</h3>
+          <p class="text-xs text-text-secondary mt-1">Are you sure you want to publish this Course Template blueprint? Once published, instructors and curriculum managers will be able to spawn live courses directly from this structure.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-3">
+          <button 
+            type="button" 
+            (click)="showPublishModal.set(false)" 
+            class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300 cursor-pointer">
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            (click)="confirmPublish()" 
+            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs cursor-pointer">
+            Publish Template
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

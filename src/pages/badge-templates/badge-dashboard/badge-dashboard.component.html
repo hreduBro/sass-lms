@@ -1,0 +1,298 @@
+<div class="min-h-screen bg-slate-50/60 p-4 sm:p-6 lg:p-8">
+  <!-- View Mode Header -->
+  <div *ngIf="!isStudioMode()" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <div class="p-2 bg-emerald-100 text-emerald-800 rounded-lg">
+          <mat-icon class="!w-6 !h-6">space_dashboard</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Badge Templates Overview</h1>
+          <p class="text-sm text-slate-500">Status, tiers and usage telemetry of badges in your scope.</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a
+        routerLink="/certificates/badges"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 font-medium text-sm rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+      >
+        <mat-icon class="!w-4 !h-4 text-slate-500">grid_view</mat-icon>
+        Badge Grid
+      </a>
+      <button
+        *ngIf="permissions().canManageDashboardStudio"
+        (click)="enterStudioMode()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white font-medium text-sm rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+      >
+        <mat-icon class="!w-4 !h-4">dashboard_customize</mat-icon>
+        Customize Dashboard Studio
+      </button>
+      <button
+        *ngIf="permissions().canCreate"
+        (click)="createBadge()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium text-sm rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+      >
+        <mat-icon class="!w-4 !h-4">add</mat-icon>
+        Create Badge
+      </button>
+    </div>
+  </div>
+
+  <!-- Studio Mode Floating Control Bar -->
+  <div *ngIf="isStudioMode()" class="bg-slate-900 text-white p-4 rounded-2xl shadow-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800 animate-fadeIn">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+        <mat-icon>dashboard_customize</mat-icon>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm">Dashboard Studio Customization Mode</h3>
+        <p class="text-xs text-slate-400">Toggle widget visibility and resize column widths below, then publish live.</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button (click)="resetStudioDefaults()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition-colors">
+        Reset Layout
+      </button>
+      <button (click)="discardStudioChanges()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs font-medium rounded-lg transition-colors">
+        Discard
+      </button>
+      <button (click)="publishStudioLive()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center gap-1">
+        <mat-icon class="!w-4 !h-4">publish</mat-icon>
+        Publish Live
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Widgets Container Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+    <ng-container *ngFor="let widget of (isStudioMode() ? studioDraftConfigs() : widgetConfigs())">
+      <div
+        *ngIf="widget.visible || isStudioMode()"
+        class="transition-all duration-200"
+        [ngClass]="{
+          'lg:col-span-3': widget.colSpanPct === 25,
+          'lg:col-span-6': widget.colSpanPct === 50,
+          'lg:col-span-9': widget.colSpanPct === 75,
+          'lg:col-span-12': widget.colSpanPct === 100,
+          'opacity-40 grayscale': isStudioMode() && !widget.visible
+        }"
+      >
+        <!-- Studio Mode Card Header Bar -->
+        <div *ngIf="isStudioMode()" class="bg-slate-800 text-white px-4 py-2 rounded-t-xl text-xs flex items-center justify-between border-b border-slate-700">
+          <div class="flex items-center gap-2">
+            <button (click)="toggleWidgetVisibility(widget.id)" class="hover:text-emerald-400">
+              <mat-icon class="!w-4 !h-4">{{ widget.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <span class="font-bold">{{ widget.title }}</span>
+          </div>
+
+          <!-- Column Width Controls -->
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] text-slate-400 mr-1">Width:</span>
+            <button (click)="setWidgetWidth(widget.id, 25)" class="px-1.5 py-0.5 rounded text-[10px]" [ngClass]="widget.colSpanPct === 25 ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'">25%</button>
+            <button (click)="setWidgetWidth(widget.id, 50)" class="px-1.5 py-0.5 rounded text-[10px]" [ngClass]="widget.colSpanPct === 50 ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'">50%</button>
+            <button (click)="setWidgetWidth(widget.id, 75)" class="px-1.5 py-0.5 rounded text-[10px]" [ngClass]="widget.colSpanPct === 75 ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'">75%</button>
+            <button (click)="setWidgetWidth(widget.id, 100)" class="px-1.5 py-0.5 rounded text-[10px]" [ngClass]="widget.colSpanPct === 100 ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'">100%</button>
+          </div>
+        </div>
+
+        <!-- Widget Content Component Wrapper -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4" [ngClass]="{'rounded-t-none border-t-0': isStudioMode()}">
+          
+          <!-- WIDGET 1: KPI Summary -->
+          <div *ngIf="widget.type === 'kpi_summary'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">assessment</mat-icon>
+              Badge Repository Telemetry
+            </h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p class="text-xs text-slate-500 font-semibold uppercase">Total Templates</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">{{ stats().total }}</p>
+              </div>
+              <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                <p class="text-xs text-emerald-600 font-semibold uppercase">Active Published</p>
+                <p class="text-2xl font-bold text-emerald-900 mt-1">{{ stats().published }}</p>
+              </div>
+              <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p class="text-xs text-blue-600 font-semibold uppercase">Creation Drafts</p>
+                <p class="text-2xl font-bold text-blue-900 mt-1">{{ stats().draft }}</p>
+              </div>
+              <div class="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                <p class="text-xs text-slate-500 font-semibold uppercase">Archived Badges</p>
+                <p class="text-2xl font-bold text-slate-700 mt-1">{{ stats().archived }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIDGET 2: Status Breakdown -->
+          <div *ngIf="widget.type === 'status_breakdown'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">pie_chart</mat-icon>
+              Lifecycle Status Distribution
+            </h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-emerald-700">Published (Active)</span>
+                  <span class="text-slate-700">{{ stats().published }} badges</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" [style.width.%]="(stats().published / (stats().total || 1)) * 100"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-blue-700">Drafts (In Progress)</span>
+                  <span class="text-slate-700">{{ stats().draft }} badges</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-500 rounded-full" [style.width.%]="(stats().draft / (stats().total || 1)) * 100"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-500">Archived</span>
+                  <span class="text-slate-700">{{ stats().archived }} badges</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-slate-400 rounded-full" [style.width.%]="(stats().archived / (stats().total || 1)) * 100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIDGET 3: Sharing Breakdown -->
+          <div *ngIf="widget.type === 'sharing_breakdown'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">share</mat-icon>
+              Sharing Policy Scope
+            </h3>
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                <p class="text-lg font-bold text-amber-900">{{ stats().orgCount }}</p>
+                <p class="text-[11px] font-semibold text-amber-700">Org-Shared</p>
+              </div>
+              <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+                <p class="text-lg font-bold text-indigo-900">{{ stats().lmsCount }}</p>
+                <p class="text-[11px] font-semibold text-indigo-700">LMS-Shared</p>
+              </div>
+              <div class="p-3 bg-slate-100 rounded-xl border border-slate-200">
+                <p class="text-lg font-bold text-slate-800">{{ stats().privateCount }}</p>
+                <p class="text-[11px] font-semibold text-slate-600">Private</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIDGET 4: Badges by Level & Tier -->
+          <div *ngIf="widget.type === 'level_breakdown'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">stars</mat-icon>
+              Badges by Level & Tier
+            </h3>
+            <div class="space-y-2">
+              <div *ngFor="let item of levelBreakdown()" class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+                <span class="font-bold text-slate-800">{{ item.level }}</span>
+                <span class="px-2 py-0.5 bg-slate-900 text-amber-300 rounded font-mono font-bold">{{ item.count }} badges ({{ item.pct }}%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIDGET 5: Most-Used Badges -->
+          <div *ngIf="widget.type === 'most_used'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">military_tech</mat-icon>
+              Most-Referenced Badges
+            </h3>
+            <div class="space-y-2">
+              <div *ngFor="let badge of mostUsedBadges(); let i = index" class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-[10px]">#{{ i + 1 }}</span>
+                  <div>
+                    <p class="font-bold text-slate-900">{{ badge.name }}</p>
+                    <p class="text-[10px] text-slate-500">{{ badge.category }} | ID: {{ badge.templateId }}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-md text-xs">
+                  {{ badge.usageCount }} references
+                </span>
+              </div>
+              <div *ngIf="mostUsedBadges().length === 0" class="text-xs text-slate-400 text-center py-4">No published badges ranked yet.</div>
+            </div>
+          </div>
+
+          <!-- WIDGET 6: Active Creation Drafts -->
+          <div *ngIf="widget.type === 'active_drafts'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">edit_note</mat-icon>
+              Active Creation Drafts
+            </h3>
+            <div class="space-y-2">
+              <div *ngFor="let draft of creationDrafts()" class="flex items-center justify-between p-2.5 bg-blue-50/60 rounded-xl border border-blue-200 text-xs">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <p class="font-bold text-blue-900">{{ draft.name }}</p>
+                    <span class="px-2 py-0.5 bg-blue-200 text-blue-900 font-mono text-[10px] font-bold rounded uppercase">
+                      STEP: {{ draft.lastCompletedStep }}
+                    </span>
+                  </div>
+                  <p class="text-[10px] text-blue-700 mt-0.5">Updated by {{ draft.createdBy }} on {{ draft.updatedAt }}</p>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button (click)="resumeDraft(draft)" class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 text-xs">
+                    Resume
+                  </button>
+                  <button (click)="deleteDraft(draft)" class="p-1 text-slate-400 hover:text-rose-600"><mat-icon class="!w-4 !h-4">delete</mat-icon></button>
+                </div>
+              </div>
+              <div *ngIf="creationDrafts().length === 0" class="text-xs text-slate-400 text-center py-4">No active creation drafts in progress.</div>
+            </div>
+          </div>
+
+          <!-- WIDGET 7: Recent Activity Feed -->
+          <div *ngIf="widget.type === 'recent_activity'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">history</mat-icon>
+              Recent Badge Activity Feed
+            </h3>
+            <div class="space-y-2 text-xs">
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-3">
+                <mat-icon class="text-emerald-600 !w-4 !h-4">published_with_changes</mat-icon>
+                <div class="flex-1">
+                  <p class="font-semibold text-slate-800">Data Science Specialist – Gold published successfully</p>
+                  <p class="text-[10px] text-slate-400">By Farhana Ahmed • 15/01/2026 10:30:00</p>
+                </div>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-3">
+                <mat-icon class="text-blue-600 !w-4 !h-4">edit</mat-icon>
+                <div class="flex-1">
+                  <p class="font-semibold text-slate-800">Agile Leadership Champion design updated</p>
+                  <p class="text-[10px] text-slate-400">By Karim Rahman • 20/02/2026 14:15:00</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WIDGET 8: Top Skill Tags -->
+          <div *ngIf="widget.type === 'top_skill_tags'">
+            <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <mat-icon class="text-emerald-600">local_offer</mat-icon>
+              Top Certified Skill Tags
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              <div *ngFor="let tagItem of topSkillTags()" class="px-3 py-1.5 bg-slate-100 text-slate-800 border border-slate-200 rounded-xl text-xs font-semibold flex items-center gap-2">
+                <span>#{{ tagItem.tag }}</span>
+                <span class="px-1.5 py-0.5 bg-slate-900 text-white rounded text-[10px] font-bold">{{ tagItem.count }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

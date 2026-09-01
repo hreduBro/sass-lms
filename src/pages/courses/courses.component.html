@@ -1,0 +1,732 @@
+<div class="space-y-6 pb-16 animate-fade-in">
+  <!-- Page Header (BRD §4.4) -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-base-100 p-6 rounded-3xl border border-base-300 shadow-xs">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-bold text-tenant-600 uppercase tracking-wider">Curriculum Catalog</span>
+        <span class="text-xs text-text-secondary">•</span>
+        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 border border-tenant-500/20">
+          {{ lms.activeLms()?.basicInfo?.lmsName || lms.activeTenant().name }}
+        </span>
+      </div>
+      <h1 class="text-2xl font-bold text-text-primary">Courses</h1>
+      <p class="text-xs text-text-secondary mt-1 max-w-2xl">
+        Design and manage reusable courses with multi-tiered structure, instructor governance, and independent version snapshots.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2.5">
+      <a 
+        routerLink="/courses/dashboard"
+        class="px-4 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 transition-colors">
+        <span class="material-symbols-outlined text-base text-tenant-600">space_dashboard</span>
+        <span>Course Dashboard</span>
+      </a>
+
+      <a 
+        routerLink="/courses/templates"
+        class="px-4 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-2 transition-colors">
+        <span class="material-symbols-outlined text-base text-indigo-600">dashboard_customize</span>
+        <span>Templates</span>
+      </a>
+
+      @if (lms.coursePermissions().canCreateCourse) {
+        <a 
+          routerLink="/courses/create"
+          class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          <span>Create Course</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls Bar -->
+  <div class="bg-base-100 p-4 rounded-3xl border border-base-300 shadow-xs space-y-3">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <!-- Search Input -->
+      <div class="relative flex-1 min-w-[280px]">
+        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-lg">
+          search
+        </span>
+        <input 
+          type="text" 
+          [value]="searchQuery()"
+          (input)="onSearchChange($any($event.target).value)"
+          placeholder="Search by course title, code, tags, or owner..." 
+          class="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
+        @if (searchQuery()) {
+          <button 
+            (click)="onSearchChange('')"
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        }
+      </div>
+
+      <!-- Quick Filter Dropdowns -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Status Filter -->
+        <select 
+          [value]="selectedStatus()"
+          (change)="selectedStatus.set($any($event.target).value); currentPage.set(1)"
+          class="px-3 py-2 rounded-2xl bg-base-200/60 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
+          <option value="All">All Statuses</option>
+          <option value="published">Published (Live)</option>
+          <option value="draft">Drafts (In-Progress)</option>
+          <option value="inactive">Inactive</option>
+          <option value="superseded">Superseded</option>
+        </select>
+
+        <!-- Category Filter -->
+        <select 
+          [value]="selectedCategory()"
+          (change)="selectedCategory.set($any($event.target).value); currentPage.set(1)"
+          class="px-3 py-2 rounded-2xl bg-base-200/60 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none max-w-[180px] truncate">
+          @for (cat of categories; track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+
+        <!-- Toggle Advanced Filters Drawer -->
+        <button 
+          (click)="showFilterDrawer.set(!showFilterDrawer())"
+          [class]="showFilterDrawer() || activeFilterCount() > 0 ? 'border-tenant-500 bg-tenant-500/10 text-tenant-700 font-bold' : 'border-base-300 bg-base-200/60 text-text-primary'"
+          class="px-3.5 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-colors">
+          <span class="material-symbols-outlined text-base">tune</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-5 h-5 rounded-full bg-tenant-500 text-white text-[10px] flex items-center justify-center font-bold font-mono">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- View Mode Grid/Table Toggle -->
+        <div class="flex items-center bg-base-200 rounded-2xl p-1 border border-base-300">
+          <button 
+            (click)="viewMode.set('grid')"
+            [class]="viewMode() === 'grid' ? 'bg-base-100 text-text-primary shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'"
+            class="p-1.5 rounded-xl transition-colors"
+            title="Grid View">
+            <span class="material-symbols-outlined text-lg">grid_view</span>
+          </button>
+          <button 
+            (click)="viewMode.set('table')"
+            [class]="viewMode() === 'table' ? 'bg-base-100 text-text-primary shadow-xs font-bold' : 'text-text-secondary hover:text-text-primary'"
+            class="p-1.5 rounded-xl transition-colors"
+            title="Table View">
+            <span class="material-symbols-outlined text-lg">table_rows</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expandable Multi-Facet Filter Panel -->
+    @if (showFilterDrawer()) {
+      <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-4 animate-scale-up">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-text-primary uppercase tracking-wider">Advanced Curriculum Filters</span>
+          <button (click)="resetAllFilters()" class="text-xs text-tenant-600 hover:text-tenant-700 font-semibold">
+            Reset All Filters
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <!-- Layer Depth -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary">Structure Layer Depth</label>
+            <select 
+              [value]="selectedLayerCount()"
+              (change)="selectedLayerCount.set($any($event.target).value); currentPage.set(1)"
+              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
+              <option value="All">All Depths</option>
+              <option value="1">1-Tier (Flat Single Layer)</option>
+              <option value="2">2-Tier (Two-Level Hierarchy)</option>
+              <option value="3">3-Tier (Deep 3-Level)</option>
+            </select>
+          </div>
+
+          <!-- Content Family -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary">Content Family</label>
+            <select 
+              [value]="selectedFamily()"
+              (change)="selectedFamily.set($any($event.target).value); currentPage.set(1)"
+              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
+              <option value="All">All Content Types</option>
+              <option value="learning">Contains Learning Units</option>
+              <option value="assessment">Contains Assessments</option>
+            </select>
+          </div>
+
+          <!-- Grading Mode -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary">Grading Mechanism</label>
+            <select 
+              [value]="selectedGradingMode()"
+              (change)="selectedGradingMode.set($any($event.target).value); currentPage.set(1)"
+              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
+              <option value="All">All Grading Modes</option>
+              <option value="manual">Has Manual Graded Items</option>
+              <option value="auto">Auto-Graded Only</option>
+            </select>
+          </div>
+
+          <!-- Course Owner -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-text-primary">Course Owner</label>
+            <select 
+              [value]="selectedOwnerId()"
+              (change)="selectedOwnerId.set($any($event.target).value); currentPage.set(1)"
+              class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary font-medium">
+              <option value="All">All Owners</option>
+              @for (user of lms.tenantUsers(); track user.id) {
+                <option [value]="user.id">{{ user.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Active Filter Chips Bar -->
+    @if (activeFilterCount() > 0 || searchQuery()) {
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <span class="text-[11px] text-text-secondary font-medium">Active Filters:</span>
+
+        @if (searchQuery()) {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>Query: "{{ searchQuery() }}"</span>
+            <button (click)="onSearchChange('')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedStatus() !== 'All') {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>Status: {{ selectedStatus() }}</span>
+            <button (click)="selectedStatus.set('All')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedCategory() !== 'All') {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>Category: {{ selectedCategory() }}</span>
+            <button (click)="selectedCategory.set('All')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedLayerCount() !== 'All') {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>{{ selectedLayerCount() }}-Tier</span>
+            <button (click)="selectedLayerCount.set('All')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedFamily() !== 'All') {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>Family: {{ selectedFamily() }}</span>
+            <button (click)="selectedFamily.set('All')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedGradingMode() !== 'All') {
+          <span class="px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 text-xs flex items-center gap-1 font-medium">
+            <span>Grading: {{ selectedGradingMode() }}</span>
+            <button (click)="selectedGradingMode.set('All')" class="text-tenant-500 hover:text-error">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <button (click)="resetAllFilters()" class="text-[11px] text-error hover:underline font-semibold ml-1">
+          Clear All
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3 DISTINCT EMPTY STATES (BRD Requirement) -->
+  <!-- ========================================================================= -->
+  @if (emptyStateType() === 'true_empty') {
+    <!-- True Empty State -->
+    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
+      <div class="w-16 h-16 rounded-3xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center mx-auto border border-tenant-500/20">
+        <span class="material-symbols-outlined text-3xl">school</span>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-text-primary">No course information is available to display.</h2>
+        <p class="text-xs text-text-secondary mt-1">Get started by creating your organization's first structured curriculum course.</p>
+      </div>
+      <a 
+        routerLink="/courses/create" 
+        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-md">
+        <span class="material-symbols-outlined text-base">add_circle</span>
+        <span>Create Course</span>
+      </a>
+    </div>
+  } @else if (emptyStateType() === 'search_miss') {
+    <!-- Search Miss State -->
+    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
+      <div class="w-16 h-16 rounded-3xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">search_off</span>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-text-primary">No courses found matching "{{ searchQuery() }}"</h2>
+        <p class="text-xs text-text-secondary mt-1">Check for spelling errors or try searching for a broader category or tag.</p>
+      </div>
+      <button 
+        (click)="onSearchChange('')" 
+        class="px-5 py-2.5 rounded-2xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold">
+        Clear Search Query
+      </button>
+    </div>
+  } @else if (emptyStateType() === 'filter_miss') {
+    <!-- Filter Miss State -->
+    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-xs space-y-4 max-w-lg mx-auto">
+      <div class="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto border border-amber-500/20">
+        <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-text-primary">No course found matching the selected filters.</h2>
+        <p class="text-xs text-text-secondary mt-1">Try broadening your criteria or reset filters to see all available curriculum.</p>
+      </div>
+      <button 
+        (click)="resetAllFilters()" 
+        class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-md">
+        Reset All Filters
+      </button>
+    </div>
+  } @else {
+    <!-- ========================================================================= -->
+    <!-- COURSE GRID VIEW -->
+    <!-- ========================================================================= -->
+    @if (viewMode() === 'grid') {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        @for (crs of paginatedCourses(); track crs.courseId) {
+          @let metrics = getMetrics(crs);
+          <div class="rounded-3xl bg-base-100 border border-base-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
+            <!-- Card Image & Header Overlay -->
+            <div class="relative h-40 w-full overflow-hidden bg-base-300">
+              <img 
+                [src]="crs.coverImage" 
+                [alt]="crs.title" 
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                referrerpolicy="no-referrer" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+              <!-- Top Badges -->
+              <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-black/60 text-white backdrop-blur-xs border border-white/10 uppercase tracking-wide">
+                  {{ crs.category }}
+                </span>
+
+                <!-- Status Badge -->
+                <span 
+                  class="text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs shadow-xs"
+                  [class]="crs.status === 'published' ? 'bg-emerald-500/90 text-white' : (crs.status === 'draft' ? 'bg-sky-500/90 text-white' : 'bg-slate-700 text-white')">
+                  {{ crs.status | uppercase }}
+                </span>
+              </div>
+
+              <!-- Bottom Image Overlay info -->
+              <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+                <div class="flex items-center gap-1.5 font-mono">
+                  <span class="px-2 py-0.5 rounded bg-white/20 backdrop-blur-xs text-[11px] font-bold">
+                    {{ crs.code }}
+                  </span>
+                  <button (click)="copyCourseCode(crs.code, $event)" title="Copy Code" class="hover:text-tenant-300">
+                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                  </button>
+                </div>
+
+                <span class="px-2 py-0.5 rounded-full bg-indigo-500/80 backdrop-blur-xs text-[10px] font-bold">
+                  {{ crs.version.label }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div>
+                <!-- Structure Layer Depth Badge -->
+                <div class="flex items-center gap-1.5 mb-2">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-tenant-500/10 text-tenant-700 border border-tenant-500/20 font-mono">
+                    {{ crs.structureConfig.layerCount }}-Tier
+                  </span>
+                  <span class="text-[11px] text-text-secondary truncate">
+                    {{ crs.structureConfig.layerLabels.join(' → ') }}
+                  </span>
+                </div>
+
+                <!-- Course Title -->
+                <h3 class="text-sm font-bold text-text-primary line-clamp-2 leading-snug">
+                  {{ crs.title }}
+                </h3>
+
+                <!-- Description excerpt -->
+                @if (crs.description) {
+                  <p class="text-xs text-text-secondary line-clamp-2 mt-1.5">
+                    {{ crs.description }}
+                  </p>
+                }
+              </div>
+
+              <!-- Composition & Telemetry Metrics -->
+              <div class="space-y-2.5 pt-2 border-t border-base-200">
+                <div class="flex items-center justify-between text-xs text-text-secondary">
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm text-emerald-500">play_lesson</span>
+                    <span><strong>{{ metrics.learningCount }}</strong> Learning</span>
+                  </span>
+
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm text-indigo-500">quiz</span>
+                    <span><strong>{{ metrics.assessmentCount }}</strong> Assessment</span>
+                  </span>
+
+                  <span class="font-mono text-[11px]">
+                    {{ crs.durationMinutes }}m
+                  </span>
+                </div>
+
+                <!-- Phase Locks & Manual Grading Indicators -->
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="flex items-center gap-1 text-amber-700 font-medium">
+                    <span class="material-symbols-outlined text-xs text-amber-600">lock</span>
+                    <span>{{ crs.usedInPhasesCount || 0 }} phases locked</span>
+                  </span>
+
+                  @if (metrics.manualGradingCount > 0) {
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-700 border border-amber-500/20 font-semibold">
+                      {{ metrics.manualGradingCount }} Manual Graded
+                    </span>
+                  }
+                </div>
+
+                <!-- Owner Row -->
+                <div class="flex items-center justify-between pt-2 border-t border-base-200 text-xs">
+                  <div class="flex items-center gap-2">
+                    <img [src]="crs.ownerAvatar" [alt]="crs.ownerName" class="w-5 h-5 rounded-full object-cover" referrerpolicy="no-referrer" />
+                    <span class="text-text-secondary text-[11px] truncate max-w-[120px]">{{ crs.ownerName }}</span>
+                  </div>
+                  <span class="text-[10px] text-text-secondary font-mono">{{ crs.updatedAt }}</span>
+                </div>
+              </div>
+
+              <!-- Card Action Buttons -->
+              <div class="pt-3 border-t border-base-200 flex items-center justify-between gap-2">
+                <button 
+                  (click)="openStructureDrawer(crs)"
+                  class="flex-1 py-2 px-2.5 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">account_tree</span>
+                  <span>Structure</span>
+                </button>
+
+                <button 
+                  (click)="editCourse(crs)"
+                  class="p-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary transition-colors"
+                  title="Edit Course">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </button>
+
+                <!-- More Actions Dropdown -->
+                <div class="dropdown dropdown-top dropdown-end">
+                  <button tabindex="0" class="p-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-primary">
+                    <span class="material-symbols-outlined text-base">more_vert</span>
+                  </button>
+                  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl border border-base-300 w-52 text-xs space-y-1">
+                    @if (crs.status === 'draft') {
+                      <li>
+                        <button (click)="publishCourse(crs)" class="text-emerald-600 font-semibold">
+                          <span class="material-symbols-outlined text-base">rocket_launch</span>
+                          <span>Publish Live</span>
+                        </button>
+                      </li>
+                    }
+                    <li>
+                      <button (click)="openVersionModal(crs)">
+                        <span class="material-symbols-outlined text-base">history_edu</span>
+                        <span>Version History</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button (click)="duplicateCourse(crs)">
+                        <span class="material-symbols-outlined text-base">content_copy</span>
+                        <span>Duplicate Course</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button (click)="openSaveAsTemplate(crs)">
+                        <span class="material-symbols-outlined text-base">dashboard_customize</span>
+                        <span>Save as Template</span>
+                      </button>
+                    </li>
+                    @if (crs.status === 'published') {
+                      <li>
+                        <button (click)="confirmDeactivate(crs)" class="text-amber-600">
+                          <span class="material-symbols-outlined text-base">pause_circle</span>
+                          <span>Deactivate</span>
+                        </button>
+                      </li>
+                    } @else if (crs.status === 'inactive') {
+                      <li>
+                        <button (click)="confirmReactivate(crs)" class="text-emerald-600">
+                          <span class="material-symbols-outlined text-base">play_circle</span>
+                          <span>Reactivate</span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- ========================================================================= -->
+      <!-- COURSE TABLE VIEW -->
+      <!-- ========================================================================= -->
+      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-base-200/60 border-b border-base-300 text-text-secondary font-bold uppercase tracking-wider">
+                <th class="py-3.5 px-4">Code & Title</th>
+                <th class="py-3.5 px-4">Category</th>
+                <th class="py-3.5 px-4">Hierarchy</th>
+                <th class="py-3.5 px-4">Composition</th>
+                <th class="py-3.5 px-4">Version</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Phase Locks</th>
+                <th class="py-3.5 px-4">Owner</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-200">
+              @for (crs of paginatedCourses(); track crs.courseId) {
+                @let metrics = getMetrics(crs);
+                <tr class="hover:bg-base-200/30 transition-colors">
+                  <!-- Code & Title -->
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-3">
+                      <img [src]="crs.coverImage" class="w-10 h-10 rounded-xl object-cover border border-base-300" referrerpolicy="no-referrer" />
+                      <div>
+                        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-tenant-500/10 text-tenant-600 font-mono">
+                          {{ crs.code }}
+                        </span>
+                        <h4 class="font-bold text-text-primary text-xs mt-0.5 line-clamp-1 max-w-[200px]">{{ crs.title }}</h4>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Category -->
+                  <td class="py-3.5 px-4 font-medium text-text-secondary">
+                    {{ crs.category }}
+                  </td>
+
+                  <!-- Hierarchy -->
+                  <td class="py-3.5 px-4">
+                    <span class="px-2 py-0.5 rounded bg-base-200 border border-base-300 font-mono text-[11px] font-bold">
+                      {{ crs.structureConfig.layerCount }}-Tier
+                    </span>
+                  </td>
+
+                  <!-- Composition -->
+                  <td class="py-3.5 px-4">
+                    <div class="text-[11px] space-y-0.5">
+                      <span class="text-emerald-600 font-medium">{{ metrics.learningCount }} Learning</span> • 
+                      <span class="text-indigo-600 font-medium">{{ metrics.assessmentCount }} Assess</span>
+                    </div>
+                  </td>
+
+                  <!-- Version -->
+                  <td class="py-3.5 px-4 font-mono font-bold text-tenant-700">
+                    {{ crs.version.label }}
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3.5 px-4">
+                    <span 
+                      class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      [class]="crs.status === 'published' ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20' : (crs.status === 'draft' ? 'bg-sky-500/10 text-sky-700 border border-sky-500/20' : 'bg-slate-500/10 text-slate-700')">
+                      {{ crs.status | uppercase }}
+                    </span>
+                  </td>
+
+                  <!-- Phase Locks -->
+                  <td class="py-3.5 px-4 font-mono font-semibold text-amber-700">
+                    {{ crs.usedInPhasesCount || 0 }}
+                  </td>
+
+                  <!-- Owner -->
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-1.5">
+                      <img [src]="crs.ownerAvatar" class="w-5 h-5 rounded-full object-cover" referrerpolicy="no-referrer" />
+                      <span class="truncate max-w-[100px]">{{ crs.ownerName }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="py-3.5 px-4 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button (click)="openStructureDrawer(crs)" class="p-1.5 rounded-lg hover:bg-base-200 text-tenant-600" title="View Structure">
+                        <span class="material-symbols-outlined text-base">account_tree</span>
+                      </button>
+                      <button (click)="editCourse(crs)" class="p-1.5 rounded-lg hover:bg-base-200 text-text-primary" title="Edit Course">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- Pagination Controls -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between pt-4 text-xs text-text-secondary">
+        <span>
+          Showing <strong>{{ ((currentPage() - 1) * pageSize()) + 1 }}</strong> to 
+          <strong>{{ Math.min(currentPage() * pageSize(), filteredCourses().length) }}</strong> of 
+          <strong>{{ filteredCourses().length }}</strong> courses
+        </span>
+
+        <div class="flex items-center gap-1">
+          <button 
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+
+          @for (p of pagesList(); track p) {
+            <button 
+              (click)="goToPage(p)"
+              [class]="currentPage() === p ? 'bg-tenant-500 text-white font-bold' : 'hover:bg-base-200 text-text-primary border border-base-300'"
+              class="w-8 h-8 rounded-xl text-xs font-mono transition-colors">
+              {{ p }}
+            </button>
+          }
+
+          <button 
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            class="p-2 rounded-xl border border-base-300 hover:bg-base-200 disabled:opacity-40">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Interactive Structure Drawer Integration -->
+  <app-course-structure-drawer 
+    [course]="activeStructureCourse()" 
+    (close)="activeStructureCourse.set(null)" />
+
+  <!-- Version Modal Integration -->
+  <app-course-version-modal 
+    [course]="activeVersionCourse()" 
+    (close)="activeVersionCourse.set(null)"
+    (triggerNewVersion)="triggerNewVersion(activeVersionCourse()!)" />
+
+  <!-- Save as Blueprint Template Modal (§8.3) -->
+  @if (showSaveTemplateModal()) {
+    <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+      <div class="w-full max-w-md bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
+        <div class="p-6 border-b border-base-300 bg-base-200/50 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">dashboard_customize</span>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-text-primary">Save as Template Blueprint</h2>
+              <p class="text-xs text-text-secondary">Extract structure for reusable adoption</p>
+            </div>
+          </div>
+          <button (click)="showSaveTemplateModal.set(false)" class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-300">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-text-primary">Template Name</label>
+            <input 
+              type="text" 
+              [value]="templateForm().name"
+              (input)="templateForm().name = $any($event.target).value"
+              class="w-full px-4 py-2.5 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-primary font-semibold" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-text-primary">Template Scope</label>
+            <select 
+              [value]="templateForm().scope"
+              (change)="templateForm().scope = $any($event.target).value"
+              class="w-full px-4 py-2 rounded-xl bg-base-200/50 border border-base-300 text-xs font-semibold text-text-primary">
+              <option value="lms">Current LMS Instance Only</option>
+              <option value="organization">Entire Organization</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-base-300 bg-base-200/50 flex items-center justify-between">
+          <button (click)="showSaveTemplateModal.set(false)" class="text-xs text-text-secondary hover:text-text-primary font-semibold">
+            Cancel
+          </button>
+          <button 
+            (click)="confirmSaveAsTemplate()" 
+            class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold text-xs shadow-md">
+            Create Blueprint
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Action Confirmation Modal -->
+  @if (confirmModal().isOpen) {
+    <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+      <div class="w-full max-w-md bg-base-100 rounded-3xl shadow-2xl border border-base-300 overflow-hidden animate-scale-up">
+        <div class="p-6 space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-2xl">warning</span>
+          </div>
+          <h2 class="text-base font-bold text-text-primary">{{ confirmModal().title }}</h2>
+          <p class="text-xs text-text-secondary leading-relaxed">{{ confirmModal().message }}</p>
+        </div>
+
+        <div class="p-4 bg-base-200/50 border-t border-base-300 flex items-center justify-end gap-3">
+          <button 
+            (click)="closeConfirmModal()" 
+            class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold hover:bg-base-200">
+            Cancel
+          </button>
+          <button 
+            (click)="confirmModal().action()" 
+            [class]="confirmModal().variant === 'danger' ? 'bg-error text-white' : 'bg-tenant-500 text-white'"
+            class="px-5 py-2 rounded-xl text-xs font-bold shadow-sm">
+            {{ confirmModal().confirmLabel }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

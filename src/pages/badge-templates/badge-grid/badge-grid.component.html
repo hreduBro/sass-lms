@@ -1,0 +1,653 @@
+<div class="min-h-screen bg-slate-50/60 p-4 sm:p-6 lg:p-8">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <div class="p-2 bg-emerald-100 text-emerald-800 rounded-lg">
+          <mat-icon class="!w-6 !h-6">military_tech</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Badge Templates</h1>
+          <p class="text-sm text-slate-500">Design and manage earner emblem badge templates, earning criteria, and sharing policy.</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a
+        routerLink="/certificates/badges/dashboard"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 font-medium text-sm rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+      >
+        <mat-icon class="!w-4 !h-4 text-slate-500">space_dashboard</mat-icon>
+        Badge Analytics
+      </a>
+      <button
+        *ngIf="permissions().canCreate"
+        (click)="createBadge()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium text-sm rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+      >
+        <mat-icon class="!w-4 !h-4">add</mat-icon>
+        Create Badge
+      </button>
+    </div>
+  </div>
+
+  <!-- Telemetry KPI Summary Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Badges</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ kpiStats().total }}</p>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Published</p>
+        <p class="text-2xl font-bold text-emerald-900 mt-1">{{ kpiStats().published }}</p>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+        <mat-icon>published_with_changes</mat-icon>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Drafts</p>
+        <p class="text-2xl font-bold text-blue-900 mt-1">{{ kpiStats().draft }}</p>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
+        <mat-icon>edit_note</mat-icon>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Archived</p>
+        <p class="text-2xl font-bold text-slate-600 mt-1">{{ kpiStats().archived }}</p>
+      </div>
+      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
+        <mat-icon>archive</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Controls Bar -->
+  <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm mb-6 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+      <!-- Search -->
+      <div class="lg:col-span-2 relative">
+        <mat-icon class="absolute left-3 top-2.5 !w-4 !h-4 text-slate-400">search</mat-icon>
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          placeholder="Search by badge name, ID, tags or criteria..."
+          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <select
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+        >
+          <option value="ALL">Status: All</option>
+          <option value="PUBLISHED">Published</option>
+          <option value="DRAFT">Draft</option>
+          <option value="ARCHIVED">Archived</option>
+        </select>
+      </div>
+
+      <!-- Sharing Filter -->
+      <div>
+        <select
+          [ngModel]="selectedSharing()"
+          (ngModelChange)="selectedSharing.set($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+        >
+          <option value="ALL">Sharing: All</option>
+          <option value="PRIVATE">Private</option>
+          <option value="LMS">LMS-shared</option>
+          <option value="ORGANIZATION">Organization-shared</option>
+        </select>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <select
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="selectedCategory.set($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+        >
+          <option value="ALL">Category: All</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <!-- Level Filter -->
+      <div>
+        <select
+          [ngModel]="selectedLevel()"
+          (ngModelChange)="selectedLevel.set($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+        >
+          <option value="ALL">Level/Tier: All</option>
+          <option *ngFor="let lvl of levels" [value]="lvl">{{ lvl }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Skill Tag Filter & Reset Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+      <div class="flex items-center gap-2 overflow-x-auto py-1 max-w-2xl">
+        <span class="text-slate-400 font-medium">Skill Tag:</span>
+        <button
+          (click)="selectedSkillTag.set('ALL')"
+          class="px-2.5 py-1 rounded-full border text-xs font-medium transition-colors"
+          [ngClass]="selectedSkillTag() === 'ALL' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
+        >
+          All Tags
+        </button>
+        <button
+          *ngFor="let tag of allSkillTags()"
+          (click)="selectedSkillTag.set(tag)"
+          class="px-2.5 py-1 rounded-full border text-xs font-medium transition-colors whitespace-nowrap"
+          [ngClass]="selectedSkillTag() === tag ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
+        >
+          {{ tag }}
+        </button>
+      </div>
+
+      <button
+        *ngIf="hasActiveFilters()"
+        (click)="clearFilters()"
+        class="inline-flex items-center gap-1 text-xs text-rose-600 font-semibold hover:text-rose-800 transition-colors ml-auto"
+      >
+        <mat-icon class="!w-3.5 !h-3.5">restart_alt</mat-icon>
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Filter Chips Bar -->
+  <div *ngIf="hasActiveFilters()" class="flex flex-wrap items-center gap-2 mb-4">
+    <span class="text-xs text-slate-500">Active filters:</span>
+    <span *ngIf="searchQuery()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-xs">
+      Search: "{{ searchQuery() }}"
+      <button (click)="searchQuery.set('')" class="hover:text-emerald-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+    <span *ngIf="selectedStatus() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-md text-xs">
+      Status: {{ selectedStatus() }}
+      <button (click)="selectedStatus.set('ALL')" class="hover:text-blue-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+    <span *ngIf="selectedSharing() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-800 border border-violet-200 rounded-md text-xs">
+      Sharing: {{ selectedSharing() }}
+      <button (click)="selectedSharing.set('ALL')" class="hover:text-violet-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+    <span *ngIf="selectedCategory() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-md text-xs">
+      Category: {{ selectedCategory() }}
+      <button (click)="selectedCategory.set('ALL')" class="hover:text-amber-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+    <span *ngIf="selectedLevel() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-md text-xs">
+      Level: {{ selectedLevel() }}
+      <button (click)="selectedLevel.set('ALL')" class="hover:text-indigo-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+    <span *ngIf="selectedSkillTag() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-md text-xs">
+      Tag: {{ selectedSkillTag() }}
+      <button (click)="selectedSkillTag.set('ALL')" class="hover:text-teal-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
+    </span>
+  </div>
+
+  <!-- Badge Cards Grid -->
+  <div *ngIf="filteredBadges().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div
+      *ngFor="let badge of filteredBadges()"
+      class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+    >
+      <!-- Top Zone: Emblem Visual + Status & Sharing Badges -->
+      <div class="p-5 bg-gradient-to-b from-slate-100/80 to-white relative flex flex-col items-center justify-center border-b border-slate-100">
+        <!-- Status & Sharing Badges -->
+        <div class="absolute top-3 left-3 flex items-center gap-1.5">
+          <!-- Status -->
+          <span
+            *ngIf="badge.status === 'published'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Published
+          </span>
+          <span
+            *ngIf="badge.status === 'draft'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Draft
+          </span>
+          <span
+            *ngIf="badge.status === 'archived'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 flex items-center gap-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Archived
+          </span>
+        </div>
+
+        <div class="absolute top-3 right-3">
+          <!-- Sharing Level Badge -->
+          <span
+            *ngIf="badge.sharing.level === 'organization'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200"
+            title="Organization-wide sharing"
+          >
+            Org-Shared
+          </span>
+          <span
+            *ngIf="badge.sharing.level === 'lms'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200"
+            title="LMS Instance sharing"
+          >
+            LMS-Shared
+          </span>
+          <span
+            *ngIf="badge.sharing.level === 'private'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
+            title="Private to creator"
+          >
+            Private
+          </span>
+        </div>
+
+        <!-- Emblem 1:1 Visual Box -->
+        <div class="w-32 h-32 my-3 relative flex items-center justify-center filter drop-shadow-md group-hover:scale-105 transition-transform duration-200">
+          <!-- Emblem Image if uploaded -->
+          <img
+            *ngIf="badge.emblem.source === 'upload' && badge.emblem.artUrl"
+            [src]="badge.emblem.artUrl"
+            [alt]="badge.name"
+            class="w-full h-full object-contain"
+          />
+
+          <!-- Base Shape SVG SVG Composer -->
+          <div *ngIf="badge.emblem.source === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
+            <!-- Shield -->
+            <svg *ngIf="badge.emblem.baseShape === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
+              <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="4"/>
+            </svg>
+            <!-- Circle -->
+            <svg *ngIf="badge.emblem.baseShape === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#4f46e5'" [attr.stroke]="badge.emblem.accentColor || '#6366f1'" stroke-width="5"/>
+            </svg>
+            <!-- Hexagon -->
+            <svg *ngIf="badge.emblem.baseShape === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
+              <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="badge.emblem.fillColor || '#0f172a'" [attr.stroke]="badge.emblem.accentColor || '#10b981'" stroke-width="4"/>
+            </svg>
+            <!-- Star -->
+            <svg *ngIf="badge.emblem.baseShape === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
+              <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="badge.emblem.fillColor || '#d97706'" [attr.stroke]="badge.emblem.accentColor || '#fbbf24'" stroke-width="3"/>
+            </svg>
+            <!-- Ribbon -->
+            <svg *ngIf="badge.emblem.baseShape === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
+              <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="badge.emblem.accentColor || '#a7f3d0'"/>
+              <circle cx="50" cy="40" r="34" [attr.fill]="badge.emblem.fillColor || '#059669'" stroke="#ffffff" stroke-width="3"/>
+            </svg>
+            <!-- Rosette -->
+            <svg *ngIf="badge.emblem.baseShape === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#7c3aed'" [attr.stroke]="badge.emblem.accentColor || '#ddd6fe'" stroke-width="5" stroke-dasharray="10 4"/>
+              <circle cx="50" cy="50" r="36" fill="none" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+            <!-- Square -->
+            <svg *ngIf="badge.emblem.baseShape === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
+              <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="badge.emblem.fillColor || '#2563eb'" [attr.stroke]="badge.emblem.accentColor || '#60a5fa'" stroke-width="4"/>
+            </svg>
+
+            <!-- Central Glyph / Icon -->
+            <mat-icon class="!w-8 !h-8 text-white absolute inset-0 m-auto flex items-center justify-center drop-shadow-sm">
+              {{ badge.emblem.iconRef || 'verified' }}
+            </mat-icon>
+          </div>
+        </div>
+
+        <!-- Level / Tier Pill if specified -->
+        <span *ngIf="badge.earning?.level" class="px-2.5 py-0.5 bg-slate-900 text-amber-300 rounded-full text-[11px] font-extrabold tracking-wider uppercase border border-amber-400/30">
+          {{ badge.earning.level }}
+        </span>
+      </div>
+
+      <!-- Card Body Content -->
+      <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">{{ badge.category || 'Certification' }}</span>
+            <span class="text-[10px] font-mono text-slate-400">{{ badge.templateId }}</span>
+          </div>
+
+          <h3 class="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1 mt-0.5" [title]="badge.name">
+            {{ badge.name }}
+          </h3>
+
+          <p class="text-xs text-slate-500 line-clamp-2 mt-1 min-h-[2rem]" [title]="badge.description">
+            {{ badge.description || 'No description provided.' }}
+          </p>
+
+          <!-- Earning Criteria Preview -->
+          <div class="mt-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+            <p class="font-semibold text-slate-700 text-[11px] flex items-center gap-1 mb-0.5">
+              <mat-icon class="!w-3.5 !h-3.5 text-emerald-600">assignment_turned_in</mat-icon>
+              Earning Criteria:
+            </p>
+            <p class="text-slate-600 line-clamp-2 italic text-[11px]">
+              "{{ badge.earning?.criteria || 'No criteria specified.' }}"
+            </p>
+          </div>
+
+          <!-- Skill Tags -->
+          <div *ngIf="badge.earning?.skillTags && badge.earning.skillTags.length > 0" class="flex flex-wrap gap-1 mt-3">
+            <span
+              *ngFor="let tag of badge.earning.skillTags.slice(0, 3)"
+              class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium"
+            >
+              #{{ tag }}
+            </span>
+            <span *ngIf="badge.earning.skillTags.length > 3" class="px-1.5 py-0.5 text-slate-400 text-[10px]">
+              +{{ badge.earning.skillTags.length - 3 }} more
+            </span>
+          </div>
+        </div>
+
+        <!-- Meta Footer & Action Buttons -->
+        <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+          <div>
+            <span class="font-medium text-slate-700">{{ badge.usageCount }}</span> usage references
+          </div>
+
+          <!-- Action Dropdown / Button Row -->
+          <div class="flex items-center gap-1">
+            <!-- View / Preview -->
+            <button
+              (click)="openPreview(badge)"
+              class="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+              title="Preview Badge"
+            >
+              <mat-icon class="!w-4 !h-4">visibility</mat-icon>
+            </button>
+
+            <!-- Duplicate -->
+            <button
+              *ngIf="permissions().canDuplicate"
+              (click)="duplicateBadge(badge)"
+              class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Duplicate Badge"
+            >
+              <mat-icon class="!w-4 !h-4">content_copy</mat-icon>
+            </button>
+
+            <!-- Edit -->
+            <button
+              *ngIf="permissions().canEdit && badge.status !== 'archived'"
+              (click)="editBadge(badge)"
+              class="p-1.5 text-slate-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+              title="Edit Badge"
+            >
+              <mat-icon class="!w-4 !h-4">edit</mat-icon>
+            </button>
+
+            <!-- Publish Draft -->
+            <button
+              *ngIf="permissions().canPublish && badge.status === 'draft'"
+              (click)="publishBadge(badge)"
+              class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg transition-colors font-bold"
+              title="Publish Badge"
+            >
+              <mat-icon class="!w-4 !h-4">publish</mat-icon>
+            </button>
+
+            <!-- Archive Published -->
+            <button
+              *ngIf="permissions().canDelete && badge.status === 'published'"
+              (click)="openConfirmModal(badge, 'archive')"
+              class="p-1.5 text-slate-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+              title="Archive Badge"
+            >
+              <mat-icon class="!w-4 !h-4">archive</mat-icon>
+            </button>
+
+            <!-- Delete Draft -->
+            <button
+              *ngIf="permissions().canDelete && badge.status === 'draft'"
+              (click)="openConfirmModal(badge, 'delete')"
+              class="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+              title="Delete Draft"
+            >
+              <mat-icon class="!w-4 !h-4">delete_outline</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Distinct Empty States -->
+  <!-- 1. True Empty State -->
+  <div *ngIf="allBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
+    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <mat-icon class="!w-8 !h-8">workspace_premium</mat-icon>
+    </div>
+    <h3 class="text-lg font-bold text-slate-900">No badge information is available to display.</h3>
+    <p class="text-sm text-slate-500 mt-1 mb-6">Create your first earner badge template with emblem art, earning metadata, and custom placeholders.</p>
+    <button
+      *ngIf="permissions().canCreate"
+      (click)="createBadge()"
+      class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium text-sm rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+    >
+      <mat-icon class="!w-4 !h-4">add</mat-icon>
+      Create First Badge
+    </button>
+  </div>
+
+  <!-- 2. Search Miss -->
+  <div *ngIf="allBadges().length > 0 && searchQuery() && filteredBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
+    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+      <mat-icon class="!w-6 !h-6">search_off</mat-icon>
+    </div>
+    <h3 class="text-base font-bold text-slate-900">No badge found</h3>
+    <p class="text-xs text-slate-500 mt-1 mb-4">No badge matching search term "{{ searchQuery() }}" was found in the repository.</p>
+    <button (click)="searchQuery.set('')" class="text-xs text-emerald-700 font-semibold hover:underline">
+      Clear Search
+    </button>
+  </div>
+
+  <!-- 3. Filter Miss -->
+  <div *ngIf="allBadges().length > 0 && !searchQuery() && filteredBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
+    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+      <mat-icon class="!w-6 !h-6">filter_alt_off</mat-icon>
+    </div>
+    <h3 class="text-base font-bold text-slate-900">No badge found matching the selected filters.</h3>
+    <p class="text-xs text-slate-500 mt-1 mb-4">Try adjusting your category, status, sharing level, or skill tag filter selection.</p>
+    <button (click)="clearFilters()" class="text-xs text-emerald-700 font-semibold hover:underline">
+      Clear All Filters
+    </button>
+  </div>
+
+  <!-- View / Preview Modal -->
+  <div *ngIf="previewingBadge()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-fadeIn">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <mat-icon class="text-emerald-400">workspace_premium</mat-icon>
+          <div>
+            <h3 class="font-bold text-base">{{ previewingBadge()?.name }}</h3>
+            <p class="text-xs text-slate-400">Template ID: {{ previewingBadge()?.templateId }} | {{ previewingBadge()?.category }}</p>
+          </div>
+        </div>
+        <button (click)="closePreview()" class="text-slate-400 hover:text-white"><mat-icon>close</mat-icon></button>
+      </div>
+
+      <!-- Modal Content: Preview Canvas + Metadata Sidebar -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <!-- Left: Emblem Preview with Sample Data Toggle -->
+        <div class="bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center justify-center relative min-h-[300px]">
+          <!-- Sample Data Toggle -->
+          <div class="absolute top-3 right-3 flex items-center gap-2 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs text-xs">
+            <span class="text-slate-600 font-medium">Sample Data:</span>
+            <button
+              (click)="previewSampleData.set(!previewSampleData())"
+              class="px-2 py-0.5 rounded text-[10px] font-bold transition-colors"
+              [ngClass]="previewSampleData() ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'"
+            >
+              {{ previewSampleData() ? 'ON' : 'TOKENS' }}
+            </button>
+          </div>
+
+          <!-- Emblem Box 1:1 -->
+          <div class="w-48 h-48 relative flex items-center justify-center filter drop-shadow-lg">
+            <!-- Uploaded Art -->
+            <img
+              *ngIf="previewingBadge()?.emblem?.source === 'upload' && previewingBadge()?.emblem?.artUrl"
+              [src]="previewingBadge()?.emblem?.artUrl"
+              class="w-full h-full object-contain"
+            />
+
+            <!-- SVG Base Shape -->
+            <div *ngIf="previewingBadge()?.emblem?.source === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
+                <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="4"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
+                <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#4f46e5'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#6366f1'" stroke-width="5"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
+                <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0f172a'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#10b981'" stroke-width="4"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
+                <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#d97706'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#fbbf24'" stroke-width="3"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
+                <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="previewingBadge()?.emblem?.accentColor || '#a7f3d0'"/>
+                <circle cx="50" cy="40" r="34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#059669'" stroke="#ffffff" stroke-width="3"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
+                <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#7c3aed'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#ddd6fe'" stroke-width="5" stroke-dasharray="10 4"/>
+              </svg>
+              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
+                <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#2563eb'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#60a5fa'" stroke-width="4"/>
+              </svg>
+
+              <!-- Central Icon -->
+              <mat-icon class="!w-12 !h-12 text-white absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
+                {{ previewingBadge()?.emblem?.iconRef || 'verified' }}
+              </mat-icon>
+            </div>
+
+            <!-- Overlaid Canvas Elements -->
+            <div
+              *ngFor="let el of previewingBadge()?.elements"
+              class="absolute text-center whitespace-nowrap overflow-hidden text-ellipsis pointer-events-none"
+              [style.left.%]="el.x"
+              [style.top.%]="el.y"
+              [style.width.%]="el.w"
+              [style.height.%]="el.h"
+              [style.font-size.pt]="el.style.fontSizePt"
+              [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
+              [style.color]="el.style.color"
+            >
+              {{ el.kind === 'placeholder' && el.token ? resolveTokenValue(el.token, previewingBadge()!) : el.text }}
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 mt-4 text-center">Open-Badges compliant 512×512 emblem specification</p>
+        </div>
+
+        <!-- Right: Metadata & Earning Summary -->
+        <div class="space-y-4 text-xs">
+          <div>
+            <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Earning Criteria</span>
+            <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 mt-1 leading-relaxed font-medium">
+              "{{ previewingBadge()?.earning?.criteria }}"
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Level / Tier</span>
+              <p class="font-bold text-slate-900 mt-0.5">{{ previewingBadge()?.earning?.level || 'N/A' }}</p>
+            </div>
+            <div>
+              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Sharing Policy</span>
+              <p class="font-bold text-slate-900 mt-0.5 capitalize">{{ previewingBadge()?.sharing?.level }}</p>
+            </div>
+            <div>
+              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Issuer Entity</span>
+              <p class="font-semibold text-slate-800 mt-0.5">{{ previewingBadge()?.earning?.issuerName || 'BRAC Learning Network' }}</p>
+            </div>
+            <div>
+              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Validity / Expiry</span>
+              <p class="font-semibold text-slate-800 mt-0.5">
+                {{ previewingBadge()?.earning?.expires ? (previewingBadge()?.earning?.validity?.amount + ' ' + previewingBadge()?.earning?.validity?.unit) : 'Never expires' }}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Skill Tags</span>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span *ngFor="let tag of previewingBadge()?.earning?.skillTags" class="px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded text-xs font-semibold">
+                #{{ tag }}
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-slate-400 text-[11px]">
+            <span>Created by {{ previewingBadge()?.createdBy }}</span>
+            <span>Created: {{ previewingBadge()?.createdAt }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button (click)="closePreview()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-300">
+          Close Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal (Archive / Delete) -->
+  <div *ngIf="confirmModalAction()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6 text-center animate-fadeIn">
+      <div
+        class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+        [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'"
+      >
+        <mat-icon class="!w-6 !h-6">{{ confirmModalAction() === 'delete' ? 'delete_forever' : 'archive' }}</mat-icon>
+      </div>
+
+      <h3 class="text-base font-bold text-slate-900">
+        {{ confirmModalAction() === 'delete' ? 'Are you sure to delete this draft?' : 'Are you sure to archive this badge?' }}
+      </h3>
+
+      <p class="text-xs text-slate-500 mt-2">
+        {{ targetBadge()?.name }} (ID: {{ targetBadge()?.templateId }})
+      </p>
+
+      <div class="flex items-center justify-center gap-3 mt-6">
+        <button
+          (click)="closeConfirmModal()"
+          class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-colors"
+        >
+          No, Cancel
+        </button>
+        <button
+          (click)="executeConfirmAction()"
+          class="px-4 py-2 text-white text-xs font-semibold rounded-lg transition-colors"
+          [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'"
+        >
+          Yes, Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
