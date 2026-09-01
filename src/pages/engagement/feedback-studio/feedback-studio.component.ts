@@ -12,6 +12,16 @@ import {
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 
+export interface FeedbackFilters {
+  versions: string[];
+  privacy: string[];
+}
+
+export const DEFAULT_FEEDBACK_FILTERS: FeedbackFilters = {
+  versions: [],
+  privacy: []
+};
+
 @Component({
   selector: 'app-feedback-studio',
   imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
@@ -78,58 +88,188 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
       <!-- ================================================================= -->
       @if (activeSubTab() === 'responses') {
         <div class="space-y-4 animate-fade-in">
-          
-          <!-- Filter Toolbar -->
-          <div class="p-4 rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center flex-wrap gap-3">
+                 <!-- Modern Search & Filter Panel Matching Unified SaaS Layout -->
+          <div class="space-y-3 relative z-30">
+            
+            <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               
-              <!-- Search Keyword -->
-              <div class="relative min-w-[220px]">
-                <span class="material-symbols-outlined text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 text-sm">search</span>
-                <input 
-                  type="text"
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                  placeholder="Search trainee name or text..."
-                  class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-600" />
+              <!-- Search Bar with Integrated Action Buttons -->
+              <div class="flex items-center gap-3 flex-1 max-w-2xl">
+                <div class="relative flex-1">
+                  <span class="material-symbols-outlined text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 text-lg select-none pointer-events-none">
+                    search
+                  </span>
+                  <input 
+                    type="text" 
+                    [ngModel]="searchQuery()"
+                    (ngModelChange)="onSearchChange($event)"
+                    placeholder="Search trainee name or text..."
+                    class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
+                  
+                  @if (searchQuery()) {
+                    <button 
+                      type="button" 
+                      (click)="onSearchChange('')"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold cursor-pointer border-0 bg-transparent">
+                      ✕
+                    </button>
+                  }
+                </div>
+
+                <!-- Filters Button -->
+                <button 
+                  type="button" 
+                  (click)="toggleFilterPanel()"
+                  class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+                  [class]="isFilterPanelOpen()
+                    ? 'bg-tenant-500 text-white border-tenant-500'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+                  title="Filters">
+                  <span class="material-symbols-outlined text-base" [class.text-white]="isFilterPanelOpen()">filter_list</span>
+                  <span>Filters</span>
+                </button>
+
+                <!-- Reset Button -->
+                @if (hasActiveFilters() || searchQuery()) {
+                  <button 
+                    type="button" 
+                    (click)="resetFilters()"
+                    class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0">
+                    <span class="material-symbols-outlined text-sm">restart_alt</span>
+                    <span>Reset</span>
+                  </button>
+                }
               </div>
 
-              <!-- Version Filter -->
-              <div class="flex items-center gap-1.5 min-w-[180px]">
-                <span class="text-[11px] font-semibold text-text-secondary shrink-0">Version:</span>
-                <div class="flex-1">
-                  <app-custom-select
-                    [options]="versionOptions()"
-                    [clearable]="false"
-                    [searchable]="false"
-                    placeholder="All Form Versions"
-                    [ngModel]="selectedVersionFilter()"
-                    (ngModelChange)="selectedVersionFilter.set($event)">
-                  </app-custom-select>
-                </div>
-              </div>
-
-              <!-- Privacy / Anonymity Filter -->
-              <div class="flex items-center gap-1.5 min-w-[180px]">
-                <span class="text-[11px] font-semibold text-text-secondary shrink-0">Privacy:</span>
-                <div class="flex-1">
-                  <app-custom-select
-                    [options]="privacyOptions"
-                    [clearable]="false"
-                    [searchable]="false"
-                    placeholder="All Submissions"
-                    [ngModel]="selectedPrivacyFilter()"
-                    (ngModelChange)="selectedPrivacyFilter.set($event)">
-                  </app-custom-select>
-                </div>
+              <!-- Right: Submissions Count Badge -->
+              <div class="flex items-center justify-end shrink-0">
+                <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-mono font-semibold text-xs text-text-secondary">
+                  Showing <strong class="text-text-primary">{{ filteredResponses().length }}</strong> of <strong class="text-text-primary">{{ planResponses().length }}</strong> submissions
+                </span>
               </div>
 
             </div>
 
-            <!-- Total Stats Chip -->
-            <div class="text-xs text-text-secondary font-medium">
-              Showing <strong>{{ filteredResponses().length }}</strong> of {{ planResponses().length }} submissions
-            </div>
+            <!-- Collapsible Filter Drawer Card -->
+            @if (isFilterPanelOpen()) {
+              <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+                  <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+                    FILTER FEEDBACK RESPONSES
+                  </h3>
+                  <span class="text-[11px] text-text-secondary font-medium">
+                    Combine criteria with AND &bull; Multiple values in same category with OR
+                  </span>
+                </div>
+
+                <!-- Filter Body Grid: Clean 2-column layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 pt-1">
+                  
+                  <!-- 1. Form Version -->
+                  <div class="space-y-2.5">
+                    <label class="text-xs font-bold text-text-primary block">
+                      1. Form Version
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      @for (ver of versionFilterOptions(); track ver.value) {
+                        <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                          <input 
+                            type="checkbox" 
+                            [checked]="draftFilters().versions.includes(ver.value)"
+                            (change)="toggleVersionDraft(ver.value)"
+                            class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="ver.badgeClass">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="ver.dotClass"></span>
+                            <span class="truncate">{{ ver.label }}</span>
+                          </span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- 2. Submission Privacy -->
+                  <div class="space-y-2.5">
+                    <label class="text-xs font-bold text-text-primary block">
+                      2. Submission Privacy
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      @for (priv of privacyFilterOptions; track priv.value) {
+                        <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                          <input 
+                            type="checkbox" 
+                            [checked]="draftFilters().privacy.includes(priv.value)"
+                            (change)="togglePrivacyDraft(priv.value)"
+                            class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="priv.badgeClass">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="priv.dotClass"></span>
+                            <span class="truncate">{{ priv.label }}</span>
+                          </span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
+                  <button 
+                    type="button" 
+                    (click)="clearFilterPanelDraft()"
+                    class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0 bg-transparent">
+                    Clear All Selections
+                  </button>
+
+                  <div class="flex items-center gap-2">
+                    <button 
+                      type="button" 
+                      (click)="closeFilterPanel()"
+                      class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0">
+                      Cancel
+                    </button>
+                    <button 
+                      type="button" 
+                      (click)="applyFilterPanel()"
+                      class="px-4 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer border-0">
+                      Apply Filter
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            }
+
+            <!-- Active Filter Badge Chips Row -->
+            @if (hasActiveFilters() || searchQuery()) {
+              <div class="flex items-center flex-wrap gap-2 pt-1 animate-in fade-in">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Filters:</span>
+                
+                @if (searchQuery()) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Query: "{{ searchQuery() }}"</span>
+                    <button type="button" (click)="onSearchChange('')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+
+                @for (vId of appliedFilters().versions; track vId) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Version: {{ getVersionLabel(vId) }}</span>
+                    <button type="button" (click)="removeVersionFilter(vId)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+
+                @for (priv of appliedFilters().privacy; track priv) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Privacy: {{ getPrivacyLabel(priv) }}</span>
+                    <button type="button" (click)="removePrivacyFilter(priv)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+              </div>
+            }
+
           </div>
 
           <!-- Responses Table -->
@@ -697,8 +837,9 @@ export class FeedbackStudioComponent implements OnInit {
 
   activeSubTab = signal<'responses' | 'versions' | 'submit-simulator'>('responses');
   searchQuery = signal<string>('');
-  selectedVersionFilter = signal<string>('all');
-  selectedPrivacyFilter = signal<string>('all');
+  isFilterPanelOpen = signal<boolean>(false);
+  appliedFilters = signal<FeedbackFilters>({ ...DEFAULT_FEEDBACK_FILTERS });
+  draftFilters = signal<FeedbackFilters>({ ...DEFAULT_FEEDBACK_FILTERS });
 
   inspectingResponse = signal<FeedbackResponse | null>(null);
   showBuilderModal = signal<boolean>(false);
@@ -708,8 +849,36 @@ export class FeedbackStudioComponent implements OnInit {
   submissionIsAnonymous = signal<boolean>(false);
   simulationAnswers = signal<{ [qId: string]: { text?: string; selectedOptionIds?: string[] } }>({});
 
+  privacyFilterOptions = [
+    { 
+      value: 'identified', 
+      label: 'Identified Trainees', 
+      dotClass: 'bg-emerald-500', 
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40' 
+    },
+    { 
+      value: 'anonymous', 
+      label: 'Anonymous Only', 
+      dotClass: 'bg-purple-500', 
+      badgeClass: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800/40' 
+    }
+  ];
+
   activeForm = computed<FeedbackForm | undefined>(() => {
     return this.lmsData.getFeedbackFormForPlan(this.planId());
+  });
+
+  versionFilterOptions = computed(() => {
+    const versions = this.activeForm()?.versions || [];
+    return versions.map(v => ({
+      value: v.versionId,
+      label: `${v.versionLabel} (${v.state === 'published-current' ? 'Current' : (v.state === 'published-superseded' ? 'Historical' : v.state)})`,
+      versionLabel: v.versionLabel,
+      dotClass: v.state === 'published-current' ? 'bg-emerald-500' : 'bg-indigo-500',
+      badgeClass: v.state === 'published-current' 
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40'
+        : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-800/40'
+    }));
   });
 
   versionOptions = computed(() => {
@@ -739,19 +908,30 @@ export class FeedbackStudioComponent implements OnInit {
     return this.lmsData.getFeedbackResponsesForPlan(this.planId());
   });
 
+  hasActiveFilters = computed<boolean>(() => {
+    const f = this.appliedFilters();
+    return f.versions.length > 0 || f.privacy.length > 0;
+  });
+
+  activeFilterCount = computed<number>(() => {
+    const f = this.appliedFilters();
+    return f.versions.length + f.privacy.length;
+  });
+
   filteredResponses = computed<FeedbackResponse[]>(() => {
     let list = this.planResponses();
     const q = this.searchQuery().toLowerCase().trim();
-    const ver = this.selectedVersionFilter();
-    const priv = this.selectedPrivacyFilter();
+    const filters = this.appliedFilters();
 
-    if (ver !== 'all') {
-      list = list.filter(r => r.feedbackFormVersionId === ver);
+    if (filters.versions.length > 0) {
+      list = list.filter(r => filters.versions.includes(r.feedbackFormVersionId));
     }
-    if (priv === 'anonymous') {
-      list = list.filter(r => r.isAnonymous);
-    } else if (priv === 'identified') {
-      list = list.filter(r => !r.isAnonymous);
+    if (filters.privacy.length > 0) {
+      list = list.filter(r => {
+        if (filters.privacy.includes('anonymous') && r.isAnonymous) return true;
+        if (filters.privacy.includes('identified') && !r.isAnonymous) return true;
+        return false;
+      });
     }
     if (q) {
       list = list.filter(r => 
@@ -770,6 +950,88 @@ export class FeedbackStudioComponent implements OnInit {
     return ver ? ver.questions : [];
   });
 
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+  }
+
+  toggleFilterPanel() {
+    if (!this.isFilterPanelOpen()) {
+      this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+    }
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  closeFilterPanel() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  toggleVersionDraft(vId: string) {
+    this.draftFilters.update(f => {
+      const exists = f.versions.includes(vId);
+      const next = exists ? f.versions.filter(v => v !== vId) : [...f.versions, vId];
+      return { ...f, versions: next };
+    });
+  }
+
+  togglePrivacyDraft(priv: string) {
+    this.draftFilters.update(f => {
+      const exists = f.privacy.includes(priv);
+      const next = exists ? f.privacy.filter(p => p !== priv) : [...f.privacy, priv];
+      return { ...f, privacy: next };
+    });
+  }
+
+  applyFilterPanel() {
+    this.appliedFilters.set(JSON.parse(JSON.stringify(this.draftFilters())));
+    this.isFilterPanelOpen.set(false);
+  }
+
+  clearFilterPanelDraft() {
+    this.draftFilters.set({
+      versions: [],
+      privacy: []
+    });
+  }
+
+  resetFilters() {
+    this.appliedFilters.set({
+      versions: [],
+      privacy: []
+    });
+    this.draftFilters.set({
+      versions: [],
+      privacy: []
+    });
+    this.searchQuery.set('');
+  }
+
+  removeVersionFilter(vId: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      versions: f.versions.filter(v => v !== vId)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
+  removePrivacyFilter(priv: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      privacy: f.privacy.filter(p => p !== priv)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
+  getVersionLabel(vId: string): string {
+    const v = this.activeForm()?.versions.find(ver => ver.versionId === vId);
+    return v ? v.versionLabel : vId;
+  }
+
+  getPrivacyLabel(priv: string): string {
+    if (priv === 'anonymous') return 'Anonymous Only';
+    if (priv === 'identified') return 'Identified Trainees';
+    return priv;
+  }
+
   ngOnInit() {
     this.resetSimulationAnswers();
   }
@@ -782,12 +1044,6 @@ export class FeedbackStudioComponent implements OnInit {
       ans[q.questionId] = { text: '', selectedOptionIds: [] };
     });
     this.simulationAnswers.set(ans);
-  }
-
-  resetFilters() {
-    this.searchQuery.set('');
-    this.selectedVersionFilter.set('all');
-    this.selectedPrivacyFilter.set('all');
   }
 
   inspectResponse(resp: FeedbackResponse) {

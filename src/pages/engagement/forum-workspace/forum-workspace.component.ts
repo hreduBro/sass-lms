@@ -14,6 +14,16 @@ import {
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 
+export interface ForumFilters {
+  categories: string[];
+  statuses: string[];
+}
+
+export const DEFAULT_FORUM_FILTERS: ForumFilters = {
+  categories: [],
+  statuses: []
+};
+
 @Component({
   selector: 'app-forum-workspace',
   imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
@@ -59,62 +69,219 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
       @if (!activeTopic()) {
         <div class="space-y-4 animate-fade-in">
           
-          <!-- Search & Filter Controls -->
-          <div class="p-4 rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <!-- Modern Search & Filter Panel Matching Unified SaaS Layout -->
+          <div class="space-y-3 relative z-30">
             
-            <div class="flex items-center flex-wrap gap-3 flex-1">
+            <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               
-              <!-- Search Keyword -->
-              <div class="relative min-w-[240px] flex-1 max-w-md">
-                <span class="material-symbols-outlined text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 text-sm">search</span>
-                <input 
-                  type="text" 
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                  placeholder="Search topics by title or post keywords..."
-                  class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-600" />
+              <!-- Search Bar with Integrated Action Buttons -->
+              <div class="flex items-center gap-3 flex-1 max-w-2xl">
+                <div class="relative flex-1">
+                  <span class="material-symbols-outlined text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 text-lg select-none pointer-events-none">
+                    search
+                  </span>
+                  <input 
+                    type="text" 
+                    [ngModel]="searchQuery()"
+                    (ngModelChange)="onSearchChange($event)"
+                    placeholder="Search topics by title or post keywords..."
+                    class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
+                  
+                  @if (searchQuery()) {
+                    <button 
+                      type="button" 
+                      (click)="onSearchChange('')"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold cursor-pointer border-0 bg-transparent">
+                      ✕
+                    </button>
+                  }
+                </div>
+
+                <!-- Filters Button -->
+                <button 
+                  type="button" 
+                  (click)="toggleFilterPanel()"
+                  class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+                  [class]="isFilterPanelOpen()
+                    ? 'bg-tenant-500 text-white border-tenant-500'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+                  title="Filters">
+                  <span class="material-symbols-outlined text-base" [class.text-white]="isFilterPanelOpen()">filter_list</span>
+                  <span>Filters</span>
+                </button>
+
+                <!-- Reset Button -->
+                @if (hasActiveFilters() || searchQuery()) {
+                  <button 
+                    type="button" 
+                    (click)="resetAllFilters()"
+                    class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0"
+                    title="Reset All">
+                    <span class="material-symbols-outlined text-sm">restart_alt</span>
+                    <span>Reset</span>
+                  </button>
+                }
               </div>
 
-              <!-- Category Filter -->
-              <div class="w-48">
-                <app-custom-select
-                  [options]="categoryOptions"
-                  [clearable]="false"
-                  [searchable]="false"
-                  placeholder="All Categories"
-                  [ngModel]="selectedCategory()"
-                  (ngModelChange)="selectedCategory.set($event)">
-                </app-custom-select>
-              </div>
-
-              <!-- Status Filter -->
-              <div class="w-44">
-                <app-custom-select
-                  [options]="statusOptions"
-                  [clearable]="false"
-                  [searchable]="false"
-                  placeholder="All Statuses"
-                  [ngModel]="selectedStatusFilter()"
-                  (ngModelChange)="selectedStatusFilter.set($event)">
-                </app-custom-select>
+              <!-- Right: New Topic Trigger -->
+              <div class="flex items-center gap-3 justify-end shrink-0">
+                <button 
+                  type="button" 
+                  (click)="showCreateTopicModal.set(true)"
+                  class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs border-0 shrink-0">
+                  <span class="material-symbols-outlined text-base">add_comment</span>
+                  <span>New Topic</span>
+                </button>
               </div>
 
             </div>
 
-            <!-- Sort -->
-            <div class="flex items-center gap-2 text-xs text-text-secondary min-w-[180px]">
-              <span class="shrink-0">Sort by:</span>
-              <div class="flex-1">
-                <app-custom-select
-                  [options]="sortOptions"
-                  [clearable]="false"
-                  [searchable]="false"
-                  placeholder="Latest Activity"
-                  [ngModel]="selectedSort()"
-                  (ngModelChange)="selectedSort.set($event)">
-                </app-custom-select>
+            <!-- Collapsible Filter Drawer Card -->
+            @if (isFilterPanelOpen()) {
+              <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+                  <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+                    FILTER DISCUSSION TOPICS
+                  </h3>
+                  <span class="text-[11px] text-text-secondary font-medium">
+                    Combine criteria with AND &bull; Multiple values in same category with OR
+                  </span>
+                </div>
+
+                <!-- Filter Body Grid: 3-column layout -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 pt-1">
+                  
+                  <!-- 1. Topic Category -->
+                  <div class="space-y-2.5">
+                    <label class="text-xs font-bold text-text-primary block">
+                      1. Topic Category
+                    </label>
+                    <div class="space-y-1.5">
+                      @for (cat of categoryFilterOptions; track cat.value) {
+                        <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                          <input 
+                            type="checkbox" 
+                            [checked]="draftFilters().categories.includes(cat.value)"
+                            (change)="toggleCategoryDraft(cat.value)"
+                            class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="cat.badgeClass">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="cat.dotClass"></span>
+                            <span class="truncate">{{ cat.label }}</span>
+                          </span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- 2. Topic Status -->
+                  <div class="space-y-2.5">
+                    <label class="text-xs font-bold text-text-primary block">
+                      2. Topic Status
+                    </label>
+                    <div class="space-y-1.5">
+                      @for (stat of statusFilterOptions; track stat.value) {
+                        <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                          <input 
+                            type="checkbox" 
+                            [checked]="draftFilters().statuses.includes(stat.value)"
+                            (change)="toggleStatusDraft(stat.value)"
+                            class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="stat.badgeClass">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="stat.dotClass"></span>
+                            <span class="truncate">{{ stat.label }}</span>
+                          </span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- 3. Sort by Dropdown -->
+                  <div class="space-y-2.5">
+                    <label class="text-xs font-bold text-text-primary block">
+                      3. Sort by
+                    </label>
+                    <div class="space-y-2">
+                      <app-custom-select
+                        [options]="sortOptions"
+                        [clearable]="false"
+                        [searchable]="false"
+                        placeholder="Select sort order..."
+                        [ngModel]="draftSort()"
+                        (ngModelChange)="draftSort.set($event)">
+                      </app-custom-select>
+                      <p class="text-[11px] text-text-secondary leading-normal">
+                        Order topics by latest activity, total responses, or oldest threads first.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
+                  <button 
+                    type="button" 
+                    (click)="clearFilterPanelDraft()"
+                    class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0 bg-transparent">
+                    Clear All Selections
+                  </button>
+
+                  <div class="flex items-center gap-2">
+                    <button 
+                      type="button" 
+                      (click)="closeFilterPanel()"
+                      class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0">
+                      Cancel
+                    </button>
+                    <button 
+                      type="button" 
+                      (click)="applyFilterPanel()"
+                      class="px-4 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer border-0">
+                      Apply Filter
+                    </button>
+                  </div>
+                </div>
+
               </div>
-            </div>
+            }
+
+            <!-- Active Filter Badge Chips Row -->
+            @if (hasActiveFilters() || searchQuery()) {
+              <div class="flex items-center flex-wrap gap-2 pt-1 animate-in fade-in">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Filters:</span>
+                
+                @if (searchQuery()) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Query: "{{ searchQuery() }}"</span>
+                    <button type="button" (click)="onSearchChange('')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+
+                @for (cat of appliedFilters().categories; track cat) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Category: {{ cat }}</span>
+                    <button type="button" (click)="removeCategoryFilter(cat)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+
+                @for (stat of appliedFilters().statuses; track stat) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Status: {{ getStatusLabel(stat) }}</span>
+                    <button type="button" (click)="removeStatusFilter(stat)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+
+                @if (selectedSort() !== 'latest') {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                    <span>Sort: {{ getSortLabel(selectedSort()) }}</span>
+                    <button type="button" (click)="selectedSort.set('latest'); draftSort.set('latest')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
+                  </span>
+                }
+              </div>
+            }
 
           </div>
 
@@ -713,9 +880,11 @@ export class ForumWorkspaceComponent implements OnInit {
   ];
 
   searchQuery = signal<string>('');
-  selectedCategory = signal<string>('all');
-  selectedStatusFilter = signal<string>('all');
   selectedSort = signal<string>('latest');
+  draftSort = signal<string>('latest');
+  isFilterPanelOpen = signal<boolean>(false);
+  appliedFilters = signal<ForumFilters>({ ...DEFAULT_FORUM_FILTERS });
+  draftFilters = signal<ForumFilters>({ ...DEFAULT_FORUM_FILTERS });
 
   activeTopic = signal<ForumTopic | null>(null);
   showCreateTopicModal = signal<boolean>(false);
@@ -725,6 +894,54 @@ export class ForumWorkspaceComponent implements OnInit {
   replyingToPostId = signal<string | null>(null);
   stagedAttachments = signal<ForumAttachment[]>([]);
 
+  categoryFilterOptions = [
+    { 
+      value: 'Announcements', 
+      label: '📢 Announcements', 
+      dotClass: 'bg-amber-500', 
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40' 
+    },
+    { 
+      value: 'Field Q&A', 
+      label: '💬 Field Q&A', 
+      dotClass: 'bg-emerald-500', 
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40' 
+    },
+    { 
+      value: 'Disaster Relief', 
+      label: '🛡️ Disaster Relief', 
+      dotClass: 'bg-rose-500', 
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40' 
+    },
+    { 
+      value: 'General Discussion', 
+      label: '💡 General Discussion', 
+      dotClass: 'bg-indigo-500', 
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-800/40' 
+    }
+  ];
+
+  statusFilterOptions = [
+    { 
+      value: 'pinned', 
+      label: '📌 Pinned Only', 
+      dotClass: 'bg-amber-500', 
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40' 
+    },
+    { 
+      value: 'active', 
+      label: '⚡ Active / Open', 
+      dotClass: 'bg-emerald-500', 
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40' 
+    },
+    { 
+      value: 'locked', 
+      label: '🔒 Locked Topics', 
+      dotClass: 'bg-rose-500', 
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800/40' 
+    }
+  ];
+
   currentForum = computed<DiscussionForum>(() => {
     return this.lmsData.getForumForPlan(this.planId());
   });
@@ -733,22 +950,33 @@ export class ForumWorkspaceComponent implements OnInit {
     return this.lmsData.contentRepoAssets();
   });
 
+  hasActiveFilters = computed<boolean>(() => {
+    const f = this.appliedFilters();
+    return f.categories.length > 0 || f.statuses.length > 0 || this.selectedSort() !== 'latest';
+  });
+
+  activeFilterCount = computed<number>(() => {
+    const f = this.appliedFilters();
+    const sortCount = this.selectedSort() !== 'latest' ? 1 : 0;
+    return f.categories.length + f.statuses.length + sortCount;
+  });
+
   filteredTopics = computed<ForumTopic[]>(() => {
     const forum = this.currentForum();
     let list = [...forum.topics];
     const q = this.searchQuery().toLowerCase().trim();
-    const cat = this.selectedCategory();
-    const stat = this.selectedStatusFilter();
+    const filters = this.appliedFilters();
 
-    if (cat !== 'all') {
-      list = list.filter(t => t.categoryTag === cat);
+    if (filters.categories.length > 0) {
+      list = list.filter(t => filters.categories.includes(t.categoryTag));
     }
-    if (stat === 'pinned') {
-      list = list.filter(t => t.pinned);
-    } else if (stat === 'locked') {
-      list = list.filter(t => t.locked);
-    } else if (stat === 'active') {
-      list = list.filter(t => !t.locked);
+    if (filters.statuses.length > 0) {
+      list = list.filter(t => {
+        if (filters.statuses.includes('pinned') && t.pinned) return true;
+        if (filters.statuses.includes('locked') && t.locked) return true;
+        if (filters.statuses.includes('active') && !t.locked) return true;
+        return false;
+      });
     }
     if (q) {
       list = list.filter(t => 
@@ -771,6 +999,94 @@ export class ForumWorkspaceComponent implements OnInit {
 
     return list;
   });
+
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+  }
+
+  getSortLabel(val: string): string {
+    const opt = this.sortOptions.find(o => o.value === val);
+    return opt ? opt.label : val;
+  }
+
+  toggleFilterPanel() {
+    if (!this.isFilterPanelOpen()) {
+      this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+      this.draftSort.set(this.selectedSort());
+    }
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  closeFilterPanel() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  toggleCategoryDraft(cat: string) {
+    this.draftFilters.update(f => {
+      const exists = f.categories.includes(cat);
+      const next = exists ? f.categories.filter(c => c !== cat) : [...f.categories, cat];
+      return { ...f, categories: next };
+    });
+  }
+
+  toggleStatusDraft(stat: string) {
+    this.draftFilters.update(f => {
+      const exists = f.statuses.includes(stat);
+      const next = exists ? f.statuses.filter(s => s !== stat) : [...f.statuses, stat];
+      return { ...f, statuses: next };
+    });
+  }
+
+  applyFilterPanel() {
+    this.appliedFilters.set(JSON.parse(JSON.stringify(this.draftFilters())));
+    this.selectedSort.set(this.draftSort());
+    this.isFilterPanelOpen.set(false);
+  }
+
+  clearFilterPanelDraft() {
+    this.draftFilters.set({
+      categories: [],
+      statuses: []
+    });
+    this.draftSort.set('latest');
+  }
+
+  resetAllFilters() {
+    this.appliedFilters.set({
+      categories: [],
+      statuses: []
+    });
+    this.draftFilters.set({
+      categories: [],
+      statuses: []
+    });
+    this.selectedSort.set('latest');
+    this.draftSort.set('latest');
+    this.searchQuery.set('');
+  }
+
+  removeCategoryFilter(cat: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      categories: f.categories.filter(c => c !== cat)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
+  removeStatusFilter(stat: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      statuses: f.statuses.filter(s => s !== stat)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
+  getStatusLabel(stat: string): string {
+    if (stat === 'pinned') return 'Pinned Only';
+    if (stat === 'active') return 'Active / Open';
+    if (stat === 'locked') return 'Locked Topics';
+    return stat;
+  }
 
   topicForm = this.fb.group({
     title: ['', [Validators.required]],

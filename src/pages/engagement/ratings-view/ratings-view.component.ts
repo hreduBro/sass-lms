@@ -12,6 +12,16 @@ import {
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 
+export interface RatingFilters {
+  levels: string[];
+  dimensions: string[];
+}
+
+export const DEFAULT_RATING_FILTERS: RatingFilters = {
+  levels: [],
+  dimensions: []
+};
+
 @Component({
   selector: 'app-ratings-view',
   imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
@@ -151,54 +161,70 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
       </div>
 
       <!-- ========================================================================= -->
-      <!-- 2. SEARCH & INTEGRATED FILTER TOOLBAR (Matches All Organizations Pattern) -->
+      <!-- 2. SEARCH & INTEGRATED FILTER TOOLBAR (Unified SaaS Design)               -->
       <!-- ========================================================================= -->
-      <div class="space-y-4 relative z-30">
+      <div class="space-y-3 relative z-30">
         
-        <!-- Search Card matching Screenshot 1 exactly -->
-        <div class="p-6 bg-white dark:bg-base-100 rounded-[24px] border border-[#E4E9F2] dark:border-base-300 flex items-center justify-between gap-3 shadow-sm">
+        <!-- Search Toolbar Card matching Unified SaaS Style (Image 2) -->
+        <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           
-          <!-- Left: Search Field with Pill shape and Search Icon -->
-          <div class="relative flex-1">
-            <span class="material-symbols-outlined absolute left-4.5 top-1/2 -translate-y-1/2 text-[#8F9BB3] text-lg pointer-events-none">search</span>
-            <input 
-              type="text" 
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
-              placeholder="Search reviews by comments, trainee name, courses..." 
-              class="w-full pl-11 pr-10 py-3 rounded-2xl bg-white dark:bg-base-200/50 border border-[#E4E9F2] dark:border-base-300 text-sm text-[#222B45] dark:text-slate-200 placeholder-[#8F9BB3] focus:outline-none focus:ring-2 focus:ring-[#EC008C]/15 focus:border-[#EC008C] transition-all" />
+          <!-- Left: Search Field + Filters Button + Reset -->
+          <div class="flex items-center gap-3 flex-1 max-w-2xl">
+            
+            <!-- Search Field -->
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+              <input 
+                type="text" 
+                [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchChange($event)"
+                placeholder="Search reviews by comments, trainee name, courses..." 
+                class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
 
-            @if (searchQuery()) {
-              <button 
-                type="button"
-                (click)="searchQuery.set('')"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 rounded-md cursor-pointer flex items-center justify-center border-0 bg-transparent">
-                <span class="material-symbols-outlined text-xs">close</span>
-              </button>
-            }
-          </div>
-          
-          <!-- Right: Trigger Buttons (Filters & Submit Rating) in Pink Pill Style -->
-          <div class="flex items-center gap-3 shrink-0">
-            <!-- Filters button -->
+              @if (searchQuery()) {
+                <button 
+                  type="button"
+                  (click)="onSearchChange('')"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer border-0 bg-transparent"
+                  title="Clear search">
+                  <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+              }
+            </div>
+            
+            <!-- Filter Button beside Search -->
             <button 
               type="button"
-              (click)="showFilterDrawer.set(!showFilterDrawer())"
-              class="px-6 py-3 rounded-2xl bg-[#EC008C] hover:bg-[#D0007A] text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs border-0">
-              <span class="material-symbols-outlined text-base">filter_list</span>
+              (click)="toggleFilterPanel()"
+              class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+              [class]="isFilterPanelOpen()
+                ? 'bg-tenant-500 text-white border-tenant-500'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+              title="Filters">
+              <span class="material-symbols-outlined text-base" [class.text-white]="isFilterPanelOpen()">filter_list</span>
               <span>Filters</span>
-              @if (activeFilterCount() > 0) {
-                <span class="w-4.5 h-4.5 rounded-full bg-white text-[#EC008C] text-[10px] font-extrabold flex items-center justify-center">
-                  {{ activeFilterCount() }}
-                </span>
-              }
             </button>
 
-            <!-- Submit Rating button -->
+            <!-- Reset Button beside Filters -->
+            @if (hasActiveFilters() || searchQuery()) {
+              <button 
+                type="button"
+                (click)="resetAllFilters()"
+                class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
+                title="Reset Filters">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                <span>Reset</span>
+              </button>
+            }
+
+          </div>
+
+          <!-- Right: Submit Rating Button -->
+          <div class="flex items-center gap-3 shrink-0">
             <button 
               type="button" 
               (click)="openRatingModal()"
-              class="px-6 py-3 rounded-2xl bg-[#EC008C] hover:bg-[#D0007A] text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs border-0">
+              class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs border-0">
               <span class="material-symbols-outlined text-base">rate_review</span>
               <span>Submit Rating</span>
             </button>
@@ -206,105 +232,121 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
 
         </div>
 
-        <!-- Collapsible Filter Drawer matching Screenshot 2 exactly -->
-        @if (showFilterDrawer()) {
-          <div class="p-6.5 bg-white dark:bg-base-100 border border-[#E4E9F2] dark:border-base-300 rounded-[24px] shadow-md space-y-6 animate-in fade-in duration-200">
+        <!-- Collapsible Filter Drawer Card matching Image 2 -->
+        @if (isFilterPanelOpen()) {
+          <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
             
-            <!-- Header matching the screenshot exactly -->
-            <div class="flex items-center justify-between pb-3.5 border-b border-[#E4E9F2] dark:border-base-200">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-base text-[#EC008C]">tune</span>
-                <h3 class="text-xs font-extrabold text-[#222B45] dark:text-text-primary uppercase tracking-wider">FILTER RATINGS & TELEMETRY</h3>
-              </div>
-              <span class="text-[11px] text-[#8F9BB3] font-medium">
-                Refine by evaluating scope level and category dimensions
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+              <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+                FILTER RATINGS & TELEMETRY
+              </h3>
+              <span class="text-[11px] text-text-secondary font-medium">
+                Combine criteria with AND &bull; Multiple values in same category with OR
               </span>
             </div>
 
-            <!-- Two dropdown column selectors -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
-              <!-- Level Selection -->
-              <div class="space-y-1.5">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-[#8F9BB3] block">SCOPE LEVEL</label>
-                <app-custom-select
-                  [options]="levelOptions()"
-                  [clearable]="false"
-                  [searchable]="false"
-                  placeholder="All Levels"
-                  [ngModel]="selectedLevel()"
-                  (ngModelChange)="selectedLevel.set($event)">
-                </app-custom-select>
+            <!-- Filter Body Grid: Clean 2-column layout with balanced spacing -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 pt-1">
+              
+              <!-- 1. Scope Level -->
+              <div class="space-y-2.5">
+                <label class="text-xs font-bold text-text-primary block">
+                  1. Scope Level
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  @for (lvl of scopeLevelOptions; track lvl.value) {
+                    <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        [checked]="draftFilters().levels.includes(lvl.value)"
+                        (change)="toggleLevelDraft(lvl.value)"
+                        class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="lvl.badgeClass">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="lvl.dotClass"></span>
+                        <span class="truncate">{{ lvl.label }}</span>
+                      </span>
+                    </label>
+                  }
+                </div>
               </div>
 
-              <!-- Dimension Selection -->
-              <div class="space-y-1.5">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-[#8F9BB3] block">DIMENSION CATEGORY</label>
-                <app-custom-select
-                  [options]="dimensionOptions"
-                  [clearable]="false"
-                  [searchable]="false"
-                  placeholder="All Dimensions"
-                  [ngModel]="selectedDimensionFilter()"
-                  (ngModelChange)="selectedDimensionFilter.set($event)">
-                </app-custom-select>
+              <!-- 2. Dimension Category -->
+              <div class="space-y-2.5">
+                <label class="text-xs font-bold text-text-primary block">
+                  2. Dimension Category
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  @for (dim of dimensionFilterOptions; track dim.value) {
+                    <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        [checked]="draftFilters().dimensions.includes(dim.value)"
+                        (change)="toggleDimensionDraft(dim.value)"
+                        class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs truncate" [class]="dim.badgeClass">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0" [class]="dim.dotClass"></span>
+                        <span class="truncate">{{ dim.label }}</span>
+                      </span>
+                    </label>
+                  }
+                </div>
               </div>
+
             </div>
 
-            <!-- Footer matching Screenshot 2 exactly with Clear All Selections and Cancel/Apply Filter buttons -->
-            <div class="pt-5 border-t border-[#E4E9F2] dark:border-base-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <!-- Clear All Selections on Left -->
+            <!-- Footer Actions -->
+            <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
               <button 
-                type="button"
-                (click)="resetAllFilters()"
-                class="text-xs text-[#5B6B8A] hover:text-[#EC008C] font-bold transition-colors cursor-pointer border-0 bg-transparent"
-              >
+                type="button" 
+                (click)="clearFilterPanelDraft()"
+                class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0 bg-transparent">
                 Clear All Selections
               </button>
 
-              <!-- Cancel and Apply Filter on Right -->
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
                 <button 
                   type="button" 
-                  (click)="showFilterDrawer.set(false)" 
-                  class="px-6 py-2.5 bg-[#F7F9FC] hover:bg-[#EDF1F7] dark:bg-base-200 dark:hover:bg-base-300 rounded-full text-xs font-bold text-[#222B45] dark:text-slate-300 transition-all cursor-pointer border border-[#E4E9F2] dark:border-base-300"
-                >
+                  (click)="closeFilterPanel()"
+                  class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0">
                   Cancel
                 </button>
                 <button 
                   type="button" 
-                  (click)="showFilterDrawer.set(false)" 
-                  class="px-6 py-2.5 bg-[#EC008C] hover:bg-[#D0007A] active:scale-95 text-white text-xs font-bold rounded-full shadow-xs transition-all cursor-pointer border-0"
-                >
+                  (click)="applyFilterPanel()"
+                  class="px-4 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer border-0">
                   Apply Filter
                 </button>
               </div>
             </div>
+
           </div>
         }
 
         <!-- Active Filter Badge Chips Row -->
-        @if (activeFilterCount() > 0 || searchQuery()) {
+        @if (hasActiveFilters() || searchQuery()) {
           <div class="flex items-center flex-wrap gap-2 pt-1 animate-in fade-in">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Filters:</span>
             
             @if (searchQuery()) {
-              <span class="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
                 <span>Query: "{{ searchQuery() }}"</span>
-                <button type="button" (click)="searchQuery.set('')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer">✕</button>
+                <button type="button" (click)="onSearchChange('')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
               </span>
             }
 
-            @if (selectedLevel() !== 'all') {
-              <span class="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
-                <span>Scope: {{ getLevelLabel(selectedLevel()) }}</span>
-                <button type="button" (click)="selectedLevel.set('all')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer">✕</button>
+            @for (lvl of appliedFilters().levels; track lvl) {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                <span>Scope: {{ getLevelLabel(lvl) }}</span>
+                <button type="button" (click)="removeLevelFilter(lvl)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
               </span>
             }
 
-            @if (selectedDimensionFilter() !== 'all') {
-              <span class="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
-                <span>Dimension: {{ getDimensionLabel(selectedDimensionFilter()) }}</span>
-                <button type="button" (click)="selectedDimensionFilter.set('all')" class="hover:text-rose-500 font-bold ml-1 cursor-pointer">✕</button>
+            @for (dim of appliedFilters().dimensions; track dim) {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-base-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-base-300 text-xs rounded-xl font-medium">
+                <span>Dimension: {{ getDimensionLabel(dim) }}</span>
+                <button type="button" (click)="removeDimensionFilter(dim)" class="hover:text-rose-500 font-bold ml-1 cursor-pointer border-0 bg-transparent">✕</button>
               </span>
             }
           </div>
@@ -317,66 +359,66 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
       <!-- ========================================================================= -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         @for (item of filteredRatings(); track item.id) {
-          <div class="p-5.5 rounded-3xl bg-base-100 border border-base-300 shadow-sm hover:border-base-400 hover:shadow-md transition-all duration-200 flex flex-col justify-between relative group">
+          <div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-base-400 transition-all duration-200 flex flex-col justify-between relative group">
             
             <div>
               <!-- Header Block: Reviewer info & Star score -->
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex items-center gap-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
                   <app-custom-avatar [name]="item.userName" [url]="item.userAvatar" size="sm" shape="squircle"></app-custom-avatar>
-                  <div>
-                    <h4 class="text-xs font-extrabold text-text-primary">{{ item.userName }}</h4>
-                    <p class="text-[10px] text-text-secondary font-semibold font-mono">{{ item.submittedAt }}</p>
+                  <div class="min-w-0">
+                    <h4 class="text-xs font-bold text-text-primary truncate">{{ item.userName }}</h4>
+                    <p class="text-[11px] text-text-secondary font-mono mt-0.5">{{ item.submittedAt }}</p>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-xl text-amber-700 dark:text-amber-400 font-extrabold text-xs font-mono shrink-0">
+                <div class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl text-amber-700 dark:text-amber-400 font-bold text-xs font-mono shrink-0">
                   <span class="material-symbols-outlined text-[13px] leading-none text-amber-500">star</span>
                   <span>{{ item.value }}.0 / 5</span>
                 </div>
               </div>
 
               <!-- Scope & Dimension Badges Row -->
-              <div class="flex items-center flex-wrap gap-1.5 mt-4">
-                <span class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-base-200 text-text-secondary uppercase tracking-wider">
+              <div class="flex items-center flex-wrap gap-2 mt-3.5">
+                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-base-200 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-base-300 uppercase tracking-wider">
                   {{ item.level }} Scope
                 </span>
                 
-                <span class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-500/15 uppercase tracking-wider">
+                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20 uppercase tracking-wider">
                   {{ getDimensionLabel(item.dimension) }}
                 </span>
                 
                 @if (item.phaseName) {
-                  <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-50 dark:bg-base-200 text-text-secondary border border-base-300 flex items-center gap-1 truncate max-w-[180px]" [title]="item.phaseName">
-                    <span class="material-symbols-outlined text-[10px] leading-none text-slate-400">folder_open</span>
+                  <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-medium bg-slate-50 dark:bg-base-200/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-base-300 flex items-center gap-1 truncate max-w-[220px]" [title]="item.phaseName">
+                    <span class="material-symbols-outlined text-[11px] leading-none text-slate-400">folder_open</span>
                     {{ item.phaseName }}
                   </span>
                 }
                 
                 @if (item.courseTitle) {
-                  <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-50 dark:bg-base-200 text-text-secondary border border-base-300 flex items-center gap-1 truncate max-w-[180px]" [title]="item.courseTitle">
-                    <span class="material-symbols-outlined text-[10px] leading-none text-slate-400">menu_book</span>
+                  <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-medium bg-slate-50 dark:bg-base-200/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-base-300 flex items-center gap-1 truncate max-w-[220px]" [title]="item.courseTitle">
+                    <span class="material-symbols-outlined text-[11px] leading-none text-slate-400">menu_book</span>
                     {{ item.courseTitle }}
                   </span>
                 }
               </div>
 
               <!-- Comment Body with custom spacing -->
-              <div class="mt-4 text-xs text-text-primary leading-relaxed bg-slate-50/50 dark:bg-base-200/20 p-3 rounded-2xl border border-base-300/40">
-                <span class="text-slate-300 dark:text-slate-600 font-serif text-lg leading-none float-left mr-1">“</span>
-                <p class="italic text-text-primary">
+              <div class="mt-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 dark:bg-base-200/40 border border-slate-200/70 dark:border-base-300/60 text-xs text-slate-700 dark:text-slate-200 leading-relaxed flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-base text-slate-400 dark:text-slate-500 shrink-0 mt-0.5 select-none">format_quote</span>
+                <p class="italic text-xs text-slate-700 dark:text-slate-200 leading-relaxed flex-1">
                   {{ item.comment || 'No written feedback was submitted for this rating index.' }}
                 </p>
               </div>
             </div>
 
             <!-- Card Footer verification stamp -->
-            <div class="mt-5 pt-3.5 border-t border-base-300 flex items-center justify-between text-[11px] text-text-secondary">
-              <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
-                <span class="material-symbols-outlined text-xs leading-none">verified</span>
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-base-200 flex items-center justify-between text-xs text-text-secondary">
+              <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                <span class="material-symbols-outlined text-sm leading-none">verified</span>
                 Verified Trainee Reputational Index
               </span>
-              <span class="font-mono text-[9px] font-bold text-slate-400 uppercase tracking-wider">#{{ item.id }}</span>
+              <span class="font-mono text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">#{{ item.id }}</span>
             </div>
 
           </div>
@@ -530,19 +572,47 @@ export class RatingsViewComponent {
   private fb = inject(FormBuilder);
   private lmsData = inject(LmsDataService);
 
-  dimensionOptions = [
-    { value: 'all', label: 'All Dimensions' },
-    { value: 'overall', label: 'Overall Dimension' },
-    { value: 'content', label: 'Content Dimension' },
-    { value: 'instructor', label: 'Instructor Dimension' }
+  readonly scopeLevelOptions = [
+    { 
+      value: 'plan', 
+      label: 'Plan Level', 
+      dotClass: 'bg-emerald-500', 
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40' 
+    },
+    { 
+      value: 'phase', 
+      label: 'Phase Level', 
+      dotClass: 'bg-amber-500', 
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40' 
+    },
+    { 
+      value: 'course', 
+      label: 'Course Level', 
+      dotClass: 'bg-indigo-500', 
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-800/40' 
+    }
   ];
 
-  levelOptions = computed(() => [
-    { value: 'all', label: `All Reviews (${this.planRatings().length})` },
-    { value: 'plan', label: 'Plan Level' },
-    { value: 'phase', label: 'Phase Level' },
-    { value: 'course', label: 'Course Level' }
-  ]);
+  readonly dimensionFilterOptions = [
+    { 
+      value: 'overall', 
+      label: 'Overall Curriculum', 
+      dotClass: 'bg-amber-500', 
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/40' 
+    },
+    { 
+      value: 'content', 
+      label: 'Content Quality', 
+      dotClass: 'bg-indigo-500', 
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-800/40' 
+    },
+    { 
+      value: 'instructor', 
+      label: 'Instructor Support', 
+      dotClass: 'bg-emerald-500', 
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/40' 
+    }
+  ];
 
   evaluationDimensionOptions = [
     { value: 'overall', label: 'Overall Curriculum Quality & Pacing' },
@@ -552,11 +622,12 @@ export class RatingsViewComponent {
 
   planId = input.required<string>();
 
-  selectedLevel = signal<string>('all');
-  selectedDimensionFilter = signal<string>('all');
-  showRatingModal = signal<boolean>(false);
-  showFilterDrawer = signal<boolean>(false);
   searchQuery = signal<string>('');
+  showRatingModal = signal<boolean>(false);
+  isFilterPanelOpen = signal<boolean>(false);
+
+  appliedFilters = signal<RatingFilters>({ ...DEFAULT_RATING_FILTERS });
+  draftFilters = signal<RatingFilters>({ ...DEFAULT_RATING_FILTERS });
 
   planRatings = computed<RatingSubmission[]>(() => {
     return this.lmsData.getRatingsForPlan(this.planId());
@@ -566,23 +637,31 @@ export class RatingsViewComponent {
     return this.lmsData.getRatingSummary(this.planId());
   });
 
+  hasActiveFilters = computed<boolean>(() => {
+    const f = this.appliedFilters();
+    return f.levels.length > 0 || f.dimensions.length > 0;
+  });
+
   activeFilterCount = computed<number>(() => {
-    let count = 0;
-    if (this.selectedLevel() !== 'all') count++;
-    if (this.selectedDimensionFilter() !== 'all') count++;
-    return count;
+    const f = this.appliedFilters();
+    return f.levels.length + f.dimensions.length;
   });
 
   filteredRatings = computed<RatingSubmission[]>(() => {
     let list = this.planRatings();
-    const lvl = this.selectedLevel();
-    if (lvl !== 'all') {
-      list = list.filter(r => r.level === lvl);
+    const filters = this.appliedFilters();
+
+    // 1. Levels filter
+    if (filters.levels.length > 0) {
+      list = list.filter(r => filters.levels.includes(r.level));
     }
-    const dim = this.selectedDimensionFilter();
-    if (dim !== 'all') {
-      list = list.filter(r => r.dimension === dim);
+
+    // 2. Dimensions filter
+    if (filters.dimensions.length > 0) {
+      list = list.filter(r => filters.dimensions.includes(r.dimension));
     }
+
+    // 3. Search query
     const query = this.searchQuery().trim().toLowerCase();
     if (query) {
       list = list.filter(r => 
@@ -603,18 +682,89 @@ export class RatingsViewComponent {
     comment: ['']
   });
 
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+  }
+
+  toggleFilterPanel() {
+    if (!this.isFilterPanelOpen()) {
+      this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+    }
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  closeFilterPanel() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  toggleLevelDraft(lvl: string) {
+    this.draftFilters.update(f => {
+      const exists = f.levels.includes(lvl);
+      const next = exists ? f.levels.filter(l => l !== lvl) : [...f.levels, lvl];
+      return { ...f, levels: next };
+    });
+  }
+
+  toggleDimensionDraft(dim: string) {
+    this.draftFilters.update(f => {
+      const exists = f.dimensions.includes(dim);
+      const next = exists ? f.dimensions.filter(d => d !== dim) : [...f.dimensions, dim];
+      return { ...f, dimensions: next };
+    });
+  }
+
+  applyFilterPanel() {
+    this.appliedFilters.set(JSON.parse(JSON.stringify(this.draftFilters())));
+    this.isFilterPanelOpen.set(false);
+  }
+
+  clearFilterPanelDraft() {
+    this.draftFilters.set({
+      levels: [],
+      dimensions: []
+    });
+  }
+
+  resetAllFilters() {
+    this.appliedFilters.set({
+      levels: [],
+      dimensions: []
+    });
+    this.draftFilters.set({
+      levels: [],
+      dimensions: []
+    });
+    this.searchQuery.set('');
+  }
+
+  removeLevelFilter(lvl: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      levels: f.levels.filter(l => l !== lvl)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
+  removeDimensionFilter(dim: string) {
+    this.appliedFilters.update(f => ({
+      ...f,
+      dimensions: f.dimensions.filter(d => d !== dim)
+    }));
+    this.draftFilters.set(JSON.parse(JSON.stringify(this.appliedFilters())));
+  }
+
   getLevelLabel(val: string): string {
     if (val === 'plan') return 'Plan Level';
     if (val === 'phase') return 'Phase Level';
     if (val === 'course') return 'Course Level';
-    return 'All Levels';
+    return val;
   }
 
   getDimensionLabel(val: string): string {
     if (val === 'overall') return 'Overall Quality';
     if (val === 'content') return 'Content Clarity';
     if (val === 'instructor') return 'Instructor Support';
-    return 'All Dimensions';
+    return val;
   }
 
   getStarPercentage(star: number): number {
@@ -627,12 +777,6 @@ export class RatingsViewComponent {
   getStarCount(star: number): number {
     const summary = this.currentSummary();
     return summary?.distribution[star] || 0;
-  }
-
-  resetAllFilters() {
-    this.selectedLevel.set('all');
-    this.selectedDimensionFilter.set('all');
-    this.searchQuery.set('');
   }
 
   setScope(level: RatingLevel) {

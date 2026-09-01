@@ -73,49 +73,74 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
       <!-- ========================================================================= -->
       <!-- 2. WORKSPACE CONTEXT SEARCH & COLLAPSIBLE FILTERS                         -->
       <!-- ========================================================================= -->
-      <div class="space-y-4">
-        <!-- Search Bar matching Screenshot 1 -->
-        <div class="p-6 bg-white dark:bg-base-100 rounded-[24px] border border-[#E4E9F2] dark:border-base-300 flex items-center justify-start gap-3">
-          <!-- Search Input on the Left - constrained to a elegant length exactly like Screenshot 1 -->
-          <div class="relative w-[540px] max-w-full">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#8F9BB3] text-lg pointer-events-none">search</span>
-            <input 
-              type="text" 
-              [ngModel]="organizationSearchQuery()"
-              (ngModelChange)="onSearchQueryChange($event)"
-              placeholder="Search by Organization Name..." 
-              class="w-full pl-11 pr-10 py-3 rounded-2xl bg-white dark:bg-base-200/50 border border-[#E4E9F2] dark:border-base-300 text-sm text-[#222B45] dark:text-slate-200 placeholder-[#8F9BB3] focus:outline-none focus:ring-2 focus:ring-[#EC008C]/15 focus:border-[#EC008C] transition-all" />
+      <div class="space-y-3 relative z-30">
+        <!-- Search Toolbar Card matching Unified SaaS Style (Image 2) -->
+        <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          
+          <!-- Left: Search Field + Filters Button + Reset -->
+          <div class="flex items-center gap-3 flex-1 max-w-2xl">
+            <!-- Search Input -->
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+              <input 
+                type="text" 
+                [ngModel]="organizationSearchQuery()"
+                (ngModelChange)="onSearchQueryChange($event)"
+                placeholder="Search by Organization Name..." 
+                class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
+              @if (organizationSearchQuery()) {
+                <button 
+                  type="button"
+                  (click)="clearSearchQuery()"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer border-0 bg-transparent">
+                  <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+              }
+            </div>
+
+            <!-- Filters Button beside Search -->
+            <button 
+              type="button"
+              (click)="toggleFilters()"
+              class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+              [class]="showFilterDrawer() 
+                ? 'bg-tenant-500 text-white border-tenant-500' 
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+              title="Filters">
+              <span class="material-symbols-outlined text-base" [class.text-white]="showFilterDrawer()">filter_list</span>
+              <span>Filters</span>
+            </button>
+
             @if (organizationSearchQuery()) {
               <button 
                 type="button"
                 (click)="clearSearchQuery()"
-                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 rounded-md cursor-pointer flex items-center justify-center border-0 bg-transparent">
-                <span class="material-symbols-outlined text-xs">close</span>
+                class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in shrink-0"
+                title="Reset Search">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+                <span>Reset</span>
               </button>
             }
           </div>
 
-          <!-- Filters Trigger Button next to it - matching Screenshot 1 exactly -->
-          <button 
-            type="button"
-            (click)="toggleFilters()"
-            [class]="showFilterDrawer() 
-              ? 'px-6 py-3 rounded-2xl bg-[#EC008C] text-white border border-[#EC008C] font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs' 
-              : 'px-6 py-3 rounded-2xl bg-[#F7F9FC] hover:bg-[#EDF1F7] dark:bg-base-200 dark:hover:bg-base-300 text-[#222B45] dark:text-slate-200 border border-[#E4E9F2] dark:border-base-300 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-2xs'"
-          >
-            <span class="material-symbols-outlined text-base">tune</span>
-            <span>Filters</span>
-          </button>
+          <!-- Right: Active Scope Context Badge -->
+          <div class="flex items-center gap-2 text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
+            <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-semibold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-tenant-500">domain</span>
+              <span class="truncate max-w-[200px]">{{ lmsData.activeTenant().name }}</span>
+            </span>
+          </div>
+
         </div>
 
-        <!-- Collapsible Filter Drawer matching Screenshot 2 -->
+        <!-- Collapsible Filter Drawer matching Image 2 -->
         @if (showFilterDrawer()) {
-          <div class="p-6.5 bg-white dark:bg-base-100 border border-[#E4E9F2] dark:border-base-300 rounded-[24px] shadow-md space-y-6 animate-in fade-in duration-200">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-base-200 pb-3.5">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-base text-tenant-500">tune</span>
-                <h3 class="text-xs font-extrabold text-[#222B45] dark:text-text-primary uppercase tracking-wider">FILTER WORKSPACE SCOPE</h3>
-              </div>
+          <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4 relative z-30">
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+              <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+                FILTER WORKSPACE SCOPE
+              </h3>
               <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded-lg flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                 Staging Environment
@@ -123,13 +148,13 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
             </div>
 
             <!-- Dropdowns Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-1 relative z-30">
               <!-- 1. Organization selector -->
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between text-[11px] font-bold text-text-secondary uppercase tracking-wider">
-                  <span>Organization (Tenant)</span>
+              <div class="space-y-2.5 relative z-40">
+                <div class="flex items-center justify-between text-xs font-bold text-text-primary">
+                  <span>1. Organization (Tenant)</span>
                   @if (!lmsData.isSystemAdmin()) {
-                    <span class="text-[9px] bg-base-200 text-text-secondary px-1.5 py-0.2 rounded-md">Read-Only</span>
+                    <span class="text-[9px] bg-base-200 text-text-secondary px-1.5 py-0.5 rounded-md font-mono">Read-Only</span>
                   }
                 </div>
                 
@@ -152,8 +177,8 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
               </div>
 
               <!-- 2. LMS Portal Selector -->
-              <div class="space-y-1.5">
-                <label class="text-[11px] font-bold text-text-secondary uppercase tracking-wider block">LMS Portal</label>
+              <div class="space-y-2.5 relative z-30">
+                <label class="text-xs font-bold text-text-primary block">2. LMS Portal</label>
                 <app-custom-select
                   [options]="pendingLmsOptions()"
                   [clearable]="false"
@@ -166,8 +191,8 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
               </div>
 
               <!-- 3. Active Training Plan Selector -->
-              <div class="space-y-1.5">
-                <label class="text-[11px] font-bold text-text-secondary uppercase tracking-wider block">Training Plan</label>
+              <div class="space-y-2.5 relative z-20">
+                <label class="text-xs font-bold text-text-primary block">3. Training Plan</label>
                 <app-custom-select
                   [options]="pendingPlanOptions()"
                   [clearable]="false"
@@ -180,30 +205,30 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
               </div>
             </div>
 
-            <!-- Drawer Footer matching Screenshot 2 exactly with correct alignment and button rounding -->
-            <div class="pt-5 border-t border-[#E4E9F2] dark:border-base-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <!-- Drawer Footer Actions -->
+            <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
               <!-- Clear All Selections on Left -->
               <button 
                 type="button"
                 (click)="clearAllSelections()"
-                class="text-xs text-[#5B6B8A] hover:text-[#EC008C] dark:text-slate-400 dark:hover:text-slate-200 font-bold transition-colors cursor-pointer border-0 bg-transparent"
+                class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0 bg-transparent"
               >
                 Clear All Selections
               </button>
 
               <!-- Cancel and Apply Filter on Right -->
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
                 <button 
                   type="button" 
                   (click)="cancelFilters()" 
-                  class="px-6 py-2.5 bg-[#F7F9FC] hover:bg-[#EDF1F7] dark:bg-base-200 dark:hover:bg-base-300 rounded-full text-xs font-bold text-[#222B45] dark:text-slate-300 transition-all cursor-pointer border border-[#E4E9F2] dark:border-base-300"
+                  class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer border-0"
                 >
                   Cancel
                 </button>
                 <button 
                   type="button" 
                   (click)="applyFilters()" 
-                  class="px-6 py-2.5 bg-[#EC008C] hover:bg-[#D0007A] active:scale-95 text-white text-xs font-bold rounded-full shadow-xs transition-all cursor-pointer border-0"
+                  class="px-4 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer border-0"
                 >
                   Apply Filter
                 </button>
@@ -216,7 +241,7 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
       <!-- ========================================================================= -->
       <!-- 3. KPI SUMMARY TELEMETRY CARDS                                            -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-0">
         
         <!-- Ratings Metric -->
         <div class="bg-base-100 border border-base-300 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-base-400 transition-all duration-200 flex items-center justify-between relative overflow-hidden group">
