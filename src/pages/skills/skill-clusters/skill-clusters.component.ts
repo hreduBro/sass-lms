@@ -88,6 +88,11 @@ export class SkillClustersComponent implements OnInit {
     { value: 'created_desc', label: 'Recently Created', icon: 'schedule' }
   ];
 
+  formClusterStatusOptions: SelectOption[] = [
+    { value: 'active', label: 'Active', sublabel: 'Available for grouping skills', icon: 'check_circle', badge: 'Active', badgeClass: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' },
+    { value: 'inactive', label: 'Inactive', sublabel: 'Archived cluster', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' }
+  ];
+
   ngOnInit() {
     this.initClusterForm();
   }

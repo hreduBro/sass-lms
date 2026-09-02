@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, ElementRef, HostListener, inject, forwardRef, ViewChild } from '@angular/core';
+import { Component, input, output, signal, computed, ElementRef, HostListener, inject, forwardRef, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 
@@ -17,9 +17,9 @@ export interface SelectOption {
   imports: [CommonModule, FormsModule],
   host: {
     class: 'block w-full relative',
-    '[style.zIndex]': 'isOpen() ? 9999 : null',
-    '[class.z-50]': 'isOpen()',
-    '[class.z-10]': '!isOpen()'
+    '[class.z-[99999]]': 'isOpen()',
+    '[class.z-0]': '!isOpen()',
+    '[style.zIndex]': 'isOpen() ? 99999 : "auto"'
   },
   providers: [
     {
@@ -29,7 +29,7 @@ export interface SelectOption {
     }
   ],
   template: `
-    <div class="relative w-full text-left custom-select-root" [style.zIndex]="isOpen() ? 9999 : null" [class.z-50]="isOpen()" [class.opacity-60]="disabled()">
+    <div class="relative w-full text-left custom-select-root" [class.z-[99999]]="isOpen()" [class.opacity-60]="disabled()">
       @if (label()) {
         <label class="block text-xs font-semibold text-text-primary mb-1">
           {{ label() }}
@@ -42,232 +42,234 @@ export interface SelectOption {
         </label>
       }
 
-      <!-- Select Trigger Button (matches standard input sizing, border and bg) -->
-      <button
-        #triggerBtn
-        type="button"
-        (click)="toggleOpen()"
-        (keydown)="onKeydown($event)"
-        [disabled]="disabled()"
-        [attr.aria-expanded]="isOpen()"
-        [attr.aria-haspopup]="'listbox'"
-        class="w-full flex items-center justify-between gap-2 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left box-border font-medium overflow-hidden"
-        [ngClass]="[
-          isOpen() 
-            ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
-            : 'bg-base-200 hover:bg-base-100 hover:border-slate-400 dark:hover:border-slate-600',
-          error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-base-300',
-          sizeClass(),
-          customTriggerClass()
-        ]">
-        
-        <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-          @if (leadingIcon()) {
-            <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
-              {{ leadingIcon() }}
-            </span>
-          } @else if (!multiple() && selectedOption()?.icon) {
-            <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
-              {{ selectedOption()?.icon }}
-            </span>
-          }
+      <div class="relative w-full" [class.z-[100]]="isOpen()">
+        <!-- Select Trigger Button (matches standard input sizing, border and bg) -->
+        <button
+          #triggerBtn
+          type="button"
+          (click)="toggleOpen()"
+          (keydown)="onKeydown($event)"
+          [disabled]="disabled()"
+          [attr.aria-expanded]="isOpen()"
+          [attr.aria-haspopup]="'listbox'"
+          class="w-full flex items-center justify-between gap-2 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left box-border font-medium overflow-hidden"
+          [ngClass]="[
+            isOpen() 
+              ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
+              : 'bg-base-200 hover:bg-base-100 hover:border-slate-400 dark:hover:border-slate-600',
+            error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-base-300',
+            sizeClass(),
+            customTriggerClass()
+          ]">
+          
+          <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+            @if (leadingIcon()) {
+              <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
+                {{ leadingIcon() }}
+              </span>
+            } @else if (!multiple() && selectedOption()?.icon) {
+              <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
+                {{ selectedOption()?.icon }}
+              </span>
+            }
 
-          <div class="truncate flex-1 leading-4">
-            @if (multiple()) {
-              @if (selectedOptions().length > 0) {
-                <div class="flex items-center gap-1 flex-wrap overflow-hidden py-0.5">
-                  @for (opt of selectedOptions(); track opt.value; let idx = $index) {
-                    @if (idx < maxDisplayTags()) {
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/60 shrink-0">
-                        <span class="truncate max-w-[120px]">{{ opt.label }}</span>
-                        <span
-                          role="button"
-                          tabindex="0"
-                          (click)="removeOption(opt, $event)"
-                          title="Remove"
-                          class="hover:text-rose-500 rounded-xs flex items-center justify-center cursor-pointer">
-                          <span class="material-symbols-outlined text-[12px] leading-none">close</span>
+            <div class="truncate flex-1 leading-4">
+              @if (multiple()) {
+                @if (selectedOptions().length > 0) {
+                  <div class="flex items-center gap-1 flex-wrap overflow-hidden py-0.5">
+                    @for (opt of selectedOptions(); track opt.value; let idx = $index) {
+                      @if (idx < maxDisplayTags()) {
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/60 shrink-0">
+                          <span class="truncate max-w-[120px]">{{ opt.label }}</span>
+                          <span
+                            role="button"
+                            tabindex="0"
+                            (click)="removeOption(opt, $event)"
+                            title="Remove"
+                            class="hover:text-rose-500 rounded-xs flex items-center justify-center cursor-pointer">
+                            <span class="material-symbols-outlined text-[12px] leading-none">close</span>
+                          </span>
                         </span>
+                      }
+                    }
+                    @if (selectedOptions().length > maxDisplayTags()) {
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0">
+                        +{{ selectedOptions().length - maxDisplayTags() }} more
                       </span>
                     }
-                  }
-                  @if (selectedOptions().length > maxDisplayTags()) {
-                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0">
-                      +{{ selectedOptions().length - maxDisplayTags() }} more
-                    </span>
-                  }
-                </div>
-              } @else {
-                <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
-              }
-            } @else {
-              @if (selectedOption()) {
-                <div class="flex items-center gap-1.5 truncate">
-                  <span class="font-medium text-text-primary truncate text-xs leading-4">{{ selectedOption()?.label }}</span>
-                  @if (selectedOption()?.badge) {
-                    <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono shrink-0" [ngClass]="selectedOption()?.badgeClass || 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
-                      {{ selectedOption()?.badge }}
-                    </span>
-                  }
-                </div>
-              } @else {
-                <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
-              }
-            }
-          </div>
-        </div>
-
-        <!-- Action Icons (Clear / Cross button & Expand Chevron) -->
-        <div class="flex items-center gap-1 shrink-0">
-          @if (clearable() && hasSelectedValue() && !disabled()) {
-            <span
-              role="button"
-              tabindex="0"
-              (click)="clearValue($event)"
-              (keydown.enter)="clearValue($event)"
-              (keydown.space)="clearValue($event)"
-              title="Clear selection"
-              aria-label="Clear selection"
-              class="w-5 h-5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-text-secondary hover:text-rose-500 dark:hover:text-rose-400 transition-colors flex items-center justify-center cursor-pointer">
-              <span class="material-symbols-outlined text-[15px] leading-none">close</span>
-            </span>
-          }
-
-          <!-- Chevron Icon -->
-          <span 
-            class="material-symbols-outlined text-[18px] leading-none text-text-secondary transition-transform duration-200 w-4 h-4 flex items-center justify-center pointer-events-none"
-            [class.rotate-180]="isOpen()"
-            [class.text-tenant-500]="isOpen()">
-            expand_more
-          </span>
-        </div>
-      </button>
-
-      <!-- Dropdown Popover Menu -->
-      @if (isOpen()) {
-        <div 
-          class="absolute rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
-          style="z-index: 99999;"
-          [ngClass]="[
-            actualPlacement() === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-            dropdownAlign() === 'right' ? 'right-0' : 'left-0',
-            'w-full min-w-[240px] max-w-[calc(100vw-2rem)]',
-            customDropdownClass()
-          ]"
-          role="listbox">
-          
-          <!-- Search Bar & Multi Actions -->
-          @if (shouldShowSearch() || multiple()) {
-            <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-slate-800/50 space-y-2">
-              @if (shouldShowSearch()) {
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-2.5 top-2 text-text-secondary text-sm">search</span>
-                  <input 
-                    #searchInput
-                    type="text"
-                    [ngModel]="searchQuery()"
-                    (ngModelChange)="searchQuery.set($event)"
-                    placeholder="Search..."
-                    (click)="$event.stopPropagation()"
-                    (keydown)="onSearchKeydown($event)"
-                    class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
-                  @if (searchQuery()) {
-                    <button 
-                      type="button" 
-                      (click)="searchQuery.set(''); $event.stopPropagation()"
-                      class="absolute right-2.5 top-2 text-text-secondary hover:text-text-primary text-xs cursor-pointer">
-                      ✕
-                    </button>
-                  }
-                </div>
-              }
-
-              @if (multiple()) {
-                <div class="flex items-center justify-between text-[11px] px-1 font-semibold">
-                  <span class="text-text-secondary">
-                    {{ selectedOptions().length }} of {{ normalizedOptions().length }} selected
-                  </span>
-                  <div class="flex items-center gap-3">
-                    <button 
-                      type="button"
-                      (click)="selectAllOptions($event)"
-                      class="text-tenant-600 dark:text-tenant-400 hover:underline cursor-pointer">
-                      Select All
-                    </button>
-                    <button 
-                      type="button"
-                      (click)="clearValue($event)"
-                      class="text-text-secondary hover:text-rose-500 cursor-pointer">
-                      Clear
-                    </button>
                   </div>
-                </div>
+                } @else {
+                  <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
+                }
+              } @else {
+                @if (selectedOption()) {
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="font-medium text-text-primary truncate text-xs leading-4">{{ selectedOption()?.label }}</span>
+                    @if (selectedOption()?.badge) {
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono shrink-0" [ngClass]="selectedOption()?.badgeClass || 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
+                        {{ selectedOption()?.badge }}
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
+                }
               }
             </div>
-          }
+          </div>
 
-          <!-- Options List with Custom Smooth Scrollbar -->
-          <div class="overflow-y-auto p-1.5 space-y-1 max-h-52 flex-1 custom-select-scrollbar">
-            @if (normalizedFilteredOptions().length === 0) {
-              <div class="px-3 py-4 text-center text-xs text-text-secondary">
-                No matching options found
-              </div>
-            } @else {
-              @for (opt of normalizedFilteredOptions(); track opt.value; let idx = $index) {
-                <button
-                  type="button"
-                  (click)="selectOption(opt)"
-                  [disabled]="opt.disabled"
-                  role="option"
-                  [attr.aria-selected]="isSelected(opt)"
-                  class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer group"
-                  [ngClass]="[
-                    isSelected(opt) 
-                      ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-semibold' 
-                      : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
-                    highlightedIndex() === idx ? 'ring-1 ring-tenant-500/30' : '',
-                    opt.disabled ? 'opacity-40 cursor-not-allowed' : ''
-                  ]">
-                  
-                  <div class="flex items-center gap-2.5 truncate flex-1 mr-2">
-                    @if (multiple()) {
-                      <div 
-                        class="w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0"
-                        [ngClass]="isSelected(opt) ? 'bg-tenant-500 border-tenant-500 text-white' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'">
-                        @if (isSelected(opt)) {
-                          <span class="material-symbols-outlined text-[13px] font-black leading-none text-white">check</span>
-                        }
-                      </div>
-                    } @else if (opt.icon) {
-                      <span class="material-symbols-outlined text-sm shrink-0" [class.text-tenant-500]="isSelected(opt)">
-                        {{ opt.icon }}
-                      </span>
+          <!-- Action Icons (Clear / Cross button & Expand Chevron) -->
+          <div class="flex items-center gap-1 shrink-0">
+            @if (clearable() && hasSelectedValue() && !disabled()) {
+              <span
+                role="button"
+                tabindex="0"
+                (click)="clearValue($event)"
+                (keydown.enter)="clearValue($event)"
+                (keydown.space)="clearValue($event)"
+                title="Clear selection"
+                aria-label="Clear selection"
+                class="w-5 h-5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-text-secondary hover:text-rose-500 dark:hover:text-rose-400 transition-colors flex items-center justify-center cursor-pointer">
+                <span class="material-symbols-outlined text-[15px] leading-none">close</span>
+              </span>
+            }
+
+            <!-- Chevron Icon -->
+            <span 
+              class="material-symbols-outlined text-[18px] leading-none text-text-secondary transition-transform duration-200 w-4 h-4 flex items-center justify-center pointer-events-none"
+              [class.rotate-180]="isOpen()"
+              [class.text-tenant-500]="isOpen()">
+              expand_more
+            </span>
+          </div>
+        </button>
+
+        <!-- Dropdown Popover Menu (Directly attached to Trigger Box) -->
+        @if (isOpen()) {
+          <div 
+            class="absolute rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
+          style="z-index: 99999;"
+            [ngClass]="[
+              actualPlacement() === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
+              dropdownAlign() === 'right' ? 'right-0' : 'left-0',
+              'w-full min-w-[240px] max-w-[calc(100vw-2rem)]',
+              customDropdownClass()
+            ]"
+            role="listbox">
+            
+            <!-- Search Bar & Multi Actions -->
+            @if (shouldShowSearch() || multiple()) {
+              <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-slate-800/50 space-y-2">
+                @if (shouldShowSearch()) {
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-2.5 top-2 text-text-secondary text-sm">search</span>
+                    <input 
+                      #searchInput
+                      type="text"
+                      [ngModel]="searchQuery()"
+                      (ngModelChange)="searchQuery.set($event)"
+                      placeholder="Search..."
+                      (click)="$event.stopPropagation()"
+                      (keydown)="onSearchKeydown($event)"
+                      class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
+                    @if (searchQuery()) {
+                      <button 
+                        type="button" 
+                        (click)="searchQuery.set(''); $event.stopPropagation()"
+                        class="absolute right-2.5 top-2 text-text-secondary hover:text-text-primary text-xs cursor-pointer">
+                        ✕
+                      </button>
                     }
-                    
-                    <div class="truncate">
-                      <div class="truncate">{{ opt.label }}</div>
-                      @if (opt.sublabel) {
-                        <div class="text-[10px] text-text-secondary truncate">{{ opt.sublabel }}</div>
-                      }
+                  </div>
+                }
+
+                @if (multiple()) {
+                  <div class="flex items-center justify-between text-[11px] px-1 font-semibold">
+                    <span class="text-text-secondary">
+                      {{ selectedOptions().length }} of {{ normalizedOptions().length }} selected
+                    </span>
+                    <div class="flex items-center gap-3">
+                      <button 
+                        type="button" 
+                        (click)="selectAllOptions($event)"
+                        class="text-tenant-600 dark:text-tenant-400 hover:underline cursor-pointer">
+                        Select All
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="clearValue($event)"
+                        class="text-text-secondary hover:text-rose-500 cursor-pointer">
+                        Clear
+                      </button>
                     </div>
                   </div>
-
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    @if (opt.badge) {
-                      <span class="text-[10px] px-2 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-base-300 text-text-secondary'">
-                        {{ opt.badge }}
-                      </span>
-                    }
-                    @if (!multiple() && isSelected(opt)) {
-                      <span class="material-symbols-outlined text-base text-tenant-500 font-bold">check</span>
-                    }
-                  </div>
-                </button>
-              }
+                }
+              </div>
             }
+
+            <!-- Options List with Custom Smooth Scrollbar -->
+            <div class="overflow-y-auto p-1.5 space-y-1 max-h-52 flex-1 custom-select-scrollbar">
+              @if (normalizedFilteredOptions().length === 0) {
+                <div class="px-3 py-4 text-center text-xs text-text-secondary">
+                  No matching options found
+                </div>
+              } @else {
+                @for (opt of normalizedFilteredOptions(); track opt.value; let idx = $index) {
+                  <button
+                    type="button"
+                    (click)="selectOption(opt)"
+                    [disabled]="opt.disabled"
+                    role="option"
+                    [attr.aria-selected]="isSelected(opt)"
+                    class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer group"
+                    [ngClass]="[
+                      isSelected(opt) 
+                        ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-semibold' 
+                        : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
+                      highlightedIndex() === idx ? 'ring-1 ring-tenant-500/30' : '',
+                      opt.disabled ? 'opacity-40 cursor-not-allowed' : ''
+                    ]">
+                    
+                    <div class="flex items-center gap-2.5 truncate flex-1 mr-2">
+                      @if (multiple()) {
+                        <div 
+                          class="w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0"
+                          [ngClass]="isSelected(opt) ? 'bg-tenant-500 border-tenant-500 text-white' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'">
+                          @if (isSelected(opt)) {
+                            <span class="material-symbols-outlined text-[13px] font-black leading-none text-white">check</span>
+                          }
+                        </div>
+                      } @else if (opt.icon) {
+                        <span class="material-symbols-outlined text-sm shrink-0" [class.text-tenant-500]="isSelected(opt)">
+                          {{ opt.icon }}
+                        </span>
+                      }
+                      
+                      <div class="truncate">
+                        <div class="truncate">{{ opt.label }}</div>
+                        @if (opt.sublabel) {
+                          <div class="text-[10px] text-text-secondary truncate">{{ opt.sublabel }}</div>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      @if (opt.badge) {
+                        <span class="text-[10px] px-2 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-base-300 text-text-secondary'">
+                          {{ opt.badge }}
+                        </span>
+                      }
+                      @if (!multiple() && isSelected(opt)) {
+                        <span class="material-symbols-outlined text-base text-tenant-500 font-bold">check</span>
+                      }
+                    </div>
+                  </button>
+                }
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
+      </div>
 
       @if (error()) {
         <p class="text-[11px] text-rose-500 mt-1">{{ error() }}</p>
@@ -306,8 +308,9 @@ export interface SelectOption {
     }
   `]
 })
-export class CustomSelectComponent implements ControlValueAccessor {
+export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   private elementRef = inject(ElementRef);
+  private static activeSelect: CustomSelectComponent | null = null;
 
   @ViewChild('triggerBtn') triggerBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
@@ -437,7 +440,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
     if (!q) return opts;
     return opts.filter(o => 
       (o.label && o.label.toLowerCase().includes(q)) || 
-      (o.sublabel && o.sublabel.toLowerCase().includes(q))
+                      (o.sublabel && o.sublabel.toLowerCase().includes(q))
     );
   });
 
@@ -447,15 +450,44 @@ export class CustomSelectComponent implements ControlValueAccessor {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.isOpen.set(false);
+      this.close();
     }
   }
 
   @HostListener('keydown.escape')
   onEscape() {
     if (this.isOpen()) {
-      this.isOpen.set(false);
+      this.close();
       this.triggerBtn?.nativeElement.focus();
+    }
+  }
+
+  private findScrollParent(node: HTMLElement | null): HTMLElement | null {
+    if (!node) return null;
+    let parent = node.parentElement;
+    while (parent && parent !== document.body && parent !== document.documentElement) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+    return null;
+  }
+
+  close() {
+    this.isOpen.set(false);
+    this.searchQuery.set('');
+    this.highlightedIndex.set(-1);
+    if (CustomSelectComponent.activeSelect === this) {
+      CustomSelectComponent.activeSelect = null;
+    }
+  }
+
+  ngOnDestroy() {
+    if (CustomSelectComponent.activeSelect === this) {
+      CustomSelectComponent.activeSelect = null;
     }
   }
 
@@ -464,18 +496,33 @@ export class CustomSelectComponent implements ControlValueAccessor {
     const willOpen = !this.isOpen();
     
     if (willOpen) {
+      if (CustomSelectComponent.activeSelect && CustomSelectComponent.activeSelect !== this) {
+        CustomSelectComponent.activeSelect.close();
+      }
+      CustomSelectComponent.activeSelect = this;
+
       if (this.dropdownPosition() === 'top') {
         this.actualPlacement.set('top');
       } else if (this.dropdownPosition() === 'bottom') {
         this.actualPlacement.set('bottom');
       } else {
-        // 'auto' positioning based on viewport space
+        // 'auto' positioning based on viewport and container space
         try {
           const rect = this.elementRef.nativeElement.getBoundingClientRect();
-          const spaceBelow = window.innerHeight - rect.bottom;
-          const spaceAbove = rect.top;
-          // If less than 240px space below and more space above, flip to top
-          if (spaceBelow < 240 && spaceAbove > spaceBelow) {
+          let spaceBelow = window.innerHeight - rect.bottom;
+          let spaceAbove = rect.top;
+
+          const scrollContainer = this.findScrollParent(this.elementRef.nativeElement);
+          if (scrollContainer) {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const containerSpaceBelow = containerRect.bottom - rect.bottom;
+            const containerSpaceAbove = rect.top - containerRect.top;
+            spaceBelow = Math.min(spaceBelow, containerSpaceBelow);
+            spaceAbove = Math.min(spaceAbove, containerSpaceAbove);
+          }
+
+          // If less than 220px space below and space above exists, flip to top (dropup)
+          if (spaceBelow < 220 && (spaceAbove > spaceBelow || spaceAbove >= 150)) {
             this.actualPlacement.set('top');
           } else {
             this.actualPlacement.set('bottom');
@@ -494,7 +541,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
         }
       }, 50);
     } else {
-      this.isOpen.set(false);
+      this.close();
       this.onTouched();
     }
   }
@@ -519,7 +566,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
       this.onChange(option.value);
       this.valueChange.emit(option.value);
       this.selectionChange.emit(option);
-      this.isOpen.set(false);
+      this.close();
       this.onTouched();
       this.triggerBtn?.nativeElement.focus();
     }

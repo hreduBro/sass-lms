@@ -54,9 +54,9 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 3000,
+            "port": 4200,
             "allowedHosts": [
-              "all"
+              ".test"
             ]
           },
           "configurations": {
