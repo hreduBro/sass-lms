@@ -12,10 +12,20 @@ import {
 import { TranscriptSheetComponent } from '../../../components/transcript-sheet/transcript-sheet.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
+import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
+import { Kpi } from '../../../models/dashboard.model';
 
 @Component({
   selector: 'app-transcript-grid',
-  imports: [CommonModule, FormsModule, RouterModule, TranscriptSheetComponent, CustomAvatarComponent, CustomSelectComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule, 
+    TranscriptSheetComponent, 
+    CustomAvatarComponent, 
+    CustomSelectComponent,
+    KpiCardComponent
+  ],
   template: `
     <div class="space-y-6 pb-16">
       
@@ -84,54 +94,11 @@ import { CustomSelectComponent } from '../../../components/custom-select/custom-
       <!-- ========================================================================= -->
       <!-- 3. KPI METRICS SUMMARY ROW                                                -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Total Generated -->
-        <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-text-secondary">Total Generated</p>
-            <h3 class="text-2xl font-bold text-text-primary mt-1 font-mono">{{ totalGeneratedCount() }}</h3>
-            <span class="text-[11px] text-text-secondary">Official certified records</span>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
-            <span class="material-symbols-outlined">receipt_long</span>
-          </div>
-        </div>
-
-        <!-- Released / Learner Visible -->
-        <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Released (Trainee Visible)</p>
-            <h3 class="text-2xl font-bold text-text-primary mt-1 font-mono">{{ releasedCount() }}</h3>
-            <span class="text-[11px] text-text-secondary">Verified & downloadable in portal</span>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <span class="material-symbols-outlined">verified</span>
-          </div>
-        </div>
-
-        <!-- Available (Unreleased) -->
-        <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-blue-600 dark:text-blue-400">Available (Unreleased)</p>
-            <h3 class="text-2xl font-bold text-text-primary mt-1 font-mono">{{ availableCount() }}</h3>
-            <span class="text-[11px] text-text-secondary">Awaiting release authorization</span>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
-            <span class="material-symbols-outlined">pending_actions</span>
-          </div>
-        </div>
-
-        <!-- Pending Plan Closure -->
-        <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-amber-600 dark:text-amber-400">Pending Plan Closure</p>
-            <h3 class="text-2xl font-bold text-text-primary mt-1 font-mono">{{ pendingClosureCount() }}</h3>
-            <span class="text-[11px] text-text-secondary">Gated until formal plan completion</span>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-            <span class="material-symbols-outlined">lock_clock</span>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <app-kpi-card [kpi]="kpiTotalGenerated()"></app-kpi-card>
+        <app-kpi-card [kpi]="kpiReleased()"></app-kpi-card>
+        <app-kpi-card [kpi]="kpiAvailable()"></app-kpi-card>
+        <app-kpi-card [kpi]="kpiPendingClosure()"></app-kpi-card>
       </div>
 
       <!-- ========================================================================= -->
@@ -1039,6 +1006,43 @@ export class TranscriptGridComponent {
   releasedCount = computed(() => this.allTranscripts().filter(t => t.releaseState === 'released').length);
   availableCount = computed(() => this.allTranscripts().filter(t => t.releaseState === 'available').length);
   pendingClosureCount = computed(() => this.allTranscripts().filter(t => t.level === 'plan' && !t.planClosed).length);
+
+  // Standardized app-kpi-card Computations
+  kpiTotalGenerated = computed<Kpi>(() => ({
+    title: 'Total Generated',
+    value: String(this.totalGeneratedCount()),
+    change: `+${this.totalGeneratedCount()} total`,
+    icon: 'activity',
+    color: 'sky',
+    subtext: 'Official certified records'
+  }));
+
+  kpiReleased = computed<Kpi>(() => ({
+    title: 'Released (Trainee Visible)',
+    value: String(this.releasedCount()),
+    change: `+${Math.round((this.releasedCount() / (this.totalGeneratedCount() || 1)) * 100)}% live`,
+    icon: 'verified',
+    color: 'emerald',
+    subtext: 'Verified & downloadable in portal'
+  }));
+
+  kpiAvailable = computed<Kpi>(() => ({
+    title: 'Available (Unreleased)',
+    value: String(this.availableCount()),
+    change: `${this.availableCount()} unreleased`,
+    icon: 'pending',
+    color: 'sky',
+    subtext: 'Awaiting release authorization'
+  }));
+
+  kpiPendingClosure = computed<Kpi>(() => ({
+    title: 'Pending Plan Closure',
+    value: String(this.pendingClosureCount()),
+    change: 'Gated plans',
+    icon: 'pending',
+    color: 'amber',
+    subtext: 'Gated until plan completion'
+  }));
 
   hasActiveFilters = computed(() => {
     return this.selectedLevels().length > 0 ||

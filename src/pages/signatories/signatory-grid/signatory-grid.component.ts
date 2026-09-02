@@ -1,18 +1,21 @@
 import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Signatory, SignatoryStatus, SignatoryTemplateLink } from '../../../models/signatory.model';
 import { CertificateTemplate } from '../../../models/certificate-template.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-signatory-grid',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    CustomSelectComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './signatory-grid.component.html'
@@ -23,16 +26,26 @@ export class SignatoryGridComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  // Permissions
+  permissions = this.lmsData.certificateTemplatePermissions;
+
+  // View Mode: Grid vs Table
+  viewMode = signal<'grid' | 'table'>('grid');
+
+  // Filter Drawer Open State
+  isFilterPanelOpen = signal<boolean>(false);
+
   // Search & Filters
   searchQuery = signal<string>('');
   selectedStatus = signal<string>('all'); // all | active | inactive | draft
   selectedDepartment = signal<string>('all');
   selectedLinkedFilter = signal<string>('all'); // all | linked | unlinked
+  sortBy = signal<string>('newest'); // newest | oldest | name_asc | name_desc | most_linked
   createdFromDate = signal<string>('');
   createdToDate = signal<string>('');
 
-  // Active Tab / View
-  activeTab = signal<'all' | 'active' | 'inactive' | 'unlinked'>('all');
+  // Dropdown action menu ID for 3-dot menus
+  openActionMenuId = signal<string | null>(null);
 
   // Modals state
   isCreateEditModalOpen = signal<boolean>(false);
@@ -51,12 +64,14 @@ export class SignatoryGridComponent implements OnInit {
     title: string;
     message: string;
     action: 'deactivate' | 'reactivate' | 'delete' | null;
+    confirmBtnLabel?: string;
     signatory: Signatory | null;
   }>({
     isOpen: false,
     title: '',
     message: '',
     action: null,
+    confirmBtnLabel: 'Yes, Proceed',
     signatory: null
   });
 
@@ -75,6 +90,37 @@ export class SignatoryGridComponent implements OnInit {
   formErrorAlert = signal<string | null>(null);
   isDragOver = signal<boolean>(false);
 
+  // Status Filter Options for CustomSelect
+  statusOptions: SelectOption[] = [
+    { value: 'all', label: 'Status: All', icon: 'filter_list' },
+    { value: 'active', label: 'Active', icon: 'verified', badge: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
+    { value: 'inactive', label: 'Inactive', icon: 'pause_circle', badge: 'Inactive', badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' },
+    { value: 'draft', label: 'Draft', icon: 'edit_note', badge: 'Draft', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' }
+  ];
+
+  // Linkage Filter Options for CustomSelect
+  linkageOptions: SelectOption[] = [
+    { value: 'all', label: 'Linkage: All', icon: 'link' },
+    { value: 'linked', label: 'Linked (≥1 template)', icon: 'check_circle', badge: 'Linked', badgeClass: 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300' },
+    { value: 'unlinked', label: 'Unlinked (0 templates)', icon: 'link_off', badge: 'Unlinked', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' }
+  ];
+
+  // Sort Options for CustomSelect
+  sortOptions: SelectOption[] = [
+    { value: 'newest', label: 'Newest First', icon: 'schedule' },
+    { value: 'oldest', label: 'Oldest First', icon: 'history' },
+    { value: 'name_asc', label: 'Name (A to Z)', icon: 'sort_by_alpha' },
+    { value: 'name_desc', label: 'Name (Z to A)', icon: 'sort_by_alpha' },
+    { value: 'most_linked', label: 'Most Linked Templates', icon: 'stacked_bar_chart' }
+  ];
+
+  // Status Form Options for Create/Edit Modal
+  modalStatusOptions: SelectOption[] = [
+    { value: 'active', label: 'Active', icon: 'verified', badge: 'Ready', badgeClass: 'bg-emerald-50 text-emerald-700' },
+    { value: 'inactive', label: 'Inactive', icon: 'pause_circle', badge: 'Disabled', badgeClass: 'bg-rose-50 text-rose-700' },
+    { value: 'draft', label: 'Draft', icon: 'edit_note', badge: 'Draft', badgeClass: 'bg-amber-50 text-amber-700' }
+  ];
+
   ngOnInit() {
     this.initForms();
 
@@ -82,6 +128,7 @@ export class SignatoryGridComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['filter'] === 'unlinked') {
         this.selectedLinkedFilter.set('unlinked');
+        this.isFilterPanelOpen.set(true);
       }
     });
   }
@@ -105,6 +152,7 @@ export class SignatoryGridComponent implements OnInit {
   totalSignatoriesCount = computed(() => this.lmsData.signatories().length);
   activeSignatoriesCount = computed(() => this.lmsData.signatories().filter(s => s.status === 'active').length);
   inactiveSignatoriesCount = computed(() => this.lmsData.signatories().filter(s => s.status === 'inactive').length);
+  linkedSignatoriesCount = computed(() => this.lmsData.signatories().filter(s => s.linkedTemplateCount > 0).length);
   unlinkedSignatoriesCount = computed(() => this.lmsData.signatories().filter(s => s.linkedTemplateCount === 0).length);
 
   // Distinct Departments list
@@ -116,12 +164,33 @@ export class SignatoryGridComponent implements OnInit {
     return Array.from(deps);
   });
 
+  // Department Options for CustomSelect
+  departmentOptions = computed<SelectOption[]>(() => [
+    { value: 'all', label: 'Department: All', icon: 'domain' },
+    ...this.availableDepartments().map(dep => ({
+      value: dep,
+      label: dep,
+      icon: 'corporate_fare'
+    }))
+  ]);
+
   // Available Certificate Templates for linking
   availableCertificateTemplates = computed(() => this.lmsData.certificateTemplates());
 
-  // Filtered signatories
+  // Template Options for Link CustomSelect
+  templateOptions = computed<SelectOption[]>(() => [
+    { value: '', label: '-- Choose Certificate Template --', icon: 'workspace_premium' },
+    ...this.availableCertificateTemplates().map(t => ({
+      value: t.id,
+      label: t.name,
+      sublabel: `${t.type} • ${t.orientation}`,
+      icon: 'workspace_premium'
+    }))
+  ]);
+
+  // Filtered and Sorted signatories
   filteredSignatories = computed(() => {
-    let list = this.lmsData.signatories();
+    let list = [...this.lmsData.signatories()];
 
     // Search query
     const q = this.searchQuery().trim().toLowerCase();
@@ -129,7 +198,8 @@ export class SignatoryGridComponent implements OnInit {
       list = list.filter(s => 
         s.name.toLowerCase().includes(q) || 
         s.designation.toLowerCase().includes(q) || 
-        (s.department && s.department.toLowerCase().includes(q))
+        (s.department && s.department.toLowerCase().includes(q)) ||
+        s.signatoryId.toLowerCase().includes(q)
       );
     }
 
@@ -150,17 +220,95 @@ export class SignatoryGridComponent implements OnInit {
       list = list.filter(s => s.linkedTemplateCount === 0);
     }
 
+    // Date Range Filter
+    if (this.createdFromDate()) {
+      const from = new Date(this.createdFromDate()).getTime();
+      if (!isNaN(from)) {
+        list = list.filter(s => {
+          if (!s.createdAt) return true;
+          const parts = s.createdAt.split('/');
+          if (parts.length === 3) {
+            const d = new Date(+parts[2], +parts[1] - 1, +parts[0]).getTime();
+            return d >= from;
+          }
+          return new Date(s.createdAt).getTime() >= from;
+        });
+      }
+    }
+
+    if (this.createdToDate()) {
+      const to = new Date(this.createdToDate()).getTime();
+      if (!isNaN(to)) {
+        list = list.filter(s => {
+          if (!s.createdAt) return true;
+          const parts = s.createdAt.split('/');
+          if (parts.length === 3) {
+            const d = new Date(+parts[2], +parts[1] - 1, +parts[0]).getTime();
+            return d <= to;
+          }
+          return new Date(s.createdAt).getTime() <= to;
+        });
+      }
+    }
+
+    // Sorting
+    const sort = this.sortBy();
+    if (sort === 'name_asc') {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === 'name_desc') {
+      list.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sort === 'most_linked') {
+      list.sort((a, b) => (b.linkedTemplateCount || 0) - (a.linkedTemplateCount || 0));
+    } else if (sort === 'oldest') {
+      list.sort((a, b) => a.signatoryId.localeCompare(b.signatoryId));
+    } else {
+      // Default: newest first
+      list.sort((a, b) => b.signatoryId.localeCompare(a.signatoryId));
+    }
+
     return list;
   });
 
-  // Empty state type detection
-  hasAppliedFilters = computed(() => {
-    return this.selectedStatus() !== 'all' || 
-           this.selectedDepartment() !== 'all' || 
-           this.selectedLinkedFilter() !== 'all' ||
-           !!this.createdFromDate() || 
-           !!this.createdToDate();
+  // Active Filter Count
+  activeFilterCount = computed<number>(() => {
+    let count = 0;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedDepartment() !== 'all') count++;
+    if (this.selectedLinkedFilter() !== 'all') count++;
+    if (this.sortBy() !== 'newest') count++;
+    if (this.createdFromDate()) count++;
+    if (this.createdToDate()) count++;
+    return count;
   });
+
+  // Has Applied Filters flag
+  hasAppliedFilters = computed(() => {
+    return this.activeFilterCount() > 0 || !!this.searchQuery();
+  });
+
+  toggleFilterPanel() {
+    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  toggleActionMenu(id: string, event?: Event) {
+    if (event) event.stopPropagation();
+    this.openActionMenuId.update(current => current === id ? null : id);
+  }
+
+  closeActionMenu() {
+    this.openActionMenuId.set(null);
+  }
+
+  // Clear all filters
+  clearAllFilters() {
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedDepartment.set('all');
+    this.selectedLinkedFilter.set('all');
+    this.sortBy.set('newest');
+    this.createdFromDate.set('');
+    this.createdToDate.set('');
+  }
 
   // Open Create Modal
   openCreateModal() {
@@ -169,6 +317,7 @@ export class SignatoryGridComponent implements OnInit {
     this.uploadedSignatureImage.set(null);
     this.formSubmitted.set(false);
     this.formErrorAlert.set(null);
+    this.closeActionMenu();
 
     this.signatoryForm.reset({
       name: '',
@@ -186,6 +335,7 @@ export class SignatoryGridComponent implements OnInit {
     this.editingSignatory.set(signatory);
     this.formSubmitted.set(false);
     this.formErrorAlert.set(null);
+    this.closeActionMenu();
 
     this.uploadedSignatureImage.set({
       fileUrl: signatory.signatureImage.fileUrl,
@@ -239,6 +389,7 @@ export class SignatoryGridComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       this.processFile(input.files[0]);
     }
+    input.value = '';
   }
 
   private processFile(file: File) {
@@ -275,7 +426,7 @@ export class SignatoryGridComponent implements OnInit {
     this.formErrorAlert.set(null);
 
     if (this.signatoryForm.invalid || !this.uploadedSignatureImage()) {
-      this.formErrorAlert.set('All mandatory fields are not filled up.');
+      this.formErrorAlert.set('All mandatory fields and digital signature artwork are required.');
       return;
     }
 
@@ -296,6 +447,7 @@ export class SignatoryGridComponent implements OnInit {
           sizeBytes: sigImage.sizeBytes
         }
       });
+      this.lmsData.showToast(`Signatory "${val.name}" updated successfully.`, 'success');
     } else {
       this.lmsData.createSignatory({
         name: val.name,
@@ -309,6 +461,7 @@ export class SignatoryGridComponent implements OnInit {
           sizeBytes: sigImage.sizeBytes
         }
       });
+      this.lmsData.showToast(`Signatory "${val.name}" registered successfully.`, 'success');
     }
 
     this.closeCreateEditModal();
@@ -318,6 +471,7 @@ export class SignatoryGridComponent implements OnInit {
   openViewDetails(signatory: Signatory) {
     this.viewingSignatory.set(signatory);
     this.isViewDetailsModalOpen.set(true);
+    this.closeActionMenu();
   }
 
   closeViewDetailsModal() {
@@ -340,6 +494,7 @@ export class SignatoryGridComponent implements OnInit {
       slotRequired: false
     });
     this.isLinkModalOpen.set(true);
+    this.closeActionMenu();
   }
 
   closeLinkModal() {
@@ -371,26 +526,31 @@ export class SignatoryGridComponent implements OnInit {
 
   // Confirmation Dialog Actions
   confirmDeactivate(signatory: Signatory) {
+    this.closeActionMenu();
     this.confirmDialog.set({
       isOpen: true,
       title: 'Deactivate Signatory',
-      message: `Are you sure to deactivate this signatory (${signatory.name})? Inactive signatories cannot be newly linked to certificate templates.`,
+      message: `Are you sure you want to deactivate ${signatory.name}? Inactive signatories will remain on already-issued certificates but cannot be chosen for new certificate templates.`,
       action: 'deactivate',
+      confirmBtnLabel: 'Deactivate',
       signatory
     });
   }
 
   confirmReactivate(signatory: Signatory) {
+    this.closeActionMenu();
     this.confirmDialog.set({
       isOpen: true,
       title: 'Reactivate Signatory',
-      message: `Are you sure to reactivate this signatory (${signatory.name})? Active signatories can be linked across certificate templates.`,
+      message: `Are you sure you want to reactivate ${signatory.name}? Active signatories will immediately be available for linking across certificate templates.`,
       action: 'reactivate',
+      confirmBtnLabel: 'Reactivate',
       signatory
     });
   }
 
   confirmDelete(signatory: Signatory) {
+    this.closeActionMenu();
     if (signatory.linkedTemplateCount > 0) {
       this.lmsData.showToast(`This signatory is linked to ${signatory.linkedTemplateCount} certificate template(s) and cannot be deleted. Unlink or deactivate it first.`, 'error', 5000, 'Deletion Blocked');
       return;
@@ -399,8 +559,9 @@ export class SignatoryGridComponent implements OnInit {
     this.confirmDialog.set({
       isOpen: true,
       title: 'Delete Signatory',
-      message: `Are you sure to delete this signatory (${signatory.name})? This action is permanent and cannot be undone.`,
+      message: `Are you sure you want to delete ${signatory.name} (${signatory.signatoryId})? This action is permanent and cannot be undone.`,
       action: 'delete',
+      confirmBtnLabel: 'Delete Signatory',
       signatory
     });
   }
@@ -425,14 +586,5 @@ export class SignatoryGridComponent implements OnInit {
 
     this.closeConfirmDialog();
   }
-
-  // Reset Filters & Search
-  resetFilters() {
-    this.searchQuery.set('');
-    this.selectedStatus.set('all');
-    this.selectedDepartment.set('all');
-    this.selectedLinkedFilter.set('all');
-    this.createdFromDate.set('');
-    this.createdToDate.set('');
-  }
 }
+

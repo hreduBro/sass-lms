@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Signatory, SignatoryChangeLog } from '../../../models/signatory.model';
+import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
+import { Kpi } from '../../../models/dashboard.model';
 
 export interface DashboardWidgetConfig {
   id: string;
@@ -18,7 +20,8 @@ export interface DashboardWidgetConfig {
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    KpiCardComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './signatory-dashboard.component.html'
@@ -49,6 +52,43 @@ export class SignatoryDashboardComponent {
   activeCount = computed(() => this.lmsData.signatories().filter(s => s.status === 'active').length);
   inactiveCount = computed(() => this.lmsData.signatories().filter(s => s.status === 'inactive').length);
   unlinkedCount = computed(() => this.lmsData.signatories().filter(s => s.linkedTemplateCount === 0).length);
+
+  // Standardized app-kpi-card Computations matching LMS Dashboard
+  kpiTotalSignatories = computed<Kpi>(() => ({
+    title: 'Total Signatories',
+    value: String(this.totalCount()),
+    change: `+${this.totalCount()} registered`,
+    icon: 'badge',
+    color: 'sky',
+    subtext: 'In institutional registry'
+  }));
+
+  kpiActive = computed<Kpi>(() => ({
+    title: 'Active & Authorized',
+    value: String(this.activeCount()),
+    change: `+${Math.round((this.activeCount() / (this.totalCount() || 1)) * 100)}% active`,
+    icon: 'check',
+    color: 'emerald',
+    subtext: `${Math.round((this.activeCount() / (this.totalCount() || 1)) * 100)}% of total registry`
+  }));
+
+  kpiInactive = computed<Kpi>(() => ({
+    title: 'Inactive / Suspended',
+    value: String(this.inactiveCount()),
+    change: `${Math.round((this.inactiveCount() / (this.totalCount() || 1)) * 100)}% frozen`,
+    icon: 'pending',
+    color: 'rose',
+    subtext: 'Frozen from new bindings'
+  }));
+
+  kpiUnlinked = computed<Kpi>(() => ({
+    title: 'Unlinked Signatories',
+    value: String(this.unlinkedCount()),
+    change: `${this.unlinkedCount()} pending`,
+    icon: 'draft',
+    color: 'amber',
+    subtext: '0 template linkages'
+  }));
 
   // Top Most Linked Signatories
   mostLinkedSignatories = computed(() => {

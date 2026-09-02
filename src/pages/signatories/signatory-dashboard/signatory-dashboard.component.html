@@ -1,145 +1,160 @@
-<div class="p-6 space-y-6 max-w-[1600px] mx-auto pb-20">
-  <!-- Top Bar / Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-base-100 dark:bg-base-900 p-6 rounded-2xl border border-base-200 dark:border-base-800 shadow-xs">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400">
-          <mat-icon class="text-xl">space_dashboard</mat-icon>
+<div class="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto pb-24">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HERO HEADER BANNER                                                     -->
+  <!-- ========================================================================= -->
+  <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-7 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
+    <!-- Ambient Background Accent -->
+    <div class="absolute -top-24 -right-24 w-72 h-72 bg-gradient-to-br from-tenant-500/10 to-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="space-y-1.5 relative z-10">
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/80 flex items-center gap-1.5 shadow-2xs uppercase tracking-wide">
+          <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">space_dashboard</span>
+          Signatory Registry • Telemetry & Analytics
         </span>
-        <h1 class="text-2xl font-extrabold text-base-900 dark:text-base-100 tracking-tight">Signatory Overview</h1>
+        <span class="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-base-200 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-base-300">
+          {{ totalCount() }} Signatories Tracked
+        </span>
       </div>
-      <p class="text-xs text-base-500 dark:text-base-400 mt-1 font-medium">
-        Signatory repository health and usage across certificate templates.
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+        Signatory Overview
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-normal">
+        Real-time telemetry, centralized propagation audit trail, and customizable dashboard widgets.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
-      <a routerLink="/certificates/signatories" class="px-4 py-2.5 rounded-xl border border-base-300 dark:border-base-700 hover:bg-base-100 dark:hover:bg-base-800 font-bold text-xs text-base-700 dark:text-base-200 transition-colors flex items-center gap-2">
-        <mat-icon class="text-base">table_view</mat-icon>
-        Signatories Repository
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-3 relative z-10 shrink-0 flex-wrap sm:flex-nowrap">
+      <a 
+        routerLink="/certificates/signatories" 
+        class="px-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-base-300 bg-white dark:bg-base-200 hover:bg-slate-50 dark:hover:bg-base-300 font-bold text-xs text-slate-700 dark:text-slate-200 transition-all flex items-center gap-2 shadow-2xs cursor-pointer">
+        <span class="material-symbols-outlined text-base text-slate-500">table_rows</span>
+        <span>Signatories Repository</span>
       </a>
 
       <!-- Customize Studio Button (View Mode) -->
       <button 
         *ngIf="!isStudioMode()"
         (click)="enterStudioMode()" 
-        class="px-4 py-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 font-bold text-xs transition-colors flex items-center gap-2">
-        <mat-icon class="text-base">dashboard_customize</mat-icon>
-        Customize Dashboard Studio
+        class="px-4 py-2.5 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 hover:bg-tenant-100 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 font-bold text-xs transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
+        <span class="material-symbols-outlined text-base text-tenant-600">tune</span>
+        <span>Customize Studio</span>
       </button>
 
-      <!-- Studio Mode Action Buttons -->
-      <div *ngIf="isStudioMode()" class="flex items-center gap-2">
-        <button (click)="resetDefaultLayout()" class="px-3.5 py-2 rounded-xl bg-base-200 dark:bg-base-800 hover:bg-base-300 font-bold text-xs text-base-800 dark:text-base-200">
-          Reset Default
-        </button>
-        <button (click)="discardStudioChanges()" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold text-xs">
-          Discard
-        </button>
-        <button (click)="publishLive()" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs flex items-center gap-1.5">
-          <mat-icon class="text-sm">publish</mat-icon>
-          Publish Live
-        </button>
-      </div>
+      <a 
+        routerLink="/certificates/signatories"
+        class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-base">person_add</span>
+        <span>Create Signatory</span>
+      </a>
     </div>
   </div>
 
-  <!-- Studio Mode Editor Banner -->
-  <div *ngIf="isStudioMode()" class="p-5 rounded-2xl bg-teal-500/10 border-2 border-dashed border-teal-500/40 space-y-4 animate-fade-in">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <mat-icon class="text-teal-600">tune</mat-icon>
-        <h3 class="text-sm font-black text-teal-900 dark:text-teal-200">Dashboard Studio Customization Active</h3>
+  <!-- ========================================================================= -->
+  <!-- 2. LMS DASHBOARD TELEMETRY & KPI METRIC CARDS                             -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    <app-kpi-card [kpi]="kpiTotalSignatories()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiActive()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiInactive()"></app-kpi-card>
+    <app-kpi-card [kpi]="kpiUnlinked()"></app-kpi-card>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. STUDIO MODE ACTIVE BANNER                                              -->
+  <!-- ========================================================================= -->
+  <div *ngIf="isStudioMode()" class="bg-gradient-to-r from-tenant-50 to-purple-50 dark:from-tenant-950/40 dark:to-purple-950/30 border-2 border-tenant-500/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 animate-in fade-in duration-200">
+    <div class="flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-tenant-500 text-white flex items-center justify-center shadow-xs shrink-0">
+        <span class="material-symbols-outlined text-2xl">design_services</span>
       </div>
-      <p class="text-xs text-teal-700 dark:text-teal-300">
-        Toggle widget visibility or adjust canvas column span widths.
-      </p>
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+          Signatory Dashboard Studio — Active Draft Layout
+          <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-black">UNSAVED DRAFT</span>
+        </h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Toggle widget visibility and adjust responsive canvas column span widths.
+        </p>
+      </div>
     </div>
 
-    <!-- Widget Visibility Toggles -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button 
+        type="button" 
+        (click)="resetDefaultLayout()" 
+        class="px-3.5 py-2 rounded-2xl bg-white dark:bg-base-200 hover:bg-slate-100 border border-slate-200 dark:border-base-300 font-bold text-xs text-slate-700 dark:text-slate-200 cursor-pointer shadow-2xs">
+        Reset Default
+      </button>
+      <button 
+        type="button" 
+        (click)="discardStudioChanges()" 
+        class="px-3.5 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer border border-rose-200">
+        Discard
+      </button>
+      <button 
+        type="button" 
+        (click)="publishLive()" 
+        class="px-5 py-2 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">publish</span>
+        Publish Live
+      </button>
+    </div>
+  </div>
+
+  <!-- Studio Mode Widget Visibility Toggles -->
+  <div *ngIf="isStudioMode()" class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-base-300 pb-2.5">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Widget Canvas Controls</span>
+      <span class="text-[11px] text-slate-400">Click to show/hide widgets in your layout</span>
+    </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
-      <div *ngFor="let w of draftWidgets()" class="p-3 rounded-xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 flex items-center justify-between gap-2">
-        <span class="font-bold truncate text-base-900 dark:text-base-100">{{ w.title }}</span>
-        <div class="flex items-center gap-1.5">
-          <button 
-            (click)="toggleWidgetVisibility(w.id)" 
-            [ngClass]="w.visible ? 'bg-teal-600 text-white' : 'bg-base-200 text-base-500'"
-            class="px-2 py-1 rounded-lg font-bold text-[10px]">
-            {{ w.visible ? 'Visible' : 'Hidden' }}
-          </button>
-        </div>
+      <div *ngFor="let w of draftWidgets()" class="p-3 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 flex items-center justify-between gap-2 shadow-2xs">
+        <span class="font-bold truncate text-slate-900 dark:text-white">{{ w.title }}</span>
+        <button 
+          (click)="toggleWidgetVisibility(w.id)" 
+          [ngClass]="w.visible ? 'bg-tenant-500 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-500'"
+          class="px-2.5 py-1 rounded-xl font-bold text-[10px] cursor-pointer transition-colors shrink-0">
+          {{ w.visible ? 'Visible' : 'Hidden' }}
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard Grid Canvas -->
+  <!-- ========================================================================= -->
+  <!-- 4. DASHBOARD WIDGETS GRID CANVAS                                          -->
+  <!-- ========================================================================= -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-    <!-- WIDGET 1: Repository KPI Summary -->
-    <div *ngIf="isWidgetVisible('kpi_summary')" [class]="getWidgetWidthClass('kpi_summary')" class="col-span-12">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">analytics</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Repository KPI Summary</h3>
+    <!-- WIDGET 1: Status Breakdown -->
+    <div *ngIf="isWidgetVisible('status_breakdown')" [class]="getWidgetWidthClass('status_breakdown')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-5">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">pie_chart</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Signatory Status Breakdown</h3>
+              <p class="text-[11px] text-slate-400">Registry authorization health</p>
+            </div>
           </div>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-base-400">Live Metrics</span>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('status_breakdown', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('status_breakdown', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 dark:bg-base-200 text-slate-600 border border-slate-200 dark:border-base-300">
+            Analytics
+          </span>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="p-4 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
-              <mat-icon class="text-xl">badge</mat-icon>
-            </div>
-            <div>
-              <div class="text-[10px] text-base-500 uppercase font-bold tracking-wider">Total Signatories</div>
-              <div class="text-2xl font-black text-base-900 dark:text-base-100">{{ totalCount() }}</div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-              <mat-icon class="text-xl">check_circle</mat-icon>
-            </div>
-            <div>
-              <div class="text-[10px] text-base-500 uppercase font-bold tracking-wider">Active Signatories</div>
-              <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ activeCount() }}</div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-              <mat-icon class="text-xl">pause_circle</mat-icon>
-            </div>
-            <div>
-              <div class="text-[10px] text-base-500 uppercase font-bold tracking-wider">Inactive Signatories</div>
-              <div class="text-2xl font-black text-rose-600 dark:text-rose-400">{{ inactiveCount() }}</div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
-              <mat-icon class="text-xl">link_off</mat-icon>
-            </div>
-            <div>
-              <div class="text-[10px] text-base-500 uppercase font-bold tracking-wider">Unlinked Signatories</div>
-              <div class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ unlinkedCount() }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- WIDGET 2: Status Breakdown -->
-    <div *ngIf="isWidgetVisible('status_breakdown')" [class]="getWidgetWidthClass('status_breakdown')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full flex flex-col justify-between">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">pie_chart</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Signatory Status Breakdown</h3>
-          </div>
-        </div>
-
+        <!-- Progress Bars -->
         <div class="space-y-4">
           <!-- Active Bar -->
           <div class="space-y-1.5">
@@ -148,9 +163,9 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 Active Signatories
               </span>
-              <span class="text-base-900 dark:text-base-100">{{ activeCount() }} ({{ Math.round((activeCount() / (totalCount() || 1)) * 100) }}%)</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ activeCount() }} ({{ Math.round((activeCount() / (totalCount() || 1)) * 100) }}%)</span>
             </div>
-            <div class="w-full h-2.5 rounded-full bg-base-200 dark:bg-base-800 overflow-hidden">
+            <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
               <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" [style.width.%]="(activeCount() / (totalCount() || 1)) * 100"></div>
             </div>
           </div>
@@ -162,9 +177,9 @@
                 <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 Inactive Signatories
               </span>
-              <span class="text-base-900 dark:text-base-100">{{ inactiveCount() }} ({{ Math.round((inactiveCount() / (totalCount() || 1)) * 100) }}%)</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ inactiveCount() }} ({{ Math.round((inactiveCount() / (totalCount() || 1)) * 100) }}%)</span>
             </div>
-            <div class="w-full h-2.5 rounded-full bg-base-200 dark:bg-base-800 overflow-hidden">
+            <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
               <div class="h-full bg-rose-500 rounded-full transition-all duration-500" [style.width.%]="(inactiveCount() / (totalCount() || 1)) * 100"></div>
             </div>
           </div>
@@ -176,157 +191,272 @@
                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 Unlinked Signatories
               </span>
-              <span class="text-base-900 dark:text-base-100">{{ unlinkedCount() }} ({{ Math.round((unlinkedCount() / (totalCount() || 1)) * 100) }}%)</span>
+              <span class="text-slate-900 dark:text-white font-mono">{{ unlinkedCount() }} ({{ Math.round((unlinkedCount() / (totalCount() || 1)) * 100) }}%)</span>
             </div>
-            <div class="w-full h-2.5 rounded-full bg-base-200 dark:bg-base-800 overflow-hidden">
+            <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
               <div class="h-full bg-amber-500 rounded-full transition-all duration-500" [style.width.%]="(unlinkedCount() / (totalCount() || 1)) * 100"></div>
             </div>
           </div>
         </div>
 
-        <p class="text-[11px] text-base-500 pt-2 border-t border-base-200/60 dark:border-base-800">
+        <!-- Footer -->
+        <p class="text-[11px] text-slate-400 pt-3 border-t border-slate-100 dark:border-base-300">
           Active signatories can be linked across templates. Inactive entries are frozen from new template bindings.
         </p>
       </div>
     </div>
 
-    <!-- WIDGET 3: Most-Linked Signatories (Top Reuse Signal) -->
-    <div *ngIf="isWidgetVisible('most_linked')" [class]="getWidgetWidthClass('most_linked')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">workspace_premium</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Most-Linked Signatories (Top Reuse)</h3>
+    <!-- WIDGET 2: Most-Linked Signatories (Top Reuse Signal) -->
+    <div *ngIf="isWidgetVisible('most_linked')" [class]="getWidgetWidthClass('most_linked')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">workspace_premium</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Most-Linked Signatories</h3>
+              <p class="text-[11px] text-slate-400">Ranked by template linkages</p>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400">Ranked by Linkages</span>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('most_linked', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('most_linked', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-50 dark:bg-teal-950/60 text-teal-700 border border-teal-200">
+            Top Reuse
+          </span>
         </div>
 
-        <div class="space-y-3">
-          <div *ngFor="let sig of mostLinkedSignatories(); let i = index" class="p-3 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 flex items-center justify-between gap-3 text-xs">
+        <!-- Top Ranked List -->
+        <div class="space-y-2.5">
+          <div *ngFor="let sig of mostLinkedSignatories(); let i = index" class="p-3 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/60 dark:border-base-300 flex items-center justify-between gap-3 text-xs hover:border-tenant-500/30 transition-all">
             <div class="flex items-center gap-3 min-w-0">
-              <span class="w-6 h-6 rounded-lg bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 font-black text-[11px] flex items-center justify-center shrink-0">
+              <span class="w-7 h-7 rounded-xl bg-tenant-100 dark:bg-tenant-900/60 text-tenant-800 dark:text-tenant-300 font-black text-xs flex items-center justify-center shrink-0">
                 #{{ i + 1 }}
               </span>
+              
+              <!-- Signature Preview Thumbnail -->
+              <div class="w-16 h-8 rounded-lg border border-slate-200 dark:border-base-300 bg-white dark:bg-base-100 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                <img [src]="sig.signatureImage.fileUrl" [alt]="sig.name" class="max-h-full max-w-full object-contain" />
+              </div>
+
               <div class="min-w-0">
-                <div class="font-black text-base-900 dark:text-base-100 truncate">{{ sig.name }}</div>
-                <div class="text-[11px] text-base-500 truncate">{{ sig.designation }}</div>
+                <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
+                <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
               </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-              <span class="px-2.5 py-1 rounded-lg bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-extrabold text-[11px]">
+              <span class="px-3 py-1 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 font-extrabold text-xs">
                 {{ sig.linkedTemplateCount }} Templates
               </span>
             </div>
           </div>
         </div>
+
+        <!-- Footer Link -->
+        <div class="pt-2 flex justify-end">
+          <a routerLink="/certificates/signatories" class="text-xs font-bold text-tenant-600 hover:text-tenant-700 flex items-center gap-1 cursor-pointer">
+            <span>View all in repository</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
       </div>
     </div>
 
-    <!-- WIDGET 4: Department Distribution -->
-    <div *ngIf="isWidgetVisible('department_distribution')" [class]="getWidgetWidthClass('department_distribution')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">domain</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Signatories by Department / Unit</h3>
+    <!-- WIDGET 3: Department Distribution -->
+    <div *ngIf="isWidgetVisible('department_distribution')" [class]="getWidgetWidthClass('department_distribution')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">domain</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Signatories by Department</h3>
+              <p class="text-[11px] text-slate-400">Institutional organizational unit distribution</p>
+            </div>
           </div>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('department_distribution', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('department_distribution', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-sky-50 dark:bg-sky-950/60 text-sky-700 border border-sky-200">
+            Organization
+          </span>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3.5">
           <div *ngFor="let dep of departmentStats()" class="space-y-1.5 text-xs">
             <div class="flex justify-between font-bold">
-              <span class="text-base-800 dark:text-base-200">{{ dep.name }}</span>
-              <span class="text-base-600 font-semibold">{{ dep.count }} Signatories ({{ dep.percentage }}%)</span>
+              <span class="text-slate-800 dark:text-slate-200">{{ dep.name }}</span>
+              <span class="text-slate-500 font-semibold font-mono">{{ dep.count }} Signatories ({{ dep.percentage }}%)</span>
             </div>
-            <div class="w-full h-2 rounded-full bg-base-200 dark:bg-base-800 overflow-hidden">
-              <div class="h-full bg-teal-500 rounded-full" [style.width.%]="dep.percentage"></div>
+            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
+              <div class="h-full bg-tenant-500 rounded-full transition-all duration-500" [style.width.%]="dep.percentage"></div>
             </div>
           </div>
         </div>
+
+        <p class="text-[11px] text-slate-400 pt-3 border-t border-slate-100 dark:border-base-300">
+          Shows how signatories are apportioned across institutional business and academic units.
+        </p>
       </div>
     </div>
 
-    <!-- WIDGET 5: Centralized Propagation Logs -->
-    <div *ngIf="isWidgetVisible('propagation_logs')" [class]="getWidgetWidthClass('propagation_logs')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">sync</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Centralized Propagation Audit Logs</h3>
+    <!-- WIDGET 4: Centralized Propagation Logs -->
+    <div *ngIf="isWidgetVisible('propagation_logs')" [class]="getWidgetWidthClass('propagation_logs')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">sync</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Centralized Propagation Audit Logs</h3>
+              <p class="text-[11px] text-slate-400">Live credential audit trail</p>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-teal-600">BRD Step 5</span>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('propagation_logs', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('propagation_logs', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
+            Governance
+          </span>
         </div>
 
         <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-          <div *ngFor="let log of changeLogs()" class="p-3.5 rounded-xl bg-base-50 dark:bg-base-800/40 border border-base-200/60 dark:border-base-700/60 text-xs space-y-1">
+          <div *ngFor="let log of changeLogs()" class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/60 dark:border-base-300 text-xs space-y-1 hover:border-amber-300 transition-all">
             <div class="flex items-center justify-between">
-              <span class="font-extrabold text-base-900 dark:text-base-100">{{ log.signatoryName }}</span>
-              <span class="text-[10px] font-mono text-base-400">{{ log.changedAt }}</span>
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ log.signatoryName }}</span>
+              <span class="text-[10px] font-mono text-slate-400">{{ log.changedAt }}</span>
             </div>
-            <p class="text-base-600 dark:text-base-300 font-medium">
+            <p class="text-slate-600 dark:text-slate-300 font-medium">
               {{ log.actionSummary }}
             </p>
-            <div class="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
-              <mat-icon class="text-xs">done_all</mat-icon>
+            <div class="text-[10px] text-tenant-600 dark:text-tenant-400 font-semibold flex items-center gap-1 pt-0.5">
+              <span class="material-symbols-outlined text-xs">done_all</span>
               <span>Changed by {{ log.changedBy }}</span>
             </div>
           </div>
         </div>
+
+        <p class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-base-300">
+          Any updates to signatory designations or signatures automatically propagate across all linked certificate templates.
+        </p>
       </div>
     </div>
 
-    <!-- WIDGET 6: Recent Activity Feed -->
-    <div *ngIf="isWidgetVisible('recent_activity')" [class]="getWidgetWidthClass('recent_activity')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-teal-600">history</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Recent Signatory Activity Feed</h3>
+    <!-- WIDGET 5: Recent Activity Feed -->
+    <div *ngIf="isWidgetVisible('recent_activity')" [class]="getWidgetWidthClass('recent_activity')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">history</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Recent Activity Feed</h3>
+              <p class="text-[11px] text-slate-400">Live registry audit records</p>
+            </div>
           </div>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('recent_activity', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('recent_activity', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-50 dark:bg-purple-950/60 text-purple-700 border border-purple-200">
+            Live Feed
+          </span>
         </div>
 
         <div class="space-y-3">
-          <div *ngFor="let sig of lmsData.signatories().slice(0, 4)" class="flex items-start gap-3 text-xs">
-            <div class="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 mt-0.5">
-              <mat-icon class="text-base">edit_note</mat-icon>
+          <div *ngFor="let sig of lmsData.signatories().slice(0, 4)" class="flex items-start gap-3 text-xs p-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-base-200/40 transition-colors">
+            <div class="p-2 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 mt-0.5 shrink-0">
+              <span class="material-symbols-outlined text-base">edit_note</span>
             </div>
-            <div class="space-y-0.5">
-              <div class="font-bold text-base-900 dark:text-base-100">{{ sig.name }} updated profile</div>
-              <p class="text-[11px] text-base-500">Designation: {{ sig.designation }}</p>
-              <div class="text-[10px] text-base-400 font-mono">{{ sig.updatedAt }}</div>
+            <div class="space-y-0.5 min-w-0">
+              <div class="font-bold text-slate-900 dark:text-white truncate">{{ sig.name }} updated profile</div>
+              <p class="text-[11px] text-slate-500 truncate">Designation: {{ sig.designation }}</p>
+              <div class="text-[10px] text-slate-400 font-mono">{{ sig.updatedAt }}</div>
             </div>
           </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <a routerLink="/certificates/signatories" class="text-xs font-bold text-tenant-600 hover:text-tenant-700 flex items-center gap-1 cursor-pointer">
+            <span>Manage all signatories</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- WIDGET 7: Unlinked Signatories Attention List -->
-    <div *ngIf="isWidgetVisible('unlinked_attention')" [class]="getWidgetWidthClass('unlinked_attention')">
-      <div class="p-5 rounded-2xl bg-base-100 dark:bg-base-900 border border-base-200 dark:border-base-800 space-y-4 shadow-2xs h-full">
-        <div class="flex items-center justify-between pb-2 border-b border-base-200/60 dark:border-base-800">
-          <div class="flex items-center gap-2">
-            <mat-icon class="text-amber-600">warning_amber</mat-icon>
-            <h3 class="text-sm font-black text-base-900 dark:text-base-100">Unlinked Signatories (Cleanup Candidate)</h3>
+    <!-- WIDGET 6: Unlinked Signatories Attention List -->
+    <div *ngIf="isWidgetVisible('unlinked_attention')" [class]="getWidgetWidthClass('unlinked_attention')" class="flex flex-col">
+      <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">warning_amber</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-slate-900 dark:text-white">Unlinked Signatories</h3>
+              <p class="text-[11px] text-slate-400">Cleanup & linking candidate list</p>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-amber-600">{{ unlinkedSignatories().length }} Unlinked</span>
+
+          <!-- Studio Width Controls -->
+          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
+            <button (click)="setWidgetWidth('unlinked_attention', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
+            <button (click)="setWidgetWidth('unlinked_attention', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
+          </div>
+          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
+            {{ unlinkedSignatories().length }} Unlinked
+          </span>
         </div>
 
         <div class="space-y-2.5">
-          <div *ngIf="unlinkedSignatories().length === 0" class="p-6 text-center text-xs text-base-500 border border-dashed border-base-200 rounded-xl">
+          <div *ngIf="unlinkedSignatories().length === 0" class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-base-300 rounded-2xl">
             All signatories in the repository are currently linked to at least 1 certificate template.
           </div>
 
-          <div *ngFor="let sig of unlinkedSignatories()" class="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between gap-2 text-xs">
-            <div>
-              <div class="font-black text-base-900 dark:text-base-100">{{ sig.name }}</div>
-              <div class="text-[11px] text-base-500">{{ sig.designation }}</div>
+          <div *ngFor="let sig of unlinkedSignatories()" class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between gap-2 text-xs">
+            <div class="space-y-0.5 min-w-0">
+              <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
+              <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
             </div>
-            <a routerLink="/certificates/signatories" [queryParams]="{ filter: 'unlinked' }" class="px-3 py-1.5 rounded-lg bg-teal-600 text-white font-bold text-[11px] shrink-0">
-              Link Template
+            <a 
+              routerLink="/certificates/signatories" 
+              class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-[11px] shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">link</span>
+              <span>Link Template</span>
             </a>
           </div>
         </div>
+
+        <p class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-base-300">
+          Unlinked signatories can be linked directly or archived to keep your authorized signer repository tidy.
+        </p>
       </div>
     </div>
 

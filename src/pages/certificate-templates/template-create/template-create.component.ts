@@ -443,6 +443,7 @@ export class CertificateTemplateCreateComponent implements OnInit {
     if (target.files && target.files.length > 0) {
       this.handleUploadedFile(target.files[0]);
     }
+    target.value = '';
   }
 
   private handleUploadedFile(file: File) {
