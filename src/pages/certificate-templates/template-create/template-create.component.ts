@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { LmsDataService } from '../../../services/lms-data.service';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
+import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 import {
   CertificateTemplate,
   CanvasElement,
@@ -54,7 +55,8 @@ export const SAMPLE_BACKGROUND_PRESETS = [
     RouterModule,
     FormsModule,
     ReactiveFormsModule,
-    StepperComponent
+    StepperComponent,
+    CustomSelectComponent
   ],
   templateUrl: './template-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -74,6 +76,29 @@ export class CertificateTemplateCreateComponent implements OnInit {
   ];
 
   currentStep = signal<number>(1);
+  formErrorAlert = signal<string | null>(null);
+  showWelcomeAlert = signal<boolean>(true);
+  completedSteps = signal<Set<number>>(new Set<number>());
+  errors = signal<Record<string, string>>({});
+
+  credentialTypeOptions = [
+    { value: 'Achievement', label: 'Certificate of Achievement', icon: 'workspace_premium' },
+    { value: 'Completion', label: 'Certificate of Completion', icon: 'verified' },
+    { value: 'Professional', label: 'Professional Accreditation', icon: 'card_membership' },
+    { value: 'Merit', label: 'Honor & Merit Award', icon: 'stars' },
+    { value: 'Participation', label: 'Participation & Attendance', icon: 'assignment_turned_in' },
+    { value: 'Compliance', label: 'Regulatory Compliance', icon: 'gavel' }
+  ];
+
+  fontOptions = [
+    { value: "'Playfair Display', Georgia, serif", label: 'Playfair Display (Serif)', icon: 'font_download' },
+    { value: "'Cinzel', serif", label: 'Cinzel (Formal Trajan)', icon: 'font_download' },
+    { value: "'Plus Jakarta Sans', sans-serif", label: 'Plus Jakarta Sans', icon: 'font_download' },
+    { value: "'Montserrat', sans-serif", label: 'Montserrat', icon: 'font_download' },
+    { value: "'Inter', sans-serif", label: 'Inter (Modern Sans)', icon: 'font_download' },
+    { value: "'Courier Prime', monospace", label: 'Courier Prime (Monospace)', icon: 'font_download' }
+  ];
+
   isEditMode = signal<boolean>(false);
   templateIdToEdit = signal<string | null>(null);
 
@@ -85,6 +110,8 @@ export class CertificateTemplateCreateComponent implements OnInit {
   // Selected background image state
   backgroundUrl = signal<string>('https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=1600&q=80');
   backgroundFileName = signal<string>('brac_gold_border_parchment.png');
+  customBackgroundUrl = signal<string | null>(null);
+  customBackgroundName = signal<string | null>(null);
   isDraggingFile = signal<boolean>(false);
 
   // Canvas elements state
@@ -146,6 +173,7 @@ export class CertificateTemplateCreateComponent implements OnInit {
         this.isEditMode.set(true);
         this.templateIdToEdit.set(id);
         this.populateFromExisting(existing);
+        this.completedSteps.set(new Set<number>([1]));
       } else {
         this.lms.showToast(`Template "${id}" not found. Starting new template.`, 'warning');
         this.initDefaultElements();
@@ -153,7 +181,28 @@ export class CertificateTemplateCreateComponent implements OnInit {
     } else {
       this.initDefaultElements();
     }
+
+    // Subscribe to form value changes to clear validation errors dynamically
+    this.detailsForm.valueChanges.subscribe(() => {
+      const currentErrors = { ...this.errors() };
+      const name = this.detailsForm.get('name')?.value || '';
+      const type = this.detailsForm.get('type')?.value || '';
+
+      if (name && name.trim() && name.trim().length <= 99) {
+        delete currentErrors['name'];
+      }
+      if (type) {
+        delete currentErrors['type'];
+      }
+      this.errors.set(currentErrors);
+
+      if (Object.keys(currentErrors).length === 0) {
+        this.formErrorAlert.set(null);
+      }
+    });
+
     this.pushHistoryState();
+    this.showStepAlert(1, 'entered');
   }
 
   private initDefaultElements() {
@@ -337,6 +386,11 @@ export class CertificateTemplateCreateComponent implements OnInit {
     if (t.background?.fileUrl) {
       this.backgroundUrl.set(t.background.fileUrl);
       this.backgroundFileName.set(t.background.fileName || 'custom-background.png');
+      const isPreset = SAMPLE_BACKGROUND_PRESETS.some(p => p.url === t.background?.fileUrl);
+      if (!isPreset) {
+        this.customBackgroundUrl.set(t.background.fileUrl);
+        this.customBackgroundName.set(t.background.fileName || 'custom-background.png');
+      }
     }
 
     if (t.elements && t.elements.length > 0) {
@@ -350,6 +404,19 @@ export class CertificateTemplateCreateComponent implements OnInit {
     this.backgroundUrl.set(preset.url);
     this.backgroundFileName.set(`${preset.name.toLowerCase().replace(/\s+/g, '_')}.png`);
     this.lms.showToast(`Applied preset background: "${preset.name}"`, 'info');
+  }
+
+  // Custom background select
+  selectCustomBackground() {
+    const url = this.customBackgroundUrl();
+    const name = this.customBackgroundName();
+    if (url) {
+      this.backgroundUrl.set(url);
+      if (name) {
+        this.backgroundFileName.set(name);
+      }
+      this.lms.showToast('Applied custom uploaded background', 'info');
+    }
   }
 
   // File upload handlers
@@ -391,8 +458,11 @@ export class CertificateTemplateCreateComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        this.backgroundUrl.set(event.target.result as string);
+        const dataUrl = event.target.result as string;
+        this.backgroundUrl.set(dataUrl);
         this.backgroundFileName.set(file.name);
+        this.customBackgroundUrl.set(dataUrl);
+        this.customBackgroundName.set(file.name);
         this.lms.showToast(`Uploaded background image "${file.name}"`, 'success');
       }
     };
@@ -401,34 +471,148 @@ export class CertificateTemplateCreateComponent implements OnInit {
 
   // Navigation between steps
   goToStep(stepId: number) {
-    if (stepId > 1 && !this.validateStep1()) {
-      return;
+    if (stepId > this.currentStep()) {
+      // Validate up to the targeted step
+      if (this.currentStep() === 1 && stepId > 1) {
+        if (!this.validateStep1()) {
+          this.formErrorAlert.set('Mandatory details are missing or invalid.');
+          this.scrollToFirstError();
+          return;
+        }
+      }
     }
     this.currentStep.set(stepId);
+    this.formErrorAlert.set(null);
+    this.scrollTop();
+    this.showStepAlert(stepId, 'jump');
   }
 
   nextStep() {
     if (this.currentStep() === 1) {
-      if (!this.validateStep1()) return;
+      if (!this.validateStep1()) {
+        this.formErrorAlert.set('Mandatory details are missing or invalid.');
+        this.scrollToFirstError();
+        return;
+      }
+      this.completedSteps.update(set => {
+        const copy = new Set(set);
+        copy.add(1);
+        return copy;
+      });
       this.currentStep.set(2);
+      this.formErrorAlert.set(null);
+      this.scrollTop();
+      this.showStepAlert(2, 'completed');
     } else if (this.currentStep() === 2) {
+      this.completedSteps.update(set => {
+        const copy = new Set(set);
+        copy.add(1);
+        copy.add(2);
+        return copy;
+      });
       this.currentStep.set(3);
+      this.formErrorAlert.set(null);
+      this.scrollTop();
+      this.showStepAlert(3, 'completed');
     }
   }
 
   prevStep() {
     if (this.currentStep() > 1) {
-      this.currentStep.update(s => s - 1);
+      const prev = this.currentStep() - 1;
+      this.currentStep.set(prev);
+      this.formErrorAlert.set(null);
+      this.scrollTop();
+      this.showStepAlert(prev, 'back');
     }
   }
 
   private validateStep1(): boolean {
-    if (this.detailsForm.invalid) {
+    const newErrors: Record<string, string> = {};
+    const name = this.detailsForm.get('name')?.value || '';
+    const type = this.detailsForm.get('type')?.value || '';
+
+    if (!name || !name.trim()) {
+      newErrors['name'] = 'Template Name is mandatory.';
+    } else if (name.trim().length > 99) {
+      newErrors['name'] = 'Template Name must not exceed 99 characters.';
+    }
+
+    if (!type) {
+      newErrors['type'] = 'Credential classification / type is mandatory.';
+    }
+
+    this.errors.set(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       this.detailsForm.markAllAsTouched();
-      this.lms.showToast('Please enter a valid template name (1-99 characters).', 'warning');
+      this.formErrorAlert.set('All mandatory fields are not filled up. Please correct the highlighted errors.');
+      this.scrollToFirstError();
       return false;
     }
+
+    this.formErrorAlert.set(null);
     return true;
+  }
+
+  private scrollTop() {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private scrollToFirstError() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.border-rose-500, select.border-rose-500, textarea.border-rose-500, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner, app-custom-select [data-error="true"]'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
+  }
+
+  private showStepAlert(step: number, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
+    const stepTitles: Record<number, string> = {
+      1: 'Step 1 of 3: Background & Details',
+      2: 'Step 2 of 3: Visual Designer',
+      3: 'Step 3 of 3: Preview & Publish'
+    };
+
+    const stepDescriptions: Record<number, string> = {
+      1: 'Step 1 of 3 — Background & Details: Set template name, paper standard, sharing level, and certificate artwork.',
+      2: 'Step 2 of 3 — Visual Designer: Position placeholder tokens, custom text labels, and style typography on the canvas.',
+      3: 'Step 3 of 3 — Preview & Publish: Review final rendering layout before activating across OneLMS.'
+    };
+
+    let title = stepTitles[step];
+    let badge = `STEP ${step} / 3`;
+    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
+
+    let msg = stepDescriptions[step];
+    if (action === 'completed') {
+      const prev = (step - 1);
+      const prevName = stepTitles[prev].split(': ')[1];
+      const nextName = stepTitles[step].split(': ')[1];
+      title = `Step ${prev} Saved Successfully`;
+      badge = `STEP ${prev} COMPLETED`;
+      msg = `Step ${prev} (${prevName}) completed. Now on Step ${step} of 3: ${nextName}.`;
+      type = 'success';
+    } else if (action === 'back') {
+      msg = `Navigated back to Step ${step} of 3 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
+    } else if (action === 'jump') {
+      msg = `Active: Step ${step} of 3 (${stepTitles[step].split(': ')[1]}).`;
+      type = 'info';
+    }
+
+    this.lms.showToast(msg, type, 4000, title, badge);
   }
 
   // =========================================================================

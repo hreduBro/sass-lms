@@ -6,6 +6,7 @@ import { LmsDataService } from '../../services/lms-data.service';
 @Component({
   selector: 'app-footer',
   imports: [CommonModule, RouterModule],
+  host: { class: 'block' },
   template: `
     <!-- Fixed Bottom Footer Bar with Immersive Top Shadow & Theme Styling -->
     <footer class="relative z-20 border-t border-base-300 dark:border-slate-800/80 bg-base-100/95 dark:bg-base-100/95 backdrop-blur-md transition-all duration-200 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.06),0_-1px_3px_0_rgba(0,0,0,0.04)] dark:shadow-[0_-6px_24px_-2px_rgba(0,0,0,0.45),0_-2px_6px_0_rgba(0,0,0,0.3)] select-none">
