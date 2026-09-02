@@ -1,735 +1,951 @@
-<div class="min-h-screen bg-slate-50/60 p-4 sm:p-6 lg:p-8">
-  <!-- Top Title & Navigation Bar -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+<div class="min-h-screen bg-base-200 text-text-primary p-4 sm:p-6 lg:p-8 space-y-6">
+  <!-- Top Navigation & Header Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2">
-        <a routerLink="/certificates/badges" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors">
-          <mat-icon>arrow_back</mat-icon>
+      <div class="flex items-center gap-2 text-xs font-semibold text-text-secondary mb-1">
+        <a routerLink="/certificates/badges" class="hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[15px]">military_tech</span> Badges
         </a>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-          {{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}
-        </h1>
+        <span>/</span>
+        <span class="text-text-primary font-bold">{{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}</span>
       </div>
-      <p class="text-xs text-slate-500 ml-8">
-        {{ currentStep() === 1 ? 'Design the badge emblem and set its information, earning criteria and sharing.' : (currentStep() === 2 ? 'Add label text and placeholders onto the badge and position them.' : 'Review the badge with sample data before publishing.') }}
-      </p>
+      <div class="flex items-center gap-3">
+        <a 
+          routerLink="/certificates/badges" 
+          class="w-9 h-9 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300/60 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors shadow-xs"
+          title="Back to Badges List">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+        </a>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-text-primary tracking-tight">
+            {{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}
+          </h1>
+          <p class="text-xs text-text-secondary">
+            {{ currentStep() === 1 ? 'Design the badge emblem and configure metadata, earning criteria and sharing policy.' : (currentStep() === 2 ? 'Place dynamic text labels and placeholder tokens onto the WYSIWYG badge canvas.' : 'Review badge preview with realistic sample data before final publishing.') }}
+          </p>
+        </div>
+      </div>
     </div>
 
-    <!-- Top Actions -->
+    <!-- Top Action Buttons -->
     <div class="flex items-center gap-2">
-      <button (click)="cancelAndExit()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50">
+      <button 
+        type="button" 
+        (click)="cancelAndExit()" 
+        class="px-3.5 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
         Cancel
       </button>
-      <button (click)="saveDraftAndExit()" class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
+      <button 
+        type="button" 
+        (click)="saveDraftAndExit()" 
+        class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all cursor-pointer shadow-xs">
         <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
       </button>
     </div>
   </div>
 
-  <!-- Stepper Bar (3 Steps) -->
-  <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-6">
-    <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold relative">
-      <!-- Step 1 Indicator -->
-      <button
-        (click)="goToStep(1)"
-        class="flex items-center justify-center gap-2 p-3 rounded-xl transition-all"
-        [ngClass]="currentStep() === 1 ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-500' : (currentStep() > 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' : 'bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed')"
-      >
-        <span
-          class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-          [ngClass]="currentStep() === 1 ? 'bg-emerald-600 text-white' : (currentStep() > 1 ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-500')"
-        >
-          <mat-icon *ngIf="currentStep() > 1" class="!w-3.5 !h-3.5">check</mat-icon>
-          <span *ngIf="currentStep() <= 1">1</span>
-        </span>
-        <span class="truncate">1. Emblem & Details</span>
-      </button>
-
-      <!-- Step 2 Indicator -->
-      <button
-        (click)="goToStep(2)"
-        [disabled]="currentStep() < 2 && !validateStep1()"
-        class="flex items-center justify-center gap-2 p-3 rounded-xl transition-all"
-        [ngClass]="currentStep() === 2 ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-500' : (currentStep() > 2 ? 'bg-slate-100 text-slate-700 border border-slate-200' : 'bg-slate-50 text-slate-400 border border-slate-100')"
-      >
-        <span
-          class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-          [ngClass]="currentStep() === 2 ? 'bg-emerald-600 text-white' : (currentStep() > 2 ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-500')"
-        >
-          <mat-icon *ngIf="currentStep() > 2" class="!w-3.5 !h-3.5">check</mat-icon>
-          <span *ngIf="currentStep() <= 2">2</span>
-        </span>
-        <span class="truncate">2. Designer</span>
-      </button>
-
-      <!-- Step 3 Indicator -->
-      <button
-        (click)="goToStep(3)"
-        [disabled]="currentStep() < 2"
-        class="flex items-center justify-center gap-2 p-3 rounded-xl transition-all"
-        [ngClass]="currentStep() === 3 ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-500' : 'bg-slate-50 text-slate-400 border border-slate-100'"
-      >
-        <span
-          class="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-          [ngClass]="currentStep() === 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'"
-        >
-          3
-        </span>
-        <span class="truncate">3. Preview & Publish</span>
-      </button>
-    </div>
+  <!-- Stepper Component Bar -->
+  <div class="w-full">
+    <app-stepper
+      [steps]="steps"
+      [currentStep]="currentStep()"
+      [completedSteps]="completedSteps()"
+      (stepClick)="onStepClicked($event)">
+    </app-stepper>
   </div>
 
   <!-- STEP 1: Emblem & Details -->
-  <div *ngIf="currentStep() === 1" class="space-y-6">
-    <!-- Section 1: Badge Details -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-      <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
-        <mat-icon class="text-emerald-600">info</mat-icon>
-        <h2 class="text-base font-bold text-slate-900">1. Badge Details</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Badge Name (Mandatory) -->
-        <div class="lg:col-span-2">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">
-            Badge Name <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            [ngModel]="badgeName()"
-            (ngModelChange)="badgeName.set($event)"
-            placeholder="e.g. Data Science Specialist – Gold"
-            class="w-full px-3 py-2 bg-slate-50 border text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            [ngClass]="!badgeName().trim() ? 'border-slate-300' : 'border-slate-300'"
-          />
-        </div>
-
-        <!-- Badge ID (Pre-filled read-only) -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">
-            Badge ID <span class="text-slate-400 font-normal">(System Generated)</span>
-          </label>
-          <input
-            type="text"
-            [value]="templateId()"
-            readonly
-            class="w-full px-3 py-2 bg-slate-100 border border-slate-200 text-slate-500 font-mono text-xs rounded-lg cursor-not-allowed"
-          />
-        </div>
-
-        <!-- Category -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Category</label>
-          <select
-            [ngModel]="category()"
-            (ngModelChange)="category.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-          </select>
-        </div>
-
-        <!-- Description -->
-        <div class="lg:col-span-4">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Purpose</label>
-          <textarea
-            [ngModel]="description()"
-            (ngModelChange)="description.set($event)"
-            rows="2"
-            placeholder="Describe what this badge represents and why it is awarded..."
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          ></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 2: Badge Emblem (Canvas Basis) -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-      <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
-        <mat-icon class="text-emerald-600">palette</mat-icon>
-        <h2 class="text-base font-bold text-slate-900">2. Badge Emblem (Canvas Artwork)</h2>
-      </div>
-
-      <!-- Helper note -->
-      <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
-        Design your badge emblem. Use a square (1:1) image — SVG or transparent PNG at 512×512px or larger gives the sharpest result — or start from a base shape and add colors and a central glyph icon.
-      </p>
-
-      <!-- Emblem Source Toggle -->
-      <div class="flex items-center gap-6">
-        <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer">
-          <input
-            type="radio"
-            name="emblemSource"
-            value="base-shape"
-            [ngModel]="emblemSource()"
-            (ngModelChange)="emblemSource.set($event)"
-            class="text-emerald-600 focus:ring-emerald-500"
-          />
-          Start from Base Shape & Colors
-        </label>
-        <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer">
-          <input
-            type="radio"
-            name="emblemSource"
-            value="upload"
-            [ngModel]="emblemSource()"
-            (ngModelChange)="emblemSource.set($event)"
-            class="text-emerald-600 focus:ring-emerald-500"
-          />
-          Upload Custom Artwork (PNG/SVG)
-        </label>
-      </div>
-
-      <!-- Base Shape Composer -->
-      <div *ngIf="emblemSource() === 'base-shape'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-        <!-- Base Shape Selector -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Emblem Shape</label>
-          <select
-            [ngModel]="baseShape()"
-            (ngModelChange)="baseShape.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500"
-          >
-            <option *ngFor="let s of shapes" [value]="s">{{ s }}</option>
-          </select>
-        </div>
-
-        <!-- Fill Color Picker -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Fill Color (Primary)</label>
-          <div class="flex items-center gap-2">
-            <input type="color" [ngModel]="fillColor()" (ngModelChange)="fillColor.set($event)" class="w-9 h-9 p-0.5 rounded border border-slate-300 cursor-pointer" />
-            <input type="text" [ngModel]="fillColor()" (ngModelChange)="fillColor.set($event)" class="w-full px-2 py-1.5 bg-slate-50 border text-xs font-mono rounded" />
+  @if (currentStep() === 1) {
+    <div class="space-y-6 animate-fadeIn">
+      <!-- Section 1: Badge Identity & Information -->
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">info</span>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">1. Badge Details & Identity</h2>
+            <p class="text-[11px] text-text-secondary">Core naming, category classification, and descriptive purpose.</p>
           </div>
         </div>
 
-        <!-- Accent Color Picker -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Accent / Border Color</label>
-          <div class="flex items-center gap-2">
-            <input type="color" [ngModel]="accentColor()" (ngModelChange)="accentColor.set($event)" class="w-9 h-9 p-0.5 rounded border border-slate-300 cursor-pointer" />
-            <input type="text" [ngModel]="accentColor()" (ngModelChange)="accentColor.set($event)" class="w-full px-2 py-1.5 bg-slate-50 border text-xs font-mono rounded" />
-          </div>
-        </div>
-
-        <!-- Central Glyph Icon -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Central Icon Glyph</label>
-          <select
-            [ngModel]="iconRef()"
-            (ngModelChange)="iconRef.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500"
-          >
-            <option *ngFor="let ic of availableIcons" [value]="ic">{{ ic }}</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Upload Custom Artwork -->
-      <div *ngIf="emblemSource() === 'upload'" class="pt-2">
-        <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Badge Image (512×512px 1:1, Max 5MB)</label>
-        <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50 hover:bg-slate-100/80 transition-colors cursor-pointer relative">
-          <input type="file" (change)="onFileUpload($event)" accept="image/png,image/svg+xml,image/webp,image/jpeg" class="absolute inset-0 opacity-0 cursor-pointer" />
-          <mat-icon class="!w-8 !h-8 text-slate-400 mb-1">cloud_upload</mat-icon>
-          <p class="text-xs text-slate-600 font-semibold">Click or drag & drop badge image here</p>
-          <p class="text-[11px] text-slate-400">PNG, SVG, WebP or JPG up to 5MB</p>
-        </div>
-      </div>
-
-      <!-- Live Emblem Preview Box -->
-      <div class="pt-4 flex items-center gap-6 border-t border-slate-100">
-        <div class="w-24 h-24 bg-slate-100 rounded-xl border border-slate-200 p-2 flex items-center justify-center relative shadow-xs">
-          <!-- Uploaded Preview -->
-          <img *ngIf="emblemSource() === 'upload' && uploadedArtUrl()" [src]="uploadedArtUrl()" class="w-full h-full object-contain" />
-          <p *ngIf="emblemSource() === 'upload' && !uploadedArtUrl()" class="text-[10px] text-slate-400 text-center">No image uploaded</p>
-
-          <!-- SVG Preview -->
-          <div *ngIf="emblemSource() === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
-            <svg *ngIf="baseShape() === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
-              <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
-              <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
-              <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-
-            <mat-icon class="!w-6 !h-6 text-white absolute inset-0 m-auto flex items-center justify-center">
-              {{ iconRef() }}
-            </mat-icon>
-          </div>
-        </div>
-
-        <div>
-          <h4 class="text-xs font-bold text-slate-800">Emblem Artwork Preview</h4>
-          <p class="text-[11px] text-slate-500">1:1 Square (512×512px) Badge Emblem Canvas basis.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 3: Earning Metadata -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-      <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
-        <mat-icon class="text-emerald-600">verified</mat-icon>
-        <h2 class="text-base font-bold text-slate-900">3. Earning Metadata (Credential Rules)</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Criteria Description (Mandatory) -->
-        <div class="lg:col-span-4">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">
-            Earning Criteria Description <span class="text-rose-500">*</span>
-          </label>
-          <textarea
-            [ngModel]="criteria()"
-            (ngModelChange)="criteria.set($event)"
-            rows="2"
-            placeholder="e.g. Complete all Phase courses in the Data Analytics Track with score >= 85%."
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500"
-          ></textarea>
-        </div>
-
-        <!-- Level / Tier -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Level / Tier</label>
-          <select
-            [ngModel]="level()"
-            (ngModelChange)="level.set($event)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">None / Unassigned</option>
-            <option *ngFor="let lvl of levels" [value]="lvl">{{ lvl }}</option>
-          </select>
-        </div>
-
-        <!-- Issuer Name -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Issuer Authority Name</label>
-          <input
-            type="text"
-            [ngModel]="issuerName()"
-            (ngModelChange)="issuerName.set($event)"
-            placeholder="e.g. BRAC Learning Institute"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        <!-- Expiry / Validity -->
-        <div class="lg:col-span-2">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Validity Period</label>
-          <div class="flex items-center gap-3">
-            <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-              <input type="checkbox" [ngModel]="expires()" (ngModelChange)="expires.set($event)" class="rounded text-emerald-600 focus:ring-emerald-500" />
-              Badge Expires
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Badge Name (Mandatory) -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">
+              Badge Name <span class="text-rose-500">*</span>
             </label>
-
-            <div *ngIf="expires()" class="flex items-center gap-2">
-              <input type="number" min="1" max="99" [ngModel]="expiryAmount()" (ngModelChange)="expiryAmount.set($event)" class="w-16 px-2 py-1 bg-slate-50 border text-xs rounded" />
-              <select [ngModel]="expiryUnit()" (ngModelChange)="expiryUnit.set($event)" class="px-2 py-1 bg-slate-50 border text-xs rounded">
-                <option value="days">Days</option>
-                <option value="months">Months</option>
-                <option value="years">Years</option>
-              </select>
-            </div>
-            <span *ngIf="!expires()" class="text-xs text-slate-400 italic">Never expires</span>
-          </div>
-        </div>
-
-        <!-- Skill Tags Input -->
-        <div class="lg:col-span-4">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Skill Tags</label>
-          <div class="flex items-center gap-2 mb-2">
             <input
               type="text"
-              [ngModel]="tagInput()"
-              (ngModelChange)="tagInput.set($event)"
-              (keyup.enter)="addSkillTag()"
-              placeholder="Type a skill tag and press Enter..."
-              class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-300 text-xs rounded-lg focus:ring-2 focus:ring-emerald-500"
+              [ngModel]="badgeName()"
+              (ngModelChange)="badgeName.set($event)"
+              placeholder="e.g. Data Science Specialist – Gold"
+              class="w-full px-3.5 py-2.5 bg-base-200 border border-base-300 text-text-primary placeholder:text-text-secondary text-xs sm:text-sm rounded-xl focus:outline-none focus:bg-base-100 focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all"
             />
-            <button (click)="addSkillTag()" type="button" class="px-3 py-1.5 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900">
-              Add Tag
-            </button>
           </div>
-          <div class="flex flex-wrap gap-1.5">
-            <span *ngFor="let tag of skillTags()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-200 rounded-md text-xs font-medium">
-              #{{ tag }}
-              <button (click)="removeSkillTag(tag)" class="text-slate-400 hover:text-slate-700"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-            </span>
+
+          <!-- Badge ID (Read-only) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">
+              Badge ID <span class="text-text-secondary font-normal">(System Generated)</span>
+            </label>
+            <input
+              type="text"
+              [value]="templateId()"
+              readonly
+              class="w-full px-3.5 py-2.5 bg-base-200/60 border border-base-300 text-text-secondary font-mono text-xs rounded-xl cursor-not-allowed select-none"
+            />
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Badge Category</label>
+            <app-custom-select
+              [options]="categoryOptions()"
+              placeholder="Select category..."
+              [ngModel]="category()"
+              (ngModelChange)="category.set($event)"
+              leadingIcon="category">
+            </app-custom-select>
+          </div>
+
+          <!-- Description -->
+          <div class="lg:col-span-4">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Description / Purpose</label>
+            <textarea
+              [ngModel]="description()"
+              (ngModelChange)="description.set($event)"
+              rows="2"
+              placeholder="Describe what this badge represents and why it is awarded to learners..."
+              class="w-full px-3.5 py-2.5 bg-base-200 border border-base-300 text-text-primary placeholder:text-text-secondary text-xs sm:text-sm rounded-xl focus:outline-none focus:bg-base-100 focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all"
+            ></textarea>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Section 4: Sharing Policy -->
-    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-      <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
-        <mat-icon class="text-emerald-600">share</mat-icon>
-        <h2 class="text-base font-bold text-slate-900">4. Sharing Policy</h2>
+      <!-- Section 2: Emblem Artwork (Canvas Basis) -->
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">palette</span>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">2. Badge Emblem (Artwork & Geometry)</h2>
+            <p class="text-[11px] text-text-secondary">Compose badge visual with procedural SVG geometry or upload custom artwork.</p>
+          </div>
+        </div>
+
+        <!-- Helper note -->
+        <div class="p-3.5 bg-base-200 rounded-2xl border border-base-300 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-tenant-600 text-base mt-0.5 shrink-0">help_outline</span>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Design your badge emblem. Use a square (1:1) vector or transparent PNG at 512×512px for maximum fidelity, or pick a base vector shape, primary/accent color palette, and a central glyph icon.
+          </p>
+        </div>
+
+        <!-- Emblem Source Toggle -->
+        <div class="flex flex-wrap items-center gap-6 pt-1">
+          <label class="flex items-center gap-2.5 text-xs font-bold text-text-primary cursor-pointer select-none">
+            <input
+              type="radio"
+              name="emblemSource"
+              value="base-shape"
+              [ngModel]="emblemSource()"
+              (ngModelChange)="emblemSource.set($event)"
+              class="w-4 h-4 text-tenant-600 focus:ring-tenant-500"
+            />
+            <span>Start from Vector Shape & Colors</span>
+          </label>
+          <label class="flex items-center gap-2.5 text-xs font-bold text-text-primary cursor-pointer select-none">
+            <input
+              type="radio"
+              name="emblemSource"
+              value="upload"
+              [ngModel]="emblemSource()"
+              (ngModelChange)="emblemSource.set($event)"
+              class="w-4 h-4 text-tenant-600 focus:ring-tenant-500"
+            />
+            <span>Upload Custom Artwork (PNG / SVG)</span>
+          </label>
+        </div>
+
+        <!-- Base Shape Composer -->
+        @if (emblemSource() === 'base-shape') {
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            <!-- Base Shape Selector -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Emblem Shape</label>
+              <app-custom-select
+                [options]="shapeOptions()"
+                placeholder="Select shape..."
+                [ngModel]="baseShape()"
+                (ngModelChange)="baseShape.set($event)"
+                leadingIcon="crop_square">
+              </app-custom-select>
+            </div>
+
+            <!-- Fill Color Picker -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Fill Color (Primary)</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  [ngModel]="fillColor()" 
+                  (ngModelChange)="fillColor.set($event)" 
+                  class="w-10 h-10 p-0.5 rounded-xl border border-base-300 bg-base-200 cursor-pointer" 
+                />
+                <input 
+                  type="text" 
+                  [ngModel]="fillColor()" 
+                  (ngModelChange)="fillColor.set($event)" 
+                  class="w-full px-3 py-2 bg-base-200 border border-base-300 text-text-primary text-xs font-mono rounded-xl focus:outline-none focus:border-tenant-500" 
+                />
+              </div>
+            </div>
+
+            <!-- Accent Color Picker -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Accent / Border Color</label>
+              <div class="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  [ngModel]="accentColor()" 
+                  (ngModelChange)="accentColor.set($event)" 
+                  class="w-10 h-10 p-0.5 rounded-xl border border-base-300 bg-base-200 cursor-pointer" 
+                />
+                <input 
+                  type="text" 
+                  [ngModel]="accentColor()" 
+                  (ngModelChange)="accentColor.set($event)" 
+                  class="w-full px-3 py-2 bg-base-200 border border-base-300 text-text-primary text-xs font-mono rounded-xl focus:outline-none focus:border-tenant-500" 
+                />
+              </div>
+            </div>
+
+            <!-- Central Glyph Icon -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Central Icon Glyph</label>
+              <app-custom-select
+                [options]="iconOptions()"
+                placeholder="Select icon..."
+                [ngModel]="iconRef()"
+                (ngModelChange)="iconRef.set($event)"
+                leadingIcon="military_tech">
+              </app-custom-select>
+            </div>
+          </div>
+        }
+
+        <!-- Upload Custom Artwork -->
+        @if (emblemSource() === 'upload') {
+          <div class="pt-2">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Upload Badge Image (512×512px 1:1, Max 5MB)</label>
+            <div class="border-2 border-dashed border-base-300 rounded-2xl p-6 text-center bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer relative group">
+              <input 
+                type="file" 
+                (change)="onFileUpload($event)" 
+                accept="image/png,image/svg+xml,image/webp,image/jpeg" 
+                class="absolute inset-0 opacity-0 cursor-pointer" 
+              />
+              <span class="material-symbols-outlined text-3xl text-text-secondary mb-1 group-hover:text-tenant-600 transition-colors">cloud_upload</span>
+              <p class="text-xs text-text-primary font-semibold">Click or drag & drop badge artwork here</p>
+              <p class="text-[11px] text-text-secondary mt-0.5">PNG, SVG, WebP or JPG up to 5MB</p>
+            </div>
+          </div>
+        }
+
+        <!-- Live Emblem Preview Box -->
+        <div class="pt-4 flex items-center gap-5 border-t border-base-300">
+          <div class="w-24 h-24 bg-base-200 rounded-2xl border border-base-300 p-2 flex items-center justify-center relative shadow-xs shrink-0 overflow-hidden">
+            @if (emblemSource() === 'upload' && uploadedArtUrl()) {
+              <img [src]="uploadedArtUrl()" alt="Badge Emblem" class="w-full h-full object-contain" />
+            } @else if (emblemSource() === 'upload' && !uploadedArtUrl()) {
+              <p class="text-[10px] text-text-secondary text-center">No image uploaded</p>
+            } @else if (emblemSource() === 'base-shape') {
+              <div class="w-full h-full relative flex items-center justify-center">
+                @if (baseShape() === 'Shield') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                } @else if (baseShape() === 'Circle') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
+                  </svg>
+                } @else if (baseShape() === 'Hexagon') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                } @else if (baseShape() === 'Star') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
+                  </svg>
+                } @else if (baseShape() === 'Ribbon') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
+                    <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
+                  </svg>
+                } @else if (baseShape() === 'Rosette') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
+                  </svg>
+                } @else if (baseShape() === 'Square') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                }
+
+                <span class="material-symbols-outlined text-white text-xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-sm">
+                  {{ iconRef() }}
+                </span>
+              </div>
+            }
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-text-primary">Emblem Artwork Vector Preview</h4>
+            <p class="text-[11px] text-text-secondary mt-0.5">1:1 Square 512×512px OpenBadges compliant canvas substrate.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="space-y-3">
-        <label class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
-          <input type="radio" name="sharing" value="private" [ngModel]="sharingLevel()" (ngModelChange)="sharingLevel.set($event)" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
-          <div>
-            <p class="text-xs font-bold text-slate-900">Private</p>
-            <p class="text-[11px] text-slate-500">Accessible only to creator and system administrators.</p>
+      <!-- Section 3: Earning Metadata -->
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">verified</span>
           </div>
-        </label>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">3. Earning Metadata & Criteria</h2>
+            <p class="text-[11px] text-text-secondary">Specify award criteria rules, credential validity, and skill tags.</p>
+          </div>
+        </div>
 
-        <label class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
-          <input type="radio" name="sharing" value="lms" [ngModel]="sharingLevel()" (ngModelChange)="sharingLevel.set($event)" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
-          <div>
-            <p class="text-xs font-bold text-slate-900">LMS-shared</p>
-            <p class="text-[11px] text-slate-500">Shared across all plan authors and instructors within the active LMS instance.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Criteria Description (Mandatory) -->
+          <div class="lg:col-span-4">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">
+              Earning Criteria Description <span class="text-rose-500">*</span>
+            </label>
+            <textarea
+              [ngModel]="criteria()"
+              (ngModelChange)="criteria.set($event)"
+              rows="2"
+              placeholder="e.g. Complete all Phase courses in the Data Analytics Track with score >= 85%."
+              class="w-full px-3.5 py-2.5 bg-base-200 border border-base-300 text-text-primary placeholder:text-text-secondary text-xs sm:text-sm rounded-xl focus:outline-none focus:bg-base-100 focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all"
+            ></textarea>
           </div>
-        </label>
 
-        <label class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer" [ngClass]="{'opacity-50 cursor-not-allowed': !permissions().canSetOrgWideSharing}">
-          <input type="radio" name="sharing" value="organization" [disabled]="!permissions().canSetOrgWideSharing" [ngModel]="sharingLevel()" (ngModelChange)="sharingLevel.set($event)" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
+          <!-- Level / Tier -->
           <div>
-            <p class="text-xs font-bold text-slate-900">Organization-shared</p>
-            <p class="text-[11px] text-slate-500">Shared across all LMS instances within the entire organization.</p>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Level / Tier</label>
+            <app-custom-select
+              [options]="levelOptions()"
+              placeholder="Select level..."
+              [ngModel]="level()"
+              (ngModelChange)="level.set($event)"
+              leadingIcon="military_tech">
+            </app-custom-select>
           </div>
-        </label>
+
+          <!-- Issuer Name -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Issuer Authority Name</label>
+            <input
+              type="text"
+              [ngModel]="issuerName()"
+              (ngModelChange)="issuerName.set($event)"
+              placeholder="e.g. BRAC Learning Institute"
+              class="w-full px-3.5 py-2.5 bg-base-200 border border-base-300 text-text-primary text-xs sm:text-sm rounded-xl focus:outline-none focus:bg-base-100 focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all"
+            />
+          </div>
+
+          <!-- Expiry / Validity -->
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Validity Period</label>
+            <div class="flex items-center gap-3 pt-1">
+              <label class="flex items-center gap-2 text-xs text-text-primary font-medium cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  [ngModel]="expires()" 
+                  (ngModelChange)="expires.set($event)" 
+                  class="rounded-md w-4 h-4 text-tenant-600 focus:ring-tenant-500" 
+                />
+                <span>Badge Expires</span>
+              </label>
+
+              @if (expires()) {
+                <div class="flex items-center gap-2">
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="99" 
+                    [ngModel]="expiryAmount()" 
+                    (ngModelChange)="expiryAmount.set($event)" 
+                    class="w-16 px-2.5 py-1.5 bg-base-200 border border-base-300 text-text-primary text-xs rounded-xl" 
+                  />
+                  <div class="w-32">
+                    <app-custom-select 
+                      [options]="expiryUnitOptions" 
+                      [ngModel]="expiryUnit()" 
+                      (ngModelChange)="expiryUnit.set($event)"
+                      placeholder="Unit">
+                    </app-custom-select>
+                  </div>
+                </div>
+              } @else {
+                <span class="text-xs text-text-secondary italic">Never expires (Permanent)</span>
+              }
+            </div>
+          </div>
+
+          <!-- Skill Tags Input -->
+          <div class="lg:col-span-4">
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Skill Tags</label>
+            <div class="flex items-center gap-2 mb-2.5">
+              <input
+                type="text"
+                [ngModel]="tagInput()"
+                (ngModelChange)="tagInput.set($event)"
+                (keyup.enter)="addSkillTag()"
+                placeholder="Type a skill tag and press Enter or click Add..."
+                class="flex-1 px-3.5 py-2 bg-base-200 border border-base-300 text-text-primary placeholder:text-text-secondary text-xs rounded-xl focus:outline-none focus:border-tenant-500"
+              />
+              <button 
+                type="button" 
+                (click)="addSkillTag()" 
+                class="px-4 py-2 bg-base-300 hover:bg-base-300/80 text-text-primary text-xs font-semibold rounded-xl transition-all cursor-pointer">
+                Add Tag
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              @for (tag of skillTags(); track tag) {
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-base-200 text-text-primary border border-base-300 rounded-lg text-xs font-medium">
+                  #{{ tag }}
+                  <button 
+                    type="button" 
+                    (click)="removeSkillTag(tag)" 
+                    class="text-text-secondary hover:text-rose-500 transition-colors flex items-center">
+                    <span class="material-symbols-outlined text-xs">close</span>
+                  </button>
+                </span>
+              }
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Step 1 Footer Buttons -->
-    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
-      <button (click)="cancelAndExit()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50">
-        Cancel
-      </button>
+      <!-- Section 4: Sharing Policy -->
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">share</span>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-text-primary">4. Sharing Policy</h2>
+            <p class="text-[11px] text-text-secondary">Determine cross-tenant and LMS visibility boundaries.</p>
+          </div>
+        </div>
 
-      <div class="flex items-center gap-3">
-        <button (click)="saveDraftAndExit()" class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
+        <div class="space-y-3">
+          <label class="flex items-start gap-3.5 p-3.5 bg-base-200 rounded-2xl border border-base-300 hover:border-tenant-500/50 cursor-pointer transition-all">
+            <input 
+              type="radio" 
+              name="sharing" 
+              value="private" 
+              [ngModel]="sharingLevel()" 
+              (ngModelChange)="sharingLevel.set($event)" 
+              class="mt-0.5 text-tenant-600 focus:ring-tenant-500" 
+            />
+            <div>
+              <p class="text-xs font-bold text-text-primary">Private Scope</p>
+              <p class="text-[11px] text-text-secondary mt-0.5">Accessible exclusively to badge creator and system administrators.</p>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3.5 p-3.5 bg-base-200 rounded-2xl border border-base-300 hover:border-tenant-500/50 cursor-pointer transition-all">
+            <input 
+              type="radio" 
+              name="sharing" 
+              value="lms" 
+              [ngModel]="sharingLevel()" 
+              (ngModelChange)="sharingLevel.set($event)" 
+              class="mt-0.5 text-tenant-600 focus:ring-tenant-500" 
+            />
+            <div>
+              <p class="text-xs font-bold text-text-primary">LMS-Shared Scope</p>
+              <p class="text-[11px] text-text-secondary mt-0.5">Shared across all plan authors and instructors within the active LMS instance.</p>
+            </div>
+          </label>
+
+          <label 
+            class="flex items-start gap-3.5 p-3.5 bg-base-200 rounded-2xl border border-base-300 hover:border-tenant-500/50 cursor-pointer transition-all"
+            [ngClass]="{'opacity-50 cursor-not-allowed': !permissions().canSetOrgWideSharing}">
+            <input 
+              type="radio" 
+              name="sharing" 
+              value="organization" 
+              [disabled]="!permissions().canSetOrgWideSharing" 
+              [ngModel]="sharingLevel()" 
+              (ngModelChange)="sharingLevel.set($event)" 
+              class="mt-0.5 text-tenant-600 focus:ring-tenant-500" 
+            />
+            <div>
+              <p class="text-xs font-bold text-text-primary">Organization-Shared Scope</p>
+              <p class="text-[11px] text-text-secondary mt-0.5">Shared across all LMS instances within the entire organization hierarchy.</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Step 1 Footer Navigation -->
+      <div class="flex items-center justify-between pt-4 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="cancelAndExit()" 
+          class="px-4 py-2.5 bg-base-100 border border-base-300 text-text-primary text-xs font-semibold rounded-xl hover:bg-base-300 transition-all cursor-pointer shadow-xs">
+          Cancel
         </button>
-        <button (click)="goToStep(2)" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-sm flex items-center gap-1">
-          Next: Designer <mat-icon class="!w-4 !h-4">arrow_forward</mat-icon>
-        </button>
+
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="saveDraftAndExit()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
+          </button>
+          <button 
+            type="button" 
+            (click)="goToStep(2)" 
+            class="px-5 py-2.5 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+            <span>Next: Designer</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 
   <!-- STEP 2: Designer (WYSIWYG Canvas) -->
-  <div *ngIf="currentStep() === 2" class="space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Left Element Palette (3 Cols) -->
-      <div class="lg:col-span-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-          Element Palette
-        </h3>
-
-        <!-- Add Static Text -->
-        <button
-          (click)="addStaticTextToCanvas()"
-          class="w-full p-2.5 bg-slate-800 text-white text-xs font-semibold rounded-xl hover:bg-slate-900 flex items-center justify-center gap-2 shadow-xs"
-        >
-          <mat-icon class="!w-4 !h-4">title</mat-icon>
-          Add Static Text Label
-        </button>
-
-        <!-- Placeholder Tokens Catalog -->
-        <div>
-          <span class="text-[11px] font-semibold text-slate-400 block mb-2">Placeholder Tokens</span>
-          <div class="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
-            <button
-              *ngFor="let token of tokenCatalog"
-              (click)="addTokenToCanvas(token)"
-              class="w-full text-left p-2.5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl transition-all flex items-center justify-between group"
-            >
-              <div>
-                <p class="text-xs font-bold text-slate-800 group-hover:text-emerald-800">{{ token.label }}</p>
-                <p class="text-[10px] font-mono text-slate-400">{{ token.key }}</p>
-              </div>
-              <mat-icon class="!w-4 !h-4 text-slate-400 group-hover:text-emerald-600">add_circle</mat-icon>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Center Canvas Stage (6 Cols) -->
-      <div class="lg:col-span-6 bg-slate-200 p-6 rounded-2xl border border-slate-300 shadow-inner flex flex-col items-center justify-center relative min-h-[480px]">
-        <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider flex items-center gap-1">
-          <mat-icon class="!w-4 !h-4">crop_square</mat-icon> 512×512 1:1 Emblem WYSIWYG Canvas
-        </div>
-
-        <!-- Canvas Container Box -->
-        <div class="w-80 h-80 bg-white rounded-xl shadow-xl relative border border-slate-300 overflow-hidden flex items-center justify-center select-none">
-          <!-- Background Emblem Artwork -->
-          <img *ngIf="emblemSource() === 'upload' && uploadedArtUrl()" [src]="uploadedArtUrl()" class="w-full h-full object-contain pointer-events-none" />
-
-          <div *ngIf="emblemSource() === 'base-shape'" class="w-full h-full relative flex items-center justify-center pointer-events-none">
-            <svg *ngIf="baseShape() === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
-              <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
-              <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
-            </svg>
-            <svg *ngIf="baseShape() === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
-              <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-            </svg>
-
-            <mat-icon class="!w-10 !h-10 text-white absolute inset-0 m-auto flex items-center justify-center">
-              {{ iconRef() }}
-            </mat-icon>
+  @if (currentStep() === 2) {
+    <div class="space-y-6 animate-fadeIn">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Element Palette (3 Cols) -->
+        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-xs space-y-4">
+          <div class="flex items-center gap-2 pb-3 border-b border-base-300">
+            <span class="material-symbols-outlined text-tenant-600 text-base">category</span>
+            <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">
+              Element Palette
+            </h3>
           </div>
 
-          <!-- Positioned Canvas Elements -->
-          <div
-            *ngFor="let el of elements()"
-            (click)="selectedElementId.set(el.id); $event.stopPropagation()"
-            class="absolute text-center border transition-all cursor-pointer flex items-center justify-center px-1"
-            [ngClass]="selectedElementId() === el.id ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-white/20' : 'border-dashed border-white/40 hover:border-white'"
-            [style.left.%]="el.x"
-            [style.top.%]="el.y"
-            [style.width.%]="el.w"
-            [style.height.%]="el.h"
-            [style.font-size.pt]="el.style.fontSizePt"
-            [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
-            [style.color]="el.style.color"
+          <!-- Add Static Text Button -->
+          <button
+            type="button"
+            (click)="addStaticTextToCanvas()"
+            class="w-full p-2.5 bg-base-200 hover:bg-base-300 text-text-primary border border-base-300 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
-            <span class="truncate">{{ el.kind === 'placeholder' ? resolveTokenValue(el.token!) : el.text }}</span>
-          </div>
-        </div>
-
-        <p class="text-[11px] text-slate-500 mt-3">Click any placed element to open property inspector.</p>
-      </div>
-
-      <!-- Right Inspector Panel (3 Cols) -->
-      <div class="lg:col-span-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-          Element Inspector
-        </h3>
-
-        <!-- Inspector Content when element is selected -->
-        <div *ngIf="selectedElement(); else noElementSelected" class="space-y-3 text-xs">
-          <div>
-            <span class="text-[10px] text-slate-400 font-medium uppercase">Type & Token</span>
-            <p class="font-bold text-slate-900 font-mono">{{ selectedElement()?.kind === 'placeholder' ? selectedElement()?.token : 'Static Text' }}</p>
-          </div>
-
-          <!-- Static Text Content Input -->
-          <div *ngIf="selectedElement()?.kind === 'static-text'">
-            <label class="block text-slate-700 font-semibold mb-1">Text Content</label>
-            <input type="text" [(ngModel)]="selectedElement()!.text" class="w-full px-2 py-1 bg-slate-50 border text-xs rounded" />
-          </div>
-
-          <!-- Font Size -->
-          <div>
-            <label class="block text-slate-700 font-semibold mb-1">Font Size (pt)</label>
-            <input type="number" min="6" max="48" [(ngModel)]="selectedElement()!.style.fontSizePt" class="w-full px-2 py-1 bg-slate-50 border text-xs rounded" />
-          </div>
-
-          <!-- Font Color -->
-          <div>
-            <label class="block text-slate-700 font-semibold mb-1">Text Color</label>
-            <div class="flex items-center gap-2">
-              <input type="color" [(ngModel)]="selectedElement()!.style.color" class="w-8 h-8 rounded border p-0.5" />
-              <input type="text" [(ngModel)]="selectedElement()!.style.color" class="w-full px-2 py-1 bg-slate-50 border font-mono text-xs rounded" />
-            </div>
-          </div>
-
-          <!-- Font Style Toggles -->
-          <div>
-            <label class="block text-slate-700 font-semibold mb-1">Text Weight</label>
-            <button
-              (click)="selectedElement()!.style.bold = !selectedElement()!.style.bold"
-              class="px-3 py-1 text-xs font-bold rounded border transition-colors"
-              [ngClass]="selectedElement()!.style.bold ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'"
-            >
-              BOLD
-            </button>
-          </div>
-
-          <!-- Position Sliders -->
-          <div class="space-y-2 pt-2 border-t border-slate-100">
-            <div>
-              <label class="block text-slate-700 font-semibold">Position Y (%)</label>
-              <input type="range" min="0" max="90" [(ngModel)]="selectedElement()!.y" class="w-full" />
-            </div>
-            <div>
-              <label class="block text-slate-700 font-semibold">Position X (%)</label>
-              <input type="range" min="0" max="90" [(ngModel)]="selectedElement()!.x" class="w-full" />
-            </div>
-          </div>
-
-          <!-- Delete Element -->
-          <button (click)="removeSelectedElement()" class="w-full py-2 bg-rose-50 text-rose-700 text-xs font-bold rounded-lg hover:bg-rose-100 mt-2">
-            Delete Selected Element
+            <span class="material-symbols-outlined text-base">title</span>
+            <span>Add Static Text Label</span>
           </button>
-        </div>
 
-        <ng-template #noElementSelected>
-          <div class="text-center py-12 text-slate-400 text-xs">
-            <mat-icon class="!w-8 !h-8 mb-1">touch_app</mat-icon>
-            <p>Click any canvas element to edit properties.</p>
-          </div>
-        </ng-template>
-
-        <button *ngIf="elements().length > 0" (click)="resetCanvasElements()" class="w-full py-1.5 text-xs text-slate-500 font-semibold hover:text-slate-800 border-t border-slate-100 pt-3">
-          Clear All Canvas Elements
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 2 Footer Buttons -->
-    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
-      <button (click)="goToStep(1)" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 flex items-center gap-1">
-        <mat-icon class="!w-4 !h-4">arrow_back</mat-icon> Back: Step 1
-      </button>
-
-      <div class="flex items-center gap-3">
-        <button (click)="saveDraftAndExit()" class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
-        </button>
-        <button (click)="goToStep(3)" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-sm flex items-center gap-1">
-          Next: Preview <mat-icon class="!w-4 !h-4">arrow_forward</mat-icon>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3: Preview & Publish -->
-  <div *ngIf="currentStep() === 3" class="space-y-6">
-    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-        <div class="flex items-center gap-2">
-          <mat-icon class="text-emerald-600">visibility</mat-icon>
-          <h2 class="text-base font-bold text-slate-900">3. Final Badge Preview</h2>
-        </div>
-
-        <div class="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-lg text-xs font-medium">
-          <span>Sample Data:</span>
-          <button (click)="previewSampleData.set(!previewSampleData())" class="px-2 py-0.5 rounded text-[10px] font-bold" [ngClass]="previewSampleData() ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-800'">
-            {{ previewSampleData() ? 'ACTIVE' : 'TOKENS' }}
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Rendered Badge Canvas Box -->
-        <div class="bg-slate-100 p-8 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
-          <div class="w-64 h-64 relative flex items-center justify-center filter drop-shadow-xl bg-white rounded-xl overflow-hidden">
-            <img *ngIf="emblemSource() === 'upload' && uploadedArtUrl()" [src]="uploadedArtUrl()" class="w-full h-full object-contain" />
-
-            <div *ngIf="emblemSource() === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
-              <svg *ngIf="baseShape() === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
-                <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
-                <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
-                <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
-                <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
-              </svg>
-              <svg *ngIf="baseShape() === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
-                <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
-              </svg>
-
-              <mat-icon class="!w-12 !h-12 text-white absolute inset-0 m-auto flex items-center justify-center">
-                {{ iconRef() }}
-              </mat-icon>
+          <!-- Placeholder Tokens Catalog -->
+          <div>
+            <span class="text-[11px] font-semibold text-text-secondary block mb-2">Placeholder Tokens</span>
+            <div class="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
+              @for (token of tokenCatalog; track token.key) {
+                <button
+                  type="button"
+                  (click)="addTokenToCanvas(token)"
+                  class="w-full text-left p-2.5 bg-base-200 hover:bg-tenant-500/10 border border-base-300 hover:border-tenant-500/40 rounded-xl transition-all flex items-center justify-between group cursor-pointer"
+                >
+                  <div class="min-w-0 flex-1 pr-2">
+                    <p class="text-xs font-bold text-text-primary group-hover:text-tenant-600 truncate">{{ token.label }}</p>
+                    <p class="text-[10px] font-mono text-text-secondary truncate">{{ token.key }}</p>
+                  </div>
+                  <span class="material-symbols-outlined text-base text-text-secondary group-hover:text-tenant-600 shrink-0">add_circle</span>
+                </button>
+              }
             </div>
+          </div>
+        </div>
+
+        <!-- Center Canvas Stage (6 Cols) -->
+        <div class="lg:col-span-6 bg-base-200 p-6 sm:p-8 rounded-3xl border border-base-300 shadow-inner flex flex-col items-center justify-center relative min-h-[480px]">
+          <div class="text-xs font-bold text-text-secondary mb-3 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">crop_square</span> 512×512 1:1 Emblem WYSIWYG Stage
+          </div>
+
+          <!-- Canvas Container Box -->
+          <div class="w-80 h-80 bg-base-100 rounded-2xl shadow-xl relative border border-base-300 overflow-hidden flex items-center justify-center select-none">
+            <!-- Background Emblem Artwork -->
+            @if (emblemSource() === 'upload' && uploadedArtUrl()) {
+              <img [src]="uploadedArtUrl()" alt="Badge Preview" class="w-full h-full object-contain pointer-events-none" />
+            } @else if (emblemSource() === 'base-shape') {
+              <div class="w-full h-full relative flex items-center justify-center pointer-events-none">
+                @if (baseShape() === 'Shield') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                } @else if (baseShape() === 'Circle') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
+                  </svg>
+                } @else if (baseShape() === 'Hexagon') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                } @else if (baseShape() === 'Star') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
+                  </svg>
+                } @else if (baseShape() === 'Ribbon') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
+                    <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
+                  </svg>
+                } @else if (baseShape() === 'Rosette') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
+                  </svg>
+                } @else if (baseShape() === 'Square') {
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                  </svg>
+                }
+
+                <span class="material-symbols-outlined text-white text-3xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
+                  {{ iconRef() }}
+                </span>
+              </div>
+            }
 
             <!-- Positioned Canvas Elements -->
-            <div
-              *ngFor="let el of elements()"
-              class="absolute text-center truncate pointer-events-none"
-              [style.left.%]="el.x"
-              [style.top.%]="el.y"
-              [style.width.%]="el.w"
-              [style.height.%]="el.h"
-              [style.font-size.pt]="el.style.fontSizePt"
-              [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
-              [style.color]="el.style.color"
-            >
-              {{ el.kind === 'placeholder' ? resolveTokenValue(el.token!) : el.text }}
-            </div>
+            @for (el of elements(); track el.id) {
+              <div
+                (click)="selectedElementId.set(el.id); $event.stopPropagation()"
+                class="absolute text-center border transition-all cursor-pointer flex items-center justify-center px-1 select-none"
+                [ngClass]="selectedElementId() === el.id ? 'border-tenant-500 ring-2 ring-tenant-500/50 bg-base-100/40 backdrop-blur-xs' : 'border-dashed border-white/50 hover:border-white'"
+                [style.left.%]="el.x"
+                [style.top.%]="el.y"
+                [style.width.%]="el.w"
+                [style.height.%]="el.h"
+                [style.font-size.pt]="el.style.fontSizePt"
+                [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
+                [style.color]="el.style.color"
+              >
+                <span class="truncate">{{ el.kind === 'placeholder' ? resolveTokenValue(el.token!) : el.text }}</span>
+              </div>
+            }
           </div>
+
+          <p class="text-[11px] text-text-secondary mt-3">Click any positioned element to edit its typography and placement properties.</p>
         </div>
 
-        <!-- Summary Info -->
-        <div class="space-y-4 text-xs">
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 text-sm">{{ badgeName() }}</span>
-              <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">{{ level() || 'Standard' }}</span>
-            </div>
-            <p class="text-slate-600 italic">"{{ criteria() }}"</p>
+        <!-- Right Inspector Panel (3 Cols) -->
+        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-xs space-y-4">
+          <div class="flex items-center gap-2 pb-3 border-b border-base-300">
+            <span class="material-symbols-outlined text-tenant-600 text-base">tune</span>
+            <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">
+              Element Inspector
+            </h3>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 text-slate-600">
-            <div><strong>Template ID:</strong> {{ templateId() }}</div>
-            <div><strong>Category:</strong> {{ category() }}</div>
-            <div><strong>Sharing:</strong> {{ sharingLevel() }}</div>
-            <div><strong>Issuer:</strong> {{ issuerName() }}</div>
-          </div>
+          <!-- Inspector Content when element is selected -->
+          @if (selectedElement()) {
+            <div class="space-y-3.5 text-xs">
+              <div>
+                <span class="text-[10px] text-text-secondary font-semibold uppercase block mb-0.5">Type & Token Key</span>
+                <p class="font-bold text-text-primary font-mono text-xs">{{ selectedElement()?.kind === 'placeholder' ? selectedElement()?.token : 'Static Text Label' }}</p>
+              </div>
 
-          <div>
-            <strong class="block text-slate-700 mb-1">Skill Tags:</strong>
-            <div class="flex flex-wrap gap-1">
-              <span *ngFor="let t of skillTags()" class="px-2 py-0.5 bg-emerald-50 text-emerald-800 text-[11px] font-semibold rounded">#{{ t }}</span>
+              <!-- Static Text Content Input -->
+              @if (selectedElement()?.kind === 'static-text') {
+                <div>
+                  <label class="block text-text-primary font-semibold mb-1">Text Content</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="selectedElement()!.text" 
+                    class="w-full px-3 py-1.5 bg-base-200 border border-base-300 text-text-primary text-xs rounded-xl focus:outline-none focus:border-tenant-500" 
+                  />
+                </div>
+              }
+
+              <!-- Font Size -->
+              <div>
+                <label class="block text-text-primary font-semibold mb-1">Font Size (pt)</label>
+                <input 
+                  type="number" 
+                  min="6" 
+                  max="48" 
+                  [(ngModel)]="selectedElement()!.style.fontSizePt" 
+                  class="w-full px-3 py-1.5 bg-base-200 border border-base-300 text-text-primary text-xs rounded-xl focus:outline-none focus:border-tenant-500" 
+                />
+              </div>
+
+              <!-- Font Color -->
+              <div>
+                <label class="block text-text-primary font-semibold mb-1">Text Color</label>
+                <div class="flex items-center gap-2">
+                  <input 
+                    type="color" 
+                    [(ngModel)]="selectedElement()!.style.color" 
+                    class="w-8 h-8 rounded-lg border border-base-300 bg-base-200 cursor-pointer p-0.5" 
+                  />
+                  <input 
+                    type="text" 
+                    [(ngModel)]="selectedElement()!.style.color" 
+                    class="w-full px-3 py-1.5 bg-base-200 border border-base-300 text-text-primary font-mono text-xs rounded-xl" 
+                  />
+                </div>
+              </div>
+
+              <!-- Font Weight Toggle -->
+              <div>
+                <label class="block text-text-primary font-semibold mb-1">Text Weight</label>
+                <button
+                  type="button"
+                  (click)="selectedElement()!.style.bold = !selectedElement()!.style.bold"
+                  class="px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-colors cursor-pointer"
+                  [ngClass]="selectedElement()!.style.bold ? 'bg-tenant-500 text-white border-tenant-500' : 'bg-base-200 text-text-primary border-base-300'"
+                >
+                  BOLD
+                </button>
+              </div>
+
+              <!-- Position Sliders -->
+              <div class="space-y-2 pt-3 border-t border-base-300">
+                <div>
+                  <div class="flex justify-between text-xs text-text-secondary mb-1">
+                    <span>Position Y (%)</span>
+                    <span>{{ selectedElement()!.y }}%</span>
+                  </div>
+                  <input type="range" min="0" max="90" [(ngModel)]="selectedElement()!.y" class="w-full cursor-pointer" />
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-text-secondary mb-1">
+                    <span>Position X (%)</span>
+                    <span>{{ selectedElement()!.x }}%</span>
+                  </div>
+                  <input type="range" min="0" max="90" [(ngModel)]="selectedElement()!.x" class="w-full cursor-pointer" />
+                </div>
+              </div>
+
+              <!-- Delete Element -->
+              <button 
+                type="button" 
+                (click)="removeSelectedElement()" 
+                class="w-full py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold rounded-xl hover:bg-rose-100 transition-all mt-2 cursor-pointer">
+                Delete Selected Element
+              </button>
             </div>
-          </div>
+          } @else {
+            <div class="text-center py-12 text-text-secondary text-xs space-y-1">
+              <span class="material-symbols-outlined text-3xl text-text-secondary/60 mb-1">touch_app</span>
+              <p>Click any canvas element to inspect and edit its properties.</p>
+            </div>
+          }
+
+          @if (elements().length > 0) {
+            <button 
+              type="button" 
+              (click)="resetCanvasElements()" 
+              class="w-full py-2 text-xs text-text-secondary font-semibold hover:text-text-primary border-t border-base-300 pt-3 cursor-pointer">
+              Clear All Canvas Elements
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Step 2 Footer Navigation -->
+      <div class="flex items-center justify-between pt-4 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="goToStep(1)" 
+          class="px-4 py-2.5 bg-base-100 border border-base-300 text-text-primary text-xs font-semibold rounded-xl hover:bg-base-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Back: Step 1</span>
+        </button>
+
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="saveDraftAndExit()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
+          </button>
+          <button 
+            type="button" 
+            (click)="goToStep(3)" 
+            class="px-5 py-2.5 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+            <span>Next: Preview</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
         </div>
       </div>
     </div>
+  }
 
-    <!-- Step 3 Footer Buttons -->
-    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
-      <button (click)="goToStep(2)" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 flex items-center gap-1">
-        <mat-icon class="!w-4 !h-4">arrow_back</mat-icon> Back: Designer
-      </button>
+  <!-- STEP 3: Preview & Publish -->
+  @if (currentStep() === 3) {
+    <div class="space-y-6 animate-fadeIn">
+      <div class="bg-base-100 p-6 sm:p-8 rounded-3xl border border-base-300 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">visibility</span>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-text-primary">3. Final Badge Review</h2>
+              <p class="text-[11px] text-text-secondary">Inspect rendered badge visuals and metadata prior to publishing.</p>
+            </div>
+          </div>
 
-      <div class="flex items-center gap-3">
-        <button (click)="saveDraftAndExit()" class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
+          <div class="flex items-center gap-2 bg-base-200 px-3 py-1.5 rounded-xl border border-base-300 text-xs font-medium self-start sm:self-auto">
+            <span class="text-text-secondary">Sample Data:</span>
+            <button 
+              type="button" 
+              (click)="previewSampleData.set(!previewSampleData())" 
+              class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer" 
+              [ngClass]="previewSampleData() ? 'bg-tenant-500 text-white' : 'bg-base-300 text-text-primary'">
+              {{ previewSampleData() ? 'ACTIVE' : 'TOKENS' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Rendered Badge Canvas Box -->
+          <div class="bg-base-200 p-8 rounded-3xl border border-base-300 flex flex-col items-center justify-center">
+            <div class="w-64 h-64 relative flex items-center justify-center filter drop-shadow-xl bg-base-100 rounded-2xl overflow-hidden border border-base-300">
+              @if (emblemSource() === 'upload' && uploadedArtUrl()) {
+                <img [src]="uploadedArtUrl()" alt="Badge Emblem" class="w-full h-full object-contain" />
+              } @else if (emblemSource() === 'base-shape') {
+                <div class="w-full h-full relative flex items-center justify-center">
+                  @if (baseShape() === 'Shield') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                    </svg>
+                  } @else if (baseShape() === 'Circle') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5"/>
+                    </svg>
+                  } @else if (baseShape() === 'Hexagon') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                    </svg>
+                  } @else if (baseShape() === 'Star') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="3"/>
+                    </svg>
+                  } @else if (baseShape() === 'Ribbon') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="accentColor()"/>
+                      <circle cx="50" cy="40" r="34" [attr.fill]="fillColor()" stroke="#ffffff" stroke-width="3"/>
+                    </svg>
+                  } @else if (baseShape() === 'Rosette') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
+                    </svg>
+                  } @else if (baseShape() === 'Square') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
+                    </svg>
+                  }
+
+                  <span class="material-symbols-outlined text-white text-3xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
+                    {{ iconRef() }}
+                  </span>
+                </div>
+              }
+
+              <!-- Positioned Canvas Elements -->
+              @for (el of elements(); track el.id) {
+                <div
+                  class="absolute text-center truncate pointer-events-none px-1"
+                  [style.left.%]="el.x"
+                  [style.top.%]="el.y"
+                  [style.width.%]="el.w"
+                  [style.height.%]="el.h"
+                  [style.font-size.pt]="el.style.fontSizePt"
+                  [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
+                  [style.color]="el.style.color"
+                >
+                  {{ el.kind === 'placeholder' ? resolveTokenValue(el.token!) : el.text }}
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Summary Info Cards -->
+          <div class="space-y-4 text-xs">
+            <div class="p-4 bg-base-200 rounded-2xl border border-base-300 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-text-primary text-sm sm:text-base">{{ badgeName() }}</span>
+                <span class="px-2.5 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 rounded-full text-[10px] font-extrabold uppercase">
+                  {{ level() || 'Standard' }}
+                </span>
+              </div>
+              <p class="text-text-secondary italic">"{{ criteria() }}"</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3.5 p-4 bg-base-200 rounded-2xl border border-base-300 text-text-primary">
+              <div>
+                <span class="text-[10px] text-text-secondary uppercase font-semibold block">Template ID</span>
+                <span class="font-mono text-xs">{{ templateId() }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-text-secondary uppercase font-semibold block">Category</span>
+                <span class="font-semibold text-xs">{{ category() }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-text-secondary uppercase font-semibold block">Sharing Scope</span>
+                <span class="font-semibold text-xs capitalize">{{ sharingLevel() }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-text-secondary uppercase font-semibold block">Issuer Authority</span>
+                <span class="font-semibold text-xs">{{ issuerName() }}</span>
+              </div>
+            </div>
+
+            @if (skillTags().length > 0) {
+              <div>
+                <strong class="block text-text-primary text-xs mb-1.5 font-semibold">Skill Tags:</strong>
+                <div class="flex flex-wrap gap-1.5">
+                  @for (t of skillTags(); track t) {
+                    <span class="px-2.5 py-1 bg-tenant-500/10 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20 text-xs font-semibold rounded-lg">#{{ t }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 Footer Navigation -->
+      <div class="flex items-center justify-between pt-4 border-t border-base-300">
+        <button 
+          type="button" 
+          (click)="goToStep(2)" 
+          class="px-4 py-2.5 bg-base-100 border border-base-300 text-text-primary text-xs font-semibold rounded-xl hover:bg-base-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Back: Designer</span>
         </button>
-        <button (click)="publishBadge()" class="px-6 py-2.5 bg-emerald-600 text-white text-xs font-extrabold rounded-lg hover:bg-emerald-700 shadow-md flex items-center gap-2">
-          <mat-icon class="!w-4 !h-4">publish</mat-icon> Publish Badge Template
-        </button>
+
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="saveDraftAndExit()" 
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
+          </button>
+          <button 
+            type="button" 
+            (click)="publishBadge()" 
+            class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">publish</span>
+            <span>Publish Badge Template</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

@@ -1,653 +1,702 @@
-<div class="min-h-screen bg-slate-50/60 p-4 sm:p-6 lg:p-8">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+<div class="min-h-screen bg-base-200 text-text-primary p-4 sm:p-6 lg:p-8 space-y-6">
+  <!-- Top Navigation & Header Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2">
-        <div class="p-2 bg-emerald-100 text-emerald-800 rounded-lg">
-          <mat-icon class="!w-6 !h-6">military_tech</mat-icon>
+      <div class="flex items-center gap-2 text-xs font-semibold text-text-secondary mb-1">
+        <a routerLink="/organizations" class="hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[15px]">apartment</span> Organization
+        </a>
+        <span>/</span>
+        <span class="text-text-primary font-bold">Badge Templates</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center border border-tenant-500/20">
+          <span class="material-symbols-outlined text-2xl">military_tech</span>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Badge Templates</h1>
-          <p class="text-sm text-slate-500">Design and manage earner emblem badge templates, earning criteria, and sharing policy.</p>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-text-primary tracking-tight">
+            Badge Template Repository
+          </h1>
+          <p class="text-xs text-text-secondary">
+            Manage, design, and configure verifiable OpenBadges digital credentials across your learning organization.
+          </p>
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <a
-        routerLink="/certificates/badges/dashboard"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 font-medium text-sm rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
-      >
-        <mat-icon class="!w-4 !h-4 text-slate-500">space_dashboard</mat-icon>
-        Badge Analytics
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2.5">
+      <a 
+        routerLink="/certificates/badges/dashboard" 
+        class="px-3.5 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+        <span class="material-symbols-outlined text-sm">analytics</span>
+        <span>Analytics Dashboard</span>
       </a>
-      <button
-        *ngIf="permissions().canCreate"
-        (click)="createBadge()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium text-sm rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-      >
-        <mat-icon class="!w-4 !h-4">add</mat-icon>
-        Create Badge
-      </button>
-    </div>
-  </div>
 
-  <!-- Telemetry KPI Summary Cards -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Badges</p>
-        <p class="text-2xl font-bold text-slate-900 mt-1">{{ kpiStats().total }}</p>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-        <mat-icon>workspace_premium</mat-icon>
-      </div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Published</p>
-        <p class="text-2xl font-bold text-emerald-900 mt-1">{{ kpiStats().published }}</p>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
-        <mat-icon>published_with_changes</mat-icon>
-      </div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Drafts</p>
-        <p class="text-2xl font-bold text-blue-900 mt-1">{{ kpiStats().draft }}</p>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
-        <mat-icon>edit_note</mat-icon>
-      </div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Archived</p>
-        <p class="text-2xl font-bold text-slate-600 mt-1">{{ kpiStats().archived }}</p>
-      </div>
-      <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-        <mat-icon>archive</mat-icon>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filter & Search Controls Bar -->
-  <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm mb-6 space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
-      <!-- Search -->
-      <div class="lg:col-span-2 relative">
-        <mat-icon class="absolute left-3 top-2.5 !w-4 !h-4 text-slate-400">search</mat-icon>
-        <input
-          type="text"
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
-          placeholder="Search by badge name, ID, tags or criteria..."
-          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-        />
-      </div>
-
-      <!-- Status Filter -->
-      <div>
-        <select
-          [ngModel]="selectedStatus()"
-          (ngModelChange)="selectedStatus.set($event)"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-        >
-          <option value="ALL">Status: All</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="DRAFT">Draft</option>
-          <option value="ARCHIVED">Archived</option>
-        </select>
-      </div>
-
-      <!-- Sharing Filter -->
-      <div>
-        <select
-          [ngModel]="selectedSharing()"
-          (ngModelChange)="selectedSharing.set($event)"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-        >
-          <option value="ALL">Sharing: All</option>
-          <option value="PRIVATE">Private</option>
-          <option value="LMS">LMS-shared</option>
-          <option value="ORGANIZATION">Organization-shared</option>
-        </select>
-      </div>
-
-      <!-- Category Filter -->
-      <div>
-        <select
-          [ngModel]="selectedCategory()"
-          (ngModelChange)="selectedCategory.set($event)"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-        >
-          <option value="ALL">Category: All</option>
-          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-        </select>
-      </div>
-
-      <!-- Level Filter -->
-      <div>
-        <select
-          [ngModel]="selectedLevel()"
-          (ngModelChange)="selectedLevel.set($event)"
-          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-        >
-          <option value="ALL">Level/Tier: All</option>
-          <option *ngFor="let lvl of levels" [value]="lvl">{{ lvl }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Skill Tag Filter & Reset Bar -->
-    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
-      <div class="flex items-center gap-2 overflow-x-auto py-1 max-w-2xl">
-        <span class="text-slate-400 font-medium">Skill Tag:</span>
-        <button
-          (click)="selectedSkillTag.set('ALL')"
-          class="px-2.5 py-1 rounded-full border text-xs font-medium transition-colors"
-          [ngClass]="selectedSkillTag() === 'ALL' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-        >
-          All Tags
+      @if (permissions().canCreate) {
+        <button 
+          type="button" 
+          (click)="createBadge()" 
+          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm">add_circle</span>
+          <span>Create Badge</span>
         </button>
-        <button
-          *ngFor="let tag of allSkillTags()"
-          (click)="selectedSkillTag.set(tag)"
-          class="px-2.5 py-1 rounded-full border text-xs font-medium transition-colors whitespace-nowrap"
-          [ngClass]="selectedSkillTag() === tag ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-        >
-          {{ tag }}
-        </button>
-      </div>
-
-      <button
-        *ngIf="hasActiveFilters()"
-        (click)="clearFilters()"
-        class="inline-flex items-center gap-1 text-xs text-rose-600 font-semibold hover:text-rose-800 transition-colors ml-auto"
-      >
-        <mat-icon class="!w-3.5 !h-3.5">restart_alt</mat-icon>
-        Clear All Filters
-      </button>
+      }
     </div>
   </div>
 
-  <!-- Active Filter Chips Bar -->
-  <div *ngIf="hasActiveFilters()" class="flex flex-wrap items-center gap-2 mb-4">
-    <span class="text-xs text-slate-500">Active filters:</span>
-    <span *ngIf="searchQuery()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-xs">
-      Search: "{{ searchQuery() }}"
-      <button (click)="searchQuery.set('')" class="hover:text-emerald-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
-    <span *ngIf="selectedStatus() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-md text-xs">
-      Status: {{ selectedStatus() }}
-      <button (click)="selectedStatus.set('ALL')" class="hover:text-blue-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
-    <span *ngIf="selectedSharing() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-800 border border-violet-200 rounded-md text-xs">
-      Sharing: {{ selectedSharing() }}
-      <button (click)="selectedSharing.set('ALL')" class="hover:text-violet-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
-    <span *ngIf="selectedCategory() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-md text-xs">
-      Category: {{ selectedCategory() }}
-      <button (click)="selectedCategory.set('ALL')" class="hover:text-amber-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
-    <span *ngIf="selectedLevel() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-md text-xs">
-      Level: {{ selectedLevel() }}
-      <button (click)="selectedLevel.set('ALL')" class="hover:text-indigo-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
-    <span *ngIf="selectedSkillTag() !== 'ALL'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-md text-xs">
-      Tag: {{ selectedSkillTag() }}
-      <button (click)="selectedSkillTag.set('ALL')" class="hover:text-teal-900"><mat-icon class="!w-3 !h-3">close</mat-icon></button>
-    </span>
+  <!-- KPI Telemetry Bar -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-4 bg-base-100 rounded-2xl border border-base-300 flex items-center justify-between shadow-xs">
+      <div>
+        <span class="text-[11px] font-semibold text-text-secondary block">Total Badges</span>
+        <span class="text-2xl font-extrabold text-text-primary">{{ kpiStats().total }}</span>
+        <span class="text-[10px] text-text-secondary block mt-0.5">Configured Templates</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+        <span class="material-symbols-outlined text-xl">military_tech</span>
+      </div>
+    </div>
+
+    <div class="p-4 bg-base-100 rounded-2xl border border-base-300 flex items-center justify-between shadow-xs">
+      <div>
+        <span class="text-[11px] font-semibold text-text-secondary block">Published</span>
+        <span class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{{ kpiStats().published }}</span>
+        <span class="text-[10px] text-emerald-700 dark:text-emerald-300 block mt-0.5">Awardable in courses</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+        <span class="material-symbols-outlined text-xl">verified</span>
+      </div>
+    </div>
+
+    <div class="p-4 bg-base-100 rounded-2xl border border-base-300 flex items-center justify-between shadow-xs">
+      <div>
+        <span class="text-[11px] font-semibold text-text-secondary block">Creation Drafts</span>
+        <span class="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{{ kpiStats().draft }}</span>
+        <span class="text-[10px] text-amber-700 dark:text-amber-300 block mt-0.5">In composition</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+        <span class="material-symbols-outlined text-xl">edit_document</span>
+      </div>
+    </div>
+
+    <div class="p-4 bg-base-100 rounded-2xl border border-base-300 flex items-center justify-between shadow-xs">
+      <div>
+        <span class="text-[11px] font-semibold text-text-secondary block">Archived</span>
+        <span class="text-2xl font-extrabold text-slate-600 dark:text-slate-400">{{ kpiStats().archived }}</span>
+        <span class="text-[10px] text-slate-700 dark:text-slate-300 block mt-0.5">Inactive / Legacy</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+        <span class="material-symbols-outlined text-xl">archive</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Badge Cards Grid -->
-  <div *ngIf="filteredBadges().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    <div
-      *ngFor="let badge of filteredBadges()"
-      class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group"
-    >
-      <!-- Top Zone: Emblem Visual + Status & Sharing Badges -->
-      <div class="p-5 bg-gradient-to-b from-slate-100/80 to-white relative flex flex-col items-center justify-center border-b border-slate-100">
-        <!-- Status & Sharing Badges -->
-        <div class="absolute top-3 left-3 flex items-center gap-1.5">
-          <!-- Status -->
-          <span
-            *ngIf="badge.status === 'published'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1"
-          >
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Published
-          </span>
-          <span
-            *ngIf="badge.status === 'draft'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1"
-          >
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Draft
-          </span>
-          <span
-            *ngIf="badge.status === 'archived'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 flex items-center gap-1"
-          >
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Archived
-          </span>
-        </div>
-
-        <div class="absolute top-3 right-3">
-          <!-- Sharing Level Badge -->
-          <span
-            *ngIf="badge.sharing.level === 'organization'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200"
-            title="Organization-wide sharing"
-          >
-            Org-Shared
-          </span>
-          <span
-            *ngIf="badge.sharing.level === 'lms'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200"
-            title="LMS Instance sharing"
-          >
-            LMS-Shared
-          </span>
-          <span
-            *ngIf="badge.sharing.level === 'private'"
-            class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
-            title="Private to creator"
-          >
-            Private
-          </span>
-        </div>
-
-        <!-- Emblem 1:1 Visual Box -->
-        <div class="w-32 h-32 my-3 relative flex items-center justify-center filter drop-shadow-md group-hover:scale-105 transition-transform duration-200">
-          <!-- Emblem Image if uploaded -->
-          <img
-            *ngIf="badge.emblem.source === 'upload' && badge.emblem.artUrl"
-            [src]="badge.emblem.artUrl"
-            [alt]="badge.name"
-            class="w-full h-full object-contain"
+  <!-- Search & Filter Controls Panel (Aligned with Plan Grid) -->
+  <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-xs">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <!-- Left: Search Field & Filter Button & Reset -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-lg pointer-events-none">search</span>
+          <input
+            type="text"
+            id="input-badge-search"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by badge name, ID, category, or skill tags..."
+            class="w-full pl-10 pr-9 py-2 bg-base-200 border border-base-300 text-text-primary placeholder:text-text-secondary text-xs sm:text-sm rounded-xl focus:outline-none focus:bg-base-100 focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all"
           />
-
-          <!-- Base Shape SVG SVG Composer -->
-          <div *ngIf="badge.emblem.source === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
-            <!-- Shield -->
-            <svg *ngIf="badge.emblem.baseShape === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
-              <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="4"/>
-            </svg>
-            <!-- Circle -->
-            <svg *ngIf="badge.emblem.baseShape === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#4f46e5'" [attr.stroke]="badge.emblem.accentColor || '#6366f1'" stroke-width="5"/>
-            </svg>
-            <!-- Hexagon -->
-            <svg *ngIf="badge.emblem.baseShape === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="badge.emblem.fillColor || '#0f172a'" [attr.stroke]="badge.emblem.accentColor || '#10b981'" stroke-width="4"/>
-            </svg>
-            <!-- Star -->
-            <svg *ngIf="badge.emblem.baseShape === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="badge.emblem.fillColor || '#d97706'" [attr.stroke]="badge.emblem.accentColor || '#fbbf24'" stroke-width="3"/>
-            </svg>
-            <!-- Ribbon -->
-            <svg *ngIf="badge.emblem.baseShape === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
-              <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="badge.emblem.accentColor || '#a7f3d0'"/>
-              <circle cx="50" cy="40" r="34" [attr.fill]="badge.emblem.fillColor || '#059669'" stroke="#ffffff" stroke-width="3"/>
-            </svg>
-            <!-- Rosette -->
-            <svg *ngIf="badge.emblem.baseShape === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#7c3aed'" [attr.stroke]="badge.emblem.accentColor || '#ddd6fe'" stroke-width="5" stroke-dasharray="10 4"/>
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#ffffff" stroke-width="2"/>
-            </svg>
-            <!-- Square -->
-            <svg *ngIf="badge.emblem.baseShape === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
-              <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="badge.emblem.fillColor || '#2563eb'" [attr.stroke]="badge.emblem.accentColor || '#60a5fa'" stroke-width="4"/>
-            </svg>
-
-            <!-- Central Glyph / Icon -->
-            <mat-icon class="!w-8 !h-8 text-white absolute inset-0 m-auto flex items-center justify-center drop-shadow-sm">
-              {{ badge.emblem.iconRef || 'verified' }}
-            </mat-icon>
-          </div>
+          @if (searchQuery()) {
+            <button
+              type="button"
+              id="btn-clear-badge-search"
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary flex items-center cursor-pointer">
+              <span class="material-symbols-outlined text-base">close</span>
+            </button>
+          }
         </div>
 
-        <!-- Level / Tier Pill if specified -->
-        <span *ngIf="badge.earning?.level" class="px-2.5 py-0.5 bg-slate-900 text-amber-300 rounded-full text-[11px] font-extrabold tracking-wider uppercase border border-amber-400/30">
-          {{ badge.earning.level }}
+        <!-- Filter Drawer Toggle Button -->
+        <button
+          type="button"
+          id="btn-toggle-badge-filter"
+          (click)="toggleFilterPanel()"
+          [class.border-tenant-500]="isFilterPanelOpen() || activeFilterCount() > 0"
+          [class.bg-tenant-500/10]="isFilterPanelOpen() || activeFilterCount() > 0"
+          [class.text-tenant-600]="isFilterPanelOpen() || activeFilterCount() > 0"
+          class="px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 hover:bg-base-300 transition-all cursor-pointer whitespace-nowrap">
+          <span class="material-symbols-outlined text-base">filter_list</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="ml-0.5 px-1.5 py-0.2 bg-tenant-500 text-white rounded-full text-[10px] font-bold">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Reset Button -->
+        @if (isResetVisible()) {
+          <button
+            type="button"
+            id="btn-reset-badge-grid"
+            (click)="resetGrid()"
+            class="px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-text-secondary hover:text-rose-600 hover:border-rose-300 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap">
+            <span class="material-symbols-outlined text-base">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+      </div>
+
+      <!-- Right: Total Count Indicator -->
+      <div class="flex items-center justify-end text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
+        <span class="px-3.5 py-1.5 rounded-xl bg-base-200 border border-base-300 font-medium">
+          Showing <strong class="text-text-primary">{{ filteredBadges().length }}</strong> of {{ allBadges().length }} Badges
         </span>
       </div>
+    </div>
 
-      <!-- Card Body Content -->
-      <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
-        <div>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">{{ badge.category || 'Certification' }}</span>
-            <span class="text-[10px] font-mono text-slate-400">{{ badge.templateId }}</span>
+    <!-- Expandable Filter Panel Drawer -->
+    @if (isFilterPanelOpen()) {
+      <div class="pt-5 border-t border-base-300 animate-fadeIn space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <!-- 1. Badge Status (Multi-select Checkboxes) -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
+              1. Badge Status
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              @for (st of availableStatuses; track st) {
+                <label 
+                  [for]="'chk-status-' + st"
+                  class="flex items-center gap-2 p-2 rounded-xl border border-base-300 bg-base-200 hover:bg-base-300 cursor-pointer transition-colors text-xs font-medium">
+                  <input
+                    type="checkbox"
+                    [id]="'chk-status-' + st"
+                    [checked]="draftFilters().statuses.includes(st)"
+                    (change)="toggleStatusDraft(st)"
+                    class="rounded text-tenant-500 focus:ring-tenant-500/20 border-base-300 cursor-pointer"
+                  />
+                  <span class="flex items-center gap-1.5 capitalize">
+                    <span class="w-2 h-2 rounded-full" [ngClass]="getStatusDotClass(st)"></span>
+                    {{ st }}
+                  </span>
+                </label>
+              }
+            </div>
           </div>
 
-          <h3 class="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1 mt-0.5" [title]="badge.name">
-            {{ badge.name }}
-          </h3>
-
-          <p class="text-xs text-slate-500 line-clamp-2 mt-1 min-h-[2rem]" [title]="badge.description">
-            {{ badge.description || 'No description provided.' }}
-          </p>
-
-          <!-- Earning Criteria Preview -->
-          <div class="mt-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
-            <p class="font-semibold text-slate-700 text-[11px] flex items-center gap-1 mb-0.5">
-              <mat-icon class="!w-3.5 !h-3.5 text-emerald-600">assignment_turned_in</mat-icon>
-              Earning Criteria:
-            </p>
-            <p class="text-slate-600 line-clamp-2 italic text-[11px]">
-              "{{ badge.earning?.criteria || 'No criteria specified.' }}"
-            </p>
+          <!-- 2. Badge Category (Custom Select) -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
+              2. Category
+            </h4>
+            <app-custom-select
+              [options]="categoryOptions()"
+              [clearable]="true"
+              placeholder="Select category..."
+              [ngModel]="draftFilters().category"
+              (ngModelChange)="onDraftCategoryChange($event)"
+              leadingIcon="category">
+            </app-custom-select>
           </div>
 
-          <!-- Skill Tags -->
-          <div *ngIf="badge.earning?.skillTags && badge.earning.skillTags.length > 0" class="flex flex-wrap gap-1 mt-3">
-            <span
-              *ngFor="let tag of badge.earning.skillTags.slice(0, 3)"
-              class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium"
-            >
-              #{{ tag }}
-            </span>
-            <span *ngIf="badge.earning.skillTags.length > 3" class="px-1.5 py-0.5 text-slate-400 text-[10px]">
-              +{{ badge.earning.skillTags.length - 3 }} more
-            </span>
+          <!-- 3. Sharing Scope (Custom Select) -->
+          <div class="lg:col-span-4 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
+              3. Sharing Scope
+            </h4>
+            <app-custom-select
+              [options]="sharingOptions"
+              [clearable]="true"
+              placeholder="Select sharing scope..."
+              [ngModel]="draftFilters().sharing"
+              (ngModelChange)="onDraftSharingChange($event)"
+              leadingIcon="share">
+            </app-custom-select>
+          </div>
+
+          <!-- 4. Credential Level / Tier (Custom Select) -->
+          <div class="lg:col-span-6 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
+              4. Credential Level / Tier
+            </h4>
+            <app-custom-select
+              [options]="levelOptions()"
+              [clearable]="true"
+              placeholder="Select level / tier..."
+              [ngModel]="draftFilters().level"
+              (ngModelChange)="onDraftLevelChange($event)"
+              leadingIcon="military_tech">
+            </app-custom-select>
+          </div>
+
+          <!-- 5. Skills Tags (Multi-Select Custom Select) -->
+          <div class="lg:col-span-6 space-y-3">
+            <h4 class="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
+              5. Skill Tags
+            </h4>
+            <app-custom-select
+              [options]="skillOptions()"
+              [multiple]="true"
+              [searchable]="true"
+              [clearable]="true"
+              placeholder="Select skill tags..."
+              [ngModel]="draftFilters().skills"
+              (ngModelChange)="onDraftSkillsChange($event)"
+              leadingIcon="psychology">
+            </app-custom-select>
           </div>
         </div>
 
-        <!-- Meta Footer & Action Buttons -->
-        <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
-          <div>
-            <span class="font-medium text-slate-700">{{ badge.usageCount }}</span> usage references
-          </div>
+        <!-- Filter Panel Footer Actions -->
+        <div class="pt-4 border-t border-base-300 flex items-center justify-between">
+          <button 
+            type="button"
+            id="btn-clear-badge-draft-filters"
+            (click)="clearFilterPanelDraft()"
+            class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
+            Clear All Selections
+          </button>
 
-          <!-- Action Dropdown / Button Row -->
-          <div class="flex items-center gap-1">
-            <!-- View / Preview -->
-            <button
-              (click)="openPreview(badge)"
-              class="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-              title="Preview Badge"
-            >
-              <mat-icon class="!w-4 !h-4">visibility</mat-icon>
+          <div class="flex items-center gap-2.5">
+            <button 
+              type="button"
+              id="btn-cancel-badge-filters"
+              (click)="closeFilterPanel()"
+              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
+              Cancel
             </button>
-
-            <!-- Duplicate -->
-            <button
-              *ngIf="permissions().canDuplicate"
-              (click)="duplicateBadge(badge)"
-              class="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-              title="Duplicate Badge"
-            >
-              <mat-icon class="!w-4 !h-4">content_copy</mat-icon>
-            </button>
-
-            <!-- Edit -->
-            <button
-              *ngIf="permissions().canEdit && badge.status !== 'archived'"
-              (click)="editBadge(badge)"
-              class="p-1.5 text-slate-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
-              title="Edit Badge"
-            >
-              <mat-icon class="!w-4 !h-4">edit</mat-icon>
-            </button>
-
-            <!-- Publish Draft -->
-            <button
-              *ngIf="permissions().canPublish && badge.status === 'draft'"
-              (click)="publishBadge(badge)"
-              class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 rounded-lg transition-colors font-bold"
-              title="Publish Badge"
-            >
-              <mat-icon class="!w-4 !h-4">publish</mat-icon>
-            </button>
-
-            <!-- Archive Published -->
-            <button
-              *ngIf="permissions().canDelete && badge.status === 'published'"
-              (click)="openConfirmModal(badge, 'archive')"
-              class="p-1.5 text-slate-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
-              title="Archive Badge"
-            >
-              <mat-icon class="!w-4 !h-4">archive</mat-icon>
-            </button>
-
-            <!-- Delete Draft -->
-            <button
-              *ngIf="permissions().canDelete && badge.status === 'draft'"
-              (click)="openConfirmModal(badge, 'delete')"
-              class="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-              title="Delete Draft"
-            >
-              <mat-icon class="!w-4 !h-4">delete_outline</mat-icon>
+            <button 
+              type="button" 
+              id="btn-apply-badge-filters"
+              (click)="applyFilterPanel()"
+              class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer focus:outline-none">
+              Apply Filter
             </button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    }
 
-  <!-- Distinct Empty States -->
-  <!-- 1. True Empty State -->
-  <div *ngIf="allBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
-    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-      <mat-icon class="!w-8 !h-8">workspace_premium</mat-icon>
-    </div>
-    <h3 class="text-lg font-bold text-slate-900">No badge information is available to display.</h3>
-    <p class="text-sm text-slate-500 mt-1 mb-6">Create your first earner badge template with emblem art, earning metadata, and custom placeholders.</p>
-    <button
-      *ngIf="permissions().canCreate"
-      (click)="createBadge()"
-      class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium text-sm rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
-    >
-      <mat-icon class="!w-4 !h-4">add</mat-icon>
-      Create First Badge
-    </button>
-  </div>
-
-  <!-- 2. Search Miss -->
-  <div *ngIf="allBadges().length > 0 && searchQuery() && filteredBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
-    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-      <mat-icon class="!w-6 !h-6">search_off</mat-icon>
-    </div>
-    <h3 class="text-base font-bold text-slate-900">No badge found</h3>
-    <p class="text-xs text-slate-500 mt-1 mb-4">No badge matching search term "{{ searchQuery() }}" was found in the repository.</p>
-    <button (click)="searchQuery.set('')" class="text-xs text-emerald-700 font-semibold hover:underline">
-      Clear Search
-    </button>
-  </div>
-
-  <!-- 3. Filter Miss -->
-  <div *ngIf="allBadges().length > 0 && !searchQuery() && filteredBadges().length === 0" class="bg-white rounded-2xl border border-slate-200/80 p-12 text-center my-8 max-w-lg mx-auto shadow-sm">
-    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-      <mat-icon class="!w-6 !h-6">filter_alt_off</mat-icon>
-    </div>
-    <h3 class="text-base font-bold text-slate-900">No badge found matching the selected filters.</h3>
-    <p class="text-xs text-slate-500 mt-1 mb-4">Try adjusting your category, status, sharing level, or skill tag filter selection.</p>
-    <button (click)="clearFilters()" class="text-xs text-emerald-700 font-semibold hover:underline">
-      Clear All Filters
-    </button>
-  </div>
-
-  <!-- View / Preview Modal -->
-  <div *ngIf="previewingBadge()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden animate-fadeIn">
-      <!-- Modal Header -->
-      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <mat-icon class="text-emerald-400">workspace_premium</mat-icon>
-          <div>
-            <h3 class="font-bold text-base">{{ previewingBadge()?.name }}</h3>
-            <p class="text-xs text-slate-400">Template ID: {{ previewingBadge()?.templateId }} | {{ previewingBadge()?.category }}</p>
-          </div>
-        </div>
-        <button (click)="closePreview()" class="text-slate-400 hover:text-white"><mat-icon>close</mat-icon></button>
-      </div>
-
-      <!-- Modal Content: Preview Canvas + Metadata Sidebar -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-        <!-- Left: Emblem Preview with Sample Data Toggle -->
-        <div class="bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center justify-center relative min-h-[300px]">
-          <!-- Sample Data Toggle -->
-          <div class="absolute top-3 right-3 flex items-center gap-2 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs text-xs">
-            <span class="text-slate-600 font-medium">Sample Data:</span>
-            <button
-              (click)="previewSampleData.set(!previewSampleData())"
-              class="px-2 py-0.5 rounded text-[10px] font-bold transition-colors"
-              [ngClass]="previewSampleData() ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'"
-            >
-              {{ previewSampleData() ? 'ON' : 'TOKENS' }}
+    <!-- Active Filter Badges Bar -->
+    @if (activeFilterBadges().length > 0) {
+      <div class="pt-3 border-t border-base-300 flex items-center flex-wrap gap-2 text-xs">
+        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Active Filters:</span>
+        @for (item of activeFilterBadges(); track item.id) {
+          <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+            <span>{{ item.label }}: <strong>{{ item.value }}</strong></span>
+            <button 
+              type="button" 
+              (click)="item.remove()" 
+              class="text-text-secondary hover:text-rose-500 focus:outline-none cursor-pointer flex items-center">
+              <span class="material-symbols-outlined text-[13px]">close</span>
             </button>
-          </div>
+          </span>
+        }
+        <button 
+          type="button" 
+          id="btn-reset-all-badge-filters"
+          (click)="clearAllFilters()"
+          class="text-[11px] text-text-secondary hover:text-rose-500 hover:underline ml-1 font-semibold cursor-pointer">
+          Reset All
+        </button>
+      </div>
+    }
+  </div>
 
-          <!-- Emblem Box 1:1 -->
-          <div class="w-48 h-48 relative flex items-center justify-center filter drop-shadow-lg">
-            <!-- Uploaded Art -->
-            <img
-              *ngIf="previewingBadge()?.emblem?.source === 'upload' && previewingBadge()?.emblem?.artUrl"
-              [src]="previewingBadge()?.emblem?.artUrl"
-              class="w-full h-full object-contain"
-            />
-
-            <!-- SVG Base Shape -->
-            <div *ngIf="previewingBadge()?.emblem?.source === 'base-shape'" class="w-full h-full relative flex items-center justify-center">
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Shield'" viewBox="0 0 100 100" class="w-full h-full">
-                <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="4"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Circle'" viewBox="0 0 100 100" class="w-full h-full">
-                <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#4f46e5'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#6366f1'" stroke-width="5"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Hexagon'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0f172a'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#10b981'" stroke-width="4"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Star'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#d97706'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#fbbf24'" stroke-width="3"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Ribbon'" viewBox="0 0 100 100" class="w-full h-full">
-                <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="previewingBadge()?.emblem?.accentColor || '#a7f3d0'"/>
-                <circle cx="50" cy="40" r="34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#059669'" stroke="#ffffff" stroke-width="3"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Rosette'" viewBox="0 0 100 100" class="w-full h-full">
-                <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#7c3aed'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#ddd6fe'" stroke-width="5" stroke-dasharray="10 4"/>
-              </svg>
-              <svg *ngIf="previewingBadge()?.emblem?.baseShape === 'Square'" viewBox="0 0 100 100" class="w-full h-full">
-                <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#2563eb'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#60a5fa'" stroke-width="4"/>
-              </svg>
-
-              <!-- Central Icon -->
-              <mat-icon class="!w-12 !h-12 text-white absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
-                {{ previewingBadge()?.emblem?.iconRef || 'verified' }}
-              </mat-icon>
-            </div>
-
-            <!-- Overlaid Canvas Elements -->
-            <div
-              *ngFor="let el of previewingBadge()?.elements"
-              class="absolute text-center whitespace-nowrap overflow-hidden text-ellipsis pointer-events-none"
-              [style.left.%]="el.x"
-              [style.top.%]="el.y"
-              [style.width.%]="el.w"
-              [style.height.%]="el.h"
-              [style.font-size.pt]="el.style.fontSizePt"
-              [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
-              [style.color]="el.style.color"
-            >
-              {{ el.kind === 'placeholder' && el.token ? resolveTokenValue(el.token, previewingBadge()!) : el.text }}
-            </div>
-          </div>
-
-          <p class="text-xs text-slate-500 mt-4 text-center">Open-Badges compliant 512×512 emblem specification</p>
-        </div>
-
-        <!-- Right: Metadata & Earning Summary -->
-        <div class="space-y-4 text-xs">
-          <div>
-            <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Earning Criteria</span>
-            <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 mt-1 leading-relaxed font-medium">
-              "{{ previewingBadge()?.earning?.criteria }}"
-            </p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Level / Tier</span>
-              <p class="font-bold text-slate-900 mt-0.5">{{ previewingBadge()?.earning?.level || 'N/A' }}</p>
-            </div>
-            <div>
-              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Sharing Policy</span>
-              <p class="font-bold text-slate-900 mt-0.5 capitalize">{{ previewingBadge()?.sharing?.level }}</p>
-            </div>
-            <div>
-              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Issuer Entity</span>
-              <p class="font-semibold text-slate-800 mt-0.5">{{ previewingBadge()?.earning?.issuerName || 'BRAC Learning Network' }}</p>
-            </div>
-            <div>
-              <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Validity / Expiry</span>
-              <p class="font-semibold text-slate-800 mt-0.5">
-                {{ previewingBadge()?.earning?.expires ? (previewingBadge()?.earning?.validity?.amount + ' ' + previewingBadge()?.earning?.validity?.unit) : 'Never expires' }}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <span class="text-slate-400 font-medium uppercase tracking-wider block text-[10px]">Skill Tags</span>
-            <div class="flex flex-wrap gap-1 mt-1">
-              <span *ngFor="let tag of previewingBadge()?.earning?.skillTags" class="px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded text-xs font-semibold">
-                #{{ tag }}
+  <!-- Badges Grid View -->
+  @if (filteredBadges().length > 0) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (badge of filteredBadges(); track badge.templateId) {
+        <div class="bg-base-100 rounded-3xl border border-base-300 shadow-xs hover:shadow-md hover:border-tenant-500/40 transition-all p-5 flex flex-col justify-between group space-y-4">
+          <!-- Card Header & Visual Emblem Stage -->
+          <div class="space-y-4">
+            <!-- Emblem Stage Box -->
+            <div class="w-full h-44 bg-base-200 rounded-2xl border border-base-300 flex items-center justify-center relative overflow-hidden group-hover:bg-base-300/40 transition-colors">
+              <!-- Top Left: Level Pill -->
+              <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-base-100/90 dark:bg-slate-900/90 text-text-primary text-[10px] font-extrabold uppercase rounded-full shadow-xs backdrop-blur-xs border border-base-300">
+                {{ badge.earning?.level || 'Standard' }}
               </span>
+
+              <!-- Top Right: Status Badge -->
+              <span 
+                class="absolute top-2.5 right-2.5 px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full shadow-xs border"
+                [ngClass]="{
+                  'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700/80': badge.status === 'published',
+                  'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700/80': badge.status === 'draft',
+                  'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700': badge.status === 'archived'
+                }">
+                {{ badge.status }}
+              </span>
+
+              <!-- Emblem Visual Artwork -->
+              <div class="w-28 h-28 relative flex items-center justify-center filter drop-shadow-md">
+                @if (badge.emblem.source === 'upload' && badge.emblem.artUrl) {
+                  <img [src]="badge.emblem.artUrl" alt="Badge Emblem" class="w-full h-full object-contain" />
+                } @else if (badge.emblem.source === 'base-shape' || !badge.emblem.artUrl) {
+                  <div class="w-full h-full relative flex items-center justify-center">
+                    @if (badge.emblem.baseShape === 'Shield') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="4"/>
+                      </svg>
+                    } @else if (badge.emblem.baseShape === 'Circle') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="5"/>
+                      </svg>
+                    } @else if (badge.emblem.baseShape === 'Hexagon') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="4"/>
+                      </svg>
+                    } @else if (badge.emblem.baseShape === 'Star') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="3"/>
+                      </svg>
+                    } @else if (badge.emblem.baseShape === 'Ribbon') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="badge.emblem.accentColor || '#f59e0b'"/>
+                        <circle cx="50" cy="40" r="34" [attr.fill]="badge.emblem.fillColor || '#0d9488'" stroke="#ffffff" stroke-width="3"/>
+                      </svg>
+                    } @else if (badge.emblem.baseShape === 'Rosette') {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="5" stroke-dasharray="10 4"/>
+                      </svg>
+                    } @else {
+                      <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="badge.emblem.fillColor || '#0d9488'" [attr.stroke]="badge.emblem.accentColor || '#f59e0b'" stroke-width="4"/>
+                      </svg>
+                    }
+
+                    <span class="material-symbols-outlined text-white text-3xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
+                      {{ badge.emblem.iconRef || 'military_tech' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Badge Information Body -->
+            <div class="space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="text-sm font-bold text-text-primary line-clamp-1 group-hover:text-tenant-600 transition-colors">
+                    {{ badge.name }}
+                  </h3>
+                  <p class="text-[11px] text-text-secondary">
+                    {{ badge.category }} • {{ badge.earning?.issuerName || 'BRAC Learning Institute' }}
+                  </p>
+                </div>
+              </div>
+
+              @if (badge.description) {
+                <p class="text-xs text-text-secondary line-clamp-2 leading-relaxed">
+                  {{ badge.description }}
+                </p>
+              }
+
+              <!-- Criteria Box -->
+              @if (badge.earning?.criteria) {
+                <div class="p-2.5 bg-base-200 rounded-xl border border-base-300 text-[11px] text-text-secondary italic line-clamp-2">
+                  "{{ badge.earning.criteria }}"
+                </div>
+              }
+
+              <!-- Skill Tags -->
+              @if (badge.earning?.skillTags && badge.earning.skillTags.length > 0) {
+                <div class="flex flex-wrap gap-1 pt-1">
+                  @for (tag of badge.earning.skillTags.slice(0, 3); track tag) {
+                    <span class="px-2 py-0.5 bg-base-200 text-text-primary border border-base-300 text-[10px] font-semibold rounded-md">
+                      #{{ tag }}
+                    </span>
+                  }
+                  @if (badge.earning.skillTags.length > 3) {
+                    <span class="px-1.5 py-0.5 text-text-secondary text-[10px]">
+                      +{{ badge.earning.skillTags.length - 3 }} more
+                    </span>
+                  }
+                </div>
+              }
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-slate-400 text-[11px]">
-            <span>Created by {{ previewingBadge()?.createdBy }}</span>
-            <span>Created: {{ previewingBadge()?.createdAt }}</span>
+          <!-- Card Footer Meta & Action Bar -->
+          <div class="pt-3 border-t border-base-300 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <!-- Sharing Scope Pill -->
+              <span 
+                class="px-2 py-0.5 text-[10px] font-bold rounded-lg border capitalize"
+                [ngClass]="{
+                  'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800': badge.sharing.level === 'organization',
+                  'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800': badge.sharing.level === 'lms',
+                  'bg-base-200 text-text-secondary border-base-300': badge.sharing.level === 'private'
+                }">
+                {{ badge.sharing.level === 'organization' ? 'Org-Shared' : badge.sharing.level }}
+              </span>
+
+              <!-- Usage counter -->
+              @if (badge.usageCount && badge.usageCount > 0) {
+                <span class="text-[10px] text-text-secondary font-medium">
+                  {{ badge.usageCount }} courses
+                </span>
+              }
+            </div>
+
+            <!-- Action Icon Buttons -->
+            <div class="flex items-center gap-1">
+              <!-- Preview Modal Button -->
+              <button 
+                type="button" 
+                (click)="openPreview(badge)" 
+                class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                title="Live Badge Preview">
+                <span class="material-symbols-outlined text-sm">visibility</span>
+              </button>
+
+              <!-- Edit Template Button -->
+              @if (permissions().canEdit) {
+                <button 
+                  type="button"
+                  (click)="editBadge(badge)" 
+                  class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                  title="Edit Badge Template">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+              }
+
+              <!-- Duplicate Button -->
+              @if (permissions().canCreate) {
+                <button 
+                  type="button" 
+                  (click)="duplicateBadge(badge)" 
+                  class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                  title="Duplicate Template">
+                  <span class="material-symbols-outlined text-sm">content_copy</span>
+                </button>
+              }
+
+              <!-- Archive Button -->
+              @if (permissions().canArchive && badge.status !== 'archived') {
+                <button 
+                  type="button" 
+                  (click)="openConfirmModal(badge, 'archive')" 
+                  class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-amber-600 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                  title="Archive Badge">
+                  <span class="material-symbols-outlined text-sm">archive</span>
+                </button>
+              }
+
+              <!-- Delete Button -->
+              @if (permissions().canDelete) {
+                <button 
+                  type="button" 
+                  (click)="openConfirmModal(badge, 'delete')" 
+                  class="w-7 h-7 rounded-lg bg-base-200 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-text-secondary hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+                  title="Delete Template">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              }
+            </div>
           </div>
         </div>
+      }
+    </div>
+  } @else {
+    <!-- Empty Search State -->
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center shadow-xs space-y-4 max-w-lg mx-auto">
+      <div class="w-14 h-14 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto border border-base-300">
+        <span class="material-symbols-outlined text-3xl">military_tech</span>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-text-primary">No Badge Templates Found</h3>
+        <p class="text-xs text-text-secondary mt-1">
+          {{ hasActiveFilters() ? 'No badges matched your active search query or filter criteria.' : 'No badge templates have been created in this repository yet.' }}
+        </p>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-        <button (click)="closePreview()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-300">
-          Close Preview
+      @if (hasActiveFilters()) {
+        <button 
+          type="button" 
+          (click)="clearFilters()" 
+          class="px-4 py-2 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">filter_alt_off</span>
+          <span>Clear All Filters</span>
         </button>
+      } @else if (permissions().canCreate) {
+        <button 
+          type="button" 
+          (click)="createBadge()" 
+          class="px-4 py-2 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">add_circle</span>
+          <span>Create First Badge Template</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- LIVE PREVIEW MODAL -->
+  @if (previewingBadge()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-lg w-full overflow-hidden space-y-5">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-5 border-b border-base-300 bg-base-200">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-tenant-600 text-xl">visibility</span>
+            <div>
+              <h3 class="text-sm font-bold text-text-primary">Badge Preview & Verification</h3>
+              <p class="text-[10px] font-mono text-text-secondary">{{ previewingBadge()?.templateId }}</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="closePreview()" 
+            class="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-base-300 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <!-- Modal Content Box -->
+        <div class="p-6 space-y-6">
+          <div class="bg-base-200 rounded-2xl border border-base-300 p-6 flex flex-col items-center justify-center">
+            <div class="w-56 h-56 relative flex items-center justify-center filter drop-shadow-xl bg-base-100 rounded-2xl overflow-hidden border border-base-300">
+              @if (previewingBadge()?.emblem?.source === 'upload' && previewingBadge()?.emblem?.artUrl) {
+                <img [src]="previewingBadge()?.emblem?.artUrl" alt="Badge Emblem" class="w-full h-full object-contain" />
+              } @else {
+                <div class="w-full h-full relative flex items-center justify-center">
+                  @if (previewingBadge()?.emblem?.baseShape === 'Shield') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="4"/>
+                    </svg>
+                  } @else if (previewingBadge()?.emblem?.baseShape === 'Circle') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="5"/>
+                    </svg>
+                  } @else if (previewingBadge()?.emblem?.baseShape === 'Hexagon') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="4"/>
+                    </svg>
+                  } @else if (previewingBadge()?.emblem?.baseShape === 'Star') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="3"/>
+                    </svg>
+                  } @else if (previewingBadge()?.emblem?.baseShape === 'Ribbon') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="previewingBadge()?.emblem?.accentColor || '#f59e0b'"/>
+                      <circle cx="50" cy="40" r="34" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" stroke="#ffffff" stroke-width="3"/>
+                    </svg>
+                  } @else if (previewingBadge()?.emblem?.baseShape === 'Rosette') {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="44" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="5" stroke-dasharray="10 4"/>
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="previewingBadge()?.emblem?.fillColor || '#0d9488'" [attr.stroke]="previewingBadge()?.emblem?.accentColor || '#f59e0b'" stroke-width="4"/>
+                    </svg>
+                  }
+
+                  <span class="material-symbols-outlined text-white text-3xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-md">
+                    {{ previewingBadge()?.emblem?.iconRef || 'military_tech' }}
+                  </span>
+                </div>
+              }
+
+              <!-- Elements Overlays -->
+              @for (el of previewingBadge()?.elements || []; track el.id) {
+                <div
+                  class="absolute text-center truncate pointer-events-none px-1"
+                  [style.left.%]="el.x"
+                  [style.top.%]="el.y"
+                  [style.width.%]="el.w"
+                  [style.height.%]="el.h"
+                  [style.font-size.pt]="el.style.fontSizePt"
+                  [style.font-weight]="el.style.bold ? 'bold' : 'normal'"
+                  [style.color]="el.style.color"
+                >
+                  {{ el.kind === 'placeholder' ? resolveTokenValue(el.token!, previewingBadge()!) : el.text }}
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Metadata List -->
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between py-1 border-b border-base-300">
+              <span class="text-text-secondary font-semibold">Badge Name</span>
+              <span class="font-bold text-text-primary">{{ previewingBadge()?.name }}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-base-300">
+              <span class="text-text-secondary font-semibold">Category & Level</span>
+              <span class="text-text-primary">{{ previewingBadge()?.category }} ({{ previewingBadge()?.earning?.level || 'Standard' }})</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-base-300">
+              <span class="text-text-secondary font-semibold">Issuer</span>
+              <span class="text-text-primary">{{ previewingBadge()?.earning?.issuerName || 'BRAC Learning Institute' }}</span>
+            </div>
+            <div class="flex justify-between py-1">
+              <span class="text-text-secondary font-semibold">Earning Criteria</span>
+              <span class="text-text-primary italic max-w-[280px] text-right">{{ previewingBadge()?.earning?.criteria }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-base-300 bg-base-200 flex items-center justify-between">
+          <button 
+            type="button" 
+            (click)="closePreview()" 
+            class="px-4 py-2 bg-base-100 border border-base-300 text-text-primary text-xs font-semibold rounded-xl hover:bg-base-300 transition-colors cursor-pointer">
+            Close
+          </button>
+          <button 
+            type="button"
+            (click)="editBadge(previewingBadge()!); closePreview()"
+            class="px-4 py-2 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">edit</span>
+            <span>Edit Template</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 
-  <!-- Confirmation Modal (Archive / Delete) -->
-  <div *ngIf="confirmModalAction()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6 text-center animate-fadeIn">
-      <div
-        class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-        [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'"
-      >
-        <mat-icon class="!w-6 !h-6">{{ confirmModalAction() === 'delete' ? 'delete_forever' : 'archive' }}</mat-icon>
-      </div>
+  <!-- CONFIRMATION MODAL -->
+  @if (confirmModalAction()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-md w-full p-6 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center" [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'">
+            <span class="material-symbols-outlined text-xl">{{ confirmModalAction() === 'delete' ? 'warning' : 'archive' }}</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">
+              {{ confirmModalAction() === 'delete' ? 'Delete Badge Template' : 'Archive Badge Template' }}
+            </h3>
+            <p class="text-xs text-text-secondary">
+              {{ confirmModalAction() === 'delete' ? 'This action permanently removes this template from repository.' : 'This will hide the template from active course badge selection.' }}
+            </p>
+          </div>
+        </div>
 
-      <h3 class="text-base font-bold text-slate-900">
-        {{ confirmModalAction() === 'delete' ? 'Are you sure to delete this draft?' : 'Are you sure to archive this badge?' }}
-      </h3>
+        <p class="text-xs text-text-primary bg-base-200 p-3 rounded-xl border border-base-300">
+          Template: <strong>{{ targetBadge()?.name }}</strong> ({{ targetBadge()?.templateId }})
+        </p>
 
-      <p class="text-xs text-slate-500 mt-2">
-        {{ targetBadge()?.name }} (ID: {{ targetBadge()?.templateId }})
-      </p>
-
-      <div class="flex items-center justify-center gap-3 mt-6">
-        <button
-          (click)="closeConfirmModal()"
-          class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-colors"
-        >
-          No, Cancel
-        </button>
-        <button
-          (click)="executeConfirmAction()"
-          class="px-4 py-2 text-white text-xs font-semibold rounded-lg transition-colors"
-          [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'"
-        >
-          Yes, Confirm
-        </button>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button 
+            type="button" 
+            (click)="closeConfirmModal()" 
+            class="px-4 py-2 bg-base-200 border border-base-300 text-text-primary text-xs font-semibold rounded-xl hover:bg-base-300 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            (click)="executeConfirmAction()" 
+            class="px-4 py-2 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+            [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'">
+            {{ confirmModalAction() === 'delete' ? 'Confirm Delete' : 'Confirm Archive' }}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

@@ -1,8 +1,10 @@
-import { Component, inject, signal, computed, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
+import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import {
   BadgeTemplate,
   BadgeCategory,
@@ -17,19 +19,28 @@ import {
 @Component({
   selector: 'app-badge-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, StepperComponent, CustomSelectComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './badge-create.component.html',
-  styleUrls: ['./badge-create.component.css']
+  styleUrls: ['./badge-create.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BadgeCreateComponent implements OnInit {
   dataService = inject(LmsDataService);
   router = inject(Router);
   route = inject(ActivatedRoute);
 
-  // Stepper state: 1 = Emblem & Details, 2 = Designer, 3 = Preview
+  // Stepper state: 1 = Emblem & Details, 2 = Designer, 3 = Preview & Publish
   currentStep = signal<number>(1);
+  completedSteps = signal<Set<number>>(new Set<number>());
   editingBadgeId = signal<string | null>(null);
+
+  // Stepper Step Definitions
+  steps: StepperStep[] = [
+    { id: 1, key: 'emblem', title: 'Emblem & Details', shortTitle: '1. Emblem & Details', sublabel: 'Badge Info & Emblem Art', icon: 'military_tech' },
+    { id: 2, key: 'designer', title: 'Designer Canvas', shortTitle: '2. Designer', sublabel: 'Labels & Placeholders', icon: 'palette' },
+    { id: 3, key: 'preview', title: 'Preview & Publish', shortTitle: '3. Preview & Publish', sublabel: 'Review & Publish', icon: 'visibility' }
+  ];
 
   // Step 1 Form State
   badgeName = signal<string>('');
@@ -71,6 +82,48 @@ export class BadgeCreateComponent implements OnInit {
   readonly levels: BadgeLevel[] = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'];
   readonly shapes: BadgeBaseShape[] = ['Circle', 'Shield', 'Hexagon', 'Star', 'Ribbon', 'Rosette', 'Square'];
   readonly availableIcons = ['verified', 'analytics', 'security', 'groups', 'payments', 'nature', 'school', 'emoji_events', 'stars', 'military_tech', 'psychology', 'workspace_premium'];
+
+  // Select Options for Custom Select
+  categoryOptions = computed<SelectOption[]>(() => {
+    return this.categories.map(cat => ({
+      value: cat,
+      label: cat,
+      icon: 'category'
+    }));
+  });
+
+  shapeOptions = computed<SelectOption[]>(() => {
+    return this.shapes.map(s => ({
+      value: s,
+      label: s,
+      icon: 'crop_square'
+    }));
+  });
+
+  iconOptions = computed<SelectOption[]>(() => {
+    return this.availableIcons.map(ic => ({
+      value: ic,
+      label: ic,
+      icon: ic
+    }));
+  });
+
+  levelOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'None / Unassigned' },
+      ...this.levels.map(lvl => ({
+        value: lvl,
+        label: lvl,
+        icon: 'military_tech'
+      }))
+    ];
+  });
+
+  expiryUnitOptions: SelectOption[] = [
+    { value: 'days', label: 'Days' },
+    { value: 'months', label: 'Months' },
+    { value: 'years', label: 'Years' }
+  ];
 
   // Selected Canvas Element Computed
   selectedElement = computed<BadgeElement | null>(() => {
@@ -129,6 +182,20 @@ export class BadgeCreateComponent implements OnInit {
     }
 
     this.elements.set(existing.elements ? JSON.parse(JSON.stringify(existing.elements)) : []);
+    
+    // Set completed steps based on loaded badge status
+    const completed = new Set<number>();
+    if (existing.status === 'published' || existing.lastCompletedStep === 'preview') {
+      completed.add(1);
+      completed.add(2);
+      completed.add(3);
+    } else if (existing.lastCompletedStep === 'designer') {
+      completed.add(1);
+      completed.add(2);
+    } else if (existing.lastCompletedStep === 'emblem-details') {
+      completed.add(1);
+    }
+    this.completedSteps.set(completed);
   }
 
   // Skill Tag Management
@@ -227,13 +294,36 @@ export class BadgeCreateComponent implements OnInit {
   }
 
   // Navigation & Step Validation
+  onStepClicked(step: StepperStep) {
+    this.goToStep(step.id);
+  }
+
   goToStep(step: number) {
     if (step === 2 && this.currentStep() === 1) {
       if (!this.validateStep1()) return;
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(1);
+        return next;
+      });
       this.dataService.showToast('Badge details have been saved successfully.', 'success', 3000, 'Step 1 Complete');
     }
     if (step === 3 && this.currentStep() === 2) {
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(1);
+        next.add(2);
+        return next;
+      });
       this.dataService.showToast('Badge design has been saved successfully.', 'success', 3000, 'Step 2 Complete');
+    }
+    if (step === 3 && this.currentStep() === 1) {
+      if (!this.validateStep1()) return;
+      this.completedSteps.update(set => {
+        const next = new Set(set);
+        next.add(1);
+        return next;
+      });
     }
     this.currentStep.set(step);
   }
