@@ -56,8 +56,8 @@ export interface SelectOption {
           [ngClass]="[
             isOpen() 
               ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
-              : 'bg-base-200 hover:bg-base-100 hover:border-slate-400 dark:hover:border-slate-600',
-            error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-base-300',
+              : 'bg-base-200/70 hover:bg-base-200 hover:border-slate-400 dark:hover:border-slate-600',
+            error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-base-300 dark:border-slate-700',
             sizeClass(),
             customTriggerClass()
           ]">
@@ -144,11 +144,18 @@ export interface SelectOption {
           </div>
         </button>
 
-        <!-- Dropdown Popover Menu (Directly attached to Trigger Box) -->
+        <!-- Dropdown Popover Menu with Outside Click Capture -->
         @if (isOpen()) {
+          <!-- Transparent full-screen overlay that catches any clicks outside and closes the dropdown safely without triggering background actions -->
           <div 
-            class="absolute rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
-          style="z-index: 99999;"
+            class="fixed inset-0 z-40 bg-transparent cursor-default select-none"
+            (click)="close(); $event.stopPropagation(); $event.preventDefault()"
+            (mousedown)="$event.stopPropagation()"
+            (touchstart)="close(); $event.stopPropagation(); $event.preventDefault()">
+          </div>
+
+          <div 
+            class="absolute rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl z-50"
             [ngClass]="[
               actualPlacement() === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
               dropdownAlign() === 'right' ? 'right-0' : 'left-0',
@@ -159,7 +166,7 @@ export interface SelectOption {
             
             <!-- Search Bar & Multi Actions -->
             @if (shouldShowSearch() || multiple()) {
-              <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-slate-800/50 space-y-2">
+              <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-base-200/30 space-y-2">
                 @if (shouldShowSearch()) {
                   <div class="relative">
                     <span class="material-symbols-outlined absolute left-2.5 top-2 text-text-secondary text-sm">search</span>
@@ -171,7 +178,7 @@ export interface SelectOption {
                       placeholder="Search..."
                       (click)="$event.stopPropagation()"
                       (keydown)="onSearchKeydown($event)"
-                      class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
+                      class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
                     @if (searchQuery()) {
                       <button 
                         type="button" 
@@ -225,7 +232,7 @@ export interface SelectOption {
                     [ngClass]="[
                       isSelected(opt) 
                         ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-semibold' 
-                        : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
+                        : 'text-text-primary hover:bg-slate-100 dark:hover:bg-base-200',
                       highlightedIndex() === idx ? 'ring-1 ring-tenant-500/30' : '',
                       opt.disabled ? 'opacity-40 cursor-not-allowed' : ''
                     ]">
@@ -447,9 +454,16 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
+  @HostListener('document:pointerdown', ['$event'])
+  onPointerDown(event: PointerEvent) {
+    if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.close();
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
+    if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target as Node)) {
       this.close();
     }
   }

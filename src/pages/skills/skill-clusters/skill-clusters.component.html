@@ -443,27 +443,27 @@
           }
 
           <div>
-            <label class="block text-xs font-bold text-text-primary mb-1">
+            <label class="block text-xs font-semibold text-text-primary mb-1">
               Cluster Name <span class="text-rose-500">*</span>
             </label>
             <input 
               type="text" 
               formControlName="name"
               placeholder="e.g., Data & Analytics Competency"
-              class="w-full px-3.5 py-2 rounded-xl border border-base-300 bg-base-100 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-purple-500">
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-purple-500 focus:bg-base-100 transition-all">
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-text-primary mb-1">Description</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Description</label>
             <textarea 
               formControlName="description"
               rows="3"
               placeholder="Describe the domain context, required competency scope, and role relevance..."
-              class="w-full px-3.5 py-2 rounded-xl border border-base-300 bg-base-100 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-purple-500 focus:bg-base-100 transition-all"></textarea>
           </div>
 
           <div class="relative z-20">
-            <label class="block text-xs font-bold text-text-primary mb-1">Cluster Status</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1">Cluster Status</label>
             <app-custom-select
               [options]="formClusterStatusOptions"
               [clearable]="false"
@@ -477,12 +477,12 @@
             <button 
               type="button" 
               (click)="closeClusterModal()" 
-              class="px-4 py-2 rounded-xl border border-base-300 text-xs font-bold text-text-secondary hover:bg-base-200 transition-all cursor-pointer">
+              class="px-4 py-2.5 rounded-xl border border-base-300 dark:border-slate-700 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
               Cancel
             </button>
             <button 
               type="submit" 
-              class="px-5 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
               {{ editingCluster() ? 'Save Changes' : 'Create Cluster' }}
             </button>
           </div>

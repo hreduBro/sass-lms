@@ -370,19 +370,19 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Skill Name -->
             <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-text-primary mb-1">
+              <label class="block text-xs font-semibold text-text-primary mb-1">
                 Skill Name <span class="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 formControlName="name"
                 placeholder="e.g., SQL Querying & Data Extraction"
-                class="w-full px-3.5 py-2 rounded-xl border border-base-300 bg-base-100 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500">
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all">
             </div>
 
             <!-- Category -->
             <div class="relative z-30">
-              <label class="block text-xs font-bold text-text-primary mb-1">Category / Domain <span class="text-rose-500">*</span></label>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Category / Domain <span class="text-rose-500">*</span></label>
               <app-custom-select
                 [options]="formSkillCategoryOptions"
                 [clearable]="false"
@@ -393,7 +393,7 @@
 
             <!-- Cluster -->
             <div class="relative z-30">
-              <label class="block text-xs font-bold text-text-primary mb-1">Competency Cluster</label>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Competency Cluster</label>
               <app-custom-select
                 [options]="formSkillClusterOptions()"
                 [clearable]="true"
@@ -405,7 +405,7 @@
 
             <!-- Status -->
             <div class="sm:col-span-2 relative z-20">
-              <label class="block text-xs font-bold text-text-primary mb-1">Operational Status <span class="text-rose-500">*</span></label>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Operational Status <span class="text-rose-500">*</span></label>
               <app-custom-select
                 [options]="formSkillStatusOptions"
                 [clearable]="false"
@@ -416,33 +416,33 @@
 
             <!-- Description -->
             <div class="sm:col-span-2 relative z-10">
-              <label class="block text-xs font-bold text-text-primary mb-1">
+              <label class="block text-xs font-semibold text-text-primary mb-1">
                 Description & Competency Criteria <span class="text-rose-500">*</span>
               </label>
               <textarea
                 formControlName="description"
                 rows="3"
                 placeholder="Detail the operational capabilities, behavioural indicators, or assessment expectations associated with this skill..."
-                class="w-full px-3.5 py-2 rounded-xl border border-base-300 bg-base-100 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"></textarea>
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all"></textarea>
             </div>
 
             <!-- Proficiency Levels -->
             <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-text-primary mb-1.5">Supported Proficiency Levels</label>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Supported Proficiency Levels</label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 bg-base-200/30 cursor-pointer text-xs">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 dark:border-slate-700 bg-base-200/40 hover:bg-base-200/80 cursor-pointer text-xs transition-colors">
                   <input type="checkbox" formControlName="levelBeginner" class="rounded text-tenant-600 focus:ring-0">
                   <span class="font-medium text-text-primary">Beginner</span>
                 </label>
-                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 bg-base-200/30 cursor-pointer text-xs">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 dark:border-slate-700 bg-base-200/40 hover:bg-base-200/80 cursor-pointer text-xs transition-colors">
                   <input type="checkbox" formControlName="levelIntermediate" class="rounded text-tenant-600 focus:ring-0">
                   <span class="font-medium text-text-primary">Intermediate</span>
                 </label>
-                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 bg-base-200/30 cursor-pointer text-xs">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 dark:border-slate-700 bg-base-200/40 hover:bg-base-200/80 cursor-pointer text-xs transition-colors">
                   <input type="checkbox" formControlName="levelAdvanced" class="rounded text-tenant-600 focus:ring-0">
                   <span class="font-medium text-text-primary">Advanced</span>
                 </label>
-                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 bg-base-200/30 cursor-pointer text-xs">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-base-300 dark:border-slate-700 bg-base-200/40 hover:bg-base-200/80 cursor-pointer text-xs transition-colors">
                   <input type="checkbox" formControlName="levelExpert" class="rounded text-tenant-600 focus:ring-0">
                   <span class="font-medium text-text-primary">Expert</span>
                 </label>
@@ -455,12 +455,12 @@
             <button
               type="button"
               (click)="closeSkillModal()"
-              class="px-4 py-2 rounded-xl border border-base-300 text-xs font-bold text-text-secondary hover:bg-base-200 transition-all cursor-pointer">
+              class="px-4 py-2.5 rounded-xl border border-base-300 dark:border-slate-700 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
               Cancel
             </button>
             <button
               type="submit"
-              class="px-5 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
+              class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
               {{ editingSkill() ? 'Save Skill Changes' : 'Create Skill' }}
             </button>
           </div>

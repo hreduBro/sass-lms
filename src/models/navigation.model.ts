@@ -468,7 +468,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
 
 /**
  * Utility helper that checks whether a URL path matches a glob or wildcard pattern:
- * e.g. '/tenants/**', '/plans/edit/**', '/courses/*\/learn'
+ * e.g. '/tenants/**', '/plans/edit/**', '/courses/*\/learn', '/users/**'
  */
 export function matchesUrlPattern(url: string, pattern: string | RegExp): boolean {
   if (!url || !pattern) return false;
@@ -484,16 +484,21 @@ export function matchesUrlPattern(url: string, pattern: string | RegExp): boolea
     return cleanUrl === cleanPattern || url === pattern;
   }
 
-  // If pattern has wildcards, convert glob to regex:
-  // '**' matches any character including slashes (.*)
-  // '*' matches path segments except slashes ([^/]+)
-  const escaped = cleanPattern
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '§§§DOUBLE§§§')
-    .replace(/\*/g, '[^/]+')
-    .replace(/§§§DOUBLE§§§/g, '.*');
+  // Handle patterns ending in '/**' (e.g. '/users/**', '/analytics/**')
+  // which should match both '/users' (exact base) AND any sub-path '/users/xxx'
+  let regexPattern: string;
+  if (cleanPattern.endsWith('/**')) {
+    const base = cleanPattern.slice(0, -3).replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+    regexPattern = `^${base}(?:/.*)?$`;
+  } else {
+    const escaped = cleanPattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\/\*\*/g, '(?:/.*)?')
+      .replace(/\*\*/g, '.*')
+      .replace(/\*/g, '[^/]+');
+    regexPattern = '^' + escaped + '$';
+  }
 
-  const regexPattern = '^' + escaped + '$';
   return new RegExp(regexPattern).test(cleanUrl) || new RegExp(regexPattern).test(url);
 }
 
@@ -528,20 +533,22 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
     }
   }
 
-  const matchPatterns = child.matchPatterns;
+  // 1. Direct exact route match
+  if (cleanUrl === cleanChildRoute) {
+    return true;
+  }
 
-  // 1. Explicit Custom Match Patterns
+  // 2. Explicit Custom Match Patterns
+  const matchPatterns = child.matchPatterns;
   if (matchPatterns && matchPatterns.length > 0) {
     for (const pattern of matchPatterns) {
       if (matchesUrlPattern(cleanUrl, pattern) || matchesUrlPattern(currentUrl, pattern)) {
         return true;
       }
     }
-    return false;
   }
 
-  // 2. Exact match if no custom patterns provided
-  return cleanUrl === cleanChildRoute;
+  return false;
 }
 
 /**
@@ -551,28 +558,30 @@ export function isNavigationItemActive(currentUrl: string, item: NavItem): boole
   if (!currentUrl || !item) return false;
   const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
-  // 1. If item has children, it is active ONLY IF at least one child is active
+  // 1. If item has children, it is active if at least one child is active
   if (item.children && item.children.length > 0) {
-    return item.children.some(child => isNavChildActive(currentUrl, child));
+    if (item.children.some(child => isNavChildActive(currentUrl, child))) {
+      return true;
+    }
   }
 
-  // 2. Explicit Custom Match Patterns on the Parent Item
+  // 2. Direct exact route match
+  if (item.route) {
+    const cleanItemRoute = item.route.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    if (cleanItemRoute === '/dashboard') {
+      if (cleanUrl === '/dashboard' || cleanUrl === '/') return true;
+    } else if (cleanUrl === cleanItemRoute) {
+      return true;
+    }
+  }
+
+  // 3. Explicit Custom Match Patterns on the Item
   if (item.matchPatterns && item.matchPatterns.length > 0) {
     for (const pattern of item.matchPatterns) {
       if (matchesUrlPattern(cleanUrl, pattern) || matchesUrlPattern(currentUrl, pattern)) {
         return true;
       }
     }
-    return false;
-  }
-
-  // 3. Single Item Route match
-  if (item.route) {
-    const cleanItemRoute = item.route.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
-    if (cleanItemRoute === '/dashboard') {
-      return cleanUrl === '/dashboard' || cleanUrl === '/';
-    }
-    return cleanUrl === cleanItemRoute;
   }
 
   return false;
