@@ -4,7 +4,7 @@
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-base-300">
     <div>
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-purple-600 text-3xl">bubble_chart</span>
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">bubble_chart</span>
         <h1 class="text-2xl font-bold tracking-tight text-text-primary">Competency Clusters</h1>
       </div>
       <p class="text-xs text-text-secondary mt-1">
@@ -112,7 +112,7 @@
           (click)="selectedStatus.set('all'); selectedSkillsFilter.set('all'); currentPage.set(1)"
           class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs"
           [class]="selectedStatus() === 'all' && selectedSkillsFilter() === 'all'
-            ? 'bg-purple-600 text-white shadow-2xs font-bold'
+            ? 'bg-tenant-600 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
           All Clusters ({{ totalClustersCount() }})
         </button>
@@ -122,7 +122,7 @@
           (click)="selectedStatus.set('active'); currentPage.set(1)"
           class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1.5"
           [class]="selectedStatus() === 'active'
-            ? 'bg-purple-600 text-white shadow-2xs font-bold'
+            ? 'bg-tenant-600 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span>Active ({{ activeClustersCount() }})</span>
@@ -133,7 +133,7 @@
           (click)="selectedStatus.set('inactive'); currentPage.set(1)"
           class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1.5"
           [class]="selectedStatus() === 'inactive'
-            ? 'bg-purple-600 text-white shadow-2xs font-bold'
+            ? 'bg-tenant-600 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
           <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
           <span>Inactive ({{ inactiveClustersCount() }})</span>
@@ -144,7 +144,7 @@
           (click)="selectedSkillsFilter.set('has_skills'); currentPage.set(1)"
           class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1.5"
           [class]="selectedSkillsFilter() === 'has_skills'
-            ? 'bg-purple-600 text-white shadow-2xs font-bold'
+            ? 'bg-tenant-600 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
           <span class="material-symbols-outlined text-[13px]">psychology</span>
           <span>With Skills ({{ withSkillsCount() }})</span>
@@ -155,7 +155,7 @@
           (click)="selectedSkillsFilter.set('empty'); currentPage.set(1)"
           class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1.5"
           [class]="selectedSkillsFilter() === 'empty'
-            ? 'bg-purple-600 text-white shadow-2xs font-bold'
+            ? 'bg-tenant-600 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
           <span class="material-symbols-outlined text-[13px]">layers_clear</span>
           <span>Empty ({{ emptyClustersCount() }})</span>
@@ -183,14 +183,14 @@
                   <!-- Cluster Name & Code -->
                   <td class="py-3.5 px-4">
                     <div class="flex items-center gap-2.5">
-                      <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 flex items-center justify-center flex-shrink-0 border border-purple-200 dark:border-purple-800">
+                      <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 flex items-center justify-center flex-shrink-0 border border-tenant-200 dark:border-tenant-800">
                         <span class="material-symbols-outlined text-lg">bubble_chart</span>
                       </div>
                       <div>
-                        <div class="font-bold text-text-primary text-xs group-hover:text-purple-600 transition-colors">
+                        <div class="font-bold text-text-primary text-xs group-hover:text-tenant-600 transition-colors">
                           {{ cls.name }}
                         </div>
-                        <span class="font-mono text-[10px] text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800 mt-0.5 inline-block">
+                        <span class="font-mono text-[10px] text-tenant-700 dark:text-tenant-300 bg-tenant-50 dark:bg-tenant-950/60 px-1.5 py-0.5 rounded border border-tenant-200 dark:border-tenant-800 mt-0.5 inline-block">
                           {{ cls.clusterCode }}
                         </span>
                       </div>
@@ -208,7 +208,7 @@
                   <td class="py-3.5 px-4">
                     @let skills = getSkillsForCluster(cls.clusterId);
                     <div class="space-y-1">
-                      <div class="flex items-center gap-1.5 font-bold text-xs text-purple-700 dark:text-purple-300">
+                      <div class="flex items-center gap-1.5 font-bold text-xs text-tenant-700 dark:text-tenant-300">
                         <span class="material-symbols-outlined text-sm">psychology</span>
                         <span>{{ skills.length }} skill{{ skills.length === 1 ? '' : 's' }}</span>
                       </div>
@@ -220,7 +220,7 @@
                             </span>
                           }
                           @if (skills.length > 3) {
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-bold">
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300 font-bold">
                               +{{ skills.length - 3 }} more
                             </span>
                           }
@@ -262,7 +262,7 @@
                         (click)="toggleMenu(cls, $event)"
                         class="cluster-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
                         [class.ring-2]="activeMenuCluster()?.clusterId === cls.clusterId"
-                        [class.ring-purple-500]="activeMenuCluster()?.clusterId === cls.clusterId"
+                        [class.ring-tenant-500]="activeMenuCluster()?.clusterId === cls.clusterId"
                         title="Cluster Actions">
                         <span class="material-symbols-outlined text-lg">more_vert</span>
                       </button>
@@ -284,14 +284,14 @@
               <!-- Top Row: Icon + Name + Code + Menu Button -->
               <div class="flex items-start justify-between gap-3">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 flex items-center justify-center flex-shrink-0 border border-purple-200 dark:border-purple-800 shadow-2xs">
+                  <div class="w-10 h-10 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 flex items-center justify-center flex-shrink-0 border border-tenant-200 dark:border-tenant-800 shadow-2xs">
                     <span class="material-symbols-outlined text-xl">bubble_chart</span>
                   </div>
                   <div>
-                    <h3 class="font-bold text-sm text-text-primary group-hover:text-purple-600 transition-colors">
+                    <h3 class="font-bold text-sm text-text-primary group-hover:text-tenant-600 transition-colors">
                       {{ cls.name }}
                     </h3>
-                    <span class="font-mono text-[10px] text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800 mt-0.5 inline-block">
+                    <span class="font-mono text-[10px] text-tenant-700 dark:text-tenant-300 bg-tenant-50 dark:bg-tenant-950/60 px-1.5 py-0.5 rounded border border-tenant-200 dark:border-tenant-800 mt-0.5 inline-block">
                       {{ cls.clusterCode }}
                     </span>
                   </div>
@@ -302,7 +302,7 @@
                   (click)="toggleMenu(cls, $event)"
                   class="cluster-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
                   [class.ring-2]="activeMenuCluster()?.clusterId === cls.clusterId"
-                  [class.ring-purple-500]="activeMenuCluster()?.clusterId === cls.clusterId">
+                  [class.ring-tenant-500]="activeMenuCluster()?.clusterId === cls.clusterId">
                   <span class="material-symbols-outlined text-lg">more_vert</span>
                 </button>
               </div>
@@ -317,10 +317,10 @@
               <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300/60 space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-bold text-text-primary flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm text-purple-600">psychology</span>
+                    <span class="material-symbols-outlined text-sm text-tenant-600">psychology</span>
                     Assigned Skills
                   </span>
-                  <span class="text-[11px] font-bold text-purple-700 dark:text-purple-300">
+                  <span class="text-[11px] font-bold text-tenant-700 dark:text-tenant-300">
                     {{ skills.length }}
                   </span>
                 </div>
@@ -333,7 +333,7 @@
                       </span>
                     }
                     @if (skills.length > 3) {
-                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-bold">
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300 font-bold">
                         +{{ skills.length - 3 }} more
                       </span>
                     }
@@ -386,7 +386,7 @@
         type="button"
         (click)="openEditClusterModal(cluster)"
         class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
-        <span class="material-symbols-outlined text-base text-purple-600">edit</span>
+        <span class="material-symbols-outlined text-base text-tenant-600">edit</span>
         <span>Edit Cluster</span>
       </button>
 
@@ -412,13 +412,13 @@
 
   <!-- MODAL: CREATE / EDIT CLUSTER -->
   @if (isClusterModalOpen()) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeClusterModal()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-lg overflow-hidden animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-lg overflow-hidden animate-modal-card">
         
         <!-- Header -->
         <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 flex items-center justify-center">
               <span class="material-symbols-outlined text-lg">bubble_chart</span>
             </div>
             <div>
@@ -450,7 +450,7 @@
               type="text" 
               formControlName="name"
               placeholder="e.g., Data & Analytics Competency"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-purple-500 focus:bg-base-100 transition-all">
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all">
           </div>
 
           <div>
@@ -459,7 +459,7 @@
               formControlName="description"
               rows="3"
               placeholder="Describe the domain context, required competency scope, and role relevance..."
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-purple-500 focus:bg-base-100 transition-all"></textarea>
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all"></textarea>
           </div>
 
           <div class="relative z-20">
@@ -482,7 +482,7 @@
             </button>
             <button 
               type="submit" 
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
+              class="px-5 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer">
               {{ editingCluster() ? 'Save Changes' : 'Create Cluster' }}
             </button>
           </div>
@@ -493,8 +493,8 @@
 
   <!-- CONFIRMATION DIALOG -->
   @if (confirmDialog().isOpen) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeConfirmDialog()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-md overflow-hidden p-6 space-y-4 animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onConfirmBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-md overflow-hidden p-6 space-y-4 animate-modal-card">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl flex items-center justify-center"
                [class]="confirmDialog().isDestructive ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/50' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/50'">

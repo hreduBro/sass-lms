@@ -144,24 +144,17 @@ export interface SelectOption {
           </div>
         </button>
 
-        <!-- Dropdown Popover Menu with Outside Click Capture -->
+        <!-- Dropdown Popover Menu -->
         @if (isOpen()) {
-          <!-- Transparent full-screen overlay that catches any clicks outside and closes the dropdown safely without triggering background actions -->
           <div 
-            class="fixed inset-0 z-40 bg-transparent cursor-default select-none"
-            (click)="close(); $event.stopPropagation(); $event.preventDefault()"
-            (mousedown)="$event.stopPropagation()"
-            (touchstart)="close(); $event.stopPropagation(); $event.preventDefault()">
-          </div>
-
-          <div 
-            class="absolute rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl z-50"
+            class="absolute rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl z-[9999]"
             [ngClass]="[
               actualPlacement() === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
               dropdownAlign() === 'right' ? 'right-0' : 'left-0',
               'w-full min-w-[240px] max-w-[calc(100vw-2rem)]',
               customDropdownClass()
             ]"
+            (click)="$event.stopPropagation()"
             role="listbox">
             
             <!-- Search Bar & Multi Actions -->
@@ -454,16 +447,16 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
-  @HostListener('document:pointerdown', ['$event'])
-  onPointerDown(event: PointerEvent) {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
     if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target as Node)) {
       this.close();
     }
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (this.isOpen() && !this.elementRef.nativeElement.contains(event.target as Node)) {
+  @HostListener('document:touchend', ['$event'])
+  onDocumentTouchEnd(event: TouchEvent) {
+    if (this.isOpen() && event.target && !this.elementRef.nativeElement.contains(event.target as Node)) {
       this.close();
     }
   }

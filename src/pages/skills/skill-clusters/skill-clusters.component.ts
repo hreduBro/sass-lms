@@ -235,6 +235,18 @@ export class SkillClustersComponent implements OnInit {
     this.editingCluster.set(null);
   }
 
+  onBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeClusterModal();
+    }
+  }
+
+  onConfirmBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeConfirmDialog();
+    }
+  }
+
   saveCluster() {
     this.formSubmitted.set(true);
     if (this.clusterForm.invalid) {

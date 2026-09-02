@@ -337,8 +337,8 @@
 
   <!-- MODAL: CREATE / EDIT SKILL -->
   @if (isSkillModalOpen()) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeSkillModal()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card">
 
         <!-- Modal Header -->
         <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
@@ -471,8 +471,8 @@
 
   <!-- MODAL: VIEW SKILL DETAILS -->
   @if (isDetailsModalOpen() && selectedSkillDetails(); as skill) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeDetailsModal()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onDetailsBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card">
 
         <!-- Header -->
         <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
@@ -616,13 +616,13 @@
 
   <!-- MODAL: MANAGE POLYMORPHIC MAPPINGS -->
   @if (isMappingModalOpen() && mappingSkill(); as skill) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeMappingModal()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onMappingBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card">
 
         <!-- Header -->
         <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 flex items-center justify-center">
               <span class="material-symbols-outlined text-lg">account_tree</span>
             </div>
             <div>
@@ -744,8 +744,8 @@
 
   <!-- CONFIRMATION DIALOG -->
   @if (confirmDialog().isOpen) {
-    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="closeConfirmDialog()">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-md overflow-hidden p-6 space-y-4 animate-modal-card" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop" (click)="onConfirmBackdropClick($event)">
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-md overflow-hidden p-6 space-y-4 animate-modal-card">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl flex items-center justify-center"
                [class]="confirmDialog().isDestructive ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/50' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/50'">

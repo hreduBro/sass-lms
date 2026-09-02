@@ -502,6 +502,30 @@ export class SkillGridComponent implements OnInit {
     this.editingSkill.set(null);
   }
 
+  onBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeSkillModal();
+    }
+  }
+
+  onDetailsBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeDetailsModal();
+    }
+  }
+
+  onMappingBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeMappingModal();
+    }
+  }
+
+  onConfirmBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeConfirmDialog();
+    }
+  }
+
   saveSkill() {
     this.formSubmitted.set(true);
     if (this.skillForm.invalid) {
