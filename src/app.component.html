@@ -14,10 +14,10 @@
       </div>
     }
     
-    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6">
+    <main #mainContent class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6">
       <div [class]="lms.adminLayoutPreferences().contentWidth === 'fluid' ? 'w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6' : 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6'">
         <!-- The main content will be rendered here based on the route. -->
-        <router-outlet></router-outlet>
+        <router-outlet (activate)="onRouteActivated()"></router-outlet>
       </div>
     </main>
 

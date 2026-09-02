@@ -1,7 +1,7 @@
 
-import { Component, ChangeDetectionStrategy, inject, effect, signal } from '@angular/core';
-
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, ChangeDetectionStrategy, inject, effect, signal, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd, Scroll } from '@angular/router';
+import { filter } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -31,7 +31,9 @@ import { LmsDataService } from './services/lms-data.service';
     FooterComponent
   ]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  @ViewChild('mainContent') mainContent?: ElementRef<HTMLElement>;
+
   themeService = inject(ThemeService);
   lms = inject(LmsDataService);
   router = inject(Router);
@@ -50,6 +52,47 @@ export class AppComponent {
         document.documentElement.classList.remove('dark');
       }
     });
+  }
+
+  ngOnInit() {
+    // Reset scroll position on every router navigation
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd || event instanceof Scroll)
+    ).subscribe(() => {
+      this.resetScrollPosition();
+    });
+  }
+
+  onRouteActivated() {
+    this.resetScrollPosition();
+  }
+
+  private resetScrollPosition() {
+    // 1. Reset main content container scroll
+    if (this.mainContent?.nativeElement) {
+      this.mainContent.nativeElement.scrollTop = 0;
+      this.mainContent.nativeElement.scrollLeft = 0;
+    }
+
+    // 2. Reset window and document scroll
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      if (document.documentElement) {
+        document.documentElement.scrollTop = 0;
+      }
+      if (document.body) {
+        document.body.scrollTop = 0;
+      }
+    }
+
+    // 3. Fallback requestAnimationFrame to handle async component renders
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => {
+        if (this.mainContent?.nativeElement) {
+          this.mainContent.nativeElement.scrollTop = 0;
+        }
+      });
+    }
   }
 
   toggleSidebar() {
