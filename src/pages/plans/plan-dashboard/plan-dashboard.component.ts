@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, OnInit, effect } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, effect, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, Phase, PlanOwner, PlanStatus, DurationType, EnrollmentType } from '../../../models/plan.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent, FilterSectionComponent, GridViewMode, GridEmptyStateType } from '../../../components/data-grid';
 import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-modal.component';
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
 import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details-modal.component';
@@ -37,6 +38,8 @@ export interface LearnerProgressRecord {
     FormsModule,
     CustomSelectComponent,
     CustomAvatarComponent,
+    DataGridComponent,
+    FilterSectionComponent,
     AssignOwnerModalComponent,
     EditPlanModalComponent,
     PhaseDetailsModalComponent
@@ -44,77 +47,6 @@ export interface LearnerProgressRecord {
   template: `
     <div class="space-y-6 pb-12 animate-fade-in">
       
-      <!-- ================================================================= -->
-      <!-- TOP NAVIGATION & LMS WORKSPACE SCOPE BAR                          -->
-      <!-- ================================================================= -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 mb-1 flex-wrap">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
-              <span class="material-symbols-outlined text-[13px]">analytics</span>
-              Plan Analytics & Telemetry
-            </span>
-            <span class="text-xs text-text-secondary">
-              Parent Org: <strong class="font-bold text-text-primary capitalize">{{ activeTenant().name }}</strong>
-            </span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-medium text-text-secondary hidden sm:inline">
-              {{ plans().length }} Plans &bull; {{ activePlansCount() }} Active
-            </span>
-          </div>
-
-          <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-            @if (selectedPlan()) {
-              <span>{{ selectedPlan()?.name }}</span>
-              <span class="ml-2 px-2 py-0.5 rounded-lg text-xs font-mono font-bold bg-tenant-100 dark:bg-tenant-900/40 text-tenant-700 dark:text-tenant-300">
-                {{ selectedPlan()?.planCode }}
-              </span>
-            } @else {
-              <span>Plan Telemetry & Analytics</span>
-            }
-          </h1>
-
-          <p class="text-xs text-text-secondary mt-0.5">
-            @if (selectedPlan()) {
-              Deep-dive metrics, phase progression pipelines, and individual learner milestone tracks.
-            } @else {
-              Portfolio-wide telemetry for learning plan lifecycles, phase completion rates, and administrator allocations.
-            }
-          </p>
-        </div>
-
-        <!-- Global Action Buttons -->
-        <div class="flex items-center flex-wrap gap-2.5 self-start md:self-auto">
-          @if (selectedPlan()) {
-            <button 
-              id="back-to-portfolio-btn"
-              type="button"
-              (click)="clearSelectedPlan()"
-              class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-              <span class="material-symbols-outlined text-sm">arrow_back</span>
-              <span>Portfolio Overview</span>
-            </button>
-          } @else {
-            <button 
-              id="plan-dashboard-grid-btn"
-              type="button"
-              (click)="goToGrid()"
-              class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-              <span class="material-symbols-outlined text-base text-tenant-500">table_rows</span>
-              <span>Plan Grid</span>
-            </button>
-          }
-
-          <button 
-            id="plan-dashboard-create-btn"
-            type="button"
-            (click)="goToCreate()"
-            class="px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
-            <span class="material-symbols-outlined text-base">add_circle</span>
-            <span>Create Plan</span>
-          </button>
-        </div>
-      </div>
-
       <!-- ================================================================= -->
       <!-- VIEW LEVEL 1: PART A — LMS PLAN OVERVIEW DASHBOARD (PORTFOLIO)    -->
       <!-- ================================================================= -->
@@ -617,6 +549,164 @@ export interface LearnerProgressRecord {
         <!-- VIEW LEVEL 2: PART B — SELECTED PLAN DEEP-DIVE DASHBOARD          -->
         <!-- ================================================================= -->
         
+        <!-- Header Strip: Plan Title, Switcher, Badges, & Action Buttons -->
+        <div class="p-6 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <!-- Top Row: Back link, Breadcrumb & Actions -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 text-xs text-text-secondary">
+                <button 
+                  type="button" 
+                  (click)="clearSelectedPlan()" 
+                  class="hover:text-tenant-600 font-semibold flex items-center gap-1 transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">arrow_back</span>
+                  <span>Portfolio Overview</span>
+                </button>
+                <span>/</span>
+                <span class="font-mono text-[11px] text-text-secondary">{{ selectedPlan()!.planCode }}</span>
+              </div>
+
+              <div class="flex items-center gap-3 flex-wrap">
+                <h2 class="text-xl sm:text-2xl font-black text-text-primary tracking-tight">{{ selectedPlan()!.name }}</h2>
+                
+                <span 
+                  class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase border shadow-2xs"
+                  [ngClass]="getStatusBadgeClass(selectedPlan()!.status)">
+                  {{ selectedPlan()!.status }}
+                </span>
+
+                <span class="px-2.5 py-0.5 rounded-full bg-base-200 border border-base-300 text-text-secondary text-[11px] font-medium font-mono">
+                  {{ selectedPlan()!.durationType }}
+                </span>
+
+                <span class="px-2.5 py-0.5 rounded-full bg-base-200 border border-base-300 text-text-secondary text-[11px] font-medium">
+                  {{ selectedPlan()!.enrollmentType }} Enrollment
+                </span>
+              </div>
+            </div>
+
+            <!-- Quick Action Buttons & Switcher -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap relative plan-switcher-container">
+              
+              <!-- Plan Switcher Trigger -->
+              <div class="relative">
+                <button 
+                  id="btn-plan-switcher-trigger"
+                  type="button"
+                  (click)="showPlanSwitcherDropdown.set(!showPlanSwitcherDropdown())"
+                  class="px-3 py-2 rounded-xl border border-base-300 bg-base-200 hover:bg-base-300/80 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">swap_horiz</span>
+                  <span class="hidden sm:inline">Switch Plan</span>
+                  <span class="material-symbols-outlined text-xs text-text-secondary">expand_more</span>
+                </button>
+
+                <!-- Plan Switcher Dropdown Popover -->
+                @if (showPlanSwitcherDropdown()) {
+                  <div class="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl border border-base-300 bg-base-100 shadow-xl z-50 p-3 space-y-2 animate-fade-in">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-text-secondary px-1 flex items-center justify-between">
+                      <span>Switch Active Plan</span>
+                      <span class="text-[10px] font-mono font-normal">{{ filteredSwitcherPlans().length }} available</span>
+                    </div>
+
+                    <div class="relative">
+                      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">search</span>
+                      <input 
+                        type="text"
+                        [ngModel]="planSwitcherSearch()"
+                        (ngModelChange)="planSwitcherSearch.set($event)"
+                        placeholder="Search plan by title or code..."
+                        class="w-full pl-8 pr-2.5 py-1.5 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary focus:outline-none focus:border-tenant-500" />
+                    </div>
+
+                    <div class="max-h-60 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
+                      @for (p of filteredSwitcherPlans(); track p.id) {
+                        <button
+                          type="button"
+                          (click)="selectPlan(p.id); showPlanSwitcherDropdown.set(false)"
+                          class="w-full text-left p-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer"
+                          [class]="p.id === selectedPlan()!.id ? 'bg-tenant-500/10 border border-tenant-500/30 text-tenant-700 dark:text-tenant-300 font-bold' : 'hover:bg-base-200 text-text-primary'">
+                          <div class="min-w-0 flex-1 pr-2">
+                            <div class="truncate font-semibold">{{ p.name }}</div>
+                            <div class="text-[10px] text-text-secondary font-mono">{{ p.planCode }} • {{ p.status }} • {{ p.phases?.length || p.phaseCount }} phases</div>
+                          </div>
+                          @if (p.id === selectedPlan()!.id) {
+                            <span class="material-symbols-outlined text-xs text-tenant-600 font-bold">check</span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Assign Owner Button -->
+              <button 
+                type="button" 
+                (click)="openAssignOwnerModal()"
+                class="px-3 py-2 rounded-xl border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                <span class="material-symbols-outlined text-sm text-tenant-600">person_add</span>
+                <span class="hidden sm:inline">Assign Owner</span>
+              </button>
+
+              <!-- Edit Plan Button -->
+              <button 
+                type="button" 
+                (click)="openEditModal()"
+                class="px-3 py-2 rounded-xl border border-base-300 bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                <span class="material-symbols-outlined text-sm text-text-secondary">edit</span>
+                <span class="hidden sm:inline">Edit</span>
+              </button>
+
+              <!-- Manage Details Button -->
+              <button 
+                type="button" 
+                (click)="viewPlanDetails(selectedPlan()!.id)"
+                class="px-3.5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer shrink-0">
+                <span class="material-symbols-outlined text-sm">settings</span>
+                <span>Plan Details</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Bottom Row: Owner, Dates & Description -->
+          <div class="pt-3 border-t border-base-300 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-4 flex-wrap">
+              <!-- Owner info -->
+              <div class="flex items-center gap-2">
+                <span class="text-text-secondary text-[11px]">Plan Owner:</span>
+                @if (selectedPlan()!.owner?.name) {
+                  <div class="flex items-center gap-1.5">
+                    <app-custom-avatar 
+                      [name]="selectedPlan()!.owner!.name" 
+                      size="xs" 
+                      shape="squircle">
+                    </app-custom-avatar>
+                    <span class="font-bold text-text-primary">{{ selectedPlan()!.owner!.name }}</span>
+                    <span class="text-[10px] text-text-secondary">({{ selectedPlan()!.owner!.email }})</span>
+                  </div>
+                } @else {
+                  <span class="text-rose-500 font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">warning</span>
+                    Unassigned
+                  </span>
+                }
+              </div>
+
+              <!-- Duration Dates -->
+              <div class="flex items-center gap-1.5 text-text-secondary text-[11px]">
+                <span class="material-symbols-outlined text-xs">date_range</span>
+                <span>{{ selectedPlan()!.startDate }} → {{ selectedPlan()!.endDate }}</span>
+              </div>
+            </div>
+
+            @if (selectedPlan()!.description) {
+              <p class="text-[11px] text-text-secondary line-clamp-1 max-w-lg">{{ selectedPlan()!.description }}</p>
+            }
+          </div>
+        </div>
+        
         <!-- At-Risk Academic Alert Banner -->
         @if (atRiskLearnersInSelectedPlan() > 0) {
           <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
@@ -626,114 +716,37 @@ export interface LearnerProgressRecord {
               </div>
               <div>
                 <span class="font-bold text-sm block">{{ atRiskLearnersInSelectedPlan() }} Learner(s) Require Academic Attention</span>
-                <span class="text-[11px] opacity-90">Learners with low milestone completion or lagging phase deliverables.</span>
+                <span class="text-[11px] opacity-90">Learners with low milestone completion or lagging phase deliverables in this curriculum.</span>
               </div>
             </div>
-            <button 
-              type="button" 
-              (click)="selectedLearnerStatusFilter.set('At-Risk')"
-              class="px-3.5 py-1.5 rounded-xl bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 font-semibold transition-colors shrink-0 cursor-pointer">
-              Filter At-Risk Learners
-            </button>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              @if (isAtRiskFiltered()) {
+                <button 
+                  type="button" 
+                  (click)="toggleAtRiskBannerFilter()"
+                  class="px-3.5 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 font-semibold transition-colors shrink-0 cursor-pointer">
+                  Show All Learners
+                </button>
+              } @else {
+                <button 
+                  type="button" 
+                  (click)="toggleAtRiskBannerFilter()"
+                  class="px-3.5 py-1.5 rounded-xl bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 font-semibold transition-colors shrink-0 cursor-pointer flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs">filter_alt</span>
+                  <span>Filter At-Risk Learners</span>
+                </button>
+              }
+            </div>
           </div>
         }
 
-        <!-- Plan Deep-Dive Header Card & Quick Switcher -->
-        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-300">
-            <div>
-              <div class="flex items-center flex-wrap gap-2.5">
-                <span 
-                  class="px-2.5 py-0.5 rounded-md text-xs font-bold border uppercase tracking-wider"
-                  [ngClass]="getStatusBadgeClass(selectedPlan()!.status)">
-                  {{ selectedPlan()!.status }}
-                </span>
-                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
-                  {{ selectedPlan()!.durationType }} Track
-                </span>
-                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
-                  {{ selectedPlan()!.enrollmentType }} Enrollment
-                </span>
-                <span class="text-xs text-text-secondary">
-                  Active Schedule: <strong>{{ selectedPlan()!.startDate }}</strong> → <strong>{{ selectedPlan()!.endDate }}</strong>
-                </span>
-              </div>
 
-              <h2 class="text-xl font-bold text-text-primary mt-2 flex items-center gap-2.5">
-                {{ selectedPlan()!.name }}
-              </h2>
-              <p class="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
-                {{ selectedPlan()!.description }}
-              </p>
-            </div>
-
-            <!-- Quick Plan Switcher Dropdown & Actions -->
-            <div class="flex items-center flex-wrap gap-2.5 shrink-0">
-              <div class="w-56">
-                <app-custom-select
-                  [label]="'Switch Plan'"
-                  [options]="planSwitcherOptions()"
-                  [ngModel]="selectedPlan()!.id"
-                  (ngModelChange)="selectPlan($event)"
-                  size="sm">
-                </app-custom-select>
-              </div>
-
-              <button 
-                type="button" 
-                (click)="openAssignOwnerModal()"
-                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-200 hover:bg-base-300 border border-base-300 text-text-primary transition-colors flex items-center gap-1.5 cursor-pointer">
-                <span class="material-symbols-outlined text-sm">person_add</span>
-                <span>Assign Owner</span>
-              </button>
-
-              <button 
-                type="button" 
-                (click)="viewPlanDetails(selectedPlan()!.id)"
-                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-tenant-500 hover:bg-tenant-600 text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
-                <span class="material-symbols-outlined text-sm">settings</span>
-                <span>Manage Plan</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Plan Owner & Capability Context Bar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-3">
-              @if (selectedPlan()!.owner?.name) {
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/60 border border-base-300">
-                  <app-custom-avatar 
-                    [name]="selectedPlan()!.owner.name" 
-                    size="xs" 
-                    shape="squircle">
-                  </app-custom-avatar>
-                  <div>
-                    <span class="text-text-secondary text-[10px]">Plan Owner:</span>
-                    <strong class="text-text-primary ml-1">{{ selectedPlan()!.owner.name }}</strong>
-                    <span class="text-text-secondary text-[10px] ml-1">({{ selectedPlan()!.owner.email }})</span>
-                  </div>
-                </div>
-              } @else {
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 text-xs font-semibold">
-                  <span class="material-symbols-outlined text-sm">warning</span>
-                  No Plan Owner Assigned
-                </div>
-              }
-            </div>
-
-            <div class="flex items-center gap-2 text-text-secondary text-[11px]">
-              <span>Created on {{ selectedPlan()!.createdDate }}</span>
-              <span>•</span>
-              <span>Last updated {{ selectedPlan()!.updatedDate }}</span>
-            </div>
-          </div>
-        </div>
 
         <!-- 6 Plan-Specific Telemetry Metrics -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
           
           <!-- Enrolled Learners -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-tenant-500/40 transition-colors">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Enrolled</span>
               <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
@@ -747,7 +760,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Average Plan Progress -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-indigo-500/40 transition-colors">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Plan Progress</span>
               <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -755,13 +768,16 @@ export interface LearnerProgressRecord {
               </div>
             </div>
             <div class="text-2xl font-bold text-text-primary">{{ selectedPlanAvgProgress() }}%</div>
+            <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" [style.width.%]="selectedPlanAvgProgress()"></div>
+            </div>
             <div class="text-[10px] text-text-secondary">
               Average across all phases
             </div>
           </div>
 
           <!-- Phase Milestone Progress -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-emerald-500/40 transition-colors">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Phases Health</span>
               <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -775,7 +791,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Assessment Pass Rate -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-amber-500/40 transition-colors">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Pass Rate</span>
               <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -789,9 +805,9 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- At-Risk Learners -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-rose-500/40 transition-colors">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">At-Risk Learners</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">At-Risk</span>
               <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
                 <span class="material-symbols-outlined text-sm">priority_high</span>
               </div>
@@ -803,7 +819,7 @@ export interface LearnerProgressRecord {
           </div>
 
           <!-- Certifications Issued -->
-          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2 hover:border-purple-500/40 transition-colors">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Certifications</span>
               <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -821,16 +837,16 @@ export interface LearnerProgressRecord {
         <!-- ================================================================= -->
         <!-- INTERACTIVE SEQUENTIAL PHASE ROADMAP & MILESTONES PIPELINE        -->
         <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+        <div class="p-6 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
             <div>
               <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined text-base text-tenant-600">conversion_path</span>
-                Phase Progression Roadmap & Sequential Milestones
+                <span>Phase Progression Roadmap & Sequential Milestones</span>
               </h3>
-              <p class="text-[11px] text-text-secondary">Non-overlapping phase sequence. Click any phase to inspect milestones and deliverables.</p>
+              <p class="text-[11px] text-text-secondary">Non-overlapping phase sequence. Click any phase card to inspect detailed milestones, courses, and deliverables.</p>
             </div>
-            <span class="text-xs font-mono font-bold text-tenant-600 dark:text-tenant-400">
+            <span class="text-xs font-mono font-bold text-tenant-600 dark:text-tenant-400 px-3 py-1 rounded-full bg-tenant-50 dark:bg-tenant-900/30 border border-tenant-500/20 self-start sm:self-auto">
               {{ (selectedPlan()!.phases?.length || selectedPlan()!.phaseCount) }} Sequential Phases
             </span>
           </div>
@@ -840,16 +856,16 @@ export interface LearnerProgressRecord {
             @for (phase of selectedPlan()!.phases; track phase.id; let idx = $index) {
               <div 
                 (click)="openPhaseModal(phase)"
-                class="p-4 rounded-xl border border-base-300 bg-base-200/40 hover:border-tenant-500 hover:bg-base-200 transition-all cursor-pointer space-y-3 relative group">
+                class="p-4 rounded-2xl border border-base-300 bg-base-200/40 hover:border-tenant-500 hover:bg-base-200/80 transition-all cursor-pointer space-y-3 relative group shadow-2xs">
                 
                 <!-- Phase Header Strip -->
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-md bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 font-bold text-xs flex items-center justify-center">
+                    <span class="w-6 h-6 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 font-bold text-xs flex items-center justify-center">
                       #{{ phase.sequence }}
                     </span>
                     <span 
-                      class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
+                      class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border"
                       [ngClass]="getPhaseStatusBadgeClass(phase.status)">
                       {{ phase.status }}
                     </span>
@@ -860,7 +876,7 @@ export interface LearnerProgressRecord {
                   </span>
                 </div>
 
-                <!-- Phase Title & Description -->
+                <!-- Phase Title & Dates -->
                 <div>
                   <h4 class="font-bold text-text-primary text-xs line-clamp-2">{{ phase.name }}</h4>
                   <p class="text-[11px] text-text-secondary mt-1 flex items-center gap-1">
@@ -870,7 +886,7 @@ export interface LearnerProgressRecord {
                 </div>
 
                 <!-- Milestone Deliverables Counters -->
-                <div class="grid grid-cols-3 gap-1.5 p-2 rounded-lg bg-base-100 text-center text-[10px]">
+                <div class="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-base-100 border border-base-300/60 text-center text-[10px]">
                   <div>
                     <div class="font-bold text-text-primary text-xs">{{ phase.courseCount }}</div>
                     <div class="text-text-secondary">Courses</div>
@@ -907,126 +923,250 @@ export interface LearnerProgressRecord {
         <!-- ================================================================= -->
         <!-- PLAN LEARNER PERFORMANCE ROSTER MATRIX                            -->
         <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
+        <div class="space-y-4">
+          <!-- Section Header Info -->
+          <div class="p-4 sm:p-5 rounded-3xl border border-base-300 bg-base-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
-                <span class="material-symbols-outlined text-base text-tenant-600">people</span>
-                Learner Roster & Milestone Progress for {{ selectedPlan()!.name }}
-              </h3>
-              <p class="text-[11px] text-text-secondary">Detailed progress status and task submissions by enrolled learner</p>
-            </div>
-
-            <!-- Learner Filter Controls -->
-            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-              <div class="relative w-48">
-                <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary text-xs pointer-events-none">
-                  search
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-sm sm:text-base font-bold text-text-primary flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base text-rose-600 dark:text-rose-400">group</span>
+                  <span>Learner Roster & Milestone Progress</span>
+                </h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary font-medium">
+                  Showing {{ filteredPlanLearners().length }} of {{ selectedPlanLearners().length }} learners
                 </span>
-                <input 
-                  type="text" 
-                  [ngModel]="learnerSearchQuery()"
-                  (ngModelChange)="learnerSearchQuery.set($event)"
-                  placeholder="Search learner..." 
-                  class="w-full pl-8 pr-2.5 py-1 rounded-lg text-xs bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500 transition-colors" />
               </div>
-
-              <div class="w-36">
-                <app-custom-select
-                  [options]="learnerPhaseFilterOptions()"
-                  [ngModel]="selectedLearnerPhaseFilter()"
-                  (ngModelChange)="selectedLearnerPhaseFilter.set($event)"
-                  size="sm"
-                  placeholder="Phase: All">
-                </app-custom-select>
-              </div>
-
-              <div class="w-32">
-                <app-custom-select
-                  [options]="learnerStatusFilterOptions"
-                  [ngModel]="selectedLearnerStatusFilter()"
-                  (ngModelChange)="selectedLearnerStatusFilter.set($event)"
-                  size="sm"
-                  placeholder="Status: All">
-                </app-custom-select>
-              </div>
+              <p class="text-[11px] text-text-secondary mt-0.5">Detailed progress status and task submissions for {{ selectedPlan()!.name }}</p>
             </div>
           </div>
 
-          <!-- Learner Roster Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
-                  <th class="py-3 px-3">Learner Profile</th>
-                  <th class="py-3 px-3">Current Enrolled Phase</th>
-                  <th class="py-3 px-3">Courses Completed</th>
-                  <th class="py-3 px-3">Tasks Finished</th>
-                  <th class="py-3 px-3">Progress & Score</th>
-                  <th class="py-3 px-3">Status</th>
-                  <th class="py-3 px-3 text-right">Last Active</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-base-300">
-                @for (learner of filteredPlanLearners(); track learner.id) {
-                  <tr class="hover:bg-base-200/50 transition-colors">
-                    
-                    <!-- Profile -->
-                    <td class="py-3 px-3">
-                      <div class="flex items-center gap-2.5">
+          <!-- Data Grid with Search, Filters Button, View Switcher & Pagination -->
+          <app-data-grid
+            [searchQuery]="learnerSearchQuery()"
+            (searchChange)="onLearnerSearchChange($event)"
+            searchPlaceholder="Search learner by name, email, department, or phase..."
+            [isFilterOpen]="isLearnerFilterOpen()"
+            (filterToggle)="isLearnerFilterOpen.set($event)"
+            [activeFilterCount]="activeLearnerFilterCount()"
+            [hasActiveFilters]="hasActiveLearnerFilters()"
+            [showReset]="hasActiveLearnerFilters()"
+            (resetGrid)="resetLearnerFilters()"
+            [viewMode]="learnerViewMode()"
+            (viewModeChange)="learnerViewMode.set($event)"
+            [showViewSwitcher]="true"
+            filterPanelTitle="FILTER LEARNERS"
+            [emptyStateType]="learnerEmptyStateType()"
+            emptyTitle="No learners found matching your criteria"
+            emptyMessage="Try adjusting your search terms or clearing active filters to view enrolled learners."
+            emptyIcon="person_search"
+            emptyActionText="Reset Filters"
+            (emptyAction)="resetLearnerFilters()"
+            (clearFilters)="clearLearnerFilterDraft()"
+            (cancelFilters)="closeLearnerFilterPanel()"
+            (applyFilters)="applyLearnerFilters()"
+            [currentPage]="learnerCurrentPage()"
+            (pageChange)="learnerCurrentPage.set($event)"
+            [pageSize]="learnerPageSize()"
+            (pageSizeChange)="setLearnerPageSize($event)"
+            [totalItems]="filteredPlanLearners().length"
+            [pageSizeOptions]="[6, 8, 12, 24]"
+            itemLabel="learners">
+
+            <!-- Filter Panel Content -->
+            <div filter-panel class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-1">
+              <!-- 1. Status Multi-select -->
+              <app-filter-section title="1. Learner Status">
+                <div class="space-y-2">
+                  @for (st of ['Active', 'Completed', 'At-Risk']; track st) {
+                    <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                      <input
+                        type="checkbox"
+                        [checked]="draftLearnerFilters().status.includes(st)"
+                        (change)="toggleLearnerStatusDraft(st)"
+                        class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs"
+                        [ngClass]="{
+                          'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300': st === 'Completed',
+                          'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300': st === 'Active',
+                          'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300': st === 'At-Risk'
+                        }">
+                        <span class="w-1.5 h-1.5 rounded-full"
+                          [ngClass]="{
+                            'bg-emerald-500': st === 'Completed',
+                            'bg-blue-500': st === 'Active',
+                            'bg-rose-500': st === 'At-Risk'
+                          }"></span>
+                        {{ st }}
+                      </span>
+                    </label>
+                  }
+                </div>
+              </app-filter-section>
+
+              <!-- 2. Enrolled Phase Multi-select -->
+              <app-filter-section title="2. Enrolled Phase Milestone">
+                <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                  @if (selectedPlan()?.phases && selectedPlan()!.phases!.length > 0) {
+                    @for (ph of selectedPlan()!.phases!; track ph.id) {
+                      <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                        <input
+                          type="checkbox"
+                          [checked]="draftLearnerFilters().phaseIds.includes(ph.id)"
+                          (change)="toggleLearnerPhaseDraft(ph.id)"
+                          class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                        <span class="truncate font-medium text-xs text-text-primary">Phase {{ ph.sequence }}: {{ ph.name }}</span>
+                      </label>
+                    }
+                  } @else {
+                    <p class="text-xs text-text-secondary">No phases configured in plan.</p>
+                  }
+                </div>
+              </app-filter-section>
+
+              <!-- 3. Assessment Score Performance Tier -->
+              <app-filter-section title="3. Assessment Performance Tier">
+                <div class="space-y-1.5">
+                  @for (opt of [
+                    { value: 'ALL', label: 'All Score Tiers' },
+                    { value: 'HIGH', label: 'Top Tier (85% - 100%)' },
+                    { value: 'MID', label: 'Proficient (70% - 84%)' },
+                    { value: 'LOW', label: 'Needs Support (< 70%)' }
+                  ]; track opt.value) {
+                    <button
+                      type="button"
+                      (click)="setLearnerScoreRangeDraft(opt.value)"
+                      class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer border"
+                      [class]="draftLearnerFilters().scoreRange === opt.value
+                        ? 'bg-tenant-500/10 border-tenant-500 text-tenant-700 dark:text-tenant-300 font-bold shadow-2xs'
+                        : 'bg-base-200/60 hover:bg-base-200 border-base-300 text-text-primary'">
+                      <span>{{ opt.label }}</span>
+                      @if (draftLearnerFilters().scoreRange === opt.value) {
+                        <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              </app-filter-section>
+            </div>
+
+            <!-- Active Filter Chips -->
+            <div filter-chips class="contents">
+              @for (badge of activeLearnerFilterBadges(); track badge.id) {
+                <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+                  <span>{{ badge.label }}: <strong>{{ badge.value }}</strong></span>
+                  <button 
+                    type="button" 
+                    (click)="badge.remove()" 
+                    class="hover:text-rose-500 focus:outline-none cursor-pointer">
+                    <span class="material-symbols-outlined text-[13px]">close</span>
+                  </button>
+                </span>
+              }
+            </div>
+
+            <!-- Main Render Area: TABLE or GRID VIEW -->
+            @if (learnerViewMode() === 'table') {
+              <div class="rounded-2xl border border-base-300 bg-base-100 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto min-h-[300px]">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px] bg-base-200/50">
+                        <th class="py-3 px-3">Learner Profile</th>
+                        <th class="py-3 px-3">Current Enrolled Phase</th>
+                        <th class="py-3 px-3">Courses Completed</th>
+                        <th class="py-3 px-3">Tasks Finished</th>
+                        <th class="py-3 px-3">Progress & Score</th>
+                        <th class="py-3 px-3">Status</th>
+                        <th class="py-3 px-3 text-right">Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-base-300">
+                      @for (learner of paginatedPlanLearners(); track learner.id) {
+                        <tr class="hover:bg-base-200/50 transition-colors">
+                          <td class="py-3 px-3">
+                            <div class="flex items-center gap-2.5">
+                              <app-custom-avatar 
+                                [name]="learner.name" 
+                                [imageUrl]="learner.avatar" 
+                                size="sm" 
+                                shape="squircle">
+                              </app-custom-avatar>
+                              <div>
+                                <div class="font-bold text-text-primary">{{ learner.name }}</div>
+                                <div class="text-[10px] text-text-secondary">{{ learner.email }} • {{ learner.department }}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="py-3 px-3 whitespace-nowrap">
+                            <span class="font-semibold text-text-primary text-[11px]">{{ learner.enrolledPhaseName }}</span>
+                          </td>
+                          <td class="py-3 px-3 whitespace-nowrap">
+                            <span class="font-bold text-text-primary">{{ learner.coursesCompleted }}/{{ learner.totalCourses }}</span>
+                            <span class="text-text-secondary text-[10px] ml-1">courses</span>
+                          </td>
+                          <td class="py-3 px-3 whitespace-nowrap">
+                            <span class="font-bold text-text-primary">{{ learner.tasksCompleted }}/{{ learner.totalTasks }}</span>
+                            <span class="text-text-secondary text-[10px] ml-1">tasks</span>
+                          </td>
+                          <td class="py-3 px-3 w-40">
+                            <div class="space-y-1">
+                              <div class="flex items-center justify-between text-[10px]">
+                                <span class="font-bold text-text-primary">{{ learner.progressPct }}%</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold font-mono">{{ learner.assessmentScore }}% Score</span>
+                              </div>
+                              <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
+                                <div 
+                                  class="h-full rounded-full transition-all"
+                                  [class.bg-emerald-500]="learner.status === 'Completed'"
+                                  [class.bg-tenant-600]="learner.status === 'Active'"
+                                  [class.bg-rose-500]="learner.status === 'At-Risk'"
+                                  [style.width.%]="learner.progressPct">
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="py-3 px-3 whitespace-nowrap">
+                            <span 
+                              class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
+                              [ngClass]="{
+                                'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300': learner.status === 'Completed',
+                                'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300': learner.status === 'Active',
+                                'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300': learner.status === 'At-Risk'
+                              }">
+                              {{ learner.status }}
+                            </span>
+                          </td>
+                          <td class="py-3 px-3 text-right whitespace-nowrap text-text-secondary text-[11px]">
+                            {{ learner.lastActive }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+
+            @if (learnerViewMode() === 'grid') {
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                @for (learner of paginatedPlanLearners(); track learner.id) {
+                  <div class="bg-base-100 rounded-2xl border border-base-300 p-4 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between space-y-3.5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex items-center gap-3 min-w-0">
                         <app-custom-avatar 
                           [name]="learner.name" 
                           [imageUrl]="learner.avatar" 
-                          size="sm" 
+                          size="md" 
                           shape="squircle">
                         </app-custom-avatar>
-                        <div>
-                          <div class="font-bold text-text-primary">{{ learner.name }}</div>
-                          <div class="text-[10px] text-text-secondary">{{ learner.email }} • {{ learner.department }}</div>
+                        <div class="min-w-0">
+                          <h4 class="font-bold text-xs text-text-primary truncate">{{ learner.name }}</h4>
+                          <p class="text-[10px] text-text-secondary truncate">{{ learner.email }}</p>
+                          <span class="text-[10px] text-text-secondary font-medium">{{ learner.department }}</span>
                         </div>
                       </div>
-                    </td>
-
-                    <!-- Enrolled Phase -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <span class="font-semibold text-text-primary text-[11px]">{{ learner.enrolledPhaseName }}</span>
-                    </td>
-
-                    <!-- Courses -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <span class="font-bold text-text-primary">{{ learner.coursesCompleted }}/{{ learner.totalCourses }}</span>
-                      <span class="text-text-secondary text-[10px] ml-1">courses</span>
-                    </td>
-
-                    <!-- Tasks -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <span class="font-bold text-text-primary">{{ learner.tasksCompleted }}/{{ learner.totalTasks }}</span>
-                      <span class="text-text-secondary text-[10px] ml-1">tasks</span>
-                    </td>
-
-                    <!-- Progress & Score -->
-                    <td class="py-3 px-3 w-40">
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between text-[10px]">
-                          <span class="font-bold text-text-primary">{{ learner.progressPct }}%</span>
-                          <span class="text-emerald-600 font-semibold font-mono">{{ learner.assessmentScore }}% Score</span>
-                        </div>
-                        <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            class="h-full rounded-full transition-all"
-                            [class.bg-emerald-500]="learner.status === 'Completed'"
-                            [class.bg-tenant-600]="learner.status === 'Active'"
-                            [class.bg-rose-500]="learner.status === 'At-Risk'"
-                            [style.width.%]="learner.progressPct">
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <!-- Status -->
-                    <td class="py-3 px-3 whitespace-nowrap">
                       <span 
-                        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
+                        class="px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase border shrink-0"
                         [ngClass]="{
                           'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300': learner.status === 'Completed',
                           'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300': learner.status === 'Active',
@@ -1034,18 +1174,54 @@ export interface LearnerProgressRecord {
                         }">
                         {{ learner.status }}
                       </span>
-                    </td>
+                    </div>
 
-                    <!-- Last Active -->
-                    <td class="py-3 px-3 text-right whitespace-nowrap text-text-secondary text-[11px]">
-                      {{ learner.lastActive }}
-                    </td>
+                    <div class="px-2.5 py-1.5 rounded-xl bg-base-200/70 border border-base-300 flex items-center justify-between text-[11px]">
+                      <span class="text-text-secondary text-[10px]">Enrolled Phase:</span>
+                      <span class="font-bold text-tenant-600 dark:text-tenant-400 text-xs truncate max-w-[170px]">{{ learner.enrolledPhaseName }}</span>
+                    </div>
 
-                  </tr>
+                    <div class="space-y-1.5 pt-1">
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="text-text-secondary text-[10px]">Curriculum Progress</span>
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-text-primary">{{ learner.progressPct }}%</span>
+                          <span class="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold font-mono">Score: {{ learner.assessmentScore }}%</span>
+                        </div>
+                      </div>
+                      <div class="w-full bg-base-300 h-2 rounded-full overflow-hidden">
+                        <div 
+                          class="h-full rounded-full transition-all"
+                          [class.bg-emerald-500]="learner.status === 'Completed'"
+                          [class.bg-tenant-600]="learner.status === 'Active'"
+                          [class.bg-rose-500]="learner.status === 'At-Risk'"
+                          [style.width.%]="learner.progressPct">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-base-300 text-center text-xs">
+                      <div class="p-1.5 rounded-lg bg-base-200/50">
+                        <div class="font-bold text-text-primary">{{ learner.coursesCompleted }}/{{ learner.totalCourses }}</div>
+                        <div class="text-[10px] text-text-secondary">Courses Done</div>
+                      </div>
+                      <div class="p-1.5 rounded-lg bg-base-200/50">
+                        <div class="font-bold text-text-primary">{{ learner.tasksCompleted }}/{{ learner.totalTasks }}</div>
+                        <div class="text-[10px] text-text-secondary">Tasks Finished</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[10px] text-text-secondary pt-1">
+                      <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[11px]">schedule</span>
+                        <span>Active: {{ learner.lastActive }}</span>
+                      </span>
+                    </div>
+                  </div>
                 }
-              </tbody>
-            </table>
-          </div>
+              </div>
+            }
+          </app-data-grid>
         </div>
 
       }
@@ -1107,10 +1283,38 @@ export class PlanDashboardComponent implements OnInit {
   selectedDurationFilter = signal<string>('ALL');
   selectedEnrollmentFilter = signal<string>('ALL');
 
-  // Learner Filters (Part B)
+  // Learner Filters & DataGrid (Part B)
   learnerSearchQuery = signal<string>('');
-  selectedLearnerPhaseFilter = signal<string>('ALL');
-  selectedLearnerStatusFilter = signal<string>('ALL');
+  isLearnerFilterOpen = signal<boolean>(false);
+  learnerViewMode = signal<GridViewMode>('table');
+  learnerCurrentPage = signal<number>(1);
+  learnerPageSize = signal<number>(8);
+
+  appliedLearnerFilters = signal<{
+    status: string[];
+    phaseIds: string[];
+    scoreRange: string;
+  }>({
+    status: [],
+    phaseIds: [],
+    scoreRange: 'ALL'
+  });
+
+  draftLearnerFilters = signal<{
+    status: string[];
+    phaseIds: string[];
+    scoreRange: string;
+  }>({
+    status: [],
+    phaseIds: [],
+    scoreRange: 'ALL'
+  });
+
+  // Plan Switcher Dropdown in Deep-Dive (Part B)
+  showPlanSwitcherDropdown = signal<boolean>(false);
+  planSwitcherSearch = signal<string>('');
+  planSwitcherStatusFilter = signal<string>('ALL');
+  planSwitcherDurationFilter = signal<string>('ALL');
 
   // Modals state
   modalPlanForAssign = signal<Plan | null>(null);
@@ -1140,7 +1344,7 @@ export class PlanDashboardComponent implements OnInit {
   ];
 
   learnerStatusFilterOptions: SelectOption[] = [
-    { value: 'ALL', label: 'All Learners', icon: 'group' },
+    { value: 'ALL', label: 'All Statuses', icon: 'filter_list' },
     { value: 'Active', label: 'Active', icon: 'play_circle' },
     { value: 'Completed', label: 'Completed', icon: 'check_circle' },
     { value: 'At-Risk', label: 'At-Risk', icon: 'warning' }
@@ -1181,6 +1385,123 @@ export class PlanDashboardComponent implements OnInit {
         icon: 'check_circle'
       }))
     ];
+  });
+
+  filteredSwitcherPlans = computed<Plan[]>(() => {
+    let list = this.plans();
+    const query = this.planSwitcherSearch().trim().toLowerCase();
+    const status = this.planSwitcherStatusFilter();
+    const duration = this.planSwitcherDurationFilter();
+
+    if (query) {
+      list = list.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.planCode.toLowerCase().includes(query) ||
+        (p.description && p.description.toLowerCase().includes(query)) ||
+        (p.owner?.name && p.owner.name.toLowerCase().includes(query)) ||
+        (p.owner?.email && p.owner.email.toLowerCase().includes(query))
+      );
+    }
+
+    if (status !== 'ALL') {
+      list = list.filter(p => p.status === status);
+    }
+
+    if (duration !== 'ALL') {
+      list = list.filter(p => p.durationType === duration);
+    }
+
+    return list;
+  });
+
+  hasActiveSwitcherFilters = computed<boolean>(() => {
+    return this.planSwitcherSearch() !== '' || 
+      this.planSwitcherStatusFilter() !== 'ALL' || 
+      this.planSwitcherDurationFilter() !== 'ALL';
+  });
+
+  activeLearnerFilterCount = computed<number>(() => {
+    const f = this.appliedLearnerFilters();
+    let count = f.status.length + f.phaseIds.length;
+    if (f.scoreRange !== 'ALL') count++;
+    return count;
+  });
+
+  hasActiveLearnerFilters = computed<boolean>(() => {
+    return this.learnerSearchQuery().trim() !== '' || this.activeLearnerFilterCount() > 0;
+  });
+
+  learnerEmptyStateType = computed<GridEmptyStateType>(() => {
+    if (this.selectedPlanLearners().length === 0) return 'true_empty';
+    if (this.filteredPlanLearners().length === 0) {
+      return this.learnerSearchQuery().trim() !== '' ? 'search_miss' : 'filter_miss';
+    }
+    return 'none';
+  });
+
+  activeLearnerFilterBadges = computed(() => {
+    const badges: { id: string; label: string; value: string; remove: () => void }[] = [];
+    const f = this.appliedLearnerFilters();
+
+    f.status.forEach(st => {
+      badges.push({
+        id: `status-${st}`,
+        label: 'Status',
+        value: st,
+        remove: () => {
+          this.appliedLearnerFilters.update(prev => ({
+            ...prev,
+            status: prev.status.filter(s => s !== st)
+          }));
+          this.draftLearnerFilters.update(prev => ({
+            ...prev,
+            status: prev.status.filter(s => s !== st)
+          }));
+          this.learnerCurrentPage.set(1);
+        }
+      });
+    });
+
+    f.phaseIds.forEach(phId => {
+      const ph = this.selectedPlan()?.phases?.find(p => p.id === phId);
+      const name = ph ? `Phase ${ph.sequence}` : phId;
+      badges.push({
+        id: `phase-${phId}`,
+        label: 'Phase',
+        value: name,
+        remove: () => {
+          this.appliedLearnerFilters.update(prev => ({
+            ...prev,
+            phaseIds: prev.phaseIds.filter(p => p !== phId)
+          }));
+          this.draftLearnerFilters.update(prev => ({
+            ...prev,
+            phaseIds: prev.phaseIds.filter(p => p !== phId)
+          }));
+          this.learnerCurrentPage.set(1);
+        }
+      });
+    });
+
+    if (f.scoreRange !== 'ALL') {
+      const scoreLabels: Record<string, string> = {
+        HIGH: 'Top Tier (≥85%)',
+        MID: 'Proficient (70-84%)',
+        LOW: 'Needs Support (<70%)'
+      };
+      badges.push({
+        id: 'score-range',
+        label: 'Score',
+        value: scoreLabels[f.scoreRange] || f.scoreRange,
+        remove: () => {
+          this.appliedLearnerFilters.update(prev => ({ ...prev, scoreRange: 'ALL' }));
+          this.draftLearnerFilters.update(prev => ({ ...prev, scoreRange: 'ALL' }));
+          this.learnerCurrentPage.set(1);
+        }
+      });
+    }
+
+    return badges;
   });
 
   filteredPlans = computed<Plan[]>(() => {
@@ -1340,26 +1661,42 @@ export class PlanDashboardComponent implements OnInit {
   filteredPlanLearners = computed<LearnerProgressRecord[]>(() => {
     let list = this.selectedPlanLearners();
     const query = this.learnerSearchQuery().trim().toLowerCase();
-    const phase = this.selectedLearnerPhaseFilter();
-    const status = this.selectedLearnerStatusFilter();
+    const f = this.appliedLearnerFilters();
 
     if (query) {
       list = list.filter(l => 
         l.name.toLowerCase().includes(query) || 
         l.email.toLowerCase().includes(query) ||
-        l.department.toLowerCase().includes(query)
+        l.department.toLowerCase().includes(query) ||
+        l.enrolledPhaseName.toLowerCase().includes(query)
       );
     }
 
-    if (phase !== 'ALL') {
-      list = list.filter(l => l.enrolledPhaseId === phase);
+    if (f.status.length > 0) {
+      list = list.filter(l => f.status.includes(l.status));
     }
 
-    if (status !== 'ALL') {
-      list = list.filter(l => l.status === status);
+    if (f.phaseIds.length > 0) {
+      list = list.filter(l => f.phaseIds.includes(l.enrolledPhaseId));
+    }
+
+    if (f.scoreRange === 'HIGH') {
+      list = list.filter(l => l.assessmentScore >= 85);
+    } else if (f.scoreRange === 'MID') {
+      list = list.filter(l => l.assessmentScore >= 70 && l.assessmentScore < 85);
+    } else if (f.scoreRange === 'LOW') {
+      list = list.filter(l => l.assessmentScore < 70);
     }
 
     return list;
+  });
+
+  paginatedPlanLearners = computed<LearnerProgressRecord[]>(() => {
+    const list = this.filteredPlanLearners();
+    const page = this.learnerCurrentPage();
+    const size = this.learnerPageSize();
+    const start = (page - 1) * size;
+    return list.slice(start, start + size);
   });
 
   activeLearnersInSelectedPlan = computed<number>(() => {
@@ -1431,6 +1768,130 @@ export class PlanDashboardComponent implements OnInit {
     this.selectedStatusFilter.set('ALL');
     this.selectedDurationFilter.set('ALL');
     this.selectedEnrollmentFilter.set('ALL');
+  }
+
+  togglePlanSwitcher(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showPlanSwitcherDropdown.update(v => !v);
+  }
+
+  closePlanSwitcher() {
+    this.showPlanSwitcherDropdown.set(false);
+  }
+
+  selectPlanFromSwitcher(planId: string) {
+    this.selectPlan(planId);
+    this.closePlanSwitcher();
+  }
+
+  resetSwitcherFilters() {
+    this.planSwitcherSearch.set('');
+    this.planSwitcherStatusFilter.set('ALL');
+    this.planSwitcherDurationFilter.set('ALL');
+  }
+
+  onLearnerSearchChange(val: string) {
+    this.learnerSearchQuery.set(val);
+    this.learnerCurrentPage.set(1);
+  }
+
+  setLearnerPageSize(size: number) {
+    this.learnerPageSize.set(size);
+    this.learnerCurrentPage.set(1);
+  }
+
+  openLearnerFilterPanel() {
+    this.draftLearnerFilters.set({ ...this.appliedLearnerFilters() });
+    this.isLearnerFilterOpen.set(true);
+  }
+
+  closeLearnerFilterPanel() {
+    this.isLearnerFilterOpen.set(false);
+  }
+
+  applyLearnerFilters() {
+    this.appliedLearnerFilters.set({ ...this.draftLearnerFilters() });
+    this.learnerCurrentPage.set(1);
+    this.isLearnerFilterOpen.set(false);
+  }
+
+  clearLearnerFilterDraft() {
+    this.draftLearnerFilters.set({
+      status: [],
+      phaseIds: [],
+      scoreRange: 'ALL'
+    });
+  }
+
+  resetLearnerFilters() {
+    this.learnerSearchQuery.set('');
+    this.appliedLearnerFilters.set({
+      status: [],
+      phaseIds: [],
+      scoreRange: 'ALL'
+    });
+    this.draftLearnerFilters.set({
+      status: [],
+      phaseIds: [],
+      scoreRange: 'ALL'
+    });
+    this.learnerCurrentPage.set(1);
+    this.isLearnerFilterOpen.set(false);
+  }
+
+  toggleLearnerStatusDraft(st: string) {
+    this.draftLearnerFilters.update(prev => {
+      const exists = prev.status.includes(st);
+      return {
+        ...prev,
+        status: exists ? prev.status.filter(s => s !== st) : [...prev.status, st]
+      };
+    });
+  }
+
+  toggleLearnerPhaseDraft(phId: string) {
+    this.draftLearnerFilters.update(prev => {
+      const exists = prev.phaseIds.includes(phId);
+      return {
+        ...prev,
+        phaseIds: exists ? prev.phaseIds.filter(p => p !== phId) : [...prev.phaseIds, phId]
+      };
+    });
+  }
+
+  isAtRiskFiltered = computed<boolean>(() => {
+    const f = this.appliedLearnerFilters();
+    return f.status.length === 1 && f.status[0] === 'At-Risk';
+  });
+
+  toggleAtRiskBannerFilter() {
+    if (this.isAtRiskFiltered()) {
+      this.appliedLearnerFilters.update(prev => ({ ...prev, status: [] }));
+      this.draftLearnerFilters.update(prev => ({ ...prev, status: [] }));
+    } else {
+      this.appliedLearnerFilters.update(prev => ({ ...prev, status: ['At-Risk'] }));
+      this.draftLearnerFilters.update(prev => ({ ...prev, status: ['At-Risk'] }));
+    }
+    this.learnerCurrentPage.set(1);
+  }
+
+  setLearnerScoreRangeDraft(range: string) {
+    this.draftLearnerFilters.update(prev => ({
+      ...prev,
+      scoreRange: range
+    }));
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showPlanSwitcherDropdown()) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.plan-switcher-container') && !target.closest('#btn-plan-switcher-trigger') && !target.closest('#btn-top-plan-switcher')) {
+        this.showPlanSwitcherDropdown.set(false);
+      }
+    }
   }
 
   selectPlan(planId: string) {

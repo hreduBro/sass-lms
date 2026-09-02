@@ -7390,6 +7390,8 @@ export class LmsDataService {
       description?: string;
       categoryTag?: string;
       postPermission: 'instructorsOnly' | 'instructorsAndTrainees';
+      pinned?: boolean;
+      locked?: boolean;
     },
     initialPostText: string,
     initialAttachments: ForumAttachment[] = []
@@ -7438,8 +7440,8 @@ export class LmsDataService {
       createdByAvatar: user.avatar,
       createdAt: formatted,
       postPermission: topicData.postPermission,
-      locked: false,
-      pinned: false,
+      locked: topicData.locked ?? false,
+      pinned: topicData.pinned ?? false,
       postCount: 1,
       lastActivityAt: formatted,
       posts: [initialPost]

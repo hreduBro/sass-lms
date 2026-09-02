@@ -9,6 +9,9 @@ import { GridViewMode, GridEmptyStateType, GridActiveChip } from './data-grid.ty
   imports: [CommonModule, FormsModule],
   templateUrl: './data-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full',
+  },
 })
 export class DataGridComponent {
   // --- Search ---

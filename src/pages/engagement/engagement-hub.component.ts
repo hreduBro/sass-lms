@@ -312,7 +312,7 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
       <!-- ========================================================================= -->
       <!-- 4. MAIN HUB TAB SWITCHER                                                  -->
       <!-- ========================================================================= -->
-      <div class="flex items-center gap-2 p-1.5 bg-base-200 rounded-2xl border border-base-300 overflow-x-auto shadow-2xs">
+      <div class="flex items-center gap-2 p-1.5 bg-base-200 rounded-2xl border border-base-300 overflow-x-auto shadow-2xs custom-scrollbar">
         <button 
           type="button"
           (click)="activeTab.set('ratings')"
@@ -321,7 +321,7 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
           [class.text-tenant-600]="activeTab() === 'ratings'"
           [class.dark:text-tenant-400]="activeTab() === 'ratings'"
           [class.text-text-secondary]="activeTab() !== 'ratings'"
-          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer">
+          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer shrink-0">
           <span class="material-symbols-outlined text-base text-amber-500">star</span>
           <span>Ratings & Dimension Scores</span>
           <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 font-bold">
@@ -337,7 +337,7 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
           [class.text-tenant-600]="activeTab() === 'feedback'"
           [class.dark:text-tenant-400]="activeTab() === 'feedback'"
           [class.text-text-secondary]="activeTab() !== 'feedback'"
-          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer">
+          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer shrink-0">
           <span class="material-symbols-outlined text-base text-indigo-500">rate_review</span>
           <span>Feedback Studio & Questionnaires</span>
           <span class="px-2 py-0.5 rounded-full text-[10px] bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 font-bold">
@@ -353,7 +353,7 @@ import { CustomSelectComponent } from '../../components/custom-select/custom-sel
           [class.text-tenant-600]="activeTab() === 'forum'"
           [class.dark:text-tenant-400]="activeTab() === 'forum'"
           [class.text-text-secondary]="activeTab() !== 'forum'"
-          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer">
+          class="px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all whitespace-nowrap cursor-pointer shrink-0">
           <span class="material-symbols-outlined text-base text-emerald-500">forum</span>
           <span>Cohort Discussion Forum</span>
           <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 font-bold">

@@ -127,7 +127,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
               <div class="flex items-center gap-3 justify-end shrink-0">
                 <button 
                   type="button" 
-                  (click)="showCreateTopicModal.set(true)"
+                  (click)="openCreateTopicModal()"
                   class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs border-0 shrink-0">
                   <span class="material-symbols-outlined text-base">add_comment</span>
                   <span>New Topic</span>
@@ -659,7 +659,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
                   <!-- Repo Picker Trigger -->
                   <button 
                     type="button" 
-                    (click)="showRepoPicker.set(true)"
+                    (click)="openRepoPickerFor('reply')"
                     class="px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1 cursor-pointer">
                     <span class="material-symbols-outlined text-sm text-indigo-500">folder_open</span>
                     <span>Attach from Content Repo</span>
@@ -692,24 +692,24 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
       <!-- MODAL: CREATE TOPIC                                                   -->
       <!-- ===================================================================== -->
       @if (showCreateTopicModal()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div class="w-full max-w-lg rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 shadow-2xl overflow-hidden">
+        <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-modal-backdrop">
+          <div class="w-full max-w-xl rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 shadow-2xl overflow-visible my-auto">
             
-            <div class="p-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between bg-base-200/50 dark:bg-base-300/30">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-tenant-600 text-white flex items-center justify-center">
-                  <span class="material-symbols-outlined text-lg">forum</span>
+            <div class="p-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between bg-base-200/50 dark:bg-base-300/30 rounded-t-2xl">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-tenant-600 text-white flex items-center justify-center shadow-xs">
+                  <span class="material-symbols-outlined text-xl">forum</span>
                 </div>
                 <div>
                   <h3 class="text-sm font-bold text-text-primary">Create Discussion Topic</h3>
-                  <p class="text-[11px] text-text-secondary">Start a new thread in this plan's forum</p>
+                  <p class="text-[11px] text-text-secondary">Start a new thread in this plan's learning cohort forum</p>
                 </div>
               </div>
               <button 
                 type="button" 
                 (click)="showCreateTopicModal.set(false)"
-                class="w-7 h-7 rounded-lg hover:bg-base-300 flex items-center justify-center text-text-secondary">
-                <span class="material-symbols-outlined text-base">close</span>
+                class="w-8 h-8 rounded-lg hover:bg-base-300 flex items-center justify-center text-text-secondary transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
@@ -717,18 +717,28 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
               
               <!-- Topic Title -->
               <div>
-                <label class="font-bold text-text-primary block mb-1">Topic Title</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="font-bold text-text-primary">Topic Title <span class="text-rose-500">*</span></label>
+                  <span class="text-[10px] text-text-secondary">Clear and descriptive headline</span>
+                </div>
                 <input 
                   type="text" 
                   formControlName="title"
                   placeholder="e.g. Phase 2 Field Tablet Synchronization Troubleshooting"
-                  class="w-full px-3 py-2 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary font-semibold focus:outline-none focus:border-tenant-600" />
+                  [class.border-rose-500]="(topicForm.get('title')?.invalid && (topicForm.get('title')?.touched || topicFormSubmitted()))"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary font-semibold focus:outline-none focus:border-tenant-600 focus:ring-1 focus:ring-tenant-600/30 transition-all text-xs" />
+                @if (topicForm.get('title')?.invalid && (topicForm.get('title')?.touched || topicFormSubmitted())) {
+                  <p class="text-[10px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">error</span>
+                    Topic title is required (minimum 3 characters).
+                  </p>
+                }
               </div>
 
               <!-- Category & Posting Permissions -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label class="font-bold text-text-primary block mb-1">Category Tag</label>
+                  <label class="font-bold text-text-primary block mb-1">Category Tag <span class="text-rose-500">*</span></label>
                   <app-custom-select
                     [options]="categoryFormOptions"
                     [clearable]="false"
@@ -738,7 +748,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
                 </div>
 
                 <div>
-                  <label class="font-bold text-text-primary block mb-1">Posting Permissions</label>
+                  <label class="font-bold text-text-primary block mb-1">Posting Permissions <span class="text-rose-500">*</span></label>
                   <app-custom-select
                     [options]="permissionOptions"
                     [clearable]="false"
@@ -750,27 +760,99 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
 
               <!-- Initial Post Text -->
               <div>
-                <label class="font-bold text-text-primary block mb-1">Initial Opening Post</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="font-bold text-text-primary">Initial Opening Post <span class="text-rose-500">*</span></label>
+                  <span class="text-[10px] text-text-secondary">Context, instructions or inquiry</span>
+                </div>
                 <textarea 
                   formControlName="initialPost"
                   rows="4"
-                  placeholder="Provide context, instructions, or initial questions..."
-                  class="w-full px-3 py-2 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:border-tenant-600">
+                  placeholder="Provide context, operational guidelines, instructions, or initial questions to spark cohort engagement..."
+                  [class.border-rose-500]="(topicForm.get('initialPost')?.invalid && (topicForm.get('initialPost')?.touched || topicFormSubmitted()))"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:border-tenant-600 focus:ring-1 focus:ring-tenant-600/30 transition-all text-xs">
                 </textarea>
+                @if (topicForm.get('initialPost')?.invalid && (topicForm.get('initialPost')?.touched || topicFormSubmitted())) {
+                  <p class="text-[10px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">error</span>
+                    Initial opening message is required (minimum 5 characters).
+                  </p>
+                }
               </div>
 
+              <!-- Attachments Section for Topic -->
+              <div class="p-3.5 rounded-xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-tenant-600">attachment</span>
+                    Attach Multimedia & Learning Assets
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <button 
+                      type="button" 
+                      (click)="openRepoPickerFor('modal')"
+                      class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 font-semibold text-[11px] flex items-center gap-1 hover:bg-indigo-100 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs">folder_special</span>
+                      <span>From Repo</span>
+                    </button>
+                    <label class="px-2.5 py-1 rounded-lg bg-base-100 hover:bg-base-200 border border-base-300 text-text-secondary font-semibold text-[11px] flex items-center gap-1 cursor-pointer">
+                      <span class="material-symbols-outlined text-xs">upload_file</span>
+                      <span>Direct Upload</span>
+                      <input type="file" (change)="handleTopicDirectUpload($event)" class="hidden" />
+                    </label>
+                  </div>
+                </div>
+
+                @if (stagedTopicAttachments().length > 0) {
+                  <div class="flex flex-wrap gap-2 pt-1">
+                    @for (att of stagedTopicAttachments(); track att.attachmentId; let idx = $index) {
+                      <div class="px-2.5 py-1 rounded-lg bg-base-100 dark:bg-base-300 border border-base-300 dark:border-slate-700 flex items-center gap-2 text-[11px] shadow-2xs">
+                        <span class="material-symbols-outlined text-xs text-tenant-600">
+                          {{ att.type === 'video' ? 'movie' : (att.type === 'audio' ? 'audiotrack' : 'description') }}
+                        </span>
+                        <span class="font-medium text-text-primary max-w-[180px] truncate">{{ att.name }}</span>
+                        <button type="button" (click)="removeStagedTopicAttachment(idx)" class="text-text-secondary hover:text-rose-500 flex items-center cursor-pointer">
+                          <span class="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Admin & Moderator Options -->
+              @if (canModerate()) {
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-4">
+                  <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Moderator Options:</span>
+                  <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" formControlName="pinned" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                    <span class="text-xs font-semibold text-text-primary flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs text-amber-500">push_pin</span>
+                      Pin as Announcement
+                    </span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" formControlName="locked" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                    <span class="text-xs font-semibold text-text-primary flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs text-slate-500">lock</span>
+                      Lock Topic (Read-Only)
+                    </span>
+                  </label>
+                </div>
+              }
+
               <!-- Actions -->
-              <div class="pt-3 border-t border-base-300 dark:border-slate-800 flex items-center justify-end gap-2">
+              <div class="pt-4 border-t border-base-300 dark:border-slate-800 flex items-center justify-end gap-2.5">
                 <button 
                   type="button" 
                   (click)="showCreateTopicModal.set(false)"
-                  class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary font-semibold">
+                  class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary font-semibold transition-colors cursor-pointer">
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  class="px-5 py-2 rounded-xl btn-gradient text-white font-bold shadow-sm cursor-pointer">
-                  Publish Topic
+                  class="px-5 py-2 rounded-xl btn-gradient text-white font-bold shadow-xs hover:shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">publish</span>
+                  <span>Publish Topic</span>
                 </button>
               </div>
 
@@ -784,7 +866,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
       <!-- MODAL: CONTENT REPOSITORY ATTACHMENT BROWSER                          -->
       <!-- ===================================================================== -->
       @if (showRepoPicker()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
           <div class="w-full max-w-xl rounded-2xl bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
             
             <div class="p-4 border-b border-base-300 dark:border-slate-800 flex items-center justify-between bg-base-200/50">
@@ -867,16 +949,16 @@ export class ForumWorkspaceComponent implements OnInit {
   ];
 
   categoryFormOptions = [
-    { value: 'General Discussion', label: 'General Discussion' },
-    { value: 'Announcements', label: 'Announcements' },
-    { value: 'Field Q&A', label: 'Field Q&A' },
-    { value: 'Disaster Relief', label: 'Disaster Relief' },
-    { value: 'Technical Setup', label: 'Technical Setup' }
+    { value: 'General Discussion', label: '💡 General Discussion' },
+    { value: 'Announcements', label: '📢 Announcements' },
+    { value: 'Field Q&A', label: '💬 Field Q&A' },
+    { value: 'Disaster Relief', label: '🛡️ Disaster Relief' },
+    { value: 'Technical Setup', label: '⚙️ Technical Setup' }
   ];
 
   permissionOptions = [
-    { value: 'instructorsAndTrainees', label: 'Instructors & Trainees' },
-    { value: 'instructorsOnly', label: 'Instructors Only' }
+    { value: 'instructorsAndTrainees', label: '👥 Instructors & Trainees' },
+    { value: 'instructorsOnly', label: '🔒 Instructors Only (Announcements)' }
   ];
 
   searchQuery = signal<string>('');
@@ -889,10 +971,13 @@ export class ForumWorkspaceComponent implements OnInit {
   activeTopic = signal<ForumTopic | null>(null);
   showCreateTopicModal = signal<boolean>(false);
   showRepoPicker = signal<boolean>(false);
+  topicPickerTarget = signal<'modal' | 'reply'>('reply');
+  topicFormSubmitted = signal<boolean>(false);
 
   replyText = signal<string>('');
   replyingToPostId = signal<string | null>(null);
   stagedAttachments = signal<ForumAttachment[]>([]);
+  stagedTopicAttachments = signal<ForumAttachment[]>([]);
 
   categoryFilterOptions = [
     { 
@@ -1089,10 +1174,12 @@ export class ForumWorkspaceComponent implements OnInit {
   }
 
   topicForm = this.fb.group({
-    title: ['', [Validators.required]],
+    title: ['', [Validators.required, Validators.minLength(3)]],
     categoryTag: ['General Discussion', [Validators.required]],
     postPermission: ['instructorsAndTrainees' as TopicPostPermission, [Validators.required]],
-    initialPost: ['', [Validators.required]]
+    initialPost: ['', [Validators.required, Validators.minLength(5)]],
+    pinned: [false],
+    locked: [false]
   });
 
   ngOnInit() {
@@ -1137,13 +1224,58 @@ export class ForumWorkspaceComponent implements OnInit {
       title: '',
       categoryTag: 'General Discussion',
       postPermission: 'instructorsAndTrainees',
-      initialPost: ''
+      initialPost: '',
+      pinned: false,
+      locked: false
     });
+    this.stagedTopicAttachments.set([]);
+    this.topicFormSubmitted.set(false);
     this.showCreateTopicModal.set(true);
   }
 
+  openRepoPickerFor(target: 'modal' | 'reply') {
+    this.topicPickerTarget.set(target);
+    this.showRepoPicker.set(true);
+  }
+
+  handleTopicDirectUpload(event: any) {
+    const file: File = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      this.lmsData.showToast('Attachment exceeds the maximum allowed size of 50MB.', 'warning', 4000, 'Upload Exceeded');
+      return;
+    }
+
+    let type: AttachmentType = 'file';
+    if (file.type.startsWith('video/')) type = 'video';
+    else if (file.type.startsWith('audio/')) type = 'audio';
+
+    const att: ForumAttachment = {
+      attachmentId: `att-dir-${Date.now()}`,
+      source: 'directUpload',
+      type,
+      ref: URL.createObjectURL(file),
+      name: file.name,
+      sizeBytes: file.size,
+      mime: file.type
+    };
+
+    this.stagedTopicAttachments.update(list => [...list, att]);
+    this.lmsData.showToast(`File "${file.name}" attached to new topic draft.`, 'info', 2500, 'File Attached');
+  }
+
+  removeStagedTopicAttachment(idx: number) {
+    this.stagedTopicAttachments.update(list => list.filter((_, i) => i !== idx));
+  }
+
   saveNewTopic() {
-    if (this.topicForm.invalid) return;
+    this.topicFormSubmitted.set(true);
+    if (this.topicForm.invalid) {
+      this.topicForm.markAllAsTouched();
+      this.lmsData.showToast('Please provide a title and opening message for the topic.', 'warning', 3000, 'Form Incomplete');
+      return;
+    }
 
     const val = this.topicForm.value;
     const newTop = this.lmsData.createForumTopic(
@@ -1151,13 +1283,17 @@ export class ForumWorkspaceComponent implements OnInit {
       {
         title: val.title || 'Discussion Topic',
         categoryTag: val.categoryTag || 'General',
-        postPermission: val.postPermission as TopicPostPermission
+        postPermission: val.postPermission as TopicPostPermission,
+        pinned: val.pinned ?? false,
+        locked: val.locked ?? false
       },
       val.initialPost || '',
-      []
+      this.stagedTopicAttachments()
     );
 
     this.showCreateTopicModal.set(false);
+    this.stagedTopicAttachments.set([]);
+    this.topicFormSubmitted.set(false);
     this.selectTopic(newTop);
   }
 
@@ -1213,7 +1349,12 @@ export class ForumWorkspaceComponent implements OnInit {
       thumbnailUrl: asset.thumbnailUrl
     };
 
-    this.stagedAttachments.update(list => [...list, att]);
+    if (this.topicPickerTarget() === 'modal') {
+      this.stagedTopicAttachments.update(list => [...list, att]);
+      this.lmsData.showToast(`Asset "${asset.title}" added to topic attachments.`, 'info', 2500, 'Asset Attached');
+    } else {
+      this.stagedAttachments.update(list => [...list, att]);
+    }
     this.showRepoPicker.set(false);
   }
 

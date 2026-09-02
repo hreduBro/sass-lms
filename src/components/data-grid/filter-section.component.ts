@@ -16,6 +16,9 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block',
+  },
 })
 export class FilterSectionComponent {
   title = input<string>('');

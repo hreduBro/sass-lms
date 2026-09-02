@@ -28,7 +28,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
     TranscriptSheetComponent
   ],
   template: `
-    <div class="space-y-6 pb-12 animate-fade-in">
+    <div class="space-y-6 pb-12">
       
       <!-- Top Navigation & LMS Scope Breadcrumb -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -88,7 +88,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
         <div class="flex items-center gap-2 p-1.5 bg-base-200/80 dark:bg-base-300/50 rounded-2xl border border-base-300 dark:border-slate-800 overflow-x-auto">
           <button 
             type="button"
-            (click)="activeMainTab.set('curriculum')"
+            (click)="switchTab('curriculum')"
             [class.bg-base-100]="activeMainTab() === 'curriculum'"
             [class.shadow-xs]="activeMainTab() === 'curriculum'"
             [class.text-tenant-600]="activeMainTab() === 'curriculum'"
@@ -97,14 +97,14 @@ import { TranscriptRecord } from '../../../models/transcript.model';
             class="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer">
             <span class="material-symbols-outlined text-sm">auto_stories</span>
             <span>Curriculum & Phase Structure</span>
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-base-200 dark:bg-base-300 text-text-secondary">
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-base-200 dark:bg-base-300 text-text-secondary font-bold">
               {{ phasesList().length }}
             </span>
           </button>
 
           <button 
             type="button"
-            (click)="activeMainTab.set('ratings')"
+            (click)="switchTab('ratings')"
             [class.bg-base-100]="activeMainTab() === 'ratings'"
             [class.shadow-xs]="activeMainTab() === 'ratings'"
             [class.text-tenant-600]="activeMainTab() === 'ratings'"
@@ -120,7 +120,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
 
           <button 
             type="button"
-            (click)="activeMainTab.set('feedback')"
+            (click)="switchTab('feedback')"
             [class.bg-base-100]="activeMainTab() === 'feedback'"
             [class.shadow-xs]="activeMainTab() === 'feedback'"
             [class.text-tenant-600]="activeMainTab() === 'feedback'"
@@ -136,7 +136,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
 
           <button 
             type="button"
-            (click)="activeMainTab.set('forum')"
+            (click)="switchTab('forum')"
             [class.bg-base-100]="activeMainTab() === 'forum'"
             [class.shadow-xs]="activeMainTab() === 'forum'"
             [class.text-tenant-600]="activeMainTab() === 'forum'"
@@ -152,7 +152,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
 
           <button 
             type="button"
-            (click)="activeMainTab.set('evaluations')"
+            (click)="switchTab('evaluations')"
             [class.bg-base-100]="activeMainTab() === 'evaluations'"
             [class.shadow-xs]="activeMainTab() === 'evaluations'"
             [class.text-tenant-600]="activeMainTab() === 'evaluations'"
@@ -171,7 +171,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
         <!-- TAB 1: CURRICULUM & PHASE STRUCTURE                              -->
         <!-- ================================================================= -->
         @if (activeMainTab() === 'curriculum') {
-          <div class="space-y-6 animate-fade-in">
+          <div class="space-y-6">
             <!-- PLAN SUMMARY CARD (All 11 Fields + Description + Action Toolbar)  -->
             <div id="plan-summary-card" class="rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 overflow-hidden shadow-sm">
           
@@ -524,19 +524,19 @@ import { TranscriptRecord } from '../../../models/transcript.model';
         </div>
       </div>
     } @else if (activeMainTab() === 'ratings') {
-      <div class="animate-fade-in">
+      <div>
         <app-ratings-view [planId]="currentPlan()!.id"></app-ratings-view>
       </div>
     } @else if (activeMainTab() === 'feedback') {
-      <div class="animate-fade-in">
+      <div>
         <app-feedback-studio [planId]="currentPlan()!.id"></app-feedback-studio>
       </div>
     } @else if (activeMainTab() === 'forum') {
-      <div class="animate-fade-in">
+      <div>
         <app-forum-workspace [planId]="currentPlan()!.id"></app-forum-workspace>
       </div>
     } @else if (activeMainTab() === 'evaluations') {
-      <div class="space-y-6 animate-fade-in">
+      <div class="space-y-6">
         <!-- Diagnostic Summary Header Card -->
         <div class="p-6 rounded-2xl border border-base-300 dark:border-slate-800 bg-base-100 dark:bg-base-200 shadow-sm space-y-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-base-300 dark:border-slate-800">
@@ -951,16 +951,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
         </div>
       </div>
     }
-  `,
-  styles: [`
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.15s ease-out;
-    }
-  `]
+  `
 })
 export class PlanDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -1066,6 +1057,18 @@ export class PlanDetailsComponent implements OnInit {
       if (id) {
         this.planId.set(id);
       }
+      const tab = qParams.get('tab');
+      if (tab && ['curriculum', 'ratings', 'feedback', 'forum', 'evaluations'].includes(tab)) {
+        this.activeMainTab.set(tab as any);
+      }
+    });
+  }
+
+  switchTab(tab: 'curriculum' | 'ratings' | 'feedback' | 'forum' | 'evaluations') {
+    this.activeMainTab.set(tab);
+    this.router.navigate([], {
+      queryParams: { tab },
+      queryParamsHandling: 'merge'
     });
   }
 
