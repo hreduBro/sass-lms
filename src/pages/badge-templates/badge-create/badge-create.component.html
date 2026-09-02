@@ -1,26 +1,28 @@
-<div class="min-h-screen bg-base-200 text-text-primary p-4 sm:p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16">
   <!-- Top Navigation & Header Bar -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-text-secondary mb-1">
-        <a routerLink="/certificates/badges" class="hover:text-tenant-600 transition-colors flex items-center gap-1">
-          <span class="material-symbols-outlined text-[15px]">military_tech</span> Badges
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <a routerLink="/certificates/badges" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1 hover:bg-tenant-100 transition-colors">
+          <span class="material-symbols-outlined text-[13px]">military_tech</span>
+          Badge Studio & Repository
         </a>
         <span>/</span>
-        <span class="text-text-primary font-bold">{{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}</span>
+        <span class="text-xs font-semibold text-text-primary">{{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}</span>
       </div>
+
       <div class="flex items-center gap-3">
         <a 
           routerLink="/certificates/badges" 
-          class="w-9 h-9 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300/60 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors shadow-xs"
+          class="w-9 h-9 rounded-xl bg-base-200 border border-base-300 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors shadow-xs"
           title="Back to Badges List">
           <span class="material-symbols-outlined text-lg">arrow_back</span>
         </a>
         <div>
-          <h1 class="text-xl sm:text-2xl font-extrabold text-text-primary tracking-tight">
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">
             {{ editingBadgeId() ? 'Edit Badge Template' : 'Create Badge Template' }}
           </h1>
-          <p class="text-xs text-text-secondary">
+          <p class="text-xs text-text-secondary mt-0.5">
             {{ currentStep() === 1 ? 'Design the badge emblem and configure metadata, earning criteria and sharing policy.' : (currentStep() === 2 ? 'Place dynamic text labels and placeholder tokens onto the WYSIWYG badge canvas.' : 'Review badge preview with realistic sample data before final publishing.') }}
           </p>
         </div>
@@ -28,17 +30,17 @@
     </div>
 
     <!-- Top Action Buttons -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap">
       <button 
         type="button" 
         (click)="cancelAndExit()" 
-        class="px-3.5 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
+        class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
         Cancel
       </button>
       <button 
         type="button" 
         (click)="saveDraftAndExit()" 
-        class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all cursor-pointer shadow-xs">
+        class="px-3.5 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all cursor-pointer shadow-xs">
         <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
       </button>
     </div>
@@ -58,7 +60,7 @@
   @if (currentStep() === 1) {
     <div class="space-y-6 animate-fadeIn">
       <!-- Section 1: Badge Identity & Information -->
-      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
             <span class="material-symbols-outlined text-lg">info</span>
@@ -124,7 +126,7 @@
       </div>
 
       <!-- Section 2: Emblem Artwork (Canvas Basis) -->
-      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
             <span class="material-symbols-outlined text-lg">palette</span>
@@ -171,7 +173,7 @@
 
         <!-- Base Shape Composer -->
         @if (emblemSource() === 'base-shape') {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 relative z-20">
             <!-- Base Shape Selector -->
             <div>
               <label class="block text-xs font-semibold text-text-primary mb-1.5">Emblem Shape</label>
@@ -255,7 +257,7 @@
         }
 
         <!-- Live Emblem Preview Box -->
-        <div class="pt-4 flex items-center gap-5 border-t border-base-300">
+        <div class="pt-4 flex items-center gap-5 border-t border-base-300 relative z-10">
           <div class="w-24 h-24 bg-base-200 rounded-2xl border border-base-300 p-2 flex items-center justify-center relative shadow-xs shrink-0 overflow-hidden">
             @if (emblemSource() === 'upload' && uploadedArtUrl()) {
               <img [src]="uploadedArtUrl()" alt="Badge Emblem" class="w-full h-full object-contain" />
@@ -288,7 +290,7 @@
                   <svg viewBox="0 0 100 100" class="w-full h-full">
                     <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
                   </svg>
-                } @else if (baseShape() === 'Square') {
+                } @else {
                   <svg viewBox="0 0 100 100" class="w-full h-full">
                     <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
                   </svg>
@@ -309,7 +311,7 @@
       </div>
 
       <!-- Section 3: Earning Metadata -->
-      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
             <span class="material-symbols-outlined text-lg">verified</span>
@@ -435,7 +437,7 @@
       </div>
 
       <!-- Section 4: Sharing Policy -->
-      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-xs space-y-5">
+      <div class="bg-base-100 rounded-3xl border border-base-300 p-6 sm:p-7 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
             <span class="material-symbols-outlined text-lg">share</span>
@@ -530,7 +532,7 @@
     <div class="space-y-6 animate-fadeIn">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Left Element Palette (3 Cols) -->
-        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-xs space-y-4">
+        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-sm space-y-4">
           <div class="flex items-center gap-2 pb-3 border-b border-base-300">
             <span class="material-symbols-outlined text-tenant-600 text-base">category</span>
             <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">
@@ -607,7 +609,7 @@
                   <svg viewBox="0 0 100 100" class="w-full h-full">
                     <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
                   </svg>
-                } @else if (baseShape() === 'Square') {
+                } @else {
                   <svg viewBox="0 0 100 100" class="w-full h-full">
                     <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
                   </svg>
@@ -642,7 +644,7 @@
         </div>
 
         <!-- Right Inspector Panel (3 Cols) -->
-        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-xs space-y-4">
+        <div class="lg:col-span-3 bg-base-100 p-5 rounded-3xl border border-base-300 shadow-sm space-y-4">
           <div class="flex items-center gap-2 pb-3 border-b border-base-300">
             <span class="material-symbols-outlined text-tenant-600 text-base">tune</span>
             <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">
@@ -788,7 +790,7 @@
   <!-- STEP 3: Preview & Publish -->
   @if (currentStep() === 3) {
     <div class="space-y-6 animate-fadeIn">
-      <div class="bg-base-100 p-6 sm:p-8 rounded-3xl border border-base-300 shadow-xs space-y-6">
+      <div class="bg-base-100 p-6 sm:p-8 rounded-3xl border border-base-300 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-base-300">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
@@ -845,7 +847,7 @@
                     <svg viewBox="0 0 100 100" class="w-full h-full">
                       <circle cx="50" cy="50" r="44" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="5" stroke-dasharray="10 4"/>
                     </svg>
-                  } @else if (baseShape() === 'Square') {
+                  } @else {
                     <svg viewBox="0 0 100 100" class="w-full h-full">
                       <rect x="8" y="8" width="84" height="84" rx="16" [attr.fill]="fillColor()" [attr.stroke]="accentColor()" stroke-width="4"/>
                     </svg>

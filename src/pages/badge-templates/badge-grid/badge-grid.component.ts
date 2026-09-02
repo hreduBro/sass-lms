@@ -35,9 +35,20 @@ export class BadgeGridComponent {
   dataService = inject(LmsDataService);
   router = inject(Router);
 
+  // View Mode: 'grid' | 'table'
+  viewMode = signal<'grid' | 'table'>('grid');
+
   // Search & Filter Panel State
   searchQuery = signal<string>('');
   isFilterPanelOpen = signal<boolean>(false);
+
+  // Sorting
+  sortField = signal<'name' | 'createdDate' | 'usageCount' | 'category'>('createdDate');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(9);
 
   appliedFilters = signal<BadgeFilterState>({
     statuses: [],
@@ -160,12 +171,12 @@ export class BadgeGridComponent {
     return count;
   });
 
-  // Filtered Badges computed
+  // Filtered and Sorted Badges computed
   filteredBadges = computed<BadgeTemplate[]>(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const f = this.appliedFilters();
 
-    return this.allBadges().filter(badge => {
+    const filtered = this.allBadges().filter(badge => {
       // Search
       if (query) {
         const matchName = badge.name.toLowerCase().includes(query);
@@ -199,7 +210,7 @@ export class BadgeGridComponent {
         return false;
       }
 
-      // Skills Filter (must match at least one of the selected skills if selected)
+      // Skills Filter
       if (f.skills.length > 0) {
         const badgeTags = badge.earning?.skillTags || [];
         const hasMatchingSkill = f.skills.some(sk => badgeTags.includes(sk));
@@ -210,7 +221,52 @@ export class BadgeGridComponent {
 
       return true;
     });
+
+    // Sorting
+    const field = this.sortField();
+    const order = this.sortOrder() === 'asc' ? 1 : -1;
+
+    return filtered.sort((a, b) => {
+      if (field === 'name') {
+        return a.name.localeCompare(b.name) * order;
+      }
+      if (field === 'category') {
+        return a.category.localeCompare(b.category) * order;
+      }
+      if (field === 'usageCount') {
+        return ((a.usageCount || 0) - (b.usageCount || 0)) * order;
+      }
+      // Default: createdDate / id
+      return (b.templateId.localeCompare(a.templateId)) * order;
+    });
   });
+
+  // Paginated Badges for display
+  displayedBadges = computed<BadgeTemplate[]>(() => {
+    const list = this.filteredBadges();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    return list.slice((page - 1) * size, page * size);
+  });
+
+  totalPages = computed<number>(() => {
+    return Math.ceil(this.filteredBadges().length / this.pageSize()) || 1;
+  });
+
+  toggleSort(field: 'name' | 'createdDate' | 'usageCount' | 'category') {
+    if (this.sortField() === field) {
+      this.sortOrder.update(o => o === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortField.set(field);
+      this.sortOrder.set('asc');
+    }
+  }
+
+  setPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
 
   // Active filter badge items for top bar pills
   activeFilterBadges = computed<{ id: string; label: string; value: string; remove: () => void }[]>(() => {
@@ -269,7 +325,6 @@ export class BadgeGridComponent {
   // Filter Drawer toggles and actions
   toggleFilterPanel() {
     if (!this.isFilterPanelOpen()) {
-      // Sync draft with currently applied filters
       this.draftFilters.set({
         statuses: [...this.appliedFilters().statuses],
         category: this.appliedFilters().category,
@@ -295,6 +350,7 @@ export class BadgeGridComponent {
       level: this.draftFilters().level,
       skills: [...this.draftFilters().skills]
     });
+    this.currentPage.set(1);
     this.isFilterPanelOpen.set(false);
   }
 
@@ -324,6 +380,7 @@ export class BadgeGridComponent {
       level: null,
       skills: []
     });
+    this.currentPage.set(1);
   }
 
   resetGrid() {
@@ -332,6 +389,7 @@ export class BadgeGridComponent {
 
   onSearchChange(val: string) {
     this.searchQuery.set(val);
+    this.currentPage.set(1);
   }
 
   // Draft Mutators
@@ -371,18 +429,22 @@ export class BadgeGridComponent {
       ...curr,
       statuses: curr.statuses.filter(s => s !== status)
     }));
+    this.currentPage.set(1);
   }
 
   removeCategoryFilter() {
     this.appliedFilters.update(curr => ({ ...curr, category: null }));
+    this.currentPage.set(1);
   }
 
   removeSharingFilter() {
     this.appliedFilters.update(curr => ({ ...curr, sharing: null }));
+    this.currentPage.set(1);
   }
 
   removeLevelFilter() {
     this.appliedFilters.update(curr => ({ ...curr, level: null }));
+    this.currentPage.set(1);
   }
 
   removeSkillFilter(skill: string) {
@@ -390,6 +452,7 @@ export class BadgeGridComponent {
       ...curr,
       skills: curr.skills.filter(s => s !== skill)
     }));
+    this.currentPage.set(1);
   }
 
   // Status Styling Helpers
@@ -425,11 +488,6 @@ export class BadgeGridComponent {
   }
 
   editBadge(badge: BadgeTemplate) {
-    if (badge.status === 'published') {
-      if (!confirm(`Are you sure you want to edit published badge "${badge.name}"? Changes will update the template version.`)) {
-        return;
-      }
-    }
     this.router.navigate(['/certificates/badges/create'], { queryParams: { edit: badge.templateId } });
   }
 

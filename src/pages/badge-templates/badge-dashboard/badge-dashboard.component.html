@@ -1,38 +1,34 @@
-<div class="min-h-screen bg-base-200 text-text-primary p-4 sm:p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16">
   <!-- Top Navigation & Dashboard Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-text-secondary mb-1">
-        <a routerLink="/certificates/badges" class="hover:text-tenant-600 transition-colors flex items-center gap-1">
-          <span class="material-symbols-outlined text-[15px]">military_tech</span> Badges
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <a routerLink="/certificates/badges" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1 hover:bg-tenant-100 transition-colors">
+          <span class="material-symbols-outlined text-[13px]">military_tech</span>
+          Badge Studio & Repository
         </a>
-        <span>/</span>
-        <span class="text-text-primary font-bold">Analytics & Operations Dashboard</span>
+        <span class="text-xs text-text-secondary">
+          Active LMS: <strong class="font-bold text-text-primary">{{ dataService.activeTenant().name }}</strong>
+        </span>
       </div>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center border border-tenant-500/20">
-          <span class="material-symbols-outlined text-2xl">analytics</span>
-        </div>
-        <div>
-          <h1 class="text-xl sm:text-2xl font-extrabold text-text-primary tracking-tight">
-            Badge Operations & Telemetry
-          </h1>
-          <p class="text-xs text-text-secondary">
-            Enterprise analytics, template utilization metrics, and customizable workspace dashboard.
-          </p>
-        </div>
-      </div>
+
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        Badge Operations & Telemetry
+      </h1>
+      <p class="text-xs text-text-secondary mt-0.5">
+        Enterprise analytics, template utilization metrics, and customizable workspace telemetry dashboard.
+      </p>
     </div>
 
     <!-- Header Actions -->
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-center gap-2.5 flex-wrap">
       @if (permissions().canManageDashboardStudio) {
         @if (!isStudioMode()) {
           <button 
             type="button" 
             (click)="enterStudioMode()" 
-            class="px-3.5 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm">tune</span>
+            class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-base text-tenant-500">tune</span>
             <span>Customize Studio</span>
           </button>
         } @else {
@@ -40,14 +36,14 @@
             <button 
               type="button" 
               (click)="discardStudioChanges()" 
-              class="px-3 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
+              class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
               Discard
             </button>
             <button 
               type="button" 
               (click)="publishStudioLive()" 
-              class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
-              <span class="material-symbols-outlined text-sm">check</span>
+              class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+              <span class="material-symbols-outlined text-base">check</span>
               <span>Publish Layout</span>
             </button>
           </div>
@@ -56,16 +52,16 @@
 
       <a 
         routerLink="/certificates/badges" 
-        class="px-3.5 py-2 rounded-xl bg-base-100 border border-base-300 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
-        <span class="material-symbols-outlined text-sm">grid_view</span>
+        class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs">
+        <span class="material-symbols-outlined text-base text-tenant-500">grid_view</span>
         <span>Badge Repository</span>
       </a>
 
       @if (permissions().canCreate) {
         <a 
           routerLink="/certificates/badges/create" 
-          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-sm">add_circle</span>
+          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
+          <span class="material-symbols-outlined text-base">add_circle</span>
           <span>Create Badge</span>
         </a>
       }
@@ -74,7 +70,7 @@
 
   <!-- Studio Customization Mode Drawer -->
   @if (isStudioMode()) {
-    <div class="bg-base-100 rounded-3xl border border-base-300 p-6 shadow-xl animate-fadeIn space-y-4">
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-6 shadow-md animate-fadeIn space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-tenant-600 text-lg">dashboard_customize</span>
@@ -138,7 +134,7 @@
           class="space-y-4"
           [ngClass]="widget.colSpanPct === 100 ? 'md:col-span-12' : (widget.colSpanPct === 75 ? 'md:col-span-9' : 'md:col-span-6')">
           
-          <div class="bg-base-100 rounded-3xl border border-base-300 p-6 shadow-xs h-full flex flex-col justify-between space-y-4">
+          <div class="bg-base-100 rounded-3xl border border-base-300 p-6 shadow-sm h-full flex flex-col justify-between space-y-4">
             <!-- Widget Header -->
             <div class="flex items-center justify-between pb-3 border-b border-base-300">
               <div class="flex items-center gap-2">
@@ -323,7 +319,7 @@
                     </div>
 
                     <button 
-                      type="button"
+                      type="button" 
                       (click)="resumeDraft(draft)"
                       class="px-2.5 py-1 bg-tenant-500 hover:bg-tenant-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer">
                       <span>Resume</span>

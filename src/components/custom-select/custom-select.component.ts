@@ -17,7 +17,8 @@ export interface SelectOption {
   imports: [CommonModule, FormsModule],
   host: {
     class: 'block w-full relative',
-    '[class.z-[100]]': 'isOpen()',
+    '[style.zIndex]': 'isOpen() ? 9999 : null',
+    '[class.z-50]': 'isOpen()',
     '[class.z-10]': '!isOpen()'
   },
   providers: [
@@ -28,7 +29,7 @@ export interface SelectOption {
     }
   ],
   template: `
-    <div class="relative w-full text-left custom-select-root" [class.z-[100]]="isOpen()" [class.opacity-60]="disabled()">
+    <div class="relative w-full text-left custom-select-root" [style.zIndex]="isOpen() ? 9999 : null" [class.z-50]="isOpen()" [class.opacity-60]="disabled()">
       @if (label()) {
         <label class="block text-xs font-semibold text-text-primary mb-1">
           {{ label() }}
@@ -145,7 +146,8 @@ export interface SelectOption {
       <!-- Dropdown Popover Menu -->
       @if (isOpen()) {
         <div 
-          class="absolute z-[999] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
+          class="absolute rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl"
+          style="z-index: 99999;"
           [ngClass]="[
             actualPlacement() === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
             dropdownAlign() === 'right' ? 'right-0' : 'left-0',
