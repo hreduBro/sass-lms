@@ -160,7 +160,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
               </div>
 
               <div class="grid grid-cols-2 gap-2.5">
-                @for (child of group.children; track child.route) {
+                @for (child of group.children; track (child.route + '-' + child.label)) {
                   @if (!child.roles || isAllowed(child.roles)) {
                     <a 
                       [routerLink]="child.route" 

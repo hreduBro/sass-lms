@@ -74,9 +74,12 @@ export class SidebarComponent {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles: string[]): boolean {
+  isAllowed(roles?: string[]): boolean {
+    if (!roles || roles.length === 0) return true;
     const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole);
+    return roles.includes(activeRole) ||
+      (activeRole === 'super_admin' && roles.includes('system_admin')) ||
+      (activeRole === 'system_admin' && roles.includes('super_admin'));
   }
 
   onNavItemClick() {

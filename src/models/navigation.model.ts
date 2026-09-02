@@ -319,8 +319,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
       },
       {
         label: 'Competency Clusters',
-        route: '/skills',
-        queryParams: { tab: 'clusters' },
+        route: '/skills/clusters',
         icon: 'bubble_chart',
         description: 'Group skills into broader competency areas',
         matchPatterns: ['/skills/clusters']
@@ -342,7 +341,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     badge: 'Studio',
     description: 'WYSIWYG designer, template grid, sharing & credentials',
-    matchPatterns: ['/certificates/**', '/certificates'],
+    matchPatterns: ['/certificates/templates/**', '/certificates/templates', '/certificates/vault', '/certificates/signatories/**'],
     children: [
       {
         label: 'Template Grid',
@@ -367,33 +366,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: '3-step WYSIWYG canvas & placeholder authoring',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/templates/create', '/certificates/templates/edit/**']
-      },
-      {
-        label: 'Badge Templates',
-        route: '/certificates/badges',
-        icon: 'military_tech',
-        badge: 'Repository',
-        description: 'Design and manage earner emblem badge templates',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/certificates/badges', '/badges']
-      },
-      {
-        label: 'Create Badge',
-        route: '/certificates/badges/create',
-        icon: 'add_task',
-        badge: 'Wizard',
-        description: '3-step emblem, earning criteria & placeholder authoring',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/certificates/badges/create', '/badges/create', '/certificates/badges/edit/**']
-      },
-      {
-        label: 'Badge Dashboard',
-        route: '/certificates/badges/dashboard',
-        icon: 'space_dashboard',
-        badge: 'Analytics',
-        description: 'Badge repository health, level/tier breakdown & usage telemetry',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/certificates/badges/dashboard', '/badges/dashboard']
       },
       {
         label: 'Certificates Vault',
@@ -432,6 +404,42 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    label: 'Badge Templates',
+    route: '/certificates/badges',
+    icon: 'military_tech',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Badges',
+    description: 'Design, manage, and track OpenBadges digital credentials',
+    matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
+    children: [
+      {
+        label: 'Badge Repository',
+        route: '/certificates/badges',
+        icon: 'grid_view',
+        description: 'Browse, filter & manage digital badge templates',
+        matchPatterns: ['/certificates/badges', '/badges', '/certificates/badges/view/**']
+      },
+      {
+        label: 'Badge Dashboard',
+        route: '/certificates/badges/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Analytics',
+        description: 'Badge telemetry, level/tier breakdown & utilization metrics',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/badges/dashboard', '/badges/dashboard', '/certificates/badges/analytics']
+      },
+      {
+        label: 'Create Badge',
+        route: '/certificates/badges/create',
+        icon: 'add_task',
+        badge: 'Wizard',
+        description: '3-step emblem design, criteria & placeholder authoring',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/certificates/badges/create', '/badges/create', '/certificates/badges/edit/**']
+      }
+    ]
+  },
+  {
     label: 'Live Classrooms',
     route: '/webinars',
     icon: 'videocam',
@@ -463,38 +471,47 @@ export const APP_NAV_ITEMS: NavItem[] = [
  * e.g. '/tenants/**', '/plans/edit/**', '/courses/*\/learn'
  */
 export function matchesUrlPattern(url: string, pattern: string | RegExp): boolean {
+  if (!url || !pattern) return false;
   if (pattern instanceof RegExp) {
     return pattern.test(url);
   }
 
+  const cleanUrl = url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  const cleanPattern = pattern.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+
   // Exact pattern without wildcards must match exactly
   if (!pattern.includes('*')) {
-    return url === pattern;
+    return cleanUrl === cleanPattern || url === pattern;
   }
 
   // If pattern has wildcards, convert glob to regex:
   // '**' matches any character including slashes (.*)
   // '*' matches path segments except slashes ([^/]+)
-  const escaped = pattern
+  const escaped = cleanPattern
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '§§§DOUBLE§§§')
     .replace(/\*/g, '[^/]+')
     .replace(/§§§DOUBLE§§§/g, '.*');
 
   const regexPattern = '^' + escaped + '$';
-  return new RegExp(regexPattern).test(url);
+  return new RegExp(regexPattern).test(cleanUrl) || new RegExp(regexPattern).test(url);
 }
 
 /**
  * Checks if a child navigation route is active for the current URL.
  */
 export function isNavChildActive(currentUrl: string, child: NavChildItem | string): boolean {
+  if (!currentUrl || !child) return false;
   if (typeof child === 'string') {
-    return currentUrl.split('?')[0] === child;
+    const rawUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    const target = child.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    return rawUrl === target;
   }
 
   const childRoute = child.route;
   const childQueryParams = child.queryParams;
+  const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  const cleanChildRoute = childRoute.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
   // Handle items with specific tab query parameters (e.g., Competency Clusters)
   if (childQueryParams && childQueryParams['tab']) {
@@ -512,12 +529,11 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   }
 
   const matchPatterns = child.matchPatterns;
-  const url = currentUrl.split('?')[0];
 
   // 1. Explicit Custom Match Patterns
   if (matchPatterns && matchPatterns.length > 0) {
     for (const pattern of matchPatterns) {
-      if (matchesUrlPattern(url, pattern) || matchesUrlPattern(currentUrl, pattern)) {
+      if (matchesUrlPattern(cleanUrl, pattern) || matchesUrlPattern(currentUrl, pattern)) {
         return true;
       }
     }
@@ -525,24 +541,25 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   }
 
   // 2. Exact match if no custom patterns provided
-  return url === childRoute;
+  return cleanUrl === cleanChildRoute;
 }
 
 /**
  * Checks if a parent navigation item or any of its child items is active for the current URL.
  */
 export function isNavigationItemActive(currentUrl: string, item: NavItem): boolean {
-  const url = currentUrl.split('?')[0];
+  if (!currentUrl || !item) return false;
+  const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
   // 1. If item has children, it is active ONLY IF at least one child is active
   if (item.children && item.children.length > 0) {
-    return item.children.some(child => isNavChildActive(url, child));
+    return item.children.some(child => isNavChildActive(currentUrl, child));
   }
 
   // 2. Explicit Custom Match Patterns on the Parent Item
   if (item.matchPatterns && item.matchPatterns.length > 0) {
     for (const pattern of item.matchPatterns) {
-      if (matchesUrlPattern(url, pattern)) {
+      if (matchesUrlPattern(cleanUrl, pattern) || matchesUrlPattern(currentUrl, pattern)) {
         return true;
       }
     }
@@ -551,10 +568,11 @@ export function isNavigationItemActive(currentUrl: string, item: NavItem): boole
 
   // 3. Single Item Route match
   if (item.route) {
-    if (item.route === '/dashboard') {
-      return url === '/dashboard' || url === '/';
+    const cleanItemRoute = item.route.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    if (cleanItemRoute === '/dashboard') {
+      return cleanUrl === '/dashboard' || cleanUrl === '/';
     }
-    return url === item.route;
+    return cleanUrl === cleanItemRoute;
   }
 
   return false;

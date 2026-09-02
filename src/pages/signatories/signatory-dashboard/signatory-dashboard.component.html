@@ -21,7 +21,7 @@
         Signatory Overview
       </h1>
       <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-normal">
-        Real-time telemetry, centralized propagation audit trail, and customizable dashboard widgets.
+        Real-time telemetry, centralized propagation audit trail, and institutional credential metrics.
       </p>
     </div>
 
@@ -33,15 +33,6 @@
         <span class="material-symbols-outlined text-base text-slate-500">table_rows</span>
         <span>Signatories Repository</span>
       </a>
-
-      <!-- Customize Studio Button (View Mode) -->
-      <button 
-        *ngIf="!isStudioMode()"
-        (click)="enterStudioMode()" 
-        class="px-4 py-2.5 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 hover:bg-tenant-100 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 font-bold text-xs transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
-        <span class="material-symbols-outlined text-base text-tenant-600">tune</span>
-        <span>Customize Studio</span>
-      </button>
 
       <a 
         routerLink="/certificates/signatories"
@@ -63,73 +54,12 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. STUDIO MODE ACTIVE BANNER                                              -->
-  <!-- ========================================================================= -->
-  <div *ngIf="isStudioMode()" class="bg-gradient-to-r from-tenant-50 to-purple-50 dark:from-tenant-950/40 dark:to-purple-950/30 border-2 border-tenant-500/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 animate-in fade-in duration-200">
-    <div class="flex items-center gap-3.5">
-      <div class="w-11 h-11 rounded-2xl bg-tenant-500 text-white flex items-center justify-center shadow-xs shrink-0">
-        <span class="material-symbols-outlined text-2xl">design_services</span>
-      </div>
-      <div>
-        <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-          Signatory Dashboard Studio — Active Draft Layout
-          <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-black">UNSAVED DRAFT</span>
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Toggle widget visibility and adjust responsive canvas column span widths.
-        </p>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-2">
-      <button 
-        type="button" 
-        (click)="resetDefaultLayout()" 
-        class="px-3.5 py-2 rounded-2xl bg-white dark:bg-base-200 hover:bg-slate-100 border border-slate-200 dark:border-base-300 font-bold text-xs text-slate-700 dark:text-slate-200 cursor-pointer shadow-2xs">
-        Reset Default
-      </button>
-      <button 
-        type="button" 
-        (click)="discardStudioChanges()" 
-        class="px-3.5 py-2 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer border border-rose-200">
-        Discard
-      </button>
-      <button 
-        type="button" 
-        (click)="publishLive()" 
-        class="px-5 py-2 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer">
-        <span class="material-symbols-outlined text-sm">publish</span>
-        Publish Live
-      </button>
-    </div>
-  </div>
-
-  <!-- Studio Mode Widget Visibility Toggles -->
-  <div *ngIf="isStudioMode()" class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs space-y-3">
-    <div class="flex items-center justify-between border-b border-slate-100 dark:border-base-300 pb-2.5">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Widget Canvas Controls</span>
-      <span class="text-[11px] text-slate-400">Click to show/hide widgets in your layout</span>
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
-      <div *ngFor="let w of draftWidgets()" class="p-3 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 flex items-center justify-between gap-2 shadow-2xs">
-        <span class="font-bold truncate text-slate-900 dark:text-white">{{ w.title }}</span>
-        <button 
-          (click)="toggleWidgetVisibility(w.id)" 
-          [ngClass]="w.visible ? 'bg-tenant-500 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-500'"
-          class="px-2.5 py-1 rounded-xl font-bold text-[10px] cursor-pointer transition-colors shrink-0">
-          {{ w.visible ? 'Visible' : 'Hidden' }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 4. DASHBOARD WIDGETS GRID CANVAS                                          -->
+  <!-- 3. DASHBOARD WIDGETS GRID CANVAS                                          -->
   <!-- ========================================================================= -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
     <!-- WIDGET 1: Status Breakdown -->
-    <div *ngIf="isWidgetVisible('status_breakdown')" [class]="getWidgetWidthClass('status_breakdown')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-5">
         
         <!-- Header -->
@@ -144,12 +74,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('status_breakdown', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('status_breakdown', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 dark:bg-base-200 text-slate-600 border border-slate-200 dark:border-base-300">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 dark:bg-base-200 text-slate-600 border border-slate-200 dark:border-base-300">
             Analytics
           </span>
         </div>
@@ -207,7 +132,7 @@
     </div>
 
     <!-- WIDGET 2: Most-Linked Signatories (Top Reuse Signal) -->
-    <div *ngIf="isWidgetVisible('most_linked')" [class]="getWidgetWidthClass('most_linked')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
         
         <!-- Header -->
@@ -222,12 +147,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('most_linked', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('most_linked', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-50 dark:bg-teal-950/60 text-teal-700 border border-teal-200">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-50 dark:bg-teal-950/60 text-teal-700 border border-teal-200">
             Top Reuse
           </span>
         </div>
@@ -270,7 +190,7 @@
     </div>
 
     <!-- WIDGET 3: Department Distribution -->
-    <div *ngIf="isWidgetVisible('department_distribution')" [class]="getWidgetWidthClass('department_distribution')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
         
         <!-- Header -->
@@ -285,12 +205,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('department_distribution', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('department_distribution', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-sky-50 dark:bg-sky-950/60 text-sky-700 border border-sky-200">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-sky-50 dark:bg-sky-950/60 text-sky-700 border border-sky-200">
             Organization
           </span>
         </div>
@@ -314,7 +229,7 @@
     </div>
 
     <!-- WIDGET 4: Centralized Propagation Logs -->
-    <div *ngIf="isWidgetVisible('propagation_logs')" [class]="getWidgetWidthClass('propagation_logs')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
         
         <!-- Header -->
@@ -329,12 +244,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('propagation_logs', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('propagation_logs', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
             Governance
           </span>
         </div>
@@ -362,7 +272,7 @@
     </div>
 
     <!-- WIDGET 5: Recent Activity Feed -->
-    <div *ngIf="isWidgetVisible('recent_activity')" [class]="getWidgetWidthClass('recent_activity')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
         
         <!-- Header -->
@@ -377,12 +287,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('recent_activity', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('recent_activity', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-50 dark:bg-purple-950/60 text-purple-700 border border-purple-200">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-50 dark:bg-purple-950/60 text-purple-700 border border-purple-200">
             Live Feed
           </span>
         </div>
@@ -410,7 +315,7 @@
     </div>
 
     <!-- WIDGET 6: Unlinked Signatories Attention List -->
-    <div *ngIf="isWidgetVisible('unlinked_attention')" [class]="getWidgetWidthClass('unlinked_attention')" class="flex flex-col">
+    <div class="lg:col-span-6 flex flex-col">
       <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-6 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between flex-1 space-y-4">
         
         <!-- Header -->
@@ -425,12 +330,7 @@
             </div>
           </div>
 
-          <!-- Studio Width Controls -->
-          <div *ngIf="isStudioMode()" class="flex items-center gap-1 bg-slate-100 dark:bg-base-200 p-1 rounded-xl">
-            <button (click)="setWidgetWidth('unlinked_attention', '50%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">50%</button>
-            <button (click)="setWidgetWidth('unlinked_attention', '100%')" class="px-2 py-0.5 text-[10px] font-bold rounded-lg hover:bg-white">100%</button>
-          </div>
-          <span *ngIf="!isStudioMode()" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200">
             {{ unlinkedSignatories().length }} Unlinked
           </span>
         </div>

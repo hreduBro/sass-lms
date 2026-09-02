@@ -395,7 +395,7 @@ export const routes: Routes = [
   },
   { 
     path: 'skills/clusters', 
-    loadComponent: () => import('./pages/skills/skill-grid/skill-grid.component').then(m => m.SkillGridComponent), 
+    loadComponent: () => import('./pages/skills/skill-clusters/skill-clusters.component').then(m => m.SkillClustersComponent), 
     title: 'Competency Clusters | Multi-Tenant LMS',
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }

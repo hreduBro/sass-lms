@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { 
   Skill, 
@@ -32,15 +32,10 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
 export class SkillGridComponent implements OnInit {
   lmsData = inject(LmsDataService);
   private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
-
-  // Active Tab: 'skills' | 'clusters' | 'mappings'
-  activeTab = signal<'skills' | 'clusters' | 'mappings'>('skills');
 
   // Actions Menu State (Positioned outside scroll boundaries)
   activeMenuSkill = signal<Skill | null>(null);
-  activeMenuMapping = signal<SkillMapping | null>(null);
   menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Search & Filter State for Skills
@@ -52,8 +47,9 @@ export class SkillGridComponent implements OnInit {
   selectedTargetType = signal<string>('all');   // 'all' | 'content' | 'course' | 'phase' | 'plan'
   isFilterPanelOpen = signal<boolean>(false);
 
-  // Cluster Search State
-  clusterSearchQuery = signal<string>('');
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(12);
 
   // Modals state
   isSkillModalOpen = signal<boolean>(false);
@@ -61,10 +57,6 @@ export class SkillGridComponent implements OnInit {
   skillForm!: FormGroup;
   formSubmitted = signal<boolean>(false);
   formError = signal<string | null>(null);
-
-  isClusterModalOpen = signal<boolean>(false);
-  editingCluster = signal<SkillCluster | null>(null);
-  clusterForm!: FormGroup;
 
   isMappingModalOpen = signal<boolean>(false);
   mappingSkill = signal<Skill | null>(null);
@@ -83,7 +75,7 @@ export class SkillGridComponent implements OnInit {
     message: string;
     confirmText: string;
     isDestructive: boolean;
-    actionType: 'deactivate' | 'reactivate' | 'deleteSkill' | 'deleteCluster' | 'unmap';
+    actionType: 'deactivate' | 'reactivate' | 'deleteSkill' | 'unmap';
     targetId: string;
     extraData?: any;
   }>({
@@ -176,30 +168,41 @@ export class SkillGridComponent implements OnInit {
     { value: 'draft', label: 'Draft', icon: 'draft', badge: 'Draft', badgeClass: 'bg-blue-50 text-blue-700' }
   ];
 
+  // Target item options
   mappingTargetItemOptions = computed<SelectOption[]>(() => {
     const type = this.mappingTargetType();
     if (type === 'course') {
-      return this.availableCourses().map(c => ({
-        value: c.id,
-        label: c.title,
+      const templates = (this.lmsData.courseTemplates ? this.lmsData.courseTemplates() : []) as any[];
+      return templates.map(c => ({
+        value: c.id || c.templateId || 'course-1',
+        label: `${c.name || c.title || 'Course'} (${c.code || c.id || 'CRS'})`,
         icon: 'school'
       }));
     } else if (type === 'plan') {
-      return this.availablePlans().map(p => ({
+      const plans = (this.lmsData.plans ? this.lmsData.plans() : []) as any[];
+      return plans.map(p => ({
         value: p.id,
-        label: p.name,
+        label: `${p.name || 'Training Plan'} (${p.id})`,
         icon: 'assignment'
       }));
     } else if (type === 'phase') {
-      return this.availablePhases().map(ph => ({
-        value: ph.id,
-        label: `${ph.title} (${ph.planName})`,
-        icon: 'step'
-      }));
+      const plans = (this.lmsData.plans ? this.lmsData.plans() : []) as any[];
+      const phases: SelectOption[] = [];
+      plans.forEach(p => {
+        (p.phases || []).forEach((ph: any) => {
+          phases.push({
+            value: ph.id,
+            label: `${ph.name || 'Phase'} (${p.name || 'Plan'})`,
+            icon: 'step'
+          });
+        });
+      });
+      return phases;
     } else if (type === 'content') {
-      return this.availableContentAssets().map(cnt => ({
-        value: cnt.id,
-        label: cnt.title,
+      const assets = (this.lmsData.contentRepoAssets ? this.lmsData.contentRepoAssets() : []) as any[];
+      return assets.map(cnt => ({
+        value: cnt.id || cnt.assetId || 'cnt-1',
+        label: `${cnt.title || cnt.name || 'Content Asset'} (${cnt.type || 'Resource'})`,
         icon: 'article'
       }));
     }
@@ -208,7 +211,6 @@ export class SkillGridComponent implements OnInit {
 
   toggleSkillActionMenu(skill: Skill, event: MouseEvent, buttonEl?: HTMLElement) {
     event.stopPropagation();
-    this.activeMenuMapping.set(null); // Close mapping menu if open
     if (this.activeMenuSkill()?.skillId === skill.skillId) {
       this.closeActionMenu();
       return;
@@ -223,7 +225,7 @@ export class SkillGridComponent implements OnInit {
     const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
 
     const top = placeAbove ? Math.max(8, rect.top - menuHeight - 4) : (rect.bottom + 4);
-    let left = rect.right - menuWidth; // Pin directly flush with the right edge of the button
+    let left = rect.right - menuWidth;
     if (left < 10) left = 10;
     if (left + menuWidth > window.innerWidth - 10) {
       left = window.innerWidth - menuWidth - 10;
@@ -233,44 +235,12 @@ export class SkillGridComponent implements OnInit {
     this.activeMenuSkill.set({ ...skill });
   }
 
-  toggleMappingActionMenu(mapping: SkillMapping, event: MouseEvent, buttonEl?: HTMLElement) {
-    event.stopPropagation();
-    this.activeMenuSkill.set(null); // Close skill menu if open
-    if (this.activeMenuMapping()?.skillId === mapping.skillId && this.activeMenuMapping()?.targetId === mapping.targetId) {
-      this.closeActionMenu();
-      return;
-    }
-
-    const button = buttonEl || (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
-    const rect = button.getBoundingClientRect();
-    const menuHeight = 120;
-    const menuWidth = 208; // w-52 is 208px
-
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
-
-    const top = placeAbove ? Math.max(8, rect.top - menuHeight - 4) : (rect.bottom + 4);
-    let left = rect.right - menuWidth; // Pin directly flush with the right edge of the button
-    if (left < 10) left = 10;
-    if (left + menuWidth > window.innerWidth - 10) {
-      left = window.innerWidth - menuWidth - 10;
-    }
-
-    this.menuPosition.set({ top, left });
-    this.activeMenuMapping.set({ ...mapping });
-  }
-
   closeActionMenu() {
     this.activeMenuSkill.set(null);
-    this.activeMenuMapping.set(null);
   }
 
   isSkillActionMenuOpen(skillId: string): boolean {
     return this.activeMenuSkill()?.skillId === skillId;
-  }
-
-  isMappingActionMenuOpen(skillId: string, targetId: string): boolean {
-    return this.activeMenuMapping()?.skillId === skillId && this.activeMenuMapping()?.targetId === targetId;
   }
 
   viewSkillDetails(skill?: Skill | null) {
@@ -284,15 +254,6 @@ export class SkillGridComponent implements OnInit {
 
   viewSkillDetailsFromMenu() {
     this.viewSkillDetails(this.activeMenuSkill());
-  }
-
-  getSkillInitials(name?: string): string {
-    if (!name) return 'SK';
-    const words = name.trim().split(/\s+/);
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
   }
 
   getSkillStatusBadgeClass(status?: string): string {
@@ -361,45 +322,23 @@ export class SkillGridComponent implements OnInit {
     this.closeActionMenu();
   }
 
-  unmapFromMenu(mapping?: SkillMapping | null) {
-    const m = mapping || this.activeMenuMapping();
-    if (m) {
-      this.unmapSkill(m.skillId, m.targetType, m.targetId);
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.skill-action-menu-dropdown') && !target.closest('.skill-action-menu-btn')) {
+      this.closeActionMenu();
     }
-    this.closeActionMenu();
   }
 
-  @HostListener('document:click')
   @HostListener('window:scroll')
   @HostListener('window:resize')
-  onDocumentInteraction() {
-    if (this.activeMenuSkill() || this.activeMenuMapping()) {
+  onWindowChange() {
+    if (this.activeMenuSkill()) {
       this.closeActionMenu();
     }
   }
 
   ngOnInit() {
-    const updateTabFromRoute = (params: any) => {
-      const url = this.router.url;
-      if (params['tab'] === 'clusters' || url.includes('/skills/clusters')) {
-        this.activeTab.set('clusters');
-      } else if (params['tab'] === 'mappings' || url.includes('/skills/mappings')) {
-        this.activeTab.set('mappings');
-      } else if (params['tab'] === 'skills') {
-        this.activeTab.set('skills');
-      } else {
-        if (!url.includes('/skills/clusters') && !url.includes('/skills/mappings')) {
-          this.activeTab.set('skills');
-        }
-      }
-    };
-
-    updateTabFromRoute(this.route.snapshot.queryParams);
-
-    this.route.queryParams.subscribe(params => {
-      updateTabFromRoute(params);
-    });
-
     this.initForms();
   }
 
@@ -407,8 +346,8 @@ export class SkillGridComponent implements OnInit {
     this.skillForm = this.fb.group({
       skillId: [''],
       skillCode: [''],
-      name: ['', Validators.required],
-      description: ['', Validators.required],
+      name: ['', [Validators.required, Validators.maxLength(99)]],
+      description: ['', [Validators.required, Validators.maxLength(500)]],
       category: ['Technical', Validators.required],
       clusterId: [''],
       status: ['active', Validators.required],
@@ -416,14 +355,6 @@ export class SkillGridComponent implements OnInit {
       levelIntermediate: [true],
       levelAdvanced: [true],
       levelExpert: [true]
-    });
-
-    this.clusterForm = this.fb.group({
-      clusterId: [''],
-      clusterCode: [''],
-      name: ['', Validators.required],
-      description: [''],
-      status: ['active', Validators.required]
     });
   }
 
@@ -466,65 +397,27 @@ export class SkillGridComponent implements OnInit {
       }
     }
 
-    // Mapped / Unmapped Filter
+    // Mapping State Filter
     if (mapped === 'mapped') {
       list = list.filter(s => s.mappedElementCount > 0);
     } else if (mapped === 'unmapped') {
       list = list.filter(s => s.mappedElementCount === 0);
     }
 
-    // Target Type Mapped Filter
+    // Target Type Filter
     if (target !== 'all') {
       const mappings = this.lmsData.skillMappings();
-      const skillIdsWithTarget = new Set(mappings.filter(m => m.targetType === target).map(m => m.skillId));
-      list = list.filter(s => skillIdsWithTarget.has(s.skillId));
+      const matchingSkillIds = new Set(
+        mappings.filter(m => m.targetType === target).map(m => m.skillId)
+      );
+      list = list.filter(s => matchingSkillIds.has(s.skillId));
     }
 
     return list;
   });
 
-  // Pagination State
-  currentPage = signal<number>(1);
-  pageSize = signal<number>(12);
-
-  paginatedSkills = computed<Skill[]>(() => {
-    const list = this.filteredSkills();
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return list.slice(start, start + this.pageSize());
-  });
-
-  onSearchChange(val: string) {
-    this.searchQuery.set(val);
-    this.currentPage.set(1);
-  }
-
-  // Empty State Type: 'none' | 'true_empty' | 'search_miss' | 'filter_miss'
-  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
-    if (this.filteredSkills().length > 0) return 'none';
-
-    if (this.lmsData.skills().length === 0) {
-      return 'true_empty';
-    }
-
-    if (this.searchQuery().trim().length > 0 && !this.hasActiveFiltersExceptSearch()) {
-      return 'search_miss';
-    }
-
-    return 'filter_miss';
-  });
-
-  private hasActiveFiltersExceptSearch(): boolean {
-    return (
-      this.selectedStatus() !== 'all' ||
-      this.selectedCategory() !== 'all' ||
-      this.selectedCluster() !== 'all' ||
-      this.selectedMappedFilter() !== 'all' ||
-      this.selectedTargetType() !== 'all'
-    );
-  }
-
-  // Active filter count
-  activeFilterCount = computed<number>(() => {
+  // Active Filter Count
+  activeFilterCount = computed(() => {
     let count = 0;
     if (this.selectedStatus() !== 'all') count++;
     if (this.selectedCategory() !== 'all') count++;
@@ -534,80 +427,22 @@ export class SkillGridComponent implements OnInit {
     return count;
   });
 
-  // Filtered Clusters
-  filteredClusters = computed<SkillCluster[]>(() => {
-    let list = this.lmsData.skillClusters();
-    const q = this.clusterSearchQuery().toLowerCase().trim();
-    if (q) {
-      list = list.filter(c => 
-        c.name.toLowerCase().includes(q) ||
-        c.clusterCode.toLowerCase().includes(q) ||
-        (c.description && c.description.toLowerCase().includes(q))
-      );
-    }
-    return list;
+  // Paginated Skills
+  paginatedSkills = computed(() => {
+    const list = this.filteredSkills();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
   });
 
-  // All Mappings
-  allMappings = computed<SkillMapping[]>(() => {
-    return this.lmsData.skillMappings();
+  emptyStateType = computed<'no-data' | 'no-results'>(() => {
+    return this.lmsData.skills().length === 0 ? 'no-data' : 'no-results';
   });
 
-  // Telemetry Computed Helpers for Template
-  activeSkillsCount = computed(() => this.lmsData.skills().filter(s => s.status === 'active').length);
-  activeSkillsPercentage = computed<number>(() => {
-    const total = this.lmsData.skills().length;
-    if (!total) return 0;
-    return Math.round((this.activeSkillsCount() / total) * 100);
-  });
-  acquiredLearnersCount = computed(() => this.lmsData.learnerSkillProgress().filter(p => p.acquired).length);
-
-  // Helper options for target selection
-  availablePlans = computed(() => this.lmsData.plans());
-  availableCourses = computed(() => this.lmsData.courses());
-  availablePhases = computed(() => {
-    const allPlans = this.lmsData.plans();
-    const phasesList: { id: string; title: string; planName: string }[] = [];
-    allPlans.forEach(p => {
-      (p.phases || []).forEach(ph => {
-        phasesList.push({
-          id: ph.id,
-          title: (ph as any).name || (ph as any).title || ph.id,
-          planName: (p as any).name || (p as any).title || p.id
-        });
-      });
-    });
-    return phasesList;
-  });
-  availableContentAssets = computed(() => this.lmsData.contentRepoAssets());
-
-  closeConfirmDialog() {
-    this.confirmDialog.update(d => ({ ...d, isOpen: false }));
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
   }
 
-  // Set active tab
-  setTab(tab: 'skills' | 'clusters' | 'mappings') {
-    this.activeTab.set(tab);
-    this.closeActionMenu();
-    this.router.navigate([], { queryParams: { tab }, queryParamsHandling: 'merge' });
-  }
-
-  onTargetTypeChange(type: SkillTargetType) {
-    this.mappingTargetType.set(type);
-    this.mappingTargetId.set('');
-    this.mappingTargetName.set('');
-    if (type === 'course') {
-      this.mappingAchievementRule.set('Complete course assessment with passing grade');
-    } else if (type === 'plan') {
-      this.mappingAchievementRule.set('Complete all training plan requirements and obtain passing score');
-    } else if (type === 'phase') {
-      this.mappingAchievementRule.set('Pass phase evaluation milestone');
-    } else if (type === 'content') {
-      this.mappingAchievementRule.set('Complete and review content asset');
-    }
-  }
-
-  // Reset Grid Filters
   resetFilters() {
     this.searchQuery.set('');
     this.selectedStatus.set('all');
@@ -618,25 +453,12 @@ export class SkillGridComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  // Clear Filter Panel
-  clearFilterPanel() {
-    this.selectedStatus.set('all');
-    this.selectedCategory.set('all');
-    this.selectedCluster.set('all');
-    this.selectedMappedFilter.set('all');
-    this.selectedTargetType.set('all');
-  }
-
-  // Open Create Skill Modal
+  // Modals Management
   openCreateSkillModal() {
     this.editingSkill.set(null);
-    this.formSubmitted.set(false);
-    this.formError.set(null);
-    const codeIdx = String(this.lmsData.skills().length + 1).padStart(4, '0');
-    
     this.skillForm.reset({
       skillId: '',
-      skillCode: `SKL-${codeIdx}`,
+      skillCode: '',
       name: '',
       description: '',
       category: 'Technical',
@@ -647,152 +469,141 @@ export class SkillGridComponent implements OnInit {
       levelAdvanced: true,
       levelExpert: true
     });
-    this.isSkillModalOpen.set(true);
-  }
-
-  // Open Edit Skill Modal
-  openEditSkillModal(skill: Skill) {
-    this.editingSkill.set(skill);
     this.formSubmitted.set(false);
     this.formError.set(null);
+    this.isSkillModalOpen.set(true);
+    this.closeActionMenu();
+  }
 
+  openEditSkillModal(skill: Skill) {
+    this.editingSkill.set(skill);
     const levels = skill.levels || ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-    
     this.skillForm.patchValue({
       skillId: skill.skillId,
       skillCode: skill.skillCode,
       name: skill.name,
-      description: skill.description,
-      category: skill.category,
+      description: skill.description || '',
+      category: skill.category || 'Technical',
       clusterId: skill.clusterId || '',
-      status: skill.status,
+      status: skill.status || 'active',
       levelBeginner: levels.includes('Beginner'),
       levelIntermediate: levels.includes('Intermediate'),
       levelAdvanced: levels.includes('Advanced'),
       levelExpert: levels.includes('Expert')
     });
+    this.formSubmitted.set(false);
+    this.formError.set(null);
     this.isSkillModalOpen.set(true);
+    this.closeActionMenu();
   }
 
-  // Save Skill
-  onSaveSkill() {
-    this.formSubmitted.set(true);
-    this.formError.set(null);
+  closeSkillModal() {
+    this.isSkillModalOpen.set(false);
+    this.editingSkill.set(null);
+  }
 
+  saveSkill() {
+    this.formSubmitted.set(true);
     if (this.skillForm.invalid) {
-      this.formError.set('All mandatory fields are not filled up.');
+      this.formError.set('Please fill in all mandatory fields with valid values.');
       return;
     }
 
     const val = this.skillForm.value;
-    const selectedLevels: string[] = [];
-    if (val.levelBeginner) selectedLevels.push('Beginner');
-    if (val.levelIntermediate) selectedLevels.push('Intermediate');
-    if (val.levelAdvanced) selectedLevels.push('Advanced');
-    if (val.levelExpert) selectedLevels.push('Expert');
+    const levels: string[] = [];
+    if (val.levelBeginner) levels.push('Beginner');
+    if (val.levelIntermediate) levels.push('Intermediate');
+    if (val.levelAdvanced) levels.push('Advanced');
+    if (val.levelExpert) levels.push('Expert');
 
-    // If editing and skill is mapped, inform user of propagation (§6.5)
-    if (this.editingSkill() && this.editingSkill()!.mappedElementCount > 0) {
-      const mapCount = this.editingSkill()!.mappedElementCount;
-      // Perform save
-      this.lmsData.saveSkill({
-        skillId: val.skillId,
-        skillCode: val.skillCode,
-        name: val.name.trim(),
-        description: val.description.trim(),
-        category: val.category,
-        clusterId: val.clusterId || undefined,
-        status: val.status,
-        levels: selectedLevels
-      });
-      this.isSkillModalOpen.set(false);
-    } else {
-      this.lmsData.saveSkill({
-        skillId: val.skillId,
-        skillCode: val.skillCode,
-        name: val.name.trim(),
-        description: val.description.trim(),
-        category: val.category,
-        clusterId: val.clusterId || undefined,
-        status: val.status,
-        levels: selectedLevels
-      });
-      this.isSkillModalOpen.set(false);
+    if (levels.length === 0) {
+      this.formError.set('Please select at least one proficiency level.');
+      return;
     }
+
+    const editing = this.editingSkill();
+
+    this.lmsData.saveSkill({
+      skillId: editing?.skillId,
+      skillCode: editing?.skillCode,
+      name: val.name.trim(),
+      description: val.description.trim(),
+      category: val.category,
+      clusterId: val.clusterId || undefined,
+      status: val.status,
+      levels
+    });
+
+    this.closeSkillModal();
   }
 
-  // Open View Details Modal
   openViewDetailsModal(skill: Skill) {
-    if (!skill) return;
     this.selectedSkillDetails.set({ ...skill });
     this.isDetailsModalOpen.set(true);
+    this.closeActionMenu();
   }
 
-  // Open Manage Mappings Modal
+  closeDetailsModal() {
+    this.isDetailsModalOpen.set(false);
+    this.selectedSkillDetails.set(null);
+  }
+
+  // Manage Polymorphic Mappings
   openManageMappingsModal(skill: Skill) {
     this.mappingSkill.set(skill);
     this.mappingTargetType.set('course');
     this.mappingTargetId.set('');
     this.mappingTargetName.set('');
-    this.mappingAchievementRule.set(`Complete course assessment with passing grade`);
+    this.mappingAchievementRule.set('pass_with_threshold');
     this.isMappingModalOpen.set(true);
+    this.closeActionMenu();
   }
 
-  // Submit Mapping
-  onAddMapping() {
-    const skill = this.mappingSkill();
-    if (!skill) return;
+  closeMappingModal() {
+    this.isMappingModalOpen.set(false);
+    this.mappingSkill.set(null);
+  }
 
-    const targetType = this.mappingTargetType();
+  getMappingsForSkill(skillId: string): SkillMapping[] {
+    return this.lmsData.skillMappings().filter(m => m.skillId === skillId);
+  }
+
+  addMapping() {
+    const skill = this.mappingSkill();
+    const type = this.mappingTargetType();
     const targetId = this.mappingTargetId();
-    if (!targetId) {
-      this.lmsData.showToast(`Please select a ${targetType} to map.`, 'warning', 3000, 'Target Required');
-      return;
-    }
+    if (!skill || !targetId) return;
 
     let targetName = this.mappingTargetName();
     if (!targetName) {
-      if (targetType === 'plan') {
-        const p = this.availablePlans().find(x => x.id === targetId);
-        targetName = (p as any)?.name || (p as any)?.title || targetId;
-      } else if (targetType === 'course') {
-        const c = this.availableCourses().find(x => x.id === targetId);
-        targetName = c?.title || targetId;
-      } else if (targetType === 'phase') {
-        const ph = this.availablePhases().find(x => x.id === targetId);
-        targetName = ph?.title || targetId;
-      } else if (targetType === 'content') {
-        const cnt = this.availableContentAssets().find(x => x.id === targetId);
-        targetName = cnt?.title || targetId;
-      }
+      const opt = this.mappingTargetItemOptions().find(o => o.value === targetId);
+      targetName = opt?.label || targetId;
     }
 
     this.lmsData.mapSkillToElement(
       skill.skillId,
-      targetType,
+      type,
       targetId,
       targetName,
-      this.mappingAchievementRule()
+      this.mappingAchievementRule() || 'pass_with_threshold'
     );
 
-    // Refresh modal target selection
     this.mappingTargetId.set('');
     this.mappingTargetName.set('');
   }
 
-  // Unmap skill from target
   unmapSkill(skillId: string, targetType: SkillTargetType, targetId: string) {
     this.lmsData.unmapSkillFromElement(skillId, targetType, targetId);
   }
 
-  // Actions confirmation handlers
+  // Confirmation actions
   confirmDeactivate(skill: Skill) {
     this.confirmDialog.set({
       isOpen: true,
       title: 'Deactivate Skill',
-      message: `Are you sure to deactivate the skill "${skill.name}"? It will remain on existing mapped elements but cannot be newly mapped.`,
-      confirmText: 'Deactivate',
-      isDestructive: true,
+      message: `Deactivating "${skill.name}" will make it unavailable for new learning mappings. Existing historical mappings remain active. Proceed?`,
+      confirmText: 'Deactivate Skill',
+      isDestructive: false,
       actionType: 'deactivate',
       targetId: skill.skillId
     });
@@ -802,8 +613,8 @@ export class SkillGridComponent implements OnInit {
     this.confirmDialog.set({
       isOpen: true,
       title: 'Reactivate Skill',
-      message: `Are you sure to reactivate the skill "${skill.name}"? It will become available for mapping to learning elements again.`,
-      confirmText: 'Reactivate',
+      message: `Reactivating "${skill.name}" will immediately make it available for curriculum mapping across all courses and training plans. Proceed?`,
+      confirmText: 'Reactivate Skill',
       isDestructive: false,
       actionType: 'reactivate',
       targetId: skill.skillId
@@ -811,25 +622,10 @@ export class SkillGridComponent implements OnInit {
   }
 
   confirmDeleteSkill(skill: Skill) {
-    if (skill.mappedElementCount > 0) {
-      // Block deletion dialog (§9.2)
-      this.confirmDialog.set({
-        isOpen: true,
-        title: 'Deletion Blocked',
-        message: `This skill is mapped to ${skill.mappedElementCount} element(s) and cannot be deleted. Unmap or deactivate it first.`,
-        confirmText: 'Understand',
-        isDestructive: false,
-        actionType: 'deleteSkill',
-        targetId: skill.skillId,
-        extraData: { blocked: true }
-      });
-      return;
-    }
-
     this.confirmDialog.set({
       isOpen: true,
       title: 'Delete Skill',
-      message: `Are you sure to delete the skill "${skill.name}"? This action cannot be undone.`,
+      message: `Are you sure you want to permanently delete "${skill.name}" (${skill.skillCode})? Note: Skills with active element mappings cannot be deleted until unmapped.`,
       confirmText: 'Delete Skill',
       isDestructive: true,
       actionType: 'deleteSkill',
@@ -837,99 +633,34 @@ export class SkillGridComponent implements OnInit {
     });
   }
 
-  // Cluster Modal & Delete
-  openCreateClusterModal() {
-    this.editingCluster.set(null);
-    const codeIdx = String(this.lmsData.skillClusters().length + 1).padStart(2, '0');
-    this.clusterForm.reset({
-      clusterId: '',
-      clusterCode: `CLS-COMP-${codeIdx}`,
-      name: '',
-      description: '',
-      status: 'active'
-    });
-    this.isClusterModalOpen.set(true);
-  }
-
-  openEditClusterModal(cluster: SkillCluster) {
-    this.editingCluster.set(cluster);
-    this.clusterForm.patchValue({
-      clusterId: cluster.clusterId,
-      clusterCode: cluster.clusterCode,
-      name: cluster.name,
-      description: cluster.description || '',
-      status: cluster.status
-    });
-    this.isClusterModalOpen.set(true);
-  }
-
-  onSaveCluster() {
-    if (this.clusterForm.invalid) {
-      this.lmsData.showToast('All mandatory cluster fields are required.', 'error', 3000, 'Validation Error');
-      return;
-    }
-    const val = this.clusterForm.value;
-    this.lmsData.saveCluster({
-      clusterId: val.clusterId,
-      clusterCode: val.clusterCode,
-      name: val.name.trim(),
-      description: val.description?.trim(),
-      status: val.status
-    });
-    this.isClusterModalOpen.set(false);
-  }
-
-  confirmDeleteCluster(cluster: SkillCluster) {
-    const skillsInCluster = this.lmsData.skills().filter(s => s.clusterId === cluster.clusterId);
-    let msg = `Are you sure to delete the cluster "${cluster.name}"?`;
-    if (skillsInCluster.length > 0) {
-      msg = `This cluster contains ${skillsInCluster.length} skill(s). Deleting it will leave them uncategorized. Are you sure you want to proceed?`;
-    }
-
-    this.confirmDialog.set({
-      isOpen: true,
-      title: 'Delete Cluster',
-      message: msg,
-      confirmText: 'Delete Cluster',
-      isDestructive: true,
-      actionType: 'deleteCluster',
-      targetId: cluster.clusterId
-    });
-  }
-
-  // Handle confirmation dialog execution
-  onExecuteConfirm() {
-    const dialog = this.confirmDialog();
+  closeConfirmDialog() {
     this.confirmDialog.update(d => ({ ...d, isOpen: false }));
+  }
 
-    if (dialog.extraData?.blocked) {
-      return;
-    }
-
+  executeConfirmAction() {
+    const dialog = this.confirmDialog();
     if (dialog.actionType === 'deactivate') {
       this.lmsData.deactivateSkill(dialog.targetId);
     } else if (dialog.actionType === 'reactivate') {
       this.lmsData.reactivateSkill(dialog.targetId);
     } else if (dialog.actionType === 'deleteSkill') {
       this.lmsData.deleteSkill(dialog.targetId);
-    } else if (dialog.actionType === 'deleteCluster') {
-      this.lmsData.deleteCluster(dialog.targetId);
     }
+    this.closeConfirmDialog();
   }
 
-  // Get Mapped elements for a skill helper
-  getMappingsForSkill(skillId: string): SkillMapping[] {
-    return this.lmsData.getElementsMappedToSkill(skillId);
-  }
-
-  // Target Type Badge Color
   getTargetTypeColor(type: SkillTargetType): string {
     switch (type) {
-      case 'plan': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'phase': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'course': case 'class': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'content': return 'bg-amber-100 text-amber-800 border-amber-200';
-      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+      case 'plan':
+        return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300';
+      case 'phase':
+        return 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:border-sky-800 dark:text-sky-300';
+      case 'course':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300';
+      case 'content':
+        return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300';
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   }
 }

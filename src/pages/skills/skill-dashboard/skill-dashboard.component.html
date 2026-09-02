@@ -18,14 +18,6 @@
 
     <!-- Actions -->
     <div class="flex items-center gap-2.5 flex-wrap">
-      <button 
-        *ngIf="!isStudioMode()"
-        (click)="enterStudioMode()"
-        class="px-4 py-2 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 text-tenant-800 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-base">dashboard_customize</span>
-        <span>Customize Dashboard Studio</span>
-      </button>
-
       <a 
         routerLink="/skills"
         class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer">
@@ -116,216 +108,11 @@
 
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- SEARCH & FILTER TOOLBAR (Matching media_1788286392089.png)               -->
-  <!-- ========================================================================= -->
-  <div class="space-y-3">
-    
-    <!-- Top Search Toolbar Card -->
-    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-30">
-      
-      <!-- Left: Search Field + Filters Button -->
-      <div class="flex items-center gap-3 flex-1 max-w-xl">
-        <!-- Search Input -->
-        <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-          <input 
-            type="text" 
-            [ngModel]="searchQuery()" 
-            (ngModelChange)="searchQuery.set($event)"
-            placeholder="Search by course title, code, tags, or owner..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
-          
-          <button 
-            *ngIf="searchQuery()" 
-            type="button" 
-            (click)="searchQuery.set('')"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
-            <span class="material-symbols-outlined text-sm">close</span>
-          </button>
-        </div>
-
-        <!-- Filters Button (Bright Primary Color when active/open) -->
-        <button 
-          type="button"
-          (click)="isFilterPanelOpen.set(!isFilterPanelOpen())"
-          class="px-5 py-2.5 rounded-2xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || activeFiltersCount() > 0 
-            ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs' 
-            : 'bg-white hover:bg-slate-50 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base">filter_list</span>
-          <span>Filters</span>
-          <span *ngIf="activeFiltersCount() > 0" class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-            {{ activeFiltersCount() }}
-          </span>
-        </button>
-
-        <!-- Reset Button -->
-        <button 
-          *ngIf="hasActiveFilters()"
-          type="button"
-          (click)="resetFilters()"
-          class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
-          title="Reset Filters">
-          <span class="material-symbols-outlined text-sm">restart_alt</span>
-          <span>Reset</span>
-        </button>
-      </div>
-
-      <!-- Right: Blank / clean (no grid or table icon as requested) -->
-      <div></div>
-    </div>
-
-    <!-- Expandable Filter Drawer Panel (Matching Image 2nd row) -->
-    <div *ngIf="isFilterPanelOpen()" class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 relative z-20">
-      
-      <!-- Filter Panel Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-base-300">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
-          <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">FILTER COURSES</h3>
-        </div>
-        <span class="text-[11px] text-text-secondary font-medium">
-          Filter by status, category, hierarchy layer depth, content family, sorting, and grading
-        </span>
-      </div>
-
-      <!-- Dropdowns Row (Matching Image) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 pt-1">
-        <!-- 1. Status -->
-        <div>
-          <app-custom-select
-            label="Status"
-            [options]="statusSelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedStatus()"
-            (ngModelChange)="selectedStatus.set($event)">
-          </app-custom-select>
-        </div>
-
-        <!-- 2. Category -->
-        <div>
-          <app-custom-select
-            label="Category"
-            [options]="categorySelectOptions()"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedCategory()"
-            (ngModelChange)="selectedCategory.set($event)">
-          </app-custom-select>
-        </div>
-
-        <!-- 3. Layer Depth / Cluster -->
-        <div>
-          <app-custom-select
-            label="Layer Depth"
-            [options]="clusterSelectOptions()"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedCluster()"
-            (ngModelChange)="selectedCluster.set($event)">
-          </app-custom-select>
-        </div>
-
-        <!-- 4. Content Type / Mapping Coverage -->
-        <div>
-          <app-custom-select
-            label="Content Type"
-            [options]="coverageSelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedCoverage()"
-            (ngModelChange)="selectedCoverage.set($event)">
-          </app-custom-select>
-        </div>
-
-        <!-- 5. Sort By -->
-        <div>
-          <app-custom-select
-            label="Sort By"
-            [options]="sortBySelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="sortBy()"
-            (ngModelChange)="sortBy.set($event)">
-          </app-custom-select>
-        </div>
-      </div>
-
-      <!-- Filter Panel Footer (Matching Image) -->
-      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-base-300">
-        <button 
-          type="button"
-          (click)="resetFilters()"
-          class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer">
-          Clear All Selections
-        </button>
-
-        <button 
-          type="button"
-          (click)="isFilterPanelOpen.set(false)"
-          class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer">
-          Close
-        </button>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- Studio Mode Customization Control Bar (§10.5) -->
-  <div *ngIf="isStudioMode()" class="p-5 rounded-3xl bg-purple-900 text-white shadow-lg space-y-4">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-purple-800 flex items-center justify-center text-amber-400">
-          <span class="material-symbols-outlined text-lg">tune</span>
-        </div>
-        <div>
-          <span class="font-bold text-sm">Dashboard Studio Mode</span>
-          <span class="text-xs text-purple-200 font-normal ml-2">— Customize layout widths and widget visibility</span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button (click)="resetStudioDefault()" class="px-3 py-1.5 rounded-xl bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100 cursor-pointer">
-          Reset Defaults
-        </button>
-        <button (click)="discardStudio()" class="px-3 py-1.5 rounded-xl bg-purple-800 hover:bg-purple-700 text-xs font-bold text-purple-100 cursor-pointer">
-          Discard
-        </button>
-        <button (click)="publishStudio()" class="px-4 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold text-xs shadow-sm cursor-pointer">
-          Publish Live
-        </button>
-      </div>
-    </div>
-
-    <!-- Widget Visibility & Width Pills -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-purple-800/60 text-xs">
-      <div *ngFor="let w of draftWidgets()" class="p-3.5 rounded-2xl bg-purple-950/70 border border-purple-800/80 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-purple-100 truncate max-w-[140px]">{{ w.title }}</span>
-          <button (click)="toggleWidgetVisibility(w.id)" [class.text-amber-400]="w.visible" [class.text-purple-400]="!w.visible" class="font-bold cursor-pointer">
-            {{ w.visible ? 'Visible' : 'Hidden' }}
-          </button>
-        </div>
-        <div class="flex items-center gap-1 text-[10px]">
-          <span class="text-purple-300 font-medium">Width:</span>
-          <button (click)="setWidgetWidth(w.id, 1)" [class.bg-amber-400]="w.colSpan === 1" [class.text-purple-950]="w.colSpan === 1" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">25%</button>
-          <button (click)="setWidgetWidth(w.id, 2)" [class.bg-amber-400]="w.colSpan === 2" [class.text-purple-950]="w.colSpan === 2" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">50%</button>
-          <button (click)="setWidgetWidth(w.id, 3)" [class.bg-amber-400]="w.colSpan === 3" [class.text-purple-950]="w.colSpan === 3" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">75%</button>
-          <button (click)="setWidgetWidth(w.id, 4)" [class.bg-amber-400]="w.colSpan === 4" [class.text-purple-950]="w.colSpan === 4" class="px-1.5 py-0.5 rounded-md bg-purple-800 text-purple-200 font-bold">100%</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Main Dashboard Grid Layout (§10.3) -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
     <!-- Widget 2: Skill Lifecycle Breakdown -->
-    <div *ngIf="isWidgetVisible('w-status')" [class]="getWidgetClass('w-status')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -382,7 +169,7 @@
     </div>
 
     <!-- Widget 3: Competency Clusters Breakdown -->
-    <div *ngIf="isWidgetVisible('w-clusters')" [class]="getWidgetClass('w-clusters')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -415,7 +202,7 @@
     </div>
 
     <!-- Widget 4: Learning Hierarchy Mapping Coverage -->
-    <div *ngIf="isWidgetVisible('w-coverage')" [class]="getWidgetClass('w-coverage')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
@@ -465,7 +252,7 @@
     </div>
 
     <!-- Widget 5: Most-Mapped Competency Skills -->
-    <div *ngIf="isWidgetVisible('w-top')" [class]="getWidgetClass('w-top')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -500,7 +287,7 @@
     </div>
 
     <!-- Widget 6: Learner Skill Distribution Report (§7.4) -->
-    <div *ngIf="isWidgetVisible('w-distribution')" [class]="getWidgetClass('w-distribution')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
@@ -529,7 +316,7 @@
     </div>
 
     <!-- Widget 7: Skill Gaps Analysis (§7.4) -->
-    <div *ngIf="isWidgetVisible('w-gaps')" [class]="getWidgetClass('w-gaps')">
+    <div class="md:col-span-2 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -566,7 +353,7 @@
     </div>
 
     <!-- Widget 8: Centralized Propagation Audit Feed (§6.5, §10.3) -->
-    <div *ngIf="isWidgetVisible('w-propagation')" [class]="getWidgetClass('w-propagation')">
+    <div class="md:col-span-4 p-5 rounded-3xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-base-300/80">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">

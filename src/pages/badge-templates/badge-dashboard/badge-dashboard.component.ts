@@ -37,10 +37,8 @@ export class BadgeDashboardComponent {
   dataService = inject(LmsDataService);
   router = inject(Router);
 
-  // Studio Mode State
-  isStudioMode = signal<boolean>(false);
+  // Widget Configuration State
   widgetConfigs = signal<BadgeDashboardWidgetConfig[]>(JSON.parse(JSON.stringify(DEFAULT_BADGE_DASHBOARD_WIDGETS)));
-  studioDraftConfigs = signal<BadgeDashboardWidgetConfig[]>([]);
 
   // Permissions
   permissions = this.dataService.badgePermissions;
@@ -105,36 +103,6 @@ export class BadgeDashboardComponent {
     })).sort((a, b) => b.count - a.count).slice(0, 8);
   });
 
-  // Studio Mode Handlers
-  enterStudioMode() {
-    this.studioDraftConfigs.set(JSON.parse(JSON.stringify(this.widgetConfigs())));
-    this.isStudioMode.set(true);
-  }
-
-  toggleWidgetVisibility(id: string) {
-    this.studioDraftConfigs.update(list => list.map(w => w.id === id ? { ...w, visible: !w.visible } : w));
-  }
-
-  setWidgetWidth(id: string, colSpanPct: number) {
-    this.studioDraftConfigs.update(list => list.map(w => w.id === id ? { ...w, colSpanPct } : w));
-  }
-
-  publishStudioLive() {
-    this.widgetConfigs.set(JSON.parse(JSON.stringify(this.studioDraftConfigs())));
-    this.isStudioMode.set(false);
-    this.dataService.showToast('Badge Dashboard layout published live successfully.', 'success', 3500, 'Dashboard Published');
-  }
-
-  discardStudioChanges() {
-    this.isStudioMode.set(false);
-    this.dataService.showToast('Studio changes discarded.', 'info', 3000, 'Changes Discarded');
-  }
-
-  resetStudioDefaults() {
-    this.studioDraftConfigs.set(JSON.parse(JSON.stringify(DEFAULT_BADGE_DASHBOARD_WIDGETS)));
-    this.dataService.showToast('Reset dashboard widgets to default layout.', 'info', 3000, 'Layout Reset');
-  }
-
   // Navigation
   createBadge() {
     this.router.navigate(['/certificates/badges/create']);
@@ -148,5 +116,32 @@ export class BadgeDashboardComponent {
     if (confirm(`Are you sure you want to delete draft "${badge.name}"?`)) {
       this.dataService.deleteBadgeTemplate(badge.templateId);
     }
+  }
+
+  // Safe Date Formatter for Badge Templates
+  formatBadgeDate(dateStr: string | null | undefined, format: 'short' | 'mediumDate' = 'mediumDate'): string {
+    if (!dateStr) return '—';
+    const dmyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
+    let dateObj: Date | null = null;
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10) - 1;
+      const year = parseInt(dmyMatch[3], 10);
+      const hour = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+      const min = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+      const sec = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+      dateObj = new Date(year, month, day, hour, min, sec);
+    } else {
+      const parsed = new Date(dateStr);
+      if (!isNaN(parsed.getTime())) {
+        dateObj = parsed;
+      }
+    }
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    if (format === 'short') {
+      return dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' }) + ', ' +
+             dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 }

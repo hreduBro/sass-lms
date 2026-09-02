@@ -794,7 +794,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
                         </span>
                       </td>
                       <td class="py-3 px-3.5 text-text-secondary font-mono text-[11px]">
-                        {{ r.submittedAt | date:'medium' }}
+                        {{ formatSubmittedDate(r.submittedAt) }}
                       </td>
                     </tr>
                   }
@@ -1168,5 +1168,29 @@ export class PlanDetailsComponent implements OnInit {
       case 'Configured': return 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300';
       default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
     }
+  }
+
+  // Safe Date Formatter
+  formatSubmittedDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '—';
+    const dmyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
+    let dateObj: Date | null = null;
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10) - 1;
+      const year = parseInt(dmyMatch[3], 10);
+      const hour = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+      const min = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+      const sec = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+      dateObj = new Date(year, month, day, hour, min, sec);
+    } else {
+      const parsed = new Date(dateStr);
+      if (!isNaN(parsed.getTime())) {
+        dateObj = parsed;
+      }
+    }
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' +
+           dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   }
 }

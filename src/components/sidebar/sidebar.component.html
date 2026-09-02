@@ -216,7 +216,7 @@
               <!-- Collapsible Sub-menu Items with Left Vertical Connector Line -->
               @if (isMenuExpanded(item.label)) {
                 <div class="border-l border-slate-200 dark:border-slate-800 ml-4 pl-3.5 space-y-1.5 my-1.5 animate-accordion">
-                  @for (child of item.children; track child.route) {
+                  @for (child of item.children; track (child.route + '-' + child.label)) {
                     @if (!child.roles || isAllowed(child.roles)) {
                       <a 
                         [routerLink]="child.route"

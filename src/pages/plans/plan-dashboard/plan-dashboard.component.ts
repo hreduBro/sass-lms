@@ -52,6 +52,54 @@ export interface LearnerProgressRecord {
       <!-- ================================================================= -->
       @if (!selectedPlan()) {
         
+        <!-- Header & Workspace Scope Banner -->
+        <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[13px]">domain</span>
+                LMS Scope
+              </span>
+              <span class="text-xs text-text-secondary">
+                Parent Org: <strong class="font-bold text-text-primary capitalize">{{ activeTenant().name }}</strong>
+              </span>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-base-200 border border-base-300 font-medium text-text-secondary hidden sm:inline">
+                {{ plans().length }} Plans &bull; {{ activePlansCount() }} Active
+              </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-3xl text-tenant-500">view_quilt</span>
+              <h1 class="text-2xl font-bold text-text-primary tracking-tight">Plan Telemetry & Analytics</h1>
+            </div>
+
+            <p class="text-xs text-text-secondary mt-1">
+              Portfolio-wide telemetry for learning plan lifecycles, phase completion rates, and administrator allocations.
+            </p>
+          </div>
+
+          <!-- Header Action Buttons -->
+          <div class="flex items-center gap-2.5 flex-wrap self-start md:self-auto">
+            <button 
+              id="plan-dashboard-grid-btn"
+              type="button"
+              (click)="goToGrid()"
+              class="px-3.5 py-2.5 rounded-2xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-2 transition-all shadow-xs cursor-pointer">
+              <span class="material-symbols-outlined text-base text-tenant-500">table_rows</span>
+              <span>Plan Grid</span>
+            </button>
+
+            <button 
+              id="plan-dashboard-create-btn"
+              type="button"
+              (click)="goToCreate()"
+              class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-xs cursor-pointer">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              <span>Create Plan</span>
+            </button>
+          </div>
+        </div>
+
         <!-- 6 High-Impact Portfolio KPI Metric Tiles -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           

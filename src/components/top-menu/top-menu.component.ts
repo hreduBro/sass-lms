@@ -157,7 +157,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
             </div>
 
             <div class="space-y-1">
-              @for (child of item.children; track child.route) {
+              @for (child of item.children; track (child.route + '-' + child.label)) {
                 @if (!child.roles || isAllowed(child.roles)) {
                   <a 
                     [routerLink]="child.route"
@@ -444,8 +444,11 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles: string[]): boolean {
+  isAllowed(roles?: string[]): boolean {
+    if (!roles || roles.length === 0) return true;
     const activeRole = this.lms.activeRole();
-    return roles.includes(activeRole);
+    return roles.includes(activeRole) ||
+      (activeRole === 'super_admin' && roles.includes('system_admin')) ||
+      (activeRole === 'system_admin' && roles.includes('super_admin'));
   }
 }

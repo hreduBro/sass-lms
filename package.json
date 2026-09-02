@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.ts",
     "dev": "ng serve --host 0.0.0.0",
-    "build": "ng build",
+    "build": "ng build && node scripts/sync-build.js",
     "lint": "ng build",
     "preview": "ng serve --configuration=production"
   },

@@ -733,7 +733,7 @@
         <h2 class="text-xl sm:text-2xl font-black text-text-primary">{{ course().title }}</h2>
         <p class="text-xs text-text-secondary">Awarded to</p>
         <p class="text-lg font-bold text-tenant-600 dark:text-tenant-300">{{ cert.userName || lms.activeUser().name }}</p>
-        <p class="text-[11px] text-text-secondary">Issued on {{ cert.issuedDate | date:'mediumDate' }} &bull; Verification Code: <span class="font-mono">{{ cert.verificationCode }}</span></p>
+        <p class="text-[11px] text-text-secondary">Issued on {{ formatCertDate(cert.issuedDate) }} &bull; Verification Code: <span class="font-mono">{{ cert.verificationCode }}</span></p>
       </div>
 
       <div class="flex items-center justify-end gap-3 pt-2">

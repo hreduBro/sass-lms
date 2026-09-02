@@ -8418,12 +8418,10 @@ export class LmsDataService {
     const existing = this.badgeTemplates().find(b => b.templateId === id);
     if (!existing) return null;
 
-    const today = new Date().toLocaleDateString('en-GB');
-    const nowTime = new Date().toLocaleTimeString('en-GB');
     const updated: BadgeTemplate = {
       ...existing,
       ...updates,
-      updatedAt: `${today} ${nowTime}`
+      updatedAt: new Date().toISOString()
     };
 
     this.badgeTemplates.update(list => list.map(b => b.templateId === id ? updated : b));
