@@ -16,17 +16,21 @@ import { AssignOwnerModalComponent } from '../assign-owner-modal/assign-owner-mo
 import { EditPlanModalComponent } from '../edit-plan-modal/edit-plan-modal.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent, FilterSectionComponent, DateRangeFilterComponent } from '../../../components/data-grid';
 
 @Component({
   selector: 'app-plan-grid',
   imports: [
     CommonModule, 
     FormsModule, 
-    RouterModule,
-    AssignOwnerModalComponent,
-    EditPlanModalComponent,
-    CustomSelectComponent,
-    CustomAvatarComponent
+    RouterModule, 
+    AssignOwnerModalComponent, 
+    EditPlanModalComponent, 
+    CustomSelectComponent, 
+    CustomAvatarComponent,
+    DataGridComponent,
+    FilterSectionComponent,
+    DateRangeFilterComponent
   ],
   templateUrl: './plan-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -179,6 +183,17 @@ export class PlanGridComponent implements OnInit {
   // Check if grid has either active search or active filter (triggers Reset button)
   isResetVisible = computed<boolean>(() => {
     return !!this.searchQuery().trim() || this.hasActiveFilters();
+  });
+
+  statusOptions: PlanStatus[] = ['Active', 'Under Processing', 'Drafted', 'Trial'];
+
+  // Empty State classification
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredPlans().length > 0) return 'none';
+    if (this.plans().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    if (this.hasActiveFilters()) return 'filter_miss';
+    return 'true_empty';
   });
 
   // Total count of active filter criteria

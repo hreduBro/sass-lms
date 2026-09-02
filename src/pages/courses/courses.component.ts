@@ -8,6 +8,7 @@ import { CourseStructureDrawerComponent } from './course-structure-drawer/course
 import { CourseVersionModalComponent } from './course-version-modal/course-version-modal.component';
 import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent } from '../../components/data-grid';
 
 @Component({
   selector: 'app-courses',
@@ -18,7 +19,8 @@ import { CustomAvatarComponent } from '../../components/custom-avatar/custom-ava
     CourseStructureDrawerComponent, 
     CourseVersionModalComponent,
     CustomSelectComponent,
-    CustomAvatarComponent
+    CustomAvatarComponent,
+    DataGridComponent
   ],
   templateUrl: './courses.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

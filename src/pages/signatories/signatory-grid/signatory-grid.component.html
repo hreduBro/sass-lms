@@ -97,273 +97,110 @@
   <!-- ========================================================================= -->
   <!-- 3. SEARCH & FILTER CONTROLS TOOLBAR + FILTER DRAWER                       -->
   <!-- ========================================================================= -->
-  <div class="space-y-3">
+  <!-- ========================================================================= -->
+  <!-- 3. REUSABLE DATA GRID & FILTERING                                         -->
+  <!-- ========================================================================= -->
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search by Signatory Name, Designation, or Department..."
+    [isFilterOpen]="isFilterPanelOpen()"
+    (filterToggle)="isFilterPanelOpen.set($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="hasAppliedFilters()"
+    [showReset]="hasAppliedFilters()"
+    (resetGrid)="clearAllFilters()"
+    (clearFilters)="clearAllFilters()"
+    (cancelFilters)="isFilterPanelOpen.set(false)"
+    (applyFilters)="isFilterPanelOpen.set(false)"
+    [viewMode]="viewMode()"
+    (viewModeChange)="viewMode.set($event)"
+    [showViewSwitcher]="true"
+    [itemCountText]="'Showing ' + filteredSignatories().length + ' of ' + totalSignatoriesCount() + ' Signatories'"
+    filterPanelTitle="FILTER SIGNATORIES"
+    filterPanelSubtitle="Filter signatories by status, department, template linkage, and registration date"
+    [currentPage]="currentPage()"
+    (pageChange)="currentPage.set($event)"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="pageSize.set($event)"
+    [totalItems]="filteredSignatories().length"
+    [emptyStateType]="emptyStateType()"
+    emptyStateIcon="badge"
+    emptyStateTitle="No signatories found"
+    emptyStateMessage="Try adjusting your search query or status/department filters."
+    emptyActionLabel="Reset Filters"
+    (emptyActionClick)="clearAllFilters()"
+  >
+    <!-- Filter Panel Projection -->
+    <div filter-panel class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Status Dropdown -->
+        <app-filter-section title="1. Status">
+          <app-custom-select
+            [options]="statusOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
 
-    <!-- Search & Filter Toolbar Card -->
-    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-30">
-      
-      <!-- Left: Search Field + Filters Button -->
-      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <!-- 2. Department Dropdown -->
+        <app-filter-section title="2. Department">
+          <app-custom-select
+            [options]="departmentOptions()"
+            [clearable]="false"
+            [searchable]="true"
+            [ngModel]="selectedDepartment()"
+            (ngModelChange)="selectedDepartment.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
 
-        <!-- Search Field -->
-        <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+        <!-- 3. Linkage Dropdown -->
+        <app-filter-section title="3. Linkage">
+          <app-custom-select
+            [options]="linkageOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedLinkedFilter()"
+            (ngModelChange)="selectedLinkedFilter.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
+
+        <!-- 4. Sort By Dropdown -->
+        <app-filter-section title="4. Sort By">
+          <app-custom-select
+            [options]="sortOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="sortBy()"
+            (ngModelChange)="sortBy.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
+      </div>
+
+      <!-- Date Range Filter Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-base-300">
+        <app-filter-section title="Created From Date">
           <input 
-            type="text"
-            id="input-signatory-search"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            placeholder="Search by Signatory Name, Designation, or Department..."
-            class="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 rounded-2xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs font-medium" />
-          @if (searchQuery()) {
-            <button 
-              type="button" 
-              (click)="searchQuery.set('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer">
-              <span class="material-symbols-outlined text-sm">close</span>
-            </button>
-          }
-        </div>
-
-        <!-- Filters Toggle Button -->
-        <button
-          type="button"
-          id="btn-toggle-signatory-filter-panel"
-          (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || activeFilterCount() > 0
-            ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs font-bold'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base">filter_list</span>
-          <span>Filters</span>
-          @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-              {{ activeFilterCount() }}
-            </span>
-          }
-        </button>
-
-        <!-- Reset Button -->
-        @if (activeFilterCount() > 0) {
-          <button
-            type="button"
-            id="btn-signatory-grid-reset"
-            (click)="clearAllFilters()"
-            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
-            title="Reset Filters">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            <span>Reset</span>
-          </button>
-        }
-
+            type="date"
+            [ngModel]="createdFromDate()"
+            (ngModelChange)="createdFromDate.set($event); currentPage.set(1)"
+            class="w-full px-3.5 py-2.5 bg-base-200/50 border border-base-300 rounded-xl text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
+        </app-filter-section>
+        <app-filter-section title="Created To Date">
+          <input 
+            type="date"
+            [ngModel]="createdToDate()"
+            (ngModelChange)="createdToDate.set($event); currentPage.set(1)"
+            class="w-full px-3.5 py-2.5 bg-base-200/50 border border-base-300 rounded-xl text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
+        </app-filter-section>
       </div>
-
-      <!-- Right: Grid / Table View Mode Toggle -->
-      <div class="flex items-center justify-end gap-2.5">
-        <div class="flex items-center gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 shadow-2xs">
-          <!-- Grid View Button -->
-          <button 
-            type="button"
-            id="btn-signatory-view-grid"
-            (click)="viewMode.set('grid')"
-            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
-            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
-            title="Grid View">
-            <span class="material-symbols-outlined text-base">grid_view</span>
-          </button>
-
-          <!-- Table View Button -->
-          <button 
-            type="button"
-            id="btn-signatory-view-table"
-            (click)="viewMode.set('table')"
-            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
-            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
-            title="Table View">
-            <span class="material-symbols-outlined text-base">table_rows</span>
-          </button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- 3.1 EXPANDABLE FILTER PANEL DRAWER (CUSTOM-SELECT DROPDOWNS)              -->
-    <!-- ========================================================================= -->
-    @if (isFilterPanelOpen()) {
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200 space-y-4 relative z-20">
-
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-base-300">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
-            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">
-              FILTER SIGNATORIES
-            </h3>
-          </div>
-          <span class="text-[11px] text-text-secondary font-medium">
-            Combine criteria with AND • Multiple values in same category with OR
-          </span>
-        </div>
-
-        <!-- Filter Custom Selects Grid Row (Status, Department, Linkage, Sort) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
-
-          <!-- 1. Status Dropdown (Status: All) -->
-          <div>
-            <app-custom-select
-              label="Status"
-              [options]="statusOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedStatus()"
-              (ngModelChange)="selectedStatus.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 2. Department Dropdown (Department: All) -->
-          <div>
-            <app-custom-select
-              label="Department"
-              [options]="departmentOptions()"
-              [clearable]="false"
-              [searchable]="true"
-              [ngModel]="selectedDepartment()"
-              (ngModelChange)="selectedDepartment.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 3. Linkage Dropdown (Linkage: All) -->
-          <div>
-            <app-custom-select
-              label="Linkage"
-              [options]="linkageOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedLinkedFilter()"
-              (ngModelChange)="selectedLinkedFilter.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 4. Sort By Dropdown -->
-          <div>
-            <app-custom-select
-              label="Sort By"
-              [options]="sortOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="sortBy()"
-              (ngModelChange)="sortBy.set($event)">
-            </app-custom-select>
-          </div>
-
-        </div>
-
-        <!-- Date Range Filter Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-base-300">
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">Created From Date</label>
-            <input 
-              type="date"
-              [ngModel]="createdFromDate()"
-              (ngModelChange)="createdFromDate.set($event)"
-              class="w-full px-3.5 py-2.5 bg-base-200/50 border border-base-300 rounded-xl text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">Created To Date</label>
-            <input 
-              type="date"
-              [ngModel]="createdToDate()"
-              (ngModelChange)="createdToDate.set($event)"
-              class="w-full px-3.5 py-2.5 bg-base-200/50 border border-base-300 rounded-xl text-xs text-text-primary focus:outline-none focus:border-tenant-500 font-medium" />
-          </div>
-        </div>
-
-        <!-- Filter Drawer Footer -->
-        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-base-300">
-          <button 
-            type="button" 
-            (click)="clearAllFilters()"
-            class="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            Clear All Selections
-          </button>
-          
-          <div class="flex items-center gap-2">
-            <button 
-              type="button" 
-              (click)="toggleFilterPanel()"
-              class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-base-200 rounded-xl transition-colors cursor-pointer">
-              Cancel
-            </button>
-            <button 
-              type="button" 
-              (click)="toggleFilterPanel()"
-              class="px-5 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-xs transition-colors cursor-pointer">
-              Apply Filter
-            </button>
-          </div>
-        </div>
-
-      </div>
-    }
-
-  </div>
-
-  <!-- Click backdrop to close floating action menus -->
-  @if (openActionMenuId()) {
-    <div class="fixed inset-0 z-[99998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- 4. SIGNATORIES CONTENT (GRID VIEW & TABLE VIEW)                           -->
-  <!-- ========================================================================= -->
-
-  <!-- True Empty State (0 Signatories) -->
-  @if (totalSignatoriesCount() === 0) {
-    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-16 text-center space-y-4 shadow-2xs">
-      <div class="w-16 h-16 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center mx-auto shadow-xs">
-        <span class="material-symbols-outlined text-3xl">badge</span>
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">No signatory information is available to display.</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">Get started by creating authorized signatories to link across certificate templates.</p>
-      </div>
-      <button 
-        (click)="openCreateModal()" 
-        class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-xs shadow-sm cursor-pointer">
-        Create Signatory
-      </button>
-    </div>
-  }
-
-  <!-- Search / Filter Miss Empty State -->
-  @else if (filteredSignatories().length === 0) {
-    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-16 text-center space-y-4 shadow-2xs">
-      <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-base-200 text-slate-400 flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">search_off</span>
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">No signatories found</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-          No signatories match your current search query or applied filter criteria.
-        </p>
-      </div>
-      <button 
-        (click)="clearAllFilters()" 
-        class="px-5 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-xs shadow-sm cursor-pointer">
-        Clear All Filters
-      </button>
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- 4.1 LMS DASHBOARD STYLE CARD GRID VIEW                                    -->
-  <!-- ========================================================================= -->
-  @else if (viewMode() === 'grid') {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      @for (sig of filteredSignatories(); track sig.signatoryId) {
+    <!-- Grid View Projection -->
+    <div grid-view class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      @for (sig of paginatedSignatories(); track sig.signatoryId) {
         <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-xs hover:border-tenant-500/50 transition-all flex flex-col justify-between group relative">
           
           <!-- Top Row: ID + Status + Action Menu -->
@@ -493,29 +330,25 @@
         </div>
       }
     </div>
-  }
 
-  <!-- ========================================================================= -->
-  <!-- 4.2 LMS DASHBOARD STYLE TABLE VIEW                                        -->
-  <!-- ========================================================================= -->
-  @else if (viewMode() === 'table') {
-    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 overflow-hidden shadow-2xs">
-      <div class="overflow-x-auto">
+    <!-- Table View Projection -->
+    <div table-view class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 overflow-hidden shadow-2xs">
+      <div class="overflow-x-auto min-h-[360px]">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/80 dark:bg-base-200/50 border-b border-slate-200/80 dark:border-base-300 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              <th class="py-4 px-5 w-32">Signature</th>
-              <th class="py-4 px-5">Signatory Profile</th>
-              <th class="py-4 px-5">Department / Unit</th>
-              <th class="py-4 px-5">Status</th>
-              <th class="py-4 px-5">Linked Templates</th>
-              <th class="py-4 px-5">Last Updated</th>
-              <th class="py-4 px-5 text-right">Actions</th>
+            <tr class="bg-slate-50/80 dark:bg-base-200/50 border-b border-slate-200/80 dark:border-base-300 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 select-none">
+              <th class="py-4 px-5 min-w-[130px]">Signature</th>
+              <th class="py-4 px-5 min-w-[200px]">Signatory Profile</th>
+              <th class="py-4 px-5 min-w-[150px]">Department / Unit</th>
+              <th class="py-4 px-5 min-w-[110px]">Status</th>
+              <th class="py-4 px-5 min-w-[130px]">Linked Templates</th>
+              <th class="py-4 px-5 min-w-[120px]">Last Updated</th>
+              <th class="py-4 px-5 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-base-300/80 text-xs">
-            @for (sig of filteredSignatories(); track sig.signatoryId) {
-              <tr class="hover:bg-slate-50/60 dark:hover:bg-base-200/40 transition-colors">
+            @for (sig of paginatedSignatories(); track sig.signatoryId) {
+              <tr class="hover:bg-slate-50/60 dark:hover:bg-base-200/40 transition-colors group">
                 
                 <!-- Signature Preview -->
                 <td class="py-3.5 px-5">
@@ -526,7 +359,7 @@
 
                 <!-- Signatory Profile -->
                 <td class="py-3.5 px-5">
-                  <div class="font-black text-slate-900 dark:text-white text-sm">{{ sig.name }}</div>
+                  <div class="font-black text-slate-900 dark:text-white text-sm group-hover:text-tenant-600 transition-colors">{{ sig.name }}</div>
                   <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{{ sig.designation }}</div>
                   <div class="text-[10px] text-slate-400 font-mono mt-0.5">ID: {{ sig.signatoryId }}</div>
                 </td>
@@ -571,47 +404,49 @@
                   {{ sig.updatedAt }}
                 </td>
 
-                <!-- Actions -->
-                <td class="py-3.5 px-5 text-right">
-                  <div class="flex items-center justify-end gap-1">
+                <!-- Actions Sticky Column -->
+                <td 
+                  class="py-3.5 px-5 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  (click)="$event.stopPropagation()">
+                  <div class="flex items-center justify-center gap-1">
                     <button 
                       (click)="openViewDetails(sig)" 
                       title="View Details"
-                      class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
+                      class="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
                       <span class="material-symbols-outlined text-base">visibility</span>
                     </button>
                     <button 
                       (click)="openEditModal(sig)" 
                       title="Edit Signatory"
-                      class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
+                      class="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer">
                       <span class="material-symbols-outlined text-base">edit</span>
                     </button>
                     <button 
                       (click)="openLinkModal(sig)" 
                       [disabled]="sig.status !== 'active'"
                       title="Link to Certificate Template"
-                      class="p-2 rounded-xl hover:bg-teal-50 dark:hover:bg-teal-950/40 text-teal-600 dark:text-teal-400 transition-colors disabled:opacity-40 cursor-pointer">
+                      class="p-1.5 rounded-xl hover:bg-teal-50 dark:hover:bg-teal-950/40 text-teal-600 dark:text-teal-400 transition-colors disabled:opacity-40 cursor-pointer">
                       <span class="material-symbols-outlined text-base">link</span>
                     </button>
                     @if (sig.status === 'active') {
                       <button 
                         (click)="confirmDeactivate(sig)" 
                         title="Deactivate Signatory"
-                        class="p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer">
+                        class="p-1.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-base">pause_circle</span>
                       </button>
                     } @else {
                       <button 
                         (click)="confirmReactivate(sig)" 
                         title="Reactivate Signatory"
-                        class="p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer">
+                        class="p-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-base">play_circle</span>
                       </button>
                     }
                     <button 
                       (click)="confirmDelete(sig)" 
                       title="Delete Signatory"
-                      class="p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer">
+                      class="p-1.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer">
                       <span class="material-symbols-outlined text-base">delete</span>
                     </button>
                   </div>
@@ -623,7 +458,7 @@
         </table>
       </div>
     </div>
-  }
+  </app-data-grid>
 
   <!-- ========================================================================= -->
   <!-- MODAL 1: Create / Edit Signatory Modal                                    -->

@@ -19,6 +19,8 @@ import {
 } from '../../../models/assessment.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 
 export type AssessmentSortField = 'date' | 'score' | 'percentage' | 'trainee' | 'assessment';
 export type SortDirection = 'asc' | 'desc';
@@ -31,7 +33,9 @@ export type SortDirection = 'asc' | 'desc';
     ReactiveFormsModule,
     RouterModule,
     CustomSelectComponent,
-    CustomAvatarComponent
+    CustomAvatarComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   templateUrl: './assessment-results.component.html',
   styleUrls: ['./assessment-results.component.css'],
@@ -72,8 +76,29 @@ export class AssessmentResultsComponent implements OnInit {
   isAnonymized = signal<boolean>(false);
 
   // Pagination / Load More
+  currentPage = signal<number>(1);
   pageSize = signal<number>(12);
   displayLimit = signal<number>(12);
+
+  isFiltered = computed(() => {
+    return (
+      this.selectedAssessmentId() !== 'all' ||
+      this.selectedPassStatuses().length < 2 ||
+      this.selectedGradingStatuses().length < 3 ||
+      this.selectedScoreBracket() !== 'all' ||
+      !!this.filterDateFrom() ||
+      !!this.filterDateTo() ||
+      this.searchQuery().trim().length > 0
+    );
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredAttempts().length > 0) return 'none';
+    if (this.rawAttempts().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    if (this.isFiltered()) return 'filter_miss';
+    return 'true_empty';
+  });
 
   // Floating Action Menu State
   showActionMenu = signal<boolean>(false);
@@ -316,8 +341,15 @@ export class AssessmentResultsComponent implements OnInit {
 
   // Displayed / Paginated Attempts
   paginatedAttempts = computed(() => {
-    return this.filteredAttempts().slice(0, this.displayLimit());
+    const list = this.filteredAttempts();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
   });
+
+  onSearchChange(query: string) {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
 
   // Remaining count for load more
   remainingAttemptsCount = computed(() => {

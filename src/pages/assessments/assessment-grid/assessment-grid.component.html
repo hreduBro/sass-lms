@@ -199,308 +199,170 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 4. SEARCH & FILTER CONTROLS (Custom Selects & Badge Filters)              -->
+  <!-- 4. REUSABLE DATA GRID & FILTERING                                         -->
   <!-- ========================================================================= -->
-  <div class="relative z-10 bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs space-y-3">
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-      
-      <!-- Left: Search Field + Filter Button + Reset Button -->
-      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
-        
-        <!-- Search Field -->
-        <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-          <input
-            type="text"
-            id="input-assessment-search"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-            placeholder="Search by title, code (e.g. ASM-101), tags, or description..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
-          @if (searchQuery()) {
-            <button 
-              type="button"
-              (click)="searchQuery.set('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
-              <span class="material-symbols-outlined text-sm">close</span>
-            </button>
-          }
-        </div>
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search by title, code (e.g. ASM-101), tags, or description..."
+    [isFilterOpen]="showFilterDrawer()"
+    (filterToggle)="showFilterDrawer.set($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="isFiltered()"
+    [showReset]="isFiltered()"
+    (resetGrid)="resetFilters()"
+    [viewMode]="viewMode()"
+    (viewModeChange)="viewMode.set($event)"
+    [showViewSwitcher]="true"
+    [itemCountText]="'Showing ' + filteredAssessments().length + ' of ' + lmsService.assessments().length + ' assessments'"
+    filterPanelTitle="FILTER ASSESSMENTS"
+    filterPanelSubtitle="Filter by lifecycle status, instrument type, scoring modes, category tags, manual grading & sorting"
+    [emptyStateType]="emptyStateType()"
+    emptyTitle="No assessment instruments in this LMS bank"
+    emptyMessage="Create your first authorable assessment instrument to start building questions and conducting exams."
+    emptyIcon="quiz"
+    emptyActionText="Create Assessment"
+    (emptyAction)="onCreateNew()"
+    (clearFilters)="resetFilters()"
+    (cancelFilters)="showFilterDrawer.set(false)"
+    (applyFilters)="showFilterDrawer.set(false)"
+    [showPagination]="filteredAssessments().length > 0"
+    [totalItems]="filteredAssessments().length"
+    [currentPage]="currentPage()"
+    (pageChange)="currentPage.set($event)"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="pageSize.set($event); currentPage.set(1)"
+    [pageSizeOptions]="[9, 18, 27, 45]"
+    itemLabel="assessments">
 
-        <!-- Filter Button beside Search -->
-        <button 
-          type="button"
-          id="btn-toggle-assessment-filter"
-          (click)="toggleFilterDrawer()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="showFilterDrawer() || isFiltered()
-            ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!showFilterDrawer() && !isFiltered()" [class.text-white]="showFilterDrawer() || isFiltered()">tune</span>
-          <span>Filters</span>
-          @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-              {{ activeFilterCount() }}
-            </span>
-          }
-        </button>
-
-        <!-- Grid-Level Reset Button -->
-        @if (isFiltered()) {
-          <button 
-            type="button"
-            id="btn-assessment-reset"
-            (click)="resetFilters()"
-            class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            title="Reset Filters">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            <span class="hidden sm:inline">Reset</span>
-          </button>
-        }
+    <!-- Filter Panel Drawer Projection -->
+    <div filter-panel class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-xs pt-1">
+      <!-- Status Filter -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Status</label>
+        <app-custom-select
+          [options]="statusOptions"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event); currentPage.set(1)"
+          placeholder="All Statuses">
+        </app-custom-select>
       </div>
 
-      <!-- Right: View Mode Toggle (Grid vs Table) -->
-      <div class="flex items-center gap-2 self-end sm:self-auto">
-        <div class="flex items-center bg-slate-100 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/60 dark:border-base-300">
-          <button
-            type="button"
-            (click)="viewMode.set('grid')"
-            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
-            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
-            title="Grid View">
-            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
-          </button>
-          <button
-            type="button"
-            (click)="viewMode.set('table')"
-            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
-            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
-            title="Table View">
-            <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
-          </button>
-        </div>
+      <!-- Type Filter -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Assessment Type</label>
+        <app-custom-select
+          [options]="typeOptions"
+          [ngModel]="selectedType()"
+          (ngModelChange)="selectedType.set($event); currentPage.set(1)"
+          placeholder="All Types">
+        </app-custom-select>
+      </div>
+
+      <!-- Scoring Mode Filter -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Scoring Mode</label>
+        <app-custom-select
+          [options]="scoringModeOptions"
+          [ngModel]="selectedScoringMode()"
+          (ngModelChange)="selectedScoringMode.set($event); currentPage.set(1)"
+          placeholder="All Modes">
+        </app-custom-select>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Category</label>
+        <app-custom-select
+          [options]="categoryOptions()"
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="selectedCategory.set($event); currentPage.set(1)"
+          placeholder="All Categories">
+        </app-custom-select>
+      </div>
+
+      <!-- Manual Grading Filter -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Manual Grading</label>
+        <app-custom-select
+          [options]="manualGradingOptions"
+          [ngModel]="filterHasManualGrading()"
+          (ngModelChange)="filterHasManualGrading.set($event); currentPage.set(1)"
+          placeholder="All Modes">
+        </app-custom-select>
+      </div>
+
+      <!-- Pass Mark Policy -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Pass Mark Set</label>
+        <app-custom-select
+          [options]="passMarkOptions"
+          [ngModel]="filterHasPassMark()"
+          (ngModelChange)="filterHasPassMark.set($event); currentPage.set(1)"
+          placeholder="All Policies">
+        </app-custom-select>
+      </div>
+
+      <!-- Sort Order -->
+      <div class="space-y-1.5">
+        <label class="font-bold text-text-primary block">Sort By</label>
+        <app-custom-select
+          [options]="sortOptions"
+          [ngModel]="sortBy()"
+          (ngModelChange)="sortBy.set($event); currentPage.set(1)"
+          placeholder="Sort Order">
+        </app-custom-select>
       </div>
     </div>
 
-    <!-- Filter Drawer Panel with Custom Selects -->
-    @if (showFilterDrawer()) {
-      <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
-        
-        <!-- Header -->
-        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
-          <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
-            FILTER ASSESSMENTS
-          </h3>
-          <span class="text-[11px] text-text-secondary font-medium">
-            Filter by lifecycle status, instrument type, scoring modes, category tags, manual grading & sorting
-          </span>
-        </div>
-
-        <!-- Filter Body Grid with Custom Selects -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-xs pt-1">
-          
-          <!-- Status Filter -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Status</label>
-            <app-custom-select
-              [options]="statusOptions"
-              [ngModel]="selectedStatus()"
-              (ngModelChange)="selectedStatus.set($event)"
-              placeholder="All Statuses">
-            </app-custom-select>
-          </div>
-
-          <!-- Type Filter -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Assessment Type</label>
-            <app-custom-select
-              [options]="typeOptions"
-              [ngModel]="selectedType()"
-              (ngModelChange)="selectedType.set($event)"
-              placeholder="All Types">
-            </app-custom-select>
-          </div>
-
-          <!-- Scoring Mode Filter -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Scoring Mode</label>
-            <app-custom-select
-              [options]="scoringModeOptions"
-              [ngModel]="selectedScoringMode()"
-              (ngModelChange)="selectedScoringMode.set($event)"
-              placeholder="All Modes">
-            </app-custom-select>
-          </div>
-
-          <!-- Category Filter -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Category</label>
-            <app-custom-select
-              [options]="categoryOptions()"
-              [ngModel]="selectedCategory()"
-              (ngModelChange)="selectedCategory.set($event)"
-              placeholder="All Categories">
-            </app-custom-select>
-          </div>
-
-          <!-- Manual Grading Filter -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Manual Grading</label>
-            <app-custom-select
-              [options]="manualGradingOptions"
-              [ngModel]="filterHasManualGrading()"
-              (ngModelChange)="filterHasManualGrading.set($event)"
-              placeholder="All Modes">
-            </app-custom-select>
-          </div>
-
-          <!-- Pass Mark Policy -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Pass Mark Set</label>
-            <app-custom-select
-              [options]="passMarkOptions"
-              [ngModel]="filterHasPassMark()"
-              (ngModelChange)="filterHasPassMark.set($event)"
-              placeholder="All Policies">
-            </app-custom-select>
-          </div>
-
-          <!-- Sort Order -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-text-primary block">Sort By</label>
-            <app-custom-select
-              [options]="sortOptions"
-              [ngModel]="sortBy()"
-              (ngModelChange)="sortBy.set($event)"
-              placeholder="Sort Order">
-            </app-custom-select>
-          </div>
-        </div>
-
-        <!-- Filter Panel Footer Actions -->
-        <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
-          <button 
-            type="button"
-            (click)="resetFilters()" 
-            class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer">
-            Reset Filters
-          </button>
-          
-          <div class="text-xs text-text-secondary font-medium">
-            Showing <strong class="text-text-primary font-bold">{{ filteredAssessments().length }}</strong> of {{ lmsService.assessments().length }} assessments
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Active Filter Tags Row -->
-    @if (isFiltered()) {
-      <div class="flex items-center gap-2 flex-wrap pt-1 text-xs border-t border-slate-100 dark:border-base-300">
-        <span class="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">Active Filters:</span>
-        
-        @if (selectedStatus() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Status: {{ selectedStatus() }}</span>
-            <button (click)="selectedStatus.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        @if (selectedType() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Type: {{ selectedType() }}</span>
-            <button (click)="selectedType.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        @if (selectedScoringMode() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Mode: {{ selectedScoringMode() }}</span>
-            <button (click)="selectedScoringMode.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        @if (selectedCategory() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Category: {{ selectedCategory() }}</span>
-            <button (click)="selectedCategory.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        @if (filterHasManualGrading() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Manual: {{ filterHasManualGrading() === 'yes' ? 'Required' : 'Auto-only' }}</span>
-            <button (click)="filterHasManualGrading.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        @if (filterHasPassMark() !== 'all') {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
-            <span>Pass Mark: {{ filterHasPassMark() === 'yes' ? 'Required' : 'None' }}</span>
-            <button (click)="filterHasPassMark.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
-          </span>
-        }
-
-        <button
-          (click)="resetFilters()"
-          class="text-tenant-600 dark:text-tenant-400 hover:underline text-[11px] font-semibold cursor-pointer ml-auto">
-          Clear All
-        </button>
-      </div>
-    }
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 5. MAIN CONTENT DISPLAY (Grid View vs Table View)                         -->
-  <!-- ========================================================================= -->
-  @if (lmsService.assessments().length === 0) {
-    <!-- True Zero State -->
-    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 p-12 text-center max-w-lg mx-auto space-y-4 shadow-2xs">
-      <div class="w-16 h-16 bg-slate-100 dark:bg-base-200 text-slate-400 rounded-2xl flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">quiz</span>
-      </div>
-      <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment instruments in this LMS bank</h3>
-      <p class="text-sm text-slate-500 dark:text-text-secondary">Create your first authorable assessment instrument to start building questions and conducting exams.</p>
-      @if (lmsService.assessmentPermissions().canCreateAssessment) {
-        <button
-          type="button"
-          (click)="onCreateNew()"
-          class="inline-flex items-center gap-2 px-5 py-2.5 btn-gradient text-white font-semibold text-xs rounded-xl shadow-md cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-base">add_circle</span>
-          <span>Create Assessment</span>
-        </button>
-      }
-    </div>
-  } @else if (filteredAssessments().length === 0) {
-    <!-- Filtered Empty State -->
-    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 p-12 text-center max-w-lg mx-auto space-y-4 shadow-2xs">
-      <div class="w-16 h-16 bg-tenant-50 dark:bg-tenant-950/40 text-tenant-600 dark:text-tenant-400 rounded-2xl flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-3xl">search_off</span>
-      </div>
-
-      @if (searchQuery().trim() !== '') {
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment found</h3>
-        <p class="text-sm text-slate-500 dark:text-text-secondary">No assessment matching "{{ searchQuery() }}" was found in the question bank.</p>
-      } @else {
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">No assessment matching filters</h3>
-        <p class="text-sm text-slate-500 dark:text-text-secondary">Try adjusting or clearing your active filters to view available assessments.</p>
+    <!-- Active Filter Chips Projection -->
+    <div filter-chips class="contents">
+      @if (selectedStatus() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Status: {{ selectedStatus() }}</span>
+          <button (click)="selectedStatus.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
       }
 
-      <button
-        type="button"
-        (click)="resetFilters()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary font-semibold text-xs rounded-xl cursor-pointer"
-      >
-        <span class="material-symbols-outlined text-base">restart_alt</span>
-        <span>Clear Search & Filters</span>
-      </button>
+      @if (selectedType() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Type: {{ selectedType() }}</span>
+          <button (click)="selectedType.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
+      }
+
+      @if (selectedScoringMode() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Mode: {{ selectedScoringMode() }}</span>
+          <button (click)="selectedScoringMode.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
+      }
+
+      @if (selectedCategory() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Category: {{ selectedCategory() }}</span>
+          <button (click)="selectedCategory.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
+      }
+
+      @if (filterHasManualGrading() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Manual: {{ filterHasManualGrading() === 'yes' ? 'Required' : 'Auto-only' }}</span>
+          <button (click)="filterHasManualGrading.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
+      }
+
+      @if (filterHasPassMark() !== 'all') {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 text-[11px] font-semibold">
+          <span>Pass Mark: {{ filterHasPassMark() === 'yes' ? 'Required' : 'None' }}</span>
+          <button (click)="filterHasPassMark.set('all')" class="hover:text-rose-500 cursor-pointer"><span class="material-symbols-outlined text-xs">close</span></button>
+        </span>
+      }
     </div>
-  } @else if (viewMode() === 'grid') {
-    <!-- Grid View of Assessment Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-      @for (asm of filteredAssessments(); track asm.assessmentId) {
+
+    <!-- Grid View Projection -->
+    <div grid-view class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+      @for (asm of paginatedAssessments(); track asm.assessmentId) {
         @let curVer = getCurrentVersion(asm);
         <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
           
@@ -520,33 +382,27 @@
                   [class.border-emerald-200]="asm.status === 'published'"
                   [class.dark:bg-emerald-950/60]="asm.status === 'published'"
                   [class.dark:text-emerald-400]="asm.status === 'published'"
-                  [class.dark:border-emerald-800/60]="asm.status === 'published'"
+                  [class.dark:border-emerald-900/60]="asm.status === 'published'"
                   [class.bg-amber-50]="asm.status === 'draft'"
                   [class.text-amber-700]="asm.status === 'draft'"
                   [class.border-amber-200]="asm.status === 'draft'"
                   [class.dark:bg-amber-950/60]="asm.status === 'draft'"
                   [class.dark:text-amber-400]="asm.status === 'draft'"
-                  [class.dark:border-amber-800/60]="asm.status === 'draft'"
+                  [class.dark:border-amber-900/60]="asm.status === 'draft'"
                   [class.bg-slate-100]="asm.status === 'inactive'"
                   [class.text-slate-600]="asm.status === 'inactive'"
                   [class.border-slate-200]="asm.status === 'inactive'"
                   [class.dark:bg-base-200]="asm.status === 'inactive'"
                   [class.dark:text-slate-400]="asm.status === 'inactive'"
-                  class="px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize border"
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border"
                 >
                   {{ asm.status }}
                 </span>
 
-                <!-- Type Badge -->
-                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 uppercase">
-                  {{ asm.type }}
+                <span class="text-[11px] font-bold font-mono px-2 py-0.5 bg-slate-100 dark:bg-base-200 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200/60 dark:border-base-300">
+                  {{ curVer?.versionLabel || 'v1' }}
                 </span>
               </div>
-
-              <!-- Version Tag -->
-              <span class="text-[11px] font-bold font-mono px-2 py-0.5 bg-slate-100 dark:bg-base-200 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200/60 dark:border-base-300">
-                {{ curVer?.versionLabel || 'v1' }}
-              </span>
             </div>
 
             <!-- Title & Description -->
@@ -684,9 +540,9 @@
         </div>
       }
     </div>
-  } @else {
-    <!-- Table View of Assessment Bank -->
-    <div class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 shadow-2xs overflow-hidden">
+
+    <!-- Table View Projection -->
+    <div table-view class="bg-white dark:bg-base-100 rounded-[28px] border border-slate-200/80 dark:border-base-300 shadow-2xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-700 dark:text-slate-200">
           <thead class="bg-slate-50 dark:bg-base-200/70 border-b border-slate-200/80 dark:border-base-300 text-xs uppercase font-semibold text-slate-500 dark:text-text-secondary">
@@ -697,13 +553,13 @@
               <th class="px-4 py-3.5">Status & Version</th>
               <th class="px-4 py-3.5">Attempts</th>
               <th class="px-4 py-3.5">Instructor</th>
-              <th class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-base-200/90 z-20 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]">
+              <th class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-base-200/90 z-10 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-base-300">
-            @for (asm of filteredAssessments(); track asm.assessmentId) {
+            @for (asm of paginatedAssessments(); track asm.assessmentId) {
               @let curVer = getCurrentVersion(asm);
               <tr class="group hover:bg-slate-50/80 dark:hover:bg-base-200/40 transition-colors">
                 <td class="px-5 py-4">
@@ -782,7 +638,7 @@
                 </td>
 
                 <!-- Three-dot Actions Column -->
-                <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-20 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]" (click)="$event.stopPropagation()">
+                <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[70px] min-w-[70px] border-b border-l border-slate-200/80 dark:border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]" (click)="$event.stopPropagation()">
                   <div class="flex items-center justify-center">
                     <button 
                       type="button"
@@ -802,7 +658,8 @@
         </table>
       </div>
     </div>
-  }
+
+  </app-data-grid>
 </div>
 
 <!-- ========================================================================= -->

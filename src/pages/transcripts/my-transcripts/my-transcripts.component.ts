@@ -9,6 +9,8 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
 import { Kpi } from '../../../models/dashboard.model';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 
 @Component({
   selector: 'app-my-transcripts',
@@ -19,7 +21,9 @@ import { Kpi } from '../../../models/dashboard.model';
     TranscriptSheetComponent, 
     CustomAvatarComponent,
     CustomSelectComponent,
-    KpiCardComponent
+    KpiCardComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   template: `
     <div class="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto pb-24">
@@ -92,354 +96,270 @@ import { Kpi } from '../../../models/dashboard.model';
       </div>
 
       <!-- ========================================================================= -->
-      <!-- 3. SEARCH & MULTI-CRITERIA FILTER CONTROLS (REDESIGNED PER IMAGE 1)       -->
+      <!-- 3. REUSABLE DATA GRID & FILTERING                                         -->
       <!-- ========================================================================= -->
-      <div class="space-y-3">
-        <!-- Search & Level Tabs Toolbar -->
-        <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-3.5 sm:p-4 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 relative z-30">
-          
-          <!-- Left: Search Field + Filters Button + Reset -->
-          <div class="flex items-center gap-2.5 flex-1 max-w-xl">
-            <!-- Search Field -->
-            <div class="relative flex-1">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-              <input
-                type="text"
-                [ngModel]="searchTerm()"
-                (ngModelChange)="searchTerm.set($event)"
-                placeholder="Search by Course/Phase name, serial number..."
-                class="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 rounded-2xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs font-medium" />
-              @if (searchTerm()) {
-                <button 
-                  type="button" 
-                  (click)="searchTerm.set('')"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-              }
-            </div>
-
-            <!-- Filters Toggle Button -->
-            <button
-              type="button"
-              (click)="toggleFilterPanel()"
-              class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-              [class]="isFilterPanelOpen() || activeFilterCount() > 0
-                ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs font-bold'
-                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
-              title="Toggle Filters">
-              <span class="material-symbols-outlined text-base">filter_list</span>
-              <span>Filters</span>
-              @if (activeFilterCount() > 0) {
-                <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-                  {{ activeFilterCount() }}
-                </span>
-              }
-            </button>
-
-            <!-- Reset Button -->
-            @if (activeFilterCount() > 0 || searchTerm()) {
-              <button
-                type="button"
-                (click)="clearAllFilters()"
-                class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
-                title="Reset Filters">
-                <span class="material-symbols-outlined text-sm">restart_alt</span>
-                <span>Reset</span>
-              </button>
-            }
-          </div>
-
-          <!-- Right: Level Fast Switch Tabs -->
-          <div class="flex items-center gap-1.5 overflow-x-auto p-1 bg-slate-50 dark:bg-base-200/50 rounded-2xl border border-slate-200/80 dark:border-base-300 shrink-0">
-            <button
-              type="button"
-              (click)="selectTab('all')"
-              class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
-              [class]="selectedTab() === 'all' 
-                ? 'bg-tenant-500 text-white shadow-xs' 
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
-              All ({{ myTranscripts().length }})
-            </button>
-
-            <button
-              type="button"
-              (click)="selectTab('plan')"
-              class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-              [class]="selectedTab() === 'plan' 
-                ? 'bg-tenant-500 text-white shadow-xs' 
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
-              <span>Plans</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full" [class]="selectedTab() === 'plan' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
-                {{ countByLevel('plan') }}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              (click)="selectTab('phase')"
-              class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-              [class]="selectedTab() === 'phase' 
-                ? 'bg-tenant-500 text-white shadow-xs' 
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
-              <span>Phases</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full" [class]="selectedTab() === 'phase' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
-                {{ countByLevel('phase') }}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              (click)="selectTab('course')"
-              class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
-              [class]="selectedTab() === 'course' 
-                ? 'bg-tenant-500 text-white shadow-xs' 
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
-              <span>Courses</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full" [class]="selectedTab() === 'course' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
-                {{ countByLevel('course') }}
-              </span>
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Expandable Multi-Criteria Filter Panel with app-custom-select -->
-        @if (isFilterPanelOpen()) {
-          <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200 space-y-4 relative z-20">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-base-300">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
-                <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Refine Transcript Criteria</h4>
-              </div>
-              <button (click)="cancelFilterPanel()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-base-200 text-slate-400 hover:text-slate-600 cursor-pointer">
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <!-- Status Custom Select -->
+      <app-data-grid
+        [searchQuery]="searchTerm()"
+        (searchChange)="onSearchChange($event)"
+        searchPlaceholder="Search by Course/Phase name, serial number..."
+        [isFilterOpen]="isFilterPanelOpen()"
+        (filterToggle)="isFilterPanelOpen.set($event)"
+        [activeFilterCount]="activeFilterCount()"
+        [hasActiveFilters]="activeFilterCount() > 0 || searchTerm().length > 0"
+        [showReset]="activeFilterCount() > 0 || searchTerm().length > 0"
+        (resetGrid)="clearAllFilters()"
+        (clearFilters)="clearDraftFilters()"
+        (cancelFilters)="cancelFilterPanel()"
+        (applyFilters)="applyFilterPanel()"
+        viewMode="grid"
+        [showViewSwitcher]="false"
+        [itemCountText]="'Showing ' + filteredMyTranscripts().length + ' of ' + myTranscripts().length + ' records'"
+        filterPanelTitle="REFINE TRANSCRIPT CRITERIA"
+        filterPanelSubtitle="Filter transcripts across assessment status, level, release state, and sorting"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)"
+        [pageSize]="pageSize()"
+        (pageSizeChange)="pageSize.set($event)"
+        [totalItems]="filteredMyTranscripts().length"
+        [emptyStateType]="emptyStateType()"
+        emptyStateIcon="school"
+        emptyStateTitle="No academic transcripts found"
+        emptyStateMessage="As you complete your assigned courses, training phases, and closed plans, your official academic transcripts will automatically appear here."
+        emptyActionLabel="Reset Filters"
+        (emptyActionClick)="clearAllFilters()"
+      >
+        <!-- Filter Panel Projection -->
+        <div filter-panel class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Status Custom Select -->
+            <app-filter-section title="1. Assessment Status">
               <app-custom-select
-                label="Assessment Status"
                 [options]="statusOptions"
                 [clearable]="false"
                 [ngModel]="draftStatus()"
                 (ngModelChange)="draftStatus.set($event)">
               </app-custom-select>
+            </app-filter-section>
 
-              <!-- Level Custom Select -->
+            <!-- Level Custom Select -->
+            <app-filter-section title="2. Transcript Level">
               <app-custom-select
-                label="Transcript Level"
                 [options]="levelOptions"
                 [clearable]="false"
                 [ngModel]="draftLevel()"
                 (ngModelChange)="draftLevel.set($event)">
               </app-custom-select>
+            </app-filter-section>
 
-              <!-- Release State Custom Select -->
+            <!-- Release State Custom Select -->
+            <app-filter-section title="3. Release State">
               <app-custom-select
-                label="Release State"
                 [options]="releaseStateOptions"
                 [clearable]="false"
                 [ngModel]="draftReleaseState()"
                 (ngModelChange)="draftReleaseState.set($event)">
               </app-custom-select>
+            </app-filter-section>
 
-              <!-- Sort Custom Select -->
+            <!-- Sort Custom Select -->
+            <app-filter-section title="4. Sort Order">
               <app-custom-select
-                label="Sort Order"
                 [options]="sortByOptions"
                 [clearable]="false"
                 [ngModel]="draftSort()"
                 (ngModelChange)="draftSort.set($event)">
               </app-custom-select>
-            </div>
-
-            <!-- Filter Drawer Footer Actions (Cancel & Apply Filter) -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-base-300">
-              <button 
-                type="button" 
-                (click)="clearDraftFilters()"
-                class="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-sm">restart_alt</span>
-                Clear All Selections
-              </button>
-              
-              <div class="flex items-center gap-2">
-                <button 
-                  type="button" 
-                  (click)="cancelFilterPanel()"
-                  class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 rounded-xl transition-colors cursor-pointer">
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  (click)="applyFilterPanel()"
-                  class="px-5 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-xs transition-colors cursor-pointer">
-                  Apply Filter
-                </button>
-              </div>
-            </div>
-
-          </div>
-        }
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- 4. TRANSCRIPTS GRID CARDS                                                 -->
-      <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (t of filteredMyTranscripts(); track t.transcriptId) {
-          
-          <!-- Released Transcript Card -->
-          @if (t.releaseState === 'released') {
-            <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-md hover:border-tenant-500/30 transition-all p-5 sm:p-6 flex flex-col justify-between space-y-4">
-              <div class="space-y-3.5">
-                
-                <!-- Level & Serial Bar -->
-                <div class="flex items-center justify-between">
-                  <span [class]="getLevelBadgeClass(t.level)">
-                    {{ t.level | uppercase }}
-                  </span>
-                  <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-bold bg-slate-100 dark:bg-base-200 px-2 py-0.5 rounded-lg">
-                    {{ t.content.serialNumber }}
-                  </span>
-                </div>
-
-                <!-- Scope Title -->
-                <div class="space-y-1">
-                  <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug line-clamp-2">
-                    {{ t.scopeName }}
-                  </h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    Plan: <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ t.planName }}</span>
-                  </p>
-                </div>
-
-                <!-- Performance Summary Box -->
-                <div class="p-3.5 bg-slate-50 dark:bg-base-200/50 rounded-2xl border border-slate-200/80 dark:border-base-300 flex items-center justify-between text-xs">
-                  <div>
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Score / Result</div>
-                    <div class="text-base font-black text-slate-900 dark:text-white font-mono mt-0.5">{{ t.content.result }}</div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Status</div>
-                    <span [class]="getStatusBadgeClass(t.content.status)" class="inline-flex items-center gap-1.5 whitespace-nowrap">
-                      <span class="w-1.5 h-1.5 rounded-full shrink-0" [ngClass]="{
-                        'bg-emerald-500': t.content.status === 'pass',
-                        'bg-rose-500': t.content.status === 'fail',
-                        'bg-blue-500': t.content.status === 'completed',
-                        'bg-slate-400': t.content.status !== 'pass' && t.content.status !== 'fail' && t.content.status !== 'completed'
-                      }"></span>
-                      <span>{{ t.content.status | uppercase }}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Metadata Row -->
-                <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-                  <div class="flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-xs text-slate-400">calendar_today</span>
-                    <span>Completed: <strong class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ t.content.completionDate }}</strong></span>
-                  </div>
-                  <div class="text-right flex items-center justify-end gap-1.5">
-                    <span class="material-symbols-outlined text-xs text-slate-400">schedule</span>
-                    <span>Credits: <strong class="font-bold text-slate-700 dark:text-slate-300">{{ t.content.totalCredits }} hrs</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Footer -->
-              <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center gap-2">
-                <button
-                  type="button"
-                  (click)="viewTranscript(t)"
-                  class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">visibility</span>
-                  <span>View Transcript</span>
-                </button>
-
-                @if (t.downloadEnabled) {
-                  <button
-                    type="button"
-                    (click)="downloadPdf(t)"
-                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
-                    title="Download Official CSV / Sheet">
-                    <span class="material-symbols-outlined text-sm">download</span>
-                    <span>CSV</span>
-                  </button>
-                } @else {
-                  <span
-                    class="px-3.5 py-2.5 bg-slate-100 dark:bg-base-200 text-slate-400 rounded-xl text-xs font-bold flex items-center gap-1 cursor-not-allowed border border-slate-200 dark:border-base-300"
-                    title="Download is not enabled for this transcript.">
-                    <span class="material-symbols-outlined text-sm text-amber-500">lock</span>
-                    <span>Locked</span>
-                  </span>
-                }
-              </div>
-            </div>
-          }
-
-          <!-- Pending / Plan-Not-Closed Locked Informative Card -->
-          @if (t.releaseState === 'pending') {
-            <div class="bg-amber-50/40 dark:bg-amber-950/20 rounded-3xl border border-amber-200/80 dark:border-amber-800/60 p-5 sm:p-6 flex flex-col justify-between space-y-4 relative overflow-hidden shadow-2xs">
-              <div class="space-y-3.5">
-                <div class="flex items-center justify-between">
-                  <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-200 uppercase tracking-wider">
-                    Plan Level · Pending Closure
-                  </span>
-                  <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-base">lock_clock</span>
-                </div>
-
-                <div class="space-y-1">
-                  <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug">
-                    {{ t.scopeName }}
-                  </h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Plan Completed on <span class="font-bold text-slate-700 dark:text-slate-300">{{ t.content.completionDate }}</span>
-                  </p>
-                </div>
-
-                <!-- Plan Closed Gate Notice -->
-                <div class="p-3.5 bg-white/90 dark:bg-base-100/90 rounded-2xl border border-amber-200 dark:border-amber-800/60 text-xs space-y-1 shadow-2xs">
-                  <div class="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-                    <span class="material-symbols-outlined text-sm">info</span>
-                    <span>Awaiting Plan Administrative Closure</span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Your Plan transcript will be available after the Plan is completed and closed by the academic directorate.
-                  </p>
-                </div>
-              </div>
-
-              <div class="pt-3 border-t border-amber-200/60 dark:border-amber-800/40 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">Score: {{ t.content.result }}</span>
-                <span class="text-amber-700 dark:text-amber-400 font-bold text-[11px]">Gated on Plan Closure</span>
-              </div>
-            </div>
-          }
-
-        }
-      </div>
-
-      <!-- Empty State -->
-      @if (filteredMyTranscripts().length === 0) {
-        <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-12 text-center space-y-3 shadow-2xs">
-          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">school</span>
-          <h3 class="text-base font-black text-slate-900 dark:text-white">No transcripts released yet</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-            As you complete your assigned courses, training phases, and closed plans, your official academic transcripts will automatically appear here for viewing and verification.
-          </p>
-          <div class="pt-2">
-            <a
-              routerLink="/courses/dashboard"
-              class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-2xl transition-colors shadow-xs cursor-pointer">
-              <span class="material-symbols-outlined text-sm">menu_book</span>
-              <span>Go to Courses</span>
-            </a>
+            </app-filter-section>
           </div>
         </div>
-      }
+
+        <!-- Fast Tabs Toolbar Right Projection -->
+        <div toolbar-right class="flex items-center gap-1.5 overflow-x-auto p-1 bg-slate-50 dark:bg-base-200/50 rounded-2xl border border-slate-200/80 dark:border-base-300">
+          <button
+            type="button"
+            (click)="selectTab('all')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+            [class]="selectedTab() === 'all' 
+              ? 'bg-tenant-500 text-white shadow-xs' 
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+            All ({{ myTranscripts().length }})
+          </button>
+
+          <button
+            type="button"
+            (click)="selectTab('plan')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+            [class]="selectedTab() === 'plan' 
+              ? 'bg-tenant-500 text-white shadow-xs' 
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+            <span>Plans</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full" [class]="selectedTab() === 'plan' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
+              {{ countByLevel('plan') }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            (click)="selectTab('phase')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+            [class]="selectedTab() === 'phase' 
+              ? 'bg-tenant-500 text-white shadow-xs' 
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+            <span>Phases</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full" [class]="selectedTab() === 'phase' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
+              {{ countByLevel('phase') }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            (click)="selectTab('course')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+            [class]="selectedTab() === 'course' 
+              ? 'bg-tenant-500 text-white shadow-xs' 
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+            <span>Courses</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full" [class]="selectedTab() === 'course' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-base-300 text-slate-700 dark:text-slate-300'">
+              {{ countByLevel('course') }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Grid View Projection -->
+        <div grid-view class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (t of paginatedMyTranscripts(); track t.transcriptId) {
+            
+            <!-- Released Transcript Card -->
+            @if (t.releaseState === 'released') {
+              <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-md hover:border-tenant-500/30 transition-all p-5 sm:p-6 flex flex-col justify-between space-y-4">
+                <div class="space-y-3.5">
+                  
+                  <!-- Level & Serial Bar -->
+                  <div class="flex items-center justify-between">
+                    <span [class]="getLevelBadgeClass(t.level)">
+                      {{ t.level | uppercase }}
+                    </span>
+                    <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-bold bg-slate-100 dark:bg-base-200 px-2 py-0.5 rounded-lg">
+                      {{ t.content.serialNumber }}
+                    </span>
+                  </div>
+
+                  <!-- Scope Title -->
+                  <div class="space-y-1">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug line-clamp-2">
+                      {{ t.scopeName }}
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      Plan: <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ t.planName }}</span>
+                    </p>
+                  </div>
+
+                  <!-- Performance Summary Box -->
+                  <div class="p-3.5 bg-slate-50 dark:bg-base-200/50 rounded-2xl border border-slate-200/80 dark:border-base-300 flex items-center justify-between text-xs">
+                    <div>
+                      <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Score / Result</div>
+                      <div class="text-base font-black text-slate-900 dark:text-white font-mono mt-0.5">{{ t.content.result }}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Status</div>
+                      <span [class]="getStatusBadgeClass(t.content.status)" class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0" [ngClass]="{
+                          'bg-emerald-500': t.content.status === 'pass',
+                          'bg-rose-500': t.content.status === 'fail',
+                          'bg-blue-500': t.content.status === 'completed',
+                          'bg-slate-400': t.content.status !== 'pass' && t.content.status !== 'fail' && t.content.status !== 'completed'
+                        }"></span>
+                        <span>{{ t.content.status | uppercase }}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Metadata Row -->
+                  <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-xs text-slate-400">calendar_today</span>
+                      <span>Completed: <strong class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ t.content.completionDate }}</strong></span>
+                    </div>
+                    <div class="text-right flex items-center justify-end gap-1.5">
+                      <span class="material-symbols-outlined text-xs text-slate-400">schedule</span>
+                      <span>Credits: <strong class="font-bold text-slate-700 dark:text-slate-300">{{ t.content.totalCredits }} hrs</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="viewTranscript(t)"
+                    class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">visibility</span>
+                    <span>View Transcript</span>
+                  </button>
+
+                  @if (t.downloadEnabled) {
+                    <button
+                      type="button"
+                      (click)="downloadPdf(t)"
+                      class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                      title="Download Official CSV / Sheet">
+                      <span class="material-symbols-outlined text-sm">download</span>
+                      <span>CSV</span>
+                    </button>
+                  } @else {
+                    <span
+                      class="px-3.5 py-2.5 bg-slate-100 dark:bg-base-200 text-slate-400 rounded-xl text-xs font-bold flex items-center gap-1 cursor-not-allowed border border-slate-200 dark:border-base-300"
+                      title="Download is not enabled for this transcript.">
+                      <span class="material-symbols-outlined text-sm text-amber-500">lock</span>
+                      <span>Locked</span>
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Pending / Plan-Not-Closed Locked Informative Card -->
+            @if (t.releaseState === 'pending') {
+              <div class="bg-amber-50/40 dark:bg-amber-950/20 rounded-3xl border border-amber-200/80 dark:border-amber-800/60 p-5 sm:p-6 flex flex-col justify-between space-y-4 relative overflow-hidden shadow-2xs">
+                <div class="space-y-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-200 uppercase tracking-wider">
+                      Plan Level · Pending Closure
+                    </span>
+                    <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-base">lock_clock</span>
+                  </div>
+
+                  <div class="space-y-1">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug">
+                      {{ t.scopeName }}
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Plan Completed on <span class="font-bold text-slate-700 dark:text-slate-300">{{ t.content.completionDate }}</span>
+                    </p>
+                  </div>
+
+                  <!-- Plan Closed Gate Notice -->
+                  <div class="p-3.5 bg-white/90 dark:bg-base-100/90 rounded-2xl border border-amber-200 dark:border-amber-800/60 text-xs space-y-1 shadow-2xs">
+                    <div class="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                      <span class="material-symbols-outlined text-sm">info</span>
+                      <span>Awaiting Plan Administrative Closure</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Your Plan transcript will be available after the Plan is completed and closed by the academic directorate.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-amber-200/60 dark:border-amber-800/40 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">Score: {{ t.content.result }}</span>
+                  <span class="text-amber-700 dark:text-amber-400 font-bold text-[11px]">Gated on Plan Closure</span>
+                </div>
+              </div>
+            }
+
+          }
+        </div>
+      </app-data-grid>
 
       <!-- Official Transcript Document Modal -->
       @if (activeTranscript()) {
@@ -578,6 +498,29 @@ export class MyTranscriptsComponent {
     });
   });
 
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(6);
+
+  paginatedMyTranscripts = computed(() => {
+    const list = this.filteredMyTranscripts();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    return list.slice((page - 1) * size, page * size);
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredMyTranscripts().length > 0) return 'none';
+    if (this.myTranscripts().length === 0) return 'true_empty';
+    if (this.searchTerm().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
+  });
+
+  onSearchChange(val: string) {
+    this.searchTerm.set(val);
+    this.currentPage.set(1);
+  }
+
   releasedCount = computed(() => this.myTranscripts().filter(t => t.releaseState === 'released').length);
   pendingCount = computed(() => this.myTranscripts().filter(t => t.releaseState === 'pending').length);
   totalCredits = computed(() => this.myTranscripts().reduce((sum, t) => sum + (t.content.totalCredits || 0), 0));
@@ -627,6 +570,7 @@ export class MyTranscriptsComponent {
     this.selectedTab.set(tab);
     this.selectedLevel.set(tab);
     this.draftLevel.set(tab);
+    this.currentPage.set(1);
   }
 
   toggleFilterPanel() {
@@ -657,6 +601,7 @@ export class MyTranscriptsComponent {
     if (this.draftLevel() === 'all' || this.draftLevel() === 'plan' || this.draftLevel() === 'phase' || this.draftLevel() === 'course') {
       this.selectedTab.set(this.draftLevel() as any);
     }
+    this.currentPage.set(1);
     this.isFilterPanelOpen.set(false);
   }
 
@@ -678,6 +623,7 @@ export class MyTranscriptsComponent {
     this.draftLevel.set('all');
     this.draftReleaseState.set('all');
     this.draftSort.set('newest');
+    this.currentPage.set(1);
     this.isFilterPanelOpen.set(false);
   }
 

@@ -26,125 +26,155 @@
     </div>
   </div>
 
-  <!-- Search & Filter Controls -->
-  <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div class="relative flex-1 max-w-md">
-      <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-base">search</span>
-      <input 
-        type="text"
-        [(ngModel)]="searchQuery"
-        placeholder="Search student, serial (e.g. BRAC-CERT), course..."
-        class="w-full pl-9 pr-9 py-2 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors" />
-      @if (searchQuery()) {
-        <button type="button" (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
-          <span class="material-symbols-outlined text-xs">close</span>
-        </button>
-      }
+  <!-- REUSABLE DATA GRID & FILTERING -->
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search student, serial (e.g. BRAC-CERT), course, or phase..."
+    [isFilterOpen]="isFilterOpen()"
+    (filterToggle)="isFilterOpen.set($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="activeFilterCount() > 0"
+    [showReset]="activeFilterCount() > 0 || searchQuery().trim().length > 0"
+    (resetGrid)="clearAllFilters()"
+    viewMode="table"
+    [showViewSwitcher]="false"
+    [itemCountText]="'Showing ' + filteredRecords().length + ' of ' + issuedCertificates().length + ' credentials'"
+    filterPanelTitle="FILTER ISSUED CREDENTIALS"
+    filterPanelSubtitle="Filter credentials by verification status and enrolled courses"
+    [currentPage]="currentPage()"
+    (pageChange)="currentPage.set($event)"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="pageSize.set($event)"
+    [totalItems]="filteredRecords().length"
+    [emptyStateType]="emptyStateType()"
+    emptyStateIcon="verified_user"
+    emptyStateTitle="No issued certificates found"
+    emptyStateMessage="Try adjusting your search query or status/course filters."
+    emptyActionLabel="Reset Filters"
+    (emptyActionClick)="clearAllFilters()"
+  >
+    <!-- Filter Panel Projection -->
+    <div filter-panel class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Status Filter -->
+        <app-filter-section title="1. Verification Status">
+          <app-custom-select
+            [options]="statusOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
+
+        <!-- Course Filter -->
+        <app-filter-section title="2. Course Program">
+          <app-custom-select
+            [options]="courseOptions()"
+            [clearable]="false"
+            [searchable]="true"
+            [ngModel]="selectedCourse()"
+            (ngModelChange)="selectedCourse.set($event); currentPage.set(1)">
+          </app-custom-select>
+        </app-filter-section>
+      </div>
     </div>
 
-    <div class="flex items-center gap-3">
-      <select 
-        [(ngModel)]="selectedStatus"
-        class="px-3 py-2 bg-base-200 border border-base-300 rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-tenant-500">
-        <option value="all">Status: All</option>
-        <option value="valid">Valid & Verified</option>
-        <option value="revoked">Revoked</option>
-        <option value="expired">Expired</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Records Table -->
-  <div class="bg-base-100 border border-base-300 rounded-3xl overflow-hidden shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm text-text-primary">
-        <thead class="bg-base-200 text-[11px] font-bold uppercase tracking-wider text-text-secondary border-b border-base-300">
-          <tr>
-            <th class="py-3.5 px-4">Serial & Recipient</th>
-            <th class="py-3.5 px-4">Course & Phase Output</th>
-            <th class="py-3.5 px-4">Applied Template</th>
-            <th class="py-3.5 px-4">Issue Date</th>
-            <th class="py-3.5 px-4">Status</th>
-            <th class="py-3.5 px-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-base-300 text-xs">
-          @for (cert of filteredRecords(); track cert.serialNumber) {
-            <tr class="hover:bg-base-200/50 transition-colors">
-              <!-- Recipient -->
-              <td class="py-3 px-4">
-                <div class="font-semibold text-text-primary">{{ cert.studentName }}</div>
-                <div class="font-mono text-[11px] text-tenant-600 dark:text-tenant-400 font-bold">{{ cert.serialNumber }}</div>
-                <div class="text-[10px] text-text-secondary">{{ cert.studentEmail }}</div>
-              </td>
-
-              <!-- Course / Phase -->
-              <td class="py-3 px-4">
-                <div class="font-medium text-text-primary">{{ cert.courseTitle }}</div>
-                <div class="text-[11px] text-text-secondary">{{ cert.phaseTitle }}</div>
-                @if (cert.grade) {
-                  <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                    {{ cert.grade }}
-                  </span>
-                }
-              </td>
-
-              <!-- Template -->
-              <td class="py-3 px-4">
-                <span class="font-medium text-text-primary block">{{ cert.templateName }}</span>
-                <span class="font-mono text-[10px] text-text-secondary">{{ cert.templateId }}</span>
-              </td>
-
-              <!-- Issue Date -->
-              <td class="py-3 px-4 text-text-secondary">
-                {{ cert.issueDate }}
-              </td>
-
-              <!-- Status -->
-              <td class="py-3 px-4">
-                <span 
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
-                  [class.bg-emerald-50]="cert.status === 'valid'"
-                  [class.dark:bg-emerald-950/80]="cert.status === 'valid'"
-                  [class.text-emerald-700]="cert.status === 'valid'"
-                  [class.dark:text-emerald-300]="cert.status === 'valid'"
-                  [class.border-emerald-200]="cert.status === 'valid'"
-                  [class.dark:border-emerald-500/40]="cert.status === 'valid'"
-                  [class.bg-rose-50]="cert.status === 'revoked'"
-                  [class.dark:bg-rose-950/80]="cert.status === 'revoked'"
-                  [class.text-rose-700]="cert.status === 'revoked'"
-                  [class.dark:text-rose-300]="cert.status === 'revoked'"
-                  [class.border-rose-200]="cert.status === 'revoked'"
-                  [class.dark:border-rose-500/40]="cert.status === 'revoked'">
-                  {{ cert.status }}
-                </span>
-              </td>
-
-              <!-- Actions -->
-              <td class="py-3 px-4 text-right">
-                <div class="flex items-center justify-end gap-1.5">
-                  <button 
-                    type="button"
-                    (click)="viewCertificate(cert)"
-                    class="p-1.5 text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/20 rounded-lg transition-colors"
-                    title="View Credential">
-                    <span class="material-symbols-outlined text-sm">visibility</span>
-                  </button>
-                  <button 
-                    type="button"
-                    (click)="copyVerificationUrl(cert)"
-                    class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors"
-                    title="Copy Verification Link">
-                    <span class="material-symbols-outlined text-sm">link</span>
-                  </button>
-                </div>
-              </td>
+    <!-- Table View Projection -->
+    <div table-view class="bg-base-100 border border-base-300 rounded-3xl overflow-hidden shadow-2xs">
+      <div class="overflow-x-auto min-h-[360px]">
+        <table class="w-full text-left text-xs text-text-primary border-collapse">
+          <thead class="bg-base-200/50 text-[11px] font-bold uppercase tracking-wider text-text-secondary border-b border-base-300 select-none">
+            <tr>
+              <th class="py-3.5 px-4 min-w-[200px]">Serial & Recipient</th>
+              <th class="py-3.5 px-4 min-w-[220px]">Course & Phase Output</th>
+              <th class="py-3.5 px-4 min-w-[180px]">Applied Template</th>
+              <th class="py-3.5 px-4 min-w-[120px]">Issue Date</th>
+              <th class="py-3.5 px-4 min-w-[100px]">Status</th>
+              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[100px] min-w-[100px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="divide-y divide-base-300">
+            @for (cert of paginatedRecords(); track cert.serialNumber) {
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-base-200/50 transition-colors group">
+                <!-- Recipient -->
+                <td class="py-3.5 px-4">
+                  <div class="font-bold text-text-primary group-hover:text-tenant-600 transition-colors">{{ cert.studentName }}</div>
+                  <div class="font-mono text-[11px] text-tenant-600 dark:text-tenant-400 font-bold">{{ cert.serialNumber }}</div>
+                  <div class="text-[10px] text-text-secondary">{{ cert.studentEmail }}</div>
+                </td>
+
+                <!-- Course / Phase -->
+                <td class="py-3.5 px-4">
+                  <div class="font-medium text-text-primary">{{ cert.courseTitle }}</div>
+                  <div class="text-[11px] text-text-secondary">{{ cert.phaseTitle }}</div>
+                  @if (cert.grade) {
+                    <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      {{ cert.grade }}
+                    </span>
+                  }
+                </td>
+
+                <!-- Template -->
+                <td class="py-3.5 px-4">
+                  <span class="font-medium text-text-primary block">{{ cert.templateName }}</span>
+                  <span class="font-mono text-[10px] text-text-secondary">{{ cert.templateId }}</span>
+                </td>
+
+                <!-- Issue Date -->
+                <td class="py-3.5 px-4 text-text-secondary">
+                  {{ cert.issueDate }}
+                </td>
+
+                <!-- Status -->
+                <td class="py-3.5 px-4">
+                  <span 
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                    [class.bg-emerald-50]="cert.status === 'valid'"
+                    [class.dark:bg-emerald-950/80]="cert.status === 'valid'"
+                    [class.text-emerald-700]="cert.status === 'valid'"
+                    [class.dark:text-emerald-300]="cert.status === 'valid'"
+                    [class.border-emerald-200]="cert.status === 'valid'"
+                    [class.dark:border-emerald-500/40]="cert.status === 'valid'"
+                    [class.bg-rose-50]="cert.status === 'revoked'"
+                    [class.dark:bg-rose-950/80]="cert.status === 'revoked'"
+                    [class.text-rose-700]="cert.status === 'revoked'"
+                    [class.dark:text-rose-300]="cert.status === 'revoked'"
+                    [class.border-rose-200]="cert.status === 'revoked'"
+                    [class.dark:border-rose-500/40]="cert.status === 'revoked'">
+                    {{ cert.status }}
+                  </span>
+                </td>
+
+                <!-- Actions Sticky Column -->
+                <td 
+                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[100px] min-w-[100px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  (click)="$event.stopPropagation()">
+                  <div class="flex items-center justify-center gap-1">
+                    <button 
+                      type="button"
+                      (click)="viewCertificate(cert)"
+                      class="p-1.5 text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/20 rounded-lg transition-colors cursor-pointer"
+                      title="View Credential">
+                      <span class="material-symbols-outlined text-sm">visibility</span>
+                    </button>
+                    <button 
+                      type="button"
+                      (click)="copyVerificationUrl(cert)"
+                      class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+                      title="Copy Verification Link">
+                      <span class="material-symbols-outlined text-sm">link</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  </app-data-grid>
 
   <!-- CERTIFICATE POPUP MODAL -->
   @if (activeIssuedCert(); as cert) {

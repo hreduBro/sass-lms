@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 import { CertificateTemplate } from '../../../models/certificate-template.model';
 
 export interface IssuedCertificate {
@@ -24,7 +27,10 @@ export interface IssuedCertificate {
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   templateUrl: './certificates-vault.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,9 +41,37 @@ export class CertificatesVaultComponent {
   searchQuery = signal<string>('');
   selectedStatus = signal<string>('all');
   selectedCourse = signal<string>('all');
+  isFilterOpen = signal<boolean>(false);
+
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
 
   // Preview Modal
   activeIssuedCert = signal<IssuedCertificate | null>(null);
+
+  statusOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'valid', label: 'Valid & Verified', icon: 'verified' },
+    { value: 'revoked', label: 'Revoked', icon: 'block' },
+    { value: 'expired', label: 'Expired', icon: 'event_busy' }
+  ];
+
+  courseOptions = computed<SelectOption[]>(() => {
+    const set = new Set<string>();
+    this.issuedCertificates().forEach(c => set.add(c.courseTitle));
+    return [
+      { value: 'all', label: 'All Courses' },
+      ...Array.from(set).map(title => ({ value: title, label: title, icon: 'school' }))
+    ];
+  });
+
+  activeFilterCount = computed<number>(() => {
+    let count = 0;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedCourse() !== 'all') count++;
+    return count;
+  });
 
   // Issued records seeded with rich data
   issuedCertificates = signal<IssuedCertificate[]>([
@@ -134,6 +168,32 @@ export class CertificatesVaultComponent {
 
     return list;
   });
+
+  paginatedRecords = computed<IssuedCertificate[]>(() => {
+    const list = this.filteredRecords();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    return list.slice((page - 1) * size, page * size);
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredRecords().length > 0) return 'none';
+    if (this.issuedCertificates().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
+  });
+
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
+  }
+
+  clearAllFilters() {
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedCourse.set('all');
+    this.currentPage.set(1);
+  }
 
   copyVerificationUrl(cert: IssuedCertificate) {
     if (navigator?.clipboard) {

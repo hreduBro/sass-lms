@@ -144,205 +144,91 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. SEARCH & FILTER CONTROLS (MATCHING IMAGE TOOLBAR + FILTER DRAWER)      -->
+  <!-- 3. REUSABLE DATA GRID & FILTERING                                         -->
   <!-- ========================================================================= -->
-  <div class="space-y-3">
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search by template name, code, author, or category..."
+    [isFilterOpen]="isFilterPanelOpen()"
+    (filterToggle)="isFilterPanelOpen.set($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="hasActiveFilters()"
+    [showReset]="isResetVisible()"
+    (resetGrid)="resetGrid()"
+    [viewMode]="viewMode()"
+    (viewModeChange)="viewMode.set($event)"
+    [showViewSwitcher]="true"
+    [itemCountText]="'Showing ' + filteredTemplates().length + ' of ' + lms.scopedCourseTemplates().length + ' templates'"
+    filterPanelTitle="FILTER COURSE TEMPLATES"
+    filterPanelSubtitle="Filter blueprints across status, sharing scope, category and sorting criteria"
+    [currentPage]="currentPage()"
+    (pageChange)="currentPage.set($event)"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="pageSize.set($event)"
+    [totalItems]="filteredTemplates().length"
+    [emptyStateType]="emptyStateType()"
+    emptyStateIcon="dashboard_customize"
+    emptyStateTitle="No course templates found"
+    emptyStateMessage="Try clearing your search or adjusting the filters to discover curriculum blueprints."
+    emptyActionLabel="Reset Filters"
+    (emptyActionClick)="resetGrid()"
+  >
+    <!-- Filter Panel Projection -->
+    <div filter-panel class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Status Dropdown -->
+        <app-filter-section title="1. Status">
+          <app-custom-select
+            [options]="statusSelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event)">
+          </app-custom-select>
+        </app-filter-section>
 
-    <!-- Search & Filter Toolbar Card -->
-    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative z-30">
+        <!-- 2. Category Dropdown -->
+        <app-filter-section title="2. Category / Domain">
+          <app-custom-select
+            [options]="categorySelectOptions()"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedCategory()"
+            (ngModelChange)="selectedCategory.set($event)">
+          </app-custom-select>
+        </app-filter-section>
 
-      <!-- Left: Search Field + Filters Toggle Button -->
-      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <!-- 3. Sharing Scope Dropdown -->
+        <app-filter-section title="3. Sharing Scope">
+          <app-custom-select
+            [options]="scopeSelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedScope()"
+            (ngModelChange)="selectedScope.set($event)">
+          </app-custom-select>
+        </app-filter-section>
 
-        <!-- Search Field -->
-        <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
-          <input
-            type="text"
-            id="input-template-search"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearchChange($event)"
-            placeholder="Search by template name, code, author, or category..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
-
-          @if (searchQuery()) {
-            <button
-              type="button"
-              (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer">
-              <span class="material-symbols-outlined text-sm">close</span>
-            </button>
-          }
-        </div>
-
-        <!-- Filters Toggle Button -->
-        <button
-          type="button"
-          id="btn-toggle-template-filter-panel"
-          (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-2xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || hasActiveFilters()
-            ? 'bg-tenant-500 hover:bg-tenant-600 text-white border-tenant-500 shadow-xs'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base">filter_list</span>
-          <span>Filters</span>
-          @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-              {{ activeFilterCount() }}
-            </span>
-          }
-        </button>
-
-        <!-- Reset Button -->
-        @if (isResetVisible()) {
-          <button
-            type="button"
-            id="btn-template-grid-reset"
-            (click)="resetGrid()"
-            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
-            title="Reset Filters">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            <span>Reset</span>
-          </button>
-        }
-
+        <!-- 4. Sort By Dropdown -->
+        <app-filter-section title="4. Sort Order">
+          <app-custom-select
+            [options]="sortSelectOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="sortBy()"
+            (ngModelChange)="sortBy.set($event)">
+          </app-custom-select>
+        </app-filter-section>
       </div>
-
-      <!-- Right: Grid / Table View Mode Toggle -->
-      <div class="flex items-center justify-end gap-2.5">
-        
-        <!-- View Mode Segmented Controls (Icon-only matching design) -->
-        <div class="flex items-center gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 shadow-2xs">
-          <!-- Grid View Button -->
-          <button
-            type="button"
-            id="btn-view-grid"
-            (click)="viewMode.set('grid')"
-            [class]="viewMode() === 'grid' 
-              ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' 
-              : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
-            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
-            title="Grid View">
-            <span class="material-symbols-outlined text-base">grid_view</span>
-          </button>
-
-          <!-- Table View Button -->
-          <button
-            type="button"
-            id="btn-view-table"
-            (click)="viewMode.set('table')"
-            [class]="viewMode() === 'table' 
-              ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-white shadow-2xs font-bold' 
-              : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
-            class="p-2 rounded-xl flex items-center justify-center transition-all cursor-pointer"
-            title="Table View">
-            <span class="material-symbols-outlined text-base">table_rows</span>
-          </button>
-        </div>
-
-      </div>
-
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- 3.1 EXPANDABLE FILTER PANEL DRAWER (CONTAINING ALL CUSTOM SELECTS)        -->
-    <!-- ========================================================================= -->
-    @if (isFilterPanelOpen()) {
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200 space-y-4 relative z-20">
-
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-base-300">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-tenant-600 text-base font-bold">tune</span>
-            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">
-              FILTER COURSE TEMPLATES
-            </h3>
-          </div>
-          <span class="text-[11px] text-text-secondary font-medium">
-            Filter blueprints across status, sharing scope, category and sorting criteria
-          </span>
-        </div>
-
-        <!-- Filter Custom Selects Grid Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
-
-          <!-- 1. Status Dropdown -->
-          <div>
-            <app-custom-select
-              label="Status"
-              [options]="statusSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedStatus()"
-              (ngModelChange)="selectedStatus.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 2. Category Dropdown -->
-          <div>
-            <app-custom-select
-              label="Category / Domain"
-              [options]="categorySelectOptions()"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedCategory()"
-              (ngModelChange)="selectedCategory.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 3. Sharing Scope Dropdown -->
-          <div>
-            <app-custom-select
-              label="Sharing Scope"
-              [options]="scopeSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedScope()"
-              (ngModelChange)="selectedScope.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- 4. Sort By Dropdown -->
-          <div>
-            <app-custom-select
-              label="Sort Order"
-              [options]="sortSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="sortBy()"
-              (ngModelChange)="sortBy.set($event)">
-            </app-custom-select>
-          </div>
-
-        </div>
-
-        <!-- Filter Panel Footer Actions -->
-        <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between">
-          <button
-            type="button"
-            (click)="resetGrid()"
-            class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer">
-            Clear All Selections
-          </button>
-
-          <button
-            type="button"
-            (click)="closeFilterPanel()"
-            class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer">
-            Close
-          </button>
-        </div>
-
-      </div>
-    }
-
-    <!-- Quick Category Filter Chips -->
-    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+    <!-- Filter Chips Projection -->
+    <div filter-chips class="contents">
       <button
         type="button"
-        (click)="selectedCategory.set('all'); displayedCount.set(12)"
-        class="px-3.5 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs"
+        (click)="selectedCategory.set('all'); currentPage.set(1)"
+        class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs"
         [class]="selectedCategory() === 'all'
           ? 'bg-tenant-500 text-white shadow-2xs font-bold'
           : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
@@ -352,8 +238,8 @@
       @for (cat of categories; track cat) {
         <button
           type="button"
-          (click)="selectedCategory.set(cat); displayedCount.set(12)"
-          class="px-3.5 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1"
+          (click)="selectedCategory.set(cat); currentPage.set(1)"
+          class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1"
           [class]="selectedCategory() === cat
             ? 'bg-tenant-500 text-white shadow-2xs font-bold'
             : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
@@ -362,305 +248,275 @@
       }
     </div>
 
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 4. MAIN CONTENT: TEMPLATE GRID & TABLE VIEW MODES                         -->
-  <!-- ========================================================================= -->
-  @if (displayedTemplates().length > 0) {
-
-    <!-- ======================================================================= -->
-    <!-- 4.A GRID VIEW MODE (CARDS)                                              -->
-    <!-- ======================================================================= -->
-    @if (viewMode() === 'grid') {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        @for (template of displayedTemplates(); track template.id) {
-          <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-md hover:border-tenant-300 dark:hover:border-tenant-700/60 transition-all flex flex-col justify-between space-y-4 group">
-            
-            <!-- Card Header: Code Badge + Scope + Status + Action Menu -->
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="font-mono text-xs font-black text-tenant-700 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2.5 py-1 rounded-xl border border-tenant-200 dark:border-tenant-800">
-                  #{{ template.code || 'TPL' }}
-                </span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
-                  [class]="template.scope === 'organization' 
-                    ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200' 
-                    : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200'">
-                  {{ template.scope === 'organization' ? 'Org-Wide' : 'LMS' }}
-                </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border inline-flex items-center gap-1.5" [class]="getStatusBadgeClass(template.status)">
-                  @if (template.status === 'active') {
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  } @else if (template.status === 'draft') {
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  } @else {
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                  }
-                  {{ template.status | titlecase }}
-                </span>
-
-                <button
-                  type="button"
-                  [id]="'btn-grid-template-menu-' + template.id"
-                  (click)="toggleActionMenu(template, $event)"
-                  class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                  title="Template Actions">
-                  <span class="material-symbols-outlined text-base">more_vert</span>
-                </button>
-              </div>
+    <!-- Grid View Projection -->
+    <div grid-view class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+      @for (template of paginatedTemplates(); track template.id) {
+        <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+          
+          <!-- Card Header: Code Badge + Status + Actions -->
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+                {{ template.code || 'TPL-DRAFT' }}
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold border"
+                [class]="template.scope === 'organization' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200' : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200'">
+                {{ template.scope === 'organization' ? 'Org-Wide' : 'LMS Scope' }}
+              </span>
             </div>
 
-            <!-- Card Body: Module Icon + Title + Description -->
-            <div class="space-y-2 cursor-pointer" (click)="openInspect(template)">
-              <div class="flex items-start gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-tenant-500 to-pink-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm shadow-tenant-500/20">
-                  {{ template.structure.modules.length }}M
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h3 class="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-tenant-600 transition-colors leading-snug line-clamp-1">
-                    {{ template.name || 'Untitled Blueprint' }}
-                  </h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                    {{ template.description || 'Standardized modular curriculum structure and delivery blueprint.' }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Category Tags -->
-              <div class="flex items-center gap-1.5 flex-wrap pt-1">
-                @for (tag of (template.categoryTags || []).slice(0, 3); track tag) {
-                  <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-base-200 text-text-secondary border border-base-300">
-                    {{ tag }}
-                  </span>
-                }
-              </div>
-            </div>
-
-            <!-- Card Metrics Strip -->
-            <div class="grid grid-cols-3 gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-center text-xs">
-              <div>
-                <span class="text-[10px] text-text-secondary block font-medium">Structure</span>
-                <span class="font-bold text-text-primary mt-0.5 block">{{ template.structure.modules.length }} Mod / {{ getSlotCount(template) }} Slots</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-text-secondary block font-medium">Duration</span>
-                <span class="font-bold text-tenant-600 dark:text-tenant-400 mt-0.5 block">~{{ getDuration(template) }}m</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-text-secondary block font-medium">Pass Score</span>
-                <span class="font-bold text-emerald-600 mt-0.5 block">{{ template.structure.structuralDefaults.passingScorePercent }}%</span>
-              </div>
-            </div>
-
-            <!-- Card Footer: Author + Quick Actions -->
-            <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
-                <app-custom-avatar [name]="template.createdBy || 'Curriculum Admin'" size="sm"></app-custom-avatar>
-                <div class="min-w-0">
-                  <span class="text-xs font-semibold text-text-primary block truncate">{{ template.createdBy || 'Admin' }}</span>
-                  <span class="text-[10px] text-text-secondary font-mono block">{{ template.usedCount || 0 }} adoptions</span>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  (click)="openInspect(template)"
-                  class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-primary text-xs font-semibold transition-colors cursor-pointer"
-                  title="Inspect Blueprint">
-                  <span class="material-symbols-outlined text-base">visibility</span>
-                </button>
-
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1" [class]="getStatusBadgeClass(template.status)">
                 @if (template.status === 'active') {
-                  <button
-                    type="button"
-                    (click)="openSpawnModal(template)"
-                    class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-                    title="Spawn Course">
-                    <span class="material-symbols-outlined text-sm">rocket_launch</span>
-                    <span>Spawn</span>
-                  </button>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                } @else if (template.status === 'draft') {
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                } @else {
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                 }
+                {{ template.status | titlecase }}
+              </span>
+
+              <button
+                type="button"
+                [id]="'btn-grid-template-menu-' + template.id"
+                (click)="toggleActionMenu(template, $event)"
+                class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="Template Actions">
+                <span class="material-symbols-outlined text-base">more_vert</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Body: Module Icon + Title + Description -->
+          <div class="space-y-2 cursor-pointer" (click)="openInspect(template)">
+            <div class="flex items-start gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-tenant-500 to-pink-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm shadow-tenant-500/20">
+                {{ template.structure.modules.length }}M
+              </div>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-tenant-600 transition-colors leading-snug line-clamp-1">
+                  {{ template.name || 'Untitled Blueprint' }}
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                  {{ template.description || 'Standardized modular curriculum structure and delivery blueprint.' }}
+                </p>
               </div>
             </div>
 
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ======================================================================= -->
-    <!-- 4.B TABLE VIEW MODE (POLISHED SAAS TABLE)                               -->
-    <!-- ======================================================================= -->
-    @if (viewMode() === 'table') {
-      <div class="rounded-3xl border border-base-300 bg-base-100 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto min-h-[360px]">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="border-b border-base-300 bg-base-200/50 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
-                <th class="py-3.5 px-4 min-w-[240px]">Template & Blueprint</th>
-                <th class="py-3.5 px-4 min-w-[140px] whitespace-nowrap">Template Code</th>
-                <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">Scope & Visibility</th>
-                <th class="py-3.5 px-4 min-w-[180px] whitespace-nowrap">Author</th>
-                <th class="py-3.5 px-4 min-w-[160px] whitespace-nowrap">Modular Structure</th>
-                <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">Governance Defaults</th>
-                <th class="py-3.5 px-4 min-w-[110px] text-center whitespace-nowrap">Adoptions</th>
-                <th class="py-3.5 px-4 min-w-[110px] whitespace-nowrap">Status</th>
-                <th class="py-3.5 px-4 min-w-[110px] whitespace-nowrap">Created</th>
-                <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[80px] min-w-[80px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-base-300">
-              @for (template of displayedTemplates(); track template.id) {
-                <tr 
-                  class="hover:bg-slate-50/80 dark:hover:bg-base-200/50 transition-colors group cursor-pointer"
-                  (click)="openInspect(template)">
-                  
-                  <!-- 1. Template & Blueprint Name + Subtitle -->
-                  <td class="py-3.5 px-4 min-w-[240px]">
-                    <div class="flex items-center gap-3">
-                      <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-300 shrink-0 font-mono font-bold text-xs shadow-2xs">
-                        {{ template.structure?.modules?.length || 0 }}M
-                      </div>
-                      <div class="min-w-0">
-                        <p class="font-bold text-text-primary group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors truncate">
-                          {{ template.name || 'Untitled Blueprint' }}
-                        </p>
-                        <p class="text-[11px] text-text-secondary truncate mt-0.5">
-                          {{ template.description || 'Standardized curriculum blueprint' }}
-                        </p>
-                        <div class="flex items-center gap-1 mt-1">
-                          @for (tag of (template.categoryTags || []).slice(0, 2); track tag) {
-                            <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-base-200 text-text-secondary border border-base-300">
-                              {{ tag }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <!-- 2. Template Code -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <span class="font-mono text-[11px] font-bold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2 py-0.5 rounded-md border border-tenant-200 dark:border-tenant-800">
-                      {{ template.code || 'TPL-DRAFT' }}
-                    </span>
-                  </td>
-
-                  <!-- 3. Scope & Visibility -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <div class="space-y-0.5">
-                      <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border inline-block"
-                        [class]="template.scope === 'organization' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200' : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200'">
-                        {{ template.scope === 'organization' ? 'Organization-Wide' : 'LMS Workspace' }}
-                      </span>
-                      <span class="text-[10px] text-text-secondary block font-medium">
-                        {{ template.visibility?.mode === 'org_wide' ? 'Public Blueprint' : (template.visibility?.mode === 'restricted' ? 'Restricted Access' : 'All Instructors') }}
-                      </span>
-                    </div>
-                  </td>
-
-                  <!-- 4. Author -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                      <app-custom-avatar [name]="template.createdBy || 'Curriculum Admin'" size="sm"></app-custom-avatar>
-                      <div class="min-w-0">
-                        <p class="text-xs font-semibold text-text-primary truncate">{{ template.createdBy || 'Curriculum Admin' }}</p>
-                        <p class="text-[10px] text-text-secondary font-mono">{{ template.usedCount || 0 }} adoptions</p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <!-- 5. Structure -->
-                  <td class="py-3.5 px-4 whitespace-nowrap font-mono">
-                    <div class="text-xs font-semibold text-text-primary">
-                      {{ template.structure.modules.length }} modules &bull; {{ getSlotCount(template) }} slots
-                    </div>
-                    <span class="text-[10px] text-tenant-600 dark:text-tenant-400 font-bold">
-                      ~{{ getDuration(template) }} mins curriculum
-                    </span>
-                  </td>
-
-                  <!-- 6. Governance Defaults -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <div class="text-xs text-text-primary">
-                      Pass Standard: <strong class="font-bold text-emerald-600">{{ template.structure.structuralDefaults.passingScorePercent }}%</strong>
-                    </div>
-                    <span class="text-[10px] text-text-secondary">
-                      {{ template.structure.structuralDefaults.sequentialUnlock ? 'Sequential Lock' : 'Open Progression' }}
-                    </span>
-                  </td>
-
-                  <!-- 7. Adoptions -->
-                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                      <span class="material-symbols-outlined text-xs">rocket_launch</span>
-                      {{ template.usedCount || 0 }}
-                    </span>
-                  </td>
-
-                  <!-- 8. Status -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-flex items-center gap-1.5" [class]="getStatusBadgeClass(template.status)">
-                      @if (template.status === 'active') {
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      } @else if (template.status === 'draft') {
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                      } @else {
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                      }
-                      {{ template.status | titlecase }}
-                    </span>
-                  </td>
-
-                  <!-- 9. Created Date -->
-                  <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-mono text-xs">
-                    {{ formatDate(template.createdAt) }}
-                  </td>
-
-                  <!-- 10. Sticky Actions Column (Plan Grid Pattern) -->
-                  <td 
-                    class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-20 w-[80px] min-w-[80px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
-                    (click)="$event.stopPropagation()">
-                    <div class="flex items-center justify-center">
-                      <button
-                        type="button"
-                        [id]="'btn-table-template-menu-' + template.id"
-                        (click)="toggleActionMenu(template, $event)"
-                        class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
-                        [class.ring-2]="isActionMenuOpen(template.id)"
-                        [class.ring-tenant-500]="isActionMenuOpen(template.id)"
-                        title="Template Actions">
-                        <span class="material-symbols-outlined text-lg">more_vert</span>
-                      </button>
-                    </div>
-                  </td>
-
-                </tr>
+            <!-- Category Tags -->
+            <div class="flex items-center gap-1.5 flex-wrap pt-1">
+              @for (tag of (template.categoryTags || []).slice(0, 3); track tag) {
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-base-200 text-text-secondary border border-base-300">
+                  {{ tag }}
+                </span>
               }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    }
+            </div>
+          </div>
 
-    <!-- Infinite Scroll / Load More Footer -->
-    @if (displayedTemplates().length < filteredTemplates().length) {
-      <div class="pt-4 flex justify-center">
-        <button 
-          type="button" 
-          (click)="loadMore()"
-          class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 border border-base-300 text-text-primary shadow-xs transition-all flex items-center gap-2 cursor-pointer">
-          <span>Load More ({{ filteredTemplates().length - displayedTemplates().length }} remaining)</span>
-          <span class="material-symbols-outlined text-sm">expand_more</span>
-        </button>
+          <!-- Card Metrics Strip -->
+          <div class="grid grid-cols-3 gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-center text-xs">
+            <div>
+              <span class="text-[10px] text-text-secondary block font-medium">Structure</span>
+              <span class="font-bold text-text-primary mt-0.5 block">{{ template.structure.modules.length }} Mod / {{ getSlotCount(template) }} Slots</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-text-secondary block font-medium">Duration</span>
+              <span class="font-bold text-tenant-600 dark:text-tenant-400 mt-0.5 block">~{{ getDuration(template) }}m</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-text-secondary block font-medium">Pass Score</span>
+              <span class="font-bold text-emerald-600 mt-0.5 block">{{ template.structure.structuralDefaults.passingScorePercent }}%</span>
+            </div>
+          </div>
+
+          <!-- Card Footer: Author + Quick Actions -->
+          <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <app-custom-avatar [name]="template.createdBy || 'Curriculum Admin'" size="sm"></app-custom-avatar>
+              <div class="min-w-0">
+                <span class="text-xs font-semibold text-text-primary block truncate">{{ template.createdBy || 'Admin' }}</span>
+                <span class="text-[10px] text-text-secondary font-mono block">{{ template.usedCount || 0 }} adoptions</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                (click)="openInspect(template)"
+                class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-primary text-xs font-semibold transition-colors cursor-pointer"
+                title="Inspect Blueprint">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+
+              @if (template.status === 'active') {
+                <button
+                  type="button"
+                  (click)="openSpawnModal(template)"
+                  class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+                  title="Spawn Course">
+                  <span class="material-symbols-outlined text-sm">rocket_launch</span>
+                  <span>Spawn</span>
+                </button>
+              }
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- Table View Projection -->
+    <div table-view class="rounded-3xl border border-base-300 bg-base-100 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto min-h-[360px]">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-base-300 bg-base-200/50 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
+              <th class="py-3.5 px-4 min-w-[240px]">Template & Blueprint</th>
+              <th class="py-3.5 px-4 min-w-[140px] whitespace-nowrap">Template Code</th>
+              <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">Scope & Visibility</th>
+              <th class="py-3.5 px-4 min-w-[180px] whitespace-nowrap">Author</th>
+              <th class="py-3.5 px-4 min-w-[160px] whitespace-nowrap">Modular Structure</th>
+              <th class="py-3.5 px-4 min-w-[150px] whitespace-nowrap">Governance Defaults</th>
+              <th class="py-3.5 px-4 min-w-[110px] text-center whitespace-nowrap">Adoptions</th>
+              <th class="py-3.5 px-4 min-w-[110px] whitespace-nowrap">Status</th>
+              <th class="py-3.5 px-4 min-w-[110px] whitespace-nowrap">Created</th>
+              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[80px] min-w-[80px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-base-300">
+            @for (template of paginatedTemplates(); track template.id) {
+              <tr 
+                class="hover:bg-slate-50/80 dark:hover:bg-base-200/50 transition-colors group cursor-pointer"
+                (click)="openInspect(template)">
+                
+                <!-- 1. Template & Blueprint Name + Subtitle -->
+                <td class="py-3.5 px-4 min-w-[240px]">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-300 shrink-0 font-mono font-bold text-xs shadow-2xs">
+                      {{ template.structure?.modules?.length || 0 }}M
+                    </div>
+                    <div class="min-w-0">
+                      <p class="font-bold text-text-primary group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors truncate">
+                        {{ template.name || 'Untitled Blueprint' }}
+                      </p>
+                      <p class="text-[11px] text-text-secondary truncate mt-0.5">
+                        {{ template.description || 'Standardized curriculum blueprint' }}
+                      </p>
+                      <div class="flex items-center gap-1 mt-1">
+                        @for (tag of (template.categoryTags || []).slice(0, 2); track tag) {
+                          <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-base-200 text-text-secondary border border-base-300">
+                            {{ tag }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. Template Code -->
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <span class="font-mono text-[11px] font-bold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-2 py-0.5 rounded-md border border-tenant-200 dark:border-tenant-800">
+                    {{ template.code || 'TPL-DRAFT' }}
+                  </span>
+                </td>
+
+                <!-- 3. Scope & Visibility -->
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <div class="space-y-0.5">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border inline-block"
+                      [class]="template.scope === 'organization' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200' : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200'">
+                      {{ template.scope === 'organization' ? 'Organization-Wide' : 'LMS Workspace' }}
+                    </span>
+                    <span class="text-[10px] text-text-secondary block font-medium">
+                      {{ template.visibility?.mode === 'org_wide' ? 'Public Blueprint' : (template.visibility?.mode === 'restricted' ? 'Restricted Access' : 'All Instructors') }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- 4. Author -->
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <app-custom-avatar [name]="template.createdBy || 'Curriculum Admin'" size="sm"></app-custom-avatar>
+                    <div class="min-w-0">
+                      <p class="text-xs font-semibold text-text-primary truncate">{{ template.createdBy || 'Curriculum Admin' }}</p>
+                      <p class="text-[10px] text-text-secondary font-mono">{{ template.usedCount || 0 }} adoptions</p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 5. Structure -->
+                <td class="py-3.5 px-4 whitespace-nowrap font-mono">
+                  <div class="text-xs font-semibold text-text-primary">
+                    {{ template.structure.modules.length }} modules &bull; {{ getSlotCount(template) }} slots
+                  </div>
+                  <span class="text-[10px] text-tenant-600 dark:text-tenant-400 font-bold">
+                    ~{{ getDuration(template) }} mins curriculum
+                  </span>
+                </td>
+
+                <!-- 6. Governance Defaults -->
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <div class="text-xs text-text-primary">
+                    Pass Standard: <strong class="font-bold text-emerald-600">{{ template.structure.structuralDefaults.passingScorePercent }}%</strong>
+                  </div>
+                  <span class="text-[10px] text-text-secondary">
+                    {{ template.structure.structuralDefaults.sequentialUnlock ? 'Sequential Lock' : 'Open Progression' }}
+                  </span>
+                </td>
+
+                <!-- 7. Adoptions -->
+                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    <span class="material-symbols-outlined text-xs">rocket_launch</span>
+                    {{ template.usedCount || 0 }}
+                  </span>
+                </td>
+
+                <!-- 8. Status -->
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-flex items-center gap-1.5" [class]="getStatusBadgeClass(template.status)">
+                    @if (template.status === 'active') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    } @else if (template.status === 'draft') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    } @else {
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    }
+                    {{ template.status | titlecase }}
+                  </span>
+                </td>
+
+                <!-- 9. Created Date -->
+                <td class="py-3.5 px-4 whitespace-nowrap text-text-secondary font-mono text-xs">
+                  {{ formatDate(template.createdAt) }}
+                </td>
+
+                <!-- 10. Sticky Actions Column (Plan Grid Pattern) -->
+                <td 
+                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[80px] min-w-[80px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  (click)="$event.stopPropagation()">
+                  <div class="flex items-center justify-center">
+                    <button
+                      type="button"
+                      [id]="'btn-table-template-menu-' + template.id"
+                      (click)="toggleActionMenu(template, $event)"
+                      class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                      [class.ring-2]="isActionMenuOpen(template.id)"
+                      [class.ring-tenant-500]="isActionMenuOpen(template.id)"
+                      title="Template Actions">
+                      <span class="material-symbols-outlined text-lg">more_vert</span>
+                    </button>
+                  </div>
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-    }
-  }
+    </div>
+  </app-data-grid>
 
   <!-- ========================================================================= -->
   <!-- 5. FLOATING FIXED ACTION MENU (Positioned outside scroll boundaries)      -->
@@ -750,67 +606,6 @@
         <span>Delete Template</span>
       </button>
 
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- 6. EMPTY STATES (UNIFIED SYSTEM)                                         -->
-  <!-- ========================================================================= -->
-  @if (emptyStateType() !== 'none') {
-    <div class="bg-base-100 rounded-3xl border border-base-300 p-8 sm:p-12 text-center space-y-4 shadow-2xs animate-in fade-in duration-200 max-w-xl mx-auto">
-      @if (emptyStateType() === 'true_empty') {
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-400">
-          <span class="material-symbols-outlined text-3xl">dashboard_customize</span>
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-text-primary">No Course Templates Yet</h3>
-          <p class="text-xs text-text-secondary mt-1">
-            Build standardized modular blueprints for consistent learning delivery across your LMS.
-          </p>
-        </div>
-        @if (permissions().canCreateTemplate) {
-          <a
-            routerLink="/courses/templates/create"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-sm">
-            <span class="material-symbols-outlined text-base">add_circle</span>
-            <span>Create First Blueprint</span>
-          </a>
-        }
-      } @else if (emptyStateType() === 'search_miss') {
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-base-200 flex items-center justify-center text-text-secondary">
-          <span class="material-symbols-outlined text-3xl">search_off</span>
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-text-primary">No Templates Matching "{{ searchQuery() }}"</h3>
-          <p class="text-xs text-text-secondary mt-1">
-            Check for typos or try searching with broader keywords, author names or category codes.
-          </p>
-        </div>
-        <button
-          type="button"
-          (click)="onSearchChange('')"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-base">clear</span>
-          <span>Clear Search Query</span>
-        </button>
-      } @else {
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-base-200 flex items-center justify-center text-text-secondary">
-          <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-text-primary">No Templates Match Applied Filters</h3>
-          <p class="text-xs text-text-secondary mt-1">
-            Try adjusting your status, scope, or date range filters to find matching blueprints.
-          </p>
-        </div>
-        <button
-          type="button"
-          (click)="resetGrid()"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-sm cursor-pointer">
-          <span class="material-symbols-outlined text-base">restart_alt</span>
-          <span>Reset All Filters</span>
-        </button>
-      }
     </div>
   }
 

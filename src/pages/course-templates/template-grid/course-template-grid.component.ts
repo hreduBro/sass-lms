@@ -16,6 +16,9 @@ import { CourseCategory, CourseLevel } from '../../../models/lms.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
+
 export interface TemplateGridFilters {
   status: CourseTemplateStatus[];
   scope: CourseTemplateScope[];
@@ -32,7 +35,9 @@ export interface TemplateGridFilters {
     RouterModule,
     FormsModule,
     CustomSelectComponent,
-    CustomAvatarComponent
+    CustomAvatarComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   templateUrl: './course-template-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -111,6 +116,8 @@ export class CourseTemplateGridComponent {
   menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Pagination / Load More
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(12);
   displayedCount = signal<number>(12);
   pageSizeIncrement = 12;
 
@@ -308,13 +315,15 @@ export class CourseTemplateGridComponent {
     });
   });
 
-  // Displayed slice for lazy pagination
-  displayedTemplates = computed<CourseTemplate[]>(() => {
-    return this.filteredTemplates().slice(0, this.displayedCount());
+  // Displayed slice for pagination
+  paginatedTemplates = computed<CourseTemplate[]>(() => {
+    const list = this.filteredTemplates();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
   });
 
-  hasMoreTemplates = computed<boolean>(() => {
-    return this.displayedCount() < this.filteredTemplates().length;
+  displayedTemplates = computed<CourseTemplate[]>(() => {
+    return this.paginatedTemplates();
   });
 
   // Empty state type resolution
@@ -377,7 +386,7 @@ export class CourseTemplateGridComponent {
   // Search handler
   onSearchChange(val: string) {
     this.searchQuery.set(val);
-    this.displayedCount.set(10);
+    this.currentPage.set(1);
   }
 
   // Filter Drawer Actions

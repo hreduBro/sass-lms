@@ -13,6 +13,8 @@ import {
   CanvasElement
 } from '../../../models/certificate-template.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 
 @Component({
   selector: 'app-certificate-template-grid',
@@ -20,7 +22,9 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
     CommonModule,
     RouterModule,
     FormsModule,
-    CustomSelectComponent
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   templateUrl: './template-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -144,13 +148,34 @@ export class CertificateTemplateGridComponent {
   // KPI counts
   kpi = this.lms.certificateKpis;
 
+  // Pagination State
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(12);
+
+  paginatedTemplates = computed<CertificateTemplate[]>(() => {
+    const list = this.filteredTemplates();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredTemplates().length > 0) return 'none';
+    if (this.lms.scopedCertificateTemplates().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
+  });
+
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
+  }
+
   // Active Filter Count
   activeFilterCount = computed<number>(() => {
     let count = 0;
     if (this.selectedStatus() !== 'all') count++;
     if (this.selectedSharing() !== 'all') count++;
     if (this.selectedType() !== 'all') count++;
-    if (this.searchQuery().trim().length > 0) count++;
     return count;
   });
 
@@ -161,6 +186,7 @@ export class CertificateTemplateGridComponent {
     this.selectedSharing.set('all');
     this.selectedType.set('all');
     this.sortBy.set('updated_desc');
+    this.currentPage.set(1);
   }
 
   // Action Handlers

@@ -12,6 +12,7 @@ import {
 } from '../../../models/assessment.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent } from '../../../components/data-grid';
 
 @Component({
   selector: 'app-assessment-grid',
@@ -21,7 +22,8 @@ import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-
     FormsModule, 
     RouterModule,
     CustomSelectComponent,
-    CustomAvatarComponent
+    CustomAvatarComponent,
+    DataGridComponent
   ],
   templateUrl: './assessment-grid.component.html',
   styleUrls: ['./assessment-grid.component.css'],
@@ -45,6 +47,10 @@ export class AssessmentGridComponent {
   filterHasPassMark = signal<string>('all'); // 'all', 'yes', 'no'
   sortBy = signal<string>('latest');
   viewMode = signal<'grid' | 'table'>('grid');
+
+  // Pagination state
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(9);
 
   // Filter Drawer toggle
   showFilterDrawer = signal<boolean>(false);
@@ -263,8 +269,27 @@ export class AssessmentGridComponent {
     );
   });
 
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredAssessments().length > 0) return 'none';
+    if (this.lmsService.assessments().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    if (this.isFiltered()) return 'filter_miss';
+    return 'true_empty';
+  });
+
+  paginatedAssessments = computed<Assessment[]>(() => {
+    const list = this.filteredAssessments();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
   toggleFilterDrawer(): void {
     this.showFilterDrawer.update(v => !v);
+  }
+
+  onSearchChange(val: string): void {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
   }
 
   resetFilters(): void {
@@ -276,6 +301,7 @@ export class AssessmentGridComponent {
     this.filterHasManualGrading.set('all');
     this.filterHasPassMark.set('all');
     this.sortBy.set('latest');
+    this.currentPage.set(1);
   }
 
   // Helpers

@@ -12,11 +12,21 @@ import {
   SkillTargetType 
 } from '../../../models/skill-mapping.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 
 @Component({
   selector: 'app-skill-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, CustomSelectComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    RouterModule, 
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
+  ],
   templateUrl: './skill-grid.component.html'
 })
 export class SkillGridComponent implements OnInit {
@@ -473,6 +483,21 @@ export class SkillGridComponent implements OnInit {
     return list;
   });
 
+  // Pagination State
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(12);
+
+  paginatedSkills = computed<Skill[]>(() => {
+    const list = this.filteredSkills();
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return list.slice(start, start + this.pageSize());
+  });
+
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
+  }
+
   // Empty State Type: 'none' | 'true_empty' | 'search_miss' | 'filter_miss'
   emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
     if (this.filteredSkills().length > 0) return 'none';
@@ -590,6 +615,7 @@ export class SkillGridComponent implements OnInit {
     this.selectedCluster.set('all');
     this.selectedMappedFilter.set('all');
     this.selectedTargetType.set('all');
+    this.currentPage.set(1);
   }
 
   // Clear Filter Panel

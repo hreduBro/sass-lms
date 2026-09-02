@@ -6,6 +6,7 @@ import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, Phase, PhaseStatus } from '../../../models/plan.model';
 import { PhaseDetailsModalComponent } from '../phase-details-modal/phase-details-modal.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent, FilterSectionComponent } from '../../../components/data-grid';
 
 export interface PhaseWithPlanContext extends Phase {
   parentPlanName: string;
@@ -26,7 +27,9 @@ export interface PhaseGridFilters {
     FormsModule, 
     RouterModule,
     PhaseDetailsModalComponent,
-    CustomSelectComponent
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './phase-grid.component.html',
@@ -164,6 +167,15 @@ export class PhaseGridComponent implements OnInit {
 
   hasActiveFilters = computed<boolean>(() => this.activeFilterCount() > 0);
   isResetVisible = computed<boolean>(() => this.hasActiveFilters() || this.searchQuery().trim().length > 0);
+
+  // Empty state classification
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredPhases().length > 0) return 'none';
+    if (this.allPhasesWithContext().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    if (this.hasActiveFilters()) return 'filter_miss';
+    return 'true_empty';
+  });
 
   // Filtered & Sorted Phases
   filteredPhases = computed<PhaseWithPlanContext[]>(() => {

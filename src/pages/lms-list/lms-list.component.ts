@@ -12,10 +12,11 @@ import {
   LmsDetailsPermissions 
 } from '../../models/lms-instance.model';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
+import { DataGridComponent, FilterSectionComponent, DateRangeFilterComponent } from '../../components/data-grid';
 
 @Component({
   selector: 'app-lms-list',
-  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent, DataGridComponent, FilterSectionComponent, DateRangeFilterComponent],
   templateUrl: './lms-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

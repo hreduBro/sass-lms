@@ -119,329 +119,233 @@
   </div>
 
   <!-- TAB 1: SKILLS REPOSITORY -->
-  <div *ngIf="activeTab() === 'skills'" class="space-y-4">
+  @if (activeTab() === 'skills') {
+    <div class="space-y-4">
+      <app-data-grid
+        [searchQuery]="searchQuery()"
+        (searchChange)="onSearchChange($event)"
+        searchPlaceholder="Search skills by name, code, description, or category..."
+        [isFilterOpen]="isFilterPanelOpen()"
+        (filterToggle)="isFilterPanelOpen.set($event)"
+        [activeFilterCount]="activeFilterCount()"
+        [hasActiveFilters]="searchQuery() !== '' || activeFilterCount() > 0"
+        [showReset]="searchQuery() !== '' || activeFilterCount() > 0"
+        (resetGrid)="resetFilters()"
+        [viewMode]="'table'"
+        [showViewSwitcher]="false"
+        [itemCountText]="'Showing ' + filteredSkills().length + ' of ' + lmsData.skills().length + ' skills'"
+        filterPanelTitle="FILTER SKILLS REPOSITORY"
+        filterPanelSubtitle="Define attributes to filter down available active and draft skills"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)"
+        [pageSize]="pageSize()"
+        (pageSizeChange)="pageSize.set($event)"
+        [totalItems]="filteredSkills().length"
+        [emptyStateType]="emptyStateType()"
+        emptyStateIcon="psychology"
+        emptyStateTitle="No skills found"
+        emptyStateMessage="Try adjusting your filters or search keywords to discover competencies."
+        emptyActionLabel="Reset Filters"
+        (emptyActionClick)="resetFilters()"
+      >
+        <!-- Filter Panel Projection -->
+        <div filter-panel class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Status Filter -->
+            <app-filter-section title="1. Status">
+              <app-custom-select
+                [options]="statusSelectOptions"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="selectedStatus()"
+                (ngModelChange)="selectedStatus.set($event)">
+              </app-custom-select>
+            </app-filter-section>
 
-    <!-- Search & Filter Control Bar (§8.5, §8.6) -->
-    <div class="space-y-3 relative z-30">
-      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        
-        <!-- Search Field (§8.5) -->
-        <div class="flex items-center gap-3 flex-1 max-w-2xl">
-          <div class="relative flex-1">
-            <span class="material-symbols-outlined text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 text-lg select-none pointer-events-none">search</span>
-            <input 
-              type="text"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
-              placeholder="Search skills by name, code, description, or category..."
-              class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs">
-            
-            <button 
-              *ngIf="searchQuery()" 
-              (click)="searchQuery.set('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer border-0 bg-transparent">
-              ✕
-            </button>
+            <!-- Category Filter -->
+            <app-filter-section title="2. Category / Domain">
+              <app-custom-select
+                [options]="categorySelectOptions()"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="selectedCategory()"
+                (ngModelChange)="selectedCategory.set($event)">
+              </app-custom-select>
+            </app-filter-section>
+
+            <!-- Cluster Filter -->
+            <app-filter-section title="3. Competency Cluster">
+              <app-custom-select
+                [options]="clusterSelectOptions()"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="selectedCluster()"
+                (ngModelChange)="selectedCluster.set($event)">
+              </app-custom-select>
+            </app-filter-section>
+
+            <!-- Mapped Filter -->
+            <app-filter-section title="4. Mapping State">
+              <app-custom-select
+                [options]="mappedSelectOptions"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="selectedMappedFilter()"
+                (ngModelChange)="selectedMappedFilter.set($event)">
+              </app-custom-select>
+            </app-filter-section>
+
+            <!-- Target Type Filter -->
+            <app-filter-section title="5. Target Level">
+              <app-custom-select
+                [options]="targetTypeSelectOptions"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="selectedTargetType()"
+                (ngModelChange)="selectedTargetType.set($event)">
+              </app-custom-select>
+            </app-filter-section>
           </div>
+        </div>
 
-          <!-- Filter Toggle Button -->
-          <button 
+        <!-- Filter Chips Projection -->
+        <div filter-chips class="contents">
+          <button
             type="button"
-            (click)="isFilterPanelOpen.set(!isFilterPanelOpen())"
-            class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
-            [class]="isFilterPanelOpen()
-              ? 'bg-tenant-500 text-white border-tenant-500'
-              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
-            title="Filters">
-            <span class="material-symbols-outlined text-base" [class.text-white]="isFilterPanelOpen()">filter_list</span>
-            <span>Filters</span>
+            (click)="selectedCategory.set('all'); currentPage.set(1)"
+            class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs"
+            [class]="selectedCategory() === 'all'
+              ? 'bg-tenant-500 text-white shadow-2xs font-bold'
+              : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
+            All Categories ({{ lmsData.skills().length }})
           </button>
 
-          <!-- Reset Button -->
-          <button 
-            *ngIf="searchQuery() || activeFilterCount() > 0"
-            (click)="resetFilters()"
-            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            <span>Reset</span>
-          </button>
+          @for (cat of categories; track cat) {
+            <button
+              type="button"
+              (click)="selectedCategory.set(cat); currentPage.set(1)"
+              class="px-3 py-1 rounded-full font-semibold whitespace-nowrap transition-all cursor-pointer text-xs flex items-center gap-1"
+              [class]="selectedCategory() === cat
+                ? 'bg-tenant-500 text-white shadow-2xs font-bold'
+                : 'bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary'">
+              <span>{{ cat }}</span>
+            </button>
+          }
         </div>
 
-        <!-- Right: Results Count Badge -->
-        <div class="flex items-center justify-end shrink-0">
-          <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-mono font-semibold text-xs text-text-secondary">
-            Showing <strong class="text-text-primary">{{ filteredSkills().length }}</strong> of <strong class="text-text-primary">{{ lmsData.skills().length }}</strong> skills
-          </span>
+        <!-- Table View Projection -->
+        <div table-view class="rounded-3xl border border-base-300 bg-base-100 shadow-2xs overflow-hidden">
+          <div class="overflow-x-auto min-h-[360px]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-base-200/50 border-b border-base-300 text-[11px] font-bold uppercase text-text-secondary tracking-wider select-none">
+                  <th class="py-3.5 px-4 min-w-[200px]">Skill Name & Code</th>
+                  <th class="py-3.5 px-4 min-w-[140px]">Category / Domain</th>
+                  <th class="py-3.5 px-4 min-w-[140px]">Cluster</th>
+                  <th class="py-3.5 px-4 min-w-[100px]">Status</th>
+                  <th class="py-3.5 px-4 text-center min-w-[120px]">Mapped Elements</th>
+                  <th class="py-3.5 px-4 text-center min-w-[110px]">Acquired Count</th>
+                  <th class="py-3.5 px-4 min-w-[120px]">Created</th>
+                  <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-base-300">
+                @for (s of paginatedSkills(); track s.skillId) {
+                  <tr class="group hover:bg-slate-50/80 dark:hover:bg-base-200/50 transition-colors cursor-pointer" (click)="openViewDetailsModal(s)">
+                    
+                    <!-- Skill Name & Code -->
+                    <td class="py-3.5 px-4">
+                      <div class="font-bold text-text-primary text-xs flex items-center gap-2 group-hover:text-tenant-600 transition-colors">
+                        <span>{{ s.name }}</span>
+                      </div>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="font-mono text-[10px] text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/60 px-1.5 py-0.5 rounded border border-tenant-200 dark:border-tenant-800">
+                          {{ s.skillCode }}
+                        </span>
+                        @if (s.levels?.length) {
+                          <span class="text-[10px] text-text-secondary">
+                            ({{ s.levels?.join(' → ') }})
+                          </span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Category -->
+                    <td class="py-3.5 px-4">
+                      <span class="px-2.5 py-1 rounded-md bg-base-200 font-semibold text-text-primary text-[11px]">
+                        {{ s.category }}
+                      </span>
+                    </td>
+
+                    <!-- Cluster -->
+                    <td class="py-3.5 px-4 text-text-secondary">
+                      @if (s.clusterName) {
+                        <div class="flex items-center gap-1.5 font-medium text-text-primary">
+                          <span class="material-symbols-outlined text-xs text-purple-600">bubble_chart</span>
+                          <span>{{ s.clusterName }}</span>
+                        </div>
+                      } @else {
+                        <span class="text-[10px] italic text-text-secondary">Uncategorized</span>
+                      }
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td class="py-3.5 px-4">
+                      <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold capitalize inline-flex items-center gap-1"
+                        [class]="getSkillStatusBadgeClass(s.status)">
+                        <span class="w-1.5 h-1.5 rounded-full" [class]="getSkillStatusDotClass(s.status)"></span>
+                        {{ s.status }}
+                      </span>
+                    </td>
+
+                    <!-- Mapped Elements Count -->
+                    <td class="py-3.5 px-4 text-center" (click)="$event.stopPropagation()">
+                      <button 
+                        type="button"
+                        (click)="openManageMappingsModal(s)"
+                        class="px-2.5 py-1 rounded-lg border bg-base-100 hover:bg-tenant-50 hover:border-tenant-300 transition-all font-bold text-xs text-tenant-700 dark:text-tenant-300 flex items-center gap-1 mx-auto cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">account_tree</span>
+                        <span>{{ s.mappedElementCount }}</span>
+                      </button>
+                    </td>
+
+                    <!-- Learners Acquired Count -->
+                    <td class="py-3.5 px-4 text-center font-bold text-text-primary">
+                      {{ s.learnersAcquiredCount }}
+                    </td>
+
+                    <!-- Created -->
+                    <td class="py-3.5 px-4 text-text-secondary text-[11px]">
+                      <div>{{ s.createdAt }}</div>
+                      <div class="text-[9px] text-text-secondary">by {{ s.createdBy }}</div>
+                    </td>
+
+                    <!-- Actions Sticky Column -->
+                    <td 
+                      class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]" 
+                      (click)="$event.stopPropagation()">
+                      <div class="flex items-center justify-center">
+                        <button 
+                          type="button"
+                          [id]="'btn-table-skill-menu-' + s.skillId"
+                          (click)="toggleSkillActionMenu(s, $event)"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                          [class.ring-2]="isSkillActionMenuOpen(s.skillId)"
+                          [class.ring-tenant-500]="isSkillActionMenuOpen(s.skillId)"
+                          title="Skill Actions">
+                          <span class="material-symbols-outlined text-lg">more_vert</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-
-      <!-- Collapsible Filter Drawer Card -->
-      <div *ngIf="isFilterPanelOpen()" class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
-        
-        <!-- Filter Header -->
-        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
-          <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-tenant-500 text-base font-bold">tune</span>
-            <span>FILTER SKILLS REPOSITORY</span>
-          </h3>
-          <span class="text-[11px] text-text-secondary font-medium">
-            Define attributes to filter down available active and draft skills
-          </span>
-        </div>
-
-        <!-- Dropdowns Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-1">
-          <!-- Status Filter -->
-          <div>
-            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Status</label>
-            <app-custom-select
-              [options]="statusSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedStatus()"
-              (ngModelChange)="selectedStatus.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- Category Filter -->
-          <div>
-            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Category / Domain</label>
-            <app-custom-select
-              [options]="categorySelectOptions()"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedCategory()"
-              (ngModelChange)="selectedCategory.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- Cluster Filter -->
-          <div>
-            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Competency Cluster</label>
-            <app-custom-select
-              [options]="clusterSelectOptions()"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedCluster()"
-              (ngModelChange)="selectedCluster.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- Mapped Filter -->
-          <div>
-            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Mapping State</label>
-            <app-custom-select
-              [options]="mappedSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedMappedFilter()"
-              (ngModelChange)="selectedMappedFilter.set($event)">
-            </app-custom-select>
-          </div>
-
-          <!-- Target Type Filter -->
-          <div>
-            <label class="block text-[10px] font-bold text-text-secondary uppercase mb-1 tracking-wider">Mapped Target Level</label>
-            <app-custom-select
-              [options]="targetTypeSelectOptions"
-              [clearable]="false"
-              [searchable]="false"
-              [ngModel]="selectedTargetType()"
-              (ngModelChange)="selectedTargetType.set($event)">
-            </app-custom-select>
-          </div>
-        </div>
-
-        <!-- Applied Filter Chips & Footers -->
-        <div class="flex items-center justify-between flex-wrap gap-2 pt-2.5 border-t border-slate-100 dark:border-base-300">
-          <div class="flex items-center gap-2 flex-wrap text-xs">
-            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Applied:</span>
-            <span *ngIf="selectedStatus() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
-              Status: {{ selectedStatus() }}
-              <button (click)="selectedStatus.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
-            </span>
-            <span *ngIf="selectedCategory() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
-              Category: {{ selectedCategory() }}
-              <button (click)="selectedCategory.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
-            </span>
-            <span *ngIf="selectedCluster() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
-              Cluster Filter
-              <button (click)="selectedCluster.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
-            </span>
-            <span *ngIf="selectedMappedFilter() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
-              Mapping: {{ selectedMappedFilter() }}
-              <button (click)="selectedMappedFilter.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
-            </span>
-            <span *ngIf="selectedTargetType() !== 'all'" class="px-2.5 py-1 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold flex items-center gap-1.5 border border-tenant-200">
-              Target: {{ selectedTargetType() }}
-              <button (click)="selectedTargetType.set('all')" class="hover:text-tenant-900 cursor-pointer">✕</button>
-            </span>
-          </div>
-
-          <button (click)="resetFilters()" class="text-xs font-bold text-tenant-600 dark:text-tenant-400 hover:underline cursor-pointer">Clear All filters</button>
-        </div>
-
-      </div>
+      </app-data-grid>
     </div>
-
-    <!-- Skills Table / Empty States (§8.3, §8.9) -->
-    <div class="rounded-2xl bg-base-100 border border-base-300 shadow-sm overflow-hidden">
-      
-      <!-- 3 Distinct Empty States (§8.9) -->
-      
-      <!-- State A: True Empty -->
-      <div *ngIf="emptyStateType() === 'true_empty'" class="p-12 text-center space-y-3">
-        <div class="w-16 h-16 rounded-2xl bg-tenant-50 text-tenant-600 flex items-center justify-center mx-auto">
-          <span class="material-symbols-outlined text-3xl">psychology</span>
-        </div>
-        <h3 class="text-base font-bold text-text-primary">No skill information is available to display.</h3>
-        <p class="text-xs text-text-secondary max-w-md mx-auto">
-          Start building your organization's competency framework by creating reusable skills and mapping them to learning elements.
-        </p>
-        <button 
-          (click)="openCreateSkillModal()"
-          class="mt-2 px-4 py-2 rounded-xl bg-tenant-600 text-white font-bold text-xs hover:bg-tenant-700">
-          Create First Skill
-        </button>
-      </div>
-
-      <!-- State B: Search Miss -->
-      <div *ngIf="emptyStateType() === 'search_miss'" class="p-12 text-center space-y-3">
-        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-          <span class="material-symbols-outlined text-3xl">search_off</span>
-        </div>
-        <h3 class="text-base font-bold text-text-primary">No skill found</h3>
-        <p class="text-xs text-text-secondary max-w-md mx-auto">
-          No skills matched your search query "{{ searchQuery() }}". Try searching for a different keyword or skill code.
-        </p>
-        <button (click)="searchQuery.set('')" class="px-3 py-1.5 rounded-lg bg-base-200 text-text-primary font-bold text-xs">
-          Clear Search Query
-        </button>
-      </div>
-
-      <!-- State C: Filter Miss -->
-      <div *ngIf="emptyStateType() === 'filter_miss'" class="p-12 text-center space-y-3">
-        <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
-          <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
-        </div>
-        <h3 class="text-base font-bold text-text-primary">No skill found matching the selected filters.</h3>
-        <p class="text-xs text-text-secondary max-w-md mx-auto">
-          Adjust or clear your current filter criteria to display skills in the repository.
-        </p>
-        <button (click)="resetFilters()" class="px-4 py-2 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs hover:bg-amber-200">
-          Reset Grid Filters
-        </button>
-      </div>
-
-      <!-- Data Table -->
-      <div *ngIf="emptyStateType() === 'none'" class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-base-200/50 border-b border-base-300 text-[10px] font-bold uppercase text-text-secondary tracking-wider">
-              <th class="py-3 px-4">Skill Name & Code</th>
-              <th class="py-3 px-4">Category / Domain</th>
-              <th class="py-3 px-4">Cluster</th>
-              <th class="py-3 px-4">Status</th>
-              <th class="py-3 px-4 text-center">Mapped Elements</th>
-              <th class="py-3 px-4 text-center">Acquired Count</th>
-              <th class="py-3 px-4">Created</th>
-              <th class="py-3 px-4 text-center sticky right-0 bg-base-200/90 dark:bg-base-200 backdrop-blur-xs z-20 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-base-300">
-            <tr *ngFor="let s of filteredSkills()" class="group hover:bg-base-200/40 transition-colors">
-              
-              <!-- Skill Name & Code -->
-              <td class="py-3.5 px-4 cursor-pointer" (click)="openViewDetailsModal(s)">
-                <div class="font-bold text-text-primary text-xs flex items-center gap-2 hover:text-tenant-600 transition-colors">
-                  <span>{{ s.name }}</span>
-                </div>
-                <div class="flex items-center gap-2 mt-0.5">
-                  <span class="font-mono text-[10px] text-text-secondary bg-base-200 px-1.5 py-0.5 rounded">
-                    {{ s.skillCode }}
-                  </span>
-                  <span *ngIf="s.levels?.length" class="text-[10px] text-text-secondary">
-                    ({{ s.levels?.join(' → ') }})
-                  </span>
-                </div>
-              </td>
-
-              <!-- Category -->
-              <td class="py-3.5 px-4">
-                <span class="px-2.5 py-1 rounded-md bg-base-200 font-semibold text-text-primary text-[11px]">
-                  {{ s.category }}
-                </span>
-              </td>
-
-              <!-- Cluster -->
-              <td class="py-3.5 px-4 text-text-secondary">
-                <div *ngIf="s.clusterName" class="flex items-center gap-1.5 font-medium text-text-primary">
-                  <span class="material-symbols-outlined text-xs text-purple-600">bubble_chart</span>
-                  <span>{{ s.clusterName }}</span>
-                </div>
-                <span *ngIf="!s.clusterName" class="text-[10px] italic text-text-secondary">Uncategorized</span>
-              </td>
-
-              <!-- Status Badge (§0.2 Colors) -->
-              <td class="py-3.5 px-4">
-                <span 
-                  [class.bg-emerald-100]="s.status === 'active'"
-                  [class.text-emerald-800]="s.status === 'active'"
-                  [class.border-emerald-200]="s.status === 'active'"
-                  [class.bg-red-100]="s.status === 'inactive'"
-                  [class.text-red-800]="s.status === 'inactive'"
-                  [class.border-red-200]="s.status === 'inactive'"
-                  [class.bg-blue-100]="s.status === 'draft'"
-                  [class.text-blue-800]="s.status === 'draft'"
-                  [class.border-blue-200]="s.status === 'draft'"
-                  class="px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold capitalize">
-                  {{ s.status }}
-                </span>
-              </td>
-
-              <!-- Mapped Elements Count -->
-              <td class="py-3.5 px-4 text-center">
-                <button 
-                  (click)="openManageMappingsModal(s)"
-                  class="px-2.5 py-1 rounded-lg border bg-base-100 hover:bg-tenant-50 hover:border-tenant-300 transition-all font-bold text-xs text-tenant-700 flex items-center gap-1 mx-auto cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">account_tree</span>
-                  <span>{{ s.mappedElementCount }}</span>
-                </button>
-              </td>
-
-              <!-- Learners Acquired Count -->
-              <td class="py-3.5 px-4 text-center font-bold text-text-primary">
-                {{ s.learnersAcquiredCount }}
-              </td>
-
-              <!-- Created -->
-              <td class="py-3.5 px-4 text-text-secondary text-[11px]">
-                <div>{{ s.createdAt }}</div>
-                <div class="text-[9px] text-text-secondary">by {{ s.createdBy }}</div>
-              </td>
-
-              <!-- Actions Dropdown / Buttons (§8.4) -->
-              <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-20 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]" (click)="$event.stopPropagation()">
-                <div class="flex items-center justify-center">
-                  <button 
-                    type="button"
-                    [id]="'btn-table-skill-menu-' + s.skillId"
-                    (click)="toggleSkillActionMenu(s, $event)"
-                    class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
-                    [class.ring-2]="isSkillActionMenuOpen(s.skillId)"
-                    [class.ring-tenant-500]="isSkillActionMenuOpen(s.skillId)"
-                    title="Skill Actions">
-                    <span class="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-  </div>
+  }
 
   <!-- TAB 2: COMPETENCY CLUSTERS (§5.1) -->
   <div *ngIf="activeTab() === 'clusters'" class="space-y-4">

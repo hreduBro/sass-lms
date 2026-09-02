@@ -1,0 +1,366 @@
+<div class="space-y-4">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP TOOLBAR & SEARCH CONTAINER                                         -->
+  <!-- ========================================================================= -->
+  <div class="space-y-3 relative z-30">
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left: Search Field + Filter Button + Reset + Toolbar Left Slot -->
+      <div class="flex items-center gap-2.5 sm:gap-3 flex-1 max-w-3xl flex-wrap sm:flex-nowrap">
+        
+        <!-- Search Field -->
+        @if (showSearch()) {
+          <div class="relative flex-1 min-w-[200px]">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+            <input
+              type="text"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchInput($event)"
+              [placeholder]="searchPlaceholder()"
+              class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs sm:text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-base-300 transition-all shadow-2xs" />
+
+            @if (searchQuery()) {
+              <button
+                type="button"
+                (click)="clearSearch()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer transition-colors"
+                title="Clear Search">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Filter Toggle Button -->
+        @if (showFilterToggle()) {
+          <button
+            type="button"
+            (click)="toggleFilter()"
+            class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+            [class]="isFilterOpen() || hasActiveFilters()
+              ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
+              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+            [title]="filterLabel()">
+            <span class="material-symbols-outlined text-base"
+                  [class.text-slate-600]="!isFilterOpen() && !hasActiveFilters()"
+                  [class.dark:text-slate-300]="!isFilterOpen() && !hasActiveFilters()"
+                  [class.text-white]="isFilterOpen() || hasActiveFilters()">filter_list</span>
+            <span>{{ filterLabel() }}</span>
+            @if (activeFilterCount() > 0) {
+              <span class="w-4 h-4 rounded-full bg-white text-tenant-500 text-[10px] font-bold flex items-center justify-center shadow-xs">
+                {{ activeFilterCount() }}
+              </span>
+            }
+          </button>
+        }
+
+        <!-- Reset Button -->
+        @if (showReset()) {
+          <button
+            type="button"
+            (click)="onResetClick()"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
+            title="Reset Filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>{{ resetLabel() }}</span>
+          </button>
+        }
+
+        <!-- Toolbar Left Slot -->
+        <ng-content select="[toolbar-left]"></ng-content>
+      </div>
+
+      <!-- Right: View Switcher, Total Count, or Toolbar Right Slot -->
+      <div class="flex items-center justify-end gap-2.5 self-end sm:self-auto flex-shrink-0 flex-wrap">
+        
+        <!-- Header Item Count Badge -->
+        @if (itemCountText()) {
+          <span class="px-3 py-1.5 rounded-2xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 text-xs font-semibold text-text-secondary">
+            {{ itemCountText() }}
+          </span>
+        }
+
+        <!-- Toolbar Right Slot -->
+        <ng-content select="[toolbar-right]"></ng-content>
+
+        <!-- View Mode Switcher (Grid / Table) -->
+        @if (showViewSwitcher()) {
+          <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
+            <button
+              type="button"
+              (click)="viewMode.set('grid')"
+              class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+              title="Grid View">
+              <span class="material-symbols-outlined text-base leading-none">grid_view</span>
+            </button>
+            <button
+              type="button"
+              (click)="viewMode.set('table')"
+              class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+              title="Table View">
+              <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
+            </button>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2. EXPANDABLE FILTER DRAWER PANEL                                         -->
+    <!-- ========================================================================= -->
+    @if (isFilterOpen()) {
+      <div class="relative z-40 bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200 space-y-4">
+        
+        <!-- Filter Header -->
+        @if (filterPanelTitle()) {
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-base-300">
+            <h3 class="text-xs font-extrabold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-tenant-500 text-base">tune</span>
+              {{ filterPanelTitle() }}
+            </h3>
+            @if (filterPanelSubtitle()) {
+              <span class="text-[11px] text-text-secondary font-medium hidden sm:inline">
+                {{ filterPanelSubtitle() }}
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Filter Body Projection -->
+        <ng-content select="[filter-panel]"></ng-content>
+
+        <!-- Filter Panel Footer Actions -->
+        @if (showFilterFooter()) {
+          <div class="pt-3 border-t border-slate-100 dark:border-base-300 flex items-center justify-between flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="onClearFilterClick()"
+              class="px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+              {{ clearFilterLabel() }}
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                (click)="onCancelFilterClick()"
+                class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+                {{ cancelFilterLabel() }}
+              </button>
+              <button
+                type="button"
+                (click)="onApplyFilterClick()"
+                class="px-4 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
+                {{ applyFilterLabel() }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- 3. ACTIVE FILTER CHIPS ROW                                                -->
+    <!-- ========================================================================= -->
+    @if (hasActiveFilters() || activeChips().length > 0) {
+      <div class="bg-base-100 rounded-xl border border-base-300 px-4 py-2.5 flex items-center gap-2 flex-wrap text-xs shadow-2xs animate-in fade-in">
+        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mr-1">
+          Active Filters:
+        </span>
+
+        <!-- Built-in Active Chips -->
+        @for (chip of activeChips(); track chip.id) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>{{ chip.label }}: <strong>{{ chip.value }}</strong></span>
+            <button type="button" (click)="onChipRemove(chip)" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Custom Projected Chips Slot -->
+        <ng-content select="[filter-chips]"></ng-content>
+
+        <!-- Clear all chips button -->
+        <button
+          type="button"
+          (click)="onClearAllChips(); onResetClick()"
+          class="text-xs text-tenant-600 dark:text-tenant-400 hover:underline font-bold ml-auto cursor-pointer">
+          Clear All
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. EMPTY & MISS STATES                                                    -->
+  <!-- ========================================================================= -->
+  @if (emptyStateType() === 'true_empty') {
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">{{ emptyIcon() }}</span>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          {{ emptyTitle() }}
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          {{ emptyMessage() }}
+        </p>
+      </div>
+      @if (emptyActionText()) {
+        <button
+          type="button"
+          (click)="onEmptyActionClick()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer active:scale-95">
+          <span class="material-symbols-outlined text-base">{{ emptyActionIcon() }}</span>
+          <span>{{ emptyActionText() }}</span>
+        </button>
+      }
+    </div>
+  }
+  @else if (emptyStateType() === 'search_miss') {
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">search_off</span>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          No records found
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          No records match "<strong class="text-text-primary">{{ searchQuery() }}</strong>". Check spelling or clear your search.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="clearSearch()"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-sm">close</span>
+        <span>Clear Search Text</span>
+      </button>
+    </div>
+  }
+  @else if (emptyStateType() === 'filter_miss') {
+    <div class="bg-base-100 rounded-3xl border border-base-300 p-12 text-center space-y-4 shadow-xs animate-in fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200 dark:border-amber-800 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-3xl">filter_alt_off</span>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-base font-bold text-text-primary">
+          No records match the selected filters.
+        </h3>
+        <p class="text-xs text-text-secondary max-w-md mx-auto">
+          No records match the selected filter criteria. Try clearing some filters.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="onResetClick()"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer active:scale-95">
+        <span class="material-symbols-outlined text-sm">restart_alt</span>
+        <span>Reset All Filters</span>
+      </button>
+    </div>
+  }
+  @else {
+    <!-- Custom Empty State slot -->
+    <ng-content select="[empty-state]"></ng-content>
+
+    <!-- ========================================================================= -->
+    <!-- 5. MAIN CONTENT PROJECTION (GRID / TABLE)                                  -->
+    <!-- ========================================================================= -->
+    <div class="relative z-10">
+      @if (viewMode() === 'grid') {
+        <ng-content select="[grid-view]"></ng-content>
+      }
+      @if (viewMode() === 'table') {
+        <ng-content select="[table-view]"></ng-content>
+      }
+      
+      <!-- Default Slot for components with single view or custom layouts -->
+      <ng-content></ng-content>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 6. PAGINATION / FOOTER BAR                                                -->
+    <!-- ========================================================================= -->
+    @if (showPagination()) {
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-base-300/60">
+        
+        <!-- Left: Showing count + Per Page selector OR Custom Text -->
+        @if (customFooterText()) {
+          <div class="text-xs text-text-secondary">
+            {{ customFooterText() }}
+          </div>
+        } @else {
+          <div class="flex items-center gap-4 text-xs text-text-secondary flex-wrap">
+            <span>
+              Showing
+              <strong class="text-text-primary font-bold">{{ startItemIndex() }}</strong>
+              to
+              <strong class="text-text-primary font-bold">{{ endItemIndex() }}</strong>
+              of
+              <strong class="text-text-primary font-bold">{{ totalItems() }}</strong>
+              {{ itemLabel() }}
+            </span>
+
+            <div class="flex items-center gap-1.5">
+              <span class="text-text-secondary">Per page:</span>
+              <select
+                [ngModel]="pageSize()"
+                (ngModelChange)="onPageSizeSelect($event)"
+                class="px-2.5 py-1 rounded-lg bg-base-100 dark:bg-base-200 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none focus:border-tenant-500 cursor-pointer shadow-2xs">
+                @for (opt of pageSizeOptions(); track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        <!-- Right: Pagination Controls (Prev / Page numbers / Next) -->
+        @if (!customFooterText() && totalPages() > 1) {
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              (click)="prevPage()"
+              [disabled]="currentPage() === 1"
+              class="px-3 py-1.5 rounded-lg border border-base-300 bg-base-100 dark:bg-base-200 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">chevron_left</span>
+              <span>Prev</span>
+            </button>
+
+            @for (p of pagesList(); track p) {
+              <button
+                type="button"
+                (click)="goToPage(p)"
+                class="w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
+                [class]="p === currentPage()
+                  ? 'bg-tenant-500 text-white shadow-xs'
+                  : 'border border-base-300 bg-base-100 dark:bg-base-200 text-text-primary hover:bg-base-200'">
+                {{ p }}
+              </button>
+            }
+
+            <button
+              type="button"
+              (click)="nextPage()"
+              [disabled]="currentPage() === totalPages()"
+              class="px-3 py-1.5 rounded-lg border border-base-300 bg-base-100 dark:bg-base-200 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1">
+              <span>Next</span>
+              <span class="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        }
+
+      </div>
+    }
+
+  }
+
+</div>

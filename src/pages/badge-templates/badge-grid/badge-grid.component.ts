@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 import {
   BadgeTemplate,
   BadgeTemplateStatus,
@@ -25,7 +27,14 @@ export interface BadgeFilterState {
 @Component({
   selector: 'app-badge-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule, 
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './badge-grid.component.html',
   styleUrls: ['./badge-grid.component.css'],
@@ -247,6 +256,13 @@ export class BadgeGridComponent {
     const page = this.currentPage();
     const size = this.pageSize();
     return list.slice((page - 1) * size, page * size);
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredBadges().length > 0) return 'none';
+    if (this.allBadges().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
   });
 
   totalPages = computed<number>(() => {

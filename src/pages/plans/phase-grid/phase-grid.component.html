@@ -47,237 +47,123 @@
   <!-- ========================================================================= -->
   <!-- 2. SEARCH & FILTER CONTROLS (Exact Match to Plan Grid Design)             -->
   <!-- ========================================================================= -->
-  <div class="relative z-10 bg-white dark:bg-base-100 rounded-2xl border border-slate-100 dark:border-base-300 p-3 sm:p-4 shadow-2xs space-y-3">
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-      
-      <!-- Left: Search Field + Filter Button + Reset Button -->
-      <div class="flex items-center gap-2.5 flex-1 max-w-2xl">
-        
-        <!-- Search Field -->
-        <div class="relative flex-1">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">search</span>
-          <input
-            type="text"
-            id="input-phase-name-search"
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearchChange($event)"
-            placeholder="Search by Phase Name, Code or Parent Plan..."
-            class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs text-text-primary placeholder:text-slate-400 focus:outline-none focus:border-slate-400 transition-all shadow-2xs" />
-          @if (searchQuery()) {
-            <button 
-              type="button"
-              (click)="onSearchChange('')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md cursor-pointer">
-              <span class="material-symbols-outlined text-sm">close</span>
-            </button>
-          }
-        </div>
+  <!-- ========================================================================= -->
+  <!-- 2. PHASE DATA GRID & FILTERING                                            -->
+  <!-- ========================================================================= -->
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search by Phase Name, Code or Parent Plan..."
+    [isFilterOpen]="isFilterPanelOpen()"
+    (filterToggle)="isFilterPanelOpen.set($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="hasActiveFilters()"
+    [showReset]="isResetVisible()"
+    (resetGrid)="resetGrid()"
+    [showViewSwitcher]="false"
+    [itemCountText]="'Showing ' + filteredPhases().length + ' of ' + allPhasesWithContext().length + ' Phases'"
+    filterPanelTitle="FILTER LEARNING PHASES"
+    [emptyStateType]="emptyStateType()"
+    emptyTitle="No Phases Match Criteria"
+    emptyMessage="No learning phases match your search and filter parameters."
+    emptyIcon="search_off"
+    emptyActionText="Create Phase"
+    (emptyAction)="openCreatePhaseModal()"
+    (clearFilters)="clearFilterPanelDraft()"
+    (cancelFilters)="closeFilterPanel()"
+    (applyFilters)="applyFilterPanel()"
+    [showPagination]="false">
 
-        <!-- Filter Button beside Search -->
-        <button 
-          type="button"
-          id="btn-toggle-phase-filter"
-          (click)="toggleFilterPanel()"
-          class="px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          [class]="isFilterPanelOpen() || hasActiveFilters()
-            ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300'"
-          title="Filters">
-          <span class="material-symbols-outlined text-base" [class.text-slate-600]="!isFilterPanelOpen() && !hasActiveFilters()" [class.text-white]="isFilterPanelOpen() || hasActiveFilters()">filter_list</span>
-          <span>Filters</span>
-          @if (activeFilterCount() > 0) {
-            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center">
-              {{ activeFilterCount() }}
-            </span>
-          }
-        </button>
-
-        <!-- Grid-Level Reset Button -->
-        @if (isResetVisible()) {
-          <button 
-            type="button"
-            id="btn-phase-grid-reset"
-            (click)="resetGrid()"
-            class="px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all animate-in fade-in"
-            title="Clear search and all active filters">
-            <span class="material-symbols-outlined text-sm">restart_alt</span>
-            <span>Reset</span>
-          </button>
-        }
-
+    <!-- Filter Panel (Matching Image 5) -->
+    <div filter-panel class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 items-start pt-1">
+      <!-- 1. Status Multi-select Checkboxes -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="1. Phase Status">
+          <div class="grid grid-cols-2 gap-2">
+            @for (st of availableStatuses; track st) {
+              <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().status.includes(st)"
+                  (change)="toggleStatusDraft(st)"
+                  class="rounded border-slate-300 dark:border-base-300 text-tenant-600 focus:ring-tenant-600 w-4 h-4 cursor-pointer" />
+                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs" [class]="getStatusBadgeClass(st)">
+                  <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(st)"></span>
+                  {{ st }}
+                </span>
+              </label>
+            }
+          </div>
+        </app-filter-section>
       </div>
 
-      <!-- Right: Total Count Indicator -->
-      <div class="flex items-center justify-end text-xs text-text-secondary self-end sm:self-auto flex-shrink-0">
-        <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-base-200 border border-slate-200/80 dark:border-base-300 font-semibold">
-          Showing <strong class="text-text-primary">{{ filteredPhases().length }}</strong> of {{ allPhasesWithContext().length }} Phases
-        </span>
+      <!-- 2. Prerequisite Unlock Rules -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="2. Prerequisite Rules">
+          <div class="flex flex-col gap-2">
+            @for (pr of availablePrerequisites; track pr) {
+              <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-base-200 transition-colors">
+                <input 
+                  type="checkbox"
+                  [checked]="draftFilters().prerequisites.includes(pr)"
+                  (change)="togglePrerequisiteDraft(pr)"
+                  class="rounded border-slate-300 dark:border-base-300 text-tenant-600 focus:ring-tenant-600 w-4 h-4 cursor-pointer" />
+                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 shadow-2xs">
+                  {{ pr }}
+                </span>
+              </label>
+            }
+          </div>
+        </app-filter-section>
       </div>
 
+      <!-- 3. Parent Plan Filter -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="3. Parent Plan Scope">
+          <app-custom-select
+            id="select-phase-parent-plan"
+            [ngModel]="draftFilters().planId"
+            (ngModelChange)="setPlanDraft($event)"
+            [options]="planFilterOptions()"
+            placeholder="All Learning Plans (Workspace)"
+            leadingIcon="layers"
+            dropdownAlign="right"
+            [searchable]="true" />
+        </app-filter-section>
+      </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- 2.1 EXPANDABLE FILTER PANEL DRAWER (Exact Match to Plan Grid)             -->
-    <!-- ========================================================================= -->
-    @if (isFilterPanelOpen()) {
-      <div class="pt-5 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in slide-in-from-top-2 duration-200 space-y-6">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
-          <!-- 1. Status Multi-select Checkboxes -->
-          <div class="lg:col-span-4 space-y-3">
-            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              1. Phase Status
-            </h4>
-            <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
-              @for (st of availableStatuses; track st) {
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                  <input 
-                    type="checkbox"
-                    [checked]="draftFilters().status.includes(st)"
-                    (change)="toggleStatusDraft(st)"
-                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-600 focus:ring-0 focus:outline-none cursor-pointer" />
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all" [class]="getStatusBadgeClass(st)">
-                    <span class="w-1.5 h-1.5 rounded-full" [class]="getStatusDotClass(st)"></span>
-                    {{ st }}
-                  </span>
-                </label>
-              }
-            </div>
-          </div>
-
-          <!-- 2. Prerequisite Unlock Rules -->
-          <div class="lg:col-span-4 space-y-3">
-            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              2. Prerequisite Rules
-            </h4>
-            <div class="flex flex-col gap-2">
-              @for (pr of availablePrerequisites; track pr) {
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                  <input 
-                    type="checkbox"
-                    [checked]="draftFilters().prerequisites.includes(pr)"
-                    (change)="togglePrerequisiteDraft(pr)"
-                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-tenant-600 focus:ring-0 focus:outline-none cursor-pointer" />
-                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700">
-                    {{ pr }}
-                  </span>
-                </label>
-              }
-            </div>
-          </div>
-
-          <!-- 3. Parent Plan Filter -->
-          <div class="lg:col-span-4 space-y-3">
-            <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              3. Parent Plan Scope
-            </h4>
-            <div class="relative">
-              <app-custom-select
-                id="select-phase-parent-plan"
-                [ngModel]="draftFilters().planId"
-                (ngModelChange)="setPlanDraft($event)"
-                [options]="planFilterOptions()"
-                placeholder="All Learning Plans (Workspace)"
-                leadingIcon="layers"
-                dropdownAlign="right"
-                [searchable]="true" />
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Filter Panel Footer Actions -->
-        <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-          <button 
-            type="button"
-            (click)="clearFilterPanelDraft()"
-            class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer bg-transparent border-0 p-0 focus:outline-none">
-            Clear All Selections
+    <!-- Active Filter Chips -->
+    <div filter-chips class="contents">
+      @for (st of appliedFilters().status; track st) {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+          <span>Status: <strong>{{ st }}</strong></span>
+          <button type="button" (click)="removeStatusFilter(st)" class="hover:text-rose-600 cursor-pointer">
+            <span class="material-symbols-outlined text-xs">close</span>
           </button>
-
-          <div class="flex items-center gap-3">
-            <button 
-              type="button"
-              (click)="closeFilterPanel()"
-              class="px-5 py-2 rounded-xl sm:rounded-full bg-[#F1F5F9] hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer focus:outline-none">
-              Cancel
-            </button>
-            <button 
-              type="button"
-              id="btn-apply-phase-filters"
-              (click)="applyFilterPanel()"
-              class="px-6 py-2 rounded-xl sm:rounded-full btn-gradient text-white text-xs font-bold shadow-xs transition-colors cursor-pointer focus:outline-none">
-              Apply Filter
-            </button>
-          </div>
-        </div>
-
-      </div>
-    }
-
-    <!-- ========================================================================= -->
-    <!-- 2.2 ACTIVE FILTER CHIPS ROW (Exact Match to Plan Grid)                    -->
-    <!-- ========================================================================= -->
-    @if (hasActiveFilters()) {
-      <div class="pt-3 border-t border-base-300 flex items-center gap-2 flex-wrap text-xs">
-        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
-          Active Filters:
         </span>
+      }
 
-        <!-- Status Chips -->
-        @for (st of appliedFilters().status; track st) {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
-            <span>Status: <strong>{{ st }}</strong></span>
-            <button type="button" (click)="removeStatusFilter(st)" class="hover:text-rose-600 cursor-pointer">
-              <span class="material-symbols-outlined text-xs">close</span>
-            </button>
-          </span>
-        }
+      @for (pr of appliedFilters().prerequisites; track pr) {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+          <span>Prereq: <strong>{{ pr }}</strong></span>
+          <button type="button" (click)="removePrerequisiteFilter(pr)" class="hover:text-rose-600 cursor-pointer">
+            <span class="material-symbols-outlined text-xs">close</span>
+          </button>
+        </span>
+      }
 
-        <!-- Prerequisite Chips -->
-        @for (pr of appliedFilters().prerequisites; track pr) {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
-            <span>Prereq: <strong>{{ pr }}</strong></span>
-            <button type="button" (click)="removePrerequisiteFilter(pr)" class="hover:text-rose-600 cursor-pointer">
-              <span class="material-symbols-outlined text-xs">close</span>
-            </button>
-          </span>
-        }
-
-        <!-- Plan Chip -->
-        @if (appliedFilters().planId) {
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
-            <span>Plan Filter Active</span>
-            <button type="button" (click)="removePlanFilter()" class="hover:text-rose-600 cursor-pointer">
-              <span class="material-symbols-outlined text-xs">close</span>
-            </button>
-          </span>
-        }
-      </div>
-    }
-
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 3. MASTER PHASE GRID TABLE WITH STICKY ACTION COLUMN (Exact Plan Match)  -->
-  <!-- ========================================================================= -->
-  @if (filteredPhases().length === 0) {
-    <div class="bg-base-100 dark:bg-base-200 rounded-3xl border border-base-300 dark:border-slate-800 p-12 text-center text-xs text-text-secondary space-y-3">
-      <div class="w-16 h-16 rounded-2xl bg-base-200 flex items-center justify-center mx-auto text-text-secondary">
-        <span class="material-symbols-outlined text-3xl">search_off</span>
-      </div>
-      <h3 class="text-base font-bold text-text-primary">No Phases Match Criteria</h3>
-      <p class="max-w-sm mx-auto">No learning phases match your search and filter parameters.</p>
-      <button 
-        type="button" 
-        (click)="resetGrid()"
-        class="mt-2 px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary font-bold shadow-sm cursor-pointer inline-flex items-center gap-1.5">
-        <span class="material-symbols-outlined text-sm">restart_alt</span>
-        <span>Reset Filters</span>
-      </button>
+      @if (appliedFilters().planId) {
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+          <span>Plan Filter Active</span>
+          <button type="button" (click)="removePlanFilter()" class="hover:text-rose-600 cursor-pointer">
+            <span class="material-symbols-outlined text-xs">close</span>
+          </button>
+        </span>
+      }
     </div>
-  } @else {
+
+    <!-- Master Phase Grid Table (Matching Image 5) -->
     <div class="bg-base-100 dark:bg-base-200 rounded-3xl border border-base-300 dark:border-slate-800 overflow-hidden shadow-sm">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs border-collapse">
@@ -340,7 +226,7 @@
               <th class="py-3.5 px-4">Outputs</th>
 
               <!-- STICKY ACTION HEADER (Exact Plan Design Match) -->
-              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-30 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
                 Actions
               </th>
 
@@ -476,7 +362,8 @@
         </table>
       </div>
     </div>
-  }
+
+  </app-data-grid>
 
 </div>
 

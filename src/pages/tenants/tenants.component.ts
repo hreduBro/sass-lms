@@ -12,9 +12,11 @@ export interface OrgGridFilters {
   createdDateTo: string;
 }
 
+import { DataGridComponent, FilterSectionComponent, DateRangeFilterComponent } from '../../components/data-grid';
+
 @Component({
   selector: 'app-tenants',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, DataGridComponent, FilterSectionComponent, DateRangeFilterComponent],
   templateUrl: './tenants.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

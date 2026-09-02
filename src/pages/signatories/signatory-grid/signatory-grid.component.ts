@@ -6,6 +6,8 @@ import { LmsDataService } from '../../../services/lms-data.service';
 import { Signatory, SignatoryStatus, SignatoryTemplateLink } from '../../../models/signatory.model';
 import { CertificateTemplate } from '../../../models/certificate-template.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
 
 @Component({
   selector: 'app-signatory-grid',
@@ -15,7 +17,9 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    CustomSelectComponent
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './signatory-grid.component.html'
@@ -268,6 +272,29 @@ export class SignatoryGridComponent implements OnInit {
 
     return list;
   });
+
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(9);
+
+  paginatedSignatories = computed(() => {
+    const list = this.filteredSignatories();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    return list.slice((page - 1) * size, page * size);
+  });
+
+  emptyStateType = computed<'none' | 'true_empty' | 'search_miss' | 'filter_miss'>(() => {
+    if (this.filteredSignatories().length > 0) return 'none';
+    if (this.lmsData.signatories().length === 0) return 'true_empty';
+    if (this.searchQuery().trim().length > 0) return 'search_miss';
+    return 'filter_miss';
+  });
+
+  onSearchChange(val: string) {
+    this.searchQuery.set(val);
+    this.currentPage.set(1);
+  }
 
   // Active Filter Count
   activeFilterCount = computed<number>(() => {
