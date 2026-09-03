@@ -6,6 +6,7 @@ import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { Certificate, Course, CourseEnrollment, User } from '../../models/lms.model';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
 interface ProfileTab {
   id: 'overview' | 'learning' | 'certificates' | 'badges' | 'security';
@@ -15,7 +16,7 @@ interface ProfileTab {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent, CustomSelectComponent],
   template: `
     <div class="space-y-6 pb-16 animate-in fade-in duration-200">
       
@@ -253,15 +254,14 @@ interface ProfileTab {
 
                 <div>
                   <label class="block text-xs font-semibold text-text-primary mb-1">Department</label>
-                  <select 
-                    [(ngModel)]="editForm.department" 
-                    name="userDept"
+                  <app-custom-select
+                    [options]="departmentOptions()"
+                    [clearable]="false"
+                    [searchable]="false"
                     [disabled]="!isEditing()"
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-sm focus:outline-none focus:border-tenant-500 disabled:opacity-75 disabled:cursor-not-allowed">
-                    @for (dept of lms.activeTenant().departments; track dept) {
-                      <option [value]="dept">{{ dept }}</option>
-                    }
-                  </select>
+                    [(ngModel)]="editForm.department"
+                    name="userDept">
+                  </app-custom-select>
                 </div>
 
                 <div>
@@ -288,17 +288,14 @@ interface ProfileTab {
 
                 <div>
                   <label class="block text-xs font-semibold text-text-primary mb-1">Timezone</label>
-                  <select 
-                    [(ngModel)]="editForm.timezone" 
-                    name="userTimezone"
+                  <app-custom-select
+                    [options]="timezoneOptions"
+                    [clearable]="false"
+                    [searchable]="false"
                     [disabled]="!isEditing()"
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-sm focus:outline-none focus:border-tenant-500 disabled:opacity-75 disabled:cursor-not-allowed font-mono text-xs">
-                    <option value="Asia/Dhaka">Asia/Dhaka (GMT+6)</option>
-                    <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
-                    <option value="Europe/London">Europe/London (GMT+0)</option>
-                    <option value="America/New_York">America/New_York (EST)</option>
-                    <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
-                  </select>
+                    [(ngModel)]="editForm.timezone"
+                    name="userTimezone">
+                  </app-custom-select>
                 </div>
               </div>
 
@@ -818,6 +815,21 @@ export class ProfileComponent {
   ];
 
   activeUser = computed<User>(() => this.lms.activeUser());
+
+  departmentOptions = computed<SelectOption[]>(() => {
+    return this.lms.activeTenant().departments.map(dept => ({
+      value: dept,
+      label: dept
+    }));
+  });
+
+  timezoneOptions: SelectOption[] = [
+    { value: 'Asia/Dhaka', label: 'Asia/Dhaka (GMT+6)' },
+    { value: 'Asia/Singapore', label: 'Asia/Singapore (GMT+8)' },
+    { value: 'Europe/London', label: 'Europe/London (GMT+0)' },
+    { value: 'America/New_York', label: 'America/New_York (EST)' },
+    { value: 'America/Los_Angeles', label: 'America/Los_Angeles (PST)' }
+  ];
 
   editForm = {
     name: '',

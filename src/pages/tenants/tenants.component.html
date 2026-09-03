@@ -879,25 +879,22 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">Status</label>
-            <select 
-              [(ngModel)]="editingTenant()!.status" 
-              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500">
-              <option value="Active">Active</option>
-              <option value="In-Progress">In-Progress</option>
-              <option value="Suspended">Suspended</option>
-              <option value="Trial">Trial</option>
-            </select>
+            <app-custom-select
+              [options]="tenantEditStatusOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [(ngModel)]="editingTenant()!.status">
+            </app-custom-select>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">Plan Tier</label>
-            <select 
-              [(ngModel)]="editingTenant()!.plan" 
-              class="w-full px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500">
-              <option value="Enterprise">Enterprise</option>
-              <option value="Pro">Pro</option>
-              <option value="Starter">Starter</option>
-            </select>
+            <app-custom-select
+              [options]="tenantEditPlanOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [(ngModel)]="editingTenant()!.plan">
+            </app-custom-select>
           </div>
         </div>
 

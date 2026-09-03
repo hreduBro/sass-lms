@@ -64,6 +64,11 @@ export class CoursesComponent {
     scope: 'lms'
   });
 
+  templateScopeOptions: SelectOption[] = [
+    { value: 'lms', label: 'Current LMS Instance Only' },
+    { value: 'organization', label: 'Entire Organization' }
+  ];
+
   // Action Confirmation Modal
   confirmModal = signal<{
     isOpen: boolean;

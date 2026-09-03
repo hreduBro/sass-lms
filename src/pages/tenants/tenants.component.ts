@@ -13,16 +13,30 @@ export interface OrgGridFilters {
 }
 
 import { DataGridComponent, FilterSectionComponent, DateRangeFilterComponent } from '../../components/data-grid';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-tenants',
-  imports: [CommonModule, FormsModule, RouterModule, DataGridComponent, FilterSectionComponent, DateRangeFilterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DataGridComponent, FilterSectionComponent, DateRangeFilterComponent, CustomSelectComponent],
   templateUrl: './tenants.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TenantsComponent {
   lms = inject(LmsDataService);
   private router = inject(Router);
+
+  tenantEditStatusOptions: SelectOption[] = [
+    { value: 'Active', label: 'Active', icon: 'check_circle' },
+    { value: 'In-Progress', label: 'In-Progress', icon: 'pending' },
+    { value: 'Suspended', label: 'Suspended', icon: 'block' },
+    { value: 'Trial', label: 'Trial', icon: 'schedule' }
+  ];
+
+  tenantEditPlanOptions: SelectOption[] = [
+    { value: 'Enterprise', label: 'Enterprise', icon: 'workspace_premium' },
+    { value: 'Pro', label: 'Pro', icon: 'stars' },
+    { value: 'Starter', label: 'Starter', icon: 'flag' }
+  ];
 
   // 1. Search Query (Search by Name, ID, Domain, City/District, Admin)
   searchQuery = signal<string>('');

@@ -1,10 +1,12 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-lms-widget-config-modal',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   template: `
     <div 
       class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
@@ -121,15 +123,13 @@ import { LmsDashboardWidget } from '../../models/lms-dashboard.model';
           @if (widget().type === 'recent_lms_activity' || widget().type === 'lms_snapshot_cards') {
             <div class="pt-2 border-t border-base-300">
               <label class="block text-xs font-semibold text-text-primary mb-1">Max Items to Display</label>
-              <select 
-                [value]="maxItems()"
-                (change)="updateMaxItems($event)"
-                class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500">
-                <option [value]="3">3 items</option>
-                <option [value]="5">5 items</option>
-                <option [value]="8">8 items</option>
-                <option [value]="12">12 items</option>
-              </select>
+              <app-custom-select
+                [options]="maxItemsOptions"
+                [clearable]="false"
+                [searchable]="false"
+                [ngModel]="maxItems()"
+                (ngModelChange)="maxItems.set($event)">
+              </app-custom-select>
             </div>
           }
 
@@ -169,6 +169,13 @@ export class LmsWidgetConfigModalComponent implements OnInit {
   bannerText = signal<string>('');
   bannerType = signal<'indigo' | 'info' | 'warning' | 'success'>('indigo');
   maxItems = signal<number>(5);
+
+  maxItemsOptions: SelectOption[] = [
+    { value: 3, label: '3 items' },
+    { value: 5, label: '5 items' },
+    { value: 8, label: '8 items' },
+    { value: 12, label: '12 items' }
+  ];
 
   ngOnInit() {
     const w = this.widget();

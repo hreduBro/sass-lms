@@ -184,14 +184,17 @@
 
         <div class="flex items-center gap-1.5 pl-3 border-l border-base-300">
           <span class="text-[11px]">Per page:</span>
-          <select 
-            [value]="pageSize()"
-            (change)="setPageSize(+$any($event.target).value)"
-            class="px-2 py-1 rounded-lg bg-base-100 border border-base-300 text-xs font-semibold focus:outline-none focus:border-tenant-500">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="20">20</option>
-          </select>
+          <div class="w-18">
+            <app-custom-select
+              [options]="pageSizeOptions"
+              [clearable]="false"
+              [searchable]="false"
+              size="sm"
+              dropdownPosition="top"
+              [ngModel]="pageSize()"
+              (ngModelChange)="setPageSize($event)">
+            </app-custom-select>
+          </div>
         </div>
       </div>
 

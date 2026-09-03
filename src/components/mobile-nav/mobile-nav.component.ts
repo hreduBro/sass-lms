@@ -5,10 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
+import { CustomSelectComponent, SelectOption } from '../custom-select/custom-select.component';
 
 @Component({
   selector: 'app-mobile-nav',
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, CustomSelectComponent],
   template: `
     <!-- Bottom Navigation Bar (Visible only on mobile & tablet < md) -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-base-100/95 backdrop-blur-lg border-t border-base-300 px-2 py-1.5 shadow-lg safe-area-bottom">
@@ -265,16 +266,17 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
               <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-sm">badge</span> Switch Role
               </span>
-              <select 
-                [ngModel]="lms.activeRole()"
-                (ngModelChange)="lms.switchRole($event)"
-                class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary focus:outline-none">
-                <option value="system_admin">System Admin</option>
-                <option value="tenant_admin">Org Admin</option>
-                <option value="lms_admin">LMS Admin</option>
-                <option value="instructor">Instructor</option>
-                <option value="learner">Learner</option>
-              </select>
+              <div class="w-36">
+                <app-custom-select
+                  [options]="roleOptions"
+                  [clearable]="false"
+                  [searchable]="false"
+                  size="sm"
+                  dropdownPosition="top"
+                  [ngModel]="lms.activeRole()"
+                  (ngModelChange)="lms.switchRole($event)">
+                </app-custom-select>
+              </div>
             </div>
           </div>
 
@@ -299,6 +301,14 @@ export class MobileNavComponent {
   themeService = inject(ThemeService);
   router = inject(Router);
   showMoreDrawer = signal<boolean>(false);
+
+  roleOptions: SelectOption[] = [
+    { value: 'system_admin', label: 'System Admin' },
+    { value: 'tenant_admin', label: 'Org Admin' },
+    { value: 'lms_admin', label: 'LMS Admin' },
+    { value: 'instructor', label: 'Instructor' },
+    { value: 'learner', label: 'Learner' }
+  ];
 
   navItems: NavItem[] = APP_NAV_ITEMS;
 

@@ -210,6 +210,11 @@ export class PlanCreateComponent implements OnInit {
     { value: 'Annual Cycle', label: 'Annual Recurrence (Every 12 Months)', icon: 'event' }
   ];
 
+  releaseRuleScopeOptions: SelectOption[] = [
+    { value: 'Whole Plan', label: 'Whole Plan Unified Rule' },
+    { value: 'Per Phase', label: 'Per Phase Scoped Rules' }
+  ];
+
   // Generated Plan Code (§3.1 #3, §12.2)
   generatedPlanCode = computed<string>(() => {
     const lmsNumeric = this.activeTenant().numericId || '1972';

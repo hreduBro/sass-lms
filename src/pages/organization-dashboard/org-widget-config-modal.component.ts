@@ -2,10 +2,11 @@ import { Component, ChangeDetectionStrategy, input, output, signal } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrgDashboardWidget } from '../../models/organization-dashboard.model';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-org-widget-config-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   template: `
     <div 
       class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
@@ -142,14 +143,12 @@ import { OrgDashboardWidget } from '../../models/organization-dashboard.model';
           @if (formData.type === 'recent_org_activity' || formData.type === 'top_orgs_by_lms') {
             <div class="pt-2 border-t border-base-300">
               <label class="block text-xs font-semibold text-text-primary mb-1">Max Items to Display</label>
-              <select 
-                [(ngModel)]="formData.config.maxItems"
-                class="w-full px-3.5 py-2 text-xs rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500">
-                <option [value]="5">5 items</option>
-                <option [value]="10">10 items</option>
-                <option [value]="15">15 items</option>
-                <option [value]="20">20 items</option>
-              </select>
+              <app-custom-select
+                [options]="maxItemsOptions"
+                [clearable]="false"
+                [searchable]="false"
+                [(ngModel)]="formData.config.maxItems">
+              </app-custom-select>
             </div>
           }
 
@@ -183,6 +182,13 @@ export class OrgWidgetConfigModalComponent {
   save = output<OrgDashboardWidget>();
 
   formData: any = {};
+
+  maxItemsOptions: SelectOption[] = [
+    { value: 5, label: '5 items' },
+    { value: 10, label: '10 items' },
+    { value: 15, label: '15 items' },
+    { value: 20, label: '20 items' }
+  ];
 
   ngOnInit() {
     this.formData = JSON.parse(JSON.stringify(this.widget()));

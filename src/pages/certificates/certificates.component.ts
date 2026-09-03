@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { Certificate } from '../../models/lms.model';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-certificates',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './certificates.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -21,6 +22,12 @@ export class CertificatesComponent {
   // Pagination
   currentPage = signal<number>(1);
   pageSize = signal<number>(6);
+
+  pageSizeOptions: SelectOption[] = [
+    { value: 3, label: '3' },
+    { value: 6, label: '6' },
+    { value: 12, label: '12' }
+  ];
 
   // Filtered certificates
   filteredCertificates = computed(() => {

@@ -2,11 +2,12 @@ import { Component, ChangeDetectionStrategy, input, model, output, computed } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GridViewMode, GridEmptyStateType, GridActiveChip } from './data-grid.types';
+import { CustomSelectComponent, SelectOption } from '../custom-select/custom-select.component';
 
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './data-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -62,6 +63,12 @@ export class DataGridComponent {
   pageSize = model<number>(6);
   totalItems = input<number>(0);
   pageSizeOptions = input<number[]>([6, 9, 12, 24]);
+  pageSizeSelectOptions = computed<SelectOption[]>(() => {
+    return this.pageSizeOptions().map(opt => ({
+      value: opt,
+      label: String(opt)
+    }));
+  });
   itemLabel = input<string>('items');
   customFooterText = input<string>('');
 

@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { OrgDashboardWidget } from '../../models/organization-dashboard.model';
 import { KpiCardComponent } from '../../components/kpi-card/kpi-card.component';
+import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 import { Kpi } from '../../models/dashboard.model';
 import { Tenant } from '../../models/lms.model';
 
 @Component({
   selector: 'app-org-widget-renderer',
-  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule, KpiCardComponent, CustomSelectComponent],
   templateUrl: './org-widget-renderer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,6 +43,14 @@ export class OrgWidgetRendererComponent {
   activityFilter = signal<string>('all');
   directorySearch = signal<string>('');
   dismissedBanner = signal<boolean>(false);
+
+  activityFilterOptions: SelectOption[] = [
+    { value: 'all', label: 'All Events' },
+    { value: 'activated', label: 'Activated' },
+    { value: 'deactivated', label: 'Deactivated' },
+    { value: 'created', label: 'Created' },
+    { value: 'updated', label: 'Updated' }
+  ];
 
   showToast(msg: string) {
     this.lms.showToast(msg, 'info');

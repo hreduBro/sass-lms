@@ -652,13 +652,13 @@
 
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-text-primary">Template Scope</label>
-            <select 
-              [value]="templateForm().scope"
-              (change)="templateForm().scope = $any($event.target).value"
-              class="w-full px-4 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-xs font-semibold text-text-primary cursor-pointer">
-              <option value="lms">Current LMS Instance Only</option>
-              <option value="organization">Entire Organization</option>
-            </select>
+            <app-custom-select
+              [options]="templateScopeOptions"
+              [clearable]="false"
+              [searchable]="false"
+              [ngModel]="templateForm().scope"
+              (ngModelChange)="templateForm().scope = $event">
+            </app-custom-select>
           </div>
         </div>
 

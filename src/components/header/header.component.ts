@@ -8,10 +8,11 @@ import { LmsApiService } from '../../services/lms-api.service';
 import { ThemeService } from '../../services/theme.service';
 import { UserRole } from '../../models/lms.model';
 import { CustomAvatarComponent } from '../custom-avatar/custom-avatar.component';
+import { CustomSelectComponent, SelectOption } from '../custom-select/custom-select.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomAvatarComponent, CustomSelectComponent],
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -22,6 +23,12 @@ export class HeaderComponent {
   router = inject(Router);
   elementRef = inject(ElementRef);
   toggleSidebar = output<void>();
+
+  subscriptionPlanOptions: SelectOption[] = [
+    { value: 'Starter', label: 'Starter (250 seats)', icon: 'flag' },
+    { value: 'Pro', label: 'Pro (1,000 seats)', icon: 'stars' },
+    { value: 'Enterprise', label: 'Enterprise (5,000+ seats)', icon: 'workspace_premium' }
+  ];
 
   showTenantDropdown = computed(() => this.lms.isNavDropdownOpen('header-tenant'));
   showLmsDropdown = computed(() => this.lms.isNavDropdownOpen('header-lms'));
