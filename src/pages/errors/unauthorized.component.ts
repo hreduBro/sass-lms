@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
@@ -7,7 +7,7 @@ import { StatusIllustrationComponent } from '../../components/status-illustratio
 import { StatusSwitcherComponent } from '../../components/status-switcher/status-switcher.component';
 
 @Component({
-  selector: 'app-server-error',
+  selector: 'app-unauthorized',
   imports: [CommonModule, RouterModule, StatusIllustrationComponent],
   template: `
     <div class="min-h-screen w-full flex flex-col justify-between bg-base-200 text-text-primary relative overflow-x-hidden font-sans select-none">
@@ -64,26 +64,26 @@ import { StatusSwitcherComponent } from '../../components/status-switcher/status
         </div>
       </header>
 
-      <!-- Center Stage: 500 View (Design Inspired by Reference Image Bottom-Right) -->
+      <!-- Center Stage: 401 Unauthorized View (Design Inspired by Reference Image Bottom-Left) -->
       <main class="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-20 z-10">
 
         <div class="w-full max-w-lg text-center">
           
-          <!-- SVG Illustration: Server Racks + Cloud Backdrop -->
-          <app-status-illustration type="500"></app-status-illustration>
+          <!-- SVG Illustration: Document + Padlock + Security Shield -->
+          <app-status-illustration type="401"></app-status-illustration>
 
-          <!-- Status Code: 500 in Theme Primary Color -->
+          <!-- Status Code: 401 in Theme Primary Color -->
           <div class="mt-2 text-3xl sm:text-4xl font-black tracking-tight" style="color: var(--tenant-primary);">
-            500
+            401
           </div>
 
           <!-- Headline & Subtitle matching the reference image -->
           <div class="space-y-2 mt-2 mb-7">
             <h1 class="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-              This page isn't working
+              Unauthorized
             </h1>
             <p class="text-sm sm:text-base text-text-secondary max-w-md mx-auto leading-relaxed">
-              We apologise and are fixing the problem. Please try again later.
+              Something has gone wrong on the web site's server
             </p>
           </div>
 
@@ -99,23 +99,18 @@ import { StatusSwitcherComponent } from '../../components/status-switcher/status
             </a>
           </div>
 
-          <!-- Incident Diagnostic Reference Box -->
+          <!-- Security Hint Card -->
           <div class="mt-8 bg-base-100/90 rounded-2xl border border-base-300 shadow-sm p-4 text-xs text-text-secondary text-left flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
-              <span class="material-symbols-outlined text-xl text-rose-500 shrink-0">bug_report</span>
+              <span class="material-symbols-outlined text-xl text-amber-500 shrink-0">verified_user</span>
               <div class="truncate">
-                <span class="font-semibold text-text-primary block truncate">Incident ID: <code class="text-rose-600 dark:text-rose-400 font-mono">{{ incidentId() }}</code></span>
-                <span class="text-[11px] block truncate text-text-secondary">Dispatched to reliability operations engineers.</span>
+                <span class="font-semibold text-text-primary block truncate">Session Token Expired or Invalid</span>
+                <span class="text-[11px] block truncate text-text-secondary">Please re-authenticate with your organization credentials.</span>
               </div>
             </div>
-            
-            <button 
-              type="button"
-              (click)="copyIncidentId()"
-              class="px-2.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary border border-base-300 text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer shrink-0">
-              <span class="material-symbols-outlined text-sm">content_copy</span>
-              <span>Copy</span>
-            </button>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-300 border border-amber-500/20 shrink-0">
+              Auth Required
+            </span>
           </div>
 
         </div>
@@ -132,13 +127,10 @@ import { StatusSwitcherComponent } from '../../components/status-switcher/status
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ServerErrorComponent {
+export class UnauthorizedComponent {
   lms = inject(LmsDataService);
   theme = inject(ThemeService);
   router = inject(Router);
-
-  isRetrying = signal<boolean>(false);
-  incidentId = signal<string>(`ERR-${Math.floor(100000 + Math.random() * 900000)}`);
 
   onTenantChange(event: Event) {
     const val = (event.target as HTMLSelectElement).value;
@@ -147,19 +139,10 @@ export class ServerErrorComponent {
     }
   }
 
-  retryOperation() {
-    this.isRetrying.set(true);
+  reAuthenticate() {
+    this.lms.showToast('Redirecting to organization SSO login portal...', 'info');
     setTimeout(() => {
-      this.isRetrying.set(false);
-      this.lms.showToast('Re-connecting to tenant server cluster...', 'info');
       this.router.navigate(['/dashboard']);
-    }, 1000);
-  }
-
-  copyIncidentId() {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(this.incidentId());
-      this.lms.showToast('Incident correlation ID copied to clipboard.', 'success');
-    }
+    }, 800);
   }
 }

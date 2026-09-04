@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationModalService } from '../../services/confirmation-modal.service';
 
@@ -16,7 +16,21 @@ import { ConfirmationModalService } from '../../services/confirmation-modal.serv
         <div 
           id="global-confirmation-modal-card"
           class="relative bg-base-100 dark:bg-slate-900 border border-base-300 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-[420px] p-6 sm:p-7 text-center space-y-4 animate-modal-card m-auto"
+          [class.animate-shake]="isShaking()"
           (click)="$event.stopPropagation()">
+
+          <!-- Optional Top-Right Cross Button -->
+          @if (s.showCloseButton !== false) {
+            <button 
+              id="btn-confirmation-modal-close"
+              type="button" 
+              (click)="modalService.triggerCancel()"
+              class="absolute top-4 right-4 w-8 h-8 rounded-full bg-base-200/80 hover:bg-base-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer z-20 active:scale-90"
+              title="Close modal"
+              aria-label="Close modal">
+              <span class="material-symbols-outlined text-base font-bold">close</span>
+            </button>
+          }
           
           <!-- Top Centered Icon with Themed Ring Container (Matches Design Inspiration) -->
           <div class="flex justify-center">
@@ -114,14 +128,37 @@ import { ConfirmationModalService } from '../../services/confirmation-modal.serv
 export class ConfirmationModalComponent {
   modalService = inject(ConfirmationModalService);
 
+  isShaking = signal<boolean>(false);
+
+  triggerAttentionShake() {
+    this.isShaking.set(false);
+    setTimeout(() => {
+      this.isShaking.set(true);
+      setTimeout(() => this.isShaking.set(false), 450);
+    }, 10);
+  }
+
+  isDismissible(): boolean {
+    const s = this.modalService.state();
+    return s?.dismissible !== false;
+  }
+
   @HostListener('document:keydown.escape')
   onEscape() {
     if (this.modalService.isOpen()) {
-      this.modalService.triggerCancel();
+      if (this.isDismissible()) {
+        this.modalService.triggerCancel();
+      } else {
+        this.triggerAttentionShake();
+      }
     }
   }
 
   onBackdropClick(event: MouseEvent) {
-    this.modalService.triggerCancel();
+    if (this.isDismissible()) {
+      this.modalService.triggerCancel();
+    } else {
+      this.triggerAttentionShake();
+    }
   }
 }

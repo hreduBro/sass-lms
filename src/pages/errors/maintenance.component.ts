@@ -4,10 +4,9 @@ import { RouterModule, Router } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { StatusIllustrationComponent } from '../../components/status-illustration/status-illustration.component';
-import { StatusSwitcherComponent } from '../../components/status-switcher/status-switcher.component';
 
 @Component({
-  selector: 'app-server-error',
+  selector: 'app-maintenance',
   imports: [CommonModule, RouterModule, StatusIllustrationComponent],
   template: `
     <div class="min-h-screen w-full flex flex-col justify-between bg-base-200 text-text-primary relative overflow-x-hidden font-sans select-none">
@@ -64,58 +63,36 @@ import { StatusSwitcherComponent } from '../../components/status-switcher/status
         </div>
       </header>
 
-      <!-- Center Stage: 500 View (Design Inspired by Reference Image Bottom-Right) -->
+      <!-- Center Stage: Maintenance View (Design Inspired by Reference Image Top-Right) -->
       <main class="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-20 z-10">
 
         <div class="w-full max-w-lg text-center">
           
-          <!-- SVG Illustration: Server Racks + Cloud Backdrop -->
-          <app-status-illustration type="500"></app-status-illustration>
-
-          <!-- Status Code: 500 in Theme Primary Color -->
-          <div class="mt-2 text-3xl sm:text-4xl font-black tracking-tight" style="color: var(--tenant-primary);">
-            500
-          </div>
+          <!-- SVG Illustration: Barrier with Chevrons, Cone, and Warning Signpost -->
+          <app-status-illustration type="maintenance"></app-status-illustration>
 
           <!-- Headline & Subtitle matching the reference image -->
-          <div class="space-y-2 mt-2 mb-7">
+          <div class="space-y-2 mt-4 mb-7">
             <h1 class="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-              This page isn't working
+              System is down for Maintenance
             </h1>
             <p class="text-sm sm:text-base text-text-secondary max-w-md mx-auto leading-relaxed">
-              We apologise and are fixing the problem. Please try again later.
+              We promise, we'll be right back!
             </p>
           </div>
 
-          <!-- Primary Pill Action Button: "Go to Dashboard" -->
-          <div class="flex items-center justify-center">
-            <a 
-              id="btn-error-dashboard"
-              routerLink="/dashboard"
-              style="background-color: var(--tenant-primary);"
-              class="px-8 py-3 rounded-full text-sm font-bold text-white shadow-md shadow-tenant-500/25 hover:shadow-lg hover:shadow-tenant-500/35 hover:brightness-105 active:scale-95 transition-all inline-flex items-center gap-2 cursor-pointer">
-              <span class="material-symbols-outlined text-lg">dashboard</span>
-              <span>Go to Dashboard</span>
-            </a>
-          </div>
-
-          <!-- Incident Diagnostic Reference Box -->
+          <!-- Live Window Details Card -->
           <div class="mt-8 bg-base-100/90 rounded-2xl border border-base-300 shadow-sm p-4 text-xs text-text-secondary text-left flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
-              <span class="material-symbols-outlined text-xl text-rose-500 shrink-0">bug_report</span>
+              <span class="material-symbols-outlined text-xl text-tenant-500 shrink-0">engineering</span>
               <div class="truncate">
-                <span class="font-semibold text-text-primary block truncate">Incident ID: <code class="text-rose-600 dark:text-rose-400 font-mono">{{ incidentId() }}</code></span>
-                <span class="text-[11px] block truncate text-text-secondary">Dispatched to reliability operations engineers.</span>
+                <span class="font-semibold text-text-primary block truncate">Scheduled Cloud Upgrade v4.18</span>
+                <span class="text-[11px] block truncate text-text-secondary">Expected window: 15–30 mins &bull; Zero database data loss</span>
               </div>
             </div>
-            
-            <button 
-              type="button"
-              (click)="copyIncidentId()"
-              class="px-2.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary border border-base-300 text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer shrink-0">
-              <span class="material-symbols-outlined text-sm">content_copy</span>
-              <span>Copy</span>
-            </button>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tenant-50 text-tenant-600 border border-tenant-500/20 shrink-0">
+              Active
+            </span>
           </div>
 
         </div>
@@ -132,13 +109,12 @@ import { StatusSwitcherComponent } from '../../components/status-switcher/status
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ServerErrorComponent {
+export class MaintenanceComponent {
   lms = inject(LmsDataService);
   theme = inject(ThemeService);
   router = inject(Router);
 
-  isRetrying = signal<boolean>(false);
-  incidentId = signal<string>(`ERR-${Math.floor(100000 + Math.random() * 900000)}`);
+  isChecking = signal<boolean>(false);
 
   onTenantChange(event: Event) {
     const val = (event.target as HTMLSelectElement).value;
@@ -147,19 +123,11 @@ export class ServerErrorComponent {
     }
   }
 
-  retryOperation() {
-    this.isRetrying.set(true);
+  checkStatus() {
+    this.isChecking.set(true);
     setTimeout(() => {
-      this.isRetrying.set(false);
-      this.lms.showToast('Re-connecting to tenant server cluster...', 'info');
-      this.router.navigate(['/dashboard']);
-    }, 1000);
-  }
-
-  copyIncidentId() {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(this.incidentId());
-      this.lms.showToast('Incident correlation ID copied to clipboard.', 'success');
-    }
+      this.isChecking.set(false);
+      this.lms.showToast('System operational check complete: Upgrade is 78% completed.', 'info');
+    }, 1200);
   }
 }

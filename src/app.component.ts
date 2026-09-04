@@ -10,6 +10,8 @@ import { MobileNavComponent } from './components/mobile-nav/mobile-nav.component
 import { LayoutSwitcherModalComponent } from './components/layout-switcher-modal/layout-switcher-modal.component';
 import { BackendConsoleModalComponent } from './components/backend-console-modal/backend-console-modal.component';
 import { ConfirmationModalComponent } from './components/confirmation-modal/confirmation-modal.component';
+import { NotificationDialogComponent } from './components/notification-dialog/notification-dialog.component';
+import { NgxSpinnerComponent } from 'ngx-spinner';
 import { FooterComponent } from './components/footer/footer.component';
 import { ThemeService } from './services/theme.service';
 import { LmsDataService } from './services/lms-data.service';
@@ -28,6 +30,8 @@ import { LmsDataService } from './services/lms-data.service';
     LayoutSwitcherModalComponent,
     BackendConsoleModalComponent,
     ConfirmationModalComponent,
+    NotificationDialogComponent,
+    NgxSpinnerComponent,
     FooterComponent
   ]
 })

@@ -168,5 +168,42 @@ html.theme-glassmorphism.dark tbody [class*="sticky left-0"] {
   background-color: #0f172a !important;
 }
 
+/* NgxSpinner ball-clip-rotate styles */
+.la-ball-clip-rotate,
+.la-ball-clip-rotate > div {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.la-ball-clip-rotate {
+  display: block;
+  font-size: 0;
+  color: #fff;
+  overflow: hidden;
+  width: 36px;
+  height: 36px;
+}
+
+.la-ball-clip-rotate > div {
+  display: inline-block;
+  float: none;
+  background-color: currentColor;
+  border: 0 solid currentColor;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border-width: 3px;
+  border-bottom-color: transparent !important;
+  border-radius: 100%;
+  animation: ball-clip-rotate 0.75s linear infinite;
+}
+
+@keyframes ball-clip-rotate {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
 
 

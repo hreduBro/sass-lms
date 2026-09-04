@@ -9,6 +9,8 @@ export interface DiscardModalOptions {
   discardText?: string;
   cancelText?: string;
   showDraftOption?: boolean;
+  dismissible?: boolean;
+  showCloseButton?: boolean;
   onDraft?: () => void;
   onDiscard?: () => void;
   onCancel?: () => void;
@@ -22,6 +24,8 @@ export interface ConfirmModalOptions {
   icon?: string;
   iconType?: 'warning' | 'danger' | 'info' | 'success' | 'tenant';
   confirmButtonClass?: string;
+  dismissible?: boolean;
+  showCloseButton?: boolean;
   onConfirm?: () => void;
   onCancel?: () => void;
 }
@@ -38,6 +42,8 @@ export interface ActiveModalState {
   cancelText: string;
   confirmText: string;
   confirmButtonClass?: string;
+  dismissible?: boolean;
+  showCloseButton?: boolean;
   resolve?: (result: any) => void;
   onDraft?: () => void;
   onDiscard?: () => void;
@@ -73,6 +79,8 @@ export class ConfirmationModalService {
         discardText: options.discardText || 'Discard & Exit',
         cancelText: options.cancelText || 'Continue Editing',
         confirmText: options.discardText || 'Discard & Exit',
+        dismissible: options.dismissible,
+        showCloseButton: options.showCloseButton,
         resolve,
         onDraft: () => {
           if (options.onDraft) options.onDraft();
@@ -113,6 +121,8 @@ export class ConfirmationModalService {
         cancelText: options.cancelText || 'Cancel',
         confirmText: options.confirmText || 'Confirm',
         confirmButtonClass: options.confirmButtonClass,
+        dismissible: options.dismissible,
+        showCloseButton: options.showCloseButton,
         resolve,
         onConfirm: () => {
           if (options.onConfirm) options.onConfirm();

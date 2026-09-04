@@ -238,6 +238,19 @@
 <!-- Reusable Global Confirmation & Discard Modal (Controlled via ConfirmationModalService) -->
 <app-confirmation-modal></app-confirmation-modal>
 
+<!-- Global Notification Dialog (Controlled via NotificationService with Error, Warning, Success, Info, and Confirm variants) -->
+<app-notification-dialog></app-notification-dialog>
+
+<!-- Global NgxSpinner Loader for HTTP Requests (controlled by appInterceptor and NgxSpinnerService) -->
+<ngx-spinner 
+  bdColor="rgba(15, 23, 42, 0.7)" 
+  size="medium" 
+  color="#EC008C" 
+  type="ball-clip-rotate" 
+  [fullScreen]="true">
+  <p class="text-white text-xs font-semibold mt-3 tracking-wide select-none">Loading data...</p>
+</ngx-spinner>
+
 <!-- Global Sign Out Confirmation Modal (Rendered at root level to guarantee true 100vw x 100vh full-screen coverage) -->
 @if (lms.showSignOutModal()) {
   <div 

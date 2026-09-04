@@ -821,6 +821,45 @@ app.get('/api/export/scorm/:courseId', (req: Request, res: Response) => {
 });
 
 // ----------------------------------------------------
+// Interceptor & Notification Test Suite Endpoints
+// ----------------------------------------------------
+let retryTracker503 = 0;
+
+app.get('/api/test/error/:statusCode', (req: Request, res: Response) => {
+  const code = parseInt(req.params.statusCode, 10);
+  switch (code) {
+    case 401:
+      return res.status(401).json({ message: 'Session expired, please login again' });
+    case 400:
+      return res.status(400).json({ message: 'Invalid Request: Required parameters are missing' });
+    case 500:
+      return res.status(500).json({ message: 'Internal Server Error: Database connection pool failure' });
+    case 503:
+      retryTracker503++;
+      if (retryTracker503 % 4 === 0) {
+        return res.json({ success: true, message: 'Recovered after retry attempts!', attempts: retryTracker503 });
+      }
+      return res.status(503).json({ message: `Service Unavailable: Server busy (Retry attempt #${retryTracker503})` });
+    case 200:
+      return res.json({ success: true, message: 'Endpoint executed successfully (200 OK)' });
+    default:
+      return res.status(code || 418).json({ message: `HTTP Error ${code || 418}` });
+  }
+});
+
+app.get('/api/test/blob-error', (req: Request, res: Response) => {
+  res.status(400);
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.send(Buffer.from(JSON.stringify({ message: 'Binary stream validation failed (Parsed from Blob)' })));
+});
+
+app.get('/api/test/delay', async (req: Request, res: Response) => {
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  res.json({ success: true, message: 'Delayed response completed after 1.5s', timestamp: new Date().toISOString() });
+});
+
+
+// ----------------------------------------------------
 // Production Static Files Serving & SPA Fallback
 // ----------------------------------------------------
 // Static assets middleware

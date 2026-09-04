@@ -470,6 +470,18 @@ export const routes: Routes = [
 
   // Dedicated Error & Exception Pages (§4.15)
   {
+    path: '401',
+    loadComponent: () => import('./pages/errors/unauthorized.component').then(m => m.UnauthorizedComponent),
+    title: '401 Unauthorized | Multi-Tenant LMS'
+  },
+  { path: 'unauthorized', redirectTo: '401', pathMatch: 'full' },
+  {
+    path: 'maintenance',
+    loadComponent: () => import('./pages/errors/maintenance.component').then(m => m.MaintenanceComponent),
+    title: 'System Maintenance | Multi-Tenant LMS'
+  },
+  { path: '503', redirectTo: 'maintenance', pathMatch: 'full' },
+  {
     path: '403',
     loadComponent: () => import('./pages/errors/forbidden.component').then(m => m.ForbiddenComponent),
     title: '403 Forbidden | Multi-Tenant LMS'
