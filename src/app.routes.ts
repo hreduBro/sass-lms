@@ -468,5 +468,30 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
   },
 
-  { path: '**', redirectTo: 'dashboard' },
+  // Dedicated Error & Exception Pages (§4.15)
+  {
+    path: '403',
+    loadComponent: () => import('./pages/errors/forbidden.component').then(m => m.ForbiddenComponent),
+    title: '403 Forbidden | Multi-Tenant LMS'
+  },
+  { path: 'forbidden', redirectTo: '403', pathMatch: 'full' },
+  {
+    path: '404',
+    loadComponent: () => import('./pages/errors/not-found.component').then(m => m.NotFoundComponent),
+    title: '404 Not Found | Multi-Tenant LMS'
+  },
+  { path: 'not-found', redirectTo: '404', pathMatch: 'full' },
+  {
+    path: '500',
+    loadComponent: () => import('./pages/errors/server-error.component').then(m => m.ServerErrorComponent),
+    title: '500 Server Error | Multi-Tenant LMS'
+  },
+  { path: 'server-error', redirectTo: '500', pathMatch: 'full' },
+
+  // Wildcard Route -> 404 Not Found
+  { 
+    path: '**', 
+    loadComponent: () => import('./pages/errors/not-found.component').then(m => m.NotFoundComponent),
+    title: '404 Not Found | Multi-Tenant LMS'
+  },
 ];

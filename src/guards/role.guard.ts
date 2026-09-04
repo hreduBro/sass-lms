@@ -36,12 +36,17 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
   const targetPath = route.routeConfig?.path || state.url;
 
   lms.showToast(
-    `Access Denied: The "${currentRoleName}" role does not have permission to access "/${targetPath}". Redirecting to Dashboard.`,
+    `Access Denied: The "${currentRoleName}" role does not have permission to access "/${targetPath}". Redirecting to 403 Forbidden.`,
     'warning',
     4000,
     'Access Restricted',
     'GUARD'
   );
 
-  return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree(['/403'], {
+    queryParams: {
+      path: targetPath,
+      requiredRoles: allowedRoles?.join(',')
+    }
+  });
 };

@@ -19,6 +19,18 @@ import { LmsDataService } from '../../services/lms-data.service';
             <div class="text-[11px] sm:text-xs text-text-secondary font-normal tracking-tight text-center sm:text-left">
               <span>&copy; {{ currentYear }} &nbsp;<strong class="font-medium text-text-primary"> BRAC</strong>.&nbsp;All rights reserved.</span>
             </div>
+
+            <div class="h-3 w-px bg-base-300 dark:bg-slate-700/60 hidden sm:block"></div>
+
+            <!-- Error Pages Diagnostics -->
+            <div class="flex items-center gap-1.5 text-[11px] text-text-secondary">
+              <span class="opacity-60 hidden md:inline">Error Views:</span>
+              <a routerLink="/403" class="px-1.5 py-0.5 rounded-md hover:bg-base-200 hover:text-tenant-600 font-mono text-[10px] font-semibold transition-colors" title="Preview 403 Forbidden">403</a>
+              <span class="opacity-30">&bull;</span>
+              <a routerLink="/404" class="px-1.5 py-0.5 rounded-md hover:bg-base-200 hover:text-tenant-600 font-mono text-[10px] font-semibold transition-colors" title="Preview 404 Not Found">404</a>
+              <span class="opacity-30">&bull;</span>
+              <a routerLink="/500" class="px-1.5 py-0.5 rounded-md hover:bg-base-200 hover:text-tenant-600 font-mono text-[10px] font-semibold transition-colors" title="Preview 500 Server Error">500</a>
+            </div>
           </div>
 
           <!-- Right: Official Attribution & Enterprise Status Pill -->
