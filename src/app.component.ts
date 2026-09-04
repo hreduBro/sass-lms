@@ -38,6 +38,7 @@ export class AppComponent implements OnInit {
   lms = inject(LmsDataService);
   router = inject(Router);
   isSidebarOpen = signal(false);
+  isFullScreenError = signal(false);
 
   constructor() {
     // Default open on desktop (>= 1024px), closed on mobile
@@ -55,15 +56,32 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Reset scroll position on every router navigation
+    // Reset scroll position and track full screen error views
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd || event instanceof Scroll)
-    ).subscribe(() => {
+    ).subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        const path = (event.urlAfterRedirects || event.url || '').split('?')[0];
+        const isKnownError = 
+          path === '/403' || path === '/forbidden' ||
+          path === '/404' || path === '/not-found' ||
+          path === '/500' || path === '/server-error';
+        if (isKnownError) {
+          this.isFullScreenError.set(true);
+        }
+      }
       this.resetScrollPosition();
     });
   }
 
-  onRouteActivated() {
+  onRouteActivated(component?: any) {
+    const isError = Boolean(
+      component?.isErrorPage ||
+      component?.constructor?.name === 'ForbiddenComponent' ||
+      component?.constructor?.name === 'NotFoundComponent' ||
+      component?.constructor?.name === 'ServerErrorComponent'
+    );
+    this.isFullScreenError.set(isError);
     this.resetScrollPosition();
   }
 

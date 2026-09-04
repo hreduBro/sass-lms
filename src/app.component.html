@@ -1,31 +1,43 @@
 
 <div class="flex h-screen bg-base-200 font-sans overflow-hidden">
 
-  <!-- Dynamic Sidebar (Handles Desktop Classic, Desktop Rail, and Mobile Slide-Out Drawer) -->
-  <app-sidebar [isOpen]="isSidebarOpen()" (close)="closeSidebar()"></app-sidebar>
+  <!-- Dynamic Sidebar (Hidden on Full-Screen Blocked Error Pages) -->
+  @if (!isFullScreenError()) {
+    <app-sidebar [isOpen]="isSidebarOpen()" (close)="closeSidebar()"></app-sidebar>
+  }
   
-  <div class="flex-1 flex flex-col min-w-0">
-    <app-header class="block relative flex-shrink-0" (toggleSidebar)="toggleSidebar()"></app-header>
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+    @if (!isFullScreenError()) {
+      <app-header class="block relative flex-shrink-0" (toggleSidebar)="toggleSidebar()"></app-header>
 
-    <!-- Top Menu Bar (Rendered on Desktop when navigationMode is 'top_menu') -->
-    @if (lms.adminLayoutPreferences().navigationMode === 'top_menu') {
-      <div class="hidden lg:block flex-shrink-0 relative">
-        <app-top-menu></app-top-menu>
-      </div>
+      <!-- Top Menu Bar (Rendered on Desktop when navigationMode is 'top_menu') -->
+      @if (lms.adminLayoutPreferences().navigationMode === 'top_menu') {
+        <div class="hidden lg:block flex-shrink-0 relative">
+          <app-top-menu></app-top-menu>
+        </div>
+      }
     }
     
-    <main #mainContent class="flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6">
-      <div [class]="lms.adminLayoutPreferences().contentWidth === 'fluid' ? 'w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6' : 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6'">
+    <main 
+      #mainContent 
+      [class]="isFullScreenError() 
+        ? 'flex-1 overflow-x-hidden overflow-y-auto bg-base-200 w-full h-full p-0 m-0' 
+        : 'flex-1 overflow-x-hidden overflow-y-auto bg-base-100 pb-16 lg:pb-6'">
+      <div [class]="isFullScreenError() 
+        ? 'w-full h-full min-h-screen p-0 m-0' 
+        : (lms.adminLayoutPreferences().contentWidth === 'fluid' ? 'w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6' : 'max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6')">
         <!-- The main content will be rendered here based on the route. -->
-        <router-outlet (activate)="onRouteActivated()"></router-outlet>
+        <router-outlet (activate)="onRouteActivated($event)"></router-outlet>
       </div>
     </main>
 
-    <!-- Fixed Bottom Platform Footer -->
-    <app-footer class="block flex-shrink-0"></app-footer>
+    @if (!isFullScreenError()) {
+      <!-- Fixed Bottom Platform Footer -->
+      <app-footer class="block flex-shrink-0"></app-footer>
 
-    <!-- Mobile Bottom Tab Navigation -->
-    <app-mobile-nav></app-mobile-nav>
+      <!-- Mobile Bottom Tab Navigation -->
+      <app-mobile-nav></app-mobile-nav>
+    }
   </div>
 </div>
 
