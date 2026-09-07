@@ -65,6 +65,7 @@ export interface BadgeTemplate {
   createdAt: string;
   updatedAt: string;
   usageCount: number;
+  mappedElementCount?: number;
 }
 
 export interface BadgePermissions {
@@ -381,3 +382,87 @@ export const INITIAL_BADGE_TEMPLATES: BadgeTemplate[] = [
     usageCount: 4
   }
 ];
+
+export type BadgeTargetType = 'content' | 'class' | 'course' | 'phase' | 'plan';
+
+export interface BadgeMapping {
+  mappingId: string;
+  templateId: string;
+  badgeName?: string;
+  targetType: BadgeTargetType;
+  targetId: string;
+  targetName?: string;
+  achievementRule?: string;
+  mappedBy: string;
+  mappedAt: string;
+}
+
+export const INITIAL_BADGE_MAPPINGS: BadgeMapping[] = [
+  {
+    mappingId: 'bdg-map-001',
+    templateId: 'BDG-1001',
+    badgeName: 'Data Science Specialist – Gold',
+    targetType: 'course',
+    targetId: 'crs-101',
+    targetName: 'Advanced SQL for Financial Analysts (CRS-101)',
+    achievementRule: 'Score >= 85% on Final Practical Assessment',
+    mappedBy: 'Farhana Ahmed',
+    mappedAt: '16/01/2026'
+  },
+  {
+    mappingId: 'bdg-map-002',
+    templateId: 'BDG-1001',
+    badgeName: 'Data Science Specialist – Gold',
+    targetType: 'plan',
+    targetId: 'plan-001',
+    targetName: 'Field Credit Operations & Data Analytics Certification 2026',
+    achievementRule: 'Complete Data Science Phase with score >= 85%',
+    mappedBy: 'Farhana Ahmed',
+    mappedAt: '18/01/2026'
+  },
+  {
+    mappingId: 'bdg-map-003',
+    templateId: 'BDG-1002',
+    badgeName: 'Agile Leadership Champion',
+    targetType: 'plan',
+    targetId: 'plan-001',
+    targetName: 'Field Credit Operations & Data Analytics Certification 2026',
+    achievementRule: 'Complete Sprint & Team Coaching Track',
+    mappedBy: 'System Administrator',
+    mappedAt: '22/01/2026'
+  },
+  {
+    mappingId: 'bdg-map-004',
+    templateId: 'BDG-1002',
+    badgeName: 'Agile Leadership Champion',
+    targetType: 'phase',
+    targetId: 'phs-001',
+    targetName: 'Phase 1: Field Ethics & Client Protection Foundation',
+    achievementRule: '100% Attendance & Leadership Submission',
+    mappedBy: 'System Administrator',
+    mappedAt: '25/01/2026'
+  },
+  {
+    mappingId: 'bdg-map-005',
+    templateId: 'BDG-1003',
+    badgeName: 'Environmental & Social Safeguards',
+    targetType: 'course',
+    targetId: 'crs-102',
+    targetName: 'POS Hardware & Offline Sync Mastery (CRS-102)',
+    achievementRule: 'Pass Compliance and Safeguards Module',
+    mappedBy: 'System Administrator',
+    mappedAt: '02/03/2026'
+  },
+  {
+    mappingId: 'bdg-map-006',
+    templateId: 'BDG-1005',
+    badgeName: 'Community Development Specialist',
+    targetType: 'course',
+    targetId: 'crs-101',
+    targetName: 'Advanced SQL for Financial Analysts (CRS-101)',
+    achievementRule: 'Complete 100 hours practical community fieldwork',
+    mappedBy: 'Nusrat Jahan',
+    mappedAt: '15/12/2025'
+  }
+];
+

@@ -46,7 +46,7 @@
   </div>
 
   <!-- KPI Metric Overview Cards -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
     <!-- Total Badges -->
     <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
@@ -56,6 +56,18 @@
       </div>
       <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-400 flex items-center justify-center border border-tenant-500/30">
         <span class="material-symbols-outlined">military_tech</span>
+      </div>
+    </div>
+
+    <!-- Active Mappings -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-medium text-text-secondary">Curriculum Mappings</p>
+        <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ kpiStats().totalMappings }}</h3>
+        <span class="text-[11px] text-purple-700 dark:text-purple-300">Attached to targets</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-200 dark:border-purple-800">
+        <span class="material-symbols-outlined">account_tree</span>
       </div>
     </div>
 
@@ -84,7 +96,7 @@
     </div>
 
     <!-- Archived -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between col-span-2 sm:col-span-1">
       <div>
         <p class="text-xs font-medium text-text-secondary">Archived</p>
         <h3 class="text-2xl font-bold text-text-primary mt-1">{{ kpiStats().archived }}</h3>
@@ -204,6 +216,33 @@
             </app-custom-select>
           </app-filter-section>
         </div>
+
+        <!-- 4. Polymorphic Curriculum Target & Mapping State -->
+        <div class="lg:col-span-12 pt-4 border-t border-base-300">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <app-filter-section title="6. Learning Target Type">
+              <app-custom-select
+                [options]="targetTypeFilterOptions"
+                [clearable]="false"
+                placeholder="All Target Types"
+                [ngModel]="draftFilters().targetType"
+                (ngModelChange)="onDraftTargetTypeChange($event)"
+                leadingIcon="account_tree">
+              </app-custom-select>
+            </app-filter-section>
+
+            <app-filter-section title="7. Mapping State">
+              <app-custom-select
+                [options]="mappingStateFilterOptions"
+                [clearable]="false"
+                placeholder="All Badges"
+                [ngModel]="draftFilters().mappingState"
+                (ngModelChange)="onDraftMappingStateChange($event)"
+                leadingIcon="hub">
+              </app-custom-select>
+            </app-filter-section>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -233,12 +272,25 @@
               {{ badge.category }}
             </span>
 
-            <span 
-              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
-              [ngClass]="getStatusBadgeClass(badge.status)">
-              <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatusDotClass(badge.status)"></span>
-              {{ badge.status | uppercase }}
-            </span>
+            <div class="flex items-center gap-1.5">
+              <span 
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
+                [ngClass]="getStatusBadgeClass(badge.status)">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatusDotClass(badge.status)"></span>
+                {{ badge.status | uppercase }}
+              </span>
+
+              <button
+                type="button"
+                [id]="'btn-card-badge-menu-' + badge.templateId"
+                (click)="toggleBadgeActionMenu(badge, $event)"
+                class="badge-action-menu-btn w-7 h-7 rounded-lg hover:bg-base-200 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+                [class.ring-2]="isBadgeActionMenuOpen(badge.templateId)"
+                [class.ring-tenant-500]="isBadgeActionMenuOpen(badge.templateId)"
+                title="Badge Actions">
+                <span class="material-symbols-outlined text-base">more_vert</span>
+              </button>
+            </div>
           </div>
 
           <!-- Card Body: Emblem Graphic & Title & Meta -->
@@ -304,8 +356,8 @@
                 }
               </div>
 
-              <!-- Scope & Expiry Indicator -->
-              <div class="flex items-center gap-2 text-[11px] text-text-secondary pt-0.5">
+              <!-- Scope & Expiry Indicator & Mappings -->
+              <div class="flex items-center gap-2 text-[11px] text-text-secondary pt-0.5 flex-wrap">
                 <span class="flex items-center gap-1">
                   <span class="material-symbols-outlined text-xs">
                     {{ badge.sharing.level === 'organization' ? 'corporate_fare' : (badge.sharing.level === 'lms' ? 'domain' : 'lock') }}
@@ -313,7 +365,14 @@
                   {{ badge.sharing.level === 'organization' ? 'Org-Shared' : (badge.sharing.level === 'lms' ? 'LMS-Shared' : 'Private') }}
                 </span>
                 <span>•</span>
-                <span>{{ badge.usageCount || 0 }} {{ badge.usageCount === 1 ? 'Phase' : 'Phases' }}</span>
+                <button
+                  type="button"
+                  (click)="openManageMappingsModal(badge); $event.stopPropagation()"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 transition-colors cursor-pointer"
+                  title="View and manage curriculum target mappings">
+                  <span class="material-symbols-outlined text-xs">account_tree</span>
+                  <span>{{ getMappingsForBadge(badge.templateId).length }} Mapped</span>
+                </button>
               </div>
             </div>
           </div>
@@ -345,6 +404,14 @@
             </button>
 
             <div class="flex items-center gap-1">
+              <button 
+                type="button" 
+                (click)="openManageMappingsModal(badge)" 
+                class="w-7 h-7 rounded-lg bg-base-200 hover:bg-purple-100 dark:hover:bg-purple-950/40 text-text-secondary hover:text-purple-600 flex items-center justify-center transition-colors cursor-pointer"
+                title="Manage Curriculum Mappings">
+                <span class="material-symbols-outlined text-sm">account_tree</span>
+              </button>
+
               @if (permissions().canEdit) {
                 <button 
                   type="button" 
@@ -400,9 +467,9 @@
               <th class="py-3.5 px-4 min-w-[140px]">Category & ID</th>
               <th class="py-3.5 px-4 min-w-[100px]">Level / Tier</th>
               <th class="py-3.5 px-4 min-w-[120px]">Sharing Scope</th>
-              <th class="py-3.5 px-4 min-w-[100px]">Course Usage</th>
+              <th class="py-3.5 px-4 min-w-[120px]">Curriculum Mappings</th>
               <th class="py-3.5 px-4 min-w-[100px]">Status</th>
-              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[100px] min-w-[100px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
@@ -453,9 +520,16 @@
                   </span>
                 </td>
 
-                <!-- Usage -->
+                <!-- Curriculum Mappings -->
                 <td class="py-3.5 px-4 font-semibold text-text-primary">
-                  {{ badge.usageCount || 0 }} courses
+                  <button
+                    type="button"
+                    (click)="openManageMappingsModal(badge); $event.stopPropagation()"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-purple-50 dark:bg-base-200 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-purple-700 dark:hover:text-purple-300 border border-slate-200 dark:border-base-300 hover:border-purple-200 dark:hover:border-purple-800 transition-all cursor-pointer"
+                    title="View and manage curriculum targets">
+                    <span class="material-symbols-outlined text-sm text-purple-600 dark:text-purple-400">account_tree</span>
+                    <span>{{ getMappingsForBadge(badge.templateId).length }} Targets</span>
+                  </button>
                 </td>
 
                 <!-- Status -->
@@ -470,46 +544,19 @@
 
                 <!-- Actions Sticky Column -->
                 <td 
-                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[100px] min-w-[100px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
                   (click)="$event.stopPropagation()">
-                  <div class="flex items-center justify-center gap-1">
+                  <div class="flex items-center justify-center">
                     <button 
                       type="button" 
-                      (click)="openPreview(badge)" 
-                      class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
-                      title="Preview">
-                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      [id]="'btn-table-badge-menu-' + badge.templateId"
+                      (click)="toggleBadgeActionMenu(badge, $event)"
+                      class="badge-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                      [class.ring-2]="isBadgeActionMenuOpen(badge.templateId)"
+                      [class.ring-tenant-500]="isBadgeActionMenuOpen(badge.templateId)"
+                      title="Badge Actions">
+                      <span class="material-symbols-outlined text-lg">more_vert</span>
                     </button>
-
-                    @if (permissions().canEdit) {
-                      <button 
-                        type="button" 
-                        (click)="editBadge(badge)" 
-                        class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer"
-                        title="Edit">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                      </button>
-                    }
-
-                    @if (permissions().canCreate) {
-                      <button 
-                        type="button" 
-                        (click)="duplicateBadge(badge)" 
-                        class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer"
-                        title="Duplicate">
-                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                      </button>
-                    }
-
-                    @if (permissions().canDelete) {
-                      <button 
-                        type="button" 
-                        (click)="openConfirmModal(badge, 'delete')" 
-                        class="w-7 h-7 rounded-lg bg-base-200 hover:bg-rose-100 text-text-secondary hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
-                        title="Delete">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                      </button>
-                    }
                   </div>
                 </td>
               </tr>
@@ -680,6 +727,302 @@
             class="px-4 py-2 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
             [ngClass]="confirmModalAction() === 'delete' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'">
             {{ confirmModalAction() === 'delete' ? 'Confirm Delete' : 'Confirm Archive' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- FLOATING POPUP ACTION MENU (Matching Skill Repository Grid) -->
+  @if (activeMenuBadge(); as badge) {
+    <!-- Invisible backdrop to dismiss on click outside -->
+    <div class="fixed inset-0 z-[9998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+    <div
+      class="badge-action-menu-dropdown fixed z-[9999] w-52 bg-white dark:bg-base-100 rounded-2xl shadow-xl border border-slate-200/80 dark:border-base-300 py-1.5 text-xs text-text-primary animate-in fade-in zoom-in-95 duration-100 select-none"
+      [style.top.px]="menuPosition().top"
+      [style.left.px]="menuPosition().left"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header: ID & Status Badge -->
+      <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary border-b border-base-200 dark:border-base-300 flex items-center justify-between">
+        <span class="font-mono">{{ badge.templateId }}</span>
+        <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase border" [ngClass]="getStatusBadgeClass(badge.status)">
+          {{ badge.status }}
+        </span>
+      </div>
+
+      <!-- Preview Badge -->
+      <button 
+        type="button"
+        (click)="previewBadgeFromMenu()"
+        class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+        <span class="material-symbols-outlined text-base text-slate-500">visibility</span>
+        <span>Preview Badge</span>
+      </button>
+
+      <!-- Edit Badge -->
+      @if (permissions().canEdit) {
+        <button
+          type="button"
+          (click)="editBadgeFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-tenant-600">edit</span>
+          <span>Edit Badge</span>
+        </button>
+      }
+
+      <!-- Manage Mappings -->
+      <button 
+        type="button"
+        (click)="manageMappingsFromMenu()"
+        class="w-full text-left px-3.5 py-2 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+        <span class="material-symbols-outlined text-base text-purple-600">account_tree</span>
+        <span>Manage Mappings</span>
+      </button>
+
+      <!-- Duplicate as Draft -->
+      @if (permissions().canCreate) {
+        <button
+          type="button"
+          (click)="duplicateBadgeFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-purple-600">content_copy</span>
+          <span>Duplicate as Draft</span>
+        </button>
+      }
+
+      <!-- Publish Badge (if draft) -->
+      @if (badge.status === 'draft' && (permissions().canPublish || permissions().canEdit)) {
+        <button
+          type="button"
+          (click)="publishBadgeFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-emerald-600">verified</span>
+          <span>Publish Badge</span>
+        </button>
+      }
+
+      <div class="border-t border-base-200 dark:border-base-300 my-1"></div>
+
+      <!-- Archive Template (if published) -->
+      @if (badge.status === 'published') {
+        <button
+          type="button"
+          (click)="archiveBadgeFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-amber-600">archive</span>
+          <span>Archive Template</span>
+        </button>
+      }
+
+      <!-- Delete Template -->
+      @if (permissions().canDelete) {
+        <button
+          type="button"
+          (click)="deleteBadgeFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-rose-600">delete</span>
+          <span>Delete Template</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- POLYMORPHIC BADGE MAPPING MODAL -->
+  @if (isMappingModalOpen() && mappingBadge(); as badge) {
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+      (click)="onMappingBackdropClick($event)">
+      
+      <div 
+        class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] my-auto"
+        (click)="$event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-5 border-b border-base-300 bg-base-200 shrink-0">
+          <div class="flex items-center gap-3">
+            <!-- Badge Graphic Thumbnail -->
+            <div class="w-11 h-11 bg-base-100 rounded-xl border border-base-300 p-0.5 flex items-center justify-center shrink-0 shadow-xs">
+              @if (badge.emblem?.source === 'upload' && badge.emblem?.artUrl) {
+                <img [src]="badge.emblem?.artUrl" alt="Emblem" class="w-full h-full object-contain" />
+              } @else {
+                <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-2xl">
+                  {{ badge.emblem?.iconRef || 'military_tech' }}
+                </span>
+              }
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-text-primary truncate max-w-md">{{ badge.name }}</h3>
+                <span class="text-[10px] font-mono text-text-secondary bg-base-100 px-1.5 py-0.5 rounded border border-base-300">
+                  {{ badge.templateId }}
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary mt-0.5 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-xs text-purple-600">account_tree</span>
+                <span>Curriculum Mapping • Polymorphic Target Association</span>
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="closeMappingModal()" 
+            class="w-8 h-8 rounded-full hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Close">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
+          <!-- 1. Attach to Learning Target Card -->
+          <div class="p-5 rounded-2xl bg-base-200/60 border border-base-300 space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600 text-base">add_link</span>
+                <span>Attach to Curriculum Target</span>
+              </h4>
+              <span class="text-[11px] text-text-secondary">Auto-issuance configuration</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <!-- Target Type -->
+              <div>
+                <label class="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
+                  Target Type
+                </label>
+                <app-custom-select
+                  [options]="mappingTargetTypeOptions"
+                  [clearable]="false"
+                  placeholder="Select target type..."
+                  [ngModel]="mappingTargetType()"
+                  (ngModelChange)="onMappingTargetTypeChange($event)"
+                  leadingIcon="account_tree">
+                </app-custom-select>
+              </div>
+
+              <!-- Target Item -->
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
+                  Select Target Item
+                </label>
+                <app-custom-select
+                  [options]="mappingTargetItemOptions()"
+                  [searchable]="true"
+                  [clearable]="true"
+                  placeholder="-- Choose Target Item --"
+                  [ngModel]="mappingTargetId()"
+                  (ngModelChange)="onMappingTargetItemChange($event)"
+                  leadingIcon="search">
+                </app-custom-select>
+              </div>
+            </div>
+
+            <!-- Attach button -->
+            <div class="flex justify-end pt-1">
+              <button
+                type="button"
+                (click)="addMapping()"
+                [disabled]="!mappingTargetId()"
+                class="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 hover:bg-purple-700 shadow-sm">
+                <span class="material-symbols-outlined text-base">link</span>
+                <span>Attach Mapping</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Currently Attached Targets -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600 text-base">hub</span>
+                <span>Attached Learning Targets</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                  {{ getMappingsForBadge(badge.templateId).length }}
+                </span>
+              </h4>
+              <span class="text-[11px] text-text-secondary">
+                {{ getMappingsForBadge(badge.templateId).length > 0 ? 'Active in curriculum' : 'No active links' }}
+              </span>
+            </div>
+
+            @if (getMappingsForBadge(badge.templateId).length === 0) {
+              <!-- Empty State -->
+              <div class="p-8 rounded-2xl border border-dashed border-base-300 bg-base-100 flex flex-col items-center justify-center text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-2xl">account_tree</span>
+                </div>
+                <h5 class="text-sm font-bold text-text-primary">No Learning Targets Mapped Yet</h5>
+                <p class="text-xs text-text-secondary max-w-sm">
+                  This badge is not currently linked to any course, training plan, phase, or content asset. Use the form above to map it.
+                </p>
+              </div>
+            } @else {
+              <!-- Mappings Table/List -->
+              <div class="rounded-2xl border border-base-300 overflow-hidden bg-base-100 shadow-2xs">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-base-200/70 border-b border-base-300 text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                      <th class="py-2.5 px-3">Target Name & ID</th>
+                      <th class="py-2.5 px-3">Type</th>
+                      <th class="py-2.5 px-3">Mapped On</th>
+                      <th class="py-2.5 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-base-200 dark:divide-base-300">
+                    @for (mapping of getMappingsForBadge(badge.templateId); track mapping.id) {
+                      <tr class="hover:bg-slate-50/80 dark:hover:bg-base-200/40 transition-colors">
+                        <td class="py-3 px-3">
+                          <div class="font-semibold text-text-primary">{{ mapping.targetName }}</div>
+                          <div class="text-[10px] font-mono text-text-secondary">{{ mapping.targetId }}</div>
+                        </td>
+                        <td class="py-3 px-3">
+                          <span 
+                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider"
+                            [class]="getTargetTypeColor(mapping.targetType)">
+                            <span class="material-symbols-outlined text-xs">
+                              {{ mapping.targetType === 'plan' ? 'assignment' : mapping.targetType === 'phase' ? 'step' : mapping.targetType === 'content' ? 'article' : 'school' }}
+                            </span>
+                            {{ mapping.targetType }}
+                          </span>
+                        </td>
+                        <td class="py-3 px-3 text-text-secondary text-[11px]">
+                          {{ mapping.createdAt | date:'mediumDate' }}
+                        </td>
+                        <td class="py-3 px-3 text-right">
+                          <button
+                            type="button"
+                            (click)="unmapBadge(badge.templateId, mapping.targetType, mapping.targetId)"
+                            class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] font-semibold transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
+                            title="Unmap this target">
+                            <span class="material-symbols-outlined text-sm">link_off</span>
+                            <span>Unmap</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between p-4 border-t border-base-300 bg-base-200 shrink-0">
+          <div class="flex items-center gap-1.5 text-text-secondary text-[11px]">
+            <span class="material-symbols-outlined text-sm text-purple-600">info</span>
+            <span>Badges with active mappings are protected from accidental deletion.</span>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="closeMappingModal()" 
+            class="px-4 py-2 bg-base-100 hover:bg-base-300 text-text-primary text-xs font-bold rounded-xl border border-base-300 transition-colors cursor-pointer">
+            Done
           </button>
         </div>
       </div>

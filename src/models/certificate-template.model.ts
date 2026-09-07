@@ -79,6 +79,7 @@ export interface CertificateTemplate {
   createdAt: string;                        // DD:MM:YYYY HH:MM:SS
   updatedAt: string;                        // DD:MM:YYYY HH:MM:SS
   usageCount: number;                       // # of Phases referencing this template
+  mappedElementCount?: number;              // # of curriculum elements mapped
   previewThumbnail?: string;
 }
 
@@ -1074,3 +1075,98 @@ export const INITIAL_CERTIFICATE_ACTIVITIES: CertificateActivityEvent[] = [
     message: 'Legacy 2024 Branch Accounting Protocol has been archived'
   }
 ];
+
+export type CertificateTargetType = 'content' | 'class' | 'course' | 'phase' | 'plan';
+
+export interface CertificateMapping {
+  mappingId: string;
+  templateId: string;
+  templateName?: string;
+  targetType: CertificateTargetType;
+  targetId: string;
+  targetName?: string;
+  achievementRule?: string;
+  mappedBy: string;
+  mappedAt: string;
+}
+
+export const INITIAL_CERTIFICATE_MAPPINGS: CertificateMapping[] = [
+  {
+    mappingId: 'cert-map-001',
+    templateId: 'CERT-TMP-1972-01',
+    templateName: 'BRAC Executive Standard Achievement Certificate',
+    targetType: 'course',
+    targetId: 'crs-101',
+    targetName: 'Advanced SQL for Financial Analysts (CRS-101)',
+    achievementRule: 'Score >= 80% on Final Exam',
+    mappedBy: 'Farhana Ahmed',
+    mappedAt: '16/01/2026'
+  },
+  {
+    mappingId: 'cert-map-002',
+    templateId: 'CERT-TMP-1972-01',
+    templateName: 'BRAC Executive Standard Achievement Certificate',
+    targetType: 'plan',
+    targetId: 'plan-001',
+    targetName: 'Field Credit Operations & Data Analytics Certification 2026',
+    achievementRule: 'Complete all Plan curriculum phases',
+    mappedBy: 'Farhana Ahmed',
+    mappedAt: '18/01/2026'
+  },
+  {
+    mappingId: 'cert-map-003',
+    templateId: 'CERT-TMP-1972-01',
+    templateName: 'BRAC Executive Standard Achievement Certificate',
+    targetType: 'phase',
+    targetId: 'phs-001',
+    targetName: 'Phase 1: Field Ethics & Client Protection Foundation',
+    achievementRule: 'Complete Phase with distinction >= 85%',
+    mappedBy: 'Tanvir Hossain',
+    mappedAt: '20/01/2026'
+  },
+  {
+    mappingId: 'cert-map-004',
+    templateId: 'CERT-TMP-1972-02',
+    templateName: 'Microfinance Field Specialist Phase Milestone',
+    targetType: 'phase',
+    targetId: 'phs-001',
+    targetName: 'Phase 1: Field Ethics & Client Protection Foundation',
+    achievementRule: 'Award upon phase milestone completion',
+    mappedBy: 'Tanvir Hossain',
+    mappedAt: '24/01/2026'
+  },
+  {
+    mappingId: 'cert-map-005',
+    templateId: 'CERT-TMP-1972-02',
+    templateName: 'Microfinance Field Specialist Phase Milestone',
+    targetType: 'course',
+    targetId: 'crs-102',
+    targetName: 'Client Protection Principles & Ethical Microfinance',
+    achievementRule: '100% attendance & pass final quiz',
+    mappedBy: 'Tanvir Hossain',
+    mappedAt: '28/01/2026'
+  },
+  {
+    mappingId: 'cert-map-006',
+    templateId: 'CERT-TMP-1972-03',
+    templateName: 'Climate Resilience Emergency Response Certificate',
+    targetType: 'course',
+    targetId: 'crs-103',
+    targetName: 'Disaster Risk Reduction & Community Preparedness',
+    achievementRule: 'Complete disaster drill simulation',
+    mappedBy: 'Shakil Anwar',
+    mappedAt: '08/02/2026'
+  },
+  {
+    mappingId: 'cert-map-007',
+    templateId: 'CERT-TMP-1972-05',
+    templateName: 'Legacy 2024 Branch Accounting Protocol',
+    targetType: 'course',
+    targetId: 'crs-104',
+    targetName: 'Financial Accounting Fundamentals for Field Operations',
+    achievementRule: 'Archived historical mapping',
+    mappedBy: 'System Admin',
+    mappedAt: '12/06/2024'
+  }
+];
+

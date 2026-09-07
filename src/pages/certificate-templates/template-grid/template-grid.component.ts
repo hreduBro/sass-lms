@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,8 @@ import {
   CertificateTemplateStatus,
   CertificateSharingLevel,
   CertificateType,
+  CertificateMapping,
+  CertificateTargetType,
   PLACEHOLDER_TOKENS,
   CanvasElement
 } from '../../../models/certificate-template.model';
@@ -42,6 +44,8 @@ export class CertificateTemplateGridComponent {
   selectedStatus = signal<string>('all');
   selectedSharing = signal<string>('all');
   selectedType = signal<string>('all');
+  selectedTargetType = signal<string>('all');
+  selectedMappingState = signal<string>('all');
   sortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'usage_desc'>('updated_desc');
   isFilterPanelOpen = signal<boolean>(false);
 
@@ -52,6 +56,17 @@ export class CertificateTemplateGridComponent {
   closeFilterPanel() {
     this.isFilterPanelOpen.set(false);
   }
+
+  // Polymorphic Certificate Mapping State
+  isMappingModalOpen = signal<boolean>(false);
+  mappingTemplate = signal<CertificateTemplate | null>(null);
+  mappingTargetType = signal<CertificateTargetType>('course');
+  mappingTargetId = signal<string>('');
+  mappingTargetName = signal<string>('');
+
+  // Floating Action Menu State
+  activeMenuTemplate = signal<CertificateTemplate | null>(null);
+  menuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Custom Select Options for Filter Drawer
   statusOptions: SelectOption[] = [
@@ -78,6 +93,68 @@ export class CertificateTemplateGridComponent {
     { value: 'Compliance', label: 'Compliance', icon: 'shield' }
   ];
 
+  targetTypeFilterOptions: SelectOption[] = [
+    { value: 'all', label: 'All Target Types', icon: 'account_tree' },
+    { value: 'course', label: 'Courses / Classes', icon: 'school' },
+    { value: 'plan', label: 'Training Plans', icon: 'assignment' },
+    { value: 'phase', label: 'Phases', icon: 'step' },
+    { value: 'content', label: 'Content Assets', icon: 'article' }
+  ];
+
+  mappingStateFilterOptions: SelectOption[] = [
+    { value: 'all', label: 'All Templates (Mapped & Unmapped)' },
+    { value: 'mapped', label: 'Mapped Templates Only (Active in Curriculum)' },
+    { value: 'unmapped', label: 'Unmapped Templates Only (Available for Mapping)' }
+  ];
+
+  mappingTargetTypeOptions: SelectOption[] = [
+    { value: 'course', label: 'Course / Class', icon: 'school', sublabel: 'Course curriculum' },
+    { value: 'plan', label: 'Training Plan', icon: 'assignment', sublabel: 'Multi-phase plan' },
+    { value: 'phase', label: 'Phase', icon: 'step', sublabel: 'Specific plan phase' },
+    { value: 'content', label: 'Content Asset / Assessment', icon: 'article', sublabel: 'SCORM or Quiz asset' }
+  ];
+
+  mappingTargetItemOptions = computed<SelectOption[]>(() => {
+    const type = this.mappingTargetType();
+    if (type === 'course') {
+      const templates = (this.lms.courseTemplates ? this.lms.courseTemplates() : []) as any[];
+      return templates.map(c => ({
+        value: c.id || c.templateId || 'crs-1',
+        label: `${c.name || c.title || 'Course'} (${c.code || c.id || 'CRS'})`,
+        icon: 'school'
+      }));
+    } else if (type === 'plan') {
+      const plans = (this.lms.plans ? this.lms.plans() : []) as any[];
+      return plans.map(p => ({
+        value: p.id,
+        label: `${p.name || 'Training Plan'} (${p.id})`,
+        icon: 'assignment'
+      }));
+    } else if (type === 'phase') {
+      const plans = (this.lms.plans ? this.lms.plans() : []) as any[];
+      const phases: SelectOption[] = [];
+      plans.forEach(p => {
+        (p.phases || []).forEach((ph: any) => {
+          phases.push({
+            value: ph.id,
+            label: `${ph.name || 'Phase'} (${p.name || 'Plan'})`,
+            icon: 'step'
+          });
+        });
+      });
+      return phases;
+    } else if (type === 'content') {
+      return [
+        { value: 'cnt-01', label: 'Financial Accounting Standards SCORM Module', icon: 'article' },
+        { value: 'cnt-02', label: 'Field Ethics Interactive Video Scenario', icon: 'smart_display' },
+        { value: 'cnt-03', label: 'POS Terminal Simulation Sandbox', icon: 'devices' },
+        { value: 'cnt-04', label: 'Client Protection Field Assessment', icon: 'quiz' },
+        { value: 'cnt-05', label: 'Microfinance Field Operational SOPs', icon: 'description' }
+      ];
+    }
+    return [];
+  });
+
   sortOptions: SelectOption[] = [
     { value: 'updated_desc', label: 'Recently Updated', icon: 'schedule' },
     { value: 'updated_asc', label: 'Oldest Updated', icon: 'history' },
@@ -103,6 +180,8 @@ export class CertificateTemplateGridComponent {
     const status = this.selectedStatus();
     const sharing = this.selectedSharing();
     const type = this.selectedType();
+    const targetType = this.selectedTargetType();
+    const mappingState = this.selectedMappingState();
     const sort = this.sortBy();
 
     // 1. Search Query (Name or ID or CreatedBy)
@@ -130,7 +209,26 @@ export class CertificateTemplateGridComponent {
       list = list.filter(t => t.type === type);
     }
 
-    // 5. Sorting
+    // 5. Target Type Filter
+    if (targetType !== 'all') {
+      const templateIdsWithTarget = new Set(
+        this.lms.certificateMappings()
+          .filter(m => m.targetType === targetType)
+          .map(m => m.templateId)
+      );
+      list = list.filter(t => templateIdsWithTarget.has(t.id));
+    }
+
+    // 6. Mapping State Filter
+    if (mappingState === 'mapped') {
+      const mappedIds = new Set(this.lms.certificateMappings().map(m => m.templateId));
+      list = list.filter(t => mappedIds.has(t.id) || (t.usageCount && t.usageCount > 0));
+    } else if (mappingState === 'unmapped') {
+      const mappedIds = new Set(this.lms.certificateMappings().map(m => m.templateId));
+      list = list.filter(t => !mappedIds.has(t.id) && (!t.usageCount || t.usageCount === 0));
+    }
+
+    // 7. Sorting
     return [...list].sort((a, b) => {
       if (sort === 'updated_desc') {
         return (b.updatedAt || '').localeCompare(a.updatedAt || '');
@@ -176,6 +274,8 @@ export class CertificateTemplateGridComponent {
     if (this.selectedStatus() !== 'all') count++;
     if (this.selectedSharing() !== 'all') count++;
     if (this.selectedType() !== 'all') count++;
+    if (this.selectedTargetType() !== 'all') count++;
+    if (this.selectedMappingState() !== 'all') count++;
     return count;
   });
 
@@ -185,8 +285,201 @@ export class CertificateTemplateGridComponent {
     this.selectedStatus.set('all');
     this.selectedSharing.set('all');
     this.selectedType.set('all');
+    this.selectedTargetType.set('all');
+    this.selectedMappingState.set('all');
     this.sortBy.set('updated_desc');
     this.currentPage.set(1);
+  }
+
+  // Floating Action Menu Handlers
+  toggleTemplateActionMenu(template: CertificateTemplate, event: MouseEvent, buttonEl?: HTMLElement) {
+    event.stopPropagation();
+    if (this.activeMenuTemplate()?.id === template.id) {
+      this.closeActionMenu();
+      return;
+    }
+
+    const button = buttonEl || (event.currentTarget as HTMLElement) || (event.target as HTMLElement);
+    const rect = button.getBoundingClientRect();
+    const menuHeight = 240;
+    const menuWidth = 208;
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const placeAbove = spaceBelow < menuHeight && rect.top > menuHeight;
+
+    const top = placeAbove ? Math.max(8, rect.top - menuHeight - 4) : (rect.bottom + 4);
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    this.menuPosition.set({ top, left });
+    this.activeMenuTemplate.set({ ...template });
+  }
+
+  closeActionMenu() {
+    this.activeMenuTemplate.set(null);
+  }
+
+  isTemplateActionMenuOpen(id: string): boolean {
+    return this.activeMenuTemplate()?.id === id;
+  }
+
+  previewTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.openPreview(t);
+    }
+    this.closeActionMenu();
+  }
+
+  editTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.openEditWizard(t);
+    }
+    this.closeActionMenu();
+  }
+
+  duplicateTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.duplicateTemplate(t);
+    }
+    this.closeActionMenu();
+  }
+
+  publishTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.publishTemplate(t);
+    }
+    this.closeActionMenu();
+  }
+
+  archiveTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.archiveTemplate(t);
+    }
+    this.closeActionMenu();
+  }
+
+  deleteTemplateFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.deleteDraftTemplate(t);
+    }
+    this.closeActionMenu();
+  }
+
+  manageMappingsFromMenu(template?: CertificateTemplate | null) {
+    const t = template || this.activeMenuTemplate();
+    if (t) {
+      this.openManageMappingsModal(t);
+    }
+    this.closeActionMenu();
+  }
+
+  // Polymorphic Certificate Mapping Methods
+  openManageMappingsModal(template: CertificateTemplate) {
+    this.mappingTemplate.set(template);
+    this.mappingTargetType.set('course');
+    this.mappingTargetId.set('');
+    this.mappingTargetName.set('');
+    this.isMappingModalOpen.set(true);
+    this.closeActionMenu();
+  }
+
+  closeMappingModal() {
+    this.isMappingModalOpen.set(false);
+    this.mappingTemplate.set(null);
+  }
+
+  onMappingBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeMappingModal();
+    }
+  }
+
+  getMappingsForTemplate(templateId: string): CertificateMapping[] {
+    return this.lms.certificateMappings().filter(m => m.templateId === templateId);
+  }
+
+  onMappingTargetTypeChange(type: any) {
+    this.mappingTargetType.set(type || 'course');
+    this.mappingTargetId.set('');
+    this.mappingTargetName.set('');
+  }
+
+  onMappingTargetItemChange(targetId: any) {
+    this.mappingTargetId.set(targetId || '');
+    if (targetId) {
+      const opt = this.mappingTargetItemOptions().find(o => o.value === targetId);
+      this.mappingTargetName.set(opt?.label || targetId);
+    } else {
+      this.mappingTargetName.set('');
+    }
+  }
+
+  addMapping() {
+    const template = this.mappingTemplate();
+    const type = this.mappingTargetType();
+    const targetId = this.mappingTargetId();
+    if (!template || !targetId) return;
+
+    let targetName = this.mappingTargetName();
+    if (!targetName) {
+      const opt = this.mappingTargetItemOptions().find(o => o.value === targetId);
+      targetName = opt?.label || targetId;
+    }
+
+    this.lms.mapCertificateToElement(
+      template.id,
+      type,
+      targetId,
+      targetName
+    );
+
+    this.mappingTargetId.set('');
+    this.mappingTargetName.set('');
+  }
+
+  unmapCertificate(templateId: string, targetType: CertificateTargetType, targetId: string) {
+    this.lms.unmapCertificateFromElement(templateId, targetType, targetId);
+  }
+
+  getTargetTypeColor(targetType: CertificateTargetType): string {
+    switch (targetType) {
+      case 'plan':
+        return 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+      case 'course':
+      case 'class':
+        return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+      case 'phase':
+        return 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+      case 'content':
+        return 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+      default:
+        return 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800';
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.template-action-menu-dropdown') && !target.closest('.template-action-menu-btn')) {
+      this.closeActionMenu();
+    }
+  }
+
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onWindowChange() {
+    if (this.activeMenuTemplate()) {
+      this.closeActionMenu();
+    }
   }
 
   // Action Handlers
@@ -243,6 +536,21 @@ export class CertificateTemplateGridComponent {
   }
 
   deleteDraftTemplate(template: CertificateTemplate) {
+    const activeMappings = this.lms.certificateMappings().filter(m => m.templateId === template.id);
+    if (activeMappings.length > 0) {
+      this.confirmModal.confirm({
+        title: 'Cannot Delete Mapped Template',
+        message: `Template "${template.name}" is currently mapped to ${activeMappings.length} learning target(s) (${activeMappings.map(m => m.targetName).slice(0, 2).join(', ')}${activeMappings.length > 2 ? '...' : ''}). Please unmap all targets before deleting this template.`,
+        iconType: 'danger',
+        confirmText: 'Manage Mappings'
+      }).then(ok => {
+        if (ok) {
+          this.openManageMappingsModal(template);
+        }
+      });
+      return;
+    }
+
     this.confirmModal.confirm({
       title: 'Delete Draft Template?',
       message: `Are you sure you want to permanently delete draft template "${template.name}"? This action cannot be undone.`,
@@ -250,7 +558,16 @@ export class CertificateTemplateGridComponent {
       confirmText: 'Delete Draft'
     }).then(ok => {
       if (ok) {
-        this.lms.deleteCertificateTemplate(template.id);
+        try {
+          this.lms.deleteCertificateTemplate(template.id);
+        } catch (e: any) {
+          this.confirmModal.confirm({
+            title: 'Deletion Failed',
+            message: e.message || 'Could not delete template.',
+            iconType: 'danger',
+            confirmText: 'OK'
+          });
+        }
       }
     });
   }

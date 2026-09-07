@@ -42,7 +42,7 @@
   <!-- ========================================================================= -->
   <!-- 2. KPI METRICS CARDS ROW                                                  -->
   <!-- ========================================================================= -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
     
     <!-- 1. Total Templates -->
     <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
@@ -55,7 +55,19 @@
       </div>
     </div>
 
-    <!-- 2. Published & Active -->
+    <!-- 2. Curriculum Mappings -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+      <div>
+        <p class="text-xs font-bold text-purple-600 dark:text-purple-400">Curriculum Mappings</p>
+        <h3 class="text-2xl sm:text-3xl font-black font-mono text-purple-600 dark:text-purple-400 mt-1">{{ kpi().totalMappings || 0 }}</h3>
+        <span class="text-[11px] text-purple-700 dark:text-purple-300">Attached targets</span>
+      </div>
+      <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 flex items-center justify-center text-purple-600 dark:text-purple-400">
+        <span class="material-symbols-outlined text-xl">account_tree</span>
+      </div>
+    </div>
+
+    <!-- 3. Published & Active -->
     <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
         <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Published & Active</p>
@@ -67,7 +79,7 @@
       </div>
     </div>
 
-    <!-- 3. In Draft -->
+    <!-- 4. In Draft -->
     <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
       <div>
         <p class="text-xs font-bold text-amber-600 dark:text-amber-400">In Draft</p>
@@ -79,8 +91,8 @@
       </div>
     </div>
 
-    <!-- 4. Archived -->
-    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between">
+    <!-- 5. Archived -->
+    <div class="bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 rounded-3xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between col-span-2 sm:col-span-1">
       <div>
         <p class="text-xs font-bold text-slate-600 dark:text-slate-400">Archived</p>
         <h3 class="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ kpi().archived }}</h3>
@@ -110,7 +122,7 @@
     [showViewSwitcher]="true"
     [itemCountText]="'Showing ' + filteredTemplates().length + ' of ' + kpi().total + ' templates'"
     filterPanelTitle="FILTER CERTIFICATE TEMPLATES"
-    filterPanelSubtitle="Filter templates across status, sharing scope, certificate type and sorting order"
+    filterPanelSubtitle="Filter templates across status, sharing scope, certificate type, target mapping and sorting order"
     [currentPage]="currentPage()"
     (pageChange)="currentPage.set($event)"
     [pageSize]="pageSize()"
@@ -119,13 +131,13 @@
     [emptyStateType]="emptyStateType()"
     emptyStateIcon="workspace_premium"
     emptyStateTitle="No certificate templates found"
-    emptyStateMessage="Try clearing your search or adjusting your status, scope, or type filters."
+    emptyStateMessage="Try clearing your search or adjusting your status, scope, type, or mapping filters."
     emptyActionLabel="Reset Filters"
     (emptyActionClick)="clearAllFilters()"
   >
     <!-- Filter Panel Projection -->
     <div filter-panel class="space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <!-- 1. Status Dropdown -->
         <app-filter-section title="1. Status">
           <app-custom-select
@@ -159,8 +171,30 @@
           </app-custom-select>
         </app-filter-section>
 
-        <!-- 4. Sort By Dropdown -->
-        <app-filter-section title="4. Sort Order">
+        <!-- 4. Target Type Dropdown -->
+        <app-filter-section title="4. Target Hierarchy">
+          <app-custom-select
+            [options]="targetTypeFilterOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedTargetType()"
+            (ngModelChange)="selectedTargetType.set($event)">
+          </app-custom-select>
+        </app-filter-section>
+
+        <!-- 5. Mapping State Dropdown -->
+        <app-filter-section title="5. Mapping Status">
+          <app-custom-select
+            [options]="mappingStateFilterOptions"
+            [clearable]="false"
+            [searchable]="false"
+            [ngModel]="selectedMappingState()"
+            (ngModelChange)="selectedMappingState.set($event)">
+          </app-custom-select>
+        </app-filter-section>
+
+        <!-- 6. Sort By Dropdown -->
+        <app-filter-section title="6. Sort Order">
           <app-custom-select
             [options]="sortOptions"
             [clearable]="false"
@@ -238,10 +272,15 @@
               {{ tmpl.paperSize }} • {{ tmpl.orientation | titlecase }}
             </div>
 
-            <!-- Bottom Right: Usage / Phases Count -->
-            <div class="absolute bottom-2.5 right-3 bg-black/75 backdrop-blur-xs text-white px-2.5 py-1 rounded-lg text-[10px] font-mono">
-              {{ tmpl.usageCount || 0 }} {{ tmpl.usageCount === 1 ? 'Phase' : 'Phases' }}
-            </div>
+            <!-- Bottom Right: Curriculum Mappings Badge -->
+            <button
+              type="button"
+              (click)="openManageMappingsModal(tmpl); $event.stopPropagation()"
+              class="absolute bottom-2.5 right-3 bg-purple-950/80 hover:bg-purple-900 backdrop-blur-xs text-purple-200 border border-purple-500/40 px-2.5 py-1 rounded-lg text-[10px] font-mono flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+              title="Curriculum Mappings">
+              <span class="material-symbols-outlined text-xs text-purple-400">account_tree</span>
+              <span>{{ getMappingsForTemplate(tmpl.id).length }} Targets</span>
+            </button>
           </div>
 
           <!-- Card Body below Image -->
@@ -290,6 +329,16 @@
               </button>
 
               <div class="flex items-center gap-1.5">
+                <!-- Manage Mappings Button -->
+                <button 
+                  type="button"
+                  (click)="openManageMappingsModal(tmpl)"
+                  class="px-2.5 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/60 rounded-xl border border-purple-200 dark:border-purple-800/60 transition-colors flex items-center gap-1 cursor-pointer"
+                  title="Curriculum Mappings">
+                  <span class="material-symbols-outlined text-sm text-purple-600">account_tree</span>
+                  <span>Mappings ({{ getMappingsForTemplate(tmpl.id).length }})</span>
+                </button>
+
                 @if (tmpl.status === 'draft') {
                   <button 
                     type="button"
@@ -312,35 +361,17 @@
                   </button>
                 }
 
-                @if (permissions().canDuplicate) {
-                  <button 
-                    type="button"
-                    (click)="duplicateTemplate(tmpl)"
-                    class="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-base-200 transition-colors cursor-pointer"
-                    title="Duplicate as Draft">
-                    <span class="material-symbols-outlined text-lg">content_copy</span>
-                  </button>
-                }
-
-                @if (tmpl.status === 'published' && permissions().canArchive) {
-                  <button 
-                    type="button"
-                    (click)="archiveTemplate(tmpl)"
-                    class="p-1.5 text-slate-500 hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
-                    title="Archive Template">
-                    <span class="material-symbols-outlined text-lg">archive</span>
-                  </button>
-                }
-
-                @if (tmpl.status === 'draft' && permissions().canDelete) {
-                  <button 
-                    type="button"
-                    (click)="deleteDraftTemplate(tmpl)"
-                    class="p-1.5 text-rose-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                    title="Delete Draft">
-                    <span class="material-symbols-outlined text-lg">delete</span>
-                  </button>
-                }
+                <!-- Action Menu Button -->
+                <button 
+                  type="button" 
+                  [id]="'btn-card-tmpl-menu-' + tmpl.id"
+                  (click)="toggleTemplateActionMenu(tmpl, $event)"
+                  class="template-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                  [class.ring-2]="isTemplateActionMenuOpen(tmpl.id)"
+                  [class.ring-tenant-500]="isTemplateActionMenuOpen(tmpl.id)"
+                  title="More Actions">
+                  <span class="material-symbols-outlined text-lg">more_vert</span>
+                </button>
               </div>
             </div>
           </div>
@@ -358,10 +389,11 @@
               <th class="py-3.5 px-4 min-w-[140px]">ID & Type</th>
               <th class="py-3.5 px-4 min-w-[100px]">Status</th>
               <th class="py-3.5 px-4 min-w-[140px]">Sharing Scope</th>
+              <th class="py-3.5 px-4 min-w-[130px]">Curriculum Mappings</th>
               <th class="py-3.5 px-4 min-w-[100px]">Usage</th>
               <th class="py-3.5 px-4 min-w-[140px]">Created By</th>
               <th class="py-3.5 px-4 min-w-[120px]">Updated</th>
-              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[100px] min-w-[100px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+              <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300">
@@ -413,6 +445,18 @@
                   </span>
                 </td>
 
+                <!-- Curriculum Mappings -->
+                <td class="py-3.5 px-4 font-semibold text-text-primary">
+                  <button
+                    type="button"
+                    (click)="openManageMappingsModal(tmpl); $event.stopPropagation()"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-purple-50 dark:bg-base-200 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 hover:text-purple-700 dark:hover:text-purple-300 border border-slate-200 dark:border-base-300 hover:border-purple-200 dark:hover:border-purple-800 transition-all cursor-pointer"
+                    title="View and manage curriculum targets">
+                    <span class="material-symbols-outlined text-sm text-purple-600 dark:text-purple-400">account_tree</span>
+                    <span>{{ getMappingsForTemplate(tmpl.id).length }} Targets</span>
+                  </button>
+                </td>
+
                 <!-- Usage -->
                 <td class="py-3.5 px-4">
                   <span class="px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-300 text-[11px] border border-tenant-500/30">
@@ -432,34 +476,19 @@
 
                 <!-- Actions Sticky Column -->
                 <td 
-                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[100px] min-w-[100px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
                   (click)="$event.stopPropagation()">
-                  <div class="flex items-center justify-center gap-1">
+                  <div class="flex items-center justify-center">
                     <button 
                       type="button" 
-                      (click)="openPreview(tmpl)" 
-                      class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" 
-                      title="Preview">
-                      <span class="material-symbols-outlined text-sm">visibility</span>
+                      [id]="'btn-table-tmpl-menu-' + tmpl.id"
+                      (click)="toggleTemplateActionMenu(tmpl, $event)"
+                      class="template-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
+                      [class.ring-2]="isTemplateActionMenuOpen(tmpl.id)"
+                      [class.ring-tenant-500]="isTemplateActionMenuOpen(tmpl.id)"
+                      title="Template Actions">
+                      <span class="material-symbols-outlined text-lg">more_vert</span>
                     </button>
-                    @if (permissions().canEdit) {
-                      <button 
-                        type="button" 
-                        (click)="openEditWizard(tmpl)" 
-                        class="p-1.5 text-tenant-600 dark:text-tenant-400 hover:bg-tenant-50 dark:hover:bg-tenant-500/20 rounded-lg transition-colors cursor-pointer" 
-                        title="Edit">
-                        <span class="material-symbols-outlined text-sm">edit</span>
-                      </button>
-                    }
-                    @if (permissions().canDuplicate) {
-                      <button 
-                        type="button" 
-                        (click)="duplicateTemplate(tmpl)" 
-                        class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" 
-                        title="Duplicate">
-                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                      </button>
-                    }
                   </div>
                 </td>
               </tr>
@@ -593,6 +622,299 @@
               Close Preview
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- FLOATING POPUP ACTION MENU (Matching Skill Repository & Badge Grid) -->
+  @if (activeMenuTemplate(); as tmpl) {
+    <!-- Invisible backdrop to dismiss on click outside -->
+    <div class="fixed inset-0 z-[9998] cursor-default bg-transparent" (click)="closeActionMenu()"></div>
+
+    <div
+      class="template-action-menu-dropdown fixed z-[9999] w-52 bg-white dark:bg-base-100 rounded-2xl shadow-xl border border-slate-200/80 dark:border-base-300 py-1.5 text-xs text-text-primary animate-in fade-in zoom-in-95 duration-100 select-none"
+      [style.top.px]="menuPosition().top"
+      [style.left.px]="menuPosition().left"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header: ID & Status Badge -->
+      <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary border-b border-base-200 dark:border-base-300 flex items-center justify-between">
+        <span class="font-mono">{{ tmpl.id }}</span>
+        <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase border" [ngClass]="getStatusBadgeClass(tmpl.status)">
+          {{ tmpl.status }}
+        </span>
+      </div>
+
+      <!-- Preview Template -->
+      <button 
+        type="button"
+        (click)="previewTemplateFromMenu()"
+        class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+        <span class="material-symbols-outlined text-base text-slate-500">visibility</span>
+        <span>Preview Template</span>
+      </button>
+
+      <!-- Edit Template -->
+      @if (permissions().canEdit) {
+        <button
+          type="button"
+          (click)="editTemplateFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-tenant-600">edit</span>
+          <span>Edit Template</span>
+        </button>
+      }
+
+      <!-- Manage Mappings -->
+      <button 
+        type="button"
+        (click)="manageMappingsFromMenu()"
+        class="w-full text-left px-3.5 py-2 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+        <span class="material-symbols-outlined text-base text-purple-600">account_tree</span>
+        <span>Manage Mappings</span>
+      </button>
+
+      <!-- Duplicate as Draft -->
+      @if (permissions().canDuplicate) {
+        <button
+          type="button"
+          (click)="duplicateTemplateFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-purple-600">content_copy</span>
+          <span>Duplicate as Draft</span>
+        </button>
+      }
+
+      <!-- Publish Template (if draft) -->
+      @if (tmpl.status === 'draft' && (permissions().canPublish || permissions().canEdit)) {
+        <button
+          type="button"
+          (click)="publishTemplateFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-emerald-600">verified</span>
+          <span>Publish Template</span>
+        </button>
+      }
+
+      <!-- Archive Template (if published) -->
+      @if (tmpl.status === 'published' && permissions().canArchive) {
+        <button
+          type="button"
+          (click)="archiveTemplateFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-amber-600">archive</span>
+          <span>Archive Template</span>
+        </button>
+      }
+
+      <!-- Delete Draft Template (if draft) -->
+      @if (tmpl.status === 'draft' && permissions().canDelete) {
+        <div class="border-t border-base-200 dark:border-base-300 my-1"></div>
+        <button
+          type="button"
+          (click)="deleteTemplateFromMenu()"
+          class="w-full text-left px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 font-medium cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-base text-rose-600">delete</span>
+          <span>Delete Draft</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- POLYMORPHIC CERTIFICATE MAPPING MODAL -->
+  @if (isMappingModalOpen() && mappingTemplate(); as tmpl) {
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+      (click)="onMappingBackdropClick($event)">
+      
+      <div 
+        class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] my-auto"
+        (click)="$event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-5 border-b border-base-300 bg-base-200 shrink-0">
+          <div class="flex items-center gap-3">
+            <!-- Certificate Thumbnail -->
+            <div class="w-12 h-8 bg-base-100 rounded-lg border border-base-300 overflow-hidden shrink-0 shadow-xs">
+              <img 
+                [src]="tmpl.previewThumbnail || tmpl.background.fileUrl" 
+                [alt]="tmpl.name" 
+                class="w-full h-full object-cover" 
+                referrerpolicy="no-referrer" />
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-text-primary truncate max-w-md">{{ tmpl.name }}</h3>
+                <span class="text-[10px] font-mono text-text-secondary bg-base-100 px-1.5 py-0.5 rounded border border-base-300">
+                  {{ tmpl.id }}
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary mt-0.5 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-xs text-purple-600">account_tree</span>
+                <span>Curriculum Mapping • Polymorphic Target Association</span>
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="closeMappingModal()" 
+            class="w-8 h-8 rounded-full hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            title="Close">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
+          <!-- 1. Attach to Learning Target Card -->
+          <div class="p-5 rounded-2xl bg-base-200/60 border border-base-300 space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600 text-base">add_link</span>
+                <span>Attach to Curriculum Target</span>
+              </h4>
+              <span class="text-[11px] text-text-secondary">Auto-issuance configuration</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <!-- Target Type -->
+              <div>
+                <label class="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
+                  Target Type
+                </label>
+                <app-custom-select
+                  [options]="mappingTargetTypeOptions"
+                  [clearable]="false"
+                  placeholder="Select target type..."
+                  [ngModel]="mappingTargetType()"
+                  (ngModelChange)="onMappingTargetTypeChange($event)"
+                  leadingIcon="account_tree">
+                </app-custom-select>
+              </div>
+
+              <!-- Target Item -->
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
+                  Select Target Item
+                </label>
+                <app-custom-select
+                  [options]="mappingTargetItemOptions()"
+                  [searchable]="true"
+                  [clearable]="true"
+                  placeholder="-- Choose Target Item --"
+                  [ngModel]="mappingTargetId()"
+                  (ngModelChange)="onMappingTargetItemChange($event)"
+                  leadingIcon="search">
+                </app-custom-select>
+              </div>
+            </div>
+
+            <!-- Attach button -->
+            <div class="flex justify-end pt-1">
+              <button
+                type="button"
+                (click)="addMapping()"
+                [disabled]="!mappingTargetId()"
+                class="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 hover:bg-purple-700 shadow-sm">
+                <span class="material-symbols-outlined text-base">link</span>
+                <span>Attach Mapping</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Currently Attached Targets -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600 text-base">hub</span>
+                <span>Attached Learning Targets</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                  {{ getMappingsForTemplate(tmpl.id).length }}
+                </span>
+              </h4>
+              <span class="text-[11px] text-text-secondary">
+                {{ getMappingsForTemplate(tmpl.id).length > 0 ? 'Active in curriculum' : 'No active links' }}
+              </span>
+            </div>
+
+            @if (getMappingsForTemplate(tmpl.id).length === 0) {
+              <!-- Empty State -->
+              <div class="p-8 rounded-2xl border border-dashed border-base-300 bg-base-100 flex flex-col items-center justify-center text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-2xl">account_tree</span>
+                </div>
+                <h5 class="text-sm font-bold text-text-primary">No Learning Targets Mapped Yet</h5>
+                <p class="text-xs text-text-secondary max-w-sm">
+                  This certificate template is not currently linked to any course, training plan, phase, or content asset. Use the form above to map it.
+                </p>
+              </div>
+            } @else {
+              <!-- Mappings Table/List -->
+              <div class="rounded-2xl border border-base-300 overflow-hidden bg-base-100 shadow-2xs">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-base-200/70 border-b border-base-300 text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                      <th class="py-2.5 px-3">Target Name & ID</th>
+                      <th class="py-2.5 px-3">Type</th>
+                      <th class="py-2.5 px-3">Mapped On</th>
+                      <th class="py-2.5 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-base-200 dark:divide-base-300">
+                    @for (mapping of getMappingsForTemplate(tmpl.id); track mapping.id) {
+                      <tr class="hover:bg-slate-50/80 dark:hover:bg-base-200/40 transition-colors">
+                        <td class="py-3 px-3">
+                          <div class="font-semibold text-text-primary">{{ mapping.targetName }}</div>
+                          <div class="text-[10px] font-mono text-text-secondary">{{ mapping.targetId }}</div>
+                        </td>
+                        <td class="py-3 px-3">
+                          <span 
+                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider"
+                            [class]="getTargetTypeColor(mapping.targetType)">
+                            <span class="material-symbols-outlined text-xs">
+                              {{ mapping.targetType === 'plan' ? 'assignment' : mapping.targetType === 'phase' ? 'step' : mapping.targetType === 'content' ? 'article' : 'school' }}
+                            </span>
+                            {{ mapping.targetType }}
+                          </span>
+                        </td>
+                        <td class="py-3 px-3 text-text-secondary text-[11px]">
+                          {{ mapping.createdAt | date:'mediumDate' }}
+                        </td>
+                        <td class="py-3 px-3 text-right">
+                          <button
+                            type="button"
+                            (click)="unmapCertificate(tmpl.id, mapping.targetType, mapping.targetId)"
+                            class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] font-semibold transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
+                            title="Unmap this target">
+                            <span class="material-symbols-outlined text-sm">link_off</span>
+                            <span>Unmap</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between p-4 border-t border-base-300 bg-base-200 shrink-0">
+          <div class="flex items-center gap-1.5 text-text-secondary text-[11px]">
+            <span class="material-symbols-outlined text-sm text-purple-600">info</span>
+            <span>Templates with active mappings are protected from accidental deletion.</span>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="closeMappingModal()" 
+            class="px-4 py-2 bg-base-100 hover:bg-base-300 text-text-primary text-xs font-bold rounded-xl border border-base-300 transition-colors cursor-pointer">
+            Done
+          </button>
         </div>
       </div>
     </div>

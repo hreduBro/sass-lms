@@ -90,12 +90,18 @@ import {
   INITIAL_CERTIFICATE_TEMPLATES,
   DEFAULT_CERTIFICATE_DASHBOARD_LAYOUT,
   INITIAL_CERTIFICATE_ACTIVITIES,
-  CANVAS_SIZE_MAP
+  CANVAS_SIZE_MAP,
+  CertificateMapping,
+  CertificateTargetType,
+  INITIAL_CERTIFICATE_MAPPINGS
 } from '../models/certificate-template.model';
 import {
   BadgeTemplate,
   BadgePermissions,
-  INITIAL_BADGE_TEMPLATES
+  BadgeMapping,
+  BadgeTargetType,
+  INITIAL_BADGE_TEMPLATES,
+  INITIAL_BADGE_MAPPINGS
 } from '../models/badge-template.model';
 import {
   Assessment,
@@ -2537,6 +2543,7 @@ export class LmsDataService {
 
   // Badge Templates Store
   badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
+  badgeMappings = signal<BadgeMapping[]>(INITIAL_BADGE_MAPPINGS);
 
   badgePermissions = computed<BadgePermissions>(() => {
     const role = this.activeRole();
@@ -5742,6 +5749,7 @@ export class LmsDataService {
   // CERTIFICATE TEMPLATES MANAGEMENT (§0 - §13 OneLMS Certificate Spec)
   // =========================================================================
   certificateTemplates = signal<CertificateTemplate[]>(INITIAL_CERTIFICATE_TEMPLATES);
+  certificateMappings = signal<CertificateMapping[]>(INITIAL_CERTIFICATE_MAPPINGS);
   certificateDashboardLayout = signal<CertificateDashboardLayout>(JSON.parse(JSON.stringify(DEFAULT_CERTIFICATE_DASHBOARD_LAYOUT)));
   certificateActivities = signal<CertificateActivityEvent[]>(INITIAL_CERTIFICATE_ACTIVITIES);
 
@@ -5839,6 +5847,7 @@ export class LmsDataService {
       privateCount,
       lmsCount,
       orgCount,
+      totalMappings: this.certificateMappings().length,
       publishedPct: total > 0 ? Math.round((published / total) * 100) : 0,
       draftPct: total > 0 ? Math.round((draft / total) * 100) : 0,
       archivedPct: total > 0 ? Math.round((archived / total) * 100) : 0
@@ -6031,6 +6040,17 @@ export class LmsDataService {
       return { success: false, error: 'Certificate template not found.' };
     }
 
+    const activeMappings = this.certificateMappings().filter(m => m.templateId === id);
+    if (activeMappings.length > 0) {
+      this.showToast(`"${template.name}" is mapped to ${activeMappings.length} curriculum element(s) and cannot be deleted until unmapped.`, 'error', 4500, 'Delete Blocked');
+      return { success: false, error: 'Cannot delete template with active curriculum mappings.' };
+    }
+
+    if (template.usageCount > 0) {
+      this.showToast(`"${template.name}" is referenced by ${template.usageCount} Phase(s) and cannot be deleted. Archive it instead.`, 'error', 4500, 'Delete Blocked');
+      return { success: false, error: 'Cannot delete template in active use.' };
+    }
+
     if (template.status !== 'draft') {
       return { success: false, error: 'Only draft templates can be deleted.' };
     }
@@ -6104,6 +6124,80 @@ export class LmsDataService {
     };
     this.certificateDashboardLayout.set(defaults);
     return defaults;
+  }
+
+  // -------------------------------------------------------------
+  // CERTIFICATE POLYMORPHIC MAPPING MANAGEMENT
+  // -------------------------------------------------------------
+
+  mapCertificateToElement(templateId: string, targetType: CertificateTargetType, targetId: string, targetName?: string, achievementRule?: string): void {
+    const template = this.getCertificateTemplateById(templateId);
+    if (!template) return;
+
+    if (template.status === 'archived') {
+      this.showToast(`Cannot map archived certificate template "${template.name}". Restore or republish it first.`, 'error', 3500, 'Mapping Failed');
+      return;
+    }
+
+    const existing = this.certificateMappings().find(m => m.templateId === templateId && m.targetType === targetType && m.targetId === targetId);
+    if (existing) {
+      this.showToast(`Certificate "${template.name}" is already mapped to this ${targetType}.`, 'info', 3000, 'Already Mapped');
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const user = this.activeUser();
+
+    const newMapping: CertificateMapping = {
+      mappingId: `cert-map-${Date.now()}`,
+      templateId,
+      templateName: template.name,
+      targetType,
+      targetId,
+      targetName: targetName || `${targetType.toUpperCase()} #${targetId}`,
+      achievementRule: achievementRule || `Award upon ${targetType} completion`,
+      mappedBy: user?.name || 'LMS Admin',
+      mappedAt: today
+    };
+
+    this.certificateMappings.update(list => [newMapping, ...list]);
+
+    // Recalculate certificate usageCount and mappedElementCount
+    this.certificateTemplates.update(list => list.map(t =>
+      t.id === templateId ? {
+        ...t,
+        usageCount: (t.usageCount || 0) + 1,
+        mappedElementCount: ((t.mappedElementCount || t.usageCount || 0) + 1)
+      } : t
+    ));
+
+    this.showToast(`Certificate "${template.name}" successfully mapped to ${targetName || targetType}.`, 'success', 3000, 'Certificate Mapped');
+  }
+
+  unmapCertificateFromElement(templateId: string, targetType: CertificateTargetType, targetId: string): void {
+    const existing = this.certificateMappings().find(m => m.templateId === templateId && m.targetType === targetType && m.targetId === targetId);
+    if (!existing) return;
+
+    this.certificateMappings.update(list => list.filter(m => m.mappingId !== existing.mappingId));
+
+    // Recalculate certificate usageCount and mappedElementCount
+    this.certificateTemplates.update(list => list.map(t =>
+      t.id === templateId ? {
+        ...t,
+        usageCount: Math.max(0, (t.usageCount || 1) - 1),
+        mappedElementCount: Math.max(0, ((t.mappedElementCount || t.usageCount || 1) - 1))
+      } : t
+    ));
+
+    this.showToast(`Unmapped certificate from ${existing.targetName || targetType}.`, 'info', 3000, 'Certificate Unmapped');
+  }
+
+  getCertificateMappingsForElement(targetType: CertificateTargetType, targetId: string): CertificateMapping[] {
+    return this.certificateMappings().filter(m => m.targetType === targetType && m.targetId === targetId);
+  }
+
+  getElementsMappedToCertificate(templateId: string): CertificateMapping[] {
+    return this.certificateMappings().filter(m => m.templateId === templateId);
   }
 
   // =========================================================================
@@ -8454,6 +8548,12 @@ export class LmsDataService {
     const badge = this.badgeTemplates().find(b => b.templateId === id);
     if (!badge) return false;
 
+    const activeMappings = this.badgeMappings().filter(m => m.templateId === id);
+    if (activeMappings.length > 0) {
+      this.showToast(`"${badge.name}" is mapped to ${activeMappings.length} element(s) and cannot be deleted until unmapped.`, 'error', 4500, 'Delete Blocked');
+      return false;
+    }
+
     if (badge.status === 'published' && badge.usageCount > 0) {
       this.showToast(`"${badge.name}" is referenced by ${badge.usageCount} Phase(s)/Plan(s) and cannot be deleted. Archive it instead.`, 'error', 4500, 'Delete Blocked');
       return false;
@@ -8479,6 +8579,7 @@ export class LmsDataService {
       creationStatus: 'draft',
       version: 1,
       usageCount: 0,
+      mappedElementCount: 0,
       createdBy: user?.name || 'LMS Admin',
       createdAt: today,
       updatedAt: `${today} ${new Date().toLocaleTimeString('en-GB')}`
@@ -8487,6 +8588,80 @@ export class LmsDataService {
     this.badgeTemplates.update(list => [copy, ...list]);
     this.showToast(`Duplicated badge as "${copy.name}".`, 'success', 3500, 'Badge Duplicated');
     return copy;
+  }
+
+  // -------------------------------------------------------------
+  // BADGE POLYMORPHIC MAPPING MANAGEMENT
+  // -------------------------------------------------------------
+
+  mapBadgeToElement(templateId: string, targetType: BadgeTargetType, targetId: string, targetName?: string, achievementRule?: string): void {
+    const badge = this.badgeTemplates().find(b => b.templateId === templateId);
+    if (!badge) return;
+
+    if (badge.status === 'archived') {
+      this.showToast(`Cannot map archived badge "${badge.name}". Restore or republish it first.`, 'error', 3500, 'Mapping Failed');
+      return;
+    }
+
+    const existing = this.badgeMappings().find(m => m.templateId === templateId && m.targetType === targetType && m.targetId === targetId);
+    if (existing) {
+      this.showToast(`Badge "${badge.name}" is already mapped to this ${targetType}.`, 'info', 3000, 'Already Mapped');
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('en-GB');
+    const user = this.activeUser();
+
+    const newMapping: BadgeMapping = {
+      mappingId: `bdg-map-${Date.now()}`,
+      templateId,
+      badgeName: badge.name,
+      targetType,
+      targetId,
+      targetName: targetName || `${targetType.toUpperCase()} #${targetId}`,
+      achievementRule: achievementRule || `Award upon ${targetType} completion`,
+      mappedBy: user?.name || 'LMS Admin',
+      mappedAt: today
+    };
+
+    this.badgeMappings.update(list => [newMapping, ...list]);
+
+    // Recalculate badge usageCount and mappedElementCount
+    this.badgeTemplates.update(list => list.map(b => 
+      b.templateId === templateId ? { 
+        ...b, 
+        usageCount: (b.usageCount || 0) + 1,
+        mappedElementCount: ((b.mappedElementCount || b.usageCount || 0) + 1)
+      } : b
+    ));
+
+    this.showToast(`Badge "${badge.name}" successfully mapped to ${targetName || targetType}.`, 'success', 3000, 'Badge Mapped');
+  }
+
+  unmapBadgeFromElement(templateId: string, targetType: BadgeTargetType, targetId: string): void {
+    const existing = this.badgeMappings().find(m => m.templateId === templateId && m.targetType === targetType && m.targetId === targetId);
+    if (!existing) return;
+
+    this.badgeMappings.update(list => list.filter(m => m.mappingId !== existing.mappingId));
+
+    // Recalculate badge usageCount and mappedElementCount
+    this.badgeTemplates.update(list => list.map(b => 
+      b.templateId === templateId ? { 
+        ...b, 
+        usageCount: Math.max(0, (b.usageCount || 1) - 1),
+        mappedElementCount: Math.max(0, ((b.mappedElementCount || b.usageCount || 1) - 1))
+      } : b
+    ));
+
+    this.showToast(`Unmapped badge from ${existing.targetName || targetType}.`, 'info', 3000, 'Badge Unmapped');
+  }
+
+  getBadgeMappingsForElement(targetType: BadgeTargetType, targetId: string): BadgeMapping[] {
+    return this.badgeMappings().filter(m => m.targetType === targetType && m.targetId === targetId);
+  }
+
+  getElementsMappedToBadge(templateId: string): BadgeMapping[] {
+    return this.badgeMappings().filter(m => m.templateId === templateId);
   }
 }
 
