@@ -176,8 +176,8 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/courses',
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Design, configure & manage reusable curriculum modules',
-    matchPatterns: ['/courses', '/courses/dashboard', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**'],
+    description: 'Design, configure & manage reusable curriculum modules & templates',
+    matchPatterns: ['/courses', '/courses/dashboard', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**', '/courses/templates', '/courses/templates/**'],
     children: [
       {
         label: 'Course Library',
@@ -193,6 +193,24 @@ export const APP_NAV_ITEMS: NavItem[] = [
         badge: 'Overview',
         description: 'High-level course status, content split & publish governance',
         matchPatterns: ['/courses/dashboard']
+      },
+      {
+        label: 'Template Grid',
+        route: '/courses/templates',
+        icon: 'dashboard_customize',
+        badge: 'Blueprints',
+        description: 'Browse, filter & manage course blueprints',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/courses/templates', '/courses/templates/view/**']
+      },
+      {
+        label: 'Template Dashboard',
+        route: '/courses/templates/dashboard',
+        icon: 'monitoring',
+        badge: 'Telemetry',
+        description: 'Blueprint metrics, adoption velocity & slot telemetry',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/courses/templates/dashboard']
       },
       {
         label: 'Create Course',
@@ -247,41 +265,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: 'Learner attempt results, score distributions & manual grading queue',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         matchPatterns: ['/assessments/results', '/assessments/grade/**']
-      }
-    ]
-  },
-  {
-    label: 'Course Templates',
-    route: '/courses/templates',
-    icon: 'dashboard_customize',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Builder',
-    description: 'Structural blueprints, module slots, builder & studio',
-    matchPatterns: ['/courses/templates/**'],
-    children: [
-      {
-        label: 'Template Grid',
-        route: '/courses/templates',
-        icon: 'grid_view',
-        description: 'Browse, filter & manage course blueprints',
-        matchPatterns: ['/courses/templates', '/courses/templates/view/**']
-      },
-      {
-        label: 'Template Dashboard',
-        route: '/courses/templates/dashboard',
-        icon: 'space_dashboard',
-        badge: 'Telemetry',
-        description: 'Blueprint metrics, adoption velocity & slot telemetry',
-        matchPatterns: ['/courses/templates/dashboard']
-      },
-      {
-        label: 'Create Template',
-        route: '/courses/templates/create',
-        icon: 'add_circle',
-        badge: 'Builder',
-        description: 'Multi-step modular course blueprint builder',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/courses/templates/create', '/courses/templates/edit/**']
       }
     ]
   },

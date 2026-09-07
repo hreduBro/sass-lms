@@ -76,6 +76,7 @@ export interface CourseContentItem {
   learning?: LearningPayload | null;
   assessment?: AssessmentPayload | null;
   authors: ContentAuthor[]; // Authors tagged at content level (BRD §4.4.2)
+  instructorTags?: InstructorRef[]; // Tagged directly on content level (content-wise)
   order: number;
 }
 
@@ -173,6 +174,13 @@ export interface CourseEntity {
   
   reviewsConfig: CourseReviewsConfig;
   
+  // Competency & Credential Tagging (Step 4)
+  skills?: string[];
+  badgeTemplateId?: string;
+  badgeTemplateName?: string;
+  certificateTemplateId?: string;
+  certificateTemplateName?: string;
+  
   version: CourseVersionInfo;
   versionHistory: CourseVersionSnapshot[];
   
@@ -191,14 +199,80 @@ export interface CourseEntity {
 }
 
 // Preset structure configurations
-export const LAYER_LABEL_PRESETS: { name: string; count: LayerCount; labels: string[] }[] = [
-  { name: 'Standard 3-Tier (Chapter / Topic / Lesson)', count: 3, labels: ['Chapter', 'Topic', 'Lesson'] },
-  { name: 'Academic 3-Tier (Module / Section / Unit)', count: 3, labels: ['Module', 'Section', 'Unit'] },
-  { name: 'Corporate 3-Tier (Stage / Milestone / Activity)', count: 3, labels: ['Stage', 'Milestone', 'Activity'] },
-  { name: 'Streamlined 2-Tier (Module / Lesson)', count: 2, labels: ['Module', 'Lesson'] },
-  { name: 'Sprint 2-Tier (Track / Session)', count: 2, labels: ['Track', 'Session'] },
-  { name: 'Simple 1-Tier (Module with Content)', count: 1, labels: ['Module'] },
-  { name: 'Workshop 1-Tier (Session with Content)', count: 1, labels: ['Session'] }
+export interface LayerLabelPreset {
+  name: string;
+  presetKey?: string;
+  count: LayerCount;
+  labels: string[];
+  icon: string;
+  description: string;
+  badge?: string;
+}
+
+export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
+  { 
+    name: 'Standard 3-Tier (Chapter / Topic / Lesson)', 
+    presetKey: 'standard-3',
+    count: 3, 
+    labels: ['Chapter', 'Topic', 'Lesson'],
+    icon: 'auto_stories',
+    description: 'Traditional 3-tier structure for comprehensive education & courses',
+    badge: '3 Tiers'
+  },
+  { 
+    name: 'Academic 3-Tier (Module / Section / Unit)', 
+    presetKey: 'academic-3',
+    count: 3, 
+    labels: ['Module', 'Section', 'Unit'],
+    icon: 'school',
+    description: 'Formal academic hierarchy for semester-based curricula & syllabus units',
+    badge: '3 Tiers'
+  },
+  { 
+    name: 'Corporate 3-Tier (Stage / Milestone / Activity)', 
+    presetKey: 'corporate-3',
+    count: 3, 
+    labels: ['Stage', 'Milestone', 'Activity'],
+    icon: 'business_center',
+    description: 'Progress-driven tracking for employee training and compliance journeys',
+    badge: '3 Tiers'
+  },
+  { 
+    name: 'Streamlined 2-Tier (Module / Lesson)', 
+    presetKey: 'streamlined-2',
+    count: 2, 
+    labels: ['Module', 'Lesson'],
+    icon: 'view_agenda',
+    description: 'Standard 2-tier structure ideal for short to medium modular courses',
+    badge: '2 Tiers'
+  },
+  { 
+    name: 'Sprint 2-Tier (Track / Session)', 
+    presetKey: 'sprint-2',
+    count: 2, 
+    labels: ['Track', 'Session'],
+    icon: 'bolt',
+    description: 'Fast-paced bootcamp tracks, workshop series, or technical sprints',
+    badge: '2 Tiers'
+  },
+  { 
+    name: 'Simple 1-Tier (Module with Content)', 
+    presetKey: 'simple-1',
+    count: 1, 
+    labels: ['Module'],
+    icon: 'inventory_2',
+    description: 'Single-tier container holding direct lessons, videos, and quizzes',
+    badge: '1 Tier'
+  },
+  { 
+    name: 'Workshop 1-Tier (Session with Content)', 
+    presetKey: 'workshop-1',
+    count: 1, 
+    labels: ['Session'],
+    icon: 'groups',
+    description: 'Single-session or live lab workshop with direct learning activities',
+    badge: '1 Tier'
+  }
 ];
 
 // Mock repository for Instructor Management (Interface/Mock for §7 and §8)
@@ -352,7 +426,8 @@ export function validateCourseEntity(course: CourseEntity): CourseValidationResu
           
           // Check Rule Engine #3: Manual Grading mandatory instructor
           if (item.family === 'assessment' && item.assessment?.gradingMode === 'manual') {
-            if (effectiveInstructors.length === 0) {
+            const hasDirectInstructor = (item.instructorTags && item.instructorTags.length > 0);
+            if (effectiveInstructors.length === 0 && !hasDirectInstructor) {
               uncoveredManualAssessments.push({
                 contentId: item.contentId,
                 title: item.title,
@@ -375,19 +450,14 @@ export function validateCourseEntity(course: CourseEntity): CourseValidationResu
     warnings.push('A course needs at least one layer and at least one content item.');
   }
 
-  // Rule Engine #2: Instructor Exclusivity
-  // If instructors are tagged at a higher level, instructors must not be tagged at lower levels.
-  // Effectively, there can only be ONE active instructor-tagging layer across the entire course.
+  // Rule Engine #2: Topic and Lesson-Wise Instructor Coverage
+  // Instructors can be assigned flexibly per topic and per lesson/content item.
   const taggedLayerArray = Array.from(taggedLayers).sort((a, b) => a - b);
   let instructorExclusivityOk = true;
   let highestTaggedLayer: number | null = null;
 
   if (taggedLayerArray.length > 0) {
     highestTaggedLayer = taggedLayerArray[0];
-    if (taggedLayerArray.length > 1) {
-      instructorExclusivityOk = false;
-      warnings.push(`Instructors are tagged at multiple levels (Layers: ${taggedLayerArray.join(', ')}). Exclusivity requires tagging at a single layer depth.`);
-    }
   }
 
   // Rule Engine #3: Mandatory Instructor for Manual Grading
@@ -445,6 +515,11 @@ export function summarizeCourseMetrics(course: CourseEntity) {
               manualGradingCount++;
             } else {
               autoGradingCount++;
+            }
+          }
+          if (item.instructorTags) {
+            for (const inst of item.instructorTags) {
+              taggedInstructorsMap.set(inst.id, inst);
             }
           }
           for (const auth of item.authors || []) {

@@ -290,13 +290,15 @@
                     <p class="font-black text-tenant-600 dark:text-tenant-400 text-sm font-mono">{{ asm.attemptCount }}</p>
                     <p class="text-[10px] text-text-secondary uppercase font-semibold">Attempts</p>
                   </div>
-                  <a
-                    [routerLink]="['/assessments/take', asm.assessmentId]"
-                    class="p-1.5 rounded-lg bg-base-100 hover:bg-base-300 border border-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                    title="Take Exam"
-                  >
-                    <span class="material-symbols-outlined text-sm">play_arrow</span>
-                  </a>
+                  @if (isLearner()) {
+                    <a
+                      [routerLink]="['/assessments/take', asm.assessmentId]"
+                      class="p-1.5 rounded-lg bg-base-100 hover:bg-base-300 border border-base-300 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                      title="Take Exam"
+                    >
+                      <span class="material-symbols-outlined text-sm">play_arrow</span>
+                    </a>
+                  }
                 </div>
               </div>
             }

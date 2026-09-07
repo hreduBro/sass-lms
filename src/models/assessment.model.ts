@@ -184,6 +184,7 @@ export interface AssessmentPermissions {
   canViewResults: boolean;
   canExportResults: boolean;
   canManageDashboardStudio: boolean;
+  canTakeExam: boolean;
 }
 
 // -------------------------------------------------------------

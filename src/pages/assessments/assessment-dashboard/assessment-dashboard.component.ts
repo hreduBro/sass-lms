@@ -30,6 +30,7 @@ export class AssessmentDashboardComponent implements OnInit {
 
   activeTenant = computed(() => this.lmsService.activeTenant());
   activeLms = computed(() => this.lmsService.activeLms());
+  isLearner = computed(() => this.lmsService.activeRole() === 'learner');
 
   layout = computed(() => {
     return this.lmsService.assessmentDashboardLayout() || DEFAULT_ASSESSMENT_DASHBOARD_LAYOUT;

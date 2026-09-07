@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, ElementRef, HostListener, inject, forwardRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, input, output, signal, computed, effect, ElementRef, HostListener, inject, forwardRef, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 
@@ -7,16 +7,20 @@ export interface SelectOption {
   label: string;
   sublabel?: string;
   icon?: string;
+  avatar?: string;
   badge?: string;
   badgeClass?: string;
   disabled?: boolean;
 }
 
 @Component({
-  selector: 'app-custom-select',
+  selector: 'app-custom-select, custom-select-dropdown, app-custom-select-dropdown',
   imports: [CommonModule, FormsModule],
   host: {
-    class: 'block w-full relative',
+    class: 'relative',
+    '[class.block]': '!inline()',
+    '[class.inline-block]': 'inline()',
+    '[class.w-full]': '!inline()',
     '[class.z-[99999]]': 'isOpen()',
     '[class.z-0]': '!isOpen()',
     '[style.zIndex]': 'isOpen() ? 99999 : "auto"'
@@ -29,7 +33,7 @@ export interface SelectOption {
     }
   ],
   template: `
-    <div class="relative w-full text-left custom-select-root" [class.z-[99999]]="isOpen()" [class.opacity-60]="disabled()">
+    <div class="relative text-left custom-select-root" [class.w-full]="!inline()" [class.z-[99999]]="isOpen()" [class.opacity-60]="disabled()">
       @if (label()) {
         <label class="block text-xs font-semibold text-text-primary mb-1">
           {{ label() }}
@@ -42,7 +46,7 @@ export interface SelectOption {
         </label>
       }
 
-      <div class="relative w-full" [class.z-[100]]="isOpen()">
+      <div class="relative" [class.w-full]="!inline()" [class.z-[100]]="isOpen()">
         <!-- Select Trigger Button (matches standard input sizing, border and bg) -->
         <button
           #triggerBtn
@@ -52,7 +56,8 @@ export interface SelectOption {
           [disabled]="disabled()"
           [attr.aria-expanded]="isOpen()"
           [attr.aria-haspopup]="'listbox'"
-          class="w-full flex items-center justify-between gap-2 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left box-border font-medium overflow-hidden"
+          class="flex items-center justify-between gap-2 rounded-xl text-xs transition-all duration-200 cursor-pointer select-none text-left box-border font-medium overflow-hidden"
+          [class.w-full]="!inline()"
           [ngClass]="[
             isOpen() 
               ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
@@ -63,7 +68,9 @@ export interface SelectOption {
           ]">
           
           <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-            @if (leadingIcon()) {
+            @if (!multiple() && selectedOption()?.avatar) {
+              <img [src]="selectedOption()?.avatar" [alt]="selectedOption()?.label" class="w-4 h-4 rounded-full object-cover shrink-0 border border-base-300" referrerpolicy="no-referrer" />
+            } @else if (leadingIcon()) {
               <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
                 {{ leadingIcon() }}
               </span>
@@ -239,6 +246,8 @@ export interface SelectOption {
                             <span class="material-symbols-outlined text-[13px] font-black leading-none text-white">check</span>
                           }
                         </div>
+                      } @else if (opt.avatar) {
+                        <img [src]="opt.avatar" [alt]="opt.label" class="w-5 h-5 rounded-full object-cover shrink-0 border border-base-300" referrerpolicy="no-referrer" />
                       } @else if (opt.icon) {
                         <span class="material-symbols-outlined text-sm shrink-0" [class.text-tenant-500]="isSelected(opt)">
                           {{ opt.icon }}
@@ -333,6 +342,18 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
   dropdownPosition = input<'auto' | 'top' | 'bottom'>('auto');
   customTriggerClass = input<string>('');
   customDropdownClass = input<string>('');
+  inline = input<boolean>(false);
+  value = input<any>(undefined);
+  resetOnSelect = input<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const v = this.value();
+      if (v !== undefined) {
+        this.selectedValue.set(v);
+      }
+    });
+  }
 
   // Outputs
   valueChange = output<any>();
@@ -365,16 +386,17 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
             label: item.label,
             sublabel: item.sublabel,
             icon: item.icon,
+            avatar: item.avatar,
             badge: item.badge,
             badgeClass: item.badgeClass,
             disabled: item.disabled
           };
         }
         if ('id' in item && 'name' in item) {
-          return { value: item.id, label: item.name };
+          return { value: item.id, label: item.name, avatar: item.avatar };
         }
         if ('value' in item && 'name' in item) {
-          return { value: item.value, label: item.name };
+          return { value: item.value, label: item.name, avatar: item.avatar };
         }
         if ('key' in item && 'label' in item) {
           return { value: item.key, label: item.label };
@@ -404,14 +426,21 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
 
   selectedOption = computed(() => {
     const val = this.selectedValue();
-    if (val === null || val === undefined || val === '') return null;
     if (this.multiple()) {
       if (Array.isArray(val) && val.length > 0) {
         return this.normalizedOptions().find(o => o.value === val[0]) || null;
       }
       return null;
     }
-    return this.normalizedOptions().find(o => o.value === val) || null;
+    if (val === null || val === undefined) {
+      return this.normalizedOptions().find(o => o.value === val) || null;
+    }
+    const match = this.normalizedOptions().find(o => o.value === val);
+    if (match) return match;
+    if (val === '') {
+      return this.normalizedOptions().find(o => o.value === '') || null;
+    }
+    return { value: val, label: String(val) };
   });
 
   selectedOptions = computed<SelectOption[]>(() => {
@@ -555,6 +584,18 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
 
   selectOption(option: SelectOption) {
     if (option.disabled) return;
+    if (this.resetOnSelect()) {
+      const emittedVal = option.value;
+      const initialVal = this.value() !== undefined ? this.value() : '';
+      this.selectedValue.set(initialVal);
+      this.onChange(initialVal);
+      this.valueChange.emit(emittedVal);
+      this.selectionChange.emit(option);
+      this.close();
+      this.onTouched();
+      this.triggerBtn?.nativeElement.focus();
+      return;
+    }
     if (this.multiple()) {
       const current = Array.isArray(this.selectedValue()) ? [...this.selectedValue()] : [];
       const index = current.indexOf(option.value);

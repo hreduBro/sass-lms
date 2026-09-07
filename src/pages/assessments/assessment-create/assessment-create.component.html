@@ -264,6 +264,54 @@
   @if (currentStep() === 2) {
     <div class="space-y-6 animate-in fade-in">
       
+      <!-- Step 2 Dynamic Action Alert Banner -->
+      @if (step2Alert(); as alert) {
+        <div 
+          id="step2-action-alert"
+          class="p-4 rounded-2xl flex items-center justify-between gap-3 border transition-all animate-in fade-in"
+          [ngClass]="{
+            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200': alert.type === 'success',
+            'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200': alert.type === 'warning',
+            'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200': alert.type === 'error',
+            'bg-tenant-50 dark:bg-tenant-950/40 border-tenant-300 dark:border-tenant-800 text-tenant-900 dark:text-tenant-200': alert.type === 'info'
+          }">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-xl"
+              [ngClass]="{
+                'text-emerald-600': alert.type === 'success',
+                'text-amber-600': alert.type === 'warning',
+                'text-rose-600': alert.type === 'error',
+                'text-tenant-600': alert.type === 'info'
+              }">
+              {{ alert.type === 'success' ? 'check_circle' : alert.type === 'warning' ? 'warning' : alert.type === 'error' ? 'error' : 'info' }}
+            </span>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  [ngClass]="{
+                    'bg-emerald-200/60 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300': alert.type === 'success',
+                    'bg-amber-200/60 dark:bg-amber-900 text-amber-800 dark:text-amber-300': alert.type === 'warning',
+                    'bg-rose-200/60 dark:bg-rose-900 text-rose-800 dark:text-rose-300': alert.type === 'error',
+                    'bg-tenant-200/60 dark:bg-tenant-900 text-tenant-800 dark:text-tenant-300': alert.type === 'info'
+                  }">
+                  {{ alert.action }}
+                </span>
+                <span class="text-xs font-semibold">{{ alert.message }}</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="btn-dismiss-step2-alert"
+            (click)="step2Alert.set(null)"
+            class="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary cursor-pointer"
+            title="Dismiss alert">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      }
+
       <!-- Studio Header & Summary Bar -->
       <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
@@ -284,38 +332,38 @@
           </div>
         </div>
 
-        <!-- Quick Add Question Buttons -->
+        <!-- Quick Add Question Buttons Matching Image 2 -->
         <div class="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             id="btn-add-mcq-question"
             (click)="addQuestion('singleSelect')"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
-            <span class="material-symbols-outlined text-sm text-tenant-600">radio_button_checked</span>
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">radio_button_checked</span>
             + Single Choice
           </button>
           <button
             type="button"
             id="btn-add-multiselect-question"
             (click)="addQuestion('multiSelect')"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
-            <span class="material-symbols-outlined text-sm text-tenant-600">check_box</span>
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">check_box</span>
             + Multi-Select
           </button>
           <button
             type="button"
             id="btn-add-matching-question"
             (click)="addQuestion('matching')"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
-            <span class="material-symbols-outlined text-sm text-tenant-600">sync_alt</span>
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">sync_alt</span>
             + Matching
           </button>
           <button
             type="button"
             id="btn-add-essay-question"
             (click)="addQuestion('essay')"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
-            <span class="material-symbols-outlined text-sm text-tenant-600">article</span>
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">article</span>
             + Essay
           </button>
         </div>
@@ -334,7 +382,7 @@
           <button
             type="button"
             id="btn-add-first-question"
-            (click)="addSampleQuestion()"
+            (click)="addQuestion('singleSelect')"
             class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
             + Add First Question
           </button>
@@ -431,6 +479,7 @@
                   [id]="'input-question-text-' + qIndex"
                   [ngModel]="q.text || q.prompt"
                   (ngModelChange)="updateQuestionPrompt(qIndex, $event)"
+                  (blur)="onQuestionPromptBlur(qIndex)"
                   rows="2"
                   placeholder="Enter the question text or instructions..."
                   class="w-full px-3.5 py-2 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
@@ -914,5 +963,131 @@
       }
     </div>
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- STEP 2 CONFIRMATION & ACTION ALERT MODALS                                  -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal: Confirm Delete Question (Step 2) -->
+  @if (showDeleteQuestionConfirm()) {
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">delete</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Confirm Delete Question</h3>
+            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-secondary leading-relaxed">
+          Are you sure you want to delete <span class="font-bold text-text-primary">Question #{{ (questionToDeleteIndex() ?? 0) + 1 }}</span>? 
+          This will permanently remove the question, answer choices, and deducted points from the assessment marks.
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            id="btn-cancel-delete-question"
+            (click)="cancelDeleteQuestion()"
+            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="btn-confirm-delete-question"
+            (click)="confirmDeleteQuestion()"
+            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-sm">
+            Delete Question
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Confirm Reset Step 2 -->
+  @if (showResetStep2Confirm()) {
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">restart_alt</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Reset Question Studio?</h3>
+            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-secondary leading-relaxed">
+          Are you sure you want to reset all questions in this assessment? All authored questions and answer configurations in Step 2 will be replaced with a blank template question.
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            id="btn-cancel-reset-step2"
+            (click)="cancelResetStep2()"
+            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="btn-confirm-reset-step2"
+            (click)="confirmResetStep2()"
+            class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-sm">
+            Reset Step 2
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Confirm Discard on Cancel in Step 2 -->
+  @if (showCancelConfirmModal()) {
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">warning</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Discard Unsaved Questions?</h3>
+            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-secondary leading-relaxed">
+          You currently have {{ questions().length }} authored question(s) in Step 2. Leaving now will discard unsaved modifications unless saved as a draft.
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            id="btn-cancel-keep-editing"
+            (click)="cancelCloseConfirmModal()"
+            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
+            Keep Editing
+          </button>
+          <button
+            type="button"
+            id="btn-cancel-save-draft"
+            (click)="saveAsDraft()"
+            class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-sm">
+            Save as Draft
+          </button>
+          <button
+            type="button"
+            id="btn-confirm-cancel-exit"
+            (click)="confirmCancel()"
+            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-sm">
+            Discard & Exit
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
 </div>

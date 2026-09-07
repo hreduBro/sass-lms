@@ -491,7 +491,7 @@
             </div>
 
             <div class="flex items-center gap-1.5">
-              @if (asm.status === 'published') {
+              @if (asm.status === 'published' && isLearner()) {
                 <button
                   type="button"
                   (click)="onTakeExam(asm)"
@@ -681,7 +681,7 @@
       <span class="font-mono text-tenant-600 dark:text-tenant-400">#{{ menuAsm.code }}</span>
     </div>
 
-    @if (menuAsm.status === 'published') {
+    @if (menuAsm.status === 'published' && isLearner()) {
       <button 
         type="button"
         (click)="onTakeExam(menuAsm); closeActionMenu()"

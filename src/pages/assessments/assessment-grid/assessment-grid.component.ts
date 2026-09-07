@@ -36,6 +36,7 @@ export class AssessmentGridComponent {
   // Active LMS Context
   activeLms = this.lmsService.activeLms;
   activeTenant = this.lmsService.activeTenant;
+  isLearner = computed(() => this.lmsService.activeRole() === 'learner');
 
   // Search & Filter state
   searchQuery = signal<string>('');

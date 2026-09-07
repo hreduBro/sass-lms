@@ -68,6 +68,19 @@ export class AssessmentCreateComponent implements OnInit {
   activeQuestionIndex = signal<number | null>(0);
   questionsTouched = signal<boolean>(false);
 
+  // Step 2 Alert & Confirmation States
+  step2Alert = signal<{
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    action: string;
+    timestamp?: number;
+  } | null>(null);
+
+  showDeleteQuestionConfirm = signal<boolean>(false);
+  questionToDeleteIndex = signal<number | null>(null);
+  showResetStep2Confirm = signal<boolean>(false);
+  showCancelConfirmModal = signal<boolean>(false);
+
   // Scoring Policy State (Step 3)
   passMarkPercent = signal<number>(60);
   negativeMarkingEnabled = signal<boolean>(false);
@@ -192,6 +205,7 @@ export class AssessmentCreateComponent implements OnInit {
     } else {
       this.addSampleQuestion();
     }
+    // Show active step alert when entering this page (Step 1 of 4: Basic Information)
     this.showStepAlert(1, 'entered');
   }
 
@@ -252,7 +266,35 @@ export class AssessmentCreateComponent implements OnInit {
     this.categoryTags.update(tags => tags.filter(t => t !== tag));
   }
 
-  // Question Management Methods
+  // Step 2 Alert Helper & Labels
+  triggerStep2Alert(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', action: string = 'Question Studio'): void {
+    // Strictly prevent alerts if not on Step 2 (e.g. during Step 1 initialization or other steps)
+    if (this.currentStep() !== 2) {
+      return;
+    }
+    this.step2Alert.set({
+      message,
+      type,
+      action,
+      timestamp: Date.now()
+    });
+    this.lmsService.showToast(message, type, 3500, action, 'STEP 2 / 4');
+  }
+
+  getQuestionTypeLabel(type: string): string {
+    switch (type) {
+      case 'singleSelect': return 'Single Choice';
+      case 'multiSelect': return 'Multi-Select';
+      case 'trueFalse': return 'True/False';
+      case 'matching': return 'Matching';
+      case 'numeric': return 'Numeric';
+      case 'essay': return 'Essay';
+      case 'fillBlank': return 'Fill-in-Blank';
+      default: return type;
+    }
+  }
+
+  // Question Management Methods with Full Action Alerts
   addQuestion(type: any): void {
     const newId = `q-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const isManual = type === 'essay' || type === 'fileUpload' || type === 'text';
@@ -260,8 +302,8 @@ export class AssessmentCreateComponent implements OnInit {
     const newQ: AssessmentQuestion = {
       questionId: newId,
       type,
-      text: `Enter ${type} question instructions...`,
-      prompt: `Enter ${type} question instructions...`,
+      text: `Enter ${this.getQuestionTypeLabel(type)} question instructions...`,
+      prompt: `Enter ${this.getQuestionTypeLabel(type)} question instructions...`,
       order: this.questions().length + 1,
       points: isManual ? 5 : 2,
       required: true,
@@ -295,18 +337,71 @@ export class AssessmentCreateComponent implements OnInit {
     };
 
     this.questions.update(prev => [...prev, newQ]);
-    this.activeQuestionIndex.set(this.questions().length - 1);
+    const newIdx = this.questions().length - 1;
+    this.activeQuestionIndex.set(newIdx);
+
+    // Show alert in Step 2 based on the selected question option from Image 2
+    this.triggerStep2Alert(
+      `Added new ${this.getQuestionTypeLabel(type)} question (#${newIdx + 1}).`,
+      'success',
+      'Question Added'
+    );
   }
 
   addSampleQuestion(): void {
-    this.addQuestion('singleSelect');
+    // Populate default initial sample question without firing any alerts on Step 1
+    const newId = `q-${Date.now()}`;
+    const newQ: AssessmentQuestion = {
+      questionId: newId,
+      type: 'singleSelect',
+      text: 'What is the primary architectural benefit of a multi-tenant cloud LMS?',
+      prompt: 'What is the primary architectural benefit of a multi-tenant cloud LMS?',
+      order: 1,
+      points: 2,
+      required: true,
+      manualGraded: false,
+      explanation: 'Multi-tenant architecture achieves operational scale through shared runtime infrastructure combined with logical data separation.',
+      options: [
+        { optionId: `opt-${newId}-1`, text: 'Resource isolation with shared compute infrastructure', correct: true, isCorrect: true },
+        { optionId: `opt-${newId}-2`, text: 'Separate physical servers for every student profile', correct: false, isCorrect: false },
+        { optionId: `opt-${newId}-3`, text: 'Elimination of all network security governance requirements', correct: false, isCorrect: false },
+        { optionId: `opt-${newId}-4`, text: 'Unrestricted database write access for end learners', correct: false, isCorrect: false }
+      ]
+    };
+    this.questions.set([newQ]);
+    this.activeQuestionIndex.set(0);
+  }
+
+  promptDeleteQuestion(index: number): void {
+    this.questionToDeleteIndex.set(index);
+    this.showDeleteQuestionConfirm.set(true);
   }
 
   deleteQuestion(index: number): void {
-    this.questions.update(prev => prev.filter((_, i) => i !== index));
-    if (this.activeQuestionIndex() === index) {
-      this.activeQuestionIndex.set(Math.max(0, this.questions().length - 1));
+    this.promptDeleteQuestion(index);
+  }
+
+  confirmDeleteQuestion(): void {
+    const index = this.questionToDeleteIndex();
+    if (index !== null && index >= 0 && index < this.questions().length) {
+      const qNum = index + 1;
+      this.questions.update(prev => prev.filter((_, i) => i !== index));
+      if (this.activeQuestionIndex() === index) {
+        this.activeQuestionIndex.set(Math.max(0, this.questions().length - 1));
+      }
+      this.showDeleteQuestionConfirm.set(false);
+      this.questionToDeleteIndex.set(null);
+      this.triggerStep2Alert(
+        `Question #${qNum} was deleted from the assessment.`,
+        'warning',
+        'Question Deleted'
+      );
     }
+  }
+
+  cancelDeleteQuestion(): void {
+    this.showDeleteQuestionConfirm.set(false);
+    this.questionToDeleteIndex.set(null);
   }
 
   duplicateQuestion(index: number): void {
@@ -322,6 +417,11 @@ export class AssessmentCreateComponent implements OnInit {
       return copy;
     });
     this.activeQuestionIndex.set(index + 1);
+    this.triggerStep2Alert(
+      `Question #${index + 1} duplicated as Question #${index + 2}.`,
+      'success',
+      'Question Duplicated'
+    );
   }
 
   moveQuestion(index: number, direction: 'up' | 'down'): void {
@@ -335,6 +435,11 @@ export class AssessmentCreateComponent implements OnInit {
 
     this.questions.set(list);
     this.activeQuestionIndex.set(targetIdx);
+    this.triggerStep2Alert(
+      `Question #${index + 1} moved ${direction} to position #${targetIdx + 1}.`,
+      'info',
+      'Question Reordered'
+    );
   }
 
   addOption(qIndex: number): void {
@@ -342,9 +447,10 @@ export class AssessmentCreateComponent implements OnInit {
     if (!q || !q.options) return;
 
     const optId = `opt-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const optLetter = String.fromCharCode(65 + q.options.length);
     const newOpt: AssessmentQuestionOption = {
       optionId: optId,
-      text: `Option ${String.fromCharCode(65 + q.options.length)}`,
+      text: `Option ${optLetter}`,
       correct: false,
       isCorrect: false
     };
@@ -358,6 +464,11 @@ export class AssessmentCreateComponent implements OnInit {
         };
       })
     );
+    this.triggerStep2Alert(
+      `Added Option ${optLetter} to Question #${qIndex + 1}.`,
+      'info',
+      'Option Added'
+    );
   }
 
   removeOption(qIndex: number, optIndex: number): void {
@@ -369,6 +480,11 @@ export class AssessmentCreateComponent implements OnInit {
           options: (item.options || []).filter((_, oIdx) => oIdx !== optIndex)
         };
       })
+    );
+    this.triggerStep2Alert(
+      `Removed choice Option #${optIndex + 1} from Question #${qIndex + 1}.`,
+      'warning',
+      'Option Removed'
     );
   }
 
@@ -385,6 +501,11 @@ export class AssessmentCreateComponent implements OnInit {
           }))
         };
       })
+    );
+    this.triggerStep2Alert(
+      `Updated correct answer choice for Question #${qIndex + 1}.`,
+      'success',
+      'Answer Key Updated'
     );
   }
 
@@ -404,6 +525,11 @@ export class AssessmentCreateComponent implements OnInit {
         };
       })
     );
+    this.triggerStep2Alert(
+      `Updated multi-select scoring key for Question #${qIndex + 1}.`,
+      'info',
+      'Answer Key Updated'
+    );
   }
 
   addMatchingPair(qIndex: number): void {
@@ -418,6 +544,11 @@ export class AssessmentCreateComponent implements OnInit {
         };
       })
     );
+    this.triggerStep2Alert(
+      `Added new matching pair to Question #${qIndex + 1}.`,
+      'info',
+      'Matching Pair Added'
+    );
   }
 
   removeMatchingPair(qIndex: number, pairIndex: number): void {
@@ -430,6 +561,11 @@ export class AssessmentCreateComponent implements OnInit {
         };
       })
     );
+    this.triggerStep2Alert(
+      `Removed matching pair #${pairIndex + 1} from Question #${qIndex + 1}.`,
+      'warning',
+      'Matching Pair Removed'
+    );
   }
 
   updateQuestionPrompt(qIndex: number, text: string): void {
@@ -441,13 +577,56 @@ export class AssessmentCreateComponent implements OnInit {
     );
   }
 
+  onQuestionPromptBlur(qIndex: number): void {
+    const q = this.questions()[qIndex];
+    if (!q) return;
+    if (!(q.text || q.prompt)?.trim()) {
+      this.triggerStep2Alert(
+        `Validation Warning: Question #${qIndex + 1} prompt cannot be empty.`,
+        'warning',
+        'Prompt Required'
+      );
+    } else {
+      this.triggerStep2Alert(
+        `Question #${qIndex + 1} prompt updated.`,
+        'info',
+        'Prompt Saved'
+      );
+    }
+  }
+
   updateQuestionPoints(qIndex: number, points: number): void {
+    const pts = Math.max(1, Number(points) || 1);
     this.questions.update(prev =>
       prev.map((item, idx) => {
         if (idx !== qIndex) return item;
-        return { ...item, points: Number(points) || 1 };
+        return { ...item, points: pts };
       })
     );
+    this.triggerStep2Alert(
+      `Updated Question #${qIndex + 1} point weight to ${pts} pts (Total: ${this.totalMarks()} pts).`,
+      'info',
+      'Points Updated'
+    );
+  }
+
+  promptResetStep2(): void {
+    this.showResetStep2Confirm.set(true);
+  }
+
+  confirmResetStep2(): void {
+    this.questions.set([]);
+    this.addSampleQuestion();
+    this.showResetStep2Confirm.set(false);
+    this.triggerStep2Alert(
+      'Question Studio has been reset to default initial state.',
+      'warning',
+      'Step 2 Reset'
+    );
+  }
+
+  cancelResetStep2(): void {
+    this.showResetStep2Confirm.set(false);
   }
 
   // Stepper & Wizard Navigation
@@ -494,7 +673,7 @@ export class AssessmentCreateComponent implements OnInit {
 
       if (this.questions().length === 0) {
         this.formErrorAlert.set('At least one question is required in the Question Studio.');
-        this.lmsService.showToast('Validation Error: Please author at least 1 question.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.triggerStep2Alert('Validation Error: Please author at least 1 question before proceeding.', 'error', 'Validation Error');
         this.scrollToFirstError();
         return;
       }
@@ -503,7 +682,7 @@ export class AssessmentCreateComponent implements OnInit {
       const blankQ = this.questions().find(q => !q.text?.trim() && !q.prompt?.trim());
       if (blankQ) {
         this.formErrorAlert.set('All authored questions must include a question prompt/text.');
-        this.lmsService.showToast('Validation Error: Question text cannot be empty.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.triggerStep2Alert('Validation Error: All questions must have a non-empty question prompt.', 'error', 'Validation Error');
         this.scrollToFirstError();
         return;
       }
@@ -515,10 +694,12 @@ export class AssessmentCreateComponent implements OnInit {
       );
       if (unkeyedMCQ) {
         this.formErrorAlert.set('Multiple choice questions must have at least one correct answer selected.');
-        this.lmsService.showToast('Validation Error: Select the correct answer for all choice questions.', 'error', 4500, 'Step 2 Error', 'STEP 2 / 4');
+        this.triggerStep2Alert('Validation Error: Select the correct answer for all choice questions.', 'error', 'Validation Error');
         this.scrollToFirstError();
         return;
       }
+
+      this.triggerStep2Alert('Question Studio completed with all questions validated.', 'success', 'Step 2 Completed');
 
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -610,9 +791,9 @@ export class AssessmentCreateComponent implements OnInit {
       this.responsibleInstructorId.set(undefined);
       this.responsibleInstructorName.set(undefined);
       this.categoryTags.set(['General']);
+      this.lmsService.showToast(`Step 1 parameters reset to default values.`, 'info', 3000, `Step 1 Reset`);
     } else if (step === 2) {
-      this.questions.set([]);
-      this.addSampleQuestion();
+      this.promptResetStep2();
     } else if (step === 3) {
       this.passMarkPercent.set(60);
       this.negativeMarkingEnabled.set(false);
@@ -621,12 +802,26 @@ export class AssessmentCreateComponent implements OnInit {
       this.keepScoreRule.set('highest');
       this.timeLimitMinutes.set(30);
       this.showScorePolicy.set('afterSubmit');
+      this.lmsService.showToast(`Step 3 parameters reset to default values.`, 'info', 3000, `Step 3 Reset`);
     }
-    this.lmsService.showToast(`Step ${step} parameters reset to default values.`, 'info', 3000, `Step ${step} Reset`);
   }
 
   onCancel(): void {
+    if (this.currentStep() === 2 && this.questions().length > 0) {
+      this.showCancelConfirmModal.set(true);
+    } else {
+      this.router.navigate(['/assessments']);
+    }
+  }
+
+  confirmCancel(): void {
+    this.showCancelConfirmModal.set(false);
+    this.triggerStep2Alert('Exited Question Studio without saving changes.', 'info', 'Step 2 Exited');
     this.router.navigate(['/assessments']);
+  }
+
+  cancelCloseConfirmModal(): void {
+    this.showCancelConfirmModal.set(false);
   }
 
   onSaveAsDraft(): void {

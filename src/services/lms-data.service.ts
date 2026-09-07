@@ -2575,6 +2575,7 @@ export class LmsDataService {
     const isOrg = role === 'tenant_admin';
     const isLms = role === 'lms_admin';
     const isInst = role === 'instructor';
+    const isLearner = role === 'learner';
 
     return {
       canViewFeature: true,
@@ -2587,7 +2588,8 @@ export class LmsDataService {
       canManualGrade: isSys || isOrg || isLms || isInst,
       canViewResults: true,
       canExportResults: isSys || isOrg || isLms || isInst,
-      canManageDashboardStudio: isSys || isOrg || isLms
+      canManageDashboardStudio: isSys || isOrg || isLms,
+      canTakeExam: isLearner
     };
   });
 

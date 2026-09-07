@@ -241,10 +241,8 @@ export const routes: Routes = [
   },
   { 
     path: 'courses/templates/create', 
-    component: CourseTemplateCreateComponent, 
-    title: 'Create Course Template | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'courses/templates',
+    pathMatch: 'full'
   },
   { 
     path: 'courses/templates/edit/:id', 

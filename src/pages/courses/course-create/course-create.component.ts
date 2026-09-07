@@ -12,10 +12,14 @@ import {
   InstructorRef,
   AuthorKind,
   LayerCount,
+  LayerLabelPreset,
   LAYER_LABEL_PRESETS,
   validateCourseEntity,
   summarizeCourseMetrics
 } from '../../../models/course.model';
+import { Skill } from '../../../models/skill-mapping.model';
+import { BadgeTemplate } from '../../../models/badge-template.model';
+import { CertificateTemplate, CanvasElement, PLACEHOLDER_TOKENS } from '../../../models/certificate-template.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
 
@@ -46,8 +50,8 @@ export class CourseCreateComponent implements OnInit {
     { id: 1, shortTitle: 'Course Details', sublabel: 'Identity & Taxonomy', icon: 'info' },
     { id: 2, shortTitle: 'Structure Setup', sublabel: 'Hierarchy & Tiers', icon: 'account_tree' },
     { id: 3, shortTitle: 'Build Content', sublabel: 'Curriculum Nodes', icon: 'format_list_bulleted' },
-    { id: 4, shortTitle: 'Tagging', sublabel: 'Instructors & Authors', icon: 'group' },
-    { id: 5, shortTitle: 'Reviews & Grading', sublabel: 'Feedback & Coverage', icon: 'rate_review' },
+    { id: 4, shortTitle: 'Tagging', sublabel: 'Skills & Credentials', icon: 'military_tech' },
+    { id: 5, shortTitle: 'Feedback and Grading', sublabel: 'Feedback & Coverage', icon: 'rate_review' },
     { id: 6, shortTitle: 'Review & Publish', sublabel: 'Audit & Activation', icon: 'verified' }
   ];
 
@@ -132,6 +136,24 @@ export class CourseCreateComponent implements OnInit {
     label: p.label
   }));
 
+  // Local Image Uploader State
+  uploadedImageFileName = signal<string>('');
+  uploadedImageFileSize = signal<string>('');
+  uploadedImageFileType = signal<string>('');
+  isDraggingOver = signal<boolean>(false);
+  customUploadedImage = signal<string | null>(null);
+  imageUploadError = signal<string | null>(null);
+
+  isPresetSelected(url: string): boolean {
+    return this.detailsForm.get('coverImage')?.value === url;
+  }
+
+  isCustomImageActive = computed<boolean>(() => {
+    const current = this.detailsForm.get('coverImage')?.value;
+    if (!current) return false;
+    return !this.coverImagePresets.some(p => p.url === current);
+  });
+
   // Tags state
   courseTags = signal<string[]>(['Curriculum', 'Core']);
   newTagInput = signal<string>('');
@@ -143,12 +165,228 @@ export class CourseCreateComponent implements OnInit {
   layer3Label = signal<string>('Lesson');
 
   layerLabelPresets = LAYER_LABEL_PRESETS;
+  selectedPresetValue = signal<string>('Standard 3-Tier (Chapter / Topic / Lesson)');
+
+  presetOptions = computed<SelectOption[]>(() => {
+    return this.layerLabelPresets.map(p => ({
+      value: p.name,
+      label: p.name,
+      sublabel: `${p.labels.join(' → ')} → [Content]`,
+      icon: p.icon,
+      badge: p.badge || `${p.count} Tier${p.count > 1 ? 's' : ''}`,
+      badgeClass: p.count === 3 
+        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60' 
+        : p.count === 2 
+          ? 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/60 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/60'
+          : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+    }));
+  });
+
+  currentTierPresets = computed(() => {
+    return this.layerLabelPresets.filter(p => p.count === this.selectedLayerCount());
+  });
+
+  isPresetActive(preset: LayerLabelPreset): boolean {
+    if (this.selectedLayerCount() !== preset.count) return false;
+    if (this.layer1Label() !== (preset.labels[0] || '')) return false;
+    if (preset.count >= 2 && this.layer2Label() !== (preset.labels[1] || '')) return false;
+    if (preset.count >= 3 && this.layer3Label() !== (preset.labels[2] || '')) return false;
+    return true;
+  }
 
   // Step 3: Tree Structure Data Model
   structureNodes = signal<CourseStructureNode[]>([]);
 
-  // Step 4: Tagging Configuration
-  instructorTaggedLayer = signal<1 | 2 | 3 | null>(null); // Which layer depth is chosen for tagging
+  // Step 4: Tagging Configuration (Skills, Badges & Certificates)
+  selectedSkillIds = signal<string[]>(['skl-001', 'skl-002']);
+  selectedBadgeId = signal<string>('BDG-1001');
+  selectedCertificateId = signal<string>('CERT-TMP-1972-01');
+  skillCategoryFilter = signal<string>('all');
+  certificatePreviewMode = signal<'sample' | 'tokens'>('sample');
+  isCertPreviewModalOpen = signal<boolean>(false);
+
+  // Skill Options from Skill Repository
+  skillOptions = computed<SelectOption[]>(() => {
+    return this.lmsService.skills().map(s => {
+      let badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300';
+      if (s.category === 'Technical') {
+        badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300';
+      } else if (s.category === 'Compliance') {
+        badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300';
+      } else if (s.category === 'Leadership') {
+        badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300';
+      }
+      return {
+        value: s.skillId,
+        label: s.name,
+        sublabel: `${s.skillCode} • ${s.clusterName || s.category} • (${s.levels.join(', ')})`,
+        badge: s.category,
+        badgeClass,
+        icon: 'psychology'
+      };
+    });
+  });
+
+  // Selected Skills computed array
+  selectedSkills = computed<Skill[]>(() => {
+    const ids = this.selectedSkillIds();
+    const all = this.lmsService.skills();
+    return ids.map(id => all.find(s => s.skillId === id)).filter((s): s is Skill => !!s);
+  });
+
+  // Badge Options from Badge Templates Repository
+  badgeOptions = computed<SelectOption[]>(() => {
+    const list: SelectOption[] = [
+      { value: '', label: 'None (No milestone badge awarded)', sublabel: 'Complete course without issuing a badge', icon: 'block' }
+    ];
+    this.lmsService.badgeTemplates().forEach(b => {
+      list.push({
+        value: b.templateId,
+        label: b.name,
+        sublabel: `${b.category || 'Competency'} • ${b.earning?.level || 'Standard'} • ${b.earning?.issuerName || 'BRAC Learning'}`,
+        badge: b.earning?.level || 'Badge',
+        icon: b.emblem?.iconRef || 'military_tech'
+      });
+    });
+    return list;
+  });
+
+  // Selected Badge computed
+  selectedBadge = computed<BadgeTemplate | null>(() => {
+    const id = this.selectedBadgeId();
+    if (!id) return null;
+    return this.lmsService.badgeTemplates().find(b => b.templateId === id) || null;
+  });
+
+  // Certificate Options from Certificate Templates Repository
+  certificateOptions = computed<SelectOption[]>(() => {
+    const list: SelectOption[] = [
+      { value: '', label: 'None (No certificate generated)', sublabel: 'Learners complete course without an accredited certificate', icon: 'block' }
+    ];
+    this.lmsService.certificateTemplates().forEach(c => {
+      list.push({
+        value: c.id,
+        label: c.name,
+        sublabel: `${c.type} Credential • ${c.paperSize} (${c.orientation}) • ${c.sharing?.level || 'Organization'}`,
+        badge: c.type,
+        icon: 'workspace_premium'
+      });
+    });
+    return list;
+  });
+
+  // Selected Certificate computed
+  selectedCertificate = computed<CertificateTemplate | null>(() => {
+    const id = this.selectedCertificateId();
+    if (!id) return null;
+    return this.lmsService.certificateTemplates().find(c => c.id === id) || null;
+  });
+
+  // Skill management helpers
+  onSkillSelectionChange(value: any) {
+    if (Array.isArray(value)) {
+      this.selectedSkillIds.set(value);
+    } else if (typeof value === 'string' && value) {
+      const current = this.selectedSkillIds();
+      if (!current.includes(value)) {
+        this.selectedSkillIds.set([...current, value]);
+      }
+    }
+  }
+
+  addSkill(skillId: string) {
+    if (!skillId) return;
+    const current = this.selectedSkillIds();
+    if (!current.includes(skillId)) {
+      this.selectedSkillIds.set([...current, skillId]);
+      const skill = this.lmsService.skills().find(s => s.skillId === skillId);
+      this.lmsService.showToast(`Mapped competency skill "${skill?.name || skillId}" to curriculum.`, 'success', 2500);
+    }
+  }
+
+  removeSkill(skillId: string) {
+    const current = this.selectedSkillIds();
+    this.selectedSkillIds.set(current.filter(id => id !== skillId));
+  }
+
+  toggleSkill(skillId: string) {
+    const current = this.selectedSkillIds();
+    if (current.includes(skillId)) {
+      this.removeSkill(skillId);
+    } else {
+      this.addSkill(skillId);
+    }
+  }
+
+  isSkillSelected(skillId: string): boolean {
+    return this.selectedSkillIds().includes(skillId);
+  }
+
+  getSkillCategories(): string[] {
+    const cats = new Set<string>();
+    this.lmsService.skills().forEach(s => {
+      if (s.category) cats.add(s.category);
+    });
+    return ['all', ...Array.from(cats)];
+  }
+
+  getFilteredRepoSkills(): Skill[] {
+    const filter = this.skillCategoryFilter();
+    const skills = this.lmsService.skills();
+    if (filter === 'all') return skills;
+    return skills.filter(s => s.category === filter);
+  }
+
+  // Certificate Live Preview Token Rendering
+  getCertDisplayText(element: CanvasElement): string {
+    if (element.kind === 'static-text') {
+      return element.text || '';
+    }
+    if (element.kind === 'placeholder' && element.token) {
+      if (this.certificatePreviewMode() === 'tokens') {
+        return element.token;
+      }
+      const token = element.token;
+      const courseTitle = this.detailsForm.get('title')?.value?.trim() || 'Interactive Masterclass Course';
+      const courseCode = this.detailsForm.get('code')?.value?.trim() || 'CRS-2026-01';
+      const dateStr = '07/09/2026';
+
+      if (token === '{{course_name}}' || token === '{{course_title}}' || token === '{{phase_name}}' || token === '{{module_name}}') return courseTitle;
+      if (token === '{{course_code}}') return courseCode;
+      if (token === '{{trainee_name}}') return 'Ayesha Rahman';
+      if (token === '{{completion_date}}' || token === '{{date}}' || token === '{{issue_date}}') return dateStr;
+      if (token === '{{certificate_id}}' || token === '{{serial_number}}') return 'BRAC-CERT-2026-98214';
+      if (token === '{{grade}}') return '96.5% (Distinction)';
+      if (token === '{{trainer_name}}') return 'Lead Faculty Instructor';
+      if (token === '{{signatory_name}}') return 'Dr. Karim Rahman';
+      if (token === '{{signatory_designation}}') return 'Director of Academic Affairs';
+      if (token === '{{organization_name}}') return 'BRAC Learning Institute';
+      if (token === '{{lms_name}}') return this.lmsService.activeLms()?.basicInfo?.lmsName || 'OneLMS Portal';
+
+      const def = PLACEHOLDER_TOKENS.find(t => t.key === token);
+      return def?.sampleValue || token;
+    }
+    return '';
+  }
+
+  openCertPreviewModal() {
+    this.isCertPreviewModalOpen.set(true);
+  }
+
+  closeCertPreviewModal() {
+    this.isCertPreviewModalOpen.set(false);
+  }
+
+  // Instructor attribution backward compatibility
+  instructorTaggedLayer = signal<1 | 2 | 3>(1); // Which layer depth is chosen for tagging
+
+  getInstructorAssignedLayerName(): string {
+    const layer = this.instructorTaggedLayer();
+    if (layer === 1) return this.layer1Label();
+    if (layer === 2) return this.layer2Label();
+    if (layer === 3) return this.layer3Label();
+    return this.layer1Label() || 'Chapter';
+  }
 
   // Step 5: Reviews Configuration
   reviewsConfig = signal<CourseReviewsConfig>({
@@ -171,7 +409,31 @@ export class CourseCreateComponent implements OnInit {
     durationMinutes: [15, [Validators.required, Validators.min(1)]],
     passingScorePct: [80],
     instructions: [''],
-    mediaUrl: ['']
+    mediaUrl: [''],
+    instructorId: ['__topic__']
+  });
+
+  contentModalInstructorOptions = computed<SelectOption[]>(() => {
+    const targetNodeId = this.activeTargetNodeId();
+    let topicInstName = 'Unassigned';
+    if (targetNodeId) {
+      const node = this.findNodeById(this.structureNodes(), targetNodeId);
+      if (node) {
+        const inst = this.getNodeInstructor(node);
+        if (inst) topicInstName = inst.name;
+      }
+    }
+
+    return [
+      { value: '__topic__', label: `Use Topic Default (${topicInstName})`, icon: 'sync' },
+      { value: '', label: 'None (Unassigned)', icon: 'person_off' },
+      ...this.lmsService.instructorsRepo().map(inst => ({
+        value: inst.id,
+        label: `${inst.name} (${inst.title})`,
+        sublabel: `${inst.department || ''} • ${inst.email}`,
+        icon: 'person'
+      }))
+    ];
   });
 
   // Template extract modal state
@@ -216,6 +478,11 @@ export class CourseCreateComponent implements OnInit {
     this.layer1Label.set('Chapter');
     this.layer2Label.set('Topic');
     this.layer3Label.set('Lesson');
+
+    // Default Step 4 Skills & Credentials
+    this.selectedSkillIds.set(['skl-001', 'skl-002']);
+    this.selectedBadgeId.set('BDG-1001');
+    this.selectedCertificateId.set('CERT-TMP-1972-01');
 
     const defaultInst = this.lmsService.instructorsRepo()[0] || {
       id: user.id,
@@ -313,8 +580,31 @@ export class CourseCreateComponent implements OnInit {
     this.layer2Label.set(course.structureConfig.layerLabels[1] || 'Topic');
     this.layer3Label.set(course.structureConfig.layerLabels[2] || 'Lesson');
 
+    const matchingPreset = this.layerLabelPresets.find(p => 
+      p.count === course.structureConfig.layerCount &&
+      p.labels[0] === course.structureConfig.layerLabels[0] &&
+      (p.count < 2 || p.labels[1] === course.structureConfig.layerLabels[1]) &&
+      (p.count < 3 || p.labels[2] === course.structureConfig.layerLabels[2])
+    );
+    if (matchingPreset) {
+      this.selectedPresetValue.set(matchingPreset.name);
+    }
+
     this.structureNodes.set(JSON.parse(JSON.stringify(course.structure)));
     this.reviewsConfig.set({ ...course.reviewsConfig });
+
+    // Step 4: Skills, Badge and Certificate credentials
+    if (course.skills && course.skills.length > 0) {
+      this.selectedSkillIds.set([...course.skills]);
+    } else {
+      this.selectedSkillIds.set(['skl-001', 'skl-002']);
+    }
+    if (course.badgeTemplateId !== undefined) {
+      this.selectedBadgeId.set(course.badgeTemplateId);
+    }
+    if (course.certificateTemplateId !== undefined) {
+      this.selectedCertificateId.set(course.certificateTemplateId);
+    }
 
     // Determine instructor tagged layer
     this.detectInstructorTaggedLayer();
@@ -350,11 +640,113 @@ export class CourseCreateComponent implements OnInit {
     this.courseTags.update(t => t.filter(x => x !== tag));
   }
 
+  // Cover Image & Local File Uploader
+  selectCoverPreset(preset: { label: string; url: string }) {
+    this.detailsForm.patchValue({ coverImage: preset.url });
+    this.imageUploadError.set(null);
+  }
+
+  onImageFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input && input.files && input.files.length > 0) {
+      this.processImageFile(input.files[0]);
+    }
+  }
+
+  onImageDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(true);
+  }
+
+  onImageDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(false);
+  }
+
+  onImageDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(false);
+    if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      this.processImageFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  processImageFile(file: File) {
+    this.imageUploadError.set(null);
+
+    // Validate type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type) && !file.type.startsWith('image/')) {
+      const errorMsg = 'Please upload a valid image file (PNG, JPG, WebP, or SVG).';
+      this.imageUploadError.set(errorMsg);
+      this.lmsService.showToast(errorMsg, 'error', 3500, 'Invalid File Type');
+      return;
+    }
+
+    // Validate size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const errorMsg = `Image size (${this.formatFileSize(file.size)}) exceeds the 5MB limit. Please choose a smaller image.`;
+      this.imageUploadError.set(errorMsg);
+      this.lmsService.showToast(errorMsg, 'error', 3500, 'File Too Large');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        this.uploadedImageFileName.set(file.name);
+        this.uploadedImageFileSize.set(this.formatFileSize(file.size));
+        this.uploadedImageFileType.set(file.type.replace('image/', '').toUpperCase());
+        this.customUploadedImage.set(result);
+        this.detailsForm.patchValue({ coverImage: result });
+        this.lmsService.showToast(`Uploaded banner "${file.name}" formatted for Course Library!`, 'success', 3000, 'Image Uploaded');
+      }
+    };
+    reader.onerror = () => {
+      this.imageUploadError.set('Failed to read image file from local device.');
+      this.lmsService.showToast('Failed to read image file.', 'error', 3000, 'Upload Error');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  clearUploadedImage() {
+    this.customUploadedImage.set(null);
+    this.uploadedImageFileName.set('');
+    this.uploadedImageFileSize.set('');
+    this.uploadedImageFileType.set('');
+    this.imageUploadError.set(null);
+    this.detailsForm.patchValue({ coverImage: this.coverImagePresets[0].url });
+    this.lmsService.showToast('Reset cover image to default preset.', 'info', 2000, 'Image Reset');
+  }
+
   // Preset Layer Labels Selection
-  applyLayerPreset(preset: typeof LAYER_LABEL_PRESETS[0]) {
+  applyLayerPreset(preset: LayerLabelPreset) {
+    if (this.selectedLayerCount() !== preset.count) {
+      this.changeLayerCount(preset.count);
+    }
     this.layer1Label.set(preset.labels[0] || 'Chapter');
     this.layer2Label.set(preset.labels[1] || 'Topic');
     this.layer3Label.set(preset.labels[2] || 'Lesson');
+    this.selectedPresetValue.set(preset.name);
+  }
+
+  onPresetDropdownChange(presetName: string) {
+    if (!presetName) return;
+    const found = this.layerLabelPresets.find(p => p.name === presetName || p.presetKey === presetName);
+    if (found) {
+      this.applyLayerPreset(found);
+    }
   }
 
   // Update Layer Count
@@ -526,6 +918,8 @@ export class CourseCreateComponent implements OnInit {
   }
 
   // Tree Nodes Manipulation
+  recentlyAddedNodeId = signal<string | null>(null);
+
   addLayer1Node() {
     const idx = this.structureNodes().length + 1;
     const count = this.selectedLayerCount();
@@ -589,6 +983,21 @@ export class CourseCreateComponent implements OnInit {
     };
 
     this.structureNodes.update(nodes => [...nodes, newNode]);
+    this.recentlyAddedNodeId.set(newNode.nodeId);
+
+    // Show alert notification when user adds a chapter
+    this.lmsService.showToast(
+      `New ${label} "${newNode.title}" added to course structure.`,
+      'success',
+      4000,
+      `${label} Added`
+    );
+
+    setTimeout(() => {
+      if (this.recentlyAddedNodeId() === newNode.nodeId) {
+        this.recentlyAddedNodeId.set(null);
+      }
+    }, 4500);
   }
 
   removeLayer1Node(nodeId: string) {
@@ -596,7 +1005,9 @@ export class CourseCreateComponent implements OnInit {
       this.lmsService.showToast('A course must maintain at least one section.', 'warning', 3000, 'Structure Rule');
       return;
     }
+    const label = this.layer1Label();
     this.structureNodes.update(nodes => nodes.filter(n => n.nodeId !== nodeId));
+    this.lmsService.showToast(`${label} removed from course structure.`, 'info', 2500, `${label} Removed`);
   }
 
   addChildNode(parentNode: CourseStructureNode) {
@@ -646,6 +1057,20 @@ export class CourseCreateComponent implements OnInit {
     if (!parentNode.children) parentNode.children = [];
     parentNode.children.push(newChild);
     this.structureNodes.set([...this.structureNodes()]);
+    this.recentlyAddedNodeId.set(newChild.nodeId);
+
+    this.lmsService.showToast(
+      `New ${label} "${newChild.title}" added under "${parentNode.title}".`,
+      'success',
+      3500,
+      `${label} Added`
+    );
+
+    setTimeout(() => {
+      if (this.recentlyAddedNodeId() === newChild.nodeId) {
+        this.recentlyAddedNodeId.set(null);
+      }
+    }, 4500);
   }
 
   removeChildNode(parentNode: CourseStructureNode, childId: string) {
@@ -655,12 +1080,350 @@ export class CourseCreateComponent implements OnInit {
     }
     parentNode.children = parentNode.children?.filter(c => c.nodeId !== childId);
     this.structureNodes.set([...this.structureNodes()]);
+    this.lmsService.showToast('Section removed from course structure.', 'info', 2500, 'Section Removed');
+  }
+
+  // --- Step 3: Topic-wise and Content-wise Instructor Operations ---
+  findNodeById(nodes: CourseStructureNode[], nodeId: string): CourseStructureNode | null {
+    for (const n of nodes) {
+      if (n.nodeId === nodeId) return n;
+      if (n.children) {
+        const found = this.findNodeById(n.children, nodeId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  findParentNode(nodes: CourseStructureNode[], targetNodeId: string, parent: CourseStructureNode | null = null): CourseStructureNode | null {
+    for (const n of nodes) {
+      if (n.nodeId === targetNodeId) return parent;
+      if (n.children) {
+        const found = this.findParentNode(n.children, targetNodeId, n);
+        if (found !== null) return found;
+      }
+    }
+    return null;
+  }
+
+  getNodeInstructor(node: CourseStructureNode): InstructorRef | null {
+    if (node.instructorTags && node.instructorTags.length > 0) {
+      if (node.instructorTags[0].id === '__none__') return null;
+      return node.instructorTags[0];
+    }
+    return null;
+  }
+
+  getEffectiveNodeInstructor(node: CourseStructureNode): InstructorRef | null {
+    if (node.instructorTags && node.instructorTags.length > 0) {
+      if (node.instructorTags[0].id === '__none__') return null;
+      return node.instructorTags[0];
+    }
+    const parent = this.findParentNode(this.structureNodes(), node.nodeId);
+    if (parent) {
+      return this.getEffectiveNodeInstructor(parent);
+    }
+    return null;
+  }
+
+  getParentNodeInstructor(node: CourseStructureNode): InstructorRef | null {
+    const parent = this.findParentNode(this.structureNodes(), node.nodeId);
+    if (!parent) return null;
+    return this.getEffectiveNodeInstructor(parent);
+  }
+
+  // Batch instructor state and options
+  batchAssignInstructorId = signal<string>('');
+
+  batchInstructorOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'Choose Instructor...', icon: 'person_search' },
+      ...this.lmsService.instructorsRepo().map(inst => ({
+        value: inst.id,
+        label: `${inst.name} (${inst.title})`,
+        sublabel: `${inst.department || ''} • ${inst.email}`,
+        avatar: inst.avatar,
+        icon: 'person'
+      }))
+    ];
+  });
+
+  onBatchAssignChange(instructorId: string) {
+    this.batchAssignInstructorId.set(instructorId);
+    if (instructorId) {
+      this.applyInstructorToAllTopics(instructorId);
+    }
+  }
+
+  getTopicInstructorOptions(node: CourseStructureNode): SelectOption[] {
+    const options: SelectOption[] = [];
+    if (node.layer > 1) {
+      const parentInst = this.getParentNodeInstructor(node);
+      options.push({
+        value: '__inherit__',
+        label: parentInst ? `Inherit from Parent (${parentInst.name})` : 'Inherit from Parent (Unassigned)',
+        avatar: parentInst?.avatar,
+        icon: 'sync'
+      });
+    }
+    options.push({
+      value: '__none__',
+      label: '— None (Unassigned) —',
+      icon: 'person_off'
+    });
+    for (const inst of this.lmsService.instructorsRepo()) {
+      options.push({
+        value: inst.id,
+        label: `${inst.name} (${inst.title})`,
+        sublabel: `${inst.department || ''} • ${inst.email}`,
+        avatar: inst.avatar,
+        icon: 'person'
+      });
+    }
+    return options;
+  }
+
+  getContentInstructorOptions(parentNode: CourseStructureNode): SelectOption[] {
+    const eff = this.getEffectiveNodeInstructor(parentNode);
+    const topicName = eff ? eff.name : 'Unassigned';
+    return [
+      { value: '__topic__', label: `Inherit from Topic (${topicName})`, avatar: eff?.avatar, icon: 'sync' },
+      { value: '__none__', label: '— None (Unassigned) —', icon: 'person_off' },
+      ...this.lmsService.instructorsRepo().map(inst => ({
+        value: inst.id,
+        label: `${inst.name} (${inst.title})`,
+        sublabel: `${inst.department || ''} • ${inst.email}`,
+        avatar: inst.avatar,
+        icon: 'person'
+      }))
+    ];
+  }
+
+  contributorRoleOptions: SelectOption[] = [
+    { value: 'authorOnly', label: 'Author', icon: 'edit_note' },
+    { value: 'instructor', label: 'Instructor', icon: 'school' },
+    { value: 'both', label: 'Both', icon: 'verified_user' }
+  ];
+
+  addContributorOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'Add Contributor...', icon: 'person_add' },
+      ...this.lmsService.instructorsRepo().map(inst => ({
+        value: inst.id,
+        label: `${inst.name} (${inst.title})`,
+        sublabel: `${inst.department || ''} • ${inst.email}`,
+        avatar: inst.avatar,
+        icon: 'person'
+      }))
+    ];
+  });
+
+  getNodeInstructorId(node: CourseStructureNode): string {
+    if (!node.instructorTags || node.instructorTags.length === 0) {
+      return node.layer === 1 ? '__none__' : '__inherit__';
+    }
+    if (node.instructorTags[0].id === '__none__') {
+      return '__none__';
+    }
+    return node.instructorTags[0].id;
+  }
+
+  isNodeInstructorExplicit(node: CourseStructureNode): boolean {
+    return !!(node.instructorTags && node.instructorTags.length > 0 && node.instructorTags[0].id !== '__none__');
+  }
+
+  // Topic-wise instructor assignment (Independent per topic/chapter)
+  assignTopicInstructor(node: CourseStructureNode, instructorId: string) {
+    const layerName = node.layer === 1 ? this.layer1Label() : (node.layer === 2 ? this.layer2Label() : this.layer3Label());
+
+    if (!instructorId || instructorId === '__inherit__') {
+      node.instructorTags = [];
+      this.structureNodes.set([...this.structureNodes()]);
+      const eff = this.getEffectiveNodeInstructor(node);
+      this.lmsService.showToast(
+        eff 
+          ? `${layerName} "${node.title || 'Topic'}" will inherit instructor (${eff.name}).`
+          : `Cleared instructor for ${layerName} "${node.title || 'Topic'}".`,
+        'info',
+        2500,
+        'Topic Instructor Updated'
+      );
+      return;
+    }
+
+    if (instructorId === '__none__') {
+      node.instructorTags = [{
+        id: '__none__',
+        name: 'Unassigned',
+        email: '',
+        avatar: '',
+        title: '',
+        department: '',
+        specialization: []
+      }];
+      this.structureNodes.set([...this.structureNodes()]);
+      this.lmsService.showToast(
+        `Set ${layerName} "${node.title || 'Topic'}" to unassigned.`,
+        'info',
+        2500,
+        'Topic Instructor Updated'
+      );
+      return;
+    }
+
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId) || null;
+    node.instructorTags = inst ? [inst] : [];
+    this.structureNodes.set([...this.structureNodes()]);
+
+    if (inst) {
+      this.lmsService.showToast(
+        `Instructor "${inst.name}" assigned to ${layerName} "${node.title || 'Topic'}".`,
+        'success',
+        3000,
+        'Topic Instructor Assigned'
+      );
+    }
+  }
+
+  // Content-wise instructor getters and setters (Independent per lesson/content item)
+  getContentInstructor(parentNode: CourseStructureNode, item: CourseContentItem): InstructorRef | null {
+    if (item.instructorTags && item.instructorTags.length > 0) {
+      if (item.instructorTags[0].id === '__none__') {
+        return null;
+      }
+      return item.instructorTags[0];
+    }
+    return this.getEffectiveNodeInstructor(parentNode);
+  }
+
+  getContentInstructorId(parentNode: CourseStructureNode, item: CourseContentItem): string {
+    if (!item.instructorTags || item.instructorTags.length === 0) {
+      return '__topic__';
+    }
+    if (item.instructorTags[0].id === '__none__') {
+      return '__none__';
+    }
+    return item.instructorTags[0].id;
+  }
+
+  isContentInstructorCustom(parentNode: CourseStructureNode, item: CourseContentItem): boolean {
+    return !!(item.instructorTags && item.instructorTags.length > 0);
+  }
+
+  assignContentInstructor(parentNode: CourseStructureNode, item: CourseContentItem, instructorId: string) {
+    if (instructorId === '__topic__') {
+      this.resetContentInstructorToTopic(parentNode, item);
+      return;
+    }
+
+    if (!instructorId || instructorId === '__none__') {
+      item.instructorTags = [{
+        id: '__none__',
+        name: 'Unassigned',
+        email: '',
+        avatar: '',
+        title: '',
+        department: '',
+        specialization: []
+      }];
+      this.structureNodes.set([...this.structureNodes()]);
+      this.lmsService.showToast(
+        `Instructor set to unassigned for lesson "${item.title}".`,
+        'info',
+        2500,
+        'Lesson Instructor Updated'
+      );
+      return;
+    }
+
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId);
+    if (!inst) return;
+
+    item.instructorTags = [inst];
+    if (!item.authors) item.authors = [];
+    if (!item.authors.some(a => a.personId === inst.id)) {
+      item.authors.push({
+        personId: inst.id,
+        name: inst.name,
+        email: inst.email,
+        avatar: inst.avatar,
+        kind: 'instructor',
+        source: 'instructor_mgmt'
+      });
+    }
+
+    this.structureNodes.set([...this.structureNodes()]);
+    this.lmsService.showToast(
+      `Assigned instructor "${inst.name}" to lesson "${item.title}".`,
+      'success',
+      3000,
+      'Lesson Instructor Assigned'
+    );
+  }
+
+  resetContentInstructorToTopic(parentNode: CourseStructureNode, item: CourseContentItem) {
+    item.instructorTags = [];
+    this.structureNodes.set([...this.structureNodes()]);
+    const parentInst = this.getEffectiveNodeInstructor(parentNode);
+    this.lmsService.showToast(
+      parentInst 
+        ? `Reset "${item.title}" to inherit from topic (${parentInst.name}).`
+        : `Reset "${item.title}" to inherit from topic (currently unassigned).`,
+      'info',
+      2500,
+      'Reset to Topic Default'
+    );
+  }
+
+  // Batch helpers for user convenience
+  applyInstructorToAllTopics(instructorId: string) {
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId) || null;
+    const applyToNodes = (nodes: CourseStructureNode[]) => {
+      for (const n of nodes) {
+        n.instructorTags = inst ? [inst] : [];
+        if (n.children) applyToNodes(n.children);
+      }
+    };
+    applyToNodes(this.structureNodes());
+    this.structureNodes.set([...this.structureNodes()]);
+    if (inst) {
+      this.lmsService.showToast(`Applied instructor "${inst.name}" to all topics.`, 'success', 3000, 'Batch Assigned');
+    } else {
+      this.lmsService.showToast('Cleared instructors across all topics.', 'info', 2500, 'Instructors Cleared');
+    }
+  }
+
+  resetAllLessonsToInherited() {
+    const resetNodes = (nodes: CourseStructureNode[]) => {
+      for (const n of nodes) {
+        if (n.content) {
+          for (const item of n.content) {
+            item.instructorTags = [];
+          }
+        }
+        if (n.children) resetNodes(n.children);
+      }
+    };
+    resetNodes(this.structureNodes());
+    this.structureNodes.set([...this.structureNodes()]);
+    this.lmsService.showToast('All lessons are now set to inherit from their respective topic.', 'info', 3000, 'Inherited Reset');
+  }
+
+  onContentInstructorSelectChange(parentNode: CourseStructureNode, item: CourseContentItem, selectedValue: string) {
+    if (selectedValue === '__topic__') {
+      this.resetContentInstructorToTopic(parentNode, item);
+    } else {
+      this.assignContentInstructor(parentNode, item, selectedValue);
+    }
   }
 
   // Content Modal Operations
   openAddContentModal(nodeId: string) {
     this.activeTargetNodeId.set(nodeId);
     this.activeEditContentId.set(null);
+    const targetNode = this.findNodeById(this.structureNodes(), nodeId);
+    const topicInst = targetNode ? this.getNodeInstructor(targetNode) : null;
+
     this.contentForm.reset({
       title: '',
       family: 'learning',
@@ -670,7 +1433,8 @@ export class CourseCreateComponent implements OnInit {
       durationMinutes: 15,
       passingScorePct: 80,
       instructions: '',
-      mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4'
+      mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      instructorId: topicInst ? '__topic__' : ''
     });
     this.showContentModal.set(true);
   }
@@ -678,6 +1442,11 @@ export class CourseCreateComponent implements OnInit {
   openEditContentModal(nodeId: string, item: CourseContentItem) {
     this.activeTargetNodeId.set(nodeId);
     this.activeEditContentId.set(item.contentId);
+    const parentNode = this.findNodeById(this.structureNodes(), nodeId);
+    const instId = item.instructorTags && item.instructorTags.length > 0
+      ? item.instructorTags[0].id
+      : (parentNode && this.getNodeInstructor(parentNode) ? '__topic__' : '');
+
     this.contentForm.patchValue({
       title: item.title,
       family: item.family,
@@ -687,7 +1456,8 @@ export class CourseCreateComponent implements OnInit {
       durationMinutes: item.learning?.durationMinutes || item.assessment?.durationMinutes || 15,
       passingScorePct: item.assessment?.passingScorePercent || 80,
       instructions: item.assessment?.instructions || '',
-      mediaUrl: item.learning?.mediaUrl || ''
+      mediaUrl: item.learning?.mediaUrl || '',
+      instructorId: instId
     });
     this.showContentModal.set(true);
   }
@@ -700,11 +1470,23 @@ export class CourseCreateComponent implements OnInit {
     const val = this.contentForm.value;
     const user = this.lmsService.activeUser();
 
+    // Determine instructor for content item
+    const targetNode = this.findNodeById(this.structureNodes(), targetNodeId);
+    let itemInstructors: InstructorRef[] = [];
+    if (val.instructorId === '__topic__' && targetNode) {
+      const topicInst = this.getNodeInstructor(targetNode);
+      if (topicInst) itemInstructors = [topicInst];
+    } else if (val.instructorId) {
+      const foundInst = this.lmsService.instructorsRepo().find(i => i.id === val.instructorId);
+      if (foundInst) itemInstructors = [foundInst];
+    }
+
     const contentItem: CourseContentItem = {
       contentId: this.activeEditContentId() || `cnt-${Date.now()}`,
       title: val.title.trim(),
       family: val.family,
       order: 1,
+      instructorTags: itemInstructors,
       learning: val.family === 'learning' ? {
         subtype: val.learningSubtype,
         durationMinutes: val.durationMinutes,
@@ -717,7 +1499,17 @@ export class CourseCreateComponent implements OnInit {
         durationMinutes: val.durationMinutes,
         instructions: val.instructions
       } : undefined,
-      authors: [{ personId: user.id, name: user.name, email: user.email, avatar: user.avatar, kind: 'both', source: 'instructor_mgmt' }]
+      authors: [
+        { personId: user.id, name: user.name, email: user.email, avatar: user.avatar, kind: 'both', source: 'instructor_mgmt' },
+        ...(itemInstructors.length > 0 && itemInstructors[0].id !== user.id ? [{
+          personId: itemInstructors[0].id,
+          name: itemInstructors[0].name,
+          email: itemInstructors[0].email,
+          avatar: itemInstructors[0].avatar,
+          kind: 'instructor' as AuthorKind,
+          source: 'instructor_mgmt' as const
+        }] : [])
+      ]
     };
 
     function attach(nodes: CourseStructureNode[]) {
@@ -757,30 +1549,18 @@ export class CourseCreateComponent implements OnInit {
     this.structureNodes.set([...this.structureNodes()]);
   }
 
-  // Instructor Tagging (Rule Engine #2: Instructor Exclusivity)
+  // Topic Filter / Active View helper
   setInstructorTaggedLayer(layer: 1 | 2 | 3) {
     this.instructorTaggedLayer.set(layer);
-    function cleanTags(nodes: CourseStructureNode[], currentDepth: 1 | 2 | 3) {
-      for (const n of nodes) {
-        if (currentDepth !== layer) {
-          n.instructorTags = [];
-        }
-        if (n.children && currentDepth < 3) {
-          cleanTags(n.children, (currentDepth + 1) as 2 | 3);
-        }
-      }
-    }
-    cleanTags(this.structureNodes(), 1);
-    this.structureNodes.set([...this.structureNodes()]);
   }
 
   toggleInstructorTag(node: CourseStructureNode, instructor: InstructorRef) {
     if (!node.instructorTags) node.instructorTags = [];
     const exists = node.instructorTags.some(i => i.id === instructor.id);
     if (exists) {
-      node.instructorTags = node.instructorTags.filter(i => i.id !== instructor.id);
+      node.instructorTags = [];
     } else {
-      node.instructorTags.push(instructor);
+      node.instructorTags = [instructor];
     }
     this.structureNodes.set([...this.structureNodes()]);
   }
@@ -789,10 +1569,90 @@ export class CourseCreateComponent implements OnInit {
     return node.instructorTags?.some(i => i.id === instructorId) ?? false;
   }
 
+  // Flattens all topics and sections across all layers for Step 4 & management
+  getAllTopicsList(): Array<{ node: CourseStructureNode, layerName: string, path: string, layer: number }> {
+    const results: Array<{ node: CourseStructureNode, layerName: string, path: string, layer: number }> = [];
+    const traverse = (nodes: CourseStructureNode[], parentPath: string) => {
+      for (const n of nodes) {
+        const layerName = n.layer === 1 ? this.layer1Label() : (n.layer === 2 ? this.layer2Label() : this.layer3Label());
+        const currentPath = parentPath ? `${parentPath} > ${n.title || layerName}` : (n.title || layerName);
+        results.push({ node: n, layerName, path: currentPath, layer: n.layer });
+        if (n.children && n.children.length > 0) {
+          traverse(n.children, currentPath);
+        }
+      }
+    };
+    traverse(this.structureNodes(), '');
+    return results;
+  }
+
   // Author Tagging for Leaf Content Items (BRD §4.4.2)
   setAuthorKind(item: CourseContentItem, authorIndex: number, kind: AuthorKind) {
     if (item.authors && item.authors[authorIndex]) {
       item.authors[authorIndex].kind = kind;
+      this.structureNodes.set([...this.structureNodes()]);
+    }
+  }
+
+  getAllLeafContentItems(): Array<{ item: CourseContentItem, parentNode: CourseStructureNode, path: string }> {
+    const results: Array<{ item: CourseContentItem, parentNode: CourseStructureNode, path: string }> = [];
+    const traverse = (nodes: CourseStructureNode[], parentPath: string) => {
+      for (const n of nodes) {
+        const currentPath = parentPath ? `${parentPath} > ${n.title}` : n.title;
+        if (n.content && n.content.length > 0) {
+          for (const item of n.content) {
+            results.push({ item, parentNode: n, path: currentPath });
+          }
+        }
+        if (n.children && n.children.length > 0) {
+          traverse(n.children, currentPath);
+        }
+      }
+    };
+    traverse(this.structureNodes(), '');
+    return results;
+  }
+
+  // Step 4 filters & author attribution helpers
+  step4TopicFilter = signal<'all' | number>('all');
+  step4ContentFilter = signal<'all' | 'learning' | 'assessment'>('all');
+
+  getFilteredTopicsList() {
+    const list = this.getAllTopicsList();
+    const filter = this.step4TopicFilter();
+    if (filter === 'all') return list;
+    return list.filter(item => item.layer === filter);
+  }
+
+  getFilteredLeafContentItems() {
+    const list = this.getAllLeafContentItems();
+    const filter = this.step4ContentFilter();
+    if (filter === 'all') return list;
+    return list.filter(entry => entry.item.family === filter);
+  }
+
+  addAuthorToContentItem(item: CourseContentItem, instructorId: string) {
+    if (!instructorId) return;
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId);
+    if (!inst) return;
+    if (!item.authors) item.authors = [];
+    if (!item.authors.some(a => a.personId === inst.id)) {
+      item.authors.push({
+        personId: inst.id,
+        name: inst.name,
+        email: inst.email,
+        avatar: inst.avatar,
+        kind: 'authorOnly',
+        source: 'instructor_mgmt'
+      });
+      this.structureNodes.set([...this.structureNodes()]);
+      this.lmsService.showToast(`Added ${inst.name} as contributor to "${item.title}".`, 'success', 2500);
+    }
+  }
+
+  removeAuthorFromContentItem(item: CourseContentItem, authorIndex: number) {
+    if (item.authors && item.authors.length > authorIndex) {
+      item.authors.splice(authorIndex, 1);
       this.structureNodes.set([...this.structureNodes()]);
     }
   }
@@ -827,6 +1687,11 @@ export class CourseCreateComponent implements OnInit {
       },
       structure: this.structureNodes(),
       reviewsConfig: this.reviewsConfig(),
+      skills: this.selectedSkillIds(),
+      badgeTemplateId: this.selectedBadgeId(),
+      badgeTemplateName: this.selectedBadge()?.name || '',
+      certificateTemplateId: this.selectedCertificateId(),
+      certificateTemplateName: this.selectedCertificate()?.name || '',
       version: {
         versionNumber: 1,
         label: 'v1.0-draft',
@@ -866,8 +1731,8 @@ export class CourseCreateComponent implements OnInit {
       1: 'Step 1 of 6: Course Details',
       2: 'Step 2 of 6: Structure Setup',
       3: 'Step 3 of 6: Build Content',
-      4: 'Step 4 of 6: Tagging & Instructors',
-      5: 'Step 5 of 6: Reviews & Grading',
+      4: 'Step 4 of 6: Tagging & Credentials',
+      5: 'Step 5 of 6: Feedback and Grading',
       6: 'Step 6 of 6: Review & Publish'
     };
 
@@ -875,8 +1740,8 @@ export class CourseCreateComponent implements OnInit {
       1: 'Step 1 of 6 — Course Details: Define core identifiers, ownership, category, and visual identity.',
       2: 'Step 2 of 6 — Structure Setup: Select layer depth and configure hierarchical naming conventions.',
       3: 'Step 3 of 6 — Build Content: Assemble curriculum tree, learning modules, and attached assessments.',
-      4: 'Step 4 of 6 — Tagging & Instructors: Configure instructor exclusivity and assign authors across tiers.',
-      5: 'Step 5 of 6 — Reviews & Grading: Configure feedback collection and audit grading coverage.',
+      4: 'Step 4 of 6 — Tagging: Map competency skills from repository, award milestone badges and configure certificate templates with live preview.',
+      5: 'Step 5 of 6 — Feedback and Grading: Configure feedback collection and audit grading coverage.',
       6: 'Step 6 of 6 — Review & Publish: Audit compliance gates and publish course to catalog.'
     };
 
@@ -985,7 +1850,7 @@ export class CourseCreateComponent implements OnInit {
       });
 
       this.currentStep.set(4);
-      this.lmsService.showToast('Step 3 (Build Content) saved. Proceeding to Step 4 of 6: Tagging & Instructors.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 6');
+      this.lmsService.showToast('Step 3 (Build Content) saved. Proceeding to Step 4 of 6: Tagging & Credentials.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 6');
       this.scrollTop();
     } else if (step === 4) {
       this.completedSteps.update(set => {
@@ -995,7 +1860,7 @@ export class CourseCreateComponent implements OnInit {
       });
 
       this.currentStep.set(5);
-      this.lmsService.showToast('Step 4 (Tagging & Instructors) saved. Proceeding to Step 5 of 6: Reviews & Grading.', 'success', 4500, 'Step 4 Completed', 'STEP 5 / 6');
+      this.lmsService.showToast('Step 4 (Tagging & Credentials) saved. Proceeding to Step 5 of 6: Feedback and Grading.', 'success', 4500, 'Step 4 Completed', 'STEP 5 / 6');
       this.scrollTop();
     } else if (step === 5) {
       this.completedSteps.update(set => {
@@ -1005,7 +1870,7 @@ export class CourseCreateComponent implements OnInit {
       });
 
       this.currentStep.set(6);
-      this.lmsService.showToast('Step 5 (Reviews & Grading) saved. Proceeding to Step 6 of 6: Review & Publish.', 'success', 4500, 'Step 5 Completed', 'STEP 6 / 6');
+      this.lmsService.showToast('Step 5 (Feedback and Grading) saved. Proceeding to Step 6 of 6: Review & Publish.', 'success', 4500, 'Step 5 Completed', 'STEP 6 / 6');
       this.scrollTop();
     }
   }
