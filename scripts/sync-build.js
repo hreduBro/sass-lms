@@ -14,8 +14,10 @@ if (!fs.existsSync(distDir)) {
 const targetDirs = [
   path.join(distDir, 'browser'),
   path.join(distDir, 'app'),
+  path.join(distDir, 'app', 'browser'),
   path.join(distDir, 'ai-chatbot-admin-console'),
-  path.join(distDir, 'ai-chatbot-admin-console', 'browser')
+  path.join(distDir, 'ai-chatbot-admin-console', 'browser'),
+  path.resolve(__dirname, '..', 'build')
 ];
 
 function copyFiles(src, dest) {
@@ -25,7 +27,7 @@ function copyFiles(src, dest) {
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
     // Skip recursion into target directories if we are copying from root dist
-    if (src === distDir && ['browser', 'app', 'ai-chatbot-admin-console'].includes(entry.name)) {
+    if (src === distDir && ['browser', 'app', 'ai-chatbot-admin-console', 'build'].includes(entry.name)) {
       continue;
     }
     const srcPath = path.join(src, entry.name);
