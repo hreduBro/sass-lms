@@ -112,20 +112,21 @@
             }
           </div>
 
-          <!-- Organization ID (Auto-generated upon save, read-only) -->
+          <!-- Organization Official Email -->
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">
-              Organization ID
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(Auto-generated upon save)</span>
+              Organization Official Email
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Official inquiries / contact)</span>
             </label>
-            <div class="relative">
-              <input 
-                type="text" 
-                formControlName="organizationId" 
-                readonly
-                class="w-full px-3.5 py-2.5 pr-9 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-secondary cursor-not-allowed select-none focus:outline-none focus:border-tenant-500 transition-all" />
-              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none select-none">lock</span>
-            </div>
+            <input 
+              type="email" 
+              formControlName="organizationEmail" 
+              placeholder="e.g. official@apexhealth.org"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="isFieldInvalid(basicInfoForm, 'organizationEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(basicInfoForm, 'organizationEmail')) {
+              <p class="text-[11px] text-rose-500 mt-1">Please provide a valid official email ending with domain extension (.com, .org, etc).</p>
+            }
           </div>
 
           <!-- Website URL (Optional, starts with http:// or https://) -->
@@ -158,25 +159,8 @@
               leadingIcon="schedule" />
           </div>
 
-          <!-- Common Email -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Common Email
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(General inquiries / contact)</span>
-            </label>
-            <input 
-              type="email" 
-              formControlName="organizationEmail" 
-              placeholder="contact@apexhealth.org"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'organizationEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'organizationEmail')) {
-              <p class="text-[11px] text-rose-500 mt-1">Please provide a valid email ending with domain extension (.com, .org, .bd, etc).</p>
-            }
-          </div>
-
           <!-- Tagline/Slogan (Max 255) -->
-          <div>
+          <div class="col-span-full">
             <label class="block text-xs font-semibold text-text-primary mb-1">Organization Tagline / Slogan</label>
             <input 
               type="text" 
@@ -973,6 +957,13 @@
                 <a [href]="basicInfoForm.get('websiteUrl')?.value" target="_blank" class="text-tenant-600 hover:underline font-mono truncate block">
                   {{ basicInfoForm.get('websiteUrl')?.value }}
                 </a>
+              </div>
+            }
+
+            @if (basicInfoForm.get('organizationEmail')?.value) {
+              <div>
+                <span class="text-[10px] text-text-secondary block">Official Email</span>
+                <span class="text-text-primary font-medium font-mono text-[11px]">{{ basicInfoForm.get('organizationEmail')?.value }}</span>
               </div>
             }
 
