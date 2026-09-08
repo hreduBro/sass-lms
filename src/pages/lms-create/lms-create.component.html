@@ -552,169 +552,119 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- STEP 3: ADMIN SETUP                                                       -->
+  <!-- STEP 3: ADMIN SETUP (MULTIPLE ADMINISTRATORS)                             -->
   <!-- ========================================================================= -->
   @if (currentStep() === 3) {
     <div class="space-y-6 animate-in fade-in">
       
-      <!-- Section 1: Primary LMS Admin Form -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
-          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-base">admin_panel_settings</span>
-          </div>
-          <div>
-            <h2 class="text-sm font-bold text-text-primary">1. Primary LMS Administrator Information</h2>
-            <p class="text-[11px] text-text-secondary">Assigned administrator for {{ lmsName() || 'this LMS instance' }} under {{ parentOrg().name }}</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          <!-- LMS Admin Name * -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              LMS Admin Name <span class="text-rose-500">*</span>
-            </label>
-            <input 
-              type="text" 
-              [ngModel]="adminName()" 
-              (ngModelChange)="adminName.set($event)"
-              placeholder="e.g. Shakil Mahmud"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="errors()['adminName'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (errors()['adminName']) {
-              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminName'] }}</p>
-            }
-          </div>
-
-          <!-- Contact Number * (11 digits) -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Contact Number <span class="text-rose-500">*</span>
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(11 digits, starts 013–019)</span>
-            </label>
-            <input 
-              type="text" 
-              [ngModel]="adminContactNumber()" 
-              (ngModelChange)="adminContactNumber.set($event)"
-              maxlength="11"
-              placeholder="01712345678"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
-              [ngClass]="errors()['adminContactNumber'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (errors()['adminContactNumber']) {
-              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminContactNumber'] }}</p>
-            }
-          </div>
-
-          <!-- LMS Admin Email * -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              LMS Admin Email <span class="text-rose-500">*</span>
-            </label>
-            <input 
-              type="email" 
-              [ngModel]="adminEmail()" 
-              (ngModelChange)="adminEmail.set($event)"
-              placeholder="shakil.m@brac.net"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="errors()['adminEmail'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (errors()['adminEmail']) {
-              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['adminEmail'] }}</p>
-            }
-          </div>
-
-        </div>
-
-        <!-- Business Rule Notice -->
-        <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[11px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
-          <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base mt-0.5">mark_email_read</span>
-          <div>
-            <span class="font-bold">Automated User Provisioning Hook:</span>
-            While the LMS instance is in progress, the system registers the Contact Email with the role <span class="font-bold">LMS Admin</span> and dispatches setup progress notifications.
-          </div>
-        </div>
-
-        <!-- Trigger Email Button -->
-        <div class="flex items-center justify-between pt-2">
-          <span class="text-xs text-text-secondary font-medium">Test administrator notification dispatch:</span>
-          <button 
-            type="button" 
-            (click)="triggerAdminNoticeEmail()"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-            [ngClass]="adminEmailSent() 
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-200 border border-emerald-300' 
-              : 'bg-tenant-500 hover:bg-tenant-600 text-white'">
-            <span class="material-symbols-outlined text-sm">
-              {{ adminEmailSent() ? 'done_all' : 'send' }}
-            </span>
-            {{ adminEmailSent() ? 'Update Email Sent' : 'Send Setup Notice Email' }}
-          </button>
-        </div>
-
-      </div>
-
-      <!-- Section 2: Co-Administrators (Optional) -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+      <!-- Administrators Section -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-base-300">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center">
-              <span class="material-symbols-outlined text-base">group_add</span>
+            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">admin_panel_settings</span>
             </div>
             <div>
-              <h2 class="text-sm font-bold text-text-primary">2. Co-Administrators (Optional)</h2>
-              <p class="text-[11px] text-text-secondary">Delegate instance operations to secondary personnel</p>
+              <h2 class="text-sm font-bold text-text-primary">LMS Administrators</h2>
+              <p class="text-[11px] text-text-secondary">Configure one or more system administrators for {{ lmsName() || 'this LMS instance' }} under {{ parentOrg().name }}</p>
             </div>
           </div>
 
           <button 
             type="button" 
-            id="btn-add-co-admin"
-            (click)="openAddCoAdminModal()" 
-            class="px-3.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-bold text-tenant-600 dark:text-tenant-400 flex items-center gap-1 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">add</span>
-            Add Co-Admin
+            id="btn-add-admin-row"
+            (click)="addAdmin()"
+            class="px-3.5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            <span>Add Admin</span>
           </button>
         </div>
 
-        @if (coAdmins().length > 0) {
-          <div class="space-y-2.5">
-            @for (adm of coAdmins(); track adm.email; let i = $index) {
-              <div class="flex items-center justify-between p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs">
-                <div class="flex items-center gap-3">
-                  <app-custom-avatar 
-                    [name]="adm.name" 
-                    size="sm" 
-                    shape="squircle">
-                  </app-custom-avatar>
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <strong class="text-text-primary text-xs">{{ adm.name }}</strong>
-                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                        {{ adm.role }}
-                      </span>
-                    </div>
-                    <span class="text-[11px] text-text-secondary">{{ adm.email }} • {{ adm.contactNumber }}</span>
-                  </div>
+        <!-- Administrator Cards / Inputs -->
+        <div class="space-y-4">
+          @for (adm of adminsList(); track adm.id; let i = $index) {
+            <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300/80 space-y-3.5 relative transition-all">
+              
+              <div class="flex items-center justify-between pb-2 border-b border-base-300/50">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-base-100 border border-base-300 flex items-center justify-center text-[11px] font-bold text-tenant-600">
+                    {{ i + 1 }}
+                  </span>
+                  <span class="text-xs font-bold text-text-primary">Administrator {{ i + 1 }}</span>
                 </div>
 
-                <div class="flex items-center gap-2">
+                @if (adminsList().length > 1) {
                   <button 
                     type="button" 
-                    (click)="removeCoAdmin(i)" 
-                    class="px-2.5 py-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer">
+                    (click)="removeAdmin(i)" 
+                    class="px-2.5 py-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer">
                     <span class="material-symbols-outlined text-sm">delete</span>
                     <span>Remove</span>
                   </button>
-                </div>
+                }
               </div>
-            }
-          </div>
-        } @else {
-          <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 text-center text-xs text-text-secondary">
-            No secondary co-administrators assigned yet. The primary admin above manages all access permissions.
-          </div>
-        }
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Admin Full Name * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Admin Full Name <span class="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    [value]="adm.name" 
+                    (input)="updateAdminField(i, 'name', $any($event.target).value)"
+                    placeholder="e.g. Dr. Sarah Jenkins"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+                    [ngClass]="adminErrors()['name_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['name_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['name_' + i] }}</p>
+                  }
+                </div>
+
+                <!-- Contact Number * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Contact Number <span class="text-rose-500">*</span>
+                    <span class="text-[10px] text-text-secondary font-normal ml-1">(11 digits, starts 013–019)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    [value]="adm.contactNumber" 
+                    (input)="updateAdminField(i, 'contactNumber', $any($event.target).value)"
+                    maxlength="15"
+                    placeholder="01712345678"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
+                    [ngClass]="adminErrors()['contactNumber_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['contactNumber_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['contactNumber_' + i] }}</p>
+                  }
+                </div>
+
+                <!-- Admin Email * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Admin Email <span class="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    [value]="adm.email" 
+                    (input)="updateAdminField(i, 'email', $any($event.target).value)"
+                    placeholder="admin@lms-instance.org"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+                    [ngClass]="adminErrors()['email_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['email_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['email_' + i] }}</p>
+                  }
+                </div>
+
+              </div>
+
+            </div>
+          }
+        </div>
+
       </div>
 
       <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Save as draft, Next) -->
@@ -857,64 +807,52 @@
                 <span class="material-symbols-outlined text-indigo-600 text-base">admin_panel_settings</span>
                 Administration & Access
               </span>
-              <button (click)="jumpToStep(3)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-                <div class="text-[10px] text-text-secondary uppercase font-semibold">Primary Administrator</div>
-                <div class="font-bold text-text-primary">{{ adminName() }}</div>
-                <div class="font-mono text-text-secondary text-[11px]">{{ adminContactNumber() }}</div>
-                <div class="text-tenant-600 font-medium text-[11px] truncate">{{ adminEmail() }}</div>
-              </div>
-
-              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-                <div class="text-[10px] text-text-secondary uppercase font-semibold">Operational Routing</div>
-                <div class="font-medium text-text-primary">{{ programmeDepartment() }}</div>
-                <div class="text-text-secondary text-[11px]">Subdomain: <span class="font-mono text-tenant-600">{{ urlDomain() }}</span></div>
+              <div class="flex items-center gap-3">
+                <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit Info</button>
+                <span class="text-base-300">•</span>
+                <button (click)="jumpToStep(3)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit Admins</button>
               </div>
             </div>
 
-            <!-- Co-Administrators Preview in Step 4 -->
-            <div class="pt-3 border-t border-base-300 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-text-primary flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-purple-600 text-sm">group</span>
-                  Co-Administrators
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-base-200 text-text-secondary">
-                  {{ coAdmins().length }} {{ coAdmins().length === 1 ? 'Admin' : 'Admins' }} Assigned
-                </span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <!-- Operational Details -->
+              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
+                <div class="text-[10px] text-text-secondary uppercase font-semibold">Instance Operational Routing</div>
+                <div class="space-y-1">
+                  <div class="text-text-secondary text-[11px]">Department / Programme:</div>
+                  <div class="font-bold text-text-primary">{{ programmeDepartment() || 'General / Central' }}</div>
+                </div>
+                <div class="space-y-0.5 pt-1">
+                  <div class="text-text-secondary text-[11px]">Assigned Subdomain:</div>
+                  <div class="font-mono font-medium text-tenant-600 text-[11px] truncate">{{ urlDomain() }}.{{ parentOrg().shortName.toLowerCase() || 'cloud' }}.edu</div>
+                </div>
               </div>
 
-              @if (coAdmins().length > 0) {
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  @for (coAdm of coAdmins(); track coAdm.email) {
-                    <div class="p-3 rounded-2xl bg-base-200/60 border border-base-300 flex items-start gap-2.5 text-xs">
-                      <app-custom-avatar 
-                        [name]="coAdm.name" 
-                        size="xs" 
-                        shape="squircle"
-                        class="mt-0.5">
-                      </app-custom-avatar>
-                      <div class="min-w-0 flex-1 space-y-0.5">
-                        <div class="flex items-center justify-between gap-1">
-                          <span class="font-bold text-text-primary truncate">{{ coAdm.name }}</span>
-                          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shrink-0">
-                            {{ coAdm.role }}
-                          </span>
-                        </div>
-                        <div class="text-[11px] text-text-secondary truncate">{{ coAdm.email }}</div>
-                        <div class="text-[10px] font-mono text-text-secondary">{{ coAdm.contactNumber }}</div>
+              <!-- Administrators List -->
+              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
+                <div class="text-[10px] text-text-secondary uppercase font-semibold flex items-center justify-between">
+                  <span>LMS Administrator(s)</span>
+                  <span class="font-mono text-tenant-600 font-bold">({{ getAllAdmins().length }})</span>
+                </div>
+                
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  @for (adm of getAllAdmins(); track $index) {
+                    <div class="p-2 rounded-xl bg-base-100 border border-base-300/80 text-[11px] space-y-0.5">
+                      <div class="flex items-center justify-between">
+                        <span class="font-bold text-text-primary flex items-center gap-1.5">
+                          <span class="w-4 h-4 rounded-full bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 text-[9px] font-bold flex items-center justify-center">{{ $index + 1 }}</span>
+                          {{ adm.name }}
+                        </span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-tenant-50 text-tenant-700 dark:bg-tenant-950 dark:text-tenant-300 font-bold">Admin</span>
+                      </div>
+                      <div class="flex items-center justify-between text-text-secondary font-mono text-[10px] pl-5.5">
+                        <span>{{ adm.contactNumber }}</span>
+                        <span class="text-tenant-600 font-sans truncate max-w-[150px]">{{ adm.email }}</span>
                       </div>
                     </div>
                   }
                 </div>
-              } @else {
-                <div class="p-3 rounded-2xl bg-base-200/40 border border-base-300/60 text-center text-[11px] text-text-secondary italic">
-                  No co-administrators assigned (optional).
-                </div>
-              }
+              </div>
             </div>
           </div>
 
@@ -1056,143 +994,6 @@
             <span class="material-symbols-outlined text-sm">check</span>
             <span>Confirm & Create</span>
           }
-        </button>
-      </div>
-
-    </div>
-  </div>
-}
-
-
-
-<!-- ========================================================================= -->
-<!-- ADD CO-ADMINISTRATOR MODAL                                                -->
-<!-- ========================================================================= -->
-@if (showCoAdminModal()) {
-  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
-       (click)="closeAddCoAdminModal()">
-    
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-modal-card m-auto"
-         (click)="$event.stopPropagation()">
-      
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between pb-3 border-b border-base-300">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-xl">group_add</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-text-primary">Add Co-Administrator</h3>
-            <p class="text-xs text-text-secondary">Delegate secondary management access for this instance</p>
-          </div>
-        </div>
-
-        <button 
-          type="button" 
-          (click)="closeAddCoAdminModal()"
-          class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
-          <span class="material-symbols-outlined text-base">close</span>
-        </button>
-      </div>
-
-      <!-- Form Inputs -->
-      <div class="space-y-4">
-        <!-- Full Name -->
-        <div>
-          <label class="block text-xs font-semibold text-text-primary mb-1">
-            Full Name <span class="text-rose-500">*</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
-              person
-            </span>
-            <input 
-              type="text"
-              [ngModel]="coAdminName()"
-              (ngModelChange)="coAdminName.set($event)"
-              placeholder="e.g. Dr. Mahmudul Hasan"
-              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="coAdminErrors()['name'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-          </div>
-          @if (coAdminErrors()['name']) {
-            <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['name'] }}</p>
-          }
-        </div>
-
-        <!-- Email Address -->
-        <div>
-          <label class="block text-xs font-semibold text-text-primary mb-1">
-            Email Address <span class="text-rose-500">*</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
-              mail
-            </span>
-            <input 
-              type="email"
-              [ngModel]="coAdminEmail()"
-              (ngModelChange)="coAdminEmail.set($event)"
-              placeholder="e.g. mahmud.hasan@organization.edu.bd"
-              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="coAdminErrors()['email'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-          </div>
-          @if (coAdminErrors()['email']) {
-            <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['email'] }}</p>
-          }
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Contact Number -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Contact Number
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(Optional, 11 digits)</span>
-            </label>
-            <div class="relative">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-base pointer-events-none">
-                call
-              </span>
-              <input 
-                type="tel"
-                [ngModel]="coAdminContact()"
-                (ngModelChange)="coAdminContact.set($event)"
-                maxlength="11"
-                placeholder="01XXXXXXXXX"
-                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-base-200 border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
-                [ngClass]="coAdminErrors()['contact'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            </div>
-            @if (coAdminErrors()['contact']) {
-              <p class="text-[11px] text-rose-500 mt-1">{{ coAdminErrors()['contact'] }}</p>
-            }
-          </div>
-
-          <!-- Role / Title -->
-          <div>
-            <app-custom-select 
-              [ngModel]="coAdminRole()"
-              (ngModelChange)="coAdminRole.set($event)"
-              label="Administrative Role"
-              [options]="coAdminRoleOptions"
-              leadingIcon="badge" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal Footer Actions -->
-      <div class="flex items-center gap-3 pt-3 border-t border-base-300">
-        <button 
-          type="button" 
-          (click)="closeAddCoAdminModal()"
-          class="flex-1 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold transition-colors cursor-pointer">
-          Cancel
-        </button>
-        <button 
-          type="button" 
-          id="btn-save-co-admin"
-          (click)="saveCoAdmin()"
-          class="flex-1 py-2.5 rounded-xl btn-gradient text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-          <span class="material-symbols-outlined text-sm">person_add</span>
-          <span>Add Co-Administrator</span>
         </button>
       </div>
 

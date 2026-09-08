@@ -27,10 +27,10 @@
         }
       </h1>
       <p class="text-xs text-text-secondary mt-0.5">
-        @if (currentStep() === 1) { This steps capture the basic information of the organization. }
-        @else if (currentStep() === 2) { Allocate storage from the available platform capacity. }
-        @else if (currentStep() === 3) { Review administrator credentials and dispatch setup notifications. }
-        @else { Review all organization parameters before saving. }
+        @if (currentStep() === 1) { This step captures the basic identity, branding, and location of the organization. }
+        @else if (currentStep() === 2) { Allocate storage capacity and data sharing parameters from the platform quota. }
+        @else if (currentStep() === 3) { Configure Primary Organization Administrator and optional Co-Administrators. }
+        @else { Review all organization parameters before provisioning. }
       </p>
     </div>
 
@@ -46,8 +46,8 @@
       </button>
 
       <button 
-        type="button"
-        (click)="onCancel()"
+        type="button" 
+        (click)="onCancel()" 
         class="px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all">
         Cancel
       </button>
@@ -69,13 +69,15 @@
         <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
         <span>{{ formErrorAlert() }}</span>
       </div>
-      <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800">
+      <button (click)="formErrorAlert.set(null)" class="text-rose-600 hover:text-rose-800 cursor-pointer">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
     </div>
   }
 
-  <!-- STEP 1: BASIC INFORMATION -->
+  <!-- ========================================================================= -->
+  <!-- STEP 1: BASIC INFORMATION                                                 -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 1) {
     <form [formGroup]="basicInfoForm" class="space-y-6 animate-in fade-in">
       
@@ -110,19 +112,19 @@
             }
           </div>
 
-          <!-- Organization ID (Pre-filled read-only) * -->
+          <!-- Organization ID (Auto-generated upon save, read-only) -->
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">
-              Organization ID <span class="text-rose-500">*</span> 
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(System-generated 4-digit unique, read-only)</span>
+              Organization ID
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Auto-generated upon save)</span>
             </label>
             <div class="relative">
               <input 
                 type="text" 
                 formControlName="organizationId" 
                 readonly
-                class="w-full px-3.5 py-2.5 rounded-xl bg-base-300/80 border border-base-300 text-xs font-mono font-bold text-text-primary cursor-not-allowed tracking-widest select-all" />
-              <span class="material-symbols-outlined absolute right-3 top-2.5 text-text-secondary text-sm">lock</span>
+                class="w-full px-3.5 py-2.5 pr-9 rounded-xl bg-base-200 border border-base-300 text-xs font-mono text-text-secondary cursor-not-allowed select-none focus:outline-none focus:border-tenant-500 transition-all" />
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none select-none">lock</span>
             </div>
           </div>
 
@@ -156,9 +158,12 @@
               leadingIcon="schedule" />
           </div>
 
-          <!-- Organization Email -->
+          <!-- Common Email -->
           <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">Organization Official Email</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Common Email
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(General inquiries / contact)</span>
+            </label>
             <input 
               type="email" 
               formControlName="organizationEmail" 
@@ -192,68 +197,102 @@
               class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all resize-none"></textarea>
           </div>
 
-          <!-- Organization Logo Upload (§3.1.2) -->
+          <!-- Organization Logo Upload (Required) -->
           <div class="col-span-full">
-            <label class="block text-xs font-semibold text-text-primary mb-1">Organization Logo</label>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-              <!-- Upload dropzone -->
+            <label class="block text-xs font-semibold text-text-primary mb-2">
+              Organization Logo <span class="text-rose-500">*</span>
+            </label>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+              <!-- Left: Dropzone -->
               <div 
+                class="lg:col-span-2 relative p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center cursor-pointer min-h-[140px]"
+                [ngClass]="{
+                  'border-pink-500 bg-pink-500/5': isDraggingLogo(),
+                  'border-rose-500 bg-rose-50/10': (logoTouched() || basicInfoForm.get('logoUrl')?.touched) && !logoPreview(),
+                  'border-base-300 bg-transparent hover:border-pink-500/60 hover:bg-base-200/30': !isDraggingLogo() && (!logoTouched() || logoPreview())
+                }"
                 (dragover)="onLogoDragOver($event)"
                 (dragleave)="onLogoDragLeave($event)"
                 (drop)="onLogoDrop($event)"
-                [class]="isDraggingLogo() ? 'border-tenant-500 bg-tenant-50/30' : 'border-base-300 bg-base-200/60'"
-                class="sm:col-span-2 border-2 border-dashed rounded-2xl p-4 text-center transition-all flex flex-col items-center justify-center min-h-[120px] relative">
+                (click)="logoFileInput.click()">
                 
                 <input 
+                  #logoFileInput
                   type="file" 
-                  id="org-logo-upload"
-                  (change)="onLogoFileSelected($event)"
-                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
-                  class="hidden" />
+                  class="hidden" 
+                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp" 
+                  (change)="onLogoFileSelected($event)" />
 
-                @if (!logoPreview()) {
-                  <span class="material-symbols-outlined text-3xl text-tenant-600 mb-1">cloud_upload</span>
-                  <p class="text-xs font-semibold text-text-primary">
-                    Drag and drop your logo here, or 
-                    <label for="org-logo-upload" class="text-tenant-600 hover:text-tenant-700 underline cursor-pointer font-bold ml-1">Browse files</label>
-                  </p>
-                  <p class="text-[10px] text-text-secondary mt-0.5">PNG, JPG, SVG, WebP (Max 5MB; 200–2000px; square 1:1 recommended)</p>
-                } @else {
-                  <div class="flex items-center gap-3 w-full justify-between">
-                    <div class="flex items-center gap-3">
-                      <img [src]="logoPreview()" alt="Logo preview" class="w-12 h-12 object-contain" />
-                      <div class="text-left">
-                        <div class="text-xs font-bold text-text-primary truncate max-w-[200px]">{{ logoFileName() }}</div>
-                        <div class="text-[10px] text-text-secondary">{{ logoSizeKb() }} KB • Ready to save</div>
+                @if (logoPreview()) {
+                  <!-- Uploaded State Preview -->
+                  <div class="flex flex-col sm:flex-row items-center gap-4 w-full justify-between" (click)="$event.stopPropagation()">
+                    <div class="flex items-center gap-3.5 text-left">
+                      <img [src]="logoPreview()" alt="Logo Preview" class="w-16 h-16 object-contain rounded-xl bg-base-100 p-1 border border-base-300 shadow-xs" referrerpolicy="no-referrer" />
+                      <div>
+                        <span class="text-xs font-bold text-text-primary block">{{ logoFileName() || 'Organization Logo' }}</span>
+                        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">{{ logoSizeKb() }} KB • Attached</span>
                       </div>
                     </div>
-
-                    <button 
-                      type="button" 
-                      (click)="removeLogo()" 
-                      class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-sm">delete</span>
-                      Remove
-                    </button>
+                    <div class="flex items-center gap-2">
+                      <button 
+                        type="button" 
+                        (click)="removeLogo()" 
+                        class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-xs font-semibold flex items-center gap-1 hover:bg-rose-100 transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Remove
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="logoFileInput.click()" 
+                        class="px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">sync</span>
+                        Change
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Default Empty State matching original design -->
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="text-pink-600 dark:text-pink-400 mb-2">
+                      <span class="material-symbols-outlined text-4xl">cloud_upload</span>
+                    </div>
+                    <p class="text-xs font-bold text-text-primary">
+                      Drag and drop your logo here, or 
+                      <button type="button" (click)="logoFileInput.click(); $event.stopPropagation()" class="text-pink-600 dark:text-pink-400 hover:text-pink-700 font-semibold underline cursor-pointer">
+                        Browse files
+                      </button>
+                    </p>
+                    <p class="text-[11px] text-text-secondary mt-1">
+                      PNG, JPG, SVG, WebP (Max 5MB; 200–2000px; square 1:1 recommended)
+                    </p>
                   </div>
                 }
               </div>
 
-              <!-- Helper note (Exact text from §3.1.2) -->
-              <div class="p-3.5 rounded-2xl bg-base-200 border border-base-300/80 text-[11px] text-text-secondary leading-relaxed space-y-1">
-                <div class="font-bold text-text-primary flex items-center gap-1">
-                  <span class="material-symbols-outlined text-tenant-600 text-sm">info</span>
-                  Logo Guidance
+              <!-- Right: Logo Guidance Card -->
+              <div class="lg:col-span-1 p-5 rounded-2xl bg-base-200/50 dark:bg-base-200/30 border border-base-300 flex flex-col justify-center">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-text-primary mb-2">
+                  <span class="material-symbols-outlined text-pink-600 dark:text-pink-400 text-base">info</span>
+                  <span>Logo Guidance</span>
                 </div>
-                <p class="italic">
+                <p class="text-[11px] text-text-secondary italic leading-relaxed">
                   "Help people recognize your organization! Upload a clear, square (1:1) logo. We recommend a PNG or SVG with a transparent background for the best result. (Max 5MB; 200–2000px; PNG, JPG, SVG, WebP)"
                 </p>
               </div>
             </div>
 
+            @if ((logoTouched() || basicInfoForm.get('logoUrl')?.touched) && !logoPreview()) {
+              <p class="text-[11px] text-rose-500 mt-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                Organization Logo is required. Please upload a logo image to proceed.
+              </p>
+            }
             @if (logoError()) {
-              <p class="text-[11px] text-rose-500 mt-1.5">{{ logoError() }}</p>
+              <p class="text-[11px] text-rose-500 mt-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                {{ logoError() }}
+              </p>
             }
           </div>
 
@@ -264,17 +303,46 @@
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-base">location_on</span>
+            <span class="material-symbols-outlined text-base">location_city</span>
           </div>
           <div>
             <h2 class="text-sm font-bold text-text-primary">2. Organization Location / Address</h2>
-            <p class="text-[11px] text-text-secondary">Physical and administrative address with cascading Division & District partition</p>
+            <p class="text-[11px] text-text-secondary">Physical and registered headquarter address of the organization</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          <!-- Address Line 1 * -->
+          <!-- Country (Dropdown) -->
+          <div>
+            <app-custom-select
+              formControlName="country"
+              label="Country"
+              placeholder="Select Country..."
+              [options]="countriesList"
+              [searchable]="true"
+              leadingIcon="public"
+              (valueChange)="onCountryChange($event)" />
+          </div>
+
+          <!-- Postal Code * (Side-by-side with Country) -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Postal / ZIP Code <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="postalCode" 
+              maxlength="10"
+              placeholder="e.g. 1208"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
+              [ngClass]="isFieldInvalid(basicInfoForm, 'postalCode') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(basicInfoForm, 'postalCode')) {
+              <p class="text-[11px] text-rose-500 mt-1">Valid postal code is required (e.g. 1208).</p>
+            }
+          </div>
+
+          <!-- Address Line 1 * (Whole Row) -->
           <div class="col-span-full">
             <label class="block text-xs font-semibold text-text-primary mb-1">
               Address Line 1 <span class="text-rose-500">*</span>
@@ -283,176 +351,109 @@
               type="text" 
               formControlName="line1" 
               maxlength="150"
-              placeholder="e.g. Plot 24, Road 11, Block B, Commercial Zone"
+              placeholder="e.g. Level 14, Shanta Western Tower, 186 Bir Uttam Mir Shawkat Sarak"
               class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
               [ngClass]="isFieldInvalid(basicInfoForm, 'line1') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
             @if (isFieldInvalid(basicInfoForm, 'line1')) {
-              <p class="text-[11px] text-rose-500 mt-1">Address Line 1 is required (up to 150 characters).</p>
+              <p class="text-[11px] text-rose-500 mt-1">Address Line 1 is required.</p>
             }
           </div>
 
-          <!-- Address Line 2 (Optional) -->
+          <!-- Address Line 2 (Optional) (Whole Row) -->
           <div class="col-span-full">
-            <label class="block text-xs font-semibold text-text-primary mb-1">Address Line 2 (Optional)</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Address Line 2 <span class="text-[10px] text-text-secondary font-normal">(Optional, Suite, Floor, Landmark)</span>
+            </label>
             <input 
               type="text" 
               formControlName="line2" 
               maxlength="150"
-              placeholder="e.g. Floor 8, Suite 802, Academy Tower"
+              placeholder="e.g. Tejgaon I/A, Near Gulshan-1 Link Road"
               class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all" />
           </div>
 
-          <!-- Division * (§3.2.1) -->
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs font-semibold text-text-primary">
-                Division <span class="text-rose-500">*</span>
-              </label>
-              <span class="text-[10px] text-tenant-600 dark:text-tenant-400 font-semibold font-mono">8 Divisions</span>
-            </div>
-            <app-custom-select
-              formControlName="division"
-              placeholder="Select Division"
-              [options]="divisionsList"
-              [searchable]="true"
-              leadingIcon="map"
-              [error]="isFieldInvalid(basicInfoForm, 'division') ? 'Division is required.' : ''" />
-          </div>
-
-          <!-- District * (Dependent on Division) (§3.2.2) -->
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs font-semibold text-text-primary">
-                District <span class="text-rose-500">*</span>
-                <span class="text-[10px] text-text-secondary font-normal ml-1">(Filtered by Division)</span>
-              </label>
-              @if (selectedDivision()) {
-                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold font-mono">
-                  {{ districtsList().length }} Districts in {{ selectedDivision() }}
-                </span>
+          <!-- Cascading Division / District for Bangladesh (Side-by-side) -->
+          @if (selectedCountry() === 'Bangladesh') {
+            <!-- Division (Dropdown: 8 items) -->
+            <div>
+              <app-custom-select
+                formControlName="division"
+                label="Division"
+                placeholder="Select Division..."
+                [options]="divisionsList"
+                leadingIcon="map"
+                (valueChange)="onDivisionChange($event)" />
+              @if (isFieldInvalid(basicInfoForm, 'division')) {
+                <p class="text-[11px] text-rose-500 mt-1">Division is required.</p>
               }
             </div>
-            <app-custom-select
-              formControlName="district"
-              [placeholder]="selectedDivision() ? 'Select District (' + selectedDivision() + ')' : 'First select a Division above'"
-              [options]="districtsList()"
-              [searchable]="true"
-              leadingIcon="location_on"
-              [error]="isFieldInvalid(basicInfoForm, 'district') ? 'District is required.' : ''" />
-          </div>
 
-          <!-- Postal Code * (Numeric only, <= 10 digits) -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Postal Code <span class="text-rose-500">*</span>
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(Numeric only, max 10 digits)</span>
-            </label>
-            <input 
-              type="text" 
-              formControlName="postalCode" 
-              maxlength="10"
-              placeholder="e.g. 1212"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'postalCode') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'postalCode')) {
-              <p class="text-[11px] text-rose-500 mt-1">Postal Code is required and must contain numeric digits only.</p>
-            }
-          </div>
+            <!-- District (Cascading based on Division: 64 districts) -->
+            <div>
+              <app-custom-select
+                formControlName="district"
+                label="District"
+                placeholder="Select District..."
+                [options]="districtsList()"
+                [searchable]="true"
+                leadingIcon="location_on"
+                [disabled]="!selectedDivision()" />
+              @if (isFieldInvalid(basicInfoForm, 'district')) {
+                <p class="text-[11px] text-rose-500 mt-1">District is required.</p>
+              }
+            </div>
+          } @else {
+            <!-- If International: State / Province & City text inputs (Side-by-side) -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                State / Province / Region <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="division" 
+                maxlength="99"
+                placeholder="e.g. California, Ontario, Bavaria"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
+                [ngClass]="isFieldInvalid(basicInfoForm, 'division') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              @if (isFieldInvalid(basicInfoForm, 'division')) {
+                <p class="text-[11px] text-rose-500 mt-1">State / Province is required.</p>
+              }
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                City / District <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="district" 
+                maxlength="99"
+                placeholder="e.g. Los Angeles, Toronto, Munich"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
+                [ngClass]="isFieldInvalid(basicInfoForm, 'district') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              @if (isFieldInvalid(basicInfoForm, 'district')) {
+                <p class="text-[11px] text-rose-500 mt-1">City / District is required.</p>
+              }
+            </div>
+          }
 
         </div>
       </div>
 
-      <!-- Section 3: Organization Admin Information (§3.3) -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
-          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-base">admin_panel_settings</span>
-          </div>
-          <div>
-            <h2 class="text-sm font-bold text-text-primary">3. Organization Admin Information</h2>
-            <p class="text-[11px] text-text-secondary">Primary administrative contact who will manage tenant users, courses, and compliance</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          <!-- Organization Admin Name * -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Organization Admin Name <span class="text-rose-500">*</span>
-            </label>
-            <input 
-              type="text" 
-              formControlName="adminName" 
-              maxlength="99"
-              placeholder="e.g. Dr. Sarah Jenkins"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'adminName') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'adminName')) {
-              <p class="text-[11px] text-rose-500 mt-1">Admin Name is required.</p>
-            }
-          </div>
-
-          <!-- Contact Number * (11 digits, starts with 013-019) -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Contact Number <span class="text-rose-500">*</span>
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(11 digits, starts with 013–019)</span>
-            </label>
-            <input 
-              type="text" 
-              formControlName="contactNumber" 
-              maxlength="11"
-              placeholder="01712345678"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'contactNumber') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'contactNumber')) {
-              <p class="text-[11px] text-rose-500 mt-1">Must be exactly 11 digits starting with 013, 014, 015, 016, 017, 018, or 019.</p>
-            }
-          </div>
-
-          <!-- Contact Email * -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Contact Email <span class="text-rose-500">*</span>
-            </label>
-            <input 
-              type="email" 
-              formControlName="contactEmail" 
-              placeholder="admin@apexhealth.org"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'contactEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'contactEmail')) {
-              <p class="text-[11px] text-rose-500 mt-1">Contact Email is required with valid domain extension (.com, .org, .bd, etc).</p>
-            }
-          </div>
-
-        </div>
-
-        <!-- §3.3.1 Business Rule Notice -->
-        <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[11px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
-          <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base mt-0.5">mark_email_read</span>
-          <div>
-            <span class="font-bold">Automated User Provisioning Hook:</span>
-            While the organization is in progress, the system registers the Contact Email with the role <span class="font-bold">Organization Admin</span> and dispatches setup progress notifications. Upon final activation, a password reset link is delivered.
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons — Step 1 (§3.4: Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 1 (Cancel, Reset, Save as draft, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
             type="button" 
             (click)="onCancel()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
             Cancel
           </button>
 
           <button 
             type="button" 
             (click)="onReset()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             Reset
           </button>
@@ -462,7 +463,7 @@
           <button 
             type="button" 
             (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">bookmark</span>
             Save as draft
           </button>
@@ -470,7 +471,7 @@
           <button 
             type="button" 
             (click)="onNext()" 
-            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98]">
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
             <span>Next</span>
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
@@ -480,7 +481,9 @@
     </form>
   }
 
-  <!-- STEP 2: RESOURCES (RESOURCE ALLOCATION) -->
+  <!-- ========================================================================= -->
+  <!-- STEP 2: RESOURCES (RESOURCE ALLOCATION)                                   -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 2) {
     <form [formGroup]="resourcesForm" class="space-y-6 animate-in fade-in">
       
@@ -488,7 +491,7 @@
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-300 flex items-center justify-center">
               <span class="material-symbols-outlined text-base">cloud_done</span>
             </div>
             <div>
@@ -502,227 +505,202 @@
           </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Database Capacity -->
+        <div class="grid grid-cols-1 gap-4">
+          <!-- File Storage Metric Block -->
           <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
-            <div class="flex justify-between items-center text-xs font-semibold">
-              <span class="text-text-primary flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-indigo-600 text-sm">database</span>
-                Database
-              </span>
-              <span class="font-mono text-text-primary font-bold">
-                {{ lms.platformCapacity().dbUsedGb }} / {{ lms.platformCapacity().dbTotalGb }} GB Used
-              </span>
-            </div>
-
-            <div class="w-full bg-base-300 h-2.5 rounded-full overflow-hidden">
-              <div 
-                class="h-full bg-indigo-500 rounded-full transition-all duration-300"
-                [style.width.%]="(lms.platformCapacity().dbUsedGb / lms.platformCapacity().dbTotalGb) * 100">
-              </div>
-            </div>
-
-            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-              DB Available: {{ lms.platformCapacity().dbAvailableGb }} GB
-            </div>
-          </div>
-
-          <!-- File Storage Capacity -->
-          <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
-            <div class="flex justify-between items-center text-xs font-semibold">
-              <span class="text-text-primary flex items-center gap-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-text-secondary flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-cyan-600 text-sm">folder_open</span>
-                File Storage
+                File Storage Allocation
               </span>
-              <span class="font-mono text-text-primary font-bold">
-                {{ lms.platformCapacity().fileUsedGb }} / {{ lms.platformCapacity().fileTotalGb }} GB Used
+              <span class="font-bold text-text-primary font-mono">
+                {{ lms.platformCapacity().fileAllocatedGb }} / {{ lms.platformCapacity().fileTotalGb }} GB
               </span>
             </div>
 
-            <div class="w-full bg-base-300 h-2.5 rounded-full overflow-hidden">
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 rounded-full bg-base-300 overflow-hidden">
               <div 
-                class="h-full bg-cyan-500 rounded-full transition-all duration-300"
-                [style.width.%]="(lms.platformCapacity().fileUsedGb / lms.platformCapacity().fileTotalGb) * 100">
-              </div>
+                class="h-full rounded-full transition-all bg-cyan-600"
+                [style.width.%]="(lms.platformCapacity().fileAllocatedGb / lms.platformCapacity().fileTotalGb) * 100"></div>
             </div>
 
-            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-              File Available: {{ lms.platformCapacity().fileAvailableGb }} GB
+            <div class="flex items-center justify-between text-[11px] pt-1">
+              <span class="text-emerald-600 dark:text-emerald-400 font-medium">
+                Available: <strong>{{ lms.platformCapacity().fileAvailableGb }} GB</strong>
+              </span>
+              <span class="text-text-secondary font-mono">
+                {{ ((lms.platformCapacity().fileAllocatedGb / lms.platformCapacity().fileTotalGb) * 100).toFixed(1) }}% Used
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Section 2: Resource Allocation Fields (§4.2) -->
+      <!-- Section 2: Storage Allocation & Data Sharing Mode Configuration (§4.2) -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
-        <div class="flex items-center justify-between pb-3 border-b border-base-300">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-              <span class="material-symbols-outlined text-base">pie_chart</span>
-            </div>
-            <div>
-              <h2 class="text-sm font-bold text-text-primary">Resource Allocation Fields (All Mandatory)</h2>
-              <p class="text-[11px] text-text-secondary">Specify dedicated storage sizes, telemetry alert threshold, and cross-instance repository sharing</p>
-            </div>
+        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">settings_suggest</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">2. Storage Allocation & Data Sharing Configuration</h2>
+            <p class="text-[11px] text-text-secondary">Allocate file storage quota, set warning alert threshold, and configure partition mode</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          <!-- Database Size (GB) * (Cannot exceed DB Available) -->
+          <!-- File Storage (GB) * -->
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-semibold text-text-primary">
-                Database Size (GB) <span class="text-rose-500">*</span>
-              </label>
-              <span class="text-[10px] text-text-secondary">Max Available: {{ lms.platformCapacity().dbAvailableGb }} GB</span>
-            </div>
-            <input 
-              type="number" 
-              formControlName="databaseSizeGb" 
-              min="1"
-              [max]="lms.platformCapacity().dbAvailableGb"
-              placeholder="e.g. 250"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
-              [ngClass]="isFieldInvalid(resourcesForm, 'databaseSizeGb') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(resourcesForm, 'databaseSizeGb')) {
-              <p class="text-[11px] text-rose-500 mt-1">Database Size is required and cannot exceed {{ lms.platformCapacity().dbAvailableGb }} GB.</p>
-            }
-          </div>
-
-          <!-- File Storage (GB) * (Cannot exceed File Available) -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-semibold text-text-primary">
-                File Storage (GB) <span class="text-rose-500">*</span>
-              </label>
-              <span class="text-[10px] text-text-secondary">Max Available: {{ lms.platformCapacity().fileAvailableGb }} GB</span>
-            </div>
-            <input 
-              type="number" 
-              formControlName="fileStorageGb" 
-              min="1"
-              [max]="lms.platformCapacity().fileAvailableGb"
-              placeholder="e.g. 500"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
-              [ngClass]="isFieldInvalid(resourcesForm, 'fileStorageGb') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(resourcesForm, 'fileStorageGb')) {
-              <p class="text-[11px] text-rose-500 mt-1">File Storage is required and cannot exceed {{ lms.platformCapacity().fileAvailableGb }} GB.</p>
-            }
-          </div>
-
-          <!-- Usage Alert Threshold (%) * (1-100) -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-semibold text-text-primary">
-                Usage Alert Threshold (%) <span class="text-rose-500">*</span>
-              </label>
-              <span class="text-[10px] font-mono text-tenant-600 font-bold">{{ resourcesForm.get('usageAlertThresholdPct')?.value }}%</span>
-            </div>
-            <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              File Storage (GB) <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Max {{ lms.platformCapacity().fileAvailableGb }} GB)</span>
+            </label>
+            <div class="relative">
               <input 
-                type="range" 
+                type="number" 
+                formControlName="fileStorageGb" 
+                min="1" 
+                [max]="lms.platformCapacity().fileAvailableGb"
+                placeholder="500"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
+                [ngClass]="isFieldInvalid(resourcesForm, 'fileStorageGb') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-semibold pointer-events-none">GB</span>
+            </div>
+            @if (isFieldInvalid(resourcesForm, 'fileStorageGb')) {
+              <p class="text-[11px] text-rose-500 mt-1">Must be between 1 and {{ lms.platformCapacity().fileAvailableGb }} GB.</p>
+            }
+          </div>
+
+          <!-- Usage Alert Threshold (%) * -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Usage Alert Threshold (%) <span class="text-rose-500">*</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(1–100%)</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="number" 
                 formControlName="usageAlertThresholdPct" 
                 min="1" 
                 max="100" 
-                class="w-full accent-tenant-500 cursor-pointer" />
-              <div class="flex justify-between text-[10px] text-text-secondary">
-                <span>1% (Aggressive)</span>
-                <span>80% (Standard)</span>
-                <span>100% (Critical)</span>
-              </div>
+                placeholder="80"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono"
+                [ngClass]="isFieldInvalid(resourcesForm, 'usageAlertThresholdPct') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-semibold pointer-events-none">%</span>
             </div>
-            <p class="text-[10px] text-text-secondary mt-1">On reaching this % usage of the DB, Org Admin + System Admin get an alert/email.</p>
+            @if (isFieldInvalid(resourcesForm, 'usageAlertThresholdPct')) {
+              <p class="text-[11px] text-rose-500 mt-1">Must be a percentage between 1 and 100%.</p>
+            }
           </div>
 
-          <!-- Data Sharing Across LMS Instances * (§4.2.1) -->
-          <div>
-            <app-custom-select
-              formControlName="dataSharingMode"
-              label="Data Sharing Across LMS Instances"
-              [required]="true"
-              [options]="dataSharingOptions"
-              leadingIcon="hub" />
-          </div>
-
-        </div>
-
-        <!-- Custom Data Sharing Batches Sub-section (§4.2.2) -->
-        @if (resourcesForm.get('dataSharingMode')?.value === 'Custom') {
-          <div class="p-4 rounded-2xl bg-base-200/90 border border-base-300 space-y-4 animate-in fade-in">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm text-tenant-600">hub</span>
-                  Custom Data-Sharing Batches Configuration
-                </h3>
-                <p class="text-[10px] text-text-secondary">Define which LMS instances under this organization can share repository and learning resources.</p>
-              </div>
-
-              <button 
-                type="button" 
-                (click)="addCustomBatch()" 
-                class="px-3 py-1.5 rounded-xl bg-tenant-500 text-white text-xs font-semibold flex items-center gap-1 hover:bg-tenant-600 transition-colors shadow-xs">
-                <span class="material-symbols-outlined text-sm">add</span>
-                Add Sharing Batch
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              @for (batch of customBatches(); track batch.id; let idx = $index) {
-                <div class="p-3.5 rounded-xl bg-base-100 border border-base-300 space-y-2.5">
-                  <div class="flex items-center justify-between gap-2">
+          <!-- Data Sharing Mode (Radio / Card Selector) (§4.2.1) -->
+          <div class="col-span-full space-y-2 pt-2">
+            <label class="block text-xs font-semibold text-text-primary">
+              Data Sharing Mode <span class="text-rose-500">*</span>
+            </label>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              @for (opt of dataSharingOptions; track opt.value) {
+                <label 
+                  class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-2"
+                  [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value 
+                    ? 'border-tenant-500 bg-tenant-50/10 dark:bg-tenant-900/20 shadow-xs' 
+                    : 'border-base-300 bg-base-200/50 hover:bg-base-200'">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-lg" [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value ? 'text-tenant-600' : 'text-text-secondary'">
+                        {{ opt.icon }}
+                      </span>
+                      <span class="text-xs font-bold text-text-primary">{{ opt.label }}</span>
+                    </div>
                     <input 
-                      type="text" 
-                      [(ngModel)]="batch.name" 
-                      [ngModelOptions]="{standalone: true}"
-                      class="px-2.5 py-1 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-text-primary max-w-sm focus:outline-none" />
-                    
-                    <button 
-                      type="button" 
-                      (click)="removeCustomBatch(batch.id)"
-                      [disabled]="customBatches().length <= 1"
-                      class="text-text-secondary hover:text-rose-600 p-1 disabled:opacity-30 disabled:hover:text-text-secondary"
-                      title="Remove Batch">
-                      <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
+                      type="radio" 
+                      formControlName="dataSharingMode" 
+                      [value]="opt.value" 
+                      class="radio radio-xs radio-primary" />
                   </div>
+                  <p class="text-[11px] text-text-secondary leading-snug">{{ opt.sublabel }}</p>
+                </label>
+              }
+            </div>
 
-                  <!-- LMS Instance Selector pills -->
-                  <div>
-                    <span class="text-[10px] text-text-secondary block mb-1">Select participating LMS partitions in this batch:</span>
-                    <div class="flex flex-wrap gap-1.5">
+            @if (isFieldInvalid(resourcesForm, 'dataSharingMode')) {
+              <p class="text-[11px] text-rose-500 mt-1">Please select a Data Sharing Mode.</p>
+            }
+          </div>
+
+          <!-- Conditional: Custom Batches Panel (§4.2.2) -->
+          @if (resourcesForm.get('dataSharingMode')?.value === 'Custom') {
+            <div class="col-span-full p-5 rounded-2xl bg-base-200/90 border border-base-300 space-y-4 animate-in fade-in">
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-base-300">
+                <div>
+                  <h3 class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-tenant-600 text-base">hub</span>
+                    Configure Custom Data Sharing Batches
+                  </h3>
+                  <p class="text-[11px] text-text-secondary">Define isolated sharing cohorts of LMS instances under this organization.</p>
+                </div>
+
+                <button 
+                  type="button" 
+                  (click)="addCustomBatch()" 
+                  class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer">
+                  <span class="material-symbols-outlined text-sm">add</span>
+                  <span>Add Batch Cohort</span>
+                </button>
+              </div>
+
+              <!-- Batches List -->
+              <div class="space-y-3">
+                @for (batch of customBatches(); track batch.id; let bIdx = $index) {
+                  <div class="p-3.5 rounded-xl bg-base-100 border border-base-300 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-text-primary">{{ batch.name }}</span>
+                      @if (customBatches().length > 1) {
+                        <button 
+                          type="button" 
+                          (click)="removeCustomBatch(bIdx)" 
+                          class="text-rose-500 hover:text-rose-700 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                          Remove
+                        </button>
+                      }
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 pt-1">
                       @for (node of availableLmsNodes; track node.id) {
                         <button 
                           type="button"
-                          (click)="toggleNodeInBatch(batch.id, node.id)"
-                          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all"
-                          [ngClass]="batch.lmsInstanceIds.includes(node.id) 
-                            ? 'bg-tenant-500 text-white shadow-xs' 
-                            : 'bg-base-200 hover:bg-base-300 text-text-secondary border border-base-300'">
+                          (click)="toggleNodeInBatch(bIdx, node.id)"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer"
+                          [ngClass]="isNodeInBatch(bIdx, node.id) 
+                            ? 'bg-tenant-50 text-tenant-700 border-tenant-300 dark:bg-tenant-900/40 dark:text-tenant-300 dark:border-tenant-700' 
+                            : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
                           <span class="material-symbols-outlined text-xs">
-                            {{ batch.lmsInstanceIds.includes(node.id) ? 'check_circle' : 'radio_button_unchecked' }}
+                            {{ isNodeInBatch(bIdx, node.id) ? 'check_box' : 'check_box_outline_blank' }}
                           </span>
                           <span>{{ node.name }}</span>
                         </button>
                       }
                     </div>
                   </div>
-                </div>
-              }
+                }
+              </div>
             </div>
-          </div>
-        }
+          }
 
+        </div>
       </div>
 
-      <!-- Action Buttons — Step 2 (§4.3: Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Save as draft, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
             type="button" 
             (click)="onBack()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back</span>
           </button>
@@ -730,14 +708,14 @@
           <button 
             type="button" 
             (click)="onCancel()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
             Cancel
           </button>
 
           <button 
             type="button" 
             (click)="onReset()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             Reset
           </button>
@@ -747,7 +725,7 @@
           <button 
             type="button" 
             (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">bookmark</span>
             Save as draft
           </button>
@@ -755,7 +733,7 @@
           <button 
             type="button" 
             (click)="onNext()" 
-            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98]">
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
             <span>Next</span>
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
@@ -765,90 +743,137 @@
     </form>
   }
 
-  <!-- STEP 3: ADMIN SETUP -->
+  <!-- ========================================================================= -->
+  <!-- STEP 3: ADMIN SETUP (MULTIPLE ADMINISTRATORS)                             -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 3) {
     <div class="space-y-6 animate-in fade-in">
       
-      <!-- Step 3 Card (§5.1) -->
+      <!-- Administrators Section -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-6">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
-          <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-base">verified_user</span>
-          </div>
-          <div>
-            <h2 class="text-sm font-bold text-text-primary">Admin Setup & Notification Dispatch</h2>
-            <p class="text-[11px] text-text-secondary">Pre-filled credentials carried over from Basic Info step. Trigger setup update notice.</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Admin Name (Read-only) -->
-          <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-            <div class="text-[10px] text-text-secondary uppercase font-semibold">Admin Name</div>
-            <div class="text-sm font-bold text-text-primary flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-tenant-600 text-base">person</span>
-              {{ basicInfoForm.get('adminName')?.value || 'Admin Name' }}
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">admin_panel_settings</span>
             </div>
-            <span class="text-[10px] text-emerald-600 font-medium">Assigned Role: Organization Admin</span>
-          </div>
-
-          <!-- Admin Contact Number (Read-only) -->
-          <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-            <div class="text-[10px] text-text-secondary uppercase font-semibold">Contact Number</div>
-            <div class="text-sm font-mono font-bold text-text-primary flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-text-secondary text-base">call</span>
-              {{ basicInfoForm.get('contactNumber')?.value || '—' }}
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Organization Administrators</h2>
+              <p class="text-[11px] text-text-secondary">Configure one or more system administrators for {{ basicInfoForm.get('organizationName')?.value || 'this organization' }}</p>
             </div>
-            <span class="text-[10px] text-text-secondary">Direct Mobile Identifier</span>
-          </div>
-
-          <!-- Admin Email (Read-only) -->
-          <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-            <div class="text-[10px] text-text-secondary uppercase font-semibold">Admin Email</div>
-            <div class="text-sm font-bold text-text-primary flex items-center gap-1.5 truncate">
-              <span class="material-symbols-outlined text-indigo-600 text-base">mail</span>
-              {{ basicInfoForm.get('contactEmail')?.value || '—' }}
-            </div>
-            <span class="text-[10px] text-indigo-600 font-medium">Notification Recipient</span>
-          </div>
-        </div>
-
-        <!-- Dispatch Email Action Box (§5.1) -->
-        <div class="p-5 rounded-2xl bg-base-200 border border-base-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div class="space-y-1">
-            <h3 class="text-xs font-bold text-text-primary flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-tenant-600 text-base">outgoing_mail</span>
-              Send In-Progress Notification Email
-            </h3>
-            <p class="text-[11px] text-text-secondary">
-              Notify the organization admin at <span class="font-semibold text-text-primary">{{ basicInfoForm.get('contactEmail')?.value }}</span> that their workspace setup is currently in progress.
-            </p>
           </div>
 
           <button 
             type="button" 
-            (click)="triggerAdminNoticeEmail()"
-            [disabled]="adminEmailSent()"
-            class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-xs self-stretch sm:self-auto justify-center"
-            [ngClass]="adminEmailSent() 
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-200 border border-emerald-300' 
-              : 'bg-tenant-500 hover:bg-tenant-600 text-white'">
-            <span class="material-symbols-outlined text-sm">
-              {{ adminEmailSent() ? 'done_all' : 'send' }}
-            </span>
-            {{ adminEmailSent() ? 'Update Email Sent' : 'Send Setup Notice Email' }}
+            id="btn-add-admin-row"
+            (click)="addAdmin()"
+            class="px-3.5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            <span>Add Admin</span>
           </button>
+        </div>
+
+        <!-- Administrator Cards / Inputs -->
+        <div class="space-y-4">
+          @for (adm of adminsList(); track adm.id; let i = $index) {
+            <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300/80 space-y-3.5 relative transition-all">
+              
+              <div class="flex items-center justify-between pb-2 border-b border-base-300/50">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-base-100 border border-base-300 flex items-center justify-center text-[11px] font-bold text-tenant-600">
+                    {{ i + 1 }}
+                  </span>
+                  <span class="text-xs font-bold text-text-primary">Administrator {{ i + 1 }}</span>
+                </div>
+
+                @if (adminsList().length > 1) {
+                  <button 
+                    type="button" 
+                    (click)="removeAdmin(i)" 
+                    class="px-2.5 py-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                    <span>Remove</span>
+                  </button>
+                }
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Admin Full Name * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Admin Full Name <span class="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    [value]="adm.adminName" 
+                    (input)="updateAdminField(i, 'adminName', $any($event.target).value)"
+                    placeholder="e.g. Dr. Sarah Jenkins"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+                    [ngClass]="adminErrors()['adminName_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['adminName_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['adminName_' + i] }}</p>
+                  }
+                </div>
+
+                <!-- Contact Number * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Contact Number <span class="text-rose-500">*</span>
+                    <span class="text-[10px] text-text-secondary font-normal ml-1">(11 digits, starts 013–019)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    [value]="adm.contactNumber" 
+                    (input)="updateAdminField(i, 'contactNumber', $any($event.target).value)"
+                    maxlength="15"
+                    placeholder="01712345678"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-medium"
+                    [ngClass]="adminErrors()['contactNumber_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['contactNumber_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['contactNumber_' + i] }}</p>
+                  }
+                </div>
+
+                <!-- Admin Email * -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Admin Email <span class="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    [value]="adm.contactEmail" 
+                    (input)="updateAdminField(i, 'contactEmail', $any($event.target).value)"
+                    placeholder="admin@organization.org"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-base-100 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+                    [ngClass]="adminErrors()['contactEmail_' + i] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+                  @if (adminErrors()['contactEmail_' + i]) {
+                    <p class="text-[11px] text-rose-500 mt-1">{{ adminErrors()['contactEmail_' + i] }}</p>
+                  }
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Business Rule Notice -->
+        <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-[11px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base mt-0.5">mark_email_read</span>
+          <div>
+            <span class="font-bold">Automated User Provisioning Hook:</span>
+            While the organization is in progress, the system registers all configured administrators and dispatches workspace setup progress notifications. Upon activation, secure credential links will be delivered to each administrator's email.
+          </div>
         </div>
 
       </div>
 
-      <!-- Action Buttons — Step 3 (§5.2: Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Save as draft, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
             type="button" 
             (click)="onBack()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back</span>
           </button>
@@ -856,14 +881,14 @@
           <button 
             type="button" 
             (click)="onCancel()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
             Cancel
           </button>
 
           <button 
             type="button" 
             (click)="onReset()" 
-            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5">
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-sm">restart_alt</span>
             Reset
           </button>
@@ -873,7 +898,7 @@
           <button 
             type="button" 
             (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">bookmark</span>
             Save as draft
           </button>
@@ -881,7 +906,7 @@
           <button 
             type="button" 
             (click)="onNext()" 
-            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98]">
+            class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
             <span>Next</span>
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
@@ -891,7 +916,9 @@
     </div>
   }
 
-  <!-- STEP 4: PREVIEW -->
+  <!-- ========================================================================= -->
+  <!-- STEP 4: PREVIEW & CONFIRM                                                 -->
+  <!-- ========================================================================= -->
   @if (currentStep() === 4) {
     <div class="space-y-6 animate-in fade-in">
       
@@ -905,12 +932,12 @@
               <span class="material-symbols-outlined text-tenant-600 text-base">badge</span>
               Organization Identity
             </span>
-            <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline">Edit</button>
+            <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
           </div>
 
           <div class="flex items-center gap-3.5">
             @if (logoPreview()) {
-              <img [src]="logoPreview()" alt="Logo" class="w-14 h-14 object-contain" />
+              <img [src]="logoPreview()" alt="Logo" class="w-14 h-14 object-contain rounded-2xl bg-base-200 p-1 border border-base-300" />
             } @else {
               <div class="w-14 h-14 rounded-2xl bg-tenant-500/10 border border-tenant-500/30 flex items-center justify-center text-tenant-600 font-bold text-lg">
                 {{ basicInfoForm.get('organizationName')?.value?.charAt(0) || 'O' }}
@@ -921,6 +948,9 @@
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-base-200 border border-base-300 font-mono text-text-primary">
                   ID: {{ basicInfoForm.get('organizationId')?.value }}
+                  @if (basicInfoForm.get('organizationId')?.value === 'ORG-****') {
+                    <span class="text-[9px] font-normal text-text-secondary ml-1">(auto-created on save)</span>
+                  }
                 </span>
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-200">
                   Status: In-Progress
@@ -973,20 +1003,29 @@
         <!-- Middle & Right: Location, Admin & Resources -->
         <div class="lg:col-span-2 space-y-6">
           
-          <!-- Location & Admin Card -->
+          <!-- Location & Administrators Card -->
           <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-base-300">
               <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-indigo-600 text-base">location_city</span>
                 Location & Administration
               </span>
-              <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline">Edit</button>
+              <div class="flex items-center gap-3">
+                <button (click)="jumpToStep(1)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit Location</button>
+                <span class="text-base-300">•</span>
+                <button (click)="jumpToStep(3)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit Admin</button>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <!-- Address Details -->
               <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-                <div class="text-[10px] text-text-secondary uppercase font-semibold">Registered Address</div>
-                <div class="font-medium text-text-primary">{{ basicInfoForm.get('line1')?.value }}</div>
+                <div class="text-[10px] text-text-secondary uppercase font-semibold">Registered Location</div>
+                <div class="font-bold text-text-primary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">public</span>
+                  {{ basicInfoForm.get('country')?.value || 'Bangladesh' }}
+                </div>
+                <div class="font-medium text-text-primary pt-0.5">{{ basicInfoForm.get('line1')?.value }}</div>
                 @if (basicInfoForm.get('line2')?.value) {
                   <div class="text-text-secondary">{{ basicInfoForm.get('line2')?.value }}</div>
                 }
@@ -995,11 +1034,30 @@
                 </div>
               </div>
 
-              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-1">
-                <div class="text-[10px] text-text-secondary uppercase font-semibold">Organization Admin Contact</div>
-                <div class="font-bold text-text-primary">{{ basicInfoForm.get('adminName')?.value }}</div>
-                <div class="font-mono text-text-secondary text-[11px]">{{ basicInfoForm.get('contactNumber')?.value }}</div>
-                <div class="text-tenant-600 font-medium text-[11px] truncate">{{ basicInfoForm.get('contactEmail')?.value }}</div>
+              <!-- Administrators List -->
+              <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 space-y-2">
+                <div class="text-[10px] text-text-secondary uppercase font-semibold flex items-center justify-between">
+                  <span>Organization Administrator(s)</span>
+                  <span class="font-mono text-tenant-600 font-bold">({{ getAllAdmins().length }})</span>
+                </div>
+                
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  @for (adm of getAllAdmins(); track $index) {
+                    <div class="p-2 rounded-xl bg-base-100 border border-base-300/80 text-[11px] space-y-0.5">
+                      <div class="flex items-center justify-between">
+                        <span class="font-bold text-text-primary flex items-center gap-1.5">
+                          <span class="w-4 h-4 rounded-full bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 text-[9px] font-bold flex items-center justify-center">{{ $index + 1 }}</span>
+                          {{ adm.adminName }}
+                        </span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-tenant-50 text-tenant-700 dark:bg-tenant-950 dark:text-tenant-300 font-bold">Admin</span>
+                      </div>
+                      <div class="flex items-center justify-between text-text-secondary font-mono text-[10px] pl-5.5">
+                        <span>{{ adm.contactNumber }}</span>
+                        <span class="text-tenant-600 font-sans truncate max-w-[150px]">{{ adm.contactEmail }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
               </div>
             </div>
           </div>
@@ -1011,15 +1069,10 @@
                 <span class="material-symbols-outlined text-cyan-600 text-base">storage</span>
                 Allocated Capacity & Partitioning
               </span>
-              <button (click)="jumpToStep(2)" class="text-[11px] font-semibold text-tenant-600 hover:underline">Edit</button>
+              <button (click)="jumpToStep(2)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
-              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
-                <div class="text-[10px] text-text-secondary uppercase">Database Size</div>
-                <div class="font-bold text-base text-text-primary mt-0.5">{{ resourcesForm.get('databaseSizeGb')?.value }} GB</div>
-              </div>
-
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs">
               <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
                 <div class="text-[10px] text-text-secondary uppercase">File Storage</div>
                 <div class="font-bold text-base text-text-primary mt-0.5">{{ resourcesForm.get('fileStorageGb')?.value }} GB</div>
@@ -1040,10 +1093,10 @@
               <div class="p-3 rounded-xl bg-base-200 border border-base-300 text-xs">
                 <span class="text-[10px] text-text-secondary uppercase font-bold block mb-1">Custom Sharing Batches:</span>
                 <div class="space-y-1">
-                  @for (b of customBatches(); track b.id) {
-                    <div class="flex items-center gap-2 text-[11px]">
-                      <span class="font-semibold text-text-primary">{{ b.name }}:</span>
-                      <span class="text-text-secondary font-mono">{{ b.lmsInstanceIds.join(', ') }}</span>
+                  @for (batch of customBatches(); track batch.id) {
+                    <div class="flex items-center justify-between text-[11px]">
+                      <span class="font-semibold text-text-primary">{{ batch.name }}</span>
+                      <span class="text-text-secondary font-mono">{{ batch.lmsInstanceIds.length }} LMS Nodes</span>
                     </div>
                   }
                 </div>
@@ -1052,40 +1105,50 @@
           </div>
 
         </div>
-
       </div>
 
-      <!-- Action Buttons — Step 4 (§6.2: Back, Save as draft, Create Organization) -->
-      <!-- Note from §6.2: No Cancel, no Reset, no Next here -->
+      <!-- Action Buttons — Step 4 (Back, Cancel, Reset, Save as draft, Create Organization) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
-        <button 
-          type="button" 
-          (click)="onBack()" 
-          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all">
-          <span class="material-symbols-outlined text-sm">arrow_back</span>
-          <span>Back to Admin Setup</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            (click)="onBack()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-primary flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back</span>
+          </button>
 
-        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="onCancel()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button 
+            type="button" 
+            (click)="onReset()" 
+            class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 border border-base-300 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            Reset
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
           <button 
             type="button" 
             (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all">
+            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">bookmark</span>
             Save as draft
           </button>
 
           <button 
             type="button" 
-            id="btn-create-organization"
             (click)="onCreateOrganization()" 
-            class="px-6 py-3 rounded-xl btn-gradient text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg active:scale-[0.98] cursor-pointer">
-            <span class="material-symbols-outlined text-base">
-              @if (isEditMode()) { check_circle } @else { rocket_launch }
-            </span>
-            <span>
-              @if (isEditMode()) { Update Organization } @else { Create Organization }
-            </span>
+            class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-sm">check_circle</span>
+            <span>{{ isEditMode() ? 'Save Organization' : 'Create Organization' }}</span>
           </button>
         </div>
       </div>

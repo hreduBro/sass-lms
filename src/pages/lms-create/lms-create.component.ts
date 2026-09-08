@@ -8,13 +8,12 @@ import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.mode
 import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
-import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-lms-create',
-  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, StepperComponent, CustomAvatarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, StepperComponent],
   templateUrl: './lms-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -63,21 +62,11 @@ export class LmsCreateComponent implements OnInit {
   fileStorageGb = signal<number | null>(null);
   usageAlertThresholdPct = signal<number | null>(null);
 
-  // Step 3: Admin Assignment State
-  adminName = signal<string>('');
-  adminEmail = signal<string>('');
-  adminContactNumber = signal<string>('');
-  coAdmins = signal<LmsAdminInfo[]>([]);
-  adminList = signal<LmsAdminInfo[]>([]);
-  adminEmailSent = signal<boolean>(false);
-
-  // Step 3: Add Co-Admin Modal State
-  showCoAdminModal = signal<boolean>(false);
-  coAdminName = signal<string>('');
-  coAdminEmail = signal<string>('');
-  coAdminContact = signal<string>('');
-  coAdminRole = signal<string>('LMS Co-Admin');
-  coAdminErrors = signal<Record<string, string>>({});
+  // Step 3: Admin Assignment State (Multi-Administrator List)
+  adminsList = signal<Array<{ id: string; name: string; contactNumber: string; email: string }>>([
+    { id: 'admin-1', name: '', contactNumber: '', email: '' }
+  ]);
+  adminErrors = signal<Record<string, string>>({});
 
   // Draft & Edit tracking
   draftId = signal<string | null>(null);
@@ -117,13 +106,6 @@ export class LmsCreateComponent implements OnInit {
       { value: '__ADD_NEW__', label: '+ Add New Programme / Department', icon: 'add_circle', badge: 'Custom', badgeClass: 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400' }
     ];
   });
-
-  coAdminRoleOptions = [
-    { value: 'LMS Co-Admin', label: 'LMS Co-Admin', sublabel: 'Full administrative rights', icon: 'admin_panel_settings' },
-    { value: 'Technical Administrator', label: 'Technical Administrator', sublabel: 'Infrastructure & system operations', icon: 'settings_suggest' },
-    { value: 'Academic Coordinator', label: 'Academic Coordinator', sublabel: 'Curriculum & instructor supervision', icon: 'school' },
-    { value: 'Department Coordinator', label: 'Department Coordinator', sublabel: 'Departmental trainee assignments', icon: 'corporate_fare' }
-  ];
 
   // Real-time capacity impact computation (§4.1.4)
   remainingOrgDbAvailable = computed(() => {
@@ -181,7 +163,7 @@ export class LmsCreateComponent implements OnInit {
     const stepDescriptions: Record<WizardStep, string> = {
       1: 'Step 1 of 4 — LMS Basic Info: Configure LMS name, department, domain URL, and branding.',
       2: 'Step 2 of 4 — Resource Allocation: Allocate database and file storage from available capacity.',
-      3: 'Step 3 of 4 — Admin Assignment: Assign primary administrator and dispatch invitation notification.',
+      3: 'Step 3 of 4 — Admin Assignment: Configure one or more administrators for this LMS instance.',
       4: 'Step 4 of 4 — Preview & Finalize: Review LMS instance parameters before provisioning.'
     };
 
@@ -233,6 +215,50 @@ export class LmsCreateComponent implements OnInit {
     }
   }
 
+  // Multi-Administrator Management Actions
+  addAdmin() {
+    const newId = `admin-${Date.now()}`;
+    this.adminsList.update(list => [
+      ...list,
+      { id: newId, name: '', contactNumber: '', email: '' }
+    ]);
+    this.lms.showToast(`Added Administrator #${this.adminsList().length}`, 'info', 2500);
+  }
+
+  removeAdmin(index: number) {
+    if (this.adminsList().length <= 1) {
+      this.adminsList.set([
+        { id: `admin-${Date.now()}`, name: '', contactNumber: '', email: '' }
+      ]);
+      this.adminErrors.set({});
+      this.lms.showToast('Administrator fields reset', 'info', 2500);
+      return;
+    }
+    const target = this.adminsList()[index];
+    this.adminsList.update(list => list.filter((_, i) => i !== index));
+    this.adminErrors.set({});
+    this.lms.showToast(`Removed Administrator "${target?.name || '#' + (index + 1)}"`, 'info', 2500);
+  }
+
+  updateAdminField(index: number, field: 'name' | 'contactNumber' | 'email', value: string) {
+    this.adminsList.update(list => {
+      const updated = [...list];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return updated;
+    });
+
+    const errKey = `${field}_${index}`;
+    if (this.adminErrors()[errKey]) {
+      this.adminErrors.update(errs => {
+        const copy = { ...errs };
+        delete copy[errKey];
+        return copy;
+      });
+    }
+  }
+
   // Load LMS Instance for editing
   loadLmsForEdit(lmsId: string) {
     const instance = this.lms.lmsInstances().find(l => l.id === lmsId);
@@ -273,13 +299,19 @@ export class LmsCreateComponent implements OnInit {
 
     // Admins
     if (instance.admins && instance.admins.length > 0) {
-      this.adminList.set(JSON.parse(JSON.stringify(instance.admins)));
-      this.adminName.set(instance.admins[0].name || '');
-      this.adminEmail.set(instance.admins[0].email || '');
-      this.adminContactNumber.set(instance.admins[0].contactNumber || '');
-      this.coAdmins.set(JSON.parse(JSON.stringify(instance.admins.slice(1))));
+      this.adminsList.set(instance.admins.map((a, idx) => ({
+        id: `admin-${idx + 1}-${Date.now()}`,
+        name: a.name || '',
+        contactNumber: a.contactNumber || '',
+        email: a.email || ''
+      })));
     } else {
-      this.coAdmins.set([]);
+      this.adminsList.set([{
+        id: 'admin-1',
+        name: '',
+        contactNumber: '',
+        email: ''
+      }]);
     }
 
     // Enable navigation across all steps
@@ -325,13 +357,19 @@ export class LmsCreateComponent implements OnInit {
 
     // Admins
     if (draft.admins && draft.admins.length > 0) {
-      this.adminList.set(JSON.parse(JSON.stringify(draft.admins)));
-      this.adminName.set(draft.admins[0].name || '');
-      this.adminEmail.set(draft.admins[0].email || '');
-      this.adminContactNumber.set(draft.admins[0].contactNumber || '');
-      this.coAdmins.set(JSON.parse(JSON.stringify(draft.admins.slice(1))));
+      this.adminsList.set(draft.admins.map((a, idx) => ({
+        id: `admin-${idx + 1}-${Date.now()}`,
+        name: a.name || '',
+        contactNumber: a.contactNumber || '',
+        email: a.email || ''
+      })));
     } else {
-      this.coAdmins.set([]);
+      this.adminsList.set([{
+        id: 'admin-1',
+        name: '',
+        contactNumber: '',
+        email: ''
+      }]);
     }
 
     // Set step
@@ -545,167 +583,71 @@ export class LmsCreateComponent implements OnInit {
   // STEP 3 VALIDATION & PROGRESSION
   // =========================================================================
   validateStep3(): boolean {
-    const newErrors: Record<string, string> = {};
-    const name = this.adminName().trim();
-    const email = this.adminEmail().trim();
-    const phone = this.adminContactNumber().trim();
+    const errors: Record<string, string> = {};
+    const list = this.adminsList();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+    const contactRegex = /^01[3-9]\d{8}$/;
+    const seenEmails = new Set<string>();
 
-    if (!name) {
-      newErrors['adminName'] = 'LMS Admin Name is mandatory.';
+    if (list.length === 0) {
+      errors['general'] = 'At least one Administrator is required.';
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      newErrors['adminEmail'] = 'LMS Admin Email is mandatory.';
-    } else if (!emailRegex.test(email)) {
-      newErrors['adminEmail'] = 'Please enter a valid email address.';
-    }
+    list.forEach((adm, idx) => {
+      const name = adm.name.trim();
+      const email = adm.email.trim().toLowerCase();
+      const contact = adm.contactNumber.trim();
 
-    const phoneRegex = /^01[3-9]\d{8}$/;
-    if (!phone) {
-      newErrors['adminContactNumber'] = 'Contact Number is mandatory.';
-    } else if (!phoneRegex.test(phone.replace(/[\s-]/g, ''))) {
-      newErrors['adminContactNumber'] = 'Please enter an 11-digit phone number (e.g. 01711223344).';
-    }
+      // Name validation
+      if (!name) {
+        errors[`name_${idx}`] = 'Admin Full Name is required.';
+      } else if (name.length < 2) {
+        errors[`name_${idx}`] = 'Name must be at least 2 characters.';
+      } else if (name.length > 99) {
+        errors[`name_${idx}`] = 'Name cannot exceed 99 characters.';
+      }
 
-    this.errors.set(newErrors);
+      // Contact validation
+      if (!contact) {
+        errors[`contactNumber_${idx}`] = 'Contact number is required.';
+      } else if (!contactRegex.test(contact) && !/^\+?[0-9\s-]{7,15}$/.test(contact)) {
+        errors[`contactNumber_${idx}`] = 'Must be 11 digits (013–019) or valid phone number.';
+      }
 
-    if (Object.keys(newErrors).length > 0) {
-      this.formErrorAlert.set('All mandatory admin fields are not filled up.');
+      // Email validation
+      if (!email) {
+        errors[`email_${idx}`] = 'Admin Email is required.';
+      } else if (!emailRegex.test(email)) {
+        errors[`email_${idx}`] = 'Please enter a valid email address.';
+      } else if (seenEmails.has(email)) {
+        errors[`email_${idx}`] = 'This email is duplicate across administrators.';
+      } else {
+        seenEmails.add(email);
+      }
+    });
+
+    this.adminErrors.set(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      this.formErrorAlert.set(`Please complete all administrator required fields: ${firstError}`);
       return false;
     }
-
-    const primaryAdmin: LmsAdminInfo = {
-      name,
-      email,
-      contactNumber: phone,
-      role: 'LMS Admin',
-      invitationStatus: 'pending'
-    };
-
-    this.adminList.set([primaryAdmin, ...this.coAdmins()]);
 
     this.formErrorAlert.set(null);
     return true;
   }
 
   getAllAdmins(): LmsAdminInfo[] {
-    const list: LmsAdminInfo[] = [];
-    const name = this.adminName().trim();
-    const email = this.adminEmail().trim();
-    const phone = this.adminContactNumber().trim();
-
-    if (name || email) {
-      list.push({
-        name: name || 'LMS Admin',
-        email: email || '',
-        contactNumber: phone || 'N/A',
+    return this.adminsList()
+      .filter(a => a.name.trim() || a.email.trim())
+      .map(a => ({
+        name: a.name.trim() || 'LMS Admin',
+        email: a.email.trim(),
+        contactNumber: a.contactNumber.trim() || 'N/A',
         role: 'LMS Admin',
         invitationStatus: 'pending'
-      });
-    }
-    return [...list, ...this.coAdmins()];
-  }
-
-  openAddCoAdminModal() {
-    this.coAdminName.set('');
-    this.coAdminEmail.set('');
-    this.coAdminContact.set('');
-    this.coAdminRole.set('LMS Co-Admin');
-    this.coAdminErrors.set({});
-    this.showCoAdminModal.set(true);
-  }
-
-  closeAddCoAdminModal() {
-    this.showCoAdminModal.set(false);
-    this.coAdminErrors.set({});
-  }
-
-  saveCoAdmin() {
-    const name = this.coAdminName().trim();
-    const email = this.coAdminEmail().trim().toLowerCase();
-    const contact = this.coAdminContact().trim();
-    const role = this.coAdminRole().trim() || 'LMS Co-Admin';
-
-    const errors: Record<string, string> = {};
-
-    if (!name) {
-      errors['name'] = 'Full name is required.';
-    } else if (name.length < 2) {
-      errors['name'] = 'Name must be at least 2 characters.';
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      errors['email'] = 'Email address is required.';
-    } else if (!emailRegex.test(email)) {
-      errors['email'] = 'Please enter a valid email address.';
-    } else {
-      const primaryEmail = this.adminEmail().trim().toLowerCase();
-      if (primaryEmail && email === primaryEmail) {
-        errors['email'] = 'This email is already assigned as the Primary Admin.';
-      } else if (this.coAdmins().some(a => a.email.toLowerCase() === email)) {
-        errors['email'] = 'This administrator has already been added.';
-      }
-    }
-
-    if (contact && !/^01\d{9}$/.test(contact) && !/^\+?\d{8,15}$/.test(contact)) {
-      errors['contact'] = 'Enter a valid contact number (e.g. 01XXXXXXXXX).';
-    }
-
-    this.coAdminErrors.set(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    const newAdmin: LmsAdminInfo = {
-      name,
-      email,
-      contactNumber: contact || 'N/A',
-      role,
-      invitationStatus: 'pending'
-    };
-
-    this.coAdmins.update(list => [...list, newAdmin]);
-    this.adminList.set(this.getAllAdmins());
-    this.showCoAdminModal.set(false);
-    this.lms.showToast(`Co-Administrator "${name}" added successfully.`, 'success', 3500, 'Admin Assigned');
-  }
-
-  addAdditionalAdmin() {
-    this.openAddCoAdminModal();
-  }
-
-  removeCoAdmin(index: number) {
-    const removedAdmin = this.coAdmins()[index];
-    this.coAdmins.update(list => list.filter((_, i) => i !== index));
-    this.adminList.set(this.getAllAdmins());
-    if (removedAdmin) {
-      this.lms.showToast(`Removed "${removedAdmin.name}" from co-administrators.`, 'info', 3000);
-    }
-  }
-
-  removeAdmin(index: number) {
-    if (index === 0) {
-      this.lms.showToast('The primary LMS Administrator cannot be removed.', 'warning', 3500, 'Primary Admin Locked');
-      return;
-    }
-    this.removeCoAdmin(index - 1);
-  }
-
-  triggerAdminNoticeEmail() {
-    const adminEmail = this.adminEmail().trim();
-    const adminName = this.adminName().trim() || 'LMS Admin';
-    const lmsName = this.lmsName().trim() || 'New LMS Instance';
-
-    if (!adminEmail) {
-      this.formErrorAlert.set('Please provide a valid Admin Email address before sending notification.');
-      return;
-    }
-
-    this.lms.sendLmsAdminNoticeEmail(adminEmail, adminName, lmsName);
-    this.adminEmailSent.set(true);
-    this.lms.showToast(`"LMS Setup In-Progress" notification dispatched to ${adminEmail}`, 'info', 4500, 'Step 3: Email Dispatched', 'STEP 3 / 4');
+      }));
   }
 
   // =========================================================================
@@ -793,12 +735,10 @@ export class LmsCreateComponent implements OnInit {
       this.fileStorageGb.set(null);
       this.usageAlertThresholdPct.set(80);
     } else if (step === 3) {
-      this.adminName.set('');
-      this.adminEmail.set('');
-      this.adminContactNumber.set('');
-      this.coAdmins.set([]);
-      this.adminList.set([]);
-      this.adminEmailSent.set(false);
+      this.adminsList.set([
+        { id: `admin-${Date.now()}`, name: '', contactNumber: '', email: '' }
+      ]);
+      this.adminErrors.set({});
     }
     this.errors.set({});
     this.formErrorAlert.set(null);
