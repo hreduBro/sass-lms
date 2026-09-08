@@ -41,6 +41,7 @@ export interface Tenant {
   timezone?: string;
   description?: string;
   address?: {
+    country?: string;
     line1: string;
     line2?: string;
     division: string;

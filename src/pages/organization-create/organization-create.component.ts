@@ -7,6 +7,7 @@ import {
   TIMEZONE_OPTIONS,
   DIVISION_DISTRICTS_MAP,
   DIVISIONS_LIST,
+  COUNTRIES_LIST,
   OrganizationDraft,
   DataSharingMode,
   CustomDataSharingBatch
@@ -57,6 +58,8 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   // Dropdown options & reactive cascading location partition
   timezoneOptions = TIMEZONE_OPTIONS;
   divisionsList = DIVISIONS_LIST;
+  countriesList = COUNTRIES_LIST;
+  selectedCountry = signal<string>('Bangladesh');
   selectedDivision = signal<string>('');
   
   dataSharingOptions = [
@@ -88,7 +91,14 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   logoFileName = signal<string | null>(null);
   logoSizeKb = signal<number>(0);
   isDraggingLogo = signal<boolean>(false);
+  logoTouched = signal<boolean>(false);
   logoError = signal<string | null>(null);
+
+  // Step 3: Admin Setup State (Multi-Administrator List)
+  adminsList = signal<Array<{ id: string; adminName: string; contactNumber: string; contactEmail: string }>>([
+    { id: 'admin-1', adminName: '', contactNumber: '', contactEmail: '' }
+  ]);
+  adminErrors = signal<Record<string, string>>({});
 
   // Form error alerts
   formErrorAlert = signal<string | null>(null);
@@ -216,6 +226,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       timezone: ['Asia/Dhaka'], // Default suggested: Dhaka (UTC+06:00)
       
       // Organization Location / Address (§3.2)
+      country: ['Bangladesh', [Validators.required]],
       line1: ['', [Validators.required, Validators.maxLength(150)]],
       line2: ['', [Validators.maxLength(150)]],
       division: ['', [Validators.required]],
@@ -223,9 +234,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       postalCode: ['', [Validators.required, Validators.pattern(postalRegex)]],
 
       // Organization Admin Information (§3.3)
-      adminName: ['', [Validators.required, Validators.maxLength(99)]],
-      contactNumber: ['', [Validators.required, Validators.pattern(contactNumRegex)]],
-      contactEmail: ['', [Validators.required, Validators.pattern(emailRegex)]]
+      adminName: ['', [Validators.maxLength(99)]],
+      contactNumber: ['', [Validators.pattern(contactNumRegex)]],
+      contactEmail: ['', [Validators.pattern(emailRegex)]]
     });
 
     // When division changes, update selectedDivision signal and reset district selection
@@ -233,13 +244,30 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       this.selectedDivision.set(divVal || '');
     });
 
+    // When country changes, update selectedCountry signal
+    this.basicInfoForm.get('country')?.valueChanges.subscribe((countryVal) => {
+      this.selectedCountry.set(countryVal || 'Bangladesh');
+    });
+
     // Step 2: Resources Form (§4.2)
     this.resourcesForm = this.fb.group({
-      databaseSizeGb: [null, [Validators.required, Validators.min(1)]],
+      databaseSizeGb: [250, [Validators.min(1)]],
       fileStorageGb: [null, [Validators.required, Validators.min(1)]],
       usageAlertThresholdPct: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
       dataSharingMode: ['', [Validators.required]]
     });
+  }
+
+  onCountryChange(countryName: string) {
+    this.selectedCountry.set(countryName || 'Bangladesh');
+    this.basicInfoForm.patchValue({ country: countryName });
+    if (countryName === 'Bangladesh') {
+      this.basicInfoForm.patchValue({
+        division: '',
+        district: ''
+      });
+      this.selectedDivision.set('');
+    }
   }
 
   onDivisionChange(divisionName: string) {
@@ -251,6 +279,69 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.basicInfoForm.get('district')?.markAsUntouched();
   }
 
+  // Admin Management Handlers
+  addAdmin() {
+    const newId = `admin-${Date.now()}`;
+    this.adminsList.update(list => [...list, { id: newId, adminName: '', contactNumber: '', contactEmail: '' }]);
+  }
+
+  removeAdmin(index: number) {
+    if (this.adminsList().length <= 1) return;
+    this.adminsList.update(list => list.filter((_, idx) => idx !== index));
+    this.validateAdmins();
+  }
+
+  updateAdminField(index: number, field: 'adminName' | 'contactNumber' | 'contactEmail', value: string) {
+    this.adminsList.update(list => {
+      const copy = [...list];
+      if (copy[index]) {
+        copy[index] = { ...copy[index], [field]: value };
+      }
+      return copy;
+    });
+
+    if (index === 0) {
+      if (field === 'adminName') this.basicInfoForm.patchValue({ adminName: value });
+      if (field === 'contactNumber') this.basicInfoForm.patchValue({ contactNumber: value });
+      if (field === 'contactEmail') this.basicInfoForm.patchValue({ contactEmail: value });
+    }
+
+    this.adminErrors.update(errs => {
+      const next = { ...errs };
+      delete next[`${field}_${index}`];
+      return next;
+    });
+  }
+
+  getAllAdmins() {
+    return this.adminsList();
+  }
+
+  validateAdmins(): boolean {
+    const errs: Record<string, string> = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+    const contactNumRegex = /^01[3-9]\d{8}$/;
+
+    this.adminsList().forEach((adm, idx) => {
+      if (!adm.adminName || !adm.adminName.trim()) {
+        errs[`adminName_${idx}`] = 'Admin Full Name is required';
+      }
+      if (!adm.contactNumber || !adm.contactNumber.trim()) {
+        errs[`contactNumber_${idx}`] = 'Contact Number is required';
+      } else if (this.selectedCountry() === 'Bangladesh' && !contactNumRegex.test(adm.contactNumber.trim())) {
+        errs[`contactNumber_${idx}`] = 'Must be 11 digits starting with 013–019';
+      }
+      if (!adm.contactEmail || !adm.contactEmail.trim()) {
+        errs[`contactEmail_${idx}`] = 'Admin Email is required';
+      } else if (!emailRegex.test(adm.contactEmail.trim())) {
+        errs[`contactEmail_${idx}`] = 'Valid email is required (.com, .org, etc.)';
+      }
+    });
+
+    this.adminErrors.set(errs);
+    return Object.keys(errs).length === 0;
+  }
+
   loadOrganizationForEdit(orgId: string) {
     const org = this.lms.tenants().find(t => t.id === orgId || t.numericId === orgId);
     if (!org) {
@@ -260,6 +351,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     this.isEditMode.set(true);
     this.editingOrgId.set(org.id);
+
+    const country = org.address?.country || 'Bangladesh';
+    this.selectedCountry.set(country);
 
     if (org.address?.division) {
       this.selectedDivision.set(org.address.division);
@@ -274,6 +368,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       description: org.description || '',
       organizationEmail: org.adminEmail || org.adminInfo?.contactEmail || '',
       timezone: org.timezone || 'Asia/Dhaka',
+      country: country,
       line1: org.address?.line1 || '',
       line2: org.address?.line2 || '',
       division: org.address?.division || '',
@@ -283,6 +378,15 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       contactNumber: org.adminInfo?.contactNumber || '',
       contactEmail: org.adminInfo?.contactEmail || org.adminEmail || ''
     });
+
+    this.adminsList.set([
+      {
+        id: 'admin-1',
+        adminName: org.adminInfo?.adminName || 'Super Administrator',
+        contactNumber: org.adminInfo?.contactNumber || '01712345678',
+        contactEmail: org.adminInfo?.contactEmail || org.adminEmail || 'admin@organization.org'
+      }
+    ]);
 
     if (org.branding?.logoUrl) {
       this.logoPreview.set(org.branding.logoUrl);
@@ -317,6 +421,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     this.activeDraftId.set(draft.id);
 
+    const country = draft.basicInfo.address?.country || 'Bangladesh';
+    this.selectedCountry.set(country);
+
     if (draft.basicInfo.address?.division) {
       this.selectedDivision.set(draft.basicInfo.address.division);
     }
@@ -330,6 +437,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       description: draft.basicInfo.description || '',
       organizationEmail: draft.basicInfo.organizationEmail || '',
       timezone: draft.basicInfo.timezone || 'Asia/Dhaka',
+      country: country,
       line1: draft.basicInfo.address?.line1 || '',
       line2: draft.basicInfo.address?.line2 || '',
       division: draft.basicInfo.address?.division || '',
@@ -339,6 +447,17 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       contactNumber: draft.basicInfo.admin?.contactNumber || '',
       contactEmail: draft.basicInfo.admin?.contactEmail || ''
     });
+
+    if (draft.basicInfo.admin?.adminName || draft.basicInfo.admin?.contactEmail) {
+      this.adminsList.set([
+        {
+          id: 'admin-1',
+          adminName: draft.basicInfo.admin?.adminName || '',
+          contactNumber: draft.basicInfo.admin?.contactNumber || '',
+          contactEmail: draft.basicInfo.admin?.contactEmail || ''
+        }
+      ]);
+    }
 
     if (draft.basicInfo.logo?.url) {
       this.logoPreview.set(draft.basicInfo.logo.url);
@@ -475,14 +594,19 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.customBatches.update(list => [...list, newBatch]);
   }
 
-  removeCustomBatch(id: string) {
+  removeCustomBatch(batchIdxOrId: number | string) {
     if (this.customBatches().length <= 1) return;
-    this.customBatches.update(list => list.filter(b => b.id !== id));
+    if (typeof batchIdxOrId === 'number') {
+      this.customBatches.update(list => list.filter((_, idx) => idx !== batchIdxOrId));
+    } else {
+      this.customBatches.update(list => list.filter(b => b.id !== batchIdxOrId));
+    }
   }
 
-  toggleNodeInBatch(batchId: string, nodeId: string) {
-    this.customBatches.update(list => list.map(batch => {
-      if (batch.id === batchId) {
+  toggleNodeInBatch(batchIdxOrId: number | string, nodeId: string) {
+    this.customBatches.update(list => list.map((batch, idx) => {
+      const match = typeof batchIdxOrId === 'number' ? idx === batchIdxOrId : batch.id === batchIdxOrId;
+      if (match) {
         const exists = batch.lmsInstanceIds.includes(nodeId);
         const updated = exists 
           ? batch.lmsInstanceIds.filter(id => id !== nodeId)
@@ -491,6 +615,13 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       }
       return batch;
     }));
+  }
+
+  isNodeInBatch(batchIdxOrId: number | string, nodeId: string): boolean {
+    const batch = typeof batchIdxOrId === 'number' 
+      ? this.customBatches()[batchIdxOrId] 
+      : this.customBatches().find(b => b.id === batchIdxOrId);
+    return batch ? batch.lmsInstanceIds.includes(nodeId) : false;
   }
 
   // Button Actions per Step (§3.4, §4.3, §5.2, §6.2)
@@ -516,8 +647,12 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       const currentOrgId = this.basicInfoForm.get('organizationId')?.value;
       this.basicInfoForm.reset({
         organizationId: currentOrgId,
-        timezone: 'Asia/Dhaka'
+        timezone: 'Asia/Dhaka',
+        country: 'Bangladesh'
       });
+      this.selectedCountry.set('Bangladesh');
+      this.selectedDivision.set('');
+      this.logoTouched.set(false);
       this.removeLogo();
     } else if (step === 2) {
       this.resourcesForm.reset({
@@ -530,6 +665,8 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         { id: 'batch-1', name: 'Batch 1: Primary Campus Nodes', lmsInstanceIds: ['LMS-Core-01', 'LMS-Branch-02'] }
       ]);
     } else if (step === 3) {
+      this.adminsList.set([{ id: 'admin-1', adminName: this.basicInfoForm.get('adminName')?.value || '', contactNumber: this.basicInfoForm.get('contactNumber')?.value || '', contactEmail: this.basicInfoForm.get('contactEmail')?.value || '' }]);
+      this.adminErrors.set({});
       this.adminEmailSent.set(false);
     }
     this.lms.showToast(`Step ${step} form fields have been reset.`, 'info', 4000, `Step ${step} Reset`, `STEP ${step} / 4`);
@@ -550,13 +687,29 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
 
     if (step === 1) {
       // Step 1 validation (§3.4)
-      if (this.basicInfoForm.invalid) {
+      this.logoTouched.set(true);
+      if (this.basicInfoForm.invalid || !this.logoPreview()) {
         this.markFormGroupTouched(this.basicInfoForm);
-        this.formErrorAlert.set('All mandatory fields are not filled up.');
+        this.formErrorAlert.set('All mandatory fields are not filled up. Please upload a logo and complete all required fields.');
         this.lms.showToast('Step 1 Validation: All mandatory fields are not filled up.', 'error', 4500, 'Step 1 Error', 'STEP 1 / 4');
         this.scrollToFirstError();
         return;
       }
+
+      // Sync first admin into adminsList if adminsList has empty first item
+      const bVals = this.basicInfoForm.getRawValue();
+      this.adminsList.update(list => {
+        const copy = [...list];
+        if (copy.length > 0) {
+          copy[0] = {
+            ...copy[0],
+            adminName: copy[0].adminName || bVals.adminName || '',
+            contactNumber: copy[0].contactNumber || bVals.contactNumber || '',
+            contactEmail: copy[0].contactEmail || bVals.contactEmail || ''
+          };
+        }
+        return copy;
+      });
 
       // Mark step 1 done & advance
       this.completedSteps.update(set => {
@@ -609,6 +762,12 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       this.scrollTop();
     }
     else if (step === 3) {
+      if (!this.validateAdmins()) {
+        this.formErrorAlert.set('Please fill in all mandatory administrator fields correctly.');
+        this.lms.showToast('Step 3 Validation: Invalid administrator details.', 'error', 4500, 'Step 3 Error', 'STEP 3 / 4');
+        return;
+      }
+
       // Mark step 3 done & advance to preview (§5.2)
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -662,6 +821,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
           timezone: bValues.timezone || existing.timezone,
           description: bValues.description || existing.description,
           address: {
+            country: bValues.country || this.selectedCountry() || 'Bangladesh',
             line1: bValues.line1 || existing.address?.line1 || '',
             line2: bValues.line2 || existing.address?.line2 || '',
             division: bValues.division || existing.address?.division || '',
@@ -669,9 +829,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
             postalCode: bValues.postalCode || existing.address?.postalCode || ''
           },
           adminInfo: {
-            adminName: bValues.adminName || existing.adminInfo?.adminName || '',
-            contactNumber: bValues.contactNumber || existing.adminInfo?.contactNumber || '',
-            contactEmail: bValues.contactEmail || existing.adminInfo?.contactEmail || ''
+            adminName: this.adminsList()[0]?.adminName || bValues.adminName || existing.adminInfo?.adminName || '',
+            contactNumber: this.adminsList()[0]?.contactNumber || bValues.contactNumber || existing.adminInfo?.contactNumber || '',
+            contactEmail: this.adminsList()[0]?.contactEmail || bValues.contactEmail || existing.adminInfo?.contactEmail || ''
           },
           resourceAllocation: {
             databaseSizeGb: Number(rValues.databaseSizeGb) || existing.resourceAllocation?.databaseSizeGb || 250,
@@ -733,6 +893,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
           sizeBytes: this.logoSizeKb() * 1024
         } : undefined,
         address: {
+          country: bValues.country || this.selectedCountry() || 'Bangladesh',
           line1: bValues.line1 || '',
           line2: bValues.line2 || '',
           division: bValues.division || '',
@@ -740,9 +901,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
           postalCode: bValues.postalCode || ''
         },
         admin: {
-          adminName: bValues.adminName || '',
-          contactNumber: bValues.contactNumber || '',
-          contactEmail: bValues.contactEmail || ''
+          adminName: this.adminsList()[0]?.adminName || bValues.adminName || '',
+          contactNumber: this.adminsList()[0]?.contactNumber || bValues.contactNumber || '',
+          contactEmail: this.adminsList()[0]?.contactEmail || bValues.contactEmail || ''
         }
       },
       resources: {

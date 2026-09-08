@@ -72,6 +72,26 @@ export const DIVISION_DISTRICTS_MAP: Record<string, string[]> = {
 
 export const DIVISIONS_LIST: string[] = Object.keys(DIVISION_DISTRICTS_MAP);
 
+export const COUNTRIES_LIST: string[] = [
+  'Bangladesh',
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Germany',
+  'India',
+  'Singapore',
+  'Malaysia',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Japan',
+  'France',
+  'Netherlands',
+  'Switzerland',
+  'Sweden',
+  'Other'
+];
+
 export interface OrganizationLogo {
   fileName?: string;
   url?: string;
@@ -80,6 +100,7 @@ export interface OrganizationLogo {
 }
 
 export interface OrganizationAddress {
+  country?: string;
   line1: string;
   line2?: string;
   division: string;

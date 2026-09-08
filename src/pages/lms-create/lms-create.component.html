@@ -759,7 +759,7 @@
           <div class="space-y-2 text-xs pt-2">
             <div>
               <span class="text-[10px] text-text-secondary block">Parent Organization</span>
-              <span class="text-text-primary font-bold">{{ parentOrg().name }}</span>
+              <span class="text-text-primary font-bold">{{ parentOrg()?.name || 'Organization' }}</span>
             </div>
 
             <div>
@@ -789,9 +789,9 @@
             <div class="pt-2 border-t border-base-300">
               <span class="text-[10px] text-text-secondary block">Parent Theme Preset</span>
               <div class="flex items-center gap-2 mt-1">
-                <div class="w-4 h-4 rounded-full border border-white/20 shadow-xs" [style.backgroundColor]="lms.activeTenant().branding.primaryColor"></div>
-                <span class="text-text-primary text-[11px] font-semibold">{{ lms.activeTenant().name }}</span>
-                <span class="text-[10px] font-mono text-text-secondary">({{ lms.activeTenant().branding.primaryColor }})</span>
+                <div class="w-4 h-4 rounded-full border border-white/20 shadow-xs" [style.backgroundColor]="lms.activeTenant()?.branding?.primaryColor || '#0284c7'"></div>
+                <span class="text-text-primary text-[11px] font-semibold">{{ lms.activeTenant()?.name || 'Default' }}</span>
+                <span class="text-[10px] font-mono text-text-secondary">({{ lms.activeTenant()?.branding?.primaryColor || '#0284c7' }})</span>
               </div>
             </div>
           </div>
@@ -885,11 +885,11 @@
 
             <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="text-text-secondary">Remaining {{ parentOrg().name }} DB Capacity:</span>
+                <span class="text-text-secondary">Remaining {{ parentOrg()?.name || 'Org' }} DB Capacity:</span>
                 <strong class="font-mono text-text-primary">{{ remainingOrgDbAvailable() }} GB</strong>
               </div>
               <div class="flex items-center justify-between text-[11px] mt-1">
-                <span class="text-text-secondary">Remaining {{ parentOrg().name }} File Capacity:</span>
+                <span class="text-text-secondary">Remaining {{ parentOrg()?.name || 'Org' }} File Capacity:</span>
                 <strong class="font-mono text-text-primary">{{ remainingOrgFileAvailable() }} GB</strong>
               </div>
             </div>
