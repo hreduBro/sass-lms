@@ -40,6 +40,8 @@ export interface Tenant {
   isDraft?: boolean;
   timezone?: string;
   description?: string;
+  officialEmail?: string;
+  commonEmail?: string;
   address?: {
     country?: string;
     line1: string;

@@ -154,29 +154,31 @@
 
         <!-- Top Ranked List -->
         <div class="space-y-2.5">
-          <div *ngFor="let sig of mostLinkedSignatories(); let i = index" class="p-3 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/60 dark:border-base-300 flex items-center justify-between gap-3 text-xs hover:border-tenant-500/30 transition-all">
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="w-7 h-7 rounded-xl bg-tenant-100 dark:bg-tenant-900/60 text-tenant-800 dark:text-tenant-300 font-black text-xs flex items-center justify-center shrink-0">
-                #{{ i + 1 }}
-              </span>
-              
-              <!-- Signature Preview Thumbnail -->
-              <div class="w-16 h-8 rounded-lg border border-slate-200 dark:border-base-300 bg-white dark:bg-base-100 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-                <img [src]="sig.signatureImage.fileUrl" [alt]="sig.name" class="max-h-full max-w-full object-contain" />
+          @for (sig of mostLinkedSignatories(); track sig.signatoryId; let i = $index) {
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-base-200/50 border border-slate-200/60 dark:border-base-300 flex items-center justify-between gap-3 text-xs hover:border-tenant-500/30 transition-all">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-7 h-7 rounded-xl bg-tenant-100 dark:bg-tenant-900/60 text-tenant-800 dark:text-tenant-300 font-black text-xs flex items-center justify-center shrink-0">
+                  #{{ i + 1 }}
+                </span>
+                
+                <!-- Signature Preview Thumbnail -->
+                <div class="w-16 h-8 rounded-lg border border-slate-200 dark:border-base-300 bg-white dark:bg-base-100 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                  <img [src]="sig.signatureImage.fileUrl" [alt]="sig.name" class="max-h-full max-w-full object-contain" />
+                </div>
+
+                <div class="min-w-0">
+                  <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
+                  <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
+                </div>
               </div>
 
-              <div class="min-w-0">
-                <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
-                <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-3 py-1 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 font-extrabold text-xs">
+                  {{ sig.linkedTemplateCount }} Templates
+                </span>
               </div>
             </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="px-3 py-1 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 font-extrabold text-xs">
-                {{ sig.linkedTemplateCount }} Templates
-              </span>
-            </div>
-          </div>
+          }
         </div>
 
         <!-- Footer Link -->
@@ -211,15 +213,17 @@
         </div>
 
         <div class="space-y-3.5">
-          <div *ngFor="let dep of departmentStats()" class="space-y-1.5 text-xs">
-            <div class="flex justify-between font-bold">
-              <span class="text-slate-800 dark:text-slate-200">{{ dep.name }}</span>
-              <span class="text-slate-500 font-semibold font-mono">{{ dep.count }} Signatories ({{ dep.percentage }}%)</span>
+          @for (dep of departmentStats(); track dep.name) {
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between font-bold">
+                <span class="text-slate-800 dark:text-slate-200">{{ dep.name }}</span>
+                <span class="text-slate-500 font-semibold font-mono">{{ dep.count }} Signatories ({{ dep.percentage }}%)</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
+                <div class="h-full bg-tenant-500 rounded-full transition-all duration-500" [style.width.%]="dep.percentage"></div>
+              </div>
             </div>
-            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-base-200 overflow-hidden">
-              <div class="h-full bg-tenant-500 rounded-full transition-all duration-500" [style.width.%]="dep.percentage"></div>
-            </div>
-          </div>
+          }
         </div>
 
         <p class="text-[11px] text-slate-400 pt-3 border-t border-slate-100 dark:border-base-300">
@@ -250,19 +254,21 @@
         </div>
 
         <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-          <div *ngFor="let log of changeLogs()" class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/60 dark:border-base-300 text-xs space-y-1 hover:border-amber-300 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ log.signatoryName }}</span>
-              <span class="text-[10px] font-mono text-slate-400">{{ log.changedAt }}</span>
+          @for (log of changeLogs(); track log.id) {
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/60 dark:border-base-300 text-xs space-y-1 hover:border-amber-300 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-slate-900 dark:text-white">{{ log.signatoryName }}</span>
+                <span class="text-[10px] font-mono text-slate-400">{{ log.changedAt }}</span>
+              </div>
+              <p class="text-slate-600 dark:text-slate-300 font-medium">
+                {{ log.actionSummary }}
+              </p>
+              <div class="text-[10px] text-tenant-600 dark:text-tenant-400 font-semibold flex items-center gap-1 pt-0.5">
+                <span class="material-symbols-outlined text-xs">done_all</span>
+                <span>Changed by {{ log.changedBy }}</span>
+              </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300 font-medium">
-              {{ log.actionSummary }}
-            </p>
-            <div class="text-[10px] text-tenant-600 dark:text-tenant-400 font-semibold flex items-center gap-1 pt-0.5">
-              <span class="material-symbols-outlined text-xs">done_all</span>
-              <span>Changed by {{ log.changedBy }}</span>
-            </div>
-          </div>
+          }
         </div>
 
         <p class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-base-300">
@@ -293,16 +299,18 @@
         </div>
 
         <div class="space-y-3">
-          <div *ngFor="let sig of lmsData.signatories().slice(0, 4)" class="flex items-start gap-3 text-xs p-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-base-200/40 transition-colors">
-            <div class="p-2 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 mt-0.5 shrink-0">
-              <span class="material-symbols-outlined text-base">edit_note</span>
+          @for (sig of lmsData.signatories().slice(0, 4); track sig.signatoryId) {
+            <div class="flex items-start gap-3 text-xs p-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-base-200/40 transition-colors">
+              <div class="p-2 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 mt-0.5 shrink-0">
+                <span class="material-symbols-outlined text-base">edit_note</span>
+              </div>
+              <div class="space-y-0.5 min-w-0">
+                <div class="font-bold text-slate-900 dark:text-white truncate">{{ sig.name }} updated profile</div>
+                <p class="text-[11px] text-slate-500 truncate">Designation: {{ sig.designation }}</p>
+                <div class="text-[10px] text-slate-400 font-mono">{{ sig.updatedAt }}</div>
+              </div>
             </div>
-            <div class="space-y-0.5 min-w-0">
-              <div class="font-bold text-slate-900 dark:text-white truncate">{{ sig.name }} updated profile</div>
-              <p class="text-[11px] text-slate-500 truncate">Designation: {{ sig.designation }}</p>
-              <div class="text-[10px] text-slate-400 font-mono">{{ sig.updatedAt }}</div>
-            </div>
-          </div>
+          }
         </div>
 
         <div class="pt-2 flex justify-end">
@@ -336,22 +344,26 @@
         </div>
 
         <div class="space-y-2.5">
-          <div *ngIf="unlinkedSignatories().length === 0" class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-base-300 rounded-2xl">
-            All signatories in the repository are currently linked to at least 1 certificate template.
-          </div>
-
-          <div *ngFor="let sig of unlinkedSignatories()" class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between gap-2 text-xs">
-            <div class="space-y-0.5 min-w-0">
-              <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
-              <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
+          @if (unlinkedSignatories().length === 0) {
+            <div class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-base-300 rounded-2xl">
+              All signatories in the repository are currently linked to at least 1 certificate template.
             </div>
-            <a 
-              routerLink="/certificates/signatories" 
-              class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-[11px] shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
-              <span class="material-symbols-outlined text-xs">link</span>
-              <span>Link Template</span>
-            </a>
-          </div>
+          }
+
+          @for (sig of unlinkedSignatories(); track sig.signatoryId) {
+            <div class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-between gap-2 text-xs">
+              <div class="space-y-0.5 min-w-0">
+                <div class="font-black text-slate-900 dark:text-white truncate">{{ sig.name }}</div>
+                <div class="text-[11px] text-slate-500 truncate">{{ sig.designation }}</div>
+              </div>
+              <a 
+                routerLink="/certificates/signatories" 
+                class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-bold text-[11px] shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-xs">link</span>
+                <span>Link Template</span>
+              </a>
+            </div>
+          }
         </div>
 
         <p class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-base-300">

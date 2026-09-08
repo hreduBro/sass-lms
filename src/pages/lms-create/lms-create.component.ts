@@ -47,6 +47,7 @@ export class LmsCreateComponent implements OnInit {
   programmeDepartment = signal<string>('');
   customDepartment = signal<string>('');
   isAddingNewDept = signal<boolean>(false);
+  commonEmail = signal<string>('');
   summary = signal<string>('');
   goal = signal<string>('');
   lmsType = signal<LmsType>('Private');
@@ -279,6 +280,7 @@ export class LmsCreateComponent implements OnInit {
     if (instance.basicInfo) {
       this.lmsName.set(instance.basicInfo.lmsName || '');
       this.programmeDepartment.set(instance.basicInfo.programmeDepartment || '');
+      this.commonEmail.set(instance.basicInfo.commonEmail || '');
       this.summary.set(instance.basicInfo.summary || '');
       this.goal.set(instance.basicInfo.goal || '');
       this.lmsType.set(instance.basicInfo.lmsType || 'Private');
@@ -337,6 +339,7 @@ export class LmsCreateComponent implements OnInit {
     if (draft.basicInfo) {
       this.lmsName.set(draft.basicInfo.lmsName || '');
       this.programmeDepartment.set(draft.basicInfo.programmeDepartment || '');
+      this.commonEmail.set(draft.basicInfo.commonEmail || '');
       this.summary.set(draft.basicInfo.summary || '');
       this.goal.set(draft.basicInfo.goal || '');
       this.lmsType.set(draft.basicInfo.lmsType || 'Private');
@@ -523,6 +526,14 @@ export class LmsCreateComponent implements OnInit {
 
     if (!tz) {
       newErrors['timezone'] = 'Timezone is mandatory.';
+    }
+
+    const commonEmailVal = (this.commonEmail() || '').trim();
+    if (commonEmailVal) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+      if (!emailRegex.test(commonEmailVal)) {
+        newErrors['commonEmail'] = 'Please enter a valid email address ending with domain extension (.com, .org, etc).';
+      }
     }
 
     this.errors.set(newErrors);
@@ -724,6 +735,7 @@ export class LmsCreateComponent implements OnInit {
     if (step === 1) {
       this.lmsName.set('');
       this.programmeDepartment.set('');
+      this.commonEmail.set('');
       this.summary.set('');
       this.goal.set('');
       this.urlDomain.set('');
@@ -770,6 +782,7 @@ export class LmsCreateComponent implements OnInit {
       basicInfo: {
         lmsName: this.lmsName(),
         programmeDepartment: this.programmeDepartment(),
+        commonEmail: this.commonEmail() || undefined,
         summary: this.summary(),
         goal: this.goal(),
         lmsType: this.lmsType(),
@@ -811,6 +824,7 @@ export class LmsCreateComponent implements OnInit {
         basicInfo: {
           lmsName: this.lmsName(),
           programmeDepartment: this.programmeDepartment(),
+          commonEmail: this.commonEmail() || undefined,
           summary: this.summary(),
           goal: this.goal(),
           lmsType: this.lmsType(),
@@ -860,6 +874,7 @@ export class LmsCreateComponent implements OnInit {
       basicInfo: {
         lmsName: this.lmsName(),
         programmeDepartment: this.programmeDepartment(),
+        commonEmail: this.commonEmail() || undefined,
         summary: this.summary(),
         goal: this.goal(),
         lmsType: this.lmsType(),

@@ -96,7 +96,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           <!-- Organization Name * -->
-          <div>
+          <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-text-primary mb-1">
               Organization Name <span class="text-rose-500">*</span>
             </label>
@@ -105,7 +105,7 @@
               formControlName="organizationName" 
               maxlength="99"
               placeholder="e.g. Apex Global Health Academy"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
               [ngClass]="isFieldInvalid(basicInfoForm, 'organizationName') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
             @if (isFieldInvalid(basicInfoForm, 'organizationName')) {
               <p class="text-[11px] text-rose-500 mt-1">Organization Name is required (up to 99 characters).</p>
@@ -116,16 +116,33 @@
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">
               Organization Official Email
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(Official inquiries / contact)</span>
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(Official inquiries / notifications)</span>
             </label>
             <input 
               type="email" 
-              formControlName="organizationEmail" 
+              formControlName="officialEmail" 
               placeholder="e.g. official@apexhealth.org"
               class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="isFieldInvalid(basicInfoForm, 'organizationEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-            @if (isFieldInvalid(basicInfoForm, 'organizationEmail')) {
+              [ngClass]="isFieldInvalid(basicInfoForm, 'officialEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(basicInfoForm, 'officialEmail')) {
               <p class="text-[11px] text-rose-500 mt-1">Please provide a valid official email ending with domain extension (.com, .org, etc).</p>
+            }
+          </div>
+
+          <!-- Organization Common Email -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Organization Common Email
+              <span class="text-[10px] text-text-secondary font-normal ml-1">(General / public inquiries)</span>
+            </label>
+            <input 
+              type="email" 
+              formControlName="commonEmail" 
+              placeholder="e.g. info@apexhealth.org"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
+              [ngClass]="isFieldInvalid(basicInfoForm, 'commonEmail') ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+            @if (isFieldInvalid(basicInfoForm, 'commonEmail')) {
+              <p class="text-[11px] text-rose-500 mt-1">Please provide a valid common email ending with domain extension (.com, .org, etc).</p>
             }
           </div>
 
@@ -424,7 +441,7 @@
         </div>
       </div>
 
-      <!-- Action Buttons — Step 1 (Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 1 (Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -444,14 +461,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -678,7 +687,7 @@
         </div>
       </div>
 
-      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -706,14 +715,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -851,7 +852,7 @@
 
       </div>
 
-      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -879,14 +880,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -960,10 +953,17 @@
               </div>
             }
 
-            @if (basicInfoForm.get('organizationEmail')?.value) {
+            @if (basicInfoForm.get('officialEmail')?.value || basicInfoForm.get('organizationEmail')?.value) {
               <div>
                 <span class="text-[10px] text-text-secondary block">Official Email</span>
-                <span class="text-text-primary font-medium font-mono text-[11px]">{{ basicInfoForm.get('organizationEmail')?.value }}</span>
+                <span class="text-text-primary font-medium font-mono text-[11px]">{{ basicInfoForm.get('officialEmail')?.value || basicInfoForm.get('organizationEmail')?.value }}</span>
+              </div>
+            }
+
+            @if (basicInfoForm.get('commonEmail')?.value) {
+              <div>
+                <span class="text-[10px] text-text-secondary block">Common Email</span>
+                <span class="text-text-primary font-medium font-mono text-[11px]">{{ basicInfoForm.get('commonEmail')?.value }}</span>
               </div>
             }
 
@@ -1098,7 +1098,20 @@
         </div>
       </div>
 
-      <!-- Action Buttons — Step 4 (Back, Cancel, Reset, Save as draft, Create Organization) -->
+      <!-- Business Rule / Provisioning Notice Showcase in Final Step (§6.1) -->
+      <div class="p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/70 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-3 shadow-xs">
+        <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+          <span class="material-symbols-outlined text-base">mark_email_read</span>
+        </div>
+        <div class="space-y-0.5">
+          <span class="font-bold text-xs text-indigo-950 dark:text-indigo-100 block">Automated User Provisioning Hook</span>
+          <p class="text-[11px] text-indigo-800/90 dark:text-indigo-300 leading-relaxed">
+            While the organization is in progress, the system registers all configured administrators and dispatches workspace setup progress notifications. Upon activation, secure credential links will be delivered to each administrator's email.
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons — Step 4 (Back, Cancel, Reset, Create Organization) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -1126,14 +1139,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onCreateOrganization()" 

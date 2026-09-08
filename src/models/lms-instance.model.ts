@@ -22,6 +22,8 @@ export interface LmsAdminInfo {
 export interface LmsBasicInfo {
   lmsName: string;
   programmeDepartment: string;
+  commonEmail?: string;
+  officialEmail?: string;
   summary?: string;
   goal?: string;
   lmsType: LmsType;

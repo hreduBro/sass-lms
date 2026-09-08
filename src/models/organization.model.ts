@@ -135,6 +135,8 @@ export interface OrganizationBasicInfo {
   tagline?: string;
   description?: string;
   organizationEmail?: string;
+  officialEmail?: string;
+  commonEmail?: string;
   timezone?: string; // Stored IANA value e.g. 'Asia/Dhaka'
   logo?: OrganizationLogo;
   address: OrganizationAddress;
