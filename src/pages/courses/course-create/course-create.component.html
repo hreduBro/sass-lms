@@ -224,193 +224,345 @@
         </div>
 
         <div class="space-y-6">
-          <!-- Cover Preset Selector -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm text-tenant-600">collections</span>
-                Cover Image Artwork Preset
-              </label>
-              <span class="text-[11px] text-text-secondary">Select a curated preset</span>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              @for (preset of coverImagePresets; track preset.url) {
-                <button 
-                  type="button"
-                  (click)="selectCoverPreset(preset)"
-                  class="relative rounded-2xl overflow-hidden border-2 transition-all p-1 text-left cursor-pointer group hover:shadow-xs"
-                  [class]="isPresetSelected(preset.url) ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-200' : 'border-base-300 hover:border-tenant-400 bg-base-100'">
-                  <div class="h-16 w-full rounded-xl overflow-hidden relative">
-                    <img [src]="preset.url" [alt]="preset.label" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" referrerpolicy="no-referrer" />
-                    @if (isPresetSelected(preset.url)) {
-                      <div class="absolute inset-0 bg-tenant-600/35 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white text-base drop-shadow-xs">check_circle</span>
-                      </div>
-                    }
-                  </div>
-                  <span class="block text-[11px] font-semibold text-text-primary truncate mt-1 px-1">{{ preset.label }}</span>
-                </button>
-              }
-            </div>
+          <!-- Custom Select for Cover Image Source Options -->
+          <div>
+            <app-custom-select
+              label="Cover Image Source"
+              hint="Choose between preset artwork collection, local upload, or web URL"
+              [options]="coverImageSourceOptions"
+              [value]="coverSourceType()"
+              (valueChange)="onCoverSourceChange($event)"
+              placeholder="Select cover image option...">
+            </app-custom-select>
           </div>
 
-          <!-- Local Machine Image Uploader (Drag & Drop + Click to Browse) -->
-          <div class="space-y-3 pt-1">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm text-tenant-600">add_photo_alternate</span>
-                Upload Image 
-              </label>
-              <span class="text-[11px] font-mono text-text-secondary">Library Card Ratio 16:9</span>
+          <!-- Feature 1: Cover Image Artwork Preset Collection -->
+          @if (coverSourceType() === 'preset') {
+            <div class="p-4 sm:p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-3 animate-fadeIn">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">collections</span>
+                  Cover Image Artwork Presets
+                </label>
+                <span class="text-[11px] text-text-secondary">Select a curated preset (16:9 ratio)</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                @for (preset of coverImagePresets; track preset.url) {
+                  <button 
+                    type="button"
+                    (click)="selectCoverPreset(preset)"
+                    class="relative rounded-2xl overflow-hidden border-2 transition-all p-1 text-left cursor-pointer group hover:shadow-xs"
+                    [class]="isPresetSelected(preset.url) ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100' : 'border-base-300 hover:border-tenant-400 bg-base-100'">
+                    <div class="h-16 w-full rounded-xl overflow-hidden relative">
+                      <img [src]="preset.url" [alt]="preset.label" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" referrerpolicy="no-referrer" />
+                      @if (isPresetSelected(preset.url)) {
+                        <div class="absolute inset-0 bg-tenant-600/40 flex items-center justify-center">
+                          <span class="material-symbols-outlined text-white text-base drop-shadow-xs">check_circle</span>
+                        </div>
+                      }
+                    </div>
+                    <span class="block text-[11px] font-semibold text-text-primary truncate mt-1 px-1">{{ preset.label }}</span>
+                  </button>
+                }
+              </div>
             </div>
+          }
 
-            <!-- Hidden file input -->
-            <input 
-              #imageFileInput 
-              type="file" 
-              (change)="onImageFileSelected($event)" 
-              accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" 
-              class="hidden" />
+          <!-- Feature 2: Local Machine Image Uploader (Drag & Drop + Click to Browse) -->
+          @if (coverSourceType() === 'upload') {
+            <div class="p-4 sm:p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-3 animate-fadeIn">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">add_photo_alternate</span>
+                  Upload Image from Device
+                </label>
+                <span class="text-[11px] font-mono text-text-secondary">Library Card Ratio 16:9</span>
+              </div>
 
-            <!-- Uploaded Image Display (16:9 Course Library Card Banner Size) -->
-            @if (customUploadedImage() && isCustomImageActive()) {
-              <div class="relative rounded-3xl overflow-hidden border-2 border-tenant-500/40 bg-base-200/50 p-3 sm:p-4 space-y-3">
-                <!-- 16:9 Card Image Canvas (Matching Course Library Card Banner) -->
-                <div class="relative w-full aspect-video max-h-56 sm:max-h-64 rounded-2xl overflow-hidden border border-base-300 shadow-xs group bg-base-300">
-                  <img 
-                    [src]="customUploadedImage()" 
-                    alt="Uploaded Course Banner" 
-                    class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" 
-                    referrerpolicy="no-referrer" />
-                  
-                  <!-- Gradient and Badges overlay like in Course Library -->
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
-                  
-                  <div class="absolute top-3 left-3 flex items-center gap-1.5">
-                    <span class="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                      <span class="material-symbols-outlined text-xs text-emerald-400">check_circle</span>
-                      Active Course Banner (16:9)
-                    </span>
-                  </div>
+              <!-- Hidden file input -->
+              <input 
+                #imageFileInput 
+                type="file" 
+                (change)="onImageFileSelected($event)" 
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" 
+                class="hidden" />
 
-                  <!-- Hover quick replace & remove buttons -->
-                  <div class="absolute inset-0 flex items-center justify-center gap-2.5 opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-2xs transition-opacity duration-200">
-                    <button 
-                      type="button" 
-                      (click)="imageFileInput.click()"
-                      class="px-3.5 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer transition-all">
-                      <span class="material-symbols-outlined text-sm">sync</span>
-                      Change Image
-                    </button>
-                    <button 
-                      type="button" 
-                      (click)="clearUploadedImage()"
-                      class="px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-lg hover:bg-rose-700 flex items-center gap-1.5 cursor-pointer transition-all">
-                      <span class="material-symbols-outlined text-sm">delete</span>
-                      Remove
-                    </button>
-                  </div>
-                </div>
+              <!-- Uploaded Image Display (16:9 Course Library Card Banner Size) -->
+              @if (customUploadedImage() && isCustomImageActive()) {
+                <div class="relative rounded-2xl overflow-hidden border border-tenant-500/40 bg-base-100 p-3 sm:p-4 space-y-3">
+                  <!-- 16:9 Card Image Canvas (Matching Course Library Card Banner) -->
+                  <div class="relative w-full aspect-video max-h-56 sm:max-h-64 rounded-xl overflow-hidden border border-base-300 shadow-xs group bg-base-300">
+                    <img 
+                      [src]="customUploadedImage()" 
+                      alt="Uploaded Course Banner" 
+                      class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" 
+                      referrerpolicy="no-referrer" />
+                    
+                    <!-- Gradient and Badges overlay like in Course Library -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    
+                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                      <span class="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs text-emerald-400">check_circle</span>
+                        Active Course Banner (16:9)
+                      </span>
+                    </div>
 
-                <!-- File metadata bar & controls -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1 px-1">
-                  <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
-                      <span class="material-symbols-outlined text-sm">image</span>
-                    </span>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-text-primary truncate max-w-[220px] sm:max-w-xs">
-                          {{ uploadedImageFileName() || 'Custom Banner Image' }}
-                        </span>
-                        @if (uploadedImageFileSize()) {
-                          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-base-300 text-text-secondary font-semibold">
-                            {{ uploadedImageFileSize() }}
-                          </span>
-                        }
-                      </div>
-                      <span class="text-[10px] text-text-secondary">Formatted to 16:9 ratio for Course Library</span>
+                    <!-- Hover quick replace & remove buttons -->
+                    <div class="absolute inset-0 flex items-center justify-center gap-2.5 opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-2xs transition-opacity duration-200">
+                      <button 
+                        type="button" 
+                        (click)="imageFileInput.click()"
+                        class="px-3.5 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer transition-all">
+                        <span class="material-symbols-outlined text-sm">sync</span>
+                        Change Image
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="clearUploadedImage()"
+                        class="px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-lg hover:bg-rose-700 flex items-center gap-1.5 cursor-pointer transition-all">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Remove
+                      </button>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button 
-                      type="button" 
-                      (click)="imageFileInput.click()"
-                      class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors">
-                      <span class="material-symbols-outlined text-xs">sync</span>
-                      Replace File
-                    </button>
-                    <button 
-                      type="button" 
-                      (click)="clearUploadedImage()"
-                      class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-200 dark:border-rose-800/60 flex items-center gap-1 cursor-pointer transition-colors">
-                      <span class="material-symbols-outlined text-xs">delete</span>
-                      Reset
-                    </button>
+                  <!-- File metadata bar & controls -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1 px-1">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm">image</span>
+                      </span>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-bold text-text-primary truncate max-w-[220px] sm:max-w-xs">
+                            {{ uploadedImageFileName() || 'Custom Banner Image' }}
+                          </span>
+                          @if (uploadedImageFileSize()) {
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-base-300 text-text-secondary font-semibold">
+                              {{ uploadedImageFileSize() }}
+                            </span>
+                          }
+                        </div>
+                        <span class="text-[10px] text-text-secondary">Formatted to 16:9 ratio for Course Library</span>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button 
+                        type="button" 
+                        (click)="imageFileInput.click()"
+                        class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors">
+                        <span class="material-symbols-outlined text-xs">sync</span>
+                        Replace File
+                      </button>
+                      <button 
+                        type="button" 
+                        (click)="clearUploadedImage()"
+                        class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-200 dark:border-rose-800/60 flex items-center gap-1 cursor-pointer transition-colors">
+                        <span class="material-symbols-outlined text-xs">delete</span>
+                        Reset
+                      </button>
+                    </div>
                   </div>
                 </div>
+              } @else {
+                <!-- Empty Drag and drop zone -->
+                <div 
+                  (dragover)="onImageDragOver($event)"
+                  (dragleave)="onImageDragLeave($event)"
+                  (drop)="onImageDrop($event)"
+                  (click)="imageFileInput.click()"
+                  class="relative border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer group flex flex-col items-center justify-center gap-3"
+                  [class]="isDraggingOver() 
+                    ? 'border-tenant-500 bg-tenant-500/10 ring-4 ring-tenant-500/20' 
+                    : 'border-base-300 bg-base-100 hover:bg-base-200/60 hover:border-tenant-400'">
+                  
+                  <div class="w-14 h-14 rounded-2xl bg-tenant-500/10 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+                  </div>
+
+                  <div class="space-y-1">
+                    <p class="text-xs sm:text-sm font-bold text-text-primary">
+                      Drag and drop your course banner image here, or 
+                      <span class="text-tenant-600 dark:text-tenant-400 underline underline-offset-2">browse files</span>
+                    </p>
+                    <p class="text-[11px] text-text-secondary">
+                      Recommended: 16:9 ratio (e.g., 1200 &times; 675 or 800 &times; 450) to match Course Cards
+                    </p>
+                  </div>
+
+                  <!-- Recommendation badge -->
+                  <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <span class="px-2.5 py-1 rounded-lg bg-base-200 border border-base-300 text-[10px] font-mono font-semibold text-text-secondary flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs text-tenant-600">aspect_ratio</span>
+                      16:9 Aspect Ratio
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg bg-base-200 border border-base-300 text-[10px] font-mono font-semibold text-text-secondary">
+                      PNG, JPG, WebP, SVG (Max 5MB)
+                    </span>
+                  </div>
+
+                  @if (imageUploadError()) {
+                    <div class="mt-2 text-xs text-rose-500 flex items-center gap-1 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20">
+                      <span class="material-symbols-outlined text-xs">error</span>
+                      <span>{{ imageUploadError() }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Feature 3: Custom Cover Image URL + Live Previewer -->
+          @if (coverSourceType() === 'url') {
+            <div class="p-4 sm:p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-4 animate-fadeIn">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-tenant-600">link</span>
+                  Custom Cover Image URL
+                </label>
+                <span class="text-[11px] text-text-secondary">Direct Web Image Link</span>
               </div>
-            } @else {
-              <!-- Empty Drag and drop zone -->
-              <div 
-                (dragover)="onImageDragOver($event)"
-                (dragleave)="onImageDragLeave($event)"
-                (drop)="onImageDrop($event)"
-                (click)="imageFileInput.click()"
-                class="relative border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center transition-all cursor-pointer group flex flex-col items-center justify-center gap-3"
-                [class]="isDraggingOver() 
-                  ? 'border-tenant-500 bg-tenant-500/10 ring-4 ring-tenant-500/20' 
-                  : 'border-base-300 bg-base-200/40 hover:bg-base-200/80 hover:border-tenant-400'">
-                
-                <div class="w-14 h-14 rounded-2xl bg-tenant-500/10 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-2xl">cloud_upload</span>
-                </div>
 
-                <div class="space-y-1">
-                  <p class="text-xs sm:text-sm font-bold text-text-primary">
-                    Drag and drop your course banner image here, or 
-                    <span class="text-tenant-600 dark:text-tenant-400 underline underline-offset-2">browse files</span>
-                  </p>
-                  <p class="text-[11px] text-text-secondary">
-                    Size: 16:9 ratio (e.g., 1200 &times; 675 or 800 &times; 450) to match the Course Library card
-                  </p>
-                </div>
-
-                <!-- Recommendation badge -->
-                <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
-                  <span class="px-2.5 py-1 rounded-lg bg-base-100 border border-base-300 text-[10px] font-mono font-semibold text-text-secondary flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs text-tenant-600">aspect_ratio</span>
-                    16:9 Aspect Ratio
+              <!-- URL Input Field with clear & quick actions -->
+              <div class="space-y-1.5">
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3 text-text-secondary text-base pointer-events-none">
+                    link
                   </span>
-                  <span class="px-2.5 py-1 rounded-lg bg-base-100 border border-base-300 text-[10px] font-mono font-semibold text-text-secondary">
-                    PNG, JPG, WebP, SVG (Max 5MB)
+                  <input 
+                    type="url" 
+                    formControlName="coverImage"
+                    #urlInput
+                    (input)="onUrlInputChanged(urlInput.value)"
+                    placeholder="https://images.unsplash.com/photo-... or https://example.com/banner.jpg"
+                    class="w-full pl-9 pr-24 py-2.5 rounded-xl bg-base-100 border border-base-300 text-xs font-mono focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20 transition-all text-text-primary" />
+                  
+                  <div class="absolute right-2 flex items-center gap-1">
+                    @if (detailsForm.get('coverImage')?.value) {
+                      <button
+                        type="button"
+                        (click)="clearCoverUrl()"
+                        class="px-2 py-1 rounded-lg hover:bg-base-200 text-text-secondary hover:text-rose-500 text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer transition-colors"
+                        title="Clear URL">
+                        <span class="material-symbols-outlined text-xs">close</span>
+                        Clear
+                      </button>
+                    }
+                  </div>
+                </div>
+                <p class="text-[11px] text-text-secondary">
+                  Enter any publicly accessible direct image URL (HTTPS recommended). The live previewer will render below.
+                </p>
+              </div>
+
+              <!-- Live Image Previewer (16:9 Canvas) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-tenant-600">preview</span>
+                    Live 16:9 Image Previewer
                   </span>
+                  @if (detailsForm.get('coverImage')?.value && !urlImageLoadError()) {
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs">check_circle</span>
+                      Preview Ready
+                    </span>
+                  }
                 </div>
 
-                @if (imageUploadError()) {
-                  <div class="mt-2 text-xs text-rose-500 flex items-center gap-1 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20">
-                    <span class="material-symbols-outlined text-xs">error</span>
-                    <span>{{ imageUploadError() }}</span>
+                @if (detailsForm.get('coverImage')?.value) {
+                  <!-- Valid or Testing Image Container (16:9 Aspect Ratio) -->
+                  <div class="relative w-full aspect-video max-h-64 sm:max-h-72 rounded-2xl overflow-hidden border border-base-300 shadow-sm bg-base-300 group">
+                    @if (urlImageLoadError()) {
+                      <!-- Error State -->
+                      <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-rose-50/50 dark:bg-rose-950/20 space-y-2">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                          <span class="material-symbols-outlined text-2xl">broken_image</span>
+                        </div>
+                        <div class="space-y-1 max-w-sm">
+                          <p class="text-xs font-bold text-rose-600 dark:text-rose-400">Unable to load image from URL</p>
+                          <p class="text-[11px] text-text-secondary">
+                            Please check the URL syntax and ensure the image is publicly accessible.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          (click)="onUrlInputChanged(urlInput.value)"
+                          class="mt-2 px-3 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold text-text-primary hover:bg-base-200 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
+                          <span class="material-symbols-outlined text-xs">refresh</span>
+                          Retry Loading
+                        </button>
+                      </div>
+                    } @else {
+                      <!-- Rendered Image with 16:9 Cover Fit -->
+                      <img 
+                        [src]="detailsForm.get('coverImage')?.value" 
+                        alt="Custom Course Cover Preview"
+                        (load)="onUrlImageLoad()"
+                        (error)="onUrlImageError()"
+                        class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        referrerpolicy="no-referrer" />
+                      
+                      <!-- Subtle gradient overlay -->
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                      
+                      <!-- Top Left Badges -->
+                      <div class="absolute top-3 left-3 flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs text-emerald-400">verified</span>
+                          Live 16:9 Banner
+                        </span>
+                        <span class="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-xs text-white text-[10px] font-mono">
+                          16:9 Ratio
+                        </span>
+                      </div>
+
+                      <!-- Bottom Bar Info -->
+                      <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+                        <div class="flex items-center gap-1.5 truncate max-w-[80%]">
+                          <span class="material-symbols-outlined text-xs opacity-75">link</span>
+                          <span class="text-[11px] font-mono truncate opacity-90">{{ detailsForm.get('coverImage')?.value }}</span>
+                        </div>
+                        <a 
+                          [href]="detailsForm.get('coverImage')?.value" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          class="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-xs text-white text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0">
+                          <span class="material-symbols-outlined text-xs">open_in_new</span>
+                          Open
+                        </a>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <!-- Empty State for Previewer -->
+                  <div class="w-full aspect-video max-h-52 rounded-2xl border-2 border-dashed border-base-300 bg-base-100 flex flex-col items-center justify-center p-6 text-center space-y-2.5">
+                    <div class="w-12 h-12 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center">
+                      <span class="material-symbols-outlined text-2xl">image</span>
+                    </div>
+                    <div class="space-y-0.5 max-w-sm">
+                      <p class="text-xs font-bold text-text-primary">Previewer Ready</p>
+                      <p class="text-[11px] text-text-secondary">
+                        Enter or paste an image URL in the input field above to preview how your banner appears on course catalog cards in 16:9 aspect ratio.
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        (click)="pasteSampleCoverUrl('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80')"
+                        class="px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                        <span class="material-symbols-outlined text-xs text-tenant-600">auto_fix_high</span>
+                        Try Sample Unsplash URL
+                      </button>
+                    </div>
                   </div>
                 }
               </div>
-            }
-          </div>
-
-          <!-- Custom Cover URL (Secondary/Direct Option) -->
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-text-primary flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs text-text-secondary">link</span>
-              Or Custom Cover Image URL
-            </label>
-            <input 
-              type="text" 
-              formControlName="coverImage"
-              placeholder="https://images.unsplash.com/..."
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono focus:outline-none focus:border-tenant-500 transition-all" />
-          </div>
+            </div>
+          }
 
           <!-- Course Tags -->
           <div class="space-y-2 pt-1">

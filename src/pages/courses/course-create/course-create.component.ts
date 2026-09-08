@@ -136,6 +136,34 @@ export class CourseCreateComponent implements OnInit {
     label: p.label
   }));
 
+  // Cover Image Source Mode: 'preset' | 'upload' | 'url'
+  coverSourceType = signal<'preset' | 'upload' | 'url'>('preset');
+
+  coverImageSourceOptions: SelectOption[] = [
+    {
+      value: 'preset',
+      label: 'Cover Image Artwork Preset',
+      sublabel: 'Choose from curated banner artwork presets',
+      icon: 'collections'
+    },
+    {
+      value: 'upload',
+      label: 'Upload Image',
+      sublabel: 'Drag & drop or browse from local machine (16:9 ratio)',
+      icon: 'add_photo_alternate'
+    },
+    {
+      value: 'url',
+      label: 'Custom Cover Image URL',
+      sublabel: 'Direct web image link with live 16:9 previewer',
+      icon: 'link'
+    }
+  ];
+
+  // Custom Cover URL Previewer State
+  urlImageLoadError = signal<boolean>(false);
+  isUrlImageLoading = signal<boolean>(false);
+
   // Local Image Uploader State
   uploadedImageFileName = signal<string>('');
   uploadedImageFileSize = signal<string>('');
@@ -574,6 +602,18 @@ export class CourseCreateComponent implements OnInit {
       coverImage: course.coverImage
     });
 
+    if (course.coverImage) {
+      if (this.coverImagePresets.some(p => p.url === course.coverImage)) {
+        this.coverSourceType.set('preset');
+      } else if (course.coverImage.startsWith('data:image/')) {
+        this.coverSourceType.set('upload');
+        this.customUploadedImage.set(course.coverImage);
+        this.uploadedImageFileName.set('Uploaded Course Banner');
+      } else {
+        this.coverSourceType.set('url');
+      }
+    }
+
     this.courseTags.set([...course.tags]);
     this.selectedLayerCount.set(course.structureConfig.layerCount);
     this.layer1Label.set(course.structureConfig.layerLabels[0] || 'Chapter');
@@ -638,6 +678,56 @@ export class CourseCreateComponent implements OnInit {
 
   removeTag(tag: string) {
     this.courseTags.update(t => t.filter(x => x !== tag));
+  }
+
+  // Cover Image Mode Switcher & URL Previewer
+  onCoverSourceChange(source: any) {
+    const src = (source || 'preset') as 'preset' | 'upload' | 'url';
+    this.coverSourceType.set(src);
+    this.urlImageLoadError.set(false);
+    this.imageUploadError.set(null);
+    if (src === 'preset') {
+      const current = this.detailsForm.get('coverImage')?.value;
+      if (!current || !this.coverImagePresets.some(p => p.url === current)) {
+        this.detailsForm.patchValue({ coverImage: this.coverImagePresets[0].url });
+      }
+    } else if (src === 'upload') {
+      if (this.customUploadedImage()) {
+        this.detailsForm.patchValue({ coverImage: this.customUploadedImage() });
+      }
+    }
+  }
+
+  onUrlImageError() {
+    this.urlImageLoadError.set(true);
+    this.isUrlImageLoading.set(false);
+  }
+
+  onUrlImageLoad() {
+    this.urlImageLoadError.set(false);
+    this.isUrlImageLoading.set(false);
+  }
+
+  onUrlInputChanged(newUrl: string) {
+    this.urlImageLoadError.set(false);
+    if (newUrl && newUrl.trim()) {
+      this.isUrlImageLoading.set(true);
+    } else {
+      this.isUrlImageLoading.set(false);
+    }
+  }
+
+  clearCoverUrl() {
+    this.detailsForm.patchValue({ coverImage: '' });
+    this.urlImageLoadError.set(false);
+    this.isUrlImageLoading.set(false);
+  }
+
+  pasteSampleCoverUrl(sampleUrl: string) {
+    this.detailsForm.patchValue({ coverImage: sampleUrl });
+    this.urlImageLoadError.set(false);
+    this.isUrlImageLoading.set(true);
+    this.lmsService.showToast('Sample image URL loaded into previewer!', 'info', 2000, 'Sample Loaded');
   }
 
   // Cover Image & Local File Uploader
