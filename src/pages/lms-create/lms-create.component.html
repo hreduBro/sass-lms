@@ -824,7 +824,7 @@
                 </div>
                 <div class="space-y-0.5 pt-1">
                   <div class="text-text-secondary text-[11px]">Assigned Subdomain:</div>
-                  <div class="font-mono font-medium text-tenant-600 text-[11px] truncate">{{ urlDomain() }}.{{ parentOrg().shortName.toLowerCase() || 'cloud' }}.edu</div>
+                  <div class="font-mono font-medium text-tenant-600 text-[11px] truncate">{{ urlDomain() || 'N/A' }}</div>
                 </div>
               </div>
 
@@ -969,7 +969,7 @@
         </div>
         <div class="flex justify-between">
           <span>Primary Admin:</span>
-          <strong class="text-text-primary">{{ adminName() }}</strong>
+          <strong class="text-text-primary">{{ getAllAdmins()[0]?.name || 'N/A' }}</strong>
         </div>
       </div>
 
