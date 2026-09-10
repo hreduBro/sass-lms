@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, DestroyRef } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
@@ -38,13 +39,22 @@ export interface PageMenuItem {
   icon: string;
 }
 
+export interface ChildClassSuggestion {
+  name: string;
+  type: string;
+  desc: string;
+  snippet?: string;
+}
+
 export interface ScopedCssElement {
   id: string;
   name: string;
   selector: string;
   isOpen: boolean;
   enabled: boolean;
+  removeOriginalStyles: boolean;
   code: string;
+  childClasses: ChildClassSuggestion[];
   quickSnippets?: { label: string; snippet: string }[];
 }
 
@@ -67,6 +77,7 @@ export class LoginBrandingEditComponent {
   router = inject(Router);
   private document = inject(DOCUMENT);
   private destroyRef = inject(DestroyRef);
+  sanitizer = inject(DomSanitizer);
 
   // Top Section: Portal Mode & Environment
   portalTab = signal<BrandingPortalTab>('authkit');
@@ -128,6 +139,14 @@ export class LoginBrandingEditComponent {
   orgSearchTerm = signal<string>('');
   ssoConsentGranted = signal<boolean>(false);
   bannerDismissed = signal<boolean>(false);
+  sanitizedCustomCss = computed<SafeHtml>(() => {
+    const css = this.formData().customCss || '';
+    return this.sanitizer.bypassSecurityTrustHtml(`<style id="authkit-live-custom-css">\n${css}\n</style>`);
+  });
+  sanitizedCustomHtml = computed<SafeHtml>(() => {
+    const html = this.formData().customHtml || '';
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
   newBulletText = signal<string>('');
   newBulletIcon = signal<string>('verified');
 
@@ -143,7 +162,16 @@ export class LoginBrandingEditComponent {
       selector: '.ak-Background', 
       isOpen: true, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-Background {\n  \n}',
+      childClasses: [
+        { name: '.ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link', snippet: '  .ak-BackLink {\n    \n  }' },
+        { name: '.ak-Content', type: 'CSS class', desc: 'Inner content panel layout', snippet: '  .ak-Content {\n    \n  }' },
+        { name: '.ak-Canvas', type: 'CSS class', desc: 'Full viewport canvas surface', snippet: '  .ak-Canvas {\n    \n  }' },
+        { name: '.ak-Illustration', type: 'CSS class', desc: 'Background artwork & illustration', snippet: '  .ak-Illustration {\n    \n  }' },
+        { name: '.ak-Footer', type: 'CSS class', desc: 'Legal and footer links container', snippet: '  .ak-Footer {\n    \n  }' },
+        { name: '&:hover', type: 'Pseudo-class', desc: 'Hover interactive state', snippet: '  &:hover {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Soft Lavender', snippet: '  background-color: #f5f3ff;' },
         { label: 'Deep Slate', snippet: '  background-color: #0f172a;' },
@@ -154,9 +182,16 @@ export class LoginBrandingEditComponent {
       id: 'header', 
       name: 'Header', 
       selector: '.ak-Header', 
-      isOpen: false, 
+      isOpen: true, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-Header {\n  \n}',
+      childClasses: [
+        { name: '.ak-Logo', type: 'CSS class', desc: 'Brand logo image', snippet: '  .ak-Logo {\n    \n  }' },
+        { name: '.ak-Title', type: 'CSS class', desc: 'Page headline title', snippet: '  .ak-Title {\n    \n  }' },
+        { name: '.ak-Subtitle', type: 'CSS class', desc: 'Subheadline description text', snippet: '  .ak-Subtitle {\n    \n  }' },
+        { name: '.ak-HeaderDivider', type: 'CSS class', desc: 'Divider line below header', snippet: '  .ak-HeaderDivider {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Centered Tracking', snippet: '  text-align: center;\n  letter-spacing: -0.025em;' },
         { label: 'Accent Border', snippet: '  border-bottom: 2px solid #6366f1;\n  padding-bottom: 0.5rem;' }
@@ -168,7 +203,16 @@ export class LoginBrandingEditComponent {
       selector: '.ak-Card', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-Card {\n  \n}',
+      childClasses: [
+        { name: '.ak-CardHeader', type: 'CSS class', desc: 'Card top title & logo area', snippet: '  .ak-CardHeader {\n    \n  }' },
+        { name: '.ak-CardBody', type: 'CSS class', desc: 'Card form controls surface', snippet: '  .ak-CardBody {\n    \n  }' },
+        { name: '.ak-CardFooter', type: 'CSS class', desc: 'Card bottom links & copyright', snippet: '  .ak-CardFooter {\n    \n  }' },
+        { name: '.ak-Divider', type: 'CSS class', desc: 'Horizontal rule separator', snippet: '  .ak-Divider {\n    \n  }' },
+        { name: '.ak-DividerText', type: 'CSS class', desc: '"OR" badge text on divider', snippet: '  .ak-DividerText {\n    \n  }' },
+        { name: '.ak-Badge', type: 'CSS class', desc: 'Status pill badge (e.g. Last used)', snippet: '  .ak-Badge {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Elevated Shadow', snippet: '  border-radius: 16px;\n  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);\n  border: 1px solid #e2e8f0;' },
         { label: 'Dark Glass', snippet: '  background: rgba(15, 23, 42, 0.85) !important;\n  backdrop-filter: blur(16px);\n  border: 1px solid rgba(255, 255, 255, 0.15);' },
@@ -181,7 +225,16 @@ export class LoginBrandingEditComponent {
       selector: '.ak-PrimaryButton', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-PrimaryButton {\n  \n}',
+      childClasses: [
+        { name: '.ak-ButtonText', type: 'CSS class', desc: 'Button label typography', snippet: '  .ak-ButtonText {\n    \n  }' },
+        { name: '.ak-ButtonIcon', type: 'CSS class', desc: 'Arrow / action icon element', snippet: '  .ak-ButtonIcon {\n    \n  }' },
+        { name: '.ak-Spinner', type: 'CSS class', desc: 'Loading progress spinner', snippet: '  .ak-Spinner {\n    \n  }' },
+        { name: '&:hover', type: 'Pseudo-class', desc: 'Button hover state', snippet: '  &:hover {\n    \n  }' },
+        { name: '&:active', type: 'Pseudo-class', desc: 'Button active click state', snippet: '  &:active {\n    \n  }' },
+        { name: '&:disabled', type: 'Pseudo-class', desc: 'Button disabled state', snippet: '  &:disabled {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'AuthKit Purple Pill', snippet: '  background-color: #9333ea !important;\n  border-radius: 9999px !important;\n  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);' },
         { label: 'Emerald Glow', snippet: '  background-color: #059669 !important;\n  border-radius: 12px;\n  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);' },
@@ -194,7 +247,14 @@ export class LoginBrandingEditComponent {
       selector: '.ak-SecondaryButton', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-SecondaryButton {\n  \n}',
+      childClasses: [
+        { name: '.ak-SSOIcon', type: 'CSS class', desc: 'SSO provider logo icon', snippet: '  .ak-SSOIcon {\n    \n  }' },
+        { name: '.ak-SSOText', type: 'CSS class', desc: 'Provider label text', snippet: '  .ak-SSOText {\n    \n  }' },
+        { name: '&:hover', type: 'Pseudo-class', desc: 'Button hover state', snippet: '  &:hover {\n    \n  }' },
+        { name: '&:active', type: 'Pseudo-class', desc: 'Button active state', snippet: '  &:active {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Subtle Ghost', snippet: '  background: transparent;\n  border: 1px solid #e2e8f0;\n  border-radius: 12px;' },
         { label: 'Pill Outline', snippet: '  border-radius: 9999px;\n  border: 1.5px solid #cbd5e1;' }
@@ -206,7 +266,15 @@ export class LoginBrandingEditComponent {
       selector: '.ak-TextField', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-TextField {\n  \n}',
+      childClasses: [
+        { name: 'input', type: 'Element', desc: 'Native input element inside container', snippet: '  input {\n    \n  }' },
+        { name: '.ak-InputIcon', type: 'CSS class', desc: 'Leading email/password icon', snippet: '  .ak-InputIcon {\n    \n  }' },
+        { name: '.ak-InputTrailing', type: 'CSS class', desc: 'Password visibility button', snippet: '  .ak-InputTrailing {\n    \n  }' },
+        { name: '&:focus-within', type: 'Pseudo-class', desc: 'Input focus state container', snippet: '  &:focus-within {\n    \n  }' },
+        { name: '&.ak-Error', type: 'CSS class', desc: 'Validation error state', snippet: '  &.ak-Error {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Pill Input', snippet: '  border-radius: 9999px !important;\n  padding-left: 1.25rem !important;\n  border-color: #e2e8f0;' },
         { label: 'Clean Focus', snippet: '  border-radius: 10px;\n  border: 1.5px solid #94a3b8;\n  background: #ffffff;' }
@@ -218,7 +286,13 @@ export class LoginBrandingEditComponent {
       selector: '.ak-Label', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-Label {\n  \n}',
+      childClasses: [
+        { name: '.ak-RequiredMark', type: 'CSS class', desc: 'Required asterisk mark', snippet: '  .ak-RequiredMark {\n    \n  }' },
+        { name: '.ak-LabelHelp', type: 'CSS class', desc: 'Helper description text', snippet: '  .ak-LabelHelp {\n    \n  }' },
+        { name: '.ak-LabelAction', type: 'CSS class', desc: 'Forgot password link action', snippet: '  .ak-LabelAction {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Caps Tracker', snippet: '  text-transform: uppercase;\n  letter-spacing: 0.05em;\n  font-size: 0.65rem;\n  font-weight: 700;' },
         { label: 'Subtle Indigo', snippet: '  color: #4f46e5;\n  font-weight: 600;' }
@@ -230,7 +304,14 @@ export class LoginBrandingEditComponent {
       selector: '.ak-Callout', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-Callout {\n  \n}',
+      childClasses: [
+        { name: '.ak-CalloutIcon', type: 'CSS class', desc: 'Status notification icon', snippet: '  .ak-CalloutIcon {\n    \n  }' },
+        { name: '.ak-CalloutText', type: 'CSS class', desc: 'Notification message copy', snippet: '  .ak-CalloutText {\n    \n  }' },
+        { name: '.ak-CalloutAction', type: 'CSS class', desc: 'Action button / link', snippet: '  .ak-CalloutAction {\n    \n  }' },
+        { name: '.ak-CalloutClose', type: 'CSS class', desc: 'Dismiss close button', snippet: '  .ak-CalloutClose {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Modern Banner', snippet: '  border-radius: 14px;\n  backdrop-filter: blur(12px);\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);' }
       ]
@@ -241,7 +322,14 @@ export class LoginBrandingEditComponent {
       selector: '.ak-OrganizationSelection', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-OrganizationSelection {\n  \n}',
+      childClasses: [
+        { name: '.ak-OrgItem', type: 'CSS class', desc: 'Organization row button', snippet: '  .ak-OrgItem {\n    \n  }' },
+        { name: '.ak-OrgLogo', type: 'CSS class', desc: 'Organization brand avatar', snippet: '  .ak-OrgLogo {\n    \n  }' },
+        { name: '.ak-OrgName', type: 'CSS class', desc: 'Workspace organization name', snippet: '  .ak-OrgName {\n    \n  }' },
+        { name: '.ak-OrgRole', type: 'CSS class', desc: 'User role pill badge', snippet: '  .ak-OrgRole {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Grid Card', snippet: '  border-radius: 14px;\n  border: 1px solid #e2e8f0;' }
       ]
@@ -252,7 +340,13 @@ export class LoginBrandingEditComponent {
       selector: '.ak-SSOProfileTrigger', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-SSOProfileTrigger {\n  \n}',
+      childClasses: [
+        { name: '.ak-Avatar', type: 'CSS class', desc: 'User profile avatar circle', snippet: '  .ak-Avatar {\n    \n  }' },
+        { name: '.ak-ProfileEmail', type: 'CSS class', desc: 'User email typography', snippet: '  .ak-ProfileEmail {\n    \n  }' },
+        { name: '.ak-TriggerChevron', type: 'CSS class', desc: 'Dropdown expand arrow', snippet: '  .ak-TriggerChevron {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Pill Trigger', snippet: '  border-radius: 9999px;\n  border: 1px solid #e2e8f0;' }
       ]
@@ -263,7 +357,13 @@ export class LoginBrandingEditComponent {
       selector: '.ak-SSOProfileMenu', 
       isOpen: false, 
       enabled: true, 
-      code: '  ',
+      removeOriginalStyles: false,
+      code: '.ak-SSOProfileMenu {\n  \n}',
+      childClasses: [
+        { name: '.ak-MenuItem', type: 'CSS class', desc: 'Menu action item row', snippet: '  .ak-MenuItem {\n    \n  }' },
+        { name: '.ak-MenuDivider', type: 'CSS class', desc: 'Menu section separator', snippet: '  .ak-MenuDivider {\n    \n  }' },
+        { name: '.ak-SignOutItem', type: 'CSS class', desc: 'Logout button action', snippet: '  .ak-SignOutItem {\n    \n  }' }
+      ],
       quickSnippets: [
         { label: 'Elevated Dropdown', snippet: '  border-radius: 16px;\n  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);' }
       ]
@@ -273,12 +373,15 @@ export class LoginBrandingEditComponent {
   // Active element inspected on preview canvas
   activeInspectedElement = signal<string>('Background');
   isOverridesMenuOpen = signal<boolean>(false);
+  activeBlockMenuId = signal<string | null>(null);
   removeOriginalStyles = signal<boolean>(false);
   cssEditorMode = signal<'guided' | 'raw'>('guided');
   expandedScopedElement = signal<ScopedCssElement | null>(null);
   showAutocomplete = signal<boolean>(false);
   activeAutocompleteElementId = signal<string | null>('background');
   autocompleteFilter = signal<string>('');
+  autocompleteSearch = signal<string>('');
+  autocompleteCursorLine = signal<number>(1);
 
   autocompleteClasses = [
     { name: 'ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link' },
@@ -309,6 +412,41 @@ export class LoginBrandingEditComponent {
     { name: 'transition: ', type: 'property', desc: 'CSS animation transition' },
     { name: 'backdrop-filter: ', type: 'property', desc: 'Frosted glass blur effect' },
   ];
+
+  // Active element dependable child classes suggestions
+  activeElementSuggestions = computed<ChildClassSuggestion[]>(() => {
+    const activeId = this.activeAutocompleteElementId();
+    if (!activeId) return [];
+    const elem = this.scopedCssElements().find(e => e.id === activeId);
+    if (!elem) return [];
+
+    const raw = (this.autocompleteSearch() || '').toLowerCase().trim();
+    const search = raw.startsWith('.') ? raw.substring(1) : raw;
+    const classes = elem.childClasses || [];
+
+    if (!search) {
+      return classes;
+    }
+
+    return classes.filter(c =>
+      c.name.toLowerCase().includes(search) ||
+      c.desc.toLowerCase().includes(search)
+    );
+  });
+
+  // Active property suggestions when typing property names
+  activePropertySuggestions = computed(() => {
+    const raw = (this.autocompleteSearch() || '').toLowerCase().trim();
+    if (raw.startsWith('.') || raw.startsWith(':')) {
+      return [];
+    }
+    if (!raw) {
+      return this.autocompleteProperties.slice(0, 5);
+    }
+    return this.autocompleteProperties.filter(p =>
+      p.name.toLowerCase().includes(raw) || p.desc.toLowerCase().includes(raw)
+    );
+  });
 
   // CSS Selectors Accordion state
   openCssAccordions = signal<{ [key: string]: boolean }>({
@@ -501,6 +639,29 @@ export class LoginBrandingEditComponent {
     }
   }
 
+  toggleBlockMenu(elemId: string, event: Event) {
+    event.stopPropagation();
+    this.activeBlockMenuId.update(current => current === elemId ? null : elemId);
+  }
+
+  setBlockStyleMode(elemId: string, removeOriginal: boolean, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === elemId ? { ...el, removeOriginalStyles: removeOriginal } : el)
+    );
+    this.activeBlockMenuId.set(null);
+    this.syncCombinedCss();
+    const elem = this.scopedCssElements().find(el => el.id === elemId);
+    this.lms.showToast(
+      removeOriginal ? `Removed original styles for ${elem?.name || 'block'}` : `Extending with current CSS for ${elem?.name || 'block'}`,
+      'info',
+      1800,
+      'Style Mode'
+    );
+  }
+
   openScopedFullscreen(elem: ScopedCssElement, event?: Event) {
     if (event) {
       event.stopPropagation();
@@ -512,47 +673,120 @@ export class LoginBrandingEditComponent {
     this.expandedScopedElement.set(null);
   }
 
+  onScopedCodeInput(id: string, textarea: HTMLTextAreaElement, event: Event) {
+    const newCode = textarea.value;
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === id ? { ...el, code: newCode } : el)
+    );
+    this.syncCombinedCss();
+    this.checkAutocomplete(id, textarea);
+  }
+
   onScopedCodeChange(id: string, newCode: string) {
     this.scopedCssElements.update(elements =>
       elements.map(el => el.id === id ? { ...el, code: newCode } : el)
     );
     this.syncCombinedCss();
+  }
 
-    // Check if user is typing a property or class trigger
-    const trimmed = newCode.trim();
-    if (trimmed.endsWith('.') || trimmed.endsWith('.ak') || trimmed.endsWith(':')) {
+  onScopedTextareaClick(id: string, textarea: HTMLTextAreaElement) {
+    this.checkAutocomplete(id, textarea);
+  }
+
+  checkAutocomplete(id: string, textarea: HTMLTextAreaElement) {
+    const text = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    const beforeCursor = text.substring(0, cursorPos);
+    const currentLine = beforeCursor.split('\n').pop() || '';
+    const lineNumber = beforeCursor.split('\n').length;
+    this.autocompleteCursorLine.set(lineNumber);
+
+    const trimmedLine = currentLine.trim();
+    const matchClass = currentLine.match(/(\.[\w-]*)$/);
+    const matchProperty = currentLine.match(/^\s*([\w-]+)\s*$/);
+
+    if (matchClass) {
       this.activeAutocompleteElementId.set(id);
+      this.autocompleteSearch.set(matchClass[1]);
       this.showAutocomplete.set(true);
+    } else if (trimmedLine === '.' || trimmedLine.endsWith('.')) {
+      this.activeAutocompleteElementId.set(id);
+      this.autocompleteSearch.set('');
+      this.showAutocomplete.set(true);
+    } else if (matchProperty && !trimmedLine.includes('{') && !trimmedLine.includes('}')) {
+      this.activeAutocompleteElementId.set(id);
+      this.autocompleteSearch.set(matchProperty[1]);
+      this.showAutocomplete.set(true);
+    } else {
+      this.showAutocomplete.set(false);
     }
   }
 
-  onScopedTextareaKeydown(id: string, event: KeyboardEvent) {
+  onScopedTextareaKeydown(id: string, textarea: HTMLTextAreaElement, event: KeyboardEvent) {
     if (event.key === 'Escape') {
       this.showAutocomplete.set(false);
+      this.activeBlockMenuId.set(null);
     } else if (event.key === 'Tab') {
       event.preventDefault();
-      const target = event.target as HTMLTextAreaElement;
-      const start = target.selectionStart;
-      const end = target.selectionEnd;
-      const val = target.value;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
       const updated = val.substring(0, start) + '  ' + val.substring(end);
-      this.onScopedCodeChange(id, updated);
-      setTimeout(() => {
-        target.selectionStart = target.selectionEnd = start + 2;
-      });
+      textarea.value = updated;
+      textarea.selectionStart = textarea.selectionEnd = start + 2;
+      this.onScopedCodeInput(id, textarea, event);
     }
   }
 
-  insertAutocompleteSuggestion(elemId: string, suggestion: string) {
+  insertAutocompleteSuggestion(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
     this.scopedCssElements.update(elements =>
       elements.map(el => {
         if (el.id === elemId) {
           let current = el.code;
-          if (current.trim().endsWith('.')) {
+          const search = this.autocompleteSearch();
+          const snippetToInsert = suggestion.snippet || `  ${suggestion.name} {\n    \n  }`;
+
+          if (search && current.includes(search)) {
+            const lastIdx = current.lastIndexOf(search);
+            current = current.substring(0, lastIdx) + snippetToInsert + current.substring(lastIdx + search.length);
+          } else if (current.trim().endsWith('.')) {
             const lastDotIdx = current.lastIndexOf('.');
-            current = current.substring(0, lastDotIdx) + suggestion;
+            current = current.substring(0, lastDotIdx) + snippetToInsert + current.substring(lastDotIdx + 1);
           } else {
-            current = current + (current.endsWith('\n') ? '  ' : '\n  ') + suggestion;
+            const closeBraceIdx = current.lastIndexOf('}');
+            if (closeBraceIdx !== -1) {
+              current = current.substring(0, closeBraceIdx) + snippetToInsert + '\n' + current.substring(closeBraceIdx);
+            } else {
+              current = current + '\n' + snippetToInsert;
+            }
+          }
+          return { ...el, code: current };
+        }
+        return el;
+      })
+    );
+    this.showAutocomplete.set(false);
+    this.syncCombinedCss();
+    this.lms.showToast(`Inserted ${suggestion.name}`, 'info', 1600, 'Selector Added');
+  }
+
+  insertPropertySuggestion(elemId: string, prop: { name: string; type: string; desc: string }) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        if (el.id === elemId) {
+          let current = el.code;
+          const search = this.autocompleteSearch();
+          const propLine = `  ${prop.name}`;
+          if (search && current.includes(search)) {
+            const lastIdx = current.lastIndexOf(search);
+            current = current.substring(0, lastIdx) + propLine + current.substring(lastIdx + search.length);
+          } else {
+            const closeBraceIdx = current.lastIndexOf('}');
+            if (closeBraceIdx !== -1) {
+              current = current.substring(0, closeBraceIdx) + propLine + ';\n' + current.substring(closeBraceIdx);
+            } else {
+              current = current + '\n' + propLine + ';';
+            }
           }
           return { ...el, code: current };
         }
@@ -582,12 +816,18 @@ export class LoginBrandingEditComponent {
     let combined = '';
     
     if (this.removeOriginalStyles()) {
-      combined += `/* Remove original AuthKit base element styles */\n.ak-Card { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }\n.ak-PrimaryButton { background: none !important; border: none !important; }\n.ak-TextField { background: transparent !important; }\n\n`;
+      combined += `/* Remove original AuthKit base element styles (Global) */\n.ak-Card { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }\n.ak-PrimaryButton { background: none !important; border: none !important; }\n.ak-TextField { background: transparent !important; }\n\n`;
     }
 
     for (const elem of this.scopedCssElements()) {
       if (elem.enabled && elem.code.trim()) {
-        combined += `${elem.selector} {\n${elem.code}\n}\n\n`;
+        if (elem.removeOriginalStyles) {
+          const resetRules = this.getBlockResetRules(elem.id);
+          if (resetRules) {
+            combined += `/* Reset original styles for ${elem.name} */\n${resetRules}\n\n`;
+          }
+        }
+        combined += `${elem.code}\n\n`;
       }
     }
 
@@ -595,6 +835,29 @@ export class LoginBrandingEditComponent {
       ...f,
       customCss: combined
     }));
+  }
+
+  getBlockResetRules(elemId: string): string {
+    switch (elemId) {
+      case 'background':
+        return `.ak-Background { background: none !important; background-color: transparent !important; }`;
+      case 'header':
+        return `.ak-Header, .ak-Title, .ak-Subtitle { color: inherit !important; font-family: inherit !important; margin: 0 !important; }`;
+      case 'card':
+        return `.ak-Card { background: transparent !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; backdrop-filter: none !important; }`;
+      case 'primary-button':
+        return `.ak-PrimaryButton { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: none !important; color: inherit !important; border-radius: 0 !important; }`;
+      case 'secondary-button':
+        return `.ak-SecondaryButton { background: transparent !important; box-shadow: none !important; border: none !important; color: inherit !important; }`;
+      case 'text-field':
+        return `.ak-TextField, .ak-TextField input { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; }`;
+      case 'label':
+        return `.ak-Label { color: inherit !important; font-weight: normal !important; text-transform: none !important; }`;
+      case 'callout':
+        return `.ak-Callout { background: transparent !important; border: none !important; box-shadow: none !important; }`;
+      default:
+        return '';
+    }
   }
 
   copyAllCss() {
@@ -643,7 +906,7 @@ export class LoginBrandingEditComponent {
   }
 
   getElementLineNumbers(code: string): number[] {
-    const lineCount = Math.max((code || '').split('\n').length + 2, 3);
+    const lineCount = Math.max((code || '').split('\n').length, 3);
     return Array.from({ length: lineCount }, (_, i) => i + 1);
   }
 

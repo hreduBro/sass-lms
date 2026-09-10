@@ -242,6 +242,11 @@
           [class.border-slate-300]="viewportMode() !== 'fullscreen' && previewTheme() === 'light'"
           [style.backgroundColor]="formData().backgroundType === 'solid' ? (formData().backgroundOverlayColor || formData().primaryColor) : 'transparent'">
 
+          <!-- Scoped Live Custom CSS Injection with SafeHtml -->
+          @if (formData().customCss) {
+            <div [innerHTML]="sanitizedCustomCss()"></div>
+          }
+
           <!-- Active Inspected Element Badge (as shown in user screenshot) -->
           @if (activeInspectedElement()) {
             <div class="absolute top-3 left-3 z-30 px-2.5 py-0.5 rounded text-[11px] font-medium bg-[#3b82f6] text-white shadow-xs select-none pointer-events-none flex items-center gap-1.5 animate-in fade-in duration-150">
@@ -627,7 +632,7 @@
                         <span>Edit content panel</span>
                       </button>
                     </div>
-                    <div [innerHTML]="formData().customHtml" class="w-full h-full"></div>
+                    <div [innerHTML]="sanitizedCustomHtml()" class="w-full h-full"></div>
                   </div>
                 } @else {
                   <!-- DEFAULT MODERN SPLIT HERO CANVAS -->
@@ -836,7 +841,7 @@
                       <span>Edit content panel</span>
                     </button>
                   </div>
-                  <div [innerHTML]="formData().customHtml" class="w-full h-full"></div>
+                  <div [innerHTML]="sanitizedCustomHtml()" class="w-full h-full"></div>
                 </div>
               } @else {
                 <!-- DEFAULT SPLIT HERO PANEL -->
@@ -2291,9 +2296,14 @@
                         <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-500 opacity-80">
                           {{ elem.selector }}
                         </span>
+                        @if (elem.removeOriginalStyles) {
+                          <span class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80">
+                            Clean slate
+                          </span>
+                        }
                       </div>
 
-                      <!-- Actions: Eye Toggle & Fullscreen Popout -->
+                      <!-- Actions: Eye Toggle, Fullscreen Popout & Three-dots Menu -->
                       <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
                         <button 
                           type="button" 
@@ -2311,6 +2321,50 @@
                           class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">open_in_full</span>
                         </button>
+                        
+                        <!-- Three-dots Block Menu (Extend with current css vs Remove original css style from block) -->
+                        <div class="relative">
+                          <button 
+                            type="button" 
+                            (click)="toggleBlockMenu(elem.id, $event)"
+                            title="Block style options"
+                            class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">more_vert</span>
+                          </button>
+                          @if (activeBlockMenuId() === elem.id) {
+                            <div 
+                              (click)="$event.stopPropagation()"
+                              class="absolute right-0 top-7 z-40 w-60 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 text-[11px] text-slate-700">
+                              <div class="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                Style Inheritance
+                              </div>
+                              <button 
+                                type="button" 
+                                (click)="setBlockStyleMode(elem.id, false, $event)"
+                                class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
+                                <div class="flex flex-col">
+                                  <span class="font-semibold text-slate-800">Extend with current CSS</span>
+                                  <span class="text-[9px] text-slate-400">Add overrides while keeping AuthKit styles</span>
+                                </div>
+                                @if (!elem.removeOriginalStyles) {
+                                  <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
+                                }
+                              </button>
+                              <button 
+                                type="button" 
+                                (click)="setBlockStyleMode(elem.id, true, $event)"
+                                class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
+                                <div class="flex flex-col">
+                                  <span class="font-semibold text-slate-800">Remove original CSS style</span>
+                                  <span class="text-[9px] text-slate-400">Reset default styles for this block</span>
+                                </div>
+                                @if (elem.removeOriginalStyles) {
+                                  <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
+                                }
+                              </button>
+                            </div>
+                          }
+                        </div>
                       </div>
                     </div>
 
@@ -2330,50 +2384,73 @@
 
                           <!-- Code Input Area -->
                           <div class="flex-1 py-2 px-3 text-slate-200 overflow-x-auto relative">
-                            <!-- Selector Opening -->
-                            <div class="text-purple-400 font-bold select-none">{{ elem.selector }} &#123;</div>
-                            
-                            <!-- Editable Body Textarea -->
-                            <textarea 
+                            <!-- Editable Body Textarea with full code editing -->
+                            <textarea #codeArea
                               [value]="elem.code"
-                              (input)="onScopedCodeChange(elem.id, $any($event.target).value)"
-                              (keydown)="onScopedTextareaKeydown(elem.id, $event)"
-                              rows="3"
+                              (input)="onScopedCodeInput(elem.id, codeArea, $event)"
+                              (click)="onScopedTextareaClick(elem.id, codeArea)"
+                              (keydown)="onScopedTextareaKeydown(elem.id, codeArea, $event)"
+                              rows="6"
                               spellcheck="false"
-                              placeholder="  /* Enter custom CSS properties here */"
+                              placeholder="  /* Type . to see dependable child classes */"
                               class="w-full bg-transparent text-emerald-400 font-mono text-[11px] leading-relaxed border-0 outline-none resize-y py-0.5 px-0 placeholder:text-slate-600 focus:ring-0">
                             </textarea>
 
-                            <!-- Selector Closing -->
-                            <div class="text-purple-400 font-bold select-none">&#125;</div>
-
-                            <!-- Floating Autocomplete Suggestion Popup (Matches Screenshot) -->
-                            @if (showAutocomplete && activeAutocompleteElementId() === elem.id) {
-                              <div class="absolute left-6 top-8 z-30 w-64 max-h-48 overflow-y-auto bg-[#161b22] border border-slate-700 rounded-xl shadow-2xl p-1 text-[11px] font-sans">
-                                <div class="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800 flex items-center justify-between">
-                                  <span>Suggestions</span>
-                                  <button type="button" (click)="showAutocomplete.set(false)" class="hover:text-white cursor-pointer">&times;</button>
+                            <!-- Floating Autocomplete Suggestion Popup (Matches Image 2 & 3) -->
+                            @if (showAutocomplete() && activeAutocompleteElementId() === elem.id) {
+                              <div class="absolute left-4 top-10 z-40 w-72 max-h-64 overflow-y-auto bg-[#161b22] border border-slate-700/80 rounded-xl shadow-2xl p-1.5 text-[11px] font-sans">
+                                
+                                <!-- Header with active element context & search -->
+                                <div class="px-2 py-1.5 border-b border-slate-800 flex items-center justify-between">
+                                  <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                                    <span class="text-[10px] font-semibold text-slate-300">Dependable Child Classes</span>
+                                  </div>
+                                  <button 
+                                    type="button" 
+                                    (click)="showAutocomplete.set(false)" 
+                                    class="text-slate-500 hover:text-white cursor-pointer text-sm leading-none">&times;</button>
                                 </div>
-                                <div class="py-1">
-                                  <div class="px-2 py-0.5 text-[9px] text-purple-400 font-bold">Selectors & Classes</div>
-                                  @for (cls of autocompleteClasses; track cls.name) {
+
+                                <!-- Search filter hint -->
+                                <div class="px-2 py-1 text-[9px] text-slate-400 font-mono bg-slate-900/60 rounded mt-1 mb-1">
+                                  Triggered on <span class="text-emerald-400 font-bold">.</span> for <span class="text-purple-300">{{ elem.selector }}</span>
+                                </div>
+
+                                <!-- Child Class Suggestions -->
+                                <div class="py-0.5 space-y-0.5">
+                                  @for (cls of activeElementSuggestions(); track cls.name) {
                                     <button 
                                       type="button" 
-                                      (click)="insertAutocompleteSuggestion(elem.id, '.' + cls.name)"
-                                      class="w-full px-2 py-1 flex items-center justify-between rounded hover:bg-slate-800 text-left transition-colors cursor-pointer group">
-                                      <span class="font-mono text-emerald-300 font-semibold text-[10px] group-hover:text-emerald-200">.{{ cls.name }}</span>
-                                      <span class="text-[9px] text-slate-500 truncate max-w-[90px]">{{ cls.type }}</span>
+                                      (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
+                                      class="w-full px-2.5 py-1.5 flex items-center justify-between rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer group">
+                                      <div class="flex flex-col min-w-0 pr-2">
+                                        <span class="font-mono text-emerald-300 font-semibold text-[11px] group-hover:text-emerald-200 truncate">{{ cls.name }}</span>
+                                        <span class="text-[9px] text-slate-400 truncate">{{ cls.desc }}</span>
+                                      </div>
+                                      <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50 shrink-0 font-mono">{{ cls.type }}</span>
                                     </button>
                                   }
-                                  <div class="px-2 pt-2 pb-0.5 text-[9px] text-cyan-400 font-bold">Properties</div>
-                                  @for (prop of autocompleteProperties; track prop.name) {
-                                    <button 
-                                      type="button" 
-                                      (click)="insertAutocompleteSuggestion(elem.id, prop.name)"
-                                      class="w-full px-2 py-1 flex items-center justify-between rounded hover:bg-slate-800 text-left transition-colors cursor-pointer group">
-                                      <span class="font-mono text-sky-300 font-medium text-[10px] group-hover:text-sky-200">{{ prop.name }}</span>
-                                      <span class="text-[9px] text-slate-500 truncate max-w-[90px]">{{ prop.desc }}</span>
-                                    </button>
+                                  @if (activeElementSuggestions().length === 0) {
+                                    <div class="px-3 py-2 text-[10px] text-slate-500 text-center italic">
+                                      No matching child classes for "{{ autocompleteSearch() }}"
+                                    </div>
+                                  }
+
+                                  <!-- Properties when relevant -->
+                                  @if (activePropertySuggestions().length > 0) {
+                                    <div class="px-2 pt-2 pb-1 text-[9px] font-bold text-sky-400 border-t border-slate-800 mt-1">
+                                      CSS Properties
+                                    </div>
+                                    @for (prop of activePropertySuggestions(); track prop.name) {
+                                      <button 
+                                        type="button" 
+                                        (click)="insertPropertySuggestion(elem.id, prop)"
+                                        class="w-full px-2.5 py-1.5 flex items-center justify-between rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer group">
+                                        <span class="font-mono text-sky-300 font-medium text-[10px] group-hover:text-sky-200">{{ prop.name }}</span>
+                                        <span class="text-[9px] text-slate-500 truncate max-w-[100px]">{{ prop.desc }}</span>
+                                      </button>
+                                    }
                                   }
                                 </div>
                               </div>
@@ -2401,7 +2478,7 @@
                           <!-- Autocomplete Trigger Button -->
                           <button 
                             type="button" 
-                            (click)="activeAutocompleteElementId.set(elem.id); showAutocomplete.set(!showAutocomplete())"
+                            (click)="activeAutocompleteElementId.set(elem.id); autocompleteSearch.set(''); showAutocomplete.set(!showAutocomplete())"
                             class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer font-sans ml-auto">
                             <span class="material-symbols-outlined text-xs">auto_awesome</span>
                             <span>Insert Selector / Prop</span>
