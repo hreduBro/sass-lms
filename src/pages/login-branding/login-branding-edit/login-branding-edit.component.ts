@@ -160,10 +160,10 @@ export class LoginBrandingEditComponent {
       id: 'background', 
       name: 'Background', 
       selector: '.ak-Background', 
-      isOpen: true, 
+      isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
-      code: '.ak-Background {\n  .\n}',
+      code: '.ak-Background {\n  \n}',
       childClasses: [
         { name: '.ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link', snippet: '  .ak-BackLink {\n    \n  }' },
         { name: '.ak-Content', type: 'CSS class', desc: 'Inner content panel layout', snippet: '  .ak-Content {\n    \n  }' },
@@ -602,6 +602,23 @@ export class LoginBrandingEditComponent {
 
   highlightElement(selectorId: string | null) {
     this.highlightedElement.set(selectorId);
+  }
+
+  getHighlightBadgeName(selectorId: string): string {
+    const map: Record<string, string> = {
+      'background': 'Background',
+      'header': 'Header',
+      'card': 'Card',
+      'primary-button': 'Primary button',
+      'secondary-button': 'Secondary button',
+      'text-field': 'Text field',
+      'label': 'Label',
+      'callout': 'Callout',
+      'org-selection': 'Organization selection',
+      'sso-trigger': 'SSO profile trigger',
+      'sso-menu': 'SSO profile menu'
+    };
+    return map[selectorId] || selectorId;
   }
 
   // Scoped Guided CSS Actions

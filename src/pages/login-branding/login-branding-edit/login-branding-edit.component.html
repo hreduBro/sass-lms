@@ -226,6 +226,8 @@
         <!-- Viewport Box Container -->
         <div 
           class="transition-all duration-300 ak-Background auth-background flex flex-col justify-between relative overflow-y-auto overflow-x-hidden"
+          [class.ring-2]="highlightedElement() === 'background'"
+          [class.ring-purple-500]="highlightedElement() === 'background'"
           [class.w-full]="true"
           [class.h-full]="viewportMode() === 'fullscreen'"
           [class.min-h-full]="viewportMode() === 'fullscreen'"
@@ -247,8 +249,15 @@
             <div [innerHTML]="sanitizedCustomCss()"></div>
           }
 
+          <!-- Background Hover Highlight Badge -->
+          @if (highlightedElement() === 'background') {
+            <div class="absolute top-2 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+              <span>Background</span>
+            </div>
+          }
+
           <!-- Active Inspected Element Badge (as shown in user screenshot) -->
-          @if (activeInspectedElement()) {
+          @if (activeInspectedElement() && !highlightedElement()) {
             <div class="absolute top-3 left-3 z-30 px-2.5 py-0.5 rounded text-[11px] font-medium bg-[#3b82f6] text-white shadow-xs select-none pointer-events-none flex items-center gap-1.5 animate-in fade-in duration-150">
               <span>{{ activeInspectedElement() }}</span>
             </div>
@@ -307,12 +316,63 @@
                   </div>
                 </div>
 
-                <!-- Middle: Active Auth Page Form -->
-                <div class="w-full max-w-sm mx-auto my-auto space-y-5 py-2">
+                <!-- Callout Banner in Split Modern Canvas -->
+                @if (highlightedElement() === 'callout' || (formData().announcementBanner?.enabled && !bannerDismissed())) {
+                  <div class="w-full max-w-sm mx-auto mb-3 relative auth-announcement ak-Callout">
+                    @if (highlightedElement() === 'callout') {
+                      <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                        <span>Callout</span>
+                      </div>
+                    }
+                    <div class="px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2.5 transition-all border shadow-xs"
+                         [class.ring-2]="highlightedElement() === 'callout'"
+                         [class.ring-purple-500]="highlightedElement() === 'callout'"
+                         [class.bg-blue-500/10]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                         [class.border-blue-500/30]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                         [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                         [class.bg-amber-500/10]="formData().announcementBanner?.type === 'warning'"
+                         [class.border-amber-500/30]="formData().announcementBanner?.type === 'warning'"
+                         [class.text-amber-500]="formData().announcementBanner?.type === 'warning'"
+                         [class.bg-rose-500/10]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                         [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                         [class.text-rose-500]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                         [class.bg-emerald-500/10]="formData().announcementBanner?.type === 'success'"
+                         [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
+                         [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
+                      <span class="material-symbols-outlined text-sm shrink-0">info</span>
+                      <span class="font-medium text-[11px] leading-tight flex-1">
+                        {{ formData().announcementBanner?.text || 'Scheduled security maintenance this Sunday at 02:00 UTC' }}
+                      </span>
+                    </div>
+                  </div>
+                }
+
+                <!-- Middle: Active Auth Page Form (Card) -->
+                <div class="w-full max-w-sm mx-auto my-auto space-y-5 py-2 relative transition-all"
+                     [class.ring-2]="highlightedElement() === 'card'"
+                     [class.ring-purple-500]="highlightedElement() === 'card'"
+                     [class.rounded-2xl]="highlightedElement() === 'card'"
+                     [class.p-3]="highlightedElement() === 'card'">
+                  
+                  <!-- Card Hover Highlight Badge -->
+                  @if (highlightedElement() === 'card') {
+                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <span>Card</span>
+                    </div>
+                  }
                   
                   <!-- PAGE: SIGN IN -->
                   @if (selectedPage() === 'sign_in') {
-                    <div>
+                    <div class="relative transition-all"
+                         [class.ring-2]="highlightedElement() === 'header'"
+                         [class.ring-purple-500]="highlightedElement() === 'header'"
+                         [class.rounded-lg]="highlightedElement() === 'header'"
+                         [class.p-1.5]="highlightedElement() === 'header'">
+                      @if (highlightedElement() === 'header') {
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                          <span>Header</span>
+                        </div>
+                      }
                       <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
                           [class.text-slate-900]="previewTheme() === 'light'"
                           [class.text-white]="previewTheme() === 'dark'">
@@ -323,25 +383,34 @@
                       </p>
                     </div>
 
-                    <!-- Single Prominent Google SSO Button -->
+                    <!-- Single Prominent Google SSO Button (Secondary Button) -->
                     @if (formData().enableSsoGoogle) {
-                      <button 
-                        type="button"
-                        class="w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer shadow-2xs auth-sso-btn ak-SecondaryButton"
-                        [class.bg-white]="previewTheme() === 'light'"
-                        [class.border-slate-200]="previewTheme() === 'light'"
-                        [class.text-slate-700]="previewTheme() === 'light'"
-                        [class.bg-slate-800]="previewTheme() === 'dark'"
-                        [class.border-slate-700]="previewTheme() === 'dark'"
-                        [class.text-slate-200]="previewTheme() === 'dark'">
-                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <span>Sign in with Google</span>
-                      </button>
+                      <div class="relative">
+                        @if (highlightedElement() === 'secondary-button') {
+                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                            <span>Secondary button</span>
+                          </div>
+                        }
+                        <button 
+                          type="button"
+                          [class.ring-2]="highlightedElement() === 'secondary-button'"
+                          [class.ring-purple-500]="highlightedElement() === 'secondary-button'"
+                          class="w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer shadow-2xs auth-sso-btn ak-SecondaryButton"
+                          [class.bg-white]="previewTheme() === 'light'"
+                          [class.border-slate-200]="previewTheme() === 'light'"
+                          [class.text-slate-700]="previewTheme() === 'light'"
+                          [class.bg-slate-800]="previewTheme() === 'dark'"
+                          [class.border-slate-700]="previewTheme() === 'dark'"
+                          [class.text-slate-200]="previewTheme() === 'dark'">
+                          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                          </svg>
+                          <span>Sign in with Google</span>
+                        </button>
+                      </div>
                     }
 
                     <!-- 'or' Divider -->
@@ -357,21 +426,43 @@
                     <!-- Input Fields -->
                     <div class="space-y-3.5">
                       <div class="space-y-1">
-                        <label class="text-[11px] font-bold" [class.text-slate-700]="previewTheme() === 'light'" [class.text-slate-300]="previewTheme() === 'dark'">
-                          Email*
-                        </label>
-                        <input 
-                          type="email" 
-                          [ngModel]="testEmail()"
-                          (ngModelChange)="testEmail.set($event)"
-                          placeholder="shovon.sen@brac.net"
-                          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
-                          [class.bg-slate-50]="previewTheme() === 'light'"
-                          [class.border-slate-200]="previewTheme() === 'light'"
-                          [class.text-slate-900]="previewTheme() === 'light'"
-                          [class.bg-slate-800/80]="previewTheme() === 'dark'"
-                          [class.border-slate-700]="previewTheme() === 'dark'"
-                          [class.text-white]="previewTheme() === 'dark'" />
+                        <div class="relative inline-block">
+                          @if (highlightedElement() === 'label') {
+                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap">
+                              Label
+                            </div>
+                          }
+                          <label class="text-[11px] font-bold block transition-all"
+                                 [class.ring-2]="highlightedElement() === 'label'"
+                                 [class.ring-purple-500]="highlightedElement() === 'label'"
+                                 [class.rounded]="highlightedElement() === 'label'"
+                                 [class.px-1]="highlightedElement() === 'label'"
+                                 [class.text-slate-700]="previewTheme() === 'light'" 
+                                 [class.text-slate-300]="previewTheme() === 'dark'">
+                            Email*
+                          </label>
+                        </div>
+                        <div class="relative">
+                          @if (highlightedElement() === 'text-field') {
+                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100">
+                              Text field
+                            </div>
+                          }
+                          <input 
+                            type="email" 
+                            [ngModel]="testEmail()"
+                            (ngModelChange)="testEmail.set($event)"
+                            placeholder="shovon.sen@brac.net"
+                            [class.ring-2]="highlightedElement() === 'text-field'"
+                            [class.ring-purple-500]="highlightedElement() === 'text-field'"
+                            class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                            [class.bg-slate-50]="previewTheme() === 'light'"
+                            [class.border-slate-200]="previewTheme() === 'light'"
+                            [class.text-slate-900]="previewTheme() === 'light'"
+                            [class.bg-slate-800/80]="previewTheme() === 'dark'"
+                            [class.border-slate-700]="previewTheme() === 'dark'"
+                            [class.text-white]="previewTheme() === 'dark'" />
+                        </div>
                       </div>
 
                       <div class="space-y-1">
@@ -419,16 +510,25 @@
                         </button>
                       </div>
 
-                      <!-- Sign In CTA Button -->
-                      <button 
-                        type="button"
-                        [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
-                        [class.rounded-full]="formData().buttonStyle === 'pill'"
-                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
-                        [class.rounded-md]="formData().buttonStyle === 'square'"
-                        class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
-                        <span>Sign In</span>
-                      </button>
+                      <!-- Sign In CTA Button (Primary Button) -->
+                      <div class="relative">
+                        @if (highlightedElement() === 'primary-button') {
+                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                            <span>Primary button</span>
+                          </div>
+                        }
+                        <button 
+                          type="button"
+                          [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
+                          [class.rounded-full]="formData().buttonStyle === 'pill'"
+                          [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                          [class.rounded-md]="formData().buttonStyle === 'square'"
+                          [class.ring-2]="highlightedElement() === 'primary-button'"
+                          [class.ring-purple-500]="highlightedElement() === 'primary-button'"
+                          class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
+                          <span>Sign In</span>
+                        </button>
+                      </div>
 
                       <!-- Switch Link -->
                       <div class="text-center text-xs pt-1">
@@ -962,7 +1062,7 @@
               [class.order-2]="formData().layout === 'split_left'"
               class="w-full max-w-md auth-card ak-Card transition-all duration-300 relative z-10 p-5 sm:p-7"
               [class.ring-2]="highlightedElement() === 'card'"
-              [class.ring-tenant-500]="highlightedElement() === 'card'"
+              [class.ring-purple-500]="highlightedElement() === 'card'"
               [class.rounded-none]="formData().cardBorderRadius === 'none'"
               [class.rounded-lg]="formData().cardBorderRadius === 'sm'"
               [class.rounded-xl]="formData().cardBorderRadius === 'md' || formData().cardBorderRadius === 'lg'"
@@ -982,9 +1082,18 @@
               [class.backdrop-blur-2xl]="formData().cardStyle === 'glassmorphism'"
               [class.border]="true">
 
+              <!-- Card Hover Highlight Badge -->
+              @if (highlightedElement() === 'card') {
+                <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                  <span>Card</span>
+                </div>
+              }
+
               <!-- Card Embedded Announcement Style -->
               @if (formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'card_embedded' && !bannerDismissed()) {
-                <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs"
+                <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs relative auth-announcement ak-Callout"
+                     [class.ring-2]="highlightedElement() === 'callout'"
+                     [class.ring-purple-500]="highlightedElement() === 'callout'"
                      [class.bg-blue-500/10]="formData().announcementBanner?.type === 'info'"
                      [class.border-blue-500/30]="formData().announcementBanner?.type === 'info'"
                      [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
@@ -994,6 +1103,11 @@
                      [class.bg-rose-500/10]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
                      [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
                      [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'">
+                  @if (highlightedElement() === 'callout') {
+                    <div class="absolute -top-3 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <span>Callout</span>
+                    </div>
+                  }
                   <span class="material-symbols-outlined text-base shrink-0">info</span>
                   <span class="font-medium text-[11px] leading-tight flex-1">{{ formData().announcementBanner?.text }}</span>
                   <button type="button" (click)="bannerDismissed.set(true)" class="text-xs opacity-70 hover:opacity-100 cursor-pointer">
@@ -1002,10 +1116,19 @@
                 </div>
               }
 
-              <!-- Central Brand Header in Card -->
-              <div class="text-center mb-5 pb-3 border-b transition-all"
+              <!-- Central Brand Header in Card (Header) -->
+              <div class="text-center mb-5 pb-3 border-b transition-all relative"
+                   [class.ring-2]="highlightedElement() === 'header'"
+                   [class.ring-purple-500]="highlightedElement() === 'header'"
+                   [class.rounded-lg]="highlightedElement() === 'header'"
+                   [class.p-1.5]="highlightedElement() === 'header'"
                    [class.border-white/10]="previewTheme() === 'dark'"
                    [class.border-slate-100]="previewTheme() === 'light'">
+                @if (highlightedElement() === 'header') {
+                  <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                    <span>Header</span>
+                  </div>
+                }
                 
                 <!-- Brand Logo -->
                 @if (formData().logoUrlLight) {
@@ -1099,26 +1222,37 @@
               @if (selectedPage() === 'sign_in') {
                 <div class="space-y-4">
                   
-                  <!-- SSO Buttons Grid -->
+                  <!-- SSO Buttons Grid (Secondary Button / SSO Trigger) -->
                   @if (formData().enableSsoGoogle || formData().enableSsoMicrosoft || formData().enableSsoOkta) {
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 auth-sso-container">
-                      @if (formData().enableSsoGoogle) {
-                        <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn ak-SSOProfileTrigger"
-                                [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
-                                [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
-                          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
-                          <span>Google</span>
-                        </button>
+                    <div class="relative">
+                      @if (highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger') {
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                          <span>{{ highlightedElement() === 'sso-trigger' ? 'SSO profile trigger' : 'Secondary button' }}</span>
+                        </div>
                       }
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 auth-sso-container transition-all"
+                           [class.ring-2]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
+                           [class.ring-purple-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
+                           [class.rounded-xl]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
+                           [class.p-1]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'">
+                        @if (formData().enableSsoGoogle) {
+                          <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn ak-SSOProfileTrigger ak-SecondaryButton"
+                                  [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                                  [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+                            <span>Google</span>
+                          </button>
+                        }
 
-                      @if (formData().enableSsoMicrosoft) {
-                        <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn"
-                                [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
-                                [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
-                          <svg class="w-4 h-4" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
-                          <span>Microsoft</span>
-                        </button>
-                      }
+                        @if (formData().enableSsoMicrosoft) {
+                          <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn ak-SecondaryButton"
+                                  [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                                  [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
+                            <svg class="w-4 h-4" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
+                            <span>Microsoft</span>
+                          </button>
+                        }
+                      </div>
                     </div>
 
                     <div class="relative flex items-center justify-center py-1">
@@ -1129,16 +1263,36 @@
                     </div>
                   }
 
-                  <!-- Work Email Field -->
+                  <!-- Work Email Field (Label + TextField) -->
                   <div class="space-y-1.5">
-                    <label class="block text-xs font-bold auth-label ak-Label" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">
-                      Work Email
-                    </label>
+                    <div class="relative inline-block">
+                      @if (highlightedElement() === 'label') {
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap flex items-center">
+                          <span>Label</span>
+                        </div>
+                      }
+                      <label class="block text-xs font-bold auth-label ak-Label transition-all"
+                             [class.ring-2]="highlightedElement() === 'label'"
+                             [class.ring-purple-500]="highlightedElement() === 'label'"
+                             [class.rounded]="highlightedElement() === 'label'"
+                             [class.px-1]="highlightedElement() === 'label'"
+                             [class.text-slate-300]="previewTheme() === 'dark'" 
+                             [class.text-slate-700]="previewTheme() === 'light'">
+                        Work Email
+                      </label>
+                    </div>
                     <div class="relative">
+                      @if (highlightedElement() === 'text-field') {
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                          <span>Text field</span>
+                        </div>
+                      }
                       <input 
                         type="email" 
                         [ngModel]="testEmail()" 
                         (ngModelChange)="testEmail.set($event)"
+                        [class.ring-2]="highlightedElement() === 'text-field'"
+                        [class.ring-purple-500]="highlightedElement() === 'text-field'"
                         class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
                         [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
                         [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
@@ -1185,16 +1339,25 @@
                   }
 
                   <!-- Primary CTA Button -->
-                  <button 
-                    type="button"
-                    [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
-                    [class.rounded-full]="formData().buttonStyle === 'pill'"
-                    [class.rounded-xl]="formData().buttonStyle === 'rounded'"
-                    [class.rounded-md]="formData().buttonStyle === 'square'"
-                    class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
-                    <span>Sign In</span>
-                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
+                  <div class="relative">
+                    @if (highlightedElement() === 'primary-button') {
+                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                        <span>Primary button</span>
+                      </div>
+                    }
+                    <button 
+                      type="button"
+                      [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
+                      [class.rounded-full]="formData().buttonStyle === 'pill'"
+                      [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                      [class.rounded-md]="formData().buttonStyle === 'square'"
+                      [class.ring-2]="highlightedElement() === 'primary-button'"
+                      [class.ring-purple-500]="highlightedElement() === 'primary-button'"
+                      class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
+                      <span>Sign In</span>
+                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                  </div>
 
                   <!-- Demo Quick Autofill Chips -->
                   <div class="pt-2">
@@ -2224,9 +2387,11 @@
               @for (elem of scopedCssElements(); track elem.id) {
                 <div class="select-none">
                   
-                  <!-- Accordion Row Header -->
+                  <!-- Accordion Row Header with Hover Effect & Visual Highlight -->
                   <div 
                     (click)="toggleScopedAccordion(elem.id)"
+                    (mouseenter)="highlightElement(elem.id)"
+                    (mouseleave)="highlightElement(null)"
                     class="flex items-center justify-between py-2 px-1 text-slate-300 hover:text-white cursor-pointer transition-colors group">
                     
                     <!-- Left: Arrow + Element Name -->
@@ -2234,12 +2399,12 @@
                       <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-slate-200 transition-transform">
                         {{ elem.isOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
                       </span>
-                      <span class="text-xs font-normal" [class.text-white]="elem.isOpen" [class.text-slate-300]="!elem.isOpen">
+                      <span class="text-xs font-normal transition-colors" [class.text-white]="elem.isOpen" [class.text-slate-300]="!elem.isOpen">
                         {{ elem.name }}
                       </span>
                     </div>
 
-                    <!-- Right (Only when open): Visibility Toggle & Open in Fullscreen -->
+                    <!-- Right: When Open -> Visibility Toggle & Fullscreen; When Closed -> Hover Three Dots Menu -->
                     @if (elem.isOpen) {
                       <div class="flex items-center gap-2 shrink-0" (click)="$event.stopPropagation()">
                         <button 
@@ -2258,6 +2423,46 @@
                           class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">open_in_full</span>
                         </button>
+                      </div>
+                    } @else {
+                      <div class="relative flex items-center shrink-0" (click)="$event.stopPropagation()">
+                        <button 
+                          type="button" 
+                          (click)="toggleBlockMenu(elem.id, $event)"
+                          [title]="'Options for ' + elem.name"
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          [class.opacity-100]="activeBlockMenuId() === elem.id">
+                          <span class="material-symbols-outlined text-base">more_horiz</span>
+                        </button>
+
+                        <!-- Context Menu Dropdown for Block -->
+                        @if (activeBlockMenuId() === elem.id) {
+                          <div 
+                            (click)="$event.stopPropagation()"
+                            class="absolute right-0 top-7 z-50 w-56 bg-[#161b22] border border-slate-700/80 rounded-xl shadow-2xl p-1.5 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100">
+                            <div class="px-2 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                              {{ elem.name }} Options
+                            </div>
+                            <button 
+                              type="button" 
+                              (click)="setBlockStyleMode(elem.id, false, $event)"
+                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                              <span>Extend with current CSS</span>
+                              @if (!elem.removeOriginalStyles) {
+                                <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
+                              }
+                            </button>
+                            <button 
+                              type="button" 
+                              (click)="setBlockStyleMode(elem.id, true, $event)"
+                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                              <span>Remove original styles</span>
+                              @if (elem.removeOriginalStyles) {
+                                <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
+                              }
+                            </button>
+                          </div>
+                        }
                       </div>
                     }
                   </div>
