@@ -256,13 +256,6 @@
             </div>
           }
 
-          <!-- Active Inspected Element Badge (as shown in user screenshot) -->
-          @if (activeInspectedElement() && !highlightedElement()) {
-            <div class="absolute top-3 left-3 z-30 px-2.5 py-0.5 rounded text-[11px] font-medium bg-[#3b82f6] text-white shadow-xs select-none pointer-events-none flex items-center gap-1.5 animate-in fade-in duration-150">
-              <span>{{ activeInspectedElement() }}</span>
-            </div>
-          }
-
           <!-- 1. Background Image / Gradient Layer -->
           @if (formData().backgroundType === 'image' && formData().backgroundImageUrl) {
             <div 
@@ -360,6 +353,20 @@
                       <span>Card</span>
                     </div>
                   }
+
+                  <!-- Organization Selection Highlight Indicator -->
+                  @if (highlightedElement() === 'org-selection') {
+                    <div class="mb-3 p-2.5 rounded-xl border border-purple-500 ring-2 ring-purple-500 bg-purple-500/10 text-xs flex items-center justify-between relative ak-OrganizationSelection select-none animate-in fade-in duration-100">
+                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm flex items-center">
+                        <span>Organization selection</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-purple-400">domain</span>
+                        <span class="font-medium text-xs ak-OrgName" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">Acme Global (Workspace)</span>
+                      </div>
+                      <span class="material-symbols-outlined text-xs text-purple-400">unfold_more</span>
+                    </div>
+                  }
                   
                   <!-- PAGE: SIGN IN -->
                   @if (selectedPage() === 'sign_in') {
@@ -386,15 +393,15 @@
                     <!-- Single Prominent Google SSO Button (Secondary Button) -->
                     @if (formData().enableSsoGoogle) {
                       <div class="relative">
-                        @if (highlightedElement() === 'secondary-button') {
+                        @if (highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu') {
                           <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
-                            <span>Secondary button</span>
+                            <span>{{ highlightedElement() === 'sso-trigger' ? 'SSO profile trigger' : (highlightedElement() === 'sso-menu' ? 'SSO profile menu' : 'Secondary button') }}</span>
                           </div>
                         }
                         <button 
                           type="button"
-                          [class.ring-2]="highlightedElement() === 'secondary-button'"
-                          [class.ring-purple-500]="highlightedElement() === 'secondary-button'"
+                          [class.ring-2]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu'"
+                          [class.ring-purple-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu'"
                           class="w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer shadow-2xs auth-sso-btn ak-SecondaryButton"
                           [class.bg-white]="previewTheme() === 'light'"
                           [class.border-slate-200]="previewTheme() === 'light'"
@@ -1771,13 +1778,89 @@
     <!-- ======================================================================= -->
     <!-- B. RIGHT PANEL: BRANDING SETUP & CONTROLS (Harmonious Light Studio)      -->
     <!-- ======================================================================= -->
-    <div class="w-80 sm:w-96 flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden transition-colors"
-         [class.bg-[#0b0f17]]="rightPanelTab() === 'custom_css'"
-         [class.bg-white]="rightPanelTab() !== 'custom_css'"
+    <div class="flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden transition-all duration-300"
+         [class.w-full]="activeExpandedElement() !== null"
+         [class.lg:w-1/2]="activeExpandedElement() !== null"
+         [class.w-80]="activeExpandedElement() === null"
+         [class.sm:w-96]="activeExpandedElement() === null"
+         [class.bg-[#0d1117]]="activeExpandedElement() !== null || rightPanelTab() === 'custom_css'"
+         [class.bg-white]="activeExpandedElement() === null && rightPanelTab() !== 'custom_css'"
          [class.border-l]="true"
-         [class.border-slate-800]="rightPanelTab() === 'custom_css'"
-         [class.border-slate-200]="rightPanelTab() !== 'custom_css'">
-      
+         [class.border-slate-800]="activeExpandedElement() !== null || rightPanelTab() === 'custom_css'"
+         [class.border-slate-200]="activeExpandedElement() === null && rightPanelTab() !== 'custom_css'">
+
+      @if (activeExpandedElement(); as el) {
+        <!-- FULL-PANE SPLIT EDITOR (AuthKit Fullscreen View) -->
+        <div class="h-full flex flex-col bg-[#0d1117] text-slate-100 animate-in fade-in duration-150">
+          
+          <!-- Top Header: Element Name + Selector + Close Button (Matches 01:30 in video) -->
+          <div class="h-12 border-b border-slate-800 px-4 flex items-center justify-between flex-shrink-0 bg-[#161b22]">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <h2 class="text-sm font-semibold text-white tracking-tight truncate">{{ el.name }}</h2>
+              <span class="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 shrink-0">
+                {{ el.selector }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                (click)="setBlockStyleMode(el.id, !el.removeOriginalStyles, $event)"
+                [title]="el.removeOriginalStyles ? 'Extend with current CSS' : 'Remove original element styles'"
+                class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                [class.text-indigo-400]="el.removeOriginalStyles">
+                <span class="material-symbols-outlined text-sm">
+                  {{ el.removeOriginalStyles ? 'do_not_disturb_on' : 'tune' }}
+                </span>
+              </button>
+              <button 
+                type="button" 
+                (click)="closeScopedFullscreen()"
+                title="Close fullscreen editor"
+                class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">close</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Editor Body with Gutter Numbers and Autocomplete -->
+          <div class="flex-1 flex overflow-hidden relative font-mono text-xs">
+            <!-- Line Number Gutter -->
+            <div class="py-3 px-2.5 bg-[#0d1117] text-slate-600 border-r border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-9">
+              @for (line of getElementLineNumbers(el.code); track line) {
+                <div>{{ line }}</div>
+              }
+            </div>
+
+            <!-- Full Textarea Area -->
+            <div class="flex-1 relative overflow-hidden bg-[#0d1117]">
+              <textarea #fullPaneArea
+                [value]="el.code"
+                (input)="onScopedCodeInput(el.id, fullPaneArea, $event)"
+                (click)="onScopedTextareaClick(el.id, fullPaneArea)"
+                (keydown)="onScopedTextareaKeydown(el.id, fullPaneArea, $event)"
+                spellcheck="false"
+                class="w-full h-full p-3 bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none border-0 focus:ring-0">
+              </textarea>
+
+              <!-- Autocomplete Suggestion Popup in Split View -->
+              @if (showAutocomplete() && activeAutocompleteElementId() === el.id) {
+                <div class="absolute left-4 top-8 z-50 w-64 bg-[#161b22] border border-slate-700/80 rounded-lg shadow-2xl py-1 text-xs font-sans overflow-hidden">
+                  @for (cls of activeElementSuggestions().slice(0, 4); track cls.name; let i = $index) {
+                    <div 
+                      (click)="insertAutocompleteSuggestion(el.id, cls, fullPaneArea)"
+                      [class.bg-slate-800]="i === 0"
+                      class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
+                      <span class="font-mono text-xs font-medium text-white">{{ getCleanClassName(cls.name) }}</span>
+                      <span class="text-[10px] text-slate-400 italic font-mono">{{ cls.type }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      } @else {
       <!-- Top Setup Tabs (Global styles | Page settings | Custom CSS) -->
       <div class="h-12 border-b px-4 flex items-center gap-6 flex-shrink-0 transition-colors"
            [class.bg-[#0b0f17]]="rightPanelTab() === 'custom_css'"
@@ -2519,6 +2602,7 @@
         }
 
       </div>
+      }
 
     </div>
 
@@ -2673,74 +2757,5 @@
   </div>
 }
 
-<!-- ========================================================================= -->
-<!-- FULLSCREEN SCOPED CSS MODAL                                              -->
-<!-- ========================================================================= -->
-@if (expandedScopedElement(); as el) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
-       (click)="closeScopedFullscreen()">
-    <div class="w-full max-w-2xl bg-[#121824] border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 animate-in zoom-in-95 duration-200"
-         (click)="$event.stopPropagation()">
-      <div class="p-5 pb-3 border-b border-slate-800 flex items-center justify-between">
-        <div>
-          <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
-            <span>Edit Styles: {{ el.name }}</span>
-            <span class="text-xs font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              {{ el.selector }}
-            </span>
-          </h3>
-          <p class="text-xs text-slate-400 mt-1">
-            Scoped rules are applied immediately to the live preview canvas.
-          </p>
-        </div>
-        <button 
-          type="button"
-          (click)="closeScopedFullscreen()" 
-          class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer">
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
-      </div>
 
-      <div class="p-5 bg-[#090d13] font-mono text-xs">
-        <div class="text-purple-400 font-bold mb-1">{{ el.selector }} &#123;</div>
-        <textarea 
-          [value]="el.code"
-          (input)="onScopedCodeChange(el.id, $any($event.target).value)"
-          rows="10"
-          spellcheck="false"
-          class="w-full bg-transparent text-emerald-400 font-mono text-xs border border-slate-800 rounded-lg p-3 outline-none resize-y focus:border-purple-500">
-        </textarea>
-        <div class="text-purple-400 font-bold mt-1">&#125;</div>
-
-        <!-- Quick snippets in modal -->
-        @if (el.quickSnippets && el.quickSnippets.length > 0) {
-          <div class="mt-3 flex items-center gap-2 flex-wrap">
-            <span class="text-slate-500 text-xs font-sans">Quick presets:</span>
-            @for (s of el.quickSnippets; track s.label) {
-              <button 
-                type="button" 
-                (click)="insertSnippet(el.id, s.snippet)"
-                class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-sans border border-slate-700 transition-colors cursor-pointer">
-                + {{ s.label }}
-              </button>
-            }
-          </div>
-        }
-      </div>
-
-      <div class="p-4 border-t border-slate-800 flex items-center justify-between bg-[#0f141f]">
-        <div class="text-xs text-emerald-400 flex items-center gap-1.5 font-sans">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Live preview active</span>
-        </div>
-        <button 
-          type="button"
-          (click)="closeScopedFullscreen()"
-          class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-tenant-600 hover:bg-tenant-700 transition-colors cursor-pointer">
-          Done
-        </button>
-      </div>
-    </div>
-  </div>
-}
 

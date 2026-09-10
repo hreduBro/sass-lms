@@ -377,6 +377,11 @@ export class LoginBrandingEditComponent {
   removeOriginalStyles = signal<boolean>(false);
   cssEditorMode = signal<'guided' | 'raw'>('guided');
   expandedScopedElement = signal<ScopedCssElement | null>(null);
+  activeExpandedElement = computed(() => {
+    const current = this.expandedScopedElement();
+    if (!current) return null;
+    return this.scopedCssElements().find(el => el.id === current.id) || current;
+  });
   showAutocomplete = signal<boolean>(true);
   activeAutocompleteElementId = signal<string | null>('background');
   autocompleteFilter = signal<string>('');
