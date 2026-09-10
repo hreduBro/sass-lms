@@ -1897,31 +1897,10 @@
         @if (rightPanelTab() === 'page_settings') {
           <div class="space-y-6">
             
-            <!-- Quick Preset Banner for the Modern Canvas Split -->
-            <div class="p-3 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 border border-pink-500/20 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-pink-900 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm text-pink-600">auto_awesome</span>
-                  <span>Modern Aurora Variant</span>
-                </span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-pink-600 text-white uppercase tracking-wider">New</span>
-              </div>
-              <p class="text-[11px] text-pink-800/80 leading-relaxed">
-                Applies the requested full-canvas split layout with fluid silk aurora mesh and enterprise feature grid.
-              </p>
-              <button 
-                type="button" 
-                (click)="applyModernSplitVariant()"
-                class="w-full py-1.5 px-3 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-1.5 transition-all">
-                <span class="material-symbols-outlined text-sm">palette</span>
-                <span>Apply Variant 1-Click</span>
-              </button>
-            </div>
-
             <!-- =============================================================== -->
             <!-- CONTENT PANEL (HERO) CUSTOMIZATION CONTROLS                     -->
             <!-- =============================================================== -->
-            <div class="space-y-3 pt-3 border-t border-slate-200">
+            <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <label class="block text-xs font-bold text-slate-800">Content Panel (Hero)</label>
                 @if (formData().useCustomContentPanel) {
@@ -2083,49 +2062,6 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Headline & Subheadline Inputs -->
-                <div class="space-y-2">
-                  <div class="space-y-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Hero Headline</span>
-                    <input type="text" [(ngModel)]="formData().headline" class="w-full px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-800 outline-none" />
-                  </div>
-                  <div class="space-y-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Hero Subtitle</span>
-                    <textarea [(ngModel)]="formData().subheadline" rows="2" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none resize-none"></textarea>
-                  </div>
-                </div>
-
-                <!-- Feature Highlights Bullets Manager -->
-                <div class="space-y-2">
-                  <span class="text-[11px] text-slate-500 font-medium">Feature Highlights</span>
-                  <div class="space-y-1.5">
-                    @for (bullet of formData().sidePanel?.bullets || []; track bullet.id) {
-                      <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                        <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">{{ bullet.icon || 'check' }}</span>
-                        <input type="text" [(ngModel)]="bullet.title" class="flex-1 bg-transparent border-none text-xs font-medium text-slate-800 outline-none" />
-                        <button type="button" (click)="removeSidePanelBullet(bullet.id)" class="text-slate-400 hover:text-rose-600 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                      </div>
-                    }
-                  </div>
-
-                  <!-- Add New Feature Bullet -->
-                  <div class="flex items-center gap-2 pt-1">
-                    <input 
-                      type="text" 
-                      placeholder="Add highlight feature..."
-                      [ngModel]="newBulletText()"
-                      (ngModelChange)="newBulletText.set($event)"
-                      (keyup.enter)="addSidePanelBullet()"
-                      class="flex-1 px-3 py-1.5 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none" />
-                    <button type="button" (click)="addSidePanelBullet()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-tenant-600 hover:bg-tenant-700 cursor-pointer">
-                      Add
-                    </button>
-                  </div>
-                </div>
-
               </div>
             }
 
