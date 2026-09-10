@@ -262,15 +262,28 @@
                    [class.text-slate-900]="previewTheme() === 'light'"
                    [class.text-white]="previewTheme() === 'dark'">
                 
-                <!-- Top Row: Back link -->
-                <div class="flex items-center justify-between mb-4">
-                  <a href="javascript:void(0)" class="flex items-center gap-1 text-xs font-semibold opacity-60 hover:opacity-100 transition-opacity">
-                    <span class="material-symbols-outlined text-sm">chevron_left</span>
-                    <span>Back to website</span>
-                  </a>
-                  <div class="block lg:hidden">
-                    @if (branding().logoUrlLight) {
-                      <img [src]="branding().logoUrlLight" alt="Logo" class="h-6 w-auto object-contain" referrerpolicy="no-referrer" />
+                <!-- Top Row: Brand Logo & Branding Header -->
+                <div class="flex items-center gap-3 mb-4 sm:mb-6">
+                  @if (branding().logoUrlLight) {
+                    <img 
+                      [src]="branding().logoUrlLight" 
+                      alt="Logo" 
+                      [style.height.px]="branding().logoHeightPx ? (branding().logoHeightPx * 0.8) : 40" 
+                      class="w-auto object-contain drop-shadow-xs" 
+                      referrerpolicy="no-referrer" />
+                  }
+                  <div class="min-w-0">
+                    <div class="text-sm sm:text-base font-black tracking-tight uppercase"
+                         [class.text-white]="previewTheme() === 'dark'"
+                         [class.text-slate-900]="previewTheme() === 'light'">
+                      {{ lms.activeTenant()?.name || 'BRAC Learning Portal' }}
+                    </div>
+                    @if (branding().tagline) {
+                      <p class="text-[11px] leading-tight opacity-70 truncate mt-0.5"
+                         [class.text-white/70]="previewTheme() === 'dark'"
+                         [class.text-slate-500]="previewTheme() === 'light'">
+                        {{ branding().tagline }}
+                      </p>
                     }
                   </div>
                 </div>

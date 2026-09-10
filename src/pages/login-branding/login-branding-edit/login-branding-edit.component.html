@@ -292,20 +292,41 @@
                    [class.text-slate-900]="previewTheme() === 'light'"
                    [class.text-white]="previewTheme() === 'dark'">
                 
-                <!-- Top Row: Back to Website Link & Mobile Logo -->
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                  <button 
-                    type="button" 
-                    (click)="selectPage('sign_in')"
-                    class="flex items-center gap-1.5 text-xs font-semibold opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">chevron_left</span>
-                    <span>Back to website</span>
-                  </button>
+                <!-- Top Row: Brand Logo & Branding Header (Header) -->
+                <div class="mb-4 sm:mb-6 transition-all relative ak-Header"
+                     [class.ring-2]="highlightedElement() === 'header'"
+                     [class.ring-purple-500]="highlightedElement() === 'header'"
+                     [class.rounded-xl]="highlightedElement() === 'header'"
+                     [class.p-2]="highlightedElement() === 'header'">
+                  @if (highlightedElement() === 'header') {
+                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <span>Header</span>
+                    </div>
+                  }
                   
-                  <div class="block lg:hidden">
+                  <div class="flex items-center gap-3">
                     @if (formData().logoUrlLight) {
-                      <img [src]="formData().logoUrlLight" alt="Logo" class="h-6 w-auto object-contain" referrerpolicy="no-referrer" />
+                      <img 
+                        [src]="formData().logoUrlLight" 
+                        alt="Logo" 
+                        [style.height.px]="formData().logoHeightPx ? (formData().logoHeightPx * 0.8) : 40"
+                        class="w-auto object-contain transition-all drop-shadow-xs ak-Logo" 
+                        referrerpolicy="no-referrer" />
                     }
+                    <div class="min-w-0">
+                      <div class="text-sm sm:text-base font-black tracking-tight uppercase ak-Title"
+                           [class.text-white]="previewTheme() === 'dark'"
+                           [class.text-slate-900]="previewTheme() === 'light'">
+                        BRAC Learning Portal
+                      </div>
+                      @if (formData().tagline) {
+                        <p class="text-[11px] leading-tight opacity-70 truncate mt-0.5 ak-Subtitle"
+                           [class.text-white/70]="previewTheme() === 'dark'"
+                           [class.text-slate-500]="previewTheme() === 'light'">
+                          {{ formData().tagline }}
+                        </p>
+                      }
+                    </div>
                   </div>
                 </div>
 
@@ -370,16 +391,7 @@
                   
                   <!-- PAGE: SIGN IN -->
                   @if (selectedPage() === 'sign_in') {
-                    <div class="relative transition-all"
-                         [class.ring-2]="highlightedElement() === 'header'"
-                         [class.ring-purple-500]="highlightedElement() === 'header'"
-                         [class.rounded-lg]="highlightedElement() === 'header'"
-                         [class.p-1.5]="highlightedElement() === 'header'">
-                      @if (highlightedElement() === 'header') {
-                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
-                          <span>Header</span>
-                        </div>
-                      }
+                    <div>
                       <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
                           [class.text-slate-900]="previewTheme() === 'light'"
                           [class.text-white]="previewTheme() === 'dark'">

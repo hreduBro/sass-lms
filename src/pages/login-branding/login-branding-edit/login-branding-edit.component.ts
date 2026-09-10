@@ -165,7 +165,7 @@ export class LoginBrandingEditComponent {
       removeOriginalStyles: false,
       code: '.ak-Background {\n  \n}',
       childClasses: [
-        { name: '.ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link', snippet: '  .ak-BackLink {\n    \n  }' },
+        { name: '.ak-Branding', type: 'CSS class', desc: 'Brand logo and title container', snippet: '  .ak-Branding {\n    \n  }' },
         { name: '.ak-Content', type: 'CSS class', desc: 'Inner content panel layout', snippet: '  .ak-Content {\n    \n  }' },
         { name: '.ak-Canvas', type: 'CSS class', desc: 'Full viewport canvas surface', snippet: '  .ak-Canvas {\n    \n  }' },
         { name: '.ak-Illustration', type: 'CSS class', desc: 'Background artwork & illustration', snippet: '  .ak-Illustration {\n    \n  }' },
@@ -389,7 +389,7 @@ export class LoginBrandingEditComponent {
   autocompleteCursorLine = signal<number>(1);
 
   autocompleteClasses = [
-    { name: 'ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link' },
+    { name: 'ak-Branding', type: 'CSS class', desc: 'Brand logo and title container' },
     { name: 'ak-Content', type: 'CSS class', desc: 'Inner content panel layout' },
     { name: 'ak-Logo', type: 'CSS class', desc: 'Header branding logo image' },
     { name: 'ak-Title', type: 'CSS class', desc: 'Page primary headline title' },
