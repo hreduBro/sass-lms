@@ -872,32 +872,34 @@ const distDirs = [
   join(__dirname, 'dist', 'browser'),
   join(__dirname, 'dist'),
   join(__dirname, 'dist', 'app'),
-  __dirname
+  join(__dirname, 'dist', 'ai-chatbot-admin-console'),
+  join(__dirname, 'build')
 ];
 
-let staticServed = false;
 for (const dir of distDirs) {
-  if (existsSync(join(dir, 'index.html')) && dir !== __dirname) {
+  if (existsSync(dir)) {
     app.use(express.static(dir));
-    app.get('*', (req: Request, res: Response, next: NextFunction) => {
-      if (req.path.startsWith('/api')) return next();
-      res.sendFile(join(dir, 'index.html'));
-    });
-    staticServed = true;
-    break;
   }
 }
 
-if (!staticServed) {
-  // If static directory not yet built, serve index.html from root if present
-  app.get('*', (req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/api')) return next();
-    if (existsSync(join(__dirname, 'index.html'))) {
-      return res.sendFile(join(__dirname, 'index.html'));
+// SPA Catch-all Fallback (Express 5 compatible)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method !== 'GET') return next();
+  if (req.path.startsWith('/api')) return next();
+
+  for (const dir of distDirs) {
+    const indexPath = join(dir, 'index.html');
+    if (existsSync(indexPath)) {
+      return res.sendFile(indexPath);
     }
-    next();
-  });
-}
+  }
+
+  if (existsSync(join(__dirname, 'index.html'))) {
+    return res.sendFile(join(__dirname, 'index.html'));
+  }
+
+  next();
+});
 
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

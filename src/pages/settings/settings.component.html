@@ -18,13 +18,24 @@
       <p class="text-xs text-text-secondary">Customize portal theme colors, styling preset, navigation topology, SAML Single Sign-On, and SCORM mapped directly to this LMS</p>
     </div>
 
-    <button 
-      id="btn-save-settings"
-      (click)="saveSettings()"
-      class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm self-start md:self-auto cursor-pointer">
-      <span class="material-symbols-outlined text-sm">save</span>
-      Save & Apply Live LMS Theme
-    </button>
+    <div class="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+      @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'super_admin') {
+        <a 
+          routerLink="/login-branding"
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary border border-base-300 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm text-tenant-600">branding_watermark</span>
+          <span>Login Branding Studio</span>
+        </a>
+      }
+
+      <button 
+        id="btn-save-settings"
+        (click)="saveSettings()"
+        class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
+        <span class="material-symbols-outlined text-sm">save</span>
+        <span>Save & Apply Live LMS Theme</span>
+      </button>
+    </div>
   </div>
 
   @if (savedNotification()) {

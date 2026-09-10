@@ -203,6 +203,10 @@ import {
   INITIAL_SIGNATORY_LINKS,
   INITIAL_SIGNATORY_CHANGE_LOGS
 } from '../models/signatory.model';
+import {
+  LoginBrandingConfig,
+  DEFAULT_LOGIN_BRANDING
+} from '../models/login-branding.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -2544,6 +2548,9 @@ export class LmsDataService {
   // Badge Templates Store
   badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
   badgeMappings = signal<BadgeMapping[]>(INITIAL_BADGE_MAPPINGS);
+
+  // Login Branding Store (System Admin Scope)
+  loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
 
   badgePermissions = computed<BadgePermissions>(() => {
     const role = this.activeRole();
@@ -8664,6 +8671,50 @@ export class LmsDataService {
 
   getElementsMappedToBadge(templateId: string): BadgeMapping[] {
     return this.badgeMappings().filter(m => m.templateId === templateId);
+  }
+
+  // =========================================================================
+  // LOGIN BRANDING MANAGEMENT (System Admin Scope)
+  // =========================================================================
+  updateLoginBranding(changes: Partial<LoginBrandingConfig>): void {
+    this.loginBranding.update(current => ({
+      ...current,
+      ...changes,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    }));
+  }
+
+  publishLoginBranding(updatedConfig: LoginBrandingConfig): void {
+    const newVersion = Math.round((this.loginBranding().version + 0.1) * 10) / 10;
+    const author = this.activeUser()?.name || 'System Admin';
+    const finalConfig: LoginBrandingConfig = {
+      ...updatedConfig,
+      status: 'Published',
+      version: newVersion,
+      lastUpdatedBy: author,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    this.loginBranding.set(finalConfig);
+    this.logAction('Login Branding Published', `Published Login Branding configuration v${newVersion} by ${author}`, 'success');
+    this.showToast(`Login Branding v${newVersion} published successfully!`, 'success', 3500, 'Branding Published');
+  }
+
+  resetLoginBrandingToDefault(): void {
+    const currentTenant = this.activeTenant();
+    const defaultBrac: LoginBrandingConfig = {
+      ...DEFAULT_LOGIN_BRANDING,
+      tenantId: currentTenant?.id || 'tenant-brac',
+      logoUrlLight: currentTenant?.branding?.logoUrl || DEFAULT_LOGIN_BRANDING.logoUrlLight,
+      primaryColor: currentTenant?.branding?.primaryColor || DEFAULT_LOGIN_BRANDING.primaryColor,
+      accentColor: currentTenant?.branding?.accentColor || DEFAULT_LOGIN_BRANDING.accentColor,
+      headline: `Welcome to ${currentTenant?.name || 'BRAC'} Learning Portal`,
+      tagline: currentTenant?.branding?.tagline || DEFAULT_LOGIN_BRANDING.tagline,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      lastUpdatedBy: this.activeUser()?.name || 'System Admin'
+    };
+    this.loginBranding.set(defaultBrac);
+    this.showToast('Login branding reset to organization standard defaults.', 'info', 3000, 'Reset Complete');
   }
 }
 

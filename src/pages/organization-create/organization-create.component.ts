@@ -2,6 +2,8 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, O
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import Uppy from '@uppy/core';
+import ThumbnailGenerator from '@uppy/thumbnail-generator';
 import { LmsDataService } from '../../services/lms-data.service';
 import {
   TIMEZONE_OPTIONS,
@@ -112,6 +114,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   isEditMode = signal<boolean>(false);
   editingOrgId = signal<string | null>(null);
 
+  // Uppy Core uploader instance
+  private uppy!: Uppy;
+
   // Available LMS Instances for Custom batching
   availableLmsNodes = [
     { id: 'LMS-Core-01', name: 'LMS Main Campus (Core)' },
@@ -123,6 +128,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.ensureActiveTenantTheme();
     this.initForms();
+    this.initUppy();
     
     // Check if editing an existing organization or resuming a draft via query params
     this.route.queryParams.subscribe(params => {
@@ -144,7 +150,63 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Keep active tenant theme persistent
+    if (this.uppy) {
+      this.uppy.destroy();
+    }
+  }
+
+  /**
+   * Initializes Uppy Core file uploader with Thumbnail Generator and file restrictions
+   */
+  private initUppy() {
+    this.uppy = new Uppy({
+      id: 'organization-logo-uploader',
+      autoProceed: true,
+      restrictions: {
+        maxFileSize: 5 * 1024 * 1024, // 5MB
+        maxNumberOfFiles: 1,
+        minNumberOfFiles: 1,
+        allowedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp', '.png', '.jpg', '.jpeg', '.svg', '.webp']
+      }
+    });
+
+    this.uppy.use(ThumbnailGenerator, {
+      thumbnailWidth: 400,
+      thumbnailHeight: 400
+    });
+
+    this.uppy.on('file-added', (file) => {
+      this.logoTouched.set(true);
+      this.logoError.set(null);
+      this.logoFileName.set(file.name);
+      this.logoSizeKb.set(Math.round((file.size || 0) / 1024));
+
+      // Read file binary as data URL fallback if thumbnail not yet ready
+      if (file.data instanceof Blob || file.data instanceof File) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (!this.logoPreview()) {
+            this.logoPreview.set(e.target?.result as string);
+          }
+        };
+        reader.readAsDataURL(file.data);
+      }
+    });
+
+    this.uppy.on('thumbnail:generated', (file, preview) => {
+      if (preview) {
+        this.logoPreview.set(preview);
+      }
+    });
+
+    this.uppy.on('restriction-failed', (file, error) => {
+      this.logoTouched.set(true);
+      this.logoError.set(error?.message || 'File violates upload restrictions (Max 5MB; PNG, JPG, SVG, WebP only).');
+    });
+
+    this.uppy.on('error', (error) => {
+      this.logoError.set(error?.message || 'An error occurred during file upload processing.');
+    });
   }
 
   /**
@@ -560,29 +622,34 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   }
 
   private processLogoFile(file: File) {
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      this.logoError.set('Invalid format. Allowed formats: PNG, JPG, JPEG, SVG, WebP.');
-      return;
+    this.logoTouched.set(true);
+    this.logoError.set(null);
+
+    if (!this.uppy) {
+      this.initUppy();
     }
 
-    const maxSizeBytes = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSizeBytes) {
-      this.logoError.set('File size exceeds 5 MB limit.');
-      return;
+    try {
+      // Clear existing files from Uppy queue for single logo replacement
+      const currentFiles = this.uppy.getFiles();
+      currentFiles.forEach(f => this.uppy.removeFile(f.id));
+
+      this.uppy.addFile({
+        name: file.name,
+        type: file.type,
+        data: file,
+        source: 'Local File'
+      });
+    } catch (err: any) {
+      this.logoError.set(err?.message || 'Invalid logo file or restriction failed.');
     }
-
-    this.logoFileName.set(file.name);
-    this.logoSizeKb.set(Math.round(file.size / 1024));
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.logoPreview.set(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
   }
 
   removeLogo() {
+    if (this.uppy) {
+      const currentFiles = this.uppy.getFiles();
+      currentFiles.forEach(f => this.uppy.removeFile(f.id));
+    }
     this.logoPreview.set(null);
     this.logoFileName.set(null);
     this.logoSizeKb.set(0);

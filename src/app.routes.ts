@@ -31,6 +31,9 @@ import { BadgeCreateComponent } from './pages/badge-templates/badge-create/badge
 import { WebinarsComponent } from './pages/webinars/webinars.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { LoginBrandingPreviewComponent } from './pages/login-branding/login-branding-preview/login-branding-preview.component';
+import { LoginBrandingEditComponent } from './pages/login-branding/login-branding-edit/login-branding-edit.component';
+import { LoginComponent } from './pages/login/login.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -464,6 +467,36 @@ export const routes: Routes = [
     title: 'LMS Theming & Settings | Multi-Tenant LMS',
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+
+  // Login Branding Management (System Admin Scope)
+  {
+    path: 'login-branding',
+    component: LoginBrandingPreviewComponent,
+    title: 'Login Branding Preview | System Administration',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin'] }
+  },
+  {
+    path: 'login-branding/preview',
+    component: LoginBrandingPreviewComponent,
+    title: 'Login Branding Preview | System Administration',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin'] }
+  },
+  {
+    path: 'login-branding/edit',
+    component: LoginBrandingEditComponent,
+    title: 'Edit Login Branding Studio | System Administration',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin'] }
+  },
+
+  // Standalone Live Authentication Portal
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Sign In | Multi-Tenant Learning Portal'
   },
 
   // Dedicated Error & Exception Pages (§4.15)

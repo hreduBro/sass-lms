@@ -69,6 +69,44 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    label: 'Login Branding',
+    route: '/login-branding',
+    icon: 'branding_watermark',
+    roles: ['system_admin', 'super_admin'],
+    badge: 'Admin',
+    description: 'Custom portal login branding, SSO styling, and theme customizer',
+    matchPatterns: ['/login-branding', '/login-branding/**'],
+    children: [
+      {
+        label: 'Branding Preview',
+        route: '/login-branding',
+        icon: 'preview',
+        badge: 'Live',
+        description: 'Interactive multi-device preview of portal login page',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login-branding']
+      },
+      {
+        label: 'Edit Branding',
+        route: '/login-branding/edit',
+        icon: 'tune',
+        badge: 'Studio',
+        description: 'Configure logos, layouts, backgrounds, SSO and legal copy',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login-branding/edit']
+      },
+      {
+        label: 'Live Login Portal',
+        route: '/login',
+        icon: 'login',
+        badge: 'Portal',
+        description: 'View full standalone live authentication portal',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login']
+      }
+    ]
+  },
+  {
     label: 'Org Dashboard',
     route: '/organization/dashboard',
     icon: 'space_dashboard',

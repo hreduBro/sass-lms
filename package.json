@@ -23,15 +23,17 @@
     "@google/genai": "^2.18.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@uppy/core": "^6.0.1",
+    "@uppy/thumbnail-generator": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "ngx-spinner": "^22.0.1",
     "rxjs": "^7.8.2",
-    "tailwindcss": "latest"
-  },
-  "devDependencies": {
+    "tailwindcss": "latest",
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "devDependencies": {
   }
 }

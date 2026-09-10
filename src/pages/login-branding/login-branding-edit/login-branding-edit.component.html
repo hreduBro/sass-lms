@@ -1,0 +1,2115 @@
+<div class="h-[calc(100vh-4.5rem)] flex flex-col bg-slate-100 text-slate-800 -m-4 sm:-m-6 overflow-hidden select-none">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. TOP NAVIGATION & STUDIO HEADER                                          -->
+  <!-- ========================================================================= -->
+  <header class="h-14 bg-white border-b border-slate-200 px-5 flex items-center justify-between gap-4 flex-shrink-0 z-20 shadow-xs">
+    
+    <!-- Left: Breadcrumb Navigation -->
+    <div class="flex items-center gap-3">
+      <a routerLink="/login-branding" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-tenant-600 transition-colors cursor-pointer group">
+        <span class="material-symbols-outlined text-base group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+        <span>Back to Branding</span>
+      </a>
+
+      <span class="text-slate-300 font-light">|</span>
+
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-slate-800">Login Branding Studio</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 text-tenant-600 border border-pink-200">
+          Live Editor
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: Studio Actions (Undo, Save Draft, Save & Publish) -->
+    <div class="flex items-center gap-2.5">
+      <!-- Undo all button -->
+      <button 
+        type="button"
+        (click)="undoAllChanges()"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all cursor-pointer flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-slate-500">undo</span>
+        <span>Undo all</span>
+      </button>
+
+      <!-- Save Draft button -->
+      <button 
+        type="button"
+        (click)="onSaveDraft()"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-300 transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-slate-500">save</span>
+        <span>Save Draft</span>
+      </button>
+
+      <!-- Save changes button (Brand Primary) -->
+      <button 
+        type="button"
+        (click)="onPublish()"
+        [disabled]="isSaving()"
+        class="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-tenant-600 hover:bg-tenant-700 active:scale-[0.98] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+        @if (isSaving()) {
+          <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span>Publishing...</span>
+        } @else {
+          <span class="material-symbols-outlined text-sm">cloud_upload</span>
+          <span>Save changes</span>
+        }
+      </button>
+    </div>
+
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN WORKSPACE: PREVIEW (LEFT FULL BLOCK) + SETUP (RIGHT PANEL)        -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- ======================================================================= -->
+    <!-- A. LEFT BLOCK: FULL PREVIEW CANVAS (Edge-to-Edge with Viewport Modes)    -->
+    <!-- ======================================================================= -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-900 border-r border-slate-200 overflow-hidden relative">
+      
+      <!-- Preview Sub-header Navigation Bar -->
+      <div class="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between gap-3 z-30 shadow-xs relative">
+        
+        <!-- Left: Page Selector Dropdown -->
+        <div class="relative z-40">
+          <button 
+            type="button"
+            (click)="togglePageDropdown()"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-sm text-tenant-600">{{ currentPageObj().icon }}</span>
+            <span>{{ currentPageObj().name }}</span>
+            <span class="material-symbols-outlined text-sm text-slate-500 transition-transform" [class.rotate-180]="isPageDropdownOpen()">expand_more</span>
+          </button>
+
+          <!-- Dropdown Menu (Pages & Elements) -->
+          @if (isPageDropdownOpen()) {
+            <div class="fixed inset-0 z-40" (click)="isPageDropdownOpen.set(false)"></div>
+            <div class="absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-white border border-slate-200 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100 max-h-96 overflow-y-auto">
+              
+              <!-- Category: Pages -->
+              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Pages
+              </div>
+              @for (page of pagesMenu; track page.id) {
+                <button 
+                  type="button"
+                  (click)="selectPage(page.id)"
+                  [class]="selectedPage() === page.id ? 'bg-pink-50 text-tenant-600 font-bold' : 'text-slate-700 hover:bg-slate-100'"
+                  class="w-full text-left px-3.5 py-2 flex items-center gap-2.5 transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-sm" [class.text-tenant-600]="selectedPage() === page.id">{{ page.icon }}</span>
+                  <span class="flex-1">{{ page.name }}</span>
+                  @if (selectedPage() === page.id) {
+                    <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                  }
+                </button>
+              }
+
+              <div class="my-1.5 border-t border-slate-100"></div>
+
+              <!-- Category: Elements Inspector Shortcuts -->
+              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Elements</span>
+                <span class="text-[10px] text-slate-400 font-normal">CSS Target</span>
+              </div>
+              @for (el of elementsMenu; track el.id) {
+                <button 
+                  type="button"
+                  (click)="rightPanelTab.set('custom_css'); openCssAccordions()[el.id] = true; isPageDropdownOpen.set(false); highlightElement(el.id)"
+                  class="w-full text-left px-3.5 py-1.5 flex items-center gap-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-sm text-slate-400">{{ el.icon }}</span>
+                  <span class="flex-1">{{ el.name }}</span>
+                  <span class="font-mono text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{{ el.selector }}</span>
+                </button>
+              }
+
+            </div>
+          }
+        </div>
+
+        <!-- Center: Device Viewport Controls -->
+        <div class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button 
+            type="button" 
+            (click)="setViewportMode('fullscreen')"
+            [title]="'Full Edge-to-Edge Canvas'"
+            [class]="viewportMode() === 'fullscreen' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">fullscreen</span>
+            <span>Full Space</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="setViewportMode('desktop')"
+            [title]="'Desktop Mockup Frame (1200px)'"
+            [class]="viewportMode() === 'desktop' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">desktop_windows</span>
+            <span>Desktop</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="setViewportMode('tablet')"
+            [title]="'Tablet Mockup Frame (768px)'"
+            [class]="viewportMode() === 'tablet' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">tablet_mac</span>
+            <span>Tablet</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="setViewportMode('mobile')"
+            [title]="'Mobile Mockup Frame (390px)'"
+            [class]="viewportMode() === 'mobile' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm">smartphone</span>
+            <span>Mobile</span>
+          </button>
+        </div>
+
+        <!-- Right: Language Picker & Theme Toggles -->
+        <div class="flex items-center gap-2">
+          
+          <!-- Language Selector -->
+          <div class="hidden sm:flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-xs text-slate-700 font-medium">
+            <span class="material-symbols-outlined text-sm text-slate-500">language</span>
+            <select 
+              [ngModel]="selectedLanguage()" 
+              (ngModelChange)="selectedLanguage.set($event)"
+              class="bg-transparent border-none text-xs font-medium text-slate-700 outline-none cursor-pointer">
+              <option value="English (US)">English (US)</option>
+              <option value="Bengali (বাংলা)">Bengali (বাংলা)</option>
+              <option value="Spanish (Español)">Spanish (Español)</option>
+              <option value="French (Français)">French (Français)</option>
+            </select>
+          </div>
+
+          <!-- Inspector Mode Toggle -->
+          <button 
+            type="button"
+            (click)="toggleInspectorMode()"
+            [title]="inspectorMode() ? 'Exit CSS Inspector' : 'Inspect CSS Selectors'"
+            [class]="inspectorMode() ? 'bg-tenant-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'"
+            class="w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-base">near_me</span>
+          </button>
+
+          <!-- Light / Dark Preview Canvas Mode Toggle -->
+          <button 
+            type="button"
+            (click)="togglePreviewTheme()"
+            [title]="previewTheme() === 'dark' ? 'Switch Elements to Light Theme' : 'Switch Elements to Dark Theme'"
+            [class]="previewTheme() === 'dark' ? 'bg-slate-800 text-amber-300 border-slate-700' : 'bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200'"
+            class="w-8 h-8 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-base">{{ previewTheme() === 'dark' ? 'dark_mode' : 'light_mode' }}</span>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Live Interactive Viewport Area (Full-bleed or Bezel Mode) -->
+      <div 
+        class="flex-1 overflow-y-auto overflow-x-hidden relative transition-colors duration-200 flex flex-col min-h-0"
+        [class.p-0]="viewportMode() === 'fullscreen'"
+        [class.p-3]="viewportMode() !== 'fullscreen'"
+        [class.sm:p-6]="viewportMode() !== 'fullscreen'"
+        [class.items-center]="viewportMode() !== 'fullscreen'"
+        [class.bg-slate-950]="previewTheme() === 'dark'"
+        [class.bg-slate-100]="previewTheme() === 'light'">
+
+        <!-- Viewport Box Container -->
+        <div 
+          class="transition-all duration-300 ak-Background auth-background flex flex-col justify-between relative overflow-y-auto overflow-x-hidden"
+          [class.w-full]="true"
+          [class.h-full]="viewportMode() === 'fullscreen'"
+          [class.min-h-full]="viewportMode() === 'fullscreen'"
+          [class.flex-1]="viewportMode() === 'fullscreen'"
+          [class.max-w-5xl]="viewportMode() === 'desktop'"
+          [class.max-w-xl]="viewportMode() === 'tablet'"
+          [class.max-w-[400px]]="viewportMode() === 'mobile'"
+          [class.min-h-[580px]]="viewportMode() !== 'fullscreen'"
+          [class.my-auto]="viewportMode() !== 'fullscreen'"
+          [class.rounded-2xl]="viewportMode() !== 'fullscreen'"
+          [class.shadow-2xl]="viewportMode() !== 'fullscreen'"
+          [class.border]="viewportMode() !== 'fullscreen'"
+          [class.border-slate-700/60]="viewportMode() !== 'fullscreen' && previewTheme() === 'dark'"
+          [class.border-slate-300]="viewportMode() !== 'fullscreen' && previewTheme() === 'light'"
+          [style.backgroundColor]="formData().backgroundType === 'solid' ? (formData().backgroundOverlayColor || formData().primaryColor) : 'transparent'">
+
+          <!-- 1. Background Image / Gradient Layer -->
+          @if (formData().backgroundType === 'image' && formData().backgroundImageUrl) {
+            <div 
+              class="absolute inset-0 bg-cover bg-center transition-all duration-500 z-0 pointer-events-none"
+              [style.backgroundImage]="'url(' + formData().backgroundImageUrl + ')'"
+              [style.filter]="formData().backgroundBlurPx > 0 ? 'blur(' + formData().backgroundBlurPx + 'px)' : 'none'">
+            </div>
+          } @else if (formData().backgroundType === 'gradient' || formData().backgroundType === 'mesh') {
+            <div 
+              class="absolute inset-0 transition-all duration-500 z-0 pointer-events-none"
+              [style.background]="formData().backgroundGradient || ('linear-gradient(135deg, ' + formData().primaryColor + ' 0%, #1e1b4b 100%)')">
+            </div>
+          }
+
+          <!-- 2. Background Overlay Layer -->
+          <div 
+            class="absolute inset-0 pointer-events-none transition-all duration-300 z-0"
+            [style.backgroundColor]="formData().backgroundOverlayColor || '#0f172a'"
+            [style.opacity]="(formData().backgroundOverlayOpacity / 100).toString()"
+            [style.backdrop-filter]="formData().backgroundBlurPx > 0 ? 'blur(' + formData().backgroundBlurPx + 'px)' : 'none'">
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- VARIANT 1: MODERN HALF-CANVAS SPLIT (Truet / Fluid Silk Aesthetic)  -->
+          <!-- ================================================================= -->
+          @if (formData().layout === 'split_modern_canvas') {
+            <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-[580px] relative z-10 overflow-hidden"
+                 [class.lg:flex-row-reverse]="formData().splitPosition === 'left'"
+                 [class.bg-white]="previewTheme() === 'light'"
+                 [class.bg-slate-900]="previewTheme() === 'dark'">
+              
+              <!-- LEFT COLUMN: Clean Form Surface (45%-50% width) -->
+              <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-full overflow-y-auto"
+                   [class.text-slate-900]="previewTheme() === 'light'"
+                   [class.text-white]="previewTheme() === 'dark'">
+                
+                <!-- Top Row: Back to Website Link & Mobile Logo -->
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                  <button 
+                    type="button" 
+                    (click)="selectPage('sign_in')"
+                    class="flex items-center gap-1.5 text-xs font-semibold opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                    <span>Back to website</span>
+                  </button>
+                  
+                  <div class="block lg:hidden">
+                    @if (formData().logoUrlLight) {
+                      <img [src]="formData().logoUrlLight" alt="Logo" class="h-6 w-auto object-contain" referrerpolicy="no-referrer" />
+                    }
+                  </div>
+                </div>
+
+                <!-- Middle: Active Auth Page Form -->
+                <div class="w-full max-w-sm mx-auto my-auto space-y-5 py-2">
+                  
+                  <!-- PAGE: SIGN IN -->
+                  @if (selectedPage() === 'sign_in') {
+                    <div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">
+                        Sign In
+                      </h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">
+                        Enter your email and password to sign in
+                      </p>
+                    </div>
+
+                    <!-- Single Prominent Google SSO Button -->
+                    @if (formData().enableSsoGoogle) {
+                      <button 
+                        type="button"
+                        class="w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer shadow-2xs auth-sso-btn ak-SecondaryButton"
+                        [class.bg-white]="previewTheme() === 'light'"
+                        [class.border-slate-200]="previewTheme() === 'light'"
+                        [class.text-slate-700]="previewTheme() === 'light'"
+                        [class.bg-slate-800]="previewTheme() === 'dark'"
+                        [class.border-slate-700]="previewTheme() === 'dark'"
+                        [class.text-slate-200]="previewTheme() === 'dark'">
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Sign in with Google</span>
+                      </button>
+                    }
+
+                    <!-- 'or' Divider -->
+                    <div class="relative flex items-center justify-center">
+                      <div class="w-full border-t" [class.border-slate-200]="previewTheme() === 'light'" [class.border-slate-800]="previewTheme() === 'dark'"></div>
+                      <span class="absolute px-2 text-[11px] font-medium uppercase tracking-wider"
+                            [class.bg-white]="previewTheme() === 'light'"
+                            [class.text-slate-400]="previewTheme() === 'light'"
+                            [class.bg-slate-900]="previewTheme() === 'dark'"
+                            [class.text-slate-500]="previewTheme() === 'dark'">or</span>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div class="space-y-3.5">
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold" [class.text-slate-700]="previewTheme() === 'light'" [class.text-slate-300]="previewTheme() === 'dark'">
+                          Email*
+                        </label>
+                        <input 
+                          type="email" 
+                          [ngModel]="testEmail()"
+                          (ngModelChange)="testEmail.set($event)"
+                          placeholder="shovon.sen@brac.net"
+                          class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                          [class.bg-slate-50]="previewTheme() === 'light'"
+                          [class.border-slate-200]="previewTheme() === 'light'"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.bg-slate-800/80]="previewTheme() === 'dark'"
+                          [class.border-slate-700]="previewTheme() === 'dark'"
+                          [class.text-white]="previewTheme() === 'dark'" />
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold" [class.text-slate-700]="previewTheme() === 'light'" [class.text-slate-300]="previewTheme() === 'dark'">
+                          Password*
+                        </label>
+                        <div class="relative">
+                          <input 
+                            [type]="showPassword() ? 'text' : 'password'"
+                            [ngModel]="testPassword()"
+                            (ngModelChange)="testPassword.set($event)"
+                            placeholder="Min 8 characters"
+                            class="w-full px-3.5 pr-10 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                            [class.bg-slate-50]="previewTheme() === 'light'"
+                            [class.border-slate-200]="previewTheme() === 'light'"
+                            [class.text-slate-900]="previewTheme() === 'light'"
+                            [class.bg-slate-800/80]="previewTheme() === 'dark'"
+                            [class.border-slate-700]="previewTheme() === 'dark'"
+                            [class.text-white]="previewTheme() === 'dark'" />
+                          <button 
+                            type="button" 
+                            (click)="toggleShowPassword()" 
+                            class="material-symbols-outlined text-base absolute right-3 top-3 opacity-50 hover:opacity-100 cursor-pointer">
+                            {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Options Row -->
+                      <div class="flex items-center justify-between text-xs pt-0.5">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                          <input 
+                            type="checkbox" 
+                            [ngModel]="rememberMe()"
+                            (ngModelChange)="rememberMe.set($event)"
+                            class="rounded text-tenant-600 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          <span class="text-[11px] font-medium opacity-80">Keep me logged in</span>
+                        </label>
+
+                        <button 
+                          type="button"
+                          (click)="selectPage('password_reset')"
+                          class="text-[11px] font-semibold text-tenant-600 hover:text-tenant-700 hover:underline cursor-pointer">
+                          Forgot password?
+                        </button>
+                      </div>
+
+                      <!-- Sign In CTA Button -->
+                      <button 
+                        type="button"
+                        [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
+                        [class.rounded-full]="formData().buttonStyle === 'pill'"
+                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                        [class.rounded-md]="formData().buttonStyle === 'square'"
+                        class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
+                        <span>Sign In</span>
+                      </button>
+
+                      <!-- Switch Link -->
+                      <div class="text-center text-xs pt-1">
+                        <span class="opacity-60">Not registered yet? </span>
+                        <button 
+                          type="button" 
+                          (click)="selectPage('sign_up')"
+                          class="font-bold text-tenant-600 hover:text-tenant-700 hover:underline cursor-pointer">
+                          Create an Account
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- PAGE: SIGN UP -->
+                  @if (selectedPage() === 'sign_up') {
+                    <div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Create an Account</h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">Start your enterprise learning journey</p>
+                    </div>
+
+                    <div class="space-y-3">
+                      <div class="grid grid-cols-2 gap-2.5">
+                        <div class="space-y-1">
+                          <label class="text-[11px] font-bold opacity-80">First Name*</label>
+                          <input type="text" [ngModel]="signUpFirstName()" (ngModelChange)="signUpFirstName.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-[11px] font-bold opacity-80">Last Name*</label>
+                          <input type="text" [ngModel]="signUpLastName()" (ngModelChange)="signUpLastName.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                        </div>
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Work Email*</label>
+                        <input type="email" [ngModel]="signUpWorkEmail()" (ngModelChange)="signUpWorkEmail.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Password*</label>
+                        <div class="relative">
+                          <input [type]="showSignUpPassword() ? 'text' : 'password'" [ngModel]="signUpPassword()" (ngModelChange)="signUpPassword.set($event)" class="w-full px-3 pr-9 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                          <button type="button" (click)="toggleShowSignUpPassword()" class="material-symbols-outlined text-sm absolute right-3 top-2.5 opacity-50">{{ showSignUpPassword() ? 'visibility_off' : 'visibility' }}</button>
+                        </div>
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Confirm Password*</label>
+                        <div class="relative">
+                          <input [type]="showSignUpConfirmPassword() ? 'text' : 'password'" [ngModel]="signUpConfirmPassword()" (ngModelChange)="signUpConfirmPassword.set($event)" class="w-full px-3 pr-9 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                          <button type="button" (click)="toggleShowSignUpConfirmPassword()" class="material-symbols-outlined text-sm absolute right-3 top-2.5 opacity-50">{{ showSignUpConfirmPassword() ? 'visibility_off' : 'visibility' }}</button>
+                        </div>
+                      </div>
+
+                      <!-- Password Policy Box -->
+                      <div class="p-2.5 rounded-xl border text-[11px] space-y-1" [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.bg-slate-800/50]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                        <div class="font-bold opacity-80 mb-1">Password Policy:</div>
+                        <div class="grid grid-cols-2 gap-1 text-[10px]">
+                          <div class="flex items-center gap-1.5" [class.text-emerald-500]="hasMinLength()" [class.opacity-50]="!hasMinLength()">
+                            <span class="material-symbols-outlined text-xs">{{ hasMinLength() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                            <span>8+ characters</span>
+                          </div>
+                          <div class="flex items-center gap-1.5" [class.text-emerald-500]="hasUppercase()" [class.opacity-50]="!hasUppercase()">
+                            <span class="material-symbols-outlined text-xs">{{ hasUppercase() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                            <span>Uppercase letter</span>
+                          </div>
+                          <div class="flex items-center gap-1.5" [class.text-emerald-500]="hasNumber()" [class.opacity-50]="!hasNumber()">
+                            <span class="material-symbols-outlined text-xs">{{ hasNumber() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                            <span>Number (0-9)</span>
+                          </div>
+                          <div class="flex items-center gap-1.5" [class.text-emerald-500]="hasSpecialChar()" [class.opacity-50]="!hasSpecialChar()">
+                            <span class="material-symbols-outlined text-xs">{{ hasSpecialChar() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                            <span>Special char</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button type="button" [style.background]="formData().primaryColor" [class.rounded-full]="formData().buttonStyle === 'pill'" [class.rounded-xl]="formData().buttonStyle === 'rounded'" [class.rounded-md]="formData().buttonStyle === 'square'" class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton">
+                        Create Account
+                      </button>
+
+                      <div class="text-center text-xs pt-1">
+                        <span class="opacity-60">Already registered? </span>
+                        <button type="button" (click)="selectPage('sign_in')" class="font-bold text-tenant-600 hover:underline cursor-pointer">Sign In</button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- PAGE: ACCEPT INVITATION -->
+                  @if (selectedPage() === 'accept_invitation') {
+                    <div>
+                      <h1 class="text-2xl font-black tracking-tight">Accept Invitation</h1>
+                      <p class="text-xs opacity-60 mt-1">Join {{ lms.activeTenant().name }} organization</p>
+                    </div>
+
+                    <div class="space-y-3">
+                      <div class="p-3 rounded-xl border flex items-center gap-3" [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                        <div class="w-8 h-8 rounded-full bg-tenant-600/20 text-tenant-600 flex items-center justify-center font-bold text-xs">SS</div>
+                        <div class="text-xs">
+                          <div class="font-bold">shovon.sen@brac.net</div>
+                          <div class="text-[10px] opacity-60">Invited as Senior Specialist</div>
+                        </div>
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Create Password*</label>
+                        <input type="password" [ngModel]="signUpPassword()" (ngModelChange)="signUpPassword.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Confirm Password*</label>
+                        <input type="password" [ngModel]="signUpConfirmPassword()" (ngModelChange)="signUpConfirmPassword.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                      </div>
+
+                      <button type="button" [style.background]="formData().primaryColor" [class.rounded-full]="formData().buttonStyle === 'pill'" [class.rounded-xl]="formData().buttonStyle === 'rounded'" class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton">
+                        Accept & Join Portal
+                      </button>
+                    </div>
+                  }
+
+                  <!-- PAGE: PASSWORD RESET -->
+                  @if (selectedPage() === 'password_reset') {
+                    <div>
+                      <h1 class="text-2xl font-black tracking-tight">Reset Password</h1>
+                      <p class="text-xs opacity-60 mt-1">Enter your work email to receive recovery instructions</p>
+                    </div>
+
+                    <div class="space-y-3">
+                      <div class="space-y-1">
+                        <label class="text-[11px] font-bold opacity-80">Work Email*</label>
+                        <input type="email" [ngModel]="passwordResetEmail()" (ngModelChange)="passwordResetEmail.set($event)" class="w-full px-3 py-2 rounded-xl text-xs border outline-none ak-TextField" [class.bg-slate-50]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" />
+                      </div>
+
+                      <button type="button" [style.background]="formData().primaryColor" [class.rounded-full]="formData().buttonStyle === 'pill'" [class.rounded-xl]="formData().buttonStyle === 'rounded'" class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton">
+                        Send Reset Link
+                      </button>
+
+                      <div class="text-center text-xs pt-1">
+                        <button type="button" (click)="selectPage('sign_in')" class="font-bold text-tenant-600 hover:underline cursor-pointer">
+                          &larr; Back to Sign In
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- OTHER PAGES (MFA, Org select, SSO consent, Block) -->
+                  @if (selectedPage() !== 'sign_in' && selectedPage() !== 'sign_up' && selectedPage() !== 'accept_invitation' && selectedPage() !== 'password_reset') {
+                    <div class="p-4 rounded-xl border text-center space-y-3" [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                      <span class="material-symbols-outlined text-3xl text-tenant-600">verified_user</span>
+                      <div class="text-sm font-bold capitalize">{{ selectedPage().replace('_', ' ') }}</div>
+                      <p class="text-xs opacity-60">Enterprise authentication workflow view</p>
+                      <button type="button" (click)="selectPage('sign_in')" class="px-4 py-2 rounded-xl text-xs font-bold text-white cursor-pointer" [style.background]="formData().primaryColor">
+                        Return to Sign In
+                      </button>
+                    </div>
+                  }
+
+                </div>
+
+                <!-- Bottom Row: Copyright Legal Text -->
+                <div class="text-[10px] opacity-50 mt-4 truncate">
+                  {{ formData().copyrightText }}
+                </div>
+              </div>
+
+              <!-- RIGHT/LEFT COLUMN: Immersive Fluid Silk Hero Canvas (52%-55% width) -->
+              <div class="hidden lg:flex lg:w-[52%] xl:w-[55%] relative overflow-hidden p-8 sm:p-10 lg:p-12 flex-col justify-between text-white shadow-2xl transition-all duration-300"
+                   [class.rounded-bl-[64px]]="formData().splitPosition !== 'left'"
+                   [class.lg:rounded-bl-[96px]]="formData().splitPosition !== 'left'"
+                   [class.rounded-br-[64px]]="formData().splitPosition === 'left'"
+                   [class.lg:rounded-br-[96px]]="formData().splitPosition === 'left'"
+                   [style.backgroundColor]="formData().backgroundType === 'solid' ? (formData().backgroundOverlayColor || formData().primaryColor) : '#0f172a'">
+                
+                @if (formData().backgroundType === 'image' && formData().backgroundImageUrl) {
+                  <div class="absolute inset-0 bg-cover bg-center transition-all duration-500 z-0" [style.backgroundImage]="'url(' + formData().backgroundImageUrl + ')'"></div>
+                } @else if (formData().backgroundType === 'gradient' || formData().backgroundType === 'mesh') {
+                  <div class="absolute inset-0 transition-all duration-500 z-0" [style.background]="formData().backgroundGradient"></div>
+                }
+                
+                <!-- Fluid Aurora Mesh Glow Layers -->
+                <div class="absolute -top-20 -right-20 w-80 h-80 bg-pink-500/25 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/30 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Hero Content Top: Logo, Headline, Subtitle, 4 Feature Bullets -->
+                <div class="relative z-10 space-y-4 max-w-lg">
+                  
+                  <!-- Brand Logo & Title -->
+                  <div class="flex items-center gap-3">
+                    @if (formData().logoUrlLight) {
+                      <img [src]="formData().logoUrlLight" alt="Logo" class="h-9 w-auto object-contain brightness-0 invert drop-shadow" referrerpolicy="no-referrer" />
+                    }
+                    <div class="text-2xl font-black tracking-tight drop-shadow-sm">
+                      BRAC LMS
+                    </div>
+                  </div>
+
+                  <!-- Headline & Subtitle -->
+                  <div class="space-y-2">
+                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-white/95">
+                      {{ formData().headline }}
+                    </h2>
+                    <p class="text-xs text-white/80 leading-relaxed line-clamp-3">
+                      {{ formData().subheadline }}
+                    </p>
+                  </div>
+
+                  <!-- 4 Feature Bullets -->
+                  <div class="space-y-2.5 pt-2">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-white/90">
+                      Automate enablement for efficiency and maximize impact:
+                    </div>
+                    <div class="space-y-2">
+                      <div class="flex items-start gap-2.5 text-xs text-white/85">
+                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                        <span>Seamlessly centralize and deliver essential content to every team member, in any tool</span>
+                      </div>
+                      <div class="flex items-start gap-2.5 text-xs text-white/85">
+                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                        <span>Syncs effortlessly with Google Drive and SharePoint, eliminating redundant efforts</span>
+                      </div>
+                      <div class="flex items-start gap-2.5 text-xs text-white/85">
+                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                        <span>Tracks every content interaction, offering real-time insights for continuous optimization</span>
+                      </div>
+                      <div class="flex items-start gap-2.5 text-xs text-white/85">
+                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                        <span>Automates content governance to ensure accuracy, consistency, and compliance</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Hero Action Glass Card -->
+                <div class="relative z-10 pt-4 max-w-md">
+                  <div class="p-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg text-center hover:bg-white/15 transition-all group cursor-pointer">
+                    <div class="text-[11px] text-white/80 font-medium">
+                      Learn more about BRAC LMS features on
+                    </div>
+                    <div class="text-lg font-black tracking-tight text-white mt-0.5 group-hover:underline flex items-center justify-center gap-1">
+                      <span>learn.brac.net</span>
+                      <span class="material-symbols-outlined text-sm">arrow_outward</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hero Footer Links -->
+                <div class="relative z-10 pt-4 flex items-center gap-4 text-[11px] text-white/70">
+                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Integrations</a>
+                  <a href="javascript:void(0)" class="hover:text-white transition-colors">License</a>
+                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Terms of Use</a>
+                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Blog</a>
+                </div>
+
+              </div>
+            </div>
+          } @else {
+
+            <!-- ================================================================= -->
+            <!-- MODERN ANNOUNCEMENT CALLOUT BANNER                                -->
+            <!-- ================================================================= -->
+            @if (formData().announcementBanner?.enabled && !bannerDismissed()) {
+              
+              <!-- STYLE A: FLOATING PILL CALLOUT -->
+              @if (formData().announcementBanner?.style === 'floating_pill') {
+                <div class="relative z-20 pt-4 px-4 flex justify-center auth-announcement ak-Callout">
+                  <div class="max-w-2xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                       [class.ring-2]="highlightedElement() === 'callout'"
+                       [class.ring-tenant-500]="highlightedElement() === 'callout'"
+                       [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info'"
+                       [class.border-blue-500/40]="formData().announcementBanner?.type === 'info'"
+                       [class.text-blue-100]="formData().announcementBanner?.type === 'info'"
+                       [class.bg-amber-950/85]="formData().announcementBanner?.type === 'warning'"
+                       [class.border-amber-500/40]="formData().announcementBanner?.type === 'warning'"
+                       [class.text-amber-100]="formData().announcementBanner?.type === 'warning'"
+                       [class.bg-rose-950/85]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.border-rose-500/40]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.text-rose-100]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.bg-emerald-950/85]="formData().announcementBanner?.type === 'success'"
+                       [class.border-emerald-500/40]="formData().announcementBanner?.type === 'success'"
+                       [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
+                    
+                    <span class="material-symbols-outlined text-base shrink-0"
+                          [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
+                          [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
+                          [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                          [class.text-emerald-400]="formData().announcementBanner?.type === 'success'">
+                      {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : 'campaign')) }}
+                    </span>
+
+                    <span class="font-medium tracking-tight truncate">{{ formData().announcementBanner?.text }}</span>
+
+                    @if (formData().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                        {{ formData().announcementBanner?.actionText }}
+                      </span>
+                    }
+
+                    @if (formData().announcementBanner?.dismissible) {
+                      <button 
+                        type="button" 
+                        (click)="bannerDismissed.set(true)"
+                        class="p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- STYLE B: TOP BAR RIBBON -->
+              @if (formData().announcementBanner?.style === 'top_bar') {
+                <div class="relative z-20 px-6 py-2.5 backdrop-blur-md border-b flex items-center justify-between text-xs transition-all auth-announcement ak-Callout"
+                     [class.ring-2]="highlightedElement() === 'callout'"
+                     [class.ring-tenant-500]="highlightedElement() === 'callout'"
+                     [class.bg-blue-900/60]="formData().announcementBanner?.type === 'info'"
+                     [class.border-blue-500/30]="formData().announcementBanner?.type === 'info'"
+                     [class.text-blue-100]="formData().announcementBanner?.type === 'info'"
+                     [class.bg-amber-900/60]="formData().announcementBanner?.type === 'warning'"
+                     [class.border-amber-500/30]="formData().announcementBanner?.type === 'warning'"
+                     [class.text-amber-100]="formData().announcementBanner?.type === 'warning'"
+                     [class.bg-rose-900/60]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.text-rose-100]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.bg-emerald-900/60]="formData().announcementBanner?.type === 'success'"
+                     [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
+                     [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
+                  
+                  <div class="flex items-center gap-2 mx-auto">
+                    <span class="material-symbols-outlined text-base">campaign</span>
+                    <span class="font-semibold">{{ formData().announcementBanner?.text }}</span>
+                  </div>
+
+                  @if (formData().announcementBanner?.dismissible) {
+                    <button 
+                      type="button" 
+                      (click)="bannerDismissed.set(true)"
+                      class="p-1 rounded-md hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+            }
+
+            <!-- ================================================================= -->
+            <!-- MAIN LAYOUT BODY (Split Mode Hero vs Centered Single Card)         -->
+            <!-- ================================================================= -->
+            <div class="flex-1 flex flex-col lg:flex-row relative z-10 p-4 sm:p-8 lg:p-10 items-center justify-center gap-6 lg:gap-12 w-full my-auto">
+            
+            <!-- =============================================================== -->
+            <!-- 1. EDITABLE SIDE HERO PANEL (In Split Layout)                   -->
+            <!-- =============================================================== -->
+            @if ((formData().layout === 'split_left' || formData().layout === 'split_right') && viewportMode() !== 'mobile') {
+              <div 
+                [class.order-2]="formData().layout === 'split_right'"
+                [class.order-1]="formData().layout === 'split_left'"
+                [class.hidden]="hideContentPanelOnMobile()"
+                [class.bg-slate-950/80]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
+                [class.border-white/15]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
+                [class.text-white]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
+                [class.bg-white/85]="formData().sidePanel?.theme === 'light' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'light')"
+                [class.border-slate-200/80]="formData().sidePanel?.theme === 'light' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'light')"
+                [class.text-slate-900]="formData().sidePanel?.theme === 'light' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'light')"
+                [class.bg-gradient-to-br]="formData().sidePanel?.theme === 'gradient'"
+                [class.from-slate-950/90]="formData().sidePanel?.theme === 'gradient'"
+                [class.to-pink-950/80]="formData().sidePanel?.theme === 'gradient'"
+                class="w-full lg:flex-1 max-w-md lg:max-w-lg space-y-4 p-6 sm:p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden">
+                
+                <!-- Ambient Subtle Glow Accent in Side Panel -->
+                <div class="absolute top-0 right-0 w-48 h-48 bg-tenant-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Badge & Icon -->
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-tenant-600/20 border border-tenant-500/30">
+                    <span class="material-symbols-outlined text-tenant-400 text-base">
+                      {{ formData().sidePanel?.badgeIcon || 'verified_user' }}
+                    </span>
+                  </div>
+                  <span class="text-[11px] font-extrabold uppercase tracking-widest text-tenant-400">
+                    {{ formData().sidePanel?.badgeText || 'ENTERPRISE PORTAL' }}
+                  </span>
+                </div>
+
+                <!-- Main Headline -->
+                <div>
+                  <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+                    {{ formData().headline }}
+                  </h1>
+                </div>
+
+                <!-- Subheadline -->
+                <p class="text-xs sm:text-sm leading-relaxed opacity-85">
+                  {{ formData().subheadline }}
+                </p>
+
+                <!-- Feature Highlights List -->
+                @if (formData().sidePanel?.bullets && formData().sidePanel!.bullets.length > 0) {
+                  <div class="space-y-2.5 pt-1">
+                    @for (bullet of formData().sidePanel!.bullets; track bullet.id) {
+                      <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 rounded-md bg-tenant-500/20 border border-tenant-500/40 flex items-center justify-center shrink-0 mt-0.5">
+                          <span class="material-symbols-outlined text-tenant-400 text-xs">{{ bullet.icon || 'check' }}</span>
+                        </div>
+                        <div class="text-xs min-w-0">
+                          <div class="font-bold truncate">{{ bullet.title }}</div>
+                          @if (bullet.description) {
+                            <div class="text-[10px] opacity-70 mt-0.5 line-clamp-2">{{ bullet.description }}</div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Stats Row (if enabled) -->
+                @if (formData().sidePanel?.showStatsRow) {
+                  <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3">
+                    <div>
+                      <div class="text-lg sm:text-xl font-black text-tenant-400 tracking-tight">
+                        {{ formData().sidePanel?.stat1Value || '24,500+' }}
+                      </div>
+                      <div class="text-[10px] opacity-70 uppercase font-semibold tracking-wider">
+                        {{ formData().sidePanel?.stat1Label || 'Active Learners' }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">
+                        {{ formData().sidePanel?.stat2Value || '99.99%' }}
+                      </div>
+                      <div class="text-[10px] opacity-70 uppercase font-semibold tracking-wider">
+                        {{ formData().sidePanel?.stat2Label || 'SSO Uptime' }}
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- Security Badges Footer in Hero -->
+                @if (formData().sidePanel?.showSecurityShield) {
+                  <div class="pt-1 flex items-center gap-2.5 text-[11px] opacity-75">
+                    <div class="flex items-center gap-1.5 font-medium">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span>Cloud Security Shield</span>
+                    </div>
+                    <div>·</div>
+                    <div class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs">verified</span>
+                      <span>SOC 2 Type II</span>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            }
+
+            <!-- =============================================================== -->
+            <!-- 2. MODERN AUTHENTICATION CARD (Renders based on selectedPage)    -->
+            <!-- =============================================================== -->
+            <div 
+              [class.order-1]="formData().layout === 'split_right'"
+              [class.order-2]="formData().layout === 'split_left'"
+              class="w-full max-w-md auth-card ak-Card transition-all duration-300 relative z-10 p-5 sm:p-7"
+              [class.ring-2]="highlightedElement() === 'card'"
+              [class.ring-tenant-500]="highlightedElement() === 'card'"
+              [class.rounded-none]="formData().cardBorderRadius === 'none'"
+              [class.rounded-lg]="formData().cardBorderRadius === 'sm'"
+              [class.rounded-xl]="formData().cardBorderRadius === 'md' || formData().cardBorderRadius === 'lg'"
+              [class.rounded-2xl]="formData().cardBorderRadius === 'xl' || formData().cardBorderRadius === '2xl'"
+              [class.rounded-3xl]="formData().cardBorderRadius === '3xl'"
+              [class.shadow-xl]="true"
+              [class.bg-white]="formData().cardStyle === 'solid_white' && previewTheme() === 'light'"
+              [class.text-slate-900]="previewTheme() === 'light'"
+              [class.border-slate-200]="formData().cardStyle === 'solid_white' && previewTheme() === 'light'"
+              [class.bg-slate-900]="formData().cardStyle === 'solid_white' && previewTheme() === 'dark'"
+              [class.text-white]="previewTheme() === 'dark'"
+              [class.border-slate-800]="formData().cardStyle === 'solid_white' && previewTheme() === 'dark'"
+              [class.bg-white/90]="formData().cardStyle === 'glassmorphism' && previewTheme() === 'light'"
+              [class.border-white/60]="formData().cardStyle === 'glassmorphism' && previewTheme() === 'light'"
+              [class.bg-slate-950/90]="formData().cardStyle === 'glassmorphism' && previewTheme() === 'dark'"
+              [class.border-white/20]="formData().cardStyle === 'glassmorphism' && previewTheme() === 'dark'"
+              [class.backdrop-blur-2xl]="formData().cardStyle === 'glassmorphism'"
+              [class.border]="true">
+
+              <!-- Card Embedded Announcement Style -->
+              @if (formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'card_embedded' && !bannerDismissed()) {
+                <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs"
+                     [class.bg-blue-500/10]="formData().announcementBanner?.type === 'info'"
+                     [class.border-blue-500/30]="formData().announcementBanner?.type === 'info'"
+                     [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
+                     [class.bg-amber-500/10]="formData().announcementBanner?.type === 'warning'"
+                     [class.border-amber-500/30]="formData().announcementBanner?.type === 'warning'"
+                     [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
+                     [class.bg-rose-500/10]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'">
+                  <span class="material-symbols-outlined text-base shrink-0">info</span>
+                  <span class="font-medium text-[11px] leading-tight flex-1">{{ formData().announcementBanner?.text }}</span>
+                  <button type="button" (click)="bannerDismissed.set(true)" class="text-xs opacity-70 hover:opacity-100 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
+              }
+
+              <!-- Central Brand Header in Card -->
+              <div class="text-center mb-5 pb-3 border-b transition-all"
+                   [class.border-white/10]="previewTheme() === 'dark'"
+                   [class.border-slate-100]="previewTheme() === 'light'">
+                
+                <!-- Brand Logo -->
+                @if (formData().logoUrlLight) {
+                  <img 
+                    [src]="formData().logoUrlLight" 
+                    alt="Logo" 
+                    [style.height.px]="formData().logoHeightPx ? (formData().logoHeightPx * 0.8) : 40"
+                    class="w-auto mx-auto mb-2.5 object-contain transition-all drop-shadow-xs" 
+                    referrerpolicy="no-referrer" />
+                }
+
+                <!-- Brand Organization & Title -->
+                <div class="text-center mb-1">
+                  <span class="text-sm font-black tracking-tight uppercase"
+                        [class.text-white]="previewTheme() === 'dark'"
+                        [class.text-slate-900]="previewTheme() === 'light'">
+                    BRAC Learning Portal
+                  </span>
+                </div>
+
+                <!-- Tagline -->
+                @if (formData().tagline) {
+                  <p class="text-[11px] max-w-xs mx-auto leading-relaxed"
+                     [class.text-white/70]="previewTheme() === 'dark'"
+                     [class.text-slate-500]="previewTheme() === 'light'">
+                    {{ formData().tagline }}
+                  </p>
+                }
+              </div>
+
+              <!-- Dynamic Page Headings -->
+              <div class="text-center mb-5">
+                @switch (selectedPage()) {
+                  @case ('sign_in') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Sign in to your account</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      Enter your enterprise credentials to proceed.
+                    </p>
+                  }
+                  @case ('sign_up') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Create your account</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      Get started with your personalized learning path.
+                    </p>
+                  }
+                  @case ('accept_invitation') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Accept invitation</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      You've been invited to join the BRAC Learning Portal.
+                    </p>
+                  }
+                  @case ('organization_selection') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Select Workspace</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      Choose an organization to continue your session.
+                    </p>
+                  }
+                  @case ('password_reset') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Reset Password</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      We'll send you instructions to reset your password.
+                    </p>
+                  }
+                  @case ('mfa_setup') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Two-Factor Authentication</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      Scan the QR code with your authenticator app.
+                    </p>
+                  }
+                  @case ('sso_consent') {
+                    <h2 class="text-xl font-black tracking-tight" [class.text-white]="previewTheme() === 'dark'" [class.text-slate-900]="previewTheme() === 'light'">Authorize Application</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      BRAC LMS requires access to your account profile.
+                    </p>
+                  }
+                  @case ('radar_block') {
+                    <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 mb-2">
+                      <span class="material-symbols-outlined text-2xl">shield_locked</span>
+                    </div>
+                    <h2 class="text-xl font-black text-rose-500 tracking-tight">Access Restricted</h2>
+                    <p class="text-xs mt-1" [class.text-slate-400]="previewTheme() === 'dark'" [class.text-slate-500]="previewTheme() === 'light'">
+                      Security radar detected an unverified connection.
+                    </p>
+                  }
+                }
+              </div>
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 1: SIGN IN                                       -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'sign_in') {
+                <div class="space-y-4">
+                  
+                  <!-- SSO Buttons Grid -->
+                  @if (formData().enableSsoGoogle || formData().enableSsoMicrosoft || formData().enableSsoOkta) {
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 auth-sso-container">
+                      @if (formData().enableSsoGoogle) {
+                        <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn ak-SSOProfileTrigger"
+                                [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                                [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+                          <span>Google</span>
+                        </button>
+                      }
+
+                      @if (formData().enableSsoMicrosoft) {
+                        <button type="button" class="py-2.5 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-xs auth-sso-btn"
+                                [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                                [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-800]="previewTheme() === 'light'">
+                          <svg class="w-4 h-4" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
+                          <span>Microsoft</span>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="relative flex items-center justify-center py-1">
+                      <div class="w-full border-t" [class.border-slate-700]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'"></div>
+                      <span class="absolute px-2 text-[10px] uppercase font-bold tracking-wider"
+                            [class.bg-slate-900]="previewTheme() === 'dark'" [class.text-slate-400]="previewTheme() === 'dark'"
+                            [class.bg-white]="previewTheme() === 'light'" [class.text-slate-400]="previewTheme() === 'light'">OR WORK EMAIL</span>
+                    </div>
+                  }
+
+                  <!-- Work Email Field -->
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-bold auth-label ak-Label" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">
+                      Work Email
+                    </label>
+                    <div class="relative">
+                      <input 
+                        type="email" 
+                        [ngModel]="testEmail()" 
+                        (ngModelChange)="testEmail.set($event)"
+                        class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                      <span class="material-symbols-outlined text-base absolute left-3 top-2.5 opacity-50">mail</span>
+                    </div>
+                  </div>
+
+                  <!-- Password Field -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                      <label class="block text-xs font-bold auth-label ak-Label" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">
+                        Password
+                      </label>
+                      @if (formData().enableForgotPassword) {
+                        <button type="button" (click)="selectPage('password_reset')" class="text-[11px] font-bold text-tenant-500 hover:text-tenant-600 cursor-pointer">
+                          Forgot?
+                        </button>
+                      }
+                    </div>
+                    <div class="relative">
+                      <input 
+                        [type]="showPassword() ? 'text' : 'password'" 
+                        [ngModel]="testPassword()" 
+                        (ngModelChange)="testPassword.set($event)"
+                        class="w-full pl-9 pr-9 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                      <span class="material-symbols-outlined text-base absolute left-3 top-2.5 opacity-50">lock</span>
+                      <button type="button" (click)="toggleShowPassword()" class="material-symbols-outlined text-base absolute right-3 top-2.5 opacity-50 hover:opacity-100 cursor-pointer">
+                        {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Remember Me -->
+                  @if (formData().enableRememberMe) {
+                    <div class="flex items-center justify-between text-xs">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" [ngModel]="rememberMe()" (ngModelChange)="rememberMe.set($event)" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                        <span [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-600]="previewTheme() === 'light'">Keep me signed in</span>
+                      </label>
+                      <span class="text-[11px] opacity-60">30 days</span>
+                    </div>
+                  }
+
+                  <!-- Primary CTA Button -->
+                  <button 
+                    type="button"
+                    [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
+                    [class.rounded-full]="formData().buttonStyle === 'pill'"
+                    [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                    [class.rounded-md]="formData().buttonStyle === 'square'"
+                    class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
+                    <span>Sign In</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+
+                  <!-- Demo Quick Autofill Chips -->
+                  <div class="pt-2">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-center opacity-50 mb-1.5">Quick Demo Fill</div>
+                    <div class="flex flex-wrap gap-1.5 justify-center">
+                      <button type="button" (click)="fillDemoUser('learner.rahim@brac.net', 'Learner Rahim')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
+                        Learner
+                      </button>
+                      <button type="button" (click)="fillDemoUser('instructor.tariq@brac.net', 'Instructor Tariq')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
+                        Instructor
+                      </button>
+                      <button type="button" (click)="fillDemoUser('farhana.ahmed@brac.net', 'Admin Farhana')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
+                        Org Admin
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 2: SIGN UP                                       -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'sign_up') {
+                <div class="space-y-3">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-1">
+                      <label class="text-[11px] font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">First Name</label>
+                      <input 
+                        type="text" 
+                        [ngModel]="signUpFirstName()"
+                        (ngModelChange)="signUpFirstName.set($event)"
+                        class="w-full px-3 py-2 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-[11px] font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">Last Name</label>
+                      <input 
+                        type="text" 
+                        [ngModel]="signUpLastName()"
+                        (ngModelChange)="signUpLastName.set($event)"
+                        class="w-full px-3 py-2 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                    </div>
+                  </div>
+
+                  <div class="space-y-1">
+                    <label class="text-[11px] font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">Work Email</label>
+                    <input 
+                      type="email" 
+                      [ngModel]="signUpWorkEmail()"
+                      (ngModelChange)="signUpWorkEmail.set($event)"
+                      class="w-full px-3 py-2 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                      [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                      [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                  </div>
+
+                  <!-- Password Field -->
+                  <div class="space-y-1">
+                    <label class="text-[11px] font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">Password</label>
+                    <div class="relative">
+                      <input 
+                        [type]="showSignUpPassword() ? 'text' : 'password'" 
+                        [ngModel]="signUpPassword()"
+                        (input)="onSignUpPasswordInput($event)"
+                        class="w-full pl-9 pr-9 py-2 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                      <span class="material-symbols-outlined text-base absolute left-3 top-2.5 opacity-50">lock</span>
+                      <button type="button" (click)="toggleShowSignUpPassword()" class="material-symbols-outlined text-base absolute right-3 top-2.5 opacity-50 hover:opacity-100 cursor-pointer">
+                        {{ showSignUpPassword() ? 'visibility_off' : 'visibility' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Confirm Password Field -->
+                  <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                      <label class="text-[11px] font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">Confirm Password</label>
+                      @if (signUpConfirmPassword() && passwordsMatch()) {
+                        <span class="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs">check_circle</span> Passwords match
+                        </span>
+                      }
+                    </div>
+                    <div class="relative">
+                      <input 
+                        [type]="showSignUpConfirmPassword() ? 'text' : 'password'" 
+                        [ngModel]="signUpConfirmPassword()"
+                        (input)="onSignUpConfirmPasswordInput($event)"
+                        class="w-full pl-9 pr-9 py-2 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                      <span class="material-symbols-outlined text-base absolute left-3 top-2.5 opacity-50">lock_reset</span>
+                      <button type="button" (click)="toggleShowSignUpConfirmPassword()" class="material-symbols-outlined text-base absolute right-3 top-2.5 opacity-50 hover:opacity-100 cursor-pointer">
+                        {{ showSignUpConfirmPassword() ? 'visibility_off' : 'visibility' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Dedicated Password Policy Box -->
+                  <div class="p-2.5 rounded-xl border text-xs"
+                       [class.bg-slate-900/70]="previewTheme() === 'dark'" [class.border-slate-700/80]="previewTheme() === 'dark'"
+                       [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'">
+                    <div class="flex items-center justify-between font-bold text-[11px] mb-1.5 opacity-90">
+                      <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-xs text-tenant-400">policy</span>
+                        <span>Password Policy Requirements</span>
+                      </div>
+                      <span class="text-[10px] opacity-60">Enterprise Security</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                      <div class="flex items-center gap-1.5" [class.text-emerald-400]="hasMinLength()" [class.opacity-60]="!hasMinLength()">
+                        <span class="material-symbols-outlined text-xs">{{ hasMinLength() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                        <span>8+ characters</span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [class.text-emerald-400]="hasUppercase()" [class.opacity-60]="!hasUppercase()">
+                        <span class="material-symbols-outlined text-xs">{{ hasUppercase() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                        <span>1 uppercase letter</span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [class.text-emerald-400]="hasNumber()" [class.opacity-60]="!hasNumber()">
+                        <span class="material-symbols-outlined text-xs">{{ hasNumber() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                        <span>1 number (0-9)</span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [class.text-emerald-400]="hasSpecialChar()" [class.opacity-60]="!hasSpecialChar()">
+                        <span class="material-symbols-outlined text-xs">{{ hasSpecialChar() ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                        <span>1 special character</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sign Up Primary Button -->
+                  <button 
+                    type="button"
+                    [style.background]="formData().buttonGradientEnabled ? 'linear-gradient(135deg, ' + formData().primaryColor + ' 0%, ' + formData().accentColor + ' 100%)' : formData().primaryColor"
+                    [class.rounded-full]="formData().buttonStyle === 'pill'"
+                    [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                    [class.rounded-md]="formData().buttonStyle === 'square'"
+                    class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
+                    <span>Create Account</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 3: ACCEPT INVITATION                             -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'accept_invitation') {
+                <div class="space-y-4">
+                  <!-- Inviter Card Profile -->
+                  <div class="p-3.5 rounded-2xl border flex items-center gap-3"
+                       [class.bg-slate-800/60]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'"
+                       [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'">
+                    <div class="w-10 h-10 rounded-full bg-tenant-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                      FA
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs font-bold truncate">Farhana Ahmed (System Admin)</div>
+                      <div class="text-[11px] opacity-70 truncate">invited you to join <span class="font-bold text-tenant-400">BRAC Microfinance</span></div>
+                    </div>
+                  </div>
+
+                  <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-white/10">
+                      <span class="opacity-70">Assigned Role</span>
+                      <span class="font-bold text-tenant-400">Enterprise Instructor</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-white/10">
+                      <span class="opacity-70">Target Workspace</span>
+                      <span class="font-bold">learn.brac.net</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button"
+                    [style.background]="formData().primaryColor"
+                    class="w-full py-3 rounded-xl text-xs font-black text-white shadow-md hover:brightness-105 cursor-pointer flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">how_to_reg</span>
+                    <span>Accept Invitation & Continue</span>
+                  </button>
+
+                  <div class="text-center">
+                    <button type="button" (click)="selectPage('sign_in')" class="text-xs font-semibold opacity-70 hover:opacity-100 cursor-pointer">
+                      Switch account or decline
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 4: ORGANIZATION SELECTION                        -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'organization_selection') {
+                <div class="space-y-3">
+                  <!-- Search Workspace -->
+                  <div class="relative">
+                    <input 
+                      type="text" 
+                      placeholder="Search workspace..."
+                      [ngModel]="orgSearchTerm()"
+                      (ngModelChange)="orgSearchTerm.set($event)"
+                      class="w-full pl-9 pr-3 py-2 rounded-xl text-xs border outline-none"
+                      [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                      [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                    <span class="material-symbols-outlined text-sm absolute left-3 top-2.5 opacity-50">search</span>
+                  </div>
+
+                  <!-- Organizations List -->
+                  <div class="space-y-2">
+                    <button type="button" class="w-full p-3 rounded-2xl border flex items-center justify-between text-left hover:border-tenant-500 transition-colors cursor-pointer group"
+                            [class.bg-slate-800/70]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'"
+                            [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-tenant-600 text-white flex items-center justify-center font-bold text-xs">BRAC</div>
+                        <div>
+                          <div class="text-xs font-bold group-hover:text-tenant-400">BRAC Microfinance</div>
+                          <div class="text-[10px] opacity-60">learn.brac.net · 2,400 members</div>
+                        </div>
+                      </div>
+                      <span class="material-symbols-outlined text-sm opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</span>
+                    </button>
+
+                    <button type="button" class="w-full p-3 rounded-2xl border flex items-center justify-between text-left hover:border-tenant-500 transition-colors cursor-pointer group"
+                            [class.bg-slate-800/70]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'"
+                            [class.bg-white]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">EDU</div>
+                        <div>
+                          <div class="text-xs font-bold group-hover:text-tenant-400">BRAC Institute of Skills</div>
+                          <div class="text-[10px] opacity-60">skills.brac.net · 12,800 members</div>
+                        </div>
+                      </div>
+                      <span class="material-symbols-outlined text-sm opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 5: PASSWORD RESET                                -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'password_reset') {
+                <div class="space-y-4">
+                  @if (!passwordResetSent()) {
+                    <div class="space-y-2">
+                      <label class="block text-xs font-bold" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">
+                        Account Email Address
+                      </label>
+                      <input 
+                        type="email" 
+                        [ngModel]="passwordResetEmail()" 
+                        (ngModelChange)="passwordResetEmail.set($event)"
+                        class="w-full px-3 py-2.5 rounded-xl text-xs border outline-none"
+                        [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                        [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                    </div>
+
+                    <button 
+                      type="button" 
+                      (click)="passwordResetSent.set(true)"
+                      [style.background]="formData().primaryColor"
+                      class="w-full py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:brightness-105 cursor-pointer">
+                      Send Password Reset Link
+                    </button>
+                  } @else {
+                    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center space-y-1">
+                      <span class="material-symbols-outlined text-2xl">mark_email_read</span>
+                      <div class="text-xs font-bold">Reset link transmitted!</div>
+                      <div class="text-[11px] opacity-80">Check your inbox at {{ passwordResetEmail() }}</div>
+                    </div>
+                  }
+
+                  <div class="text-center">
+                    <button type="button" (click)="selectPage('sign_in'); passwordResetSent.set(false)" class="text-xs font-semibold text-tenant-500 hover:underline cursor-pointer">
+                      Back to Sign In
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 6: MFA SETUP                                     -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'mfa_setup') {
+                <div class="space-y-4">
+                  <!-- Simulated QR Code -->
+                  <div class="p-3 rounded-2xl bg-white text-slate-900 flex flex-col items-center justify-center max-w-[160px] mx-auto shadow-md">
+                    <div class="w-28 h-28 bg-slate-900 rounded-lg p-2 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-5xl text-white">qr_code_2</span>
+                    </div>
+                    <span class="text-[9px] font-mono font-bold mt-1 text-slate-600">KEY: 4928-1729-BRAC</span>
+                  </div>
+
+                  <!-- 6-digit Code Inputs -->
+                  <div class="space-y-1">
+                    <label class="block text-xs font-bold text-center" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">
+                      Enter 6-digit TOTP code
+                    </label>
+                    <div class="flex justify-center gap-1.5">
+                      @for (digit of mfaCode(); track $index) {
+                        <input type="text" [value]="digit" maxlength="1" class="w-8 h-10 text-center font-mono font-black text-sm rounded-lg border outline-none"
+                               [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
+                               [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
+                      }
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    [style.background]="formData().primaryColor"
+                    class="w-full py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:brightness-105 cursor-pointer">
+                    Verify & Authenticate
+                  </button>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 7: SSO CONSENT                                   -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'sso_consent') {
+                <div class="space-y-3 text-xs">
+                  <div class="p-3 rounded-xl border bg-slate-50/10 space-y-2">
+                    <div class="font-bold">Requested Authorizations:</div>
+                    <div class="flex items-center gap-2 opacity-80">
+                      <span class="material-symbols-outlined text-xs text-emerald-400">check_circle</span>
+                      <span>Read basic profile details & email</span>
+                    </div>
+                    <div class="flex items-center gap-2 opacity-80">
+                      <span class="material-symbols-outlined text-xs text-emerald-400">check_circle</span>
+                      <span>Access assigned LMS course transcripts</span>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-2">
+                    <button type="button" [style.background]="formData().primaryColor" class="flex-1 py-2.5 rounded-xl text-xs font-black text-white shadow-md cursor-pointer">
+                      Grant Access
+                    </button>
+                    <button type="button" class="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-600 opacity-70 hover:opacity-100 cursor-pointer">
+                      Deny
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- ============================================================= -->
+              <!-- PAGE CONTENT 8: RADAR BLOCK                                   -->
+              <!-- ============================================================= -->
+              @if (selectedPage() === 'radar_block') {
+                <div class="space-y-4 text-center">
+                  <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400">
+                    <div class="font-mono font-bold">Client IP: 103.144.201.42</div>
+                    <div class="text-[10px] opacity-75 mt-0.5">Incident Ray ID: RADAR-2026-X98 · Flagged for unusual velocity</div>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    [style.background]="formData().primaryColor"
+                    class="w-full py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:brightness-105 cursor-pointer">
+                    Contact Security Admin
+                  </button>
+
+                  <div class="text-[11px] opacity-60">
+                    If this is a false positive, verify with corporate 2FA token.
+                  </div>
+                </div>
+              }
+
+              <!-- Card Legal Footer -->
+              <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-between opacity-60"
+                   [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
+                <a [href]="formData().termsOfServiceUrl" class="hover:underline">Terms of Service</a>
+                <span>·</span>
+                <a [href]="formData().privacyPolicyUrl" class="hover:underline">Privacy Policy</a>
+                <span>·</span>
+                <span class="cursor-pointer hover:underline">Helpdesk</span>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- VIEWPORT BOTTOM COPYRIGHT FOOTER                                  -->
+          <!-- ================================================================= -->
+          <div class="relative z-10 px-6 py-3 flex flex-col sm:flex-row items-center justify-between text-[11px] border-t backdrop-blur-md transition-colors auth-footer ak-Footer"
+               [class.border-white/10]="previewTheme() === 'dark'"
+               [class.text-white/60]="previewTheme() === 'dark'"
+               [class.border-slate-900/10]="previewTheme() === 'light'"
+               [class.text-slate-600]="previewTheme() === 'light'">
+            
+            <div>{{ formData().copyrightText }}</div>
+            
+            <div class="flex items-center gap-3 mt-1 sm:mt-0">
+              <span class="opacity-75">Error Views:</span>
+              <button type="button" (click)="selectPage('radar_block')" class="hover:underline cursor-pointer">403</button>
+              <button type="button" (click)="selectPage('sign_in')" class="hover:underline cursor-pointer">404</button>
+              <button type="button" (click)="selectPage('sign_in')" class="hover:underline cursor-pointer">500</button>
+            </div>
+          </div>
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- B. RIGHT PANEL: BRANDING SETUP & CONTROLS (Harmonious Light Studio)      -->
+    <!-- ======================================================================= -->
+    <div class="w-80 sm:w-96 bg-white flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden">
+      
+      <!-- Top Setup Tabs (Global styles | Page settings | Custom CSS) -->
+      <div class="h-12 border-b border-slate-200 px-3 flex items-center gap-1 flex-shrink-0 bg-slate-50/60">
+        
+        <button 
+          type="button" 
+          (click)="setRightPanelTab('global_styles')"
+          [class]="rightPanelTab() === 'global_styles' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
+          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          Global styles
+        </button>
+
+        <button 
+          type="button" 
+          (click)="setRightPanelTab('page_settings')"
+          [class]="rightPanelTab() === 'page_settings' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
+          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          Page settings
+        </button>
+
+        <button 
+          type="button" 
+          (click)="setRightPanelTab('custom_css')"
+          [class]="rightPanelTab() === 'custom_css' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
+          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          Custom CSS
+        </button>
+
+      </div>
+
+      <!-- Tab Content Scrollable Area -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        
+        <!-- =================================================================== -->
+        <!-- TAB 1: GLOBAL STYLES                                                -->
+        <!-- =================================================================== -->
+        @if (rightPanelTab() === 'global_styles') {
+          <div class="space-y-6">
+            
+            <!-- Brand Colors -->
+            <div class="space-y-3">
+              <label class="block text-xs font-bold text-slate-800">Brand Colors</label>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <!-- Primary Brand Color -->
+                <div class="space-y-1.5">
+                  <span class="text-[11px] text-slate-500 font-medium">Primary Brand</span>
+                  <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                    <input type="color" [(ngModel)]="formData().primaryColor" class="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
+                    <input type="text" [(ngModel)]="formData().primaryColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                  </div>
+                </div>
+
+                <!-- Accent Tint Color -->
+                <div class="space-y-1.5">
+                  <span class="text-[11px] text-slate-500 font-medium">Accent Tint</span>
+                  <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                    <input type="color" [(ngModel)]="formData().accentColor" class="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
+                    <input type="text" [(ngModel)]="formData().accentColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Palette Swatches -->
+              <div class="flex items-center gap-1.5 pt-1">
+                @for (pal of colorPalettes; track pal.name) {
+                  <button 
+                    type="button" 
+                    (click)="selectColorPalette(pal)" 
+                    [title]="pal.name"
+                    [style.background]="pal.primary"
+                    class="w-5 h-5 rounded-full border border-white shadow-xs cursor-pointer hover:scale-110 transition-transform">
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Brand Logo -->
+            <div class="space-y-3 pt-3 border-t border-slate-200">
+              <label class="block text-xs font-bold text-slate-800">Brand Logo</label>
+              
+              <div class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                @if (formData().logoUrlLight) {
+                  <img [src]="formData().logoUrlLight" alt="Current Logo" class="h-10 object-contain" referrerpolicy="no-referrer" />
+                }
+                <label class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs">
+                  <span>Upload Logo Image</span>
+                  <input type="file" (change)="onLogoUploadSimulated($event)" accept="image/*" class="hidden" />
+                </label>
+              </div>
+
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span>Logo Height</span>
+                  <span class="font-mono text-slate-800 font-bold">{{ formData().logoHeightPx }}px</span>
+                </div>
+                <input type="range" min="24" max="72" [(ngModel)]="formData().logoHeightPx" class="w-full accent-tenant-600 cursor-pointer" />
+              </div>
+            </div>
+
+            <!-- Background Appearance (Photo / Solid / Texture) -->
+            <div class="space-y-3 pt-3 border-t border-slate-200">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-800">Background Appearance</label>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-tenant-600">{{ formData().backgroundType }} MODE</span>
+              </div>
+
+              <!-- Category Tabs (Photography / Solid Color / Textured) -->
+              <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium border border-slate-200">
+                <button 
+                  type="button" 
+                  (click)="backgroundCategory.set('photo')"
+                  [class]="backgroundCategory() === 'photo' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
+                  Photography
+                </button>
+                <button 
+                  type="button" 
+                  (click)="backgroundCategory.set('solid')"
+                  [class]="backgroundCategory() === 'solid' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
+                  Solid Color
+                </button>
+                <button 
+                  type="button" 
+                  (click)="backgroundCategory.set('texture')"
+                  [class]="backgroundCategory() === 'texture' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
+                  Textured
+                </button>
+              </div>
+
+              <!-- Mode A: Photography -->
+              @if (backgroundCategory() === 'photo') {
+                <div class="space-y-2.5 animate-in fade-in duration-150">
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (bg of presetBgs; track bg.id) {
+                      <div 
+                        (click)="selectPresetBackground(bg)"
+                        [class.ring-2]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
+                        [class.ring-tenant-600]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
+                        class="h-14 rounded-xl overflow-hidden border border-slate-200 cursor-pointer relative group shadow-xs">
+                        <img [src]="bg.url" [alt]="bg.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" referrerpolicy="no-referrer" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5">
+                          <span class="text-[10px] font-bold text-white truncate">{{ bg.name }}</span>
+                        </div>
+                        @if (formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url) {
+                          <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-tenant-600 text-white flex items-center justify-center shadow-xs">
+                            <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <label class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 hover:border-tenant-500 bg-slate-50 hover:bg-pink-50/40 text-xs font-semibold text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                    <span class="material-symbols-outlined text-sm text-tenant-600">add_photo_alternate</span>
+                    <span>Upload Custom Photo</span>
+                    <input type="file" (change)="onBgUploadSimulated($event)" accept="image/*" class="hidden" />
+                  </label>
+                </div>
+              }
+
+              <!-- Mode B: Solid Colors -->
+              @if (backgroundCategory() === 'solid') {
+                <div class="space-y-3 animate-in fade-in duration-150">
+                  <div class="grid grid-cols-5 gap-2">
+                    @for (colorItem of solidColors; track colorItem.id) {
+                      <button 
+                        type="button"
+                        (click)="selectSolidBackground(colorItem.color)"
+                        [title]="colorItem.name + ' (' + colorItem.color + ')'"
+                        [style.background]="colorItem.color"
+                        [class.ring-2]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
+                        [class.ring-tenant-600]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
+                        class="h-9 rounded-xl border border-slate-300 shadow-xs cursor-pointer hover:scale-105 transition-transform relative flex items-center justify-center">
+                        @if (formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color) {
+                          <span class="material-symbols-outlined text-xs" [class.text-white]="colorItem.isDark" [class.text-slate-900]="!colorItem.isDark">check</span>
+                        }
+                      </button>
+                    }
+                  </div>
+
+                  <div class="space-y-1.5 pt-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Custom Solid Color</span>
+                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                      <input type="color" [ngModel]="formData().backgroundOverlayColor" (ngModelChange)="selectSolidBackground($event)" class="w-7 h-7 rounded cursor-pointer border-none bg-transparent" />
+                      <input type="text" [ngModel]="formData().backgroundOverlayColor" (ngModelChange)="selectSolidBackground($event)" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Mode C: Textured & Mesh -->
+              @if (backgroundCategory() === 'texture') {
+                <div class="space-y-2.5 animate-in fade-in duration-150">
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (tex of texturePresets; track tex.id) {
+                      <div 
+                        (click)="selectTextureBackground(tex)"
+                        [class.ring-2]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
+                        [class.ring-tenant-600]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
+                        class="h-16 rounded-xl border border-slate-300 cursor-pointer relative group overflow-hidden shadow-xs">
+                        <div class="w-full h-full" [style.background]="tex.cssBackground"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-1.5">
+                          <span class="text-[10px] font-bold text-white leading-tight truncate">{{ tex.name }}</span>
+                          <span class="text-[9px] text-slate-300">{{ tex.category }}</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Overlay Opacity & Blur -->
+              <div class="space-y-3 pt-2">
+                <div class="space-y-1">
+                  <div class="flex justify-between text-xs text-slate-500">
+                    <span>Backdrop Tint Opacity</span>
+                    <span class="font-mono text-slate-800 font-bold">{{ formData().backgroundOverlayOpacity }}%</span>
+                  </div>
+                  <input type="range" min="0" max="95" [(ngModel)]="formData().backgroundOverlayOpacity" class="w-full accent-tenant-600 cursor-pointer" />
+                </div>
+
+                <div class="space-y-1">
+                  <div class="flex justify-between text-xs text-slate-500">
+                    <span>Background Blur</span>
+                    <span class="font-mono text-slate-800 font-bold">{{ formData().backgroundBlurPx }}px</span>
+                  </div>
+                  <input type="range" min="0" max="20" [(ngModel)]="formData().backgroundBlurPx" class="w-full accent-tenant-600 cursor-pointer" />
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Card Visual Styling -->
+            <div class="space-y-3 pt-3 border-t border-slate-200">
+              <label class="block text-xs font-bold text-slate-800">Card Appearance</label>
+              
+              <div class="grid grid-cols-2 gap-2">
+                <button 
+                  type="button"
+                  (click)="formData().cardStyle = 'solid_white'"
+                  [class]="formData().cardStyle === 'solid_white' ? 'bg-tenant-50 text-tenant-700 font-bold border-tenant-500' : 'text-slate-600 bg-slate-50 border-slate-200'"
+                  class="py-2 rounded-xl text-xs border transition-colors cursor-pointer">
+                  Solid Card
+                </button>
+                <button 
+                  type="button"
+                  (click)="formData().cardStyle = 'glassmorphism'"
+                  [class]="formData().cardStyle === 'glassmorphism' ? 'bg-tenant-50 text-tenant-700 font-bold border-tenant-500' : 'text-slate-600 bg-slate-50 border-slate-200'"
+                  class="py-2 rounded-xl text-xs border transition-colors cursor-pointer">
+                  Frosted Glass
+                </button>
+              </div>
+            </div>
+
+            <!-- SSO Provider Toggles -->
+            <div class="space-y-3 pt-3 border-t border-slate-200">
+              <label class="block text-xs font-bold text-slate-800">Federated SSO Providers</label>
+              
+              <div class="space-y-2">
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800">Google Workspace</span>
+                  <input type="checkbox" [(ngModel)]="formData().enableSsoGoogle" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                </label>
+
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800">Microsoft Entra</span>
+                  <input type="checkbox" [(ngModel)]="formData().enableSsoMicrosoft" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                </label>
+
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800">Okta Identity</span>
+                  <input type="checkbox" [(ngModel)]="formData().enableSsoOkta" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                </label>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- =================================================================== -->
+        <!-- TAB 2: PAGE SETTINGS & SIDE PANEL / ANNOUNCEMENT CONTROLS          -->
+        <!-- =================================================================== -->
+        @if (rightPanelTab() === 'page_settings') {
+          <div class="space-y-6">
+            
+            <!-- Quick Preset Banner for the Modern Canvas Split -->
+            <div class="p-3 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 border border-pink-500/20 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-pink-900 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-pink-600">auto_awesome</span>
+                  <span>Modern Aurora Variant</span>
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-pink-600 text-white uppercase tracking-wider">New</span>
+              </div>
+              <p class="text-[11px] text-pink-800/80 leading-relaxed">
+                Applies the requested full-canvas split layout with fluid silk aurora mesh and enterprise feature grid.
+              </p>
+              <button 
+                type="button" 
+                (click)="applyModernSplitVariant()"
+                class="w-full py-1.5 px-3 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-1.5 transition-all">
+                <span class="material-symbols-outlined text-sm">palette</span>
+                <span>Apply Variant 1-Click</span>
+              </button>
+            </div>
+
+            <!-- Layout Selector (3 modes) -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-800">Layout Mode</label>
+              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button 
+                  type="button"
+                  (click)="formData().layout = 'split_modern_canvas'"
+                  [class]="formData().layout === 'split_modern_canvas' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
+                  <span class="material-symbols-outlined text-base">splitscreen</span>
+                  <span class="text-[10px] leading-tight font-medium">Modern Split</span>
+                </button>
+
+                <button 
+                  type="button"
+                  (click)="formData().layout = 'split_right'"
+                  [class]="formData().layout === 'split_left' || formData().layout === 'split_right' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
+                  <span class="material-symbols-outlined text-base">vertical_split</span>
+                  <span class="text-[10px] leading-tight font-medium">Split Hero</span>
+                </button>
+
+                <button 
+                  type="button"
+                  (click)="formData().layout = 'centered_card'"
+                  [class]="formData().layout === 'centered_card' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
+                  <span class="material-symbols-outlined text-base">crop_square</span>
+                  <span class="text-[10px] leading-tight font-medium">Single Card</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- =============================================================== -->
+            <!-- MODERN SPLIT CANVAS POSITION & CONTENT CONTROLS                -->
+            <!-- =============================================================== -->
+            @if (formData().layout === 'split_modern_canvas') {
+              <div class="space-y-4 pt-3 border-t border-slate-200">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-bold text-slate-800">Modern Split Canvas Settings</label>
+                  <span class="text-[10px] font-bold text-tenant-600 uppercase">Interactive</span>
+                </div>
+
+                <!-- Position Toggle -->
+                <div class="space-y-1">
+                  <span class="text-[11px] text-slate-500 font-medium">Panel / Canvas Position</span>
+                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button 
+                      type="button"
+                      (click)="setSplitPosition('left')"
+                      [class]="formData().splitPosition === 'left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
+                      <span class="material-symbols-outlined text-sm">dock_to_left</span>
+                      <span>Left Canvas</span>
+                    </button>
+                    <button 
+                      type="button"
+                      (click)="setSplitPosition('right')"
+                      [class]="formData().splitPosition !== 'left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
+                      <span class="material-symbols-outlined text-sm">dock_to_right</span>
+                      <span>Right Canvas</span>
+                    </button>
+                  </div>
+                  <p class="text-[10px] text-slate-500 pt-0.5">
+                    {{ formData().splitPosition === 'left' ? '✨ Canvas on Left, Sign-in Form on Right' : '✨ Sign-in Form on Left, Canvas on Right' }}
+                  </p>
+                </div>
+              </div>
+            }
+
+            <!-- =============================================================== -->
+            <!-- SIDE PANEL DESIGN & CONTENT CONTROLS (In Split Mode)            -->
+            <!-- =============================================================== -->
+            @if (formData().layout === 'split_left' || formData().layout === 'split_right') {
+              <div class="space-y-4 pt-3 border-t border-slate-200">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-bold text-slate-800">Side Hero Panel Content</label>
+                  <span class="text-[10px] font-bold text-tenant-600 uppercase">Interactive</span>
+                </div>
+
+                <!-- Position Toggle -->
+                <div class="space-y-1">
+                  <span class="text-[11px] text-slate-500 font-medium">Panel Position</span>
+                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button 
+                      type="button"
+                      (click)="formData().layout = 'split_left'"
+                      [class]="formData().layout === 'split_left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
+                      Left Hero
+                    </button>
+                    <button 
+                      type="button"
+                      (click)="formData().layout = 'split_right'"
+                      [class]="formData().layout === 'split_right' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
+                      Right Hero
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Side Panel Visual Theme -->
+                <div class="space-y-1">
+                  <span class="text-[11px] text-slate-500 font-medium">Panel Theme</span>
+                  <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200">
+                    <button type="button" (click)="updateSidePanelTheme('glass')" [class]="formData().sidePanel?.theme === 'glass' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
+                      Glass
+                    </button>
+                    <button type="button" (click)="updateSidePanelTheme('dark')" [class]="formData().sidePanel?.theme === 'dark' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
+                      Dark
+                    </button>
+                    <button type="button" (click)="updateSidePanelTheme('light')" [class]="formData().sidePanel?.theme === 'light' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
+                      Light
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Headline & Subheadline Inputs -->
+                <div class="space-y-2">
+                  <div class="space-y-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Hero Headline</span>
+                    <input type="text" [(ngModel)]="formData().headline" class="w-full px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-800 outline-none" />
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Hero Subtitle</span>
+                    <textarea [(ngModel)]="formData().subheadline" rows="2" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none resize-none"></textarea>
+                  </div>
+                </div>
+
+                <!-- Feature Highlights Bullets Manager -->
+                <div class="space-y-2">
+                  <span class="text-[11px] text-slate-500 font-medium">Feature Highlights</span>
+                  <div class="space-y-1.5">
+                    @for (bullet of formData().sidePanel?.bullets || []; track bullet.id) {
+                      <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                        <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">{{ bullet.icon || 'check' }}</span>
+                        <input type="text" [(ngModel)]="bullet.title" class="flex-1 bg-transparent border-none text-xs font-medium text-slate-800 outline-none" />
+                        <button type="button" (click)="removeSidePanelBullet(bullet.id)" class="text-slate-400 hover:text-rose-600 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Add New Feature Bullet -->
+                  <div class="flex items-center gap-2 pt-1">
+                    <input 
+                      type="text" 
+                      placeholder="Add highlight feature..."
+                      [ngModel]="newBulletText()"
+                      (ngModelChange)="newBulletText.set($event)"
+                      (keyup.enter)="addSidePanelBullet()"
+                      class="flex-1 px-3 py-1.5 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none" />
+                    <button type="button" (click)="addSidePanelBullet()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-tenant-600 hover:bg-tenant-700 cursor-pointer">
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            }
+
+            <!-- =============================================================== -->
+            <!-- ANNOUNCEMENT CALLOUT BANNER CONTROLS                            -->
+            <!-- =============================================================== -->
+            <div class="space-y-4 pt-3 border-t border-slate-200">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-800">Announcement Callout</label>
+                <input 
+                  type="checkbox" 
+                  [ngModel]="formData().announcementBanner?.enabled"
+                  (ngModelChange)="toggleAnnouncementBanner($event)"
+                  class="rounded text-tenant-600" />
+              </div>
+
+              @if (formData().announcementBanner?.enabled) {
+                <div class="space-y-3">
+                  <!-- Announcement Text -->
+                  <div class="space-y-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Message Text</span>
+                    <textarea 
+                      [(ngModel)]="formData().announcementBanner!.text" 
+                      rows="2" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none resize-none">
+                    </textarea>
+                  </div>
+
+                  <!-- Callout Style Selector -->
+                  <div class="space-y-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Banner Style</span>
+                    <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200">
+                      <button type="button" (click)="setAnnouncementStyle('floating_pill')" [class]="formData().announcementBanner?.style === 'floating_pill' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                        Floating Pill
+                      </button>
+                      <button type="button" (click)="setAnnouncementStyle('top_bar')" [class]="formData().announcementBanner?.style === 'top_bar' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                        Top Bar
+                      </button>
+                      <button type="button" (click)="setAnnouncementStyle('card_embedded')" [class]="formData().announcementBanner?.style === 'card_embedded' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                        Card Inline
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Severity / Type -->
+                  <div class="space-y-1">
+                    <span class="text-[11px] text-slate-500 font-medium">Alert Severity</span>
+                    <div class="grid grid-cols-4 gap-1 text-xs">
+                      <button type="button" (click)="setAnnouncementType('info')" [class]="formData().announcementBanner?.type === 'info' ? 'bg-blue-600 text-white font-bold' : 'bg-blue-50 text-blue-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                        Info
+                      </button>
+                      <button type="button" (click)="setAnnouncementType('warning')" [class]="formData().announcementBanner?.type === 'warning' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 text-amber-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                        Warning
+                      </button>
+                      <button type="button" (click)="setAnnouncementType('alert')" [class]="formData().announcementBanner?.type === 'alert' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-50 text-rose-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                        Alert
+                      </button>
+                      <button type="button" (click)="setAnnouncementType('success')" [class]="formData().announcementBanner?.type === 'success' ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-50 text-emerald-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                        Success
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- =================================================================== -->
+        <!-- TAB 3: CUSTOM CSS & SELECTORS ACCORDION                             -->
+        <!-- =================================================================== -->
+        @if (rightPanelTab() === 'custom_css') {
+          <div class="space-y-5">
+            
+            <div>
+              <div class="text-xs font-bold text-slate-800">Real-Time CSS Overrides</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Edit styling per component or apply modern presets instantly.</p>
+            </div>
+
+            <!-- Templates -->
+            <div class="space-y-2">
+              <span class="text-[11px] text-slate-500 font-medium">Quick Style Presets</span>
+              <div class="space-y-1.5">
+                @for (tpl of cssTemplates; track tpl.id) {
+                  <button 
+                    type="button" 
+                    (click)="applyCssTemplate(tpl)"
+                    class="w-full text-left p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-pink-50/50 hover:border-tenant-300 transition-colors cursor-pointer group">
+                    <div class="text-xs font-bold text-slate-800 group-hover:text-tenant-600">{{ tpl.name }}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">{{ tpl.description }}</div>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- CSS Code Editor -->
+            <div class="space-y-1.5">
+              <span class="text-[11px] text-slate-500 font-medium">Active Custom CSS</span>
+              <textarea 
+                [(ngModel)]="formData().customCss" 
+                rows="10" 
+                class="w-full p-3 rounded-xl bg-slate-900 text-pink-300 font-mono text-xs border border-slate-700 outline-none resize-y">
+              </textarea>
+            </div>
+
+          </div>
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
