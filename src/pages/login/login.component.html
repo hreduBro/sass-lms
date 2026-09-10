@@ -57,44 +57,52 @@
           class="lg:col-span-6 xl:col-span-7 space-y-6 text-white"
           [class.lg:order-2]="branding().layout === 'split_left' || branding().splitPosition === 'left'">
           
-          <div class="inline-flex p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
-            <img 
-              [src]="branding().logoUrlLight" 
-              [alt]="branding().headline" 
-              [style.height.px]="branding().logoHeightPx || 54"
-              class="w-auto object-contain drop-shadow" 
-              referrerpolicy="no-referrer" />
-          </div>
-
-          <div class="space-y-3 max-w-xl">
-            <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/15 backdrop-blur-md text-white border border-white/25">
-              {{ branding().tagline || 'Enterprise Learning Cloud' }}
-            </span>
-
-            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight drop-shadow-lg">
-              {{ branding().headline }}
-            </h1>
-
-            <p class="text-base text-white/90 leading-relaxed drop-shadow max-w-lg">
-              {{ branding().subheadline }}
-            </p>
-          </div>
-
-          <!-- Trust Badges in Hero -->
-          <div class="pt-4 grid grid-cols-3 gap-3 max-w-lg border-t border-white/20 text-white">
-            <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
-              <div class="text-xl font-bold font-mono">100%</div>
-              <div class="text-xs text-white/70">Verified LMS Courses</div>
+          @if (branding().useCustomContentPanel && branding().customHtml) {
+            <div [innerHTML]="branding().customHtml" class="w-full h-full"></div>
+          } @else if (branding().useCustomContentPanel && !branding().customHtml) {
+            <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none text-white/50">
+              <div class="text-sm font-mono tracking-tighter">&lt;/&gt;</div>
             </div>
-            <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
-              <div class="text-xl font-bold font-mono">SSO</div>
-              <div class="text-xs text-white/70">Federated IdP Login</div>
+          } @else {
+            <div class="inline-flex p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+              <img 
+                [src]="branding().logoUrlLight" 
+                [alt]="branding().headline" 
+                [style.height.px]="branding().logoHeightPx || 54"
+                class="w-auto object-contain drop-shadow" 
+                referrerpolicy="no-referrer" />
             </div>
-            <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
-              <div class="text-xl font-bold font-mono">256-bit</div>
-              <div class="text-xs text-white/70">Encrypted Transport</div>
+
+            <div class="space-y-3 max-w-xl">
+              <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/15 backdrop-blur-md text-white border border-white/25">
+                {{ branding().tagline || 'Enterprise Learning Cloud' }}
+              </span>
+
+              <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight drop-shadow-lg">
+                {{ branding().headline }}
+              </h1>
+
+              <p class="text-base text-white/90 leading-relaxed drop-shadow max-w-lg">
+                {{ branding().subheadline }}
+              </p>
             </div>
-          </div>
+
+            <!-- Trust Badges in Hero -->
+            <div class="pt-4 grid grid-cols-3 gap-3 max-w-lg border-t border-white/20 text-white">
+              <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
+                <div class="text-xl font-bold font-mono">100%</div>
+                <div class="text-xs text-white/70">Verified LMS Courses</div>
+              </div>
+              <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
+                <div class="text-xl font-bold font-mono">SSO</div>
+                <div class="text-xs text-white/70">Federated IdP Login</div>
+              </div>
+              <div class="p-3 rounded-xl bg-black/30 backdrop-blur-md border border-white/10">
+                <div class="text-xl font-bold font-mono">256-bit</div>
+                <div class="text-xs text-white/70">Encrypted Transport</div>
+              </div>
+            </div>
+          }
 
           <!-- Demo Quick Fill Accounts Selector -->
           <div class="pt-4 max-w-lg">

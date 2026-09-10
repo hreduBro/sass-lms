@@ -421,71 +421,84 @@
                 <div class="absolute -top-20 -right-20 w-80 h-80 bg-pink-500/25 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/30 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="relative z-10 space-y-4 max-w-lg">
-                  <div class="flex items-center gap-3">
-                    @if (branding().logoUrlLight) {
-                      <img [src]="branding().logoUrlLight" alt="Logo" class="h-9 w-auto object-contain brightness-0 invert drop-shadow" referrerpolicy="no-referrer" />
-                    }
-                    <div class="text-2xl font-black tracking-tight drop-shadow-sm">
-                      BRAC LMS
+                @if (branding().useCustomContentPanel && branding().customHtml) {
+                  <!-- Render Custom Content HTML -->
+                  <div class="relative z-10 w-full h-full flex-1 flex flex-col justify-between" [innerHTML]="branding().customHtml"></div>
+                } @else if (branding().useCustomContentPanel && !branding().customHtml) {
+                  <!-- Render Empty State (Image 1 replica) -->
+                  <div class="flex-1 w-full h-full min-h-[440px] flex flex-col items-center justify-center relative z-10 select-none">
+                    <div class="flex flex-col items-center justify-center gap-3 text-slate-400">
+                      <div class="text-sm font-mono tracking-tighter opacity-70 flex items-center justify-center">&lt;/&gt;</div>
+                      <div class="text-sm font-medium text-slate-300">Edit content panel</div>
                     </div>
                   </div>
-
-                  <div class="space-y-2">
-                    <h2 class="text-base sm:text-lg font-bold tracking-tight text-white/95">
-                      {{ branding().headline }}
-                    </h2>
-                    <p class="text-xs text-white/80 leading-relaxed line-clamp-3">
-                      {{ branding().subheadline }}
-                    </p>
-                  </div>
-
-                  <!-- 4 Feature Bullets -->
-                  <div class="space-y-2.5 pt-2">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-white/90">
-                      Automate enablement for efficiency and maximize impact:
+                } @else {
+                  <div class="relative z-10 space-y-4 max-w-lg">
+                    <div class="flex items-center gap-3">
+                      @if (branding().logoUrlLight) {
+                        <img [src]="branding().logoUrlLight" alt="Logo" class="h-9 w-auto object-contain brightness-0 invert drop-shadow" referrerpolicy="no-referrer" />
+                      }
+                      <div class="text-2xl font-black tracking-tight drop-shadow-sm">
+                        BRAC LMS
+                      </div>
                     </div>
+
                     <div class="space-y-2">
-                      <div class="flex items-start gap-2.5 text-xs text-white/85">
-                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                        <span>Seamlessly centralize and deliver essential content to every team member, in any tool</span>
+                      <h2 class="text-base sm:text-lg font-bold tracking-tight text-white/95">
+                        {{ branding().headline }}
+                      </h2>
+                      <p class="text-xs text-white/80 leading-relaxed line-clamp-3">
+                        {{ branding().subheadline }}
+                      </p>
+                    </div>
+
+                    <!-- 4 Feature Bullets -->
+                    <div class="space-y-2.5 pt-2">
+                      <div class="text-[11px] font-bold uppercase tracking-wider text-white/90">
+                        Automate enablement for efficiency and maximize impact:
                       </div>
-                      <div class="flex items-start gap-2.5 text-xs text-white/85">
-                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                        <span>Syncs effortlessly with Google Drive and SharePoint, eliminating redundant efforts</span>
-                      </div>
-                      <div class="flex items-start gap-2.5 text-xs text-white/85">
-                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                        <span>Tracks every content interaction, offering real-time insights for continuous optimization</span>
-                      </div>
-                      <div class="flex items-start gap-2.5 text-xs text-white/85">
-                        <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                        <span>Automates content governance to ensure accuracy, consistency, and compliance</span>
+                      <div class="space-y-2">
+                        <div class="flex items-start gap-2.5 text-xs text-white/85">
+                          <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                          <span>Seamlessly centralize and deliver essential content to every team member, in any tool</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-white/85">
+                          <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                          <span>Syncs effortlessly with Google Drive and SharePoint, eliminating redundant efforts</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-white/85">
+                          <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                          <span>Tracks every content interaction, offering real-time insights for continuous optimization</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-xs text-white/85">
+                          <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
+                          <span>Automates content governance to ensure accuracy, consistency, and compliance</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Showcase Glass Box -->
-                <div class="relative z-10 pt-4 max-w-md">
-                  <div class="p-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg text-center hover:bg-white/15 transition-all group cursor-pointer">
-                    <div class="text-[11px] text-white/80 font-medium">
-                      Learn more about BRAC LMS features on
-                    </div>
-                    <div class="text-lg font-black tracking-tight text-white mt-0.5 group-hover:underline flex items-center justify-center gap-1">
-                      <span>learn.brac.net</span>
-                      <span class="material-symbols-outlined text-sm">arrow_outward</span>
+                  <!-- Showcase Glass Box -->
+                  <div class="relative z-10 pt-4 max-w-md">
+                    <div class="p-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg text-center hover:bg-white/15 transition-all group cursor-pointer">
+                      <div class="text-[11px] text-white/80 font-medium">
+                        Learn more about BRAC LMS features on
+                      </div>
+                      <div class="text-lg font-black tracking-tight text-white mt-0.5 group-hover:underline flex items-center justify-center gap-1">
+                        <span>learn.brac.net</span>
+                        <span class="material-symbols-outlined text-sm">arrow_outward</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Hero Footer Links -->
-                <div class="relative z-10 pt-4 flex items-center gap-4 text-[11px] text-white/70">
-                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Integrations</a>
-                  <a href="javascript:void(0)" class="hover:text-white transition-colors">License</a>
-                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Terms of Use</a>
-                  <a href="javascript:void(0)" class="hover:text-white transition-colors">Blog</a>
-                </div>
+                  <!-- Hero Footer Links -->
+                  <div class="relative z-10 pt-4 flex items-center gap-4 text-[11px] text-white/70">
+                    <a href="javascript:void(0)" class="hover:text-white transition-colors">Integrations</a>
+                    <a href="javascript:void(0)" class="hover:text-white transition-colors">License</a>
+                    <a href="javascript:void(0)" class="hover:text-white transition-colors">Terms of Use</a>
+                    <a href="javascript:void(0)" class="hover:text-white transition-colors">Blog</a>
+                  </div>
+                }
 
               </div>
 
@@ -506,47 +519,56 @@
                 [class.hidden]="viewport() === 'mobile'"
                 [class.lg:order-2]="branding().layout === 'split_left'">
                 
-                <!-- Large Brand Logo -->
-                @if (branding().logoUrlLight) {
-                  <div class="inline-flex p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-                    <img 
-                      [src]="branding().logoUrlLight" 
-                      [alt]="branding().headline" 
-                      [style.height.px]="branding().logoHeightPx || 52"
-                      class="w-auto object-contain drop-shadow" 
-                      referrerpolicy="no-referrer" />
+                @if (branding().useCustomContentPanel && branding().customHtml) {
+                  <div [innerHTML]="branding().customHtml" class="w-full h-full"></div>
+                } @else if (branding().useCustomContentPanel && !branding().customHtml) {
+                  <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none text-white/50">
+                    <div class="text-sm font-mono tracking-tighter">&lt;/&gt;</div>
+                    <div class="text-xs mt-1">Empty Content Panel</div>
+                  </div>
+                } @else {
+                  <!-- Large Brand Logo -->
+                  @if (branding().logoUrlLight) {
+                    <div class="inline-flex p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
+                      <img 
+                        [src]="branding().logoUrlLight" 
+                        [alt]="branding().headline" 
+                        [style.height.px]="branding().logoHeightPx || 52" 
+                        class="w-auto object-contain drop-shadow" 
+                        referrerpolicy="no-referrer" />
+                    </div>
+                  }
+
+                  <div class="space-y-3 max-w-xl">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/15 backdrop-blur-md text-white border border-white/20">
+                      {{ branding().tagline || 'Next-Gen Enterprise Learning Portal' }}
+                    </span>
+
+                    <h2 class="text-3xl sm:text-4xl xl:text-5xl font-black text-white leading-tight drop-shadow-md">
+                      {{ branding().headline }}
+                    </h2>
+
+                    <p class="text-sm sm:text-base text-white/85 leading-relaxed drop-shadow">
+                      {{ branding().subheadline }}
+                    </p>
+                  </div>
+
+                  <!-- Trust Metrics / Highlights in Hero -->
+                  <div class="pt-4 grid grid-cols-3 gap-3 max-w-lg border-t border-white/20 text-white">
+                    <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
+                      <div class="text-lg sm:text-xl font-bold font-mono">100%</div>
+                      <div class="text-[11px] text-white/70">Verified Courses</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
+                      <div class="text-lg sm:text-xl font-bold font-mono">SSO</div>
+                      <div class="text-[11px] text-white/70">Enterprise Login</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
+                      <div class="text-lg sm:text-xl font-bold font-mono">256-bit</div>
+                      <div class="text-[11px] text-white/70">SSL Encryption</div>
+                    </div>
                   </div>
                 }
-
-                <div class="space-y-3 max-w-xl">
-                  <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/15 backdrop-blur-md text-white border border-white/20">
-                    {{ branding().tagline || 'Next-Gen Enterprise Learning Portal' }}
-                  </span>
-
-                  <h2 class="text-3xl sm:text-4xl xl:text-5xl font-black text-white leading-tight drop-shadow-md">
-                    {{ branding().headline }}
-                  </h2>
-
-                  <p class="text-sm sm:text-base text-white/85 leading-relaxed drop-shadow">
-                    {{ branding().subheadline }}
-                  </p>
-                </div>
-
-                <!-- Trust Metrics / Highlights in Hero -->
-                <div class="pt-4 grid grid-cols-3 gap-3 max-w-lg border-t border-white/20 text-white">
-                  <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
-                    <div class="text-lg sm:text-xl font-bold font-mono">100%</div>
-                    <div class="text-[11px] text-white/70">Verified Courses</div>
-                  </div>
-                  <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
-                    <div class="text-lg sm:text-xl font-bold font-mono">SSO</div>
-                    <div class="text-[11px] text-white/70">Enterprise Login</div>
-                  </div>
-                  <div class="p-2.5 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10">
-                    <div class="text-lg sm:text-xl font-bold font-mono">256-bit</div>
-                    <div class="text-[11px] text-white/70">SSL Encryption</div>
-                  </div>
-                </div>
 
               </div>
 

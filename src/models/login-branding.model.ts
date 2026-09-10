@@ -80,7 +80,9 @@ export interface LoginBrandingConfig {
     showSoc2Badge: boolean;
     showIsoBadge: boolean;
   };
+  customHtml?: string;
   customCss?: string;
+  useCustomContentPanel?: boolean;
   status: 'Published' | 'Draft';
   version: number;
   lastUpdatedBy: string;
@@ -275,6 +277,150 @@ export const CSS_TEMPLATES = [
   }
 ];
 
+export function getHeroPanelDefaultHtml(config?: Partial<LoginBrandingConfig>): string {
+  const headline = config?.headline || 'Welcome to BRAC Learning Portal';
+  const subheadline = config?.subheadline || 'Sign in to access your assigned curriculum, certifications, virtual classrooms and progress transcripts.';
+  const logoUrl = config?.logoUrlLight || 'https://freelogopng.com/images/all_img/1679820004brac-icon.png';
+  const brandTitle = 'BRAC LMS';
+
+  if (config?.layout === 'split_left' || config?.layout === 'split_right') {
+    return `<div class="space-y-4 max-w-md">
+  <!-- Badge & Icon -->
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-pink-600/20 border border-pink-500/30">
+      <span class="material-symbols-outlined text-pink-400 text-base">verified_user</span>
+    </div>
+    <span class="text-[11px] font-extrabold uppercase tracking-widest text-pink-400">ENTERPRISE PORTAL</span>
+  </div>
+
+  <!-- Main Headline -->
+  <div>
+    <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight text-white">
+      ${headline}
+    </h1>
+  </div>
+
+  <!-- Subheadline -->
+  <p class="text-xs sm:text-sm leading-relaxed text-white/85">
+    ${subheadline}
+  </p>
+
+  <!-- Feature Highlights List -->
+  <div class="space-y-2.5 pt-1">
+    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+      <div class="w-5 h-5 rounded-md bg-pink-500/20 border border-pink-500/40 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-pink-400 text-xs">shield_lock</span>
+      </div>
+      <div class="text-xs min-w-0 text-white">
+        <div class="font-bold truncate">Protected by Cloud Security Shield</div>
+        <div class="text-[10px] text-white/70 mt-0.5">256-bit AES encryption & adaptive threat radar</div>
+      </div>
+    </div>
+    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+      <div class="w-5 h-5 rounded-md bg-pink-500/20 border border-pink-500/40 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-pink-400 text-xs">auto_awesome</span>
+      </div>
+      <div class="text-xs min-w-0 text-white">
+        <div class="font-bold truncate">Adaptive AI Learning Path</div>
+        <div class="text-[10px] text-white/70 mt-0.5">Real-time skill cluster mapping and smart recommendations</div>
+      </div>
+    </div>
+    <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+      <div class="w-5 h-5 rounded-md bg-pink-500/20 border border-pink-500/40 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-pink-400 text-xs">sync_saved_locally</span>
+      </div>
+      <div class="text-xs min-w-0 text-white">
+        <div class="font-bold truncate">Real-time Transcript Sync</div>
+        <div class="text-[10px] text-white/70 mt-0.5">Instant credentials and verifiable digital certificates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-white">
+    <div>
+      <div class="text-lg sm:text-xl font-black text-pink-400 tracking-tight">24,500+</div>
+      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider">Active Learners</div>
+    </div>
+    <div>
+      <div class="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">99.99%</div>
+      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider">SSO Uptime</div>
+    </div>
+  </div>
+</div>`;
+  }
+
+  // Modern Split Canvas Default HTML (Exact Match with Canvas Template)
+  return `<div class="h-full flex flex-col justify-between p-6 sm:p-10 lg:p-12 text-white">
+  <!-- Top Nav Row -->
+  <div class="flex items-center justify-between">
+    <div class="font-black text-xl tracking-tight text-white flex items-center gap-1.5">
+      <span>Canvas.</span>
+    </div>
+    <div class="flex items-center gap-5 text-xs text-white/70">
+      <a href="javascript:void(0)" class="hover:text-white transition-colors">Features</a>
+      <a href="javascript:void(0)" class="hover:text-white transition-colors">Docs</a>
+      <a href="javascript:void(0)" class="hover:text-white transition-colors">Contact</a>
+    </div>
+  </div>
+
+  <!-- Center Hero Content -->
+  <div class="space-y-6 my-auto py-8">
+    <div class="space-y-3 max-w-xl">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+        Build faster with clean structure
+      </h1>
+      <p class="text-sm sm:text-base text-white/80 leading-relaxed max-w-lg">
+        A barebones, modern responsive layout ready for customization without extra frameworks or dependencies.
+      </p>
+      <div class="pt-2">
+        <a href="javascript:void(0)" class="inline-flex items-center gap-1 text-sm font-semibold text-white underline underline-offset-4 hover:text-white/80">
+          Get Started &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 3 Feature Columns -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/10">
+      <div class="space-y-1.5 p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-bold text-xs text-white">Design System</div>
+        <div class="text-[11px] text-white/70 leading-relaxed">Pre-configured CSS variables for colors, spacing, and hover states to keep styling consistent.</div>
+      </div>
+      <div class="space-y-1.5 p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-bold text-xs text-white">CSS Grid Layout</div>
+        <div class="text-[11px] text-white/70 leading-relaxed">Auto-wrapping card rows that fluidly fit mobile viewports up to ultrawide desktop monitors.</div>
+      </div>
+      <div class="space-y-1.5 p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-bold text-xs text-white">Zero Dependencies</div>
+        <div class="text-[11px] text-white/70 leading-relaxed">Self-contained HTML and CSS with zero external network requests or script execution.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Row -->
+  <div class="pt-4 flex items-center justify-between text-[11px] text-white/50 border-t border-white/10">
+    <div>&copy; 2026 Canvas Design Template. All rights reserved.</div>
+  </div>
+</div>`;
+}
+
+export function getHeroPanelDefaultCss(): string {
+  return `/* Custom Hero Content Panel & Card CSS Overrides */
+.auth-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-primary-btn {
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+}
+
+.auth-primary-btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}`;
+}
+
 export const DEFAULT_LOGIN_BRANDING: LoginBrandingConfig = {
   id: 'branding-brac-default',
   tenantId: 'tenant-brac',
@@ -286,7 +432,7 @@ export const DEFAULT_LOGIN_BRANDING: LoginBrandingConfig = {
   logoUrlDark: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
   logoHeightPx: 48,
   faviconUrl: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
-  layout: 'split_right',
+  layout: 'split_modern_canvas',
   splitPosition: 'right',
   backgroundType: 'image',
   backgroundImageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1920&q=85',
@@ -348,20 +494,24 @@ export const DEFAULT_LOGIN_BRANDING: LoginBrandingConfig = {
     showSoc2Badge: true,
     showIsoBadge: true
   },
-  customCss: `/* Custom Login Portal CSS Overrides */
-.auth-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  customHtml: getHeroPanelDefaultHtml({ layout: 'split_modern_canvas' }),
+  customCss: `/* AuthKit & Custom Login Portal CSS Overrides */
+.ak-Background {
+  transition: background-color 0.2s ease;
 }
 
-.auth-primary-btn {
-  letter-spacing: 0.025em;
+.ak-Card {
   transition: all 0.2s ease;
 }
 
-.auth-primary-btn:hover {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
+.ak-PrimaryButton {
+  transition: all 0.2s ease;
+}
+
+.ak-PrimaryButton:hover {
+  filter: brightness(1.05);
 }`,
+  useCustomContentPanel: true,
   status: 'Published',
   version: 2.4,
   lastUpdatedBy: 'Farhana Ahmed (System Admin)',

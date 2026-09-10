@@ -13,7 +13,9 @@ import {
   TexturePreset,
   CSS_SELECTOR_GUIDES,
   CSS_TEMPLATES,
-  CssSelectorGuide
+  CssSelectorGuide,
+  getHeroPanelDefaultHtml,
+  getHeroPanelDefaultCss
 } from '../../../models/login-branding.model';
 
 export type BrandingPortalTab = 'authkit' | 'admin_portal' | 'emails';
@@ -34,6 +36,16 @@ export interface PageMenuItem {
   name: string;
   category: 'Pages';
   icon: string;
+}
+
+export interface ScopedCssElement {
+  id: string;
+  name: string;
+  selector: string;
+  isOpen: boolean;
+  enabled: boolean;
+  code: string;
+  quickSnippets?: { label: string; snippet: string }[];
 }
 
 export interface ElementMenuItem {
@@ -123,6 +135,181 @@ export class LoginBrandingEditComponent {
   showFirstLastName = signal<boolean>(true);
   hideContentPanelOnMobile = signal<boolean>(false);
 
+  // Scoped Guided CSS State
+  scopedCssElements = signal<ScopedCssElement[]>([
+    { 
+      id: 'background', 
+      name: 'Background', 
+      selector: '.ak-Background', 
+      isOpen: true, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Soft Lavender', snippet: '  background-color: #f5f3ff;' },
+        { label: 'Deep Slate', snippet: '  background-color: #0f172a;' },
+        { label: 'Frosted Gradient', snippet: '  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);' }
+      ]
+    },
+    { 
+      id: 'header', 
+      name: 'Header', 
+      selector: '.ak-Header', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Centered Tracking', snippet: '  text-align: center;\n  letter-spacing: -0.025em;' },
+        { label: 'Accent Border', snippet: '  border-bottom: 2px solid #6366f1;\n  padding-bottom: 0.5rem;' }
+      ]
+    },
+    { 
+      id: 'card', 
+      name: 'Card', 
+      selector: '.ak-Card', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Elevated Shadow', snippet: '  border-radius: 16px;\n  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);\n  border: 1px solid #e2e8f0;' },
+        { label: 'Dark Glass', snippet: '  background: rgba(15, 23, 42, 0.85) !important;\n  backdrop-filter: blur(16px);\n  border: 1px solid rgba(255, 255, 255, 0.15);' },
+        { label: 'Flat Minimal', snippet: '  border-radius: 12px;\n  border: 1px solid #cbd5e1;\n  box-shadow: none;' }
+      ]
+    },
+    { 
+      id: 'primary-button', 
+      name: 'Primary button', 
+      selector: '.ak-PrimaryButton', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'AuthKit Purple Pill', snippet: '  background-color: #9333ea !important;\n  border-radius: 9999px !important;\n  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);' },
+        { label: 'Emerald Glow', snippet: '  background-color: #059669 !important;\n  border-radius: 12px;\n  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);' },
+        { label: 'Sleek Dark', snippet: '  background-color: #09090b !important;\n  color: #ffffff;\n  border-radius: 10px;' }
+      ]
+    },
+    { 
+      id: 'secondary-button', 
+      name: 'Secondary button', 
+      selector: '.ak-SecondaryButton', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Subtle Ghost', snippet: '  background: transparent;\n  border: 1px solid #e2e8f0;\n  border-radius: 12px;' },
+        { label: 'Pill Outline', snippet: '  border-radius: 9999px;\n  border: 1.5px solid #cbd5e1;' }
+      ]
+    },
+    { 
+      id: 'text-field', 
+      name: 'Text field', 
+      selector: '.ak-TextField', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Pill Input', snippet: '  border-radius: 9999px !important;\n  padding-left: 1.25rem !important;\n  border-color: #e2e8f0;' },
+        { label: 'Clean Focus', snippet: '  border-radius: 10px;\n  border: 1.5px solid #94a3b8;\n  background: #ffffff;' }
+      ]
+    },
+    { 
+      id: 'label', 
+      name: 'Label', 
+      selector: '.ak-Label', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Caps Tracker', snippet: '  text-transform: uppercase;\n  letter-spacing: 0.05em;\n  font-size: 0.65rem;\n  font-weight: 700;' },
+        { label: 'Subtle Indigo', snippet: '  color: #4f46e5;\n  font-weight: 600;' }
+      ]
+    },
+    { 
+      id: 'callout', 
+      name: 'Callout', 
+      selector: '.ak-Callout', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Modern Banner', snippet: '  border-radius: 14px;\n  backdrop-filter: blur(12px);\n  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);' }
+      ]
+    },
+    { 
+      id: 'org-selection', 
+      name: 'Organization selection', 
+      selector: '.ak-OrganizationSelection', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Grid Card', snippet: '  border-radius: 14px;\n  border: 1px solid #e2e8f0;' }
+      ]
+    },
+    { 
+      id: 'sso-trigger', 
+      name: 'SSO profile trigger', 
+      selector: '.ak-SSOProfileTrigger', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Pill Trigger', snippet: '  border-radius: 9999px;\n  border: 1px solid #e2e8f0;' }
+      ]
+    },
+    { 
+      id: 'sso-menu', 
+      name: 'SSO profile menu', 
+      selector: '.ak-SSOProfileMenu', 
+      isOpen: false, 
+      enabled: true, 
+      code: '  ',
+      quickSnippets: [
+        { label: 'Elevated Dropdown', snippet: '  border-radius: 16px;\n  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);' }
+      ]
+    }
+  ]);
+
+  // Active element inspected on preview canvas
+  activeInspectedElement = signal<string>('Background');
+  isOverridesMenuOpen = signal<boolean>(false);
+  removeOriginalStyles = signal<boolean>(false);
+  cssEditorMode = signal<'guided' | 'raw'>('guided');
+  expandedScopedElement = signal<ScopedCssElement | null>(null);
+  showAutocomplete = signal<boolean>(false);
+  activeAutocompleteElementId = signal<string | null>('background');
+  autocompleteFilter = signal<string>('');
+
+  autocompleteClasses = [
+    { name: 'ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link' },
+    { name: 'ak-Content', type: 'CSS class', desc: 'Inner content panel layout' },
+    { name: 'ak-Logo', type: 'CSS class', desc: 'Header branding logo image' },
+    { name: 'ak-Title', type: 'CSS class', desc: 'Page primary headline title' },
+    { name: 'ak-Subtitle', type: 'CSS class', desc: 'Page subheadline description' },
+    { name: 'ak-Card', type: 'CSS class', desc: 'Card container surface' },
+    { name: 'ak-PrimaryButton', type: 'CSS class', desc: 'Primary call-to-action button' },
+    { name: 'ak-SecondaryButton', type: 'CSS class', desc: 'Secondary / SSO action buttons' },
+    { name: 'ak-TextField', type: 'CSS class', desc: 'Input text input control' },
+    { name: 'ak-Label', type: 'CSS class', desc: 'Form field description label' },
+    { name: 'ak-Callout', type: 'CSS class', desc: 'Announcement and alert banner' },
+    { name: 'ak-Badge', type: 'CSS class', desc: 'Badge pill indicator' },
+    { name: 'ak-Divider', type: 'CSS class', desc: 'Section line divider' },
+  ];
+
+  autocompleteProperties = [
+    { name: 'background-color: ', type: 'property', desc: 'Element background color' },
+    { name: 'color: ', type: 'property', desc: 'Foreground text color' },
+    { name: 'border-radius: ', type: 'property', desc: 'Corner rounding radius' },
+    { name: 'box-shadow: ', type: 'property', desc: 'Elevation box shadow' },
+    { name: 'border: ', type: 'property', desc: 'Border stroke line' },
+    { name: 'padding: ', type: 'property', desc: 'Inner whitespace padding' },
+    { name: 'font-weight: ', type: 'property', desc: 'Typography font weight' },
+    { name: 'font-size: ', type: 'property', desc: 'Typography size' },
+    { name: 'opacity: ', type: 'property', desc: 'Visual opacity' },
+    { name: 'transition: ', type: 'property', desc: 'CSS animation transition' },
+    { name: 'backdrop-filter: ', type: 'property', desc: 'Frosted glass blur effect' },
+  ];
+
   // CSS Selectors Accordion state
   openCssAccordions = signal<{ [key: string]: boolean }>({
     'background': true,
@@ -180,6 +367,32 @@ export class LoginBrandingEditComponent {
     const css = this.formData().customCss || '';
     const count = Math.max(css.split('\n').length, 12);
     return Array.from({ length: count }, (_, i) => i + 1);
+  });
+
+  // Content Panel Modal State (HTML/CSS Custom Editor)
+  isContentPanelModalOpen = signal<boolean>(false);
+  modalEditorTab = signal<'html' | 'css'>('html');
+  modalHtmlCode = signal<string>('');
+  modalCssCode = signal<string>('');
+
+  modalHtmlLineNumbers = computed<number[]>(() => {
+    const code = this.modalHtmlCode() || '';
+    const count = Math.max(code.split('\n').length, 12);
+    return Array.from({ length: count }, (_, i) => i + 1);
+  });
+
+  modalCssLineNumbers = computed<number[]>(() => {
+    const code = this.modalCssCode() || '';
+    const count = Math.max(code.split('\n').length, 12);
+    return Array.from({ length: count }, (_, i) => i + 1);
+  });
+
+  isHeroPanelEmpty = computed<boolean>(() => {
+    const config = this.formData();
+    if (config.useCustomContentPanel) {
+      return !config.customHtml || config.customHtml.trim().length === 0;
+    }
+    return false;
   });
 
   // Current page object
@@ -251,6 +464,217 @@ export class LoginBrandingEditComponent {
 
   highlightElement(selectorId: string | null) {
     this.highlightedElement.set(selectorId);
+  }
+
+  // Scoped Guided CSS Actions
+  toggleScopedAccordion(id: string) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        if (el.id === id) {
+          const nextOpen = !el.isOpen;
+          if (nextOpen) {
+            this.activeInspectedElement.set(el.name);
+          }
+          return { ...el, isOpen: nextOpen };
+        }
+        return el;
+      })
+    );
+  }
+
+  toggleScopedEnabled(id: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === id ? { ...el, enabled: !el.enabled } : el)
+    );
+    this.syncCombinedCss();
+    const elem = this.scopedCssElements().find(el => el.id === id);
+    if (elem) {
+      this.lms.showToast(
+        elem.enabled ? `Enabled styles for ${elem.name}` : `Disabled styles for ${elem.name}`,
+        'info',
+        1600,
+        'Style Override'
+      );
+    }
+  }
+
+  openScopedFullscreen(elem: ScopedCssElement, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.expandedScopedElement.set(elem);
+  }
+
+  closeScopedFullscreen() {
+    this.expandedScopedElement.set(null);
+  }
+
+  onScopedCodeChange(id: string, newCode: string) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === id ? { ...el, code: newCode } : el)
+    );
+    this.syncCombinedCss();
+
+    // Check if user is typing a property or class trigger
+    const trimmed = newCode.trim();
+    if (trimmed.endsWith('.') || trimmed.endsWith('.ak') || trimmed.endsWith(':')) {
+      this.activeAutocompleteElementId.set(id);
+      this.showAutocomplete.set(true);
+    }
+  }
+
+  onScopedTextareaKeydown(id: string, event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.showAutocomplete.set(false);
+    } else if (event.key === 'Tab') {
+      event.preventDefault();
+      const target = event.target as HTMLTextAreaElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const val = target.value;
+      const updated = val.substring(0, start) + '  ' + val.substring(end);
+      this.onScopedCodeChange(id, updated);
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 2;
+      });
+    }
+  }
+
+  insertAutocompleteSuggestion(elemId: string, suggestion: string) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        if (el.id === elemId) {
+          let current = el.code;
+          if (current.trim().endsWith('.')) {
+            const lastDotIdx = current.lastIndexOf('.');
+            current = current.substring(0, lastDotIdx) + suggestion;
+          } else {
+            current = current + (current.endsWith('\n') ? '  ' : '\n  ') + suggestion;
+          }
+          return { ...el, code: current };
+        }
+        return el;
+      })
+    );
+    this.showAutocomplete.set(false);
+    this.syncCombinedCss();
+  }
+
+  insertSnippet(elemId: string, snippet: string) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        if (el.id === elemId) {
+          const current = el.code.trim();
+          const newCode = current ? `${el.code}\n${snippet}` : snippet;
+          return { ...el, code: newCode };
+        }
+        return el;
+      })
+    );
+    this.syncCombinedCss();
+    this.lms.showToast('Snippet inserted and applied to preview', 'info', 1800, 'Snippet Applied');
+  }
+
+  syncCombinedCss() {
+    let combined = '';
+    
+    if (this.removeOriginalStyles()) {
+      combined += `/* Remove original AuthKit base element styles */\n.ak-Card { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }\n.ak-PrimaryButton { background: none !important; border: none !important; }\n.ak-TextField { background: transparent !important; }\n\n`;
+    }
+
+    for (const elem of this.scopedCssElements()) {
+      if (elem.enabled && elem.code.trim()) {
+        combined += `${elem.selector} {\n${elem.code}\n}\n\n`;
+      }
+    }
+
+    this.formData.update(f => ({
+      ...f,
+      customCss: combined
+    }));
+  }
+
+  copyAllCss() {
+    const css = this.formData().customCss || '';
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(css).then(() => {
+        this.lms.showToast('All custom CSS copied to clipboard', 'info', 1800, 'Copied');
+      });
+    }
+  }
+
+  resetAllOverrides() {
+    if (confirm('Reset all scoped CSS overrides to empty state?')) {
+      this.scopedCssElements.update(elements =>
+        elements.map(el => ({ ...el, code: '  ' }))
+      );
+      this.removeOriginalStyles.set(false);
+      this.syncCombinedCss();
+      this.lms.showToast('All element CSS overrides reset', 'info', 2000, 'Reset Done');
+    }
+  }
+
+  toggleRemoveOriginalStyles() {
+    this.removeOriginalStyles.update(v => !v);
+    this.syncCombinedCss();
+    this.lms.showToast(
+      this.removeOriginalStyles() ? 'Removed original styles' : 'Restored original styles',
+      'info',
+      1800,
+      'Base Styles'
+    );
+  }
+
+  formatCustomCss() {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        const lines = el.code.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0)
+          .map(l => `  ${l}`);
+        return { ...el, code: lines.join('\n') || '  ' };
+      })
+    );
+    this.syncCombinedCss();
+    this.lms.showToast('Formatted custom CSS rules', 'info', 1800, 'CSS Formatted');
+  }
+
+  getElementLineNumbers(code: string): number[] {
+    const lineCount = Math.max((code || '').split('\n').length + 2, 3);
+    return Array.from({ length: lineCount }, (_, i) => i + 1);
+  }
+
+  inspectElement(name: string, elemId?: string) {
+    this.activeInspectedElement.set(name);
+    if (elemId) {
+      this.scopedCssElements.update(elements =>
+        elements.map(el => el.id === elemId ? { ...el, isOpen: true } : el)
+      );
+    }
+  }
+
+  extractSelectorBody(css: string, selector: string): string {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`${escaped}\\s*\\{([\\s\\S]*?)\\}`, 'i');
+    const match = css.match(regex);
+    if (match && match[1]) {
+      return match[1].replace(/^\n+|\n+$/g, '');
+    }
+    return '';
+  }
+
+  toggleOverridesMenu(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isOverridesMenuOpen.update(v => !v);
+  }
+
+  setCssEditorMode(mode: 'guided' | 'raw') {
+    this.cssEditorMode.set(mode);
   }
 
   updateSelectorCss(selectorKey: string, newCss: string) {
@@ -551,5 +975,72 @@ export class LoginBrandingEditComponent {
   onSignUpConfirmPasswordInput(event: Event) {
     const target = event.target as HTMLInputElement;
     this.signUpConfirmPassword.set(target.value);
+  }
+
+  // Content Panel Modal Actions
+  openContentPanelModal() {
+    const currentHtml = this.formData().customHtml;
+    const initialHtml = (currentHtml !== undefined && currentHtml !== null) 
+      ? currentHtml 
+      : getHeroPanelDefaultHtml(this.formData());
+    
+    const currentCss = this.formData().customCss;
+    const initialCss = (currentCss !== undefined && currentCss !== null)
+      ? currentCss
+      : getHeroPanelDefaultCss();
+
+    this.modalHtmlCode.set(initialHtml);
+    this.modalCssCode.set(initialCss);
+    this.modalEditorTab.set('html');
+    this.isContentPanelModalOpen.set(true);
+  }
+
+  closeContentPanelModal() {
+    this.isContentPanelModalOpen.set(false);
+  }
+
+  setModalEditorTab(tab: 'html' | 'css') {
+    this.modalEditorTab.set(tab);
+  }
+
+  saveContentPanelModal() {
+    this.formData.update(f => ({
+      ...f,
+      customHtml: this.modalHtmlCode(),
+      customCss: this.modalCssCode(),
+      useCustomContentPanel: true
+    }));
+    this.isContentPanelModalOpen.set(false);
+    this.lms.showToast('Content panel updated with custom HTML & CSS', 'success', 2500, 'Changes Saved');
+  }
+
+  clearContentPanel() {
+    this.formData.update(f => ({
+      ...f,
+      customHtml: '',
+      useCustomContentPanel: true
+    }));
+    this.lms.showToast('Content panel cleared — displaying empty placeholder', 'info', 2000, 'Cleared');
+  }
+
+  resetToDefaultHero() {
+    const defaultHtml = getHeroPanelDefaultHtml(this.formData());
+    const defaultCss = getHeroPanelDefaultCss();
+    this.formData.update(f => ({
+      ...f,
+      customHtml: defaultHtml,
+      customCss: defaultCss,
+      useCustomContentPanel: true
+    }));
+    this.lms.showToast('Restored default hero panel HTML and CSS', 'info', 2000, 'Reset to Default');
+  }
+
+  copyModalCode() {
+    const textToCopy = this.modalEditorTab() === 'html' ? this.modalHtmlCode() : this.modalCssCode();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy || '').then(() => {
+        this.lms.showToast(`${this.modalEditorTab().toUpperCase()} code copied to clipboard`, 'info', 1800, 'Copied');
+      });
+    }
   }
 }
