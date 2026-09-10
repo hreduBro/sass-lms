@@ -163,7 +163,7 @@ export class LoginBrandingEditComponent {
       isOpen: true, 
       enabled: true, 
       removeOriginalStyles: false,
-      code: '.ak-Background {\n  \n}',
+      code: '.ak-Background {\n  .\n}',
       childClasses: [
         { name: '.ak-BackLink', type: 'CSS class', desc: 'Back to website navigation link', snippet: '  .ak-BackLink {\n    \n  }' },
         { name: '.ak-Content', type: 'CSS class', desc: 'Inner content panel layout', snippet: '  .ak-Content {\n    \n  }' },
@@ -182,7 +182,7 @@ export class LoginBrandingEditComponent {
       id: 'header', 
       name: 'Header', 
       selector: '.ak-Header', 
-      isOpen: true, 
+      isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
       code: '.ak-Header {\n  \n}',
@@ -377,7 +377,7 @@ export class LoginBrandingEditComponent {
   removeOriginalStyles = signal<boolean>(false);
   cssEditorMode = signal<'guided' | 'raw'>('guided');
   expandedScopedElement = signal<ScopedCssElement | null>(null);
-  showAutocomplete = signal<boolean>(false);
+  showAutocomplete = signal<boolean>(true);
   activeAutocompleteElementId = signal<string | null>('background');
   autocompleteFilter = signal<string>('');
   autocompleteSearch = signal<string>('');
@@ -908,6 +908,10 @@ export class LoginBrandingEditComponent {
   getElementLineNumbers(code: string): number[] {
     const lineCount = Math.max((code || '').split('\n').length, 3);
     return Array.from({ length: lineCount }, (_, i) => i + 1);
+  }
+
+  getCleanClassName(name: string): string {
+    return name.startsWith('.') ? name.substring(1) : name;
   }
 
   inspectElement(name: string, elemId?: string) {

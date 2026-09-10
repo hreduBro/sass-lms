@@ -1608,39 +1608,54 @@
     <!-- ======================================================================= -->
     <!-- B. RIGHT PANEL: BRANDING SETUP & CONTROLS (Harmonious Light Studio)      -->
     <!-- ======================================================================= -->
-    <div class="w-80 sm:w-96 bg-white flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden">
+    <div class="w-80 sm:w-96 flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden transition-colors"
+         [class.bg-[#0b0f17]]="rightPanelTab() === 'custom_css'"
+         [class.bg-white]="rightPanelTab() !== 'custom_css'"
+         [class.border-l]="true"
+         [class.border-slate-800]="rightPanelTab() === 'custom_css'"
+         [class.border-slate-200]="rightPanelTab() !== 'custom_css'">
       
       <!-- Top Setup Tabs (Global styles | Page settings | Custom CSS) -->
-      <div class="h-12 border-b border-slate-200 px-3 flex items-center gap-1 flex-shrink-0 bg-slate-50/60">
+      <div class="h-12 border-b px-4 flex items-center gap-6 flex-shrink-0 transition-colors"
+           [class.bg-[#0b0f17]]="rightPanelTab() === 'custom_css'"
+           [class.border-slate-800]="rightPanelTab() === 'custom_css'"
+           [class.bg-slate-50/60]="rightPanelTab() !== 'custom_css'"
+           [class.border-slate-200]="rightPanelTab() !== 'custom_css'">
         
         <button 
           type="button" 
           (click)="setRightPanelTab('global_styles')"
-          [class]="rightPanelTab() === 'global_styles' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
-          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          [class]="rightPanelTab() === 'global_styles' 
+            ? 'text-white border-indigo-500 font-medium' 
+            : (rightPanelTab() === 'custom_css' ? 'text-slate-400 hover:text-slate-200 border-transparent' : 'text-slate-600 hover:text-slate-900 border-transparent')"
+          class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Global styles
         </button>
 
         <button 
           type="button" 
           (click)="setRightPanelTab('page_settings')"
-          [class]="rightPanelTab() === 'page_settings' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
-          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          [class]="rightPanelTab() === 'page_settings' 
+            ? 'text-white border-indigo-500 font-medium' 
+            : (rightPanelTab() === 'custom_css' ? 'text-slate-400 hover:text-slate-200 border-transparent' : 'text-slate-600 hover:text-slate-900 border-transparent')"
+          class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Page settings
         </button>
 
         <button 
           type="button" 
           (click)="setRightPanelTab('custom_css')"
-          [class]="rightPanelTab() === 'custom_css' ? 'bg-white text-tenant-700 font-bold border-slate-200 shadow-xs' : 'text-slate-600 hover:text-slate-900 border-transparent'"
-          class="flex-1 py-1.5 px-2 rounded-xl text-xs border transition-all cursor-pointer text-center truncate">
+          [class]="rightPanelTab() === 'custom_css' 
+            ? 'text-white border-indigo-500 font-medium' 
+            : 'text-slate-600 hover:text-slate-900 border-transparent'"
+          class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Custom CSS
         </button>
 
       </div>
 
       <!-- Tab Content Scrollable Area -->
-      <div class="flex-1 overflow-y-auto p-5 space-y-6">
+      <div class="flex-1 overflow-y-auto p-5" [class.space-y-6]="rightPanelTab() !== 'custom_css'" [class.space-y-3]="rightPanelTab() === 'custom_css'">
         
         <!-- =================================================================== -->
         <!-- TAB 1: GLOBAL STYLES                                                -->
@@ -2132,16 +2147,16 @@
         }
 
         <!-- =================================================================== -->
-        <!-- TAB 3: CUSTOM CSS (AuthKit Style Overrides - Scoped Guided Entry)  -->
+        <!-- TAB 3: CUSTOM CSS (AuthKit Style Overrides - Matches Image 2)       -->
         <!-- =================================================================== -->
         @if (rightPanelTab() === 'custom_css') {
-          <div class="space-y-4">
+          <div class="space-y-3 text-slate-200">
             
-            <!-- AuthKit Style Overrides Header with Action Menu -->
+            <!-- Header: Title, Action Menu, Subtitle -->
             <div class="pb-1 relative">
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-                  <span>AuthKit style overrides</span>
+                <h3 class="text-sm font-semibold text-white tracking-tight">
+                  AuthKit style overrides
                 </h3>
 
                 <!-- Top Action Menu Button -->
@@ -2150,49 +2165,42 @@
                     type="button" 
                     (click)="toggleOverridesMenu($event)"
                     title="Style options"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer">
+                    class="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-base">more_horiz</span>
                   </button>
 
-                  <!-- Dropdown Menu -->
+                  <!-- Dropdown Menu (Dark theme) -->
                   @if (isOverridesMenuOpen()) {
-                    <div class="absolute right-0 top-8 z-40 w-56 p-1.5 bg-white rounded-xl shadow-xl border border-slate-200 text-xs text-slate-700 animate-in fade-in zoom-in-95 duration-100"
+                    <div class="absolute right-0 top-8 z-50 w-56 p-1.5 bg-[#161b22] rounded-xl shadow-2xl border border-slate-700 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100"
                          (click)="$event.stopPropagation()">
                       <button 
                         type="button" 
                         (click)="toggleRemoveOriginalStyles(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span>Remove original element styles</span>
                         @if (removeOriginalStyles()) {
-                          <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
+                          <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
                         }
                       </button>
                       <button 
                         type="button" 
                         (click)="formatCustomCss(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-slate-400">auto_fix_high</span>
                         <span>Format CSS indentation</span>
                       </button>
                       <button 
                         type="button" 
                         (click)="copyAllCss(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-slate-400">content_copy</span>
                         <span>Copy all combined CSS</span>
                       </button>
-                      <div class="my-1 border-t border-slate-100"></div>
-                      <button 
-                        type="button" 
-                        (click)="setCssEditorMode(cssEditorMode() === 'guided' ? 'raw' : 'guided'); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-slate-400">{{ cssEditorMode() === 'guided' ? 'code' : 'tune' }}</span>
-                        <span>{{ cssEditorMode() === 'guided' ? 'Switch to Raw Freeform Editor' : 'Switch to Scoped Guided Editor' }}</span>
-                      </button>
+                      <div class="my-1 border-t border-slate-800"></div>
                       <button 
                         type="button" 
                         (click)="resetAllOverrides(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 text-rose-600 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/60 text-rose-400 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm">restart_alt</span>
                         <span>Reset all overrides</span>
                       </button>
@@ -2201,268 +2209,105 @@
                 </div>
               </div>
 
-              <!-- Subtitle -->
-              <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+              <!-- Subtitle with Learn more link -->
+              <p class="text-xs text-slate-400 mt-1 leading-relaxed">
                 Override element styles across all AuthKit pages with custom CSS.
-                <a href="javascript:void(0)" class="text-tenant-600 hover:underline font-medium inline-flex items-center gap-0.5 ml-0.5">
+                <a href="https://workos.com/docs/authkit/custom-css" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-normal inline-flex items-center gap-0.5 ml-0.5 transition-colors">
                   <span>Learn more</span>
                   <span class="text-[10px]">↗</span>
                 </a>
               </p>
             </div>
 
-            <!-- Editor Mode: Guided Scoped Entry (as shown in screenshot) -->
-            @if (cssEditorMode() === 'guided') {
-              <div class="space-y-2">
-                @for (elem of scopedCssElements(); track elem.id) {
-                  <div class="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs transition-all hover:border-slate-300">
+            <!-- Flat Accordion List of AuthKit Elements (Image 2 style) -->
+            <div class="space-y-0.5 pt-1">
+              @for (elem of scopedCssElements(); track elem.id) {
+                <div class="select-none">
+                  
+                  <!-- Accordion Row Header -->
+                  <div 
+                    (click)="toggleScopedAccordion(elem.id)"
+                    class="flex items-center justify-between py-2 px-1 text-slate-300 hover:text-white cursor-pointer transition-colors group">
                     
-                    <!-- Accordion Row Header -->
-                    <div 
-                      (click)="toggleScopedAccordion(elem.id)"
-                      class="flex items-center justify-between px-3.5 py-2.5 bg-slate-50/70 hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <span class="material-symbols-outlined text-base text-slate-500 transition-transform duration-200"
-                              [class.rotate-90]="elem.isOpen">
-                          chevron_right
-                        </span>
-                        <span class="text-xs font-semibold text-slate-800 tracking-tight truncate">
-                          {{ elem.name }}
-                        </span>
-                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-500 opacity-80">
-                          {{ elem.selector }}
-                        </span>
-                        @if (elem.removeOriginalStyles) {
-                          <span class="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80">
-                            Clean slate
-                          </span>
-                        }
-                      </div>
+                    <!-- Left: Arrow + Element Name -->
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-slate-200 transition-transform">
+                        {{ elem.isOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+                      </span>
+                      <span class="text-xs font-normal" [class.text-white]="elem.isOpen" [class.text-slate-300]="!elem.isOpen">
+                        {{ elem.name }}
+                      </span>
+                    </div>
 
-                      <!-- Actions: Eye Toggle, Fullscreen Popout & Three-dots Menu -->
-                      <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
+                    <!-- Right (Only when open): Visibility Toggle & Open in Fullscreen -->
+                    @if (elem.isOpen) {
+                      <div class="flex items-center gap-2 shrink-0" (click)="$event.stopPropagation()">
                         <button 
                           type="button" 
                           (click)="toggleScopedEnabled(elem.id, $event)"
                           [title]="elem.enabled ? 'Disable styles for ' + elem.name : 'Enable styles for ' + elem.name"
-                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">
-                            {{ elem.enabled ? 'visibility' : 'visibility_off' }}
+                            {{ elem.enabled ? 'visibility_off' : 'visibility' }}
                           </span>
                         </button>
                         <button 
                           type="button" 
                           (click)="openScopedFullscreen(elem, $event)"
                           title="Open fullscreen editor"
-                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">open_in_full</span>
                         </button>
-                        
-                        <!-- Three-dots Block Menu (Extend with current css vs Remove original css style from block) -->
-                        <div class="relative">
-                          <button 
-                            type="button" 
-                            (click)="toggleBlockMenu(elem.id, $event)"
-                            title="Block style options"
-                            class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
-                            <span class="material-symbols-outlined text-sm">more_vert</span>
-                          </button>
-                          @if (activeBlockMenuId() === elem.id) {
-                            <div 
-                              (click)="$event.stopPropagation()"
-                              class="absolute right-0 top-7 z-40 w-60 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 text-[11px] text-slate-700">
-                              <div class="px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                                Style Inheritance
-                              </div>
-                              <button 
-                                type="button" 
-                                (click)="setBlockStyleMode(elem.id, false, $event)"
-                                class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
-                                <div class="flex flex-col">
-                                  <span class="font-semibold text-slate-800">Extend with current CSS</span>
-                                  <span class="text-[9px] text-slate-400">Add overrides while keeping AuthKit styles</span>
-                                </div>
-                                @if (!elem.removeOriginalStyles) {
-                                  <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
-                                }
-                              </button>
-                              <button 
-                                type="button" 
-                                (click)="setBlockStyleMode(elem.id, true, $event)"
-                                class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer">
-                                <div class="flex flex-col">
-                                  <span class="font-semibold text-slate-800">Remove original CSS style</span>
-                                  <span class="text-[9px] text-slate-400">Reset default styles for this block</span>
-                                </div>
-                                @if (elem.removeOriginalStyles) {
-                                  <span class="material-symbols-outlined text-sm text-tenant-600 font-bold">check</span>
-                                }
-                              </button>
-                            </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Accordion Body: Dark Code Editor Canvas -->
+                  @if (elem.isOpen) {
+                    <div class="my-1 rounded-lg border border-slate-800 bg-[#0d1117] overflow-visible relative font-mono text-xs">
+                      
+                      <div class="flex">
+                        <!-- Line Number Gutter -->
+                        <div class="py-2.5 px-2 bg-[#0d1117] text-slate-600 border-r border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-7">
+                          @for (line of getElementLineNumbers(elem.code); track line) {
+                            <div>{{ line }}</div>
                           }
                         </div>
-                      </div>
-                    </div>
 
-                    <!-- Accordion Body: Sleek Code Editor -->
-                    @if (elem.isOpen) {
-                      <div class="p-3 bg-[#0d1117] text-slate-200 border-t border-slate-800 animate-in slide-in-from-top-1 duration-150">
-                        
-                        <!-- Editor Canvas with Line Numbers -->
-                        <div class="relative flex font-mono text-[11px] leading-relaxed rounded-lg overflow-hidden border border-slate-800/80 bg-[#090d13]">
-                          
-                          <!-- Line Number Gutter -->
-                          <div class="py-2.5 px-2 bg-[#0d1117]/80 text-slate-500 border-r border-slate-800/60 select-none text-right font-mono text-[10px] leading-relaxed shrink-0 w-7">
-                            @for (line of getElementLineNumbers(elem.code); track line) {
-                              <div>{{ line }}</div>
-                            }
-                          </div>
+                        <!-- Code Textarea & Autocomplete -->
+                        <div class="flex-1 py-2 px-3 text-slate-200 relative">
+                          <textarea #codeArea
+                            [value]="elem.code"
+                            (input)="onScopedCodeInput(elem.id, codeArea, $event)"
+                            (click)="onScopedTextareaClick(elem.id, codeArea)"
+                            (keydown)="onScopedTextareaKeydown(elem.id, codeArea, $event)"
+                            rows="3"
+                            spellcheck="false"
+                            class="w-full bg-transparent text-slate-200 font-mono text-xs leading-relaxed border-0 outline-none resize-none py-0.5 px-0 placeholder:text-slate-600 focus:ring-0">
+                          </textarea>
 
-                          <!-- Code Input Area -->
-                          <div class="flex-1 py-2 px-3 text-slate-200 overflow-x-auto relative">
-                            <!-- Editable Body Textarea with full code editing -->
-                            <textarea #codeArea
-                              [value]="elem.code"
-                              (input)="onScopedCodeInput(elem.id, codeArea, $event)"
-                              (click)="onScopedTextareaClick(elem.id, codeArea)"
-                              (keydown)="onScopedTextareaKeydown(elem.id, codeArea, $event)"
-                              rows="6"
-                              spellcheck="false"
-                              placeholder="  /* Type . to see dependable child classes */"
-                              class="w-full bg-transparent text-emerald-400 font-mono text-[11px] leading-relaxed border-0 outline-none resize-y py-0.5 px-0 placeholder:text-slate-600 focus:ring-0">
-                            </textarea>
-
-                            <!-- Floating Autocomplete Suggestion Popup (Matches Image 2 & 3) -->
-                            @if (showAutocomplete() && activeAutocompleteElementId() === elem.id) {
-                              <div class="absolute left-4 top-10 z-40 w-72 max-h-64 overflow-y-auto bg-[#161b22] border border-slate-700/80 rounded-xl shadow-2xl p-1.5 text-[11px] font-sans">
-                                
-                                <!-- Header with active element context & search -->
-                                <div class="px-2 py-1.5 border-b border-slate-800 flex items-center justify-between">
-                                  <div class="flex items-center gap-1.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-                                    <span class="text-[10px] font-semibold text-slate-300">Dependable Child Classes</span>
-                                  </div>
-                                  <button 
-                                    type="button" 
-                                    (click)="showAutocomplete.set(false)" 
-                                    class="text-slate-500 hover:text-white cursor-pointer text-sm leading-none">&times;</button>
+                          <!-- Autocomplete Dropdown (Exact Image 2 Replica) -->
+                          @if (showAutocomplete() && activeAutocompleteElementId() === elem.id) {
+                            <div class="absolute left-6 top-8 z-50 w-64 bg-[#161b22] border border-slate-700/80 rounded-lg shadow-2xl py-1 text-xs font-sans overflow-hidden">
+                              @for (cls of activeElementSuggestions().slice(0, 4); track cls.name; let i = $index) {
+                                <div 
+                                  (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
+                                  [class.bg-slate-800]="i === 0"
+                                  class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
+                                  <span class="font-mono text-xs font-medium text-white">{{ getCleanClassName(cls.name) }}</span>
+                                  <span class="text-[10px] text-slate-400 italic font-mono">{{ cls.type }}</span>
                                 </div>
-
-                                <!-- Search filter hint -->
-                                <div class="px-2 py-1 text-[9px] text-slate-400 font-mono bg-slate-900/60 rounded mt-1 mb-1">
-                                  Triggered on <span class="text-emerald-400 font-bold">.</span> for <span class="text-purple-300">{{ elem.selector }}</span>
-                                </div>
-
-                                <!-- Child Class Suggestions -->
-                                <div class="py-0.5 space-y-0.5">
-                                  @for (cls of activeElementSuggestions(); track cls.name) {
-                                    <button 
-                                      type="button" 
-                                      (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
-                                      class="w-full px-2.5 py-1.5 flex items-center justify-between rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer group">
-                                      <div class="flex flex-col min-w-0 pr-2">
-                                        <span class="font-mono text-emerald-300 font-semibold text-[11px] group-hover:text-emerald-200 truncate">{{ cls.name }}</span>
-                                        <span class="text-[9px] text-slate-400 truncate">{{ cls.desc }}</span>
-                                      </div>
-                                      <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50 shrink-0 font-mono">{{ cls.type }}</span>
-                                    </button>
-                                  }
-                                  @if (activeElementSuggestions().length === 0) {
-                                    <div class="px-3 py-2 text-[10px] text-slate-500 text-center italic">
-                                      No matching child classes for "{{ autocompleteSearch() }}"
-                                    </div>
-                                  }
-
-                                  <!-- Properties when relevant -->
-                                  @if (activePropertySuggestions().length > 0) {
-                                    <div class="px-2 pt-2 pb-1 text-[9px] font-bold text-sky-400 border-t border-slate-800 mt-1">
-                                      CSS Properties
-                                    </div>
-                                    @for (prop of activePropertySuggestions(); track prop.name) {
-                                      <button 
-                                        type="button" 
-                                        (click)="insertPropertySuggestion(elem.id, prop)"
-                                        class="w-full px-2.5 py-1.5 flex items-center justify-between rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer group">
-                                        <span class="font-mono text-sky-300 font-medium text-[10px] group-hover:text-sky-200">{{ prop.name }}</span>
-                                        <span class="text-[9px] text-slate-500 truncate max-w-[100px]">{{ prop.desc }}</span>
-                                      </button>
-                                    }
-                                  }
-                                </div>
-                              </div>
-                            }
-                          </div>
-                        </div>
-
-                        <!-- Quick Presets & Assistant Toolbar -->
-                        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[10px]">
-                          <!-- Snippet Chips -->
-                          @if (elem.quickSnippets && elem.quickSnippets.length > 0) {
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                              <span class="text-slate-500 text-[10px]">Snippets:</span>
-                              @for (s of elem.quickSnippets; track s.label) {
-                                <button 
-                                  type="button" 
-                                  (click)="insertSnippet(elem.id, s.snippet)"
-                                  class="px-2 py-0.5 rounded-md bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60 transition-colors cursor-pointer">
-                                  + {{ s.label }}
-                                </button>
                               }
                             </div>
                           }
-
-                          <!-- Autocomplete Trigger Button -->
-                          <button 
-                            type="button" 
-                            (click)="activeAutocompleteElementId.set(elem.id); autocompleteSearch.set(''); showAutocomplete.set(!showAutocomplete())"
-                            class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer font-sans ml-auto">
-                            <span class="material-symbols-outlined text-xs">auto_awesome</span>
-                            <span>Insert Selector / Prop</span>
-                          </button>
                         </div>
-
                       </div>
-                    }
 
-                  </div>
-                }
-              </div>
-            } @else {
-              <!-- Raw Freeform Mode -->
-              <div class="space-y-2">
-                <div class="flex items-center justify-between text-[11px] text-slate-500">
-                  <span>Freeform CSS Editor</span>
-                  <button 
-                    type="button" 
-                    (click)="setCssEditorMode('guided')"
-                    class="text-tenant-600 hover:underline font-bold cursor-pointer">
-                    Back to Guided Mode
-                  </button>
+                    </div>
+                  }
+
                 </div>
-                <textarea 
-                  [(ngModel)]="formData().customCss" 
-                  rows="12" 
-                  spellcheck="false"
-                  placeholder="/* Enter raw CSS rules here */"
-                  class="w-full p-3 rounded-xl bg-slate-950 text-emerald-400 font-mono text-xs border border-slate-800 outline-none resize-y">
-                </textarea>
-              </div>
-            }
-
-            <!-- Quick Global Templates -->
-            <div class="space-y-2 pt-3 border-t border-slate-200">
-              <span class="text-[11px] text-slate-500 font-medium">Quick Full-Portal Templates</span>
-              <div class="grid grid-cols-2 gap-2">
-                @for (tpl of cssTemplates; track tpl.id) {
-                  <button 
-                    type="button" 
-                    (click)="applyCssTemplate(tpl)"
-                    class="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-purple-50/50 hover:border-purple-300 transition-colors cursor-pointer text-left group">
-                    <div class="text-[11px] font-bold text-slate-800 group-hover:text-purple-700">{{ tpl.name }}</div>
-                    <div class="text-[9px] text-slate-500 line-clamp-1 mt-0.5">{{ tpl.description }}</div>
-                  </button>
-                }
-              </div>
+              }
             </div>
 
           </div>
