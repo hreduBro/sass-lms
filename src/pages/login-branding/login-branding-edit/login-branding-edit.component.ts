@@ -873,33 +873,6 @@ export class LoginBrandingEditComponent {
       elements.map(el => el.id === id ? { ...el, code: newCode } : el)
     );
     this.syncCombinedCss();
-
-    const cursorPos = textarea.selectionStart;
-    const textBeforeCursor = textarea.value.substring(0, cursorPos);
-    const lastWord = textBeforeCursor.split(/[\s\n;{}]/).pop() || '';
-    if (lastWord.startsWith('.') || (lastWord.length >= 2 && !lastWord.includes(':'))) {
-      this.activeAutocompleteElementId.set(id);
-      this.autocompleteSearch.set(lastWord);
-      this.autocompleteSelectedIndex.set(0);
-      this.showAutocomplete.set(true);
-    } else {
-      this.showAutocomplete.set(false);
-    }
-  }
-
-  onScopedTextareaClick(id: string, textarea: HTMLTextAreaElement) {
-    const cursorPos = textarea.selectionStart;
-    const textBeforeCursor = textarea.value.substring(0, cursorPos);
-    const lastWord = textBeforeCursor.split(/[\s\n;{}]/).pop() || '';
-    if (lastWord.startsWith('.') || lastWord.startsWith('ak-') || lastWord.length >= 2) {
-      this.activeAutocompleteElementId.set(id);
-      this.autocompleteSearch.set(lastWord);
-      this.autocompleteSelectedIndex.set(0);
-      this.showAutocomplete.set(true);
-    } else {
-      this.showAutocomplete.set(false);
-      this.activeAutocompleteElementId.set(null);
-    }
   }
 
   onScopedCodeChange(id: string, newCode: string) {
@@ -910,31 +883,6 @@ export class LoginBrandingEditComponent {
   }
 
   onScopedTextareaKeydown(id: string, textarea: HTMLTextAreaElement, event: KeyboardEvent) {
-    if (this.showAutocomplete() && this.activeAutocompleteElementId() === id) {
-      const suggestions = this.activeElementSuggestions();
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        this.autocompleteSelectedIndex.update(idx => (idx + 1) % Math.max(suggestions.length, 1));
-        return;
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        this.autocompleteSelectedIndex.update(idx => (idx - 1 + suggestions.length) % Math.max(suggestions.length, 1));
-        return;
-      } else if (event.key === 'Enter' || event.key === 'Tab') {
-        if (suggestions.length > 0) {
-          event.preventDefault();
-          const selected = suggestions[this.autocompleteSelectedIndex()] || suggestions[0];
-          this.insertAutocompleteSuggestion(id, selected, textarea);
-          return;
-        }
-      } else if (event.key === 'Escape') {
-        event.preventDefault();
-        this.showAutocomplete.set(false);
-        this.activeAutocompleteElementId.set(null);
-        return;
-      }
-    }
-
     if (event.key === 'Tab') {
       event.preventDefault();
       const start = textarea.selectionStart;
@@ -960,30 +908,6 @@ export class LoginBrandingEditComponent {
         this.onScopedCodeInput(id, textarea);
       }
     }
-  }
-
-  insertAutocompleteSuggestion(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
-    const snippetToInsert = suggestion.snippet || `  ${suggestion.name} {\n    \n  }`;
-    if (textarea) {
-      const cursorPos = textarea.selectionStart;
-      const textBeforeCursor = textarea.value.substring(0, cursorPos);
-      const textAfterCursor = textarea.value.substring(cursorPos);
-      const matchWord = textBeforeCursor.match(/(\.[a-zA-Z0-9_-]*|[a-zA-Z0-9_-]+)$/);
-      if (matchWord) {
-        const wordStart = cursorPos - matchWord[0].length;
-        const newText = textarea.value.substring(0, wordStart) + snippetToInsert + textAfterCursor;
-        textarea.value = newText;
-        const newCursor = wordStart + snippetToInsert.length;
-        textarea.selectionStart = textarea.selectionEnd = newCursor;
-        this.onScopedCodeChange(elemId, newText);
-      } else {
-        this.insertChildClass(elemId, suggestion, textarea);
-      }
-    } else {
-      this.insertChildClass(elemId, suggestion);
-    }
-    this.showAutocomplete.set(false);
-    this.activeAutocompleteElementId.set(null);
   }
 
   insertChildClass(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
