@@ -26,20 +26,25 @@
     [style.opacity]="(branding().backgroundOverlayOpacity || 45) / 100">
   </div>
 
-  <!-- 3. Top System Announcement Banner (if enabled) -->
-  @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text) {
+  <!-- 3. Top System Announcement Banner (if enabled and not card embedded) -->
+  @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded') {
     <div 
       class="auth-announcement relative z-30 w-full px-4 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 text-center shadow-md backdrop-blur-md"
       [class.bg-amber-500/95]="branding().announcementBanner?.type === 'warning'"
       [class.text-amber-950]="branding().announcementBanner?.type === 'warning'"
-      [class.bg-blue-600/95]="branding().announcementBanner?.type === 'info'"
-      [class.text-white]="branding().announcementBanner?.type === 'info'"
+      [class.bg-blue-600/95]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+      [class.text-white]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
       [class.bg-emerald-600/95]="branding().announcementBanner?.type === 'success'"
       [class.text-white]="branding().announcementBanner?.type === 'success'"
-      [class.bg-rose-600/95]="branding().announcementBanner?.type === 'alert'"
-      [class.text-white]="branding().announcementBanner?.type === 'alert'">
-      <span class="material-symbols-outlined text-sm">campaign</span>
+      [class.bg-rose-600/95]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+      [class.text-white]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'">
+      <span class="material-symbols-outlined text-sm">
+        {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
+      </span>
       <span>{{ branding().announcementBanner?.text }}</span>
+      @if (branding().announcementBanner?.actionText) {
+        <span class="font-bold underline ml-1 cursor-pointer">{{ branding().announcementBanner?.actionText }}</span>
+      }
     </div>
   }
 
@@ -170,6 +175,39 @@
               </p>
             </div>
 
+            <!-- Card Embedded Announcement Style -->
+            @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
+              <div class="auth-announcement w-full mb-4 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
+                   [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                   [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                   [class.text-blue-600]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                   [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
+                   [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+                   [class.text-amber-600]="branding().announcementBanner?.type === 'warning'"
+                   [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.text-rose-600]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
+                   [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+                   [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
+                <span class="material-symbols-outlined text-base shrink-0"
+                      [class.text-blue-600]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                      [class.text-amber-600]="branding().announcementBanner?.type === 'warning'"
+                      [class.text-rose-600]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                      [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
+                  {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
+                </span>
+                <span class="font-medium text-[11px] leading-tight flex-1 text-slate-800">
+                  {{ branding().announcementBanner?.text }}
+                </span>
+                @if (branding().announcementBanner?.actionText) {
+                  <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                    {{ branding().announcementBanner?.actionText }}
+                  </span>
+                }
+              </div>
+            }
+
             <!-- SSO Provider Buttons -->
             <div class="space-y-2.5 mb-5">
               
@@ -278,7 +316,7 @@
                         (ngModelChange)="rememberMe.set($event)"
                         name="rememberMe"
                         class="rounded border-slate-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
-                      <span>Remember this browser for 30 days</span>
+                      <span>Keep me signed in</span>
                     </label>
                   </div>
                 }
@@ -320,8 +358,10 @@
 
   <!-- 6. Bottom Legal & Security Footer -->
   <footer class="relative z-20 w-full px-6 sm:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/80 text-xs border-t border-white/10 backdrop-blur-xs">
-    <div>
+    <div class="flex items-center gap-2.5">
       <span>{{ branding().copyrightText }}</span>
+      <span class="opacity-40">·</span>
+      <span class="font-semibold text-white/95">Powered By SSO-ONE</span>
     </div>
 
     <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">

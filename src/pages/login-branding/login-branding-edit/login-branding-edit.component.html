@@ -1,22 +1,22 @@
-<div class="h-[calc(100vh-4.5rem)] flex flex-col bg-slate-100 text-slate-800 -m-4 sm:-m-6 overflow-hidden select-none">
+<div class="h-[calc(100vh-4.5rem)] flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 -m-4 sm:-m-6 overflow-hidden select-none">
   
   <!-- ========================================================================= -->
   <!-- 1. TOP NAVIGATION & STUDIO HEADER                                          -->
   <!-- ========================================================================= -->
-  <header class="h-14 bg-white border-b border-slate-200 px-5 flex items-center justify-between gap-4 flex-shrink-0 z-20 shadow-xs">
+  <header class="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-5 flex items-center justify-between gap-4 flex-shrink-0 z-20 shadow-xs">
     
     <!-- Left: Breadcrumb Navigation -->
     <div class="flex items-center gap-3">
-      <a routerLink="/login-branding" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-tenant-600 transition-colors cursor-pointer group">
+      <a routerLink="/login-branding" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors cursor-pointer group">
         <span class="material-symbols-outlined text-base group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
         <span>Back to Branding</span>
       </a>
 
-      <span class="text-slate-300 font-light">|</span>
+      <span class="text-slate-300 dark:text-slate-700 font-light">|</span>
 
       <div class="flex items-center gap-2">
-        <span class="text-xs font-bold text-slate-800">Login Branding Studio</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 text-tenant-600 border border-pink-200">
+        <span class="text-xs font-bold text-slate-800 dark:text-slate-100">Login Branding Studio</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 dark:bg-pink-950/40 text-tenant-600 dark:text-tenant-400 border border-pink-200 dark:border-pink-800">
           Live Editor
         </span>
       </div>
@@ -28,8 +28,8 @@
       <button 
         type="button"
         (click)="undoAllChanges()"
-        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all cursor-pointer flex items-center gap-1.5">
-        <span class="material-symbols-outlined text-sm text-slate-500">undo</span>
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">undo</span>
         <span>Undo all</span>
       </button>
 
@@ -37,8 +37,8 @@
       <button 
         type="button"
         (click)="onSaveDraft()"
-        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-300 transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
-        <span class="material-symbols-outlined text-sm text-slate-500">save</span>
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">save</span>
         <span>Save Draft</span>
       </button>
 
@@ -68,60 +68,60 @@
     <!-- ======================================================================= -->
     <!-- A. LEFT BLOCK: FULL PREVIEW CANVAS (Edge-to-Edge with Viewport Modes)    -->
     <!-- ======================================================================= -->
-    <div class="flex-1 flex flex-col min-w-0 bg-slate-900 border-r border-slate-200 overflow-hidden relative">
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-900 border-r border-slate-200 dark:border-slate-800 overflow-hidden relative">
       
       <!-- Preview Sub-header Navigation Bar -->
-      <div class="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between gap-3 z-30 shadow-xs relative">
+      <div class="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-3 z-30 shadow-xs relative text-slate-800 dark:text-slate-100">
         
         <!-- Left: Page Selector Dropdown -->
-        <div class="relative z-40">
+        <div class="relative z-40 ak-page-dropdown-container">
           <button 
             type="button"
             (click)="togglePageDropdown()"
-            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm text-tenant-600">{{ currentPageObj().icon }}</span>
+            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-100 transition-all cursor-pointer shadow-xs">
+            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">{{ currentPageObj().icon }}</span>
             <span>{{ currentPageObj().name }}</span>
-            <span class="material-symbols-outlined text-sm text-slate-500 transition-transform" [class.rotate-180]="isPageDropdownOpen()">expand_more</span>
+            <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400 transition-transform" [class.rotate-180]="isPageDropdownOpen()">expand_more</span>
           </button>
 
           <!-- Dropdown Menu (Pages & Elements) -->
           @if (isPageDropdownOpen()) {
             <div class="fixed inset-0 z-40" (click)="isPageDropdownOpen.set(false)"></div>
-            <div class="absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-white border border-slate-200 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100 max-h-96 overflow-y-auto">
+            <div class="absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100 max-h-96 overflow-y-auto">
               
               <!-- Category: Pages -->
-              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 Pages
               </div>
               @for (page of pagesMenu; track page.id) {
                 <button 
                   type="button"
                   (click)="selectPage(page.id)"
-                  [class]="selectedPage() === page.id ? 'bg-pink-50 text-tenant-600 font-bold' : 'text-slate-700 hover:bg-slate-100'"
+                  [class]="selectedPage() === page.id ? 'bg-pink-50 dark:bg-pink-950/50 text-tenant-600 dark:text-tenant-400 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
                   class="w-full text-left px-3.5 py-2 flex items-center gap-2.5 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-sm" [class.text-tenant-600]="selectedPage() === page.id">{{ page.icon }}</span>
+                  <span class="material-symbols-outlined text-sm" [class.text-tenant-600]="selectedPage() === page.id" [class.dark:text-tenant-400]="selectedPage() === page.id">{{ page.icon }}</span>
                   <span class="flex-1">{{ page.name }}</span>
                   @if (selectedPage() === page.id) {
-                    <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-400">check</span>
                   }
                 </button>
               }
 
-              <div class="my-1.5 border-t border-slate-100"></div>
+              <div class="my-1.5 border-t border-slate-100 dark:border-slate-800"></div>
 
               <!-- Category: Elements Inspector Shortcuts -->
-              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center justify-between">
                 <span>Elements</span>
-                <span class="text-[10px] text-slate-400 font-normal">CSS Target</span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-normal">CSS Target</span>
               </div>
               @for (el of elementsMenu; track el.id) {
                 <button 
                   type="button"
                   (click)="rightPanelTab.set('custom_css'); openCssAccordions()[el.id] = true; isPageDropdownOpen.set(false); highlightElement(el.id)"
-                  class="w-full text-left px-3.5 py-1.5 flex items-center gap-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-sm text-slate-400">{{ el.icon }}</span>
+                  class="w-full text-left px-3.5 py-1.5 flex items-center gap-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-sm text-slate-400 dark:text-slate-500">{{ el.icon }}</span>
                   <span class="flex-1">{{ el.name }}</span>
-                  <span class="font-mono text-[10px] text-slate-400 bg-slate-100 px-1 rounded">{{ el.selector }}</span>
+                  <span class="font-mono text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded">{{ el.selector }}</span>
                 </button>
               }
 
@@ -130,12 +130,12 @@
         </div>
 
         <!-- Center: Device Viewport Controls -->
-        <div class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
           <button 
             type="button" 
             (click)="setViewportMode('fullscreen')"
             [title]="'Full Edge-to-Edge Canvas'"
-            [class]="viewportMode() === 'fullscreen' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            [class]="viewportMode() === 'fullscreen' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
             class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">fullscreen</span>
             <span>Full Space</span>
@@ -145,7 +145,7 @@
             type="button" 
             (click)="setViewportMode('desktop')"
             [title]="'Desktop Mockup Frame (1200px)'"
-            [class]="viewportMode() === 'desktop' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            [class]="viewportMode() === 'desktop' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
             class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">desktop_windows</span>
             <span>Desktop</span>
@@ -155,7 +155,7 @@
             type="button" 
             (click)="setViewportMode('tablet')"
             [title]="'Tablet Mockup Frame (768px)'"
-            [class]="viewportMode() === 'tablet' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            [class]="viewportMode() === 'tablet' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
             class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">tablet_mac</span>
             <span>Tablet</span>
@@ -165,7 +165,7 @@
             type="button" 
             (click)="setViewportMode('mobile')"
             [title]="'Mobile Mockup Frame (390px)'"
-            [class]="viewportMode() === 'mobile' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+            [class]="viewportMode() === 'mobile' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
             class="px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer">
             <span class="material-symbols-outlined text-sm">smartphone</span>
             <span>Mobile</span>
@@ -176,12 +176,12 @@
         <div class="flex items-center gap-2">
           
           <!-- Language Selector -->
-          <div class="hidden sm:flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-xs text-slate-700 font-medium">
-            <span class="material-symbols-outlined text-sm text-slate-500">language</span>
+          <div class="hidden sm:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs text-slate-700 dark:text-slate-300 font-medium">
+            <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">language</span>
             <select 
               [ngModel]="selectedLanguage()" 
               (ngModelChange)="selectedLanguage.set($event)"
-              class="bg-transparent border-none text-xs font-medium text-slate-700 outline-none cursor-pointer">
+              class="bg-transparent border-none text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer">
               <option value="English (US)">English (US)</option>
               <option value="Bengali (বাংলা)">Bengali (বাংলা)</option>
               <option value="Spanish (Español)">Spanish (Español)</option>
@@ -194,7 +194,7 @@
             type="button"
             (click)="toggleInspectorMode()"
             [title]="inspectorMode() ? 'Exit CSS Inspector' : 'Inspect CSS Selectors'"
-            [class]="inspectorMode() ? 'bg-tenant-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'"
+            [class]="inspectorMode() ? 'bg-tenant-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'"
             class="w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer">
             <span class="material-symbols-outlined text-base">near_me</span>
           </button>
@@ -203,8 +203,8 @@
           <button 
             type="button"
             (click)="togglePreviewTheme()"
-            [title]="previewTheme() === 'dark' ? 'Switch Elements to Light Theme' : 'Switch Elements to Dark Theme'"
-            [class]="previewTheme() === 'dark' ? 'bg-slate-800 text-amber-300 border-slate-700' : 'bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200'"
+            [title]="previewTheme() === 'dark' ? 'Switch Preview Canvas to Light' : 'Switch Preview Canvas to Dark'"
+            [class]="previewTheme() === 'dark' ? 'bg-slate-800 text-amber-300 border-slate-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-700'"
             class="w-8 h-8 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-xs">
             <span class="material-symbols-outlined text-base">{{ previewTheme() === 'dark' ? 'dark_mode' : 'light_mode' }}</span>
           </button>
@@ -282,15 +282,111 @@
           <!-- VARIANT 1: MODERN HALF-CANVAS SPLIT (Truet / Fluid Silk Aesthetic)  -->
           <!-- ================================================================= -->
           @if (formData().layout === 'split_modern_canvas') {
-            <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-[580px] relative z-10 overflow-hidden"
-                 [class.lg:flex-row-reverse]="formData().splitPosition === 'left'"
+            <div class="flex-1 flex flex-col w-full h-full min-h-[580px] relative z-10 overflow-hidden"
                  [class.bg-white]="previewTheme() === 'light'"
                  [class.bg-slate-900]="previewTheme() === 'dark'">
               
-              <!-- LEFT COLUMN: Clean Form Surface (45%-50% width) -->
-              <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-full overflow-y-auto"
-                   [class.text-slate-900]="previewTheme() === 'light'"
-                   [class.text-white]="previewTheme() === 'dark'">
+              <!-- STYLE 1: TOP BAR RIBBON BANNER (Modern Split) -->
+              @if ((formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'top_bar' && !bannerDismissed()) || (highlightedElement() === 'callout' && formData().announcementBanner?.style === 'top_bar')) {
+                <div class="relative z-30 w-full px-6 py-2.5 backdrop-blur-md border-b flex items-center justify-between text-xs transition-all auth-announcement ak-Callout shrink-0"
+                     [class.ring-2]="highlightedElement() === 'callout'"
+                     [class.ring-purple-500]="highlightedElement() === 'callout'"
+                     [class.bg-blue-900/80]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                     [class.border-blue-500/30]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                     [class.text-blue-100]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                     [class.bg-amber-900/80]="formData().announcementBanner?.type === 'warning'"
+                     [class.border-amber-500/30]="formData().announcementBanner?.type === 'warning'"
+                     [class.text-amber-100]="formData().announcementBanner?.type === 'warning'"
+                     [class.bg-rose-900/80]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.text-rose-100]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.bg-emerald-900/80]="formData().announcementBanner?.type === 'success'"
+                     [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
+                     [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
+                  @if (highlightedElement() === 'callout') {
+                    <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <span>Callout</span>
+                    </div>
+                  }
+                  <div class="flex items-center gap-2 mx-auto">
+                    <span class="material-symbols-outlined text-base">campaign</span>
+                    <span class="font-semibold">{{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}</span>
+                    @if (formData().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 ml-2 cursor-pointer hover:opacity-80">
+                        {{ formData().announcementBanner?.actionText }}
+                      </span>
+                    }
+                  </div>
+                  @if (formData().announcementBanner?.dismissible) {
+                    <button 
+                      type="button" 
+                      (click)="bannerDismissed.set(true)"
+                      class="p-1 rounded-md hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- STYLE 2: FLOATING PILL CALLOUT BANNER (Modern Split) -->
+              @if ((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed()) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style))) {
+                <div class="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-4 auth-announcement ak-Callout">
+                  <div class="max-w-2xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                       [class.ring-2]="highlightedElement() === 'callout'"
+                       [class.ring-purple-500]="highlightedElement() === 'callout'"
+                       [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                       [class.border-blue-500/40]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                       [class.text-blue-100]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                       [class.bg-amber-950/85]="formData().announcementBanner?.type === 'warning'"
+                       [class.border-amber-500/40]="formData().announcementBanner?.type === 'warning'"
+                       [class.text-amber-100]="formData().announcementBanner?.type === 'warning'"
+                       [class.bg-rose-950/85]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.border-rose-500/40]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.text-rose-100]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                       [class.bg-emerald-950/85]="formData().announcementBanner?.type === 'success'"
+                       [class.border-emerald-500/40]="formData().announcementBanner?.type === 'success'"
+                       [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
+                    @if (highlightedElement() === 'callout') {
+                      <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                        <span>Callout</span>
+                      </div>
+                    }
+                    <span class="material-symbols-outlined text-base shrink-0"
+                          [class.text-blue-400]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
+                          [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
+                          [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                          [class.text-emerald-400]="formData().announcementBanner?.type === 'success'">
+                      {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : 'campaign')) }}
+                    </span>
+
+                    <span class="font-medium tracking-tight truncate">{{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}</span>
+
+                    @if (formData().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                        {{ formData().announcementBanner?.actionText }}
+                      </span>
+                    }
+
+                    @if (formData().announcementBanner?.dismissible) {
+                      <button 
+                        type="button" 
+                        (click)="bannerDismissed.set(true)"
+                        class="p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- COLUMNS WRAPPER -->
+              <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-0 relative z-10 overflow-hidden"
+                   [class.lg:flex-row-reverse]="formData().splitPosition === 'left'">
+                
+                <!-- LEFT COLUMN: Clean Form Surface (45%-50% width) -->
+                <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-full overflow-y-auto"
+                    [class.text-slate-900]="previewTheme() === 'light'"
+                    [class.text-white]="previewTheme() === 'dark'">
                 
                 <!-- Top Row: Brand Logo & Branding Header (Header) -->
                 <div class="mb-4 sm:mb-6 transition-all relative ak-Header"
@@ -330,15 +426,15 @@
                   </div>
                 </div>
 
-                <!-- Callout Banner in Split Modern Canvas -->
-                @if (highlightedElement() === 'callout' || (formData().announcementBanner?.enabled && !bannerDismissed())) {
+                <!-- STYLE 3: CARD EMBEDDED BANNER (Split Modern Canvas) -->
+                @if (formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
                   <div class="w-full max-w-sm mx-auto mb-3 relative auth-announcement ak-Callout">
                     @if (highlightedElement() === 'callout') {
                       <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                         <span>Callout</span>
                       </div>
                     }
-                    <div class="px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2.5 transition-all border shadow-xs"
+                    <div class="p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
                          [class.ring-2]="highlightedElement() === 'callout'"
                          [class.ring-purple-500]="highlightedElement() === 'callout'"
                          [class.bg-blue-500/10]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
@@ -353,10 +449,28 @@
                          [class.bg-emerald-500/10]="formData().announcementBanner?.type === 'success'"
                          [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
                          [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
-                      <span class="material-symbols-outlined text-sm shrink-0">info</span>
-                      <span class="font-medium text-[11px] leading-tight flex-1">
-                        {{ formData().announcementBanner?.text || 'Scheduled security maintenance this Sunday at 02:00 UTC' }}
+                      <span class="material-symbols-outlined text-base shrink-0"
+                            [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                            [class.text-amber-500]="formData().announcementBanner?.type === 'warning'"
+                            [class.text-rose-500]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                            [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
+                        {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : (formData().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
                       </span>
+                      <span class="font-medium text-[11px] leading-tight flex-1"
+                            [class.text-slate-800]="previewTheme() === 'light'"
+                            [class.text-white]="previewTheme() === 'dark'">
+                        {{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}
+                      </span>
+                      @if (formData().announcementBanner?.actionText) {
+                        <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                          {{ formData().announcementBanner?.actionText }}
+                        </span>
+                      }
+                      @if (formData().announcementBanner?.dismissible) {
+                        <button type="button" (click)="bannerDismissed.set(true)" class="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer text-slate-500 hover:text-slate-800 dark:hover:text-white shrink-0">
+                          <span class="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      }
                     </div>
                   </div>
                 }
@@ -707,9 +821,19 @@
 
                 </div>
 
-                <!-- Bottom Row: Copyright Legal Text -->
-                <div class="text-[10px] opacity-50 mt-4 truncate">
-                  {{ formData().copyrightText }}
+                <!-- Bottom Row: Card Section Footer for Modern Split View (No Separated Footer) -->
+                <div class="pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] border-t transition-colors ak-Footer"
+                     [class.border-slate-200]="previewTheme() === 'light'"
+                     [class.text-slate-500]="previewTheme() === 'light'"
+                     [class.border-slate-800]="previewTheme() === 'dark'"
+                     [class.text-slate-400]="previewTheme() === 'dark'">
+                  <div class="truncate">{{ formData().copyrightText }}</div>
+                  <div class="flex items-center gap-1.5 font-medium shrink-0">
+                    <span class="opacity-75">Powered By</span>
+                    <span class="font-bold tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">SSO-ONE</span>
+                  </div>
                 </div>
               </div>
 
@@ -833,6 +957,7 @@
                 }
 
               </div>
+              </div>
             </div>
           } @else {
 
@@ -842,7 +967,7 @@
             @if (formData().announcementBanner?.enabled && !bannerDismissed()) {
               
               <!-- STYLE A: FLOATING PILL CALLOUT -->
-              @if (formData().announcementBanner?.style === 'floating_pill') {
+              @if (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) {
                 <div class="relative z-20 pt-4 px-4 flex justify-center auth-announcement ak-Callout">
                   <div class="max-w-2xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
@@ -865,7 +990,7 @@
                           [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
                           [class.text-emerald-400]="formData().announcementBanner?.type === 'success'">
-                      {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : 'campaign')) }}
+                      {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : (formData().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
                     </span>
 
                     <span class="font-medium tracking-tight truncate">{{ formData().announcementBanner?.text }}</span>
@@ -1109,29 +1234,49 @@
               }
 
               <!-- Card Embedded Announcement Style -->
-              @if (formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'card_embedded' && !bannerDismissed()) {
-                <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs relative auth-announcement ak-Callout"
+              @if (formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
+                <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs relative auth-announcement ak-Callout transition-all shadow-xs"
                      [class.ring-2]="highlightedElement() === 'callout'"
                      [class.ring-purple-500]="highlightedElement() === 'callout'"
-                     [class.bg-blue-500/10]="formData().announcementBanner?.type === 'info'"
-                     [class.border-blue-500/30]="formData().announcementBanner?.type === 'info'"
-                     [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
+                     [class.bg-blue-500/10]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                     [class.border-blue-500/30]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                     [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
                      [class.bg-amber-500/10]="formData().announcementBanner?.type === 'warning'"
                      [class.border-amber-500/30]="formData().announcementBanner?.type === 'warning'"
-                     [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
+                     [class.text-amber-500]="formData().announcementBanner?.type === 'warning'"
                      [class.bg-rose-500/10]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
                      [class.border-rose-500/30]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
-                     [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'">
+                     [class.text-rose-500]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                     [class.bg-emerald-500/10]="formData().announcementBanner?.type === 'success'"
+                     [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
+                     [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
                   @if (highlightedElement() === 'callout') {
                     <div class="absolute -top-3 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                       <span>Callout</span>
                     </div>
                   }
-                  <span class="material-symbols-outlined text-base shrink-0">info</span>
-                  <span class="font-medium text-[11px] leading-tight flex-1">{{ formData().announcementBanner?.text }}</span>
-                  <button type="button" (click)="bannerDismissed.set(true)" class="text-xs opacity-70 hover:opacity-100 cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                  </button>
+                  <span class="material-symbols-outlined text-base shrink-0"
+                        [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
+                        [class.text-amber-500]="formData().announcementBanner?.type === 'warning'"
+                        [class.text-rose-500]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
+                        [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
+                    {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : (formData().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
+                  </span>
+                  <span class="font-medium text-[11px] leading-tight flex-1"
+                        [class.text-slate-800]="previewTheme() === 'light'"
+                        [class.text-white]="previewTheme() === 'dark'">
+                    {{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}
+                  </span>
+                  @if (formData().announcementBanner?.actionText) {
+                    <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                      {{ formData().announcementBanner?.actionText }}
+                    </span>
+                  }
+                  @if (formData().announcementBanner?.dismissible) {
+                    <button type="button" (click)="bannerDismissed.set(true)" class="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer text-slate-500 hover:text-slate-800 dark:hover:text-white shrink-0">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  }
                 </div>
               }
 
@@ -1327,7 +1472,7 @@
                       </label>
                       @if (formData().enableForgotPassword) {
                         <button type="button" (click)="selectPage('password_reset')" class="text-[11px] font-bold text-tenant-500 hover:text-tenant-600 cursor-pointer">
-                          Forgot?
+                          Forgot password?
                         </button>
                       }
                     </div>
@@ -1348,12 +1493,11 @@
 
                   <!-- Remember Me -->
                   @if (formData().enableRememberMe) {
-                    <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center text-xs">
                       <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" [ngModel]="rememberMe()" (ngModelChange)="rememberMe.set($event)" class="rounded text-tenant-600 focus:ring-tenant-500" />
+                        <input type="checkbox" [ngModel]="rememberMe()" (ngModelChange)="rememberMe.set($event)" class="rounded text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
                         <span [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-600]="previewTheme() === 'light'">Keep me signed in</span>
                       </label>
-                      <span class="text-[11px] opacity-60">30 days</span>
                     </div>
                   }
 
@@ -1376,22 +1520,6 @@
                       <span>Sign In</span>
                       <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
-                  </div>
-
-                  <!-- Demo Quick Autofill Chips -->
-                  <div class="pt-2">
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-center opacity-50 mb-1.5">Quick Demo Fill</div>
-                    <div class="flex flex-wrap gap-1.5 justify-center">
-                      <button type="button" (click)="fillDemoUser('learner.rahim@brac.net', 'Learner Rahim')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
-                        Learner
-                      </button>
-                      <button type="button" (click)="fillDemoUser('instructor.tariq@brac.net', 'Instructor Tariq')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
-                        Instructor
-                      </button>
-                      <button type="button" (click)="fillDemoUser('farhana.ahmed@brac.net', 'Admin Farhana')" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 hover:bg-white/20 border border-white/10 cursor-pointer">
-                        Org Admin
-                      </button>
-                    </div>
                   </div>
 
                 </div>
@@ -1762,7 +1890,7 @@
           </div>
 
           <!-- ================================================================= -->
-          <!-- VIEWPORT BOTTOM COPYRIGHT FOOTER                                  -->
+          <!-- VIEWPORT BOTTOM COPYRIGHT FOOTER (Split Hero & Single Card Only)  -->
           <!-- ================================================================= -->
           <div class="relative z-10 px-6 py-3 flex flex-col sm:flex-row items-center justify-between text-[11px] border-t backdrop-blur-md transition-colors auth-footer ak-Footer"
                [class.border-white/10]="previewTheme() === 'dark'"
@@ -1772,13 +1900,14 @@
             
             <div>{{ formData().copyrightText }}</div>
             
-            <div class="flex items-center gap-3 mt-1 sm:mt-0">
-              <span class="opacity-75">Error Views:</span>
-              <button type="button" (click)="selectPage('radar_block')" class="hover:underline cursor-pointer">403</button>
-              <button type="button" (click)="selectPage('sign_in')" class="hover:underline cursor-pointer">404</button>
-              <button type="button" (click)="selectPage('sign_in')" class="hover:underline cursor-pointer">500</button>
+            <div class="flex items-center gap-1.5 mt-1 sm:mt-0 text-[11px] font-medium">
+              <span class="opacity-75">Powered By</span>
+              <span class="font-bold tracking-tight"
+                    [class.text-white]="previewTheme() === 'dark'"
+                    [class.text-slate-900]="previewTheme() === 'light'">SSO-ONE</span>
             </div>
           </div>
+
           }
 
         </div>
@@ -1788,84 +1917,108 @@
     </div>
 
     <!-- ======================================================================= -->
-    <!-- B. RIGHT PANEL: BRANDING SETUP & CONTROLS (Harmonious Light Studio)      -->
+    <!-- B. RIGHT PANEL: BRANDING SETUP & CONTROLS (Theme Aware)                   -->
     <!-- ======================================================================= -->
-    <div class="flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden transition-all duration-300"
+    <div class="flex flex-col flex-shrink-0 z-20 shadow-sm overflow-hidden transition-all duration-300 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
          [class.w-full]="activeExpandedElement() !== null"
          [class.lg:w-1/2]="activeExpandedElement() !== null"
          [class.w-80]="activeExpandedElement() === null"
-         [class.sm:w-96]="activeExpandedElement() === null"
-         [class.bg-[#0d1117]]="activeExpandedElement() !== null || rightPanelTab() === 'custom_css'"
-         [class.bg-white]="activeExpandedElement() === null && rightPanelTab() !== 'custom_css'"
-         [class.border-l]="true"
-         [class.border-slate-800]="activeExpandedElement() !== null || rightPanelTab() === 'custom_css'"
-         [class.border-slate-200]="activeExpandedElement() === null && rightPanelTab() !== 'custom_css'">
+         [class.sm:w-96]="activeExpandedElement() === null">
 
       @if (activeExpandedElement(); as el) {
         <!-- FULL-PANE SPLIT EDITOR (AuthKit Fullscreen View) -->
-        <div class="h-full flex flex-col bg-[#0d1117] text-slate-100 animate-in fade-in duration-150">
+        <div class="h-full flex flex-col bg-white dark:bg-[#0d1117] text-slate-800 dark:text-slate-100 animate-in fade-in duration-150">
           
-          <!-- Top Header: Element Name + Selector + Close Button (Matches 01:30 in video) -->
-          <div class="h-12 border-b border-slate-800 px-4 flex items-center justify-between flex-shrink-0 bg-[#161b22]">
+          <!-- Top Header: Element Name + Selector + Controls (Theme aware) -->
+          <div class="h-12 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between flex-shrink-0 bg-slate-50/80 dark:bg-[#161b22]">
             <div class="flex items-center gap-2.5 min-w-0">
-              <h2 class="text-sm font-semibold text-white tracking-tight truncate">{{ el.name }}</h2>
-              <span class="text-[11px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 shrink-0">
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white tracking-tight truncate">{{ el.name }}</h2>
+              <span class="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700/60 shrink-0">
                 {{ el.selector }}
               </span>
             </div>
             <div class="flex items-center gap-2">
+              <!-- Remove original element styles button with explicit label -->
               <button 
                 type="button" 
-                (click)="setBlockStyleMode(el.id, !el.removeOriginalStyles, $event)"
-                [title]="el.removeOriginalStyles ? 'Extend with current CSS' : 'Remove original element styles'"
-                class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                [class.text-indigo-400]="el.removeOriginalStyles">
-                <span class="material-symbols-outlined text-sm">
-                  {{ el.removeOriginalStyles ? 'do_not_disturb_on' : 'tune' }}
-                </span>
+                (click)="toggleElementRemoveOriginal(el.id, $event)"
+                [class]="el.removeOriginalStyles 
+                  ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 font-medium' 
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                class="px-2.5 py-1 rounded-md text-xs border flex items-center gap-1.5 transition-colors cursor-pointer"
+                [title]="el.removeOriginalStyles ? 'Original styles removed. Click to restore.' : 'Click to strip original base CSS from this element.'">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-amber-500]="el.removeOriginalStyles" [class.bg-slate-400]="!el.removeOriginalStyles"></span>
+                <span>{{ el.removeOriginalStyles ? 'Original styles removed' : 'Remove original styles' }}</span>
               </button>
+
               <button 
                 type="button" 
                 (click)="closeScopedFullscreen()"
                 title="Close fullscreen editor"
-                class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+                class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                 <span class="material-symbols-outlined text-base">close</span>
               </button>
             </div>
           </div>
 
-          <!-- Editor Body with Gutter Numbers and Autocomplete -->
-          <div class="flex-1 flex overflow-hidden relative font-mono text-xs">
+          <!-- Guided Child Classes Strip -->
+          @if (el.childClasses && el.childClasses.length > 0) {
+            <div class="px-4 py-1.5 bg-slate-100/70 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+              <span class="text-slate-500 dark:text-slate-400 shrink-0 font-medium">Child classes:</span>
+              @for (cls of el.childClasses; track cls.name) {
+                <button 
+                  type="button" 
+                  (click)="insertChildClass(el.id, cls, fullPaneArea)"
+                  class="px-2 py-0.5 rounded bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono shrink-0 transition-colors cursor-pointer shadow-xs"
+                  [title]="cls.desc">
+                  + {{ cls.name }}
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Editor Body with Gutter Numbers and Autocomplete (Theme aware) -->
+          <div class="flex-1 flex overflow-hidden relative font-mono text-xs bg-white dark:bg-[#0d1117]">
             <!-- Line Number Gutter -->
-            <div class="py-3 px-2.5 bg-[#0d1117] text-slate-600 border-r border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-9">
+            <div class="py-3 px-2.5 bg-slate-50 dark:bg-[#0a0d13] text-slate-400 dark:text-slate-500 border-r border-slate-200 dark:border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-10">
               @for (line of getElementLineNumbers(el.code); track line) {
                 <div>{{ line }}</div>
               }
             </div>
 
             <!-- Full Textarea Area -->
-            <div class="flex-1 relative overflow-hidden bg-[#0d1117]">
+            <div class="flex-1 relative overflow-hidden bg-white dark:bg-[#0d1117]">
               <textarea #fullPaneArea
                 [value]="el.code"
                 (input)="onScopedCodeInput(el.id, fullPaneArea, $event)"
                 (click)="onScopedTextareaClick(el.id, fullPaneArea)"
                 (keydown)="onScopedTextareaKeydown(el.id, fullPaneArea, $event)"
                 spellcheck="false"
-                class="w-full h-full p-3 bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none border-0 focus:ring-0">
+                class="w-full h-full p-3 bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs leading-relaxed outline-none resize-none border-0 focus:ring-0 placeholder:text-slate-400 dark:placeholder:text-slate-600">
               </textarea>
 
-              <!-- Autocomplete Suggestion Popup in Split View -->
+              <!-- Autocomplete Suggestion Popup in Split View with Keyboard Support -->
               @if (showAutocomplete() && activeAutocompleteElementId() === el.id) {
-                <div class="absolute left-4 top-8 z-50 w-64 bg-[#161b22] border border-slate-700/80 rounded-lg shadow-2xl py-1 text-xs font-sans overflow-hidden">
-                  @for (cls of activeElementSuggestions().slice(0, 4); track cls.name; let i = $index) {
-                    <div 
-                      (click)="insertAutocompleteSuggestion(el.id, cls, fullPaneArea)"
-                      [class.bg-slate-800]="i === 0"
-                      class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
-                      <span class="font-mono text-xs font-medium text-white">{{ getCleanClassName(cls.name) }}</span>
-                      <span class="text-[10px] text-slate-400 italic font-mono">{{ cls.type }}</span>
-                    </div>
-                  }
+                <div class="absolute left-4 top-8 z-50 w-72 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-200">
+                  <div class="py-1">
+                    @for (cls of activeElementSuggestions().slice(0, 6); track cls.name; let i = $index) {
+                      <div 
+                        (click)="insertAutocompleteSuggestion(el.id, cls, fullPaneArea)"
+                        [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
+                        [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
+                        [class.text-indigo-600]="i === autocompleteSelectedIndex()"
+                        [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                        class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
+                        <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="px-3 py-1 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>↑↓ navigate</span>
+                    <span>↵ select</span>
+                    <span>esc close</span>
+                  </div>
                 </div>
               }
             </div>
@@ -1874,18 +2027,14 @@
         </div>
       } @else {
       <!-- Top Setup Tabs (Global styles | Page settings | Custom CSS) -->
-      <div class="h-12 border-b px-4 flex items-center gap-6 flex-shrink-0 transition-colors"
-           [class.bg-[#0b0f17]]="rightPanelTab() === 'custom_css'"
-           [class.border-slate-800]="rightPanelTab() === 'custom_css'"
-           [class.bg-slate-50/60]="rightPanelTab() !== 'custom_css'"
-           [class.border-slate-200]="rightPanelTab() !== 'custom_css'">
+      <div class="h-12 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center gap-6 flex-shrink-0 transition-colors bg-slate-50/80 dark:bg-slate-900/90">
         
         <button 
           type="button" 
           (click)="setRightPanelTab('global_styles')"
           [class]="rightPanelTab() === 'global_styles' 
-            ? 'text-white border-indigo-500 font-medium' 
-            : (rightPanelTab() === 'custom_css' ? 'text-slate-400 hover:text-slate-200 border-transparent' : 'text-slate-600 hover:text-slate-900 border-transparent')"
+            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Global styles
         </button>
@@ -1894,8 +2043,8 @@
           type="button" 
           (click)="setRightPanelTab('page_settings')"
           [class]="rightPanelTab() === 'page_settings' 
-            ? 'text-white border-indigo-500 font-medium' 
-            : (rightPanelTab() === 'custom_css' ? 'text-slate-400 hover:text-slate-200 border-transparent' : 'text-slate-600 hover:text-slate-900 border-transparent')"
+            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Page settings
         </button>
@@ -1904,8 +2053,8 @@
           type="button" 
           (click)="setRightPanelTab('custom_css')"
           [class]="rightPanelTab() === 'custom_css' 
-            ? 'text-white border-indigo-500 font-medium' 
-            : 'text-slate-600 hover:text-slate-900 border-transparent'"
+            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Custom CSS
         </button>
@@ -1923,24 +2072,24 @@
             
             <!-- Brand Colors -->
             <div class="space-y-3">
-              <label class="block text-xs font-bold text-slate-800">Brand Colors</label>
+              <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Brand Colors</label>
               
               <div class="grid grid-cols-2 gap-3">
                 <!-- Primary Brand Color -->
                 <div class="space-y-1.5">
-                  <span class="text-[11px] text-slate-500 font-medium">Primary Brand</span>
-                  <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Primary Brand</span>
+                  <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
                     <input type="color" [(ngModel)]="formData().primaryColor" class="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
-                    <input type="text" [(ngModel)]="formData().primaryColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                    <input type="text" [(ngModel)]="formData().primaryColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 dark:text-slate-100 border-none outline-none" />
                   </div>
                 </div>
 
                 <!-- Accent Tint Color -->
                 <div class="space-y-1.5">
-                  <span class="text-[11px] text-slate-500 font-medium">Accent Tint</span>
-                  <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Accent Tint</span>
+                  <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
                     <input type="color" [(ngModel)]="formData().accentColor" class="w-6 h-6 rounded cursor-pointer border-none bg-transparent" />
-                    <input type="text" [(ngModel)]="formData().accentColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                    <input type="text" [(ngModel)]="formData().accentColor" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 dark:text-slate-100 border-none outline-none" />
                   </div>
                 </div>
               </div>
@@ -1953,62 +2102,62 @@
                     (click)="selectColorPalette(pal)" 
                     [title]="pal.name"
                     [style.background]="pal.primary"
-                    class="w-5 h-5 rounded-full border border-white shadow-xs cursor-pointer hover:scale-110 transition-transform">
+                    class="w-5 h-5 rounded-full border border-white dark:border-slate-700 shadow-xs cursor-pointer hover:scale-110 transition-transform">
                   </button>
                 }
               </div>
             </div>
 
             <!-- Brand Logo -->
-            <div class="space-y-3 pt-3 border-t border-slate-200">
-              <label class="block text-xs font-bold text-slate-800">Brand Logo</label>
+            <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Brand Logo</label>
               
-              <div class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
                 @if (formData().logoUrlLight) {
                   <img [src]="formData().logoUrlLight" alt="Current Logo" class="h-10 object-contain" referrerpolicy="no-referrer" />
                 }
-                <label class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs">
+                <label class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer shadow-xs">
                   <span>Upload Logo Image</span>
                   <input type="file" (change)="onLogoUploadSimulated($event)" accept="image/*" class="hidden" />
                 </label>
               </div>
 
               <div class="space-y-1">
-                <div class="flex justify-between text-xs text-slate-500">
+                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                   <span>Logo Height</span>
-                  <span class="font-mono text-slate-800 font-bold">{{ formData().logoHeightPx }}px</span>
+                  <span class="font-mono text-slate-800 dark:text-slate-100 font-bold">{{ formData().logoHeightPx }}px</span>
                 </div>
                 <input type="range" min="24" max="72" [(ngModel)]="formData().logoHeightPx" class="w-full accent-tenant-600 cursor-pointer" />
               </div>
             </div>
 
             <!-- Background Appearance (Photo / Solid / Texture) -->
-            <div class="space-y-3 pt-3 border-t border-slate-200">
+            <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
               <div class="flex items-center justify-between">
-                <label class="block text-xs font-bold text-slate-800">Background Appearance</label>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-tenant-600">{{ formData().backgroundType }} MODE</span>
+                <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Background Appearance</label>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-tenant-600 dark:text-tenant-400">{{ formData().backgroundType }} MODE</span>
               </div>
 
               <!-- Category Tabs (Photography / Solid Color / Textured) -->
-              <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium border border-slate-200">
+              <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium border border-slate-200 dark:border-slate-700">
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('photo')"
-                  [class]="backgroundCategory() === 'photo' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  [class]="backgroundCategory() === 'photo' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Photography
                 </button>
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('solid')"
-                  [class]="backgroundCategory() === 'solid' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  [class]="backgroundCategory() === 'solid' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Solid Color
                 </button>
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('texture')"
-                  [class]="backgroundCategory() === 'texture' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  [class]="backgroundCategory() === 'texture' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Textured
                 </button>
@@ -2023,7 +2172,7 @@
                         (click)="selectPresetBackground(bg)"
                         [class.ring-2]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
                         [class.ring-tenant-600]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
-                        class="h-14 rounded-xl overflow-hidden border border-slate-200 cursor-pointer relative group shadow-xs">
+                        class="h-14 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer relative group shadow-xs">
                         <img [src]="bg.url" [alt]="bg.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" referrerpolicy="no-referrer" />
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5">
                           <span class="text-[10px] font-bold text-white truncate">{{ bg.name }}</span>
@@ -2037,8 +2186,8 @@
                     }
                   </div>
 
-                  <label class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 hover:border-tenant-500 bg-slate-50 hover:bg-pink-50/40 text-xs font-semibold text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition-colors">
-                    <span class="material-symbols-outlined text-sm text-tenant-600">add_photo_alternate</span>
+                  <label class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-tenant-500 bg-slate-50 dark:bg-slate-800/60 hover:bg-pink-50/40 dark:hover:bg-pink-950/20 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                    <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">add_photo_alternate</span>
                     <span>Upload Custom Photo</span>
                     <input type="file" (change)="onBgUploadSimulated($event)" accept="image/*" class="hidden" />
                   </label>
@@ -2057,7 +2206,7 @@
                         [style.background]="colorItem.color"
                         [class.ring-2]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
                         [class.ring-tenant-600]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
-                        class="h-9 rounded-xl border border-slate-300 shadow-xs cursor-pointer hover:scale-105 transition-transform relative flex items-center justify-center">
+                        class="h-9 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer hover:scale-105 transition-transform relative flex items-center justify-center">
                         @if (formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color) {
                           <span class="material-symbols-outlined text-xs" [class.text-white]="colorItem.isDark" [class.text-slate-900]="!colorItem.isDark">check</span>
                         }
@@ -2066,10 +2215,10 @@
                   </div>
 
                   <div class="space-y-1.5 pt-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Custom Solid Color</span>
-                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Custom Solid Color</span>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
                       <input type="color" [ngModel]="formData().backgroundOverlayColor" (ngModelChange)="selectSolidBackground($event)" class="w-7 h-7 rounded cursor-pointer border-none bg-transparent" />
-                      <input type="text" [ngModel]="formData().backgroundOverlayColor" (ngModelChange)="selectSolidBackground($event)" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 border-none outline-none" />
+                      <input type="text" [ngModel]="formData().backgroundOverlayColor" (ngModelChange)="selectSolidBackground($event)" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 dark:text-slate-100 border-none outline-none" />
                     </div>
                   </div>
                 </div>
@@ -2084,7 +2233,7 @@
                         (click)="selectTextureBackground(tex)"
                         [class.ring-2]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
                         [class.ring-tenant-600]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
-                        class="h-16 rounded-xl border border-slate-300 cursor-pointer relative group overflow-hidden shadow-xs">
+                        class="h-16 rounded-xl border border-slate-300 dark:border-slate-700 cursor-pointer relative group overflow-hidden shadow-xs">
                         <div class="w-full h-full" [style.background]="tex.cssBackground"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-1.5">
                           <span class="text-[10px] font-bold text-white leading-tight truncate">{{ tex.name }}</span>
@@ -2099,17 +2248,17 @@
               <!-- Overlay Opacity & Blur -->
               <div class="space-y-3 pt-2">
                 <div class="space-y-1">
-                  <div class="flex justify-between text-xs text-slate-500">
+                  <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>Backdrop Tint Opacity</span>
-                    <span class="font-mono text-slate-800 font-bold">{{ formData().backgroundOverlayOpacity }}%</span>
+                    <span class="font-mono text-slate-800 dark:text-slate-100 font-bold">{{ formData().backgroundOverlayOpacity }}%</span>
                   </div>
                   <input type="range" min="0" max="95" [(ngModel)]="formData().backgroundOverlayOpacity" class="w-full accent-tenant-600 cursor-pointer" />
                 </div>
 
                 <div class="space-y-1">
-                  <div class="flex justify-between text-xs text-slate-500">
+                  <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>Background Blur</span>
-                    <span class="font-mono text-slate-800 font-bold">{{ formData().backgroundBlurPx }}px</span>
+                    <span class="font-mono text-slate-800 dark:text-slate-100 font-bold">{{ formData().backgroundBlurPx }}px</span>
                   </div>
                   <input type="range" min="0" max="20" [(ngModel)]="formData().backgroundBlurPx" class="w-full accent-tenant-600 cursor-pointer" />
                 </div>
@@ -2118,21 +2267,21 @@
             </div>
 
             <!-- Card Visual Styling -->
-            <div class="space-y-3 pt-3 border-t border-slate-200">
-              <label class="block text-xs font-bold text-slate-800">Card Appearance</label>
+            <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Card Appearance</label>
               
               <div class="grid grid-cols-2 gap-2">
                 <button 
                   type="button"
                   (click)="formData().cardStyle = 'solid_white'"
-                  [class]="formData().cardStyle === 'solid_white' ? 'bg-tenant-50 text-tenant-700 font-bold border-tenant-500' : 'text-slate-600 bg-slate-50 border-slate-200'"
+                  [class]="formData().cardStyle === 'solid_white' ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-400 font-bold border-tenant-500 dark:border-tenant-500' : 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/60'"
                   class="py-2 rounded-xl text-xs border transition-colors cursor-pointer">
                   Solid Card
                 </button>
                 <button 
                   type="button"
                   (click)="formData().cardStyle = 'glassmorphism'"
-                  [class]="formData().cardStyle === 'glassmorphism' ? 'bg-tenant-50 text-tenant-700 font-bold border-tenant-500' : 'text-slate-600 bg-slate-50 border-slate-200'"
+                  [class]="formData().cardStyle === 'glassmorphism' ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-400 font-bold border-tenant-500 dark:border-tenant-500' : 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/60'"
                   class="py-2 rounded-xl text-xs border transition-colors cursor-pointer">
                   Frosted Glass
                 </button>
@@ -2140,22 +2289,22 @@
             </div>
 
             <!-- SSO Provider Toggles -->
-            <div class="space-y-3 pt-3 border-t border-slate-200">
-              <label class="block text-xs font-bold text-slate-800">Federated SSO Providers</label>
+            <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Federated SSO Providers</label>
               
               <div class="space-y-2">
-                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
-                  <span class="text-xs font-semibold text-slate-800">Google Workspace</span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Google Workspace</span>
                   <input type="checkbox" [(ngModel)]="formData().enableSsoGoogle" class="rounded text-tenant-600 focus:ring-tenant-500" />
                 </label>
 
-                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
-                  <span class="text-xs font-semibold text-slate-800">Microsoft Entra</span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Microsoft Entra</span>
                   <input type="checkbox" [(ngModel)]="formData().enableSsoMicrosoft" class="rounded text-tenant-600 focus:ring-tenant-500" />
                 </label>
 
-                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
-                  <span class="text-xs font-semibold text-slate-800">Okta Identity</span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                  <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Okta Identity</span>
                   <input type="checkbox" [(ngModel)]="formData().enableSsoOkta" class="rounded text-tenant-600 focus:ring-tenant-500" />
                 </label>
               </div>
@@ -2170,62 +2319,14 @@
         @if (rightPanelTab() === 'page_settings') {
           <div class="space-y-6">
             
-            <!-- =============================================================== -->
-            <!-- CONTENT PANEL (HERO) CUSTOMIZATION CONTROLS                     -->
-            <!-- =============================================================== -->
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <label class="block text-xs font-bold text-slate-800">Content Panel (Hero)</label>
-                @if (formData().useCustomContentPanel) {
-                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">
-                    {{ isHeroPanelEmpty() ? 'Empty State' : 'Custom HTML' }}
-                  </span>
-                } @else {
-                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 uppercase">Default Hero</span>
-                }
-              </div>
-
-              <p class="text-[11px] text-slate-500 leading-relaxed">
-                Customize the hero panel with custom HTML and CSS, or display the empty placeholder state.
-              </p>
-
-              <div class="space-y-2">
-                <button 
-                  type="button" 
-                  (click)="openContentPanelModal()"
-                  class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
-                  <span class="material-symbols-outlined text-base">code</span>
-                  <span>Edit Content Panel (HTML/CSS)</span>
-                </button>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <button 
-                    type="button" 
-                    (click)="clearContentPanel()"
-                    class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
-                    <span class="material-symbols-outlined text-sm text-slate-500">crop_square</span>
-                    <span>Set Empty</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    (click)="resetToDefaultHero()"
-                    class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
-                    <span class="material-symbols-outlined text-sm text-slate-500">restart_alt</span>
-                    <span>Reset Default</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Layout Selector (3 modes) -->
+            <!-- Layout Selector (3 modes) - Primary Setting at the top -->
             <div class="space-y-2">
-              <label class="block text-xs font-bold text-slate-800">Layout Mode</label>
-              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Layout Mode</label>
+              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                 <button 
                   type="button"
-                  (click)="formData().layout = 'split_modern_canvas'"
-                  [class]="formData().layout === 'split_modern_canvas' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  (click)="setLayoutMode('split_modern_canvas')"
+                  [class]="formData().layout === 'split_modern_canvas' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">splitscreen</span>
                   <span class="text-[10px] leading-tight font-medium">Modern Split</span>
@@ -2233,8 +2334,8 @@
 
                 <button 
                   type="button"
-                  (click)="formData().layout = 'split_right'"
-                  [class]="formData().layout === 'split_left' || formData().layout === 'split_right' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  (click)="setLayoutMode('split_right')"
+                  [class]="formData().layout === 'split_left' || formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">vertical_split</span>
                   <span class="text-[10px] leading-tight font-medium">Split Hero</span>
@@ -2242,8 +2343,8 @@
 
                 <button 
                   type="button"
-                  (click)="formData().layout = 'centered_card'"
-                  [class]="formData().layout === 'centered_card' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  (click)="setLayoutMode('centered_card')"
+                  [class]="formData().layout === 'centered_card' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">crop_square</span>
                   <span class="text-[10px] leading-tight font-medium">Single Card</span>
@@ -2252,23 +2353,84 @@
             </div>
 
             <!-- =============================================================== -->
+            <!-- CONTENT PANEL (HERO) CUSTOMIZATION CONTROLS                     -->
+            <!-- Only displayed when layout includes a hero panel               -->
+            <!-- =============================================================== -->
+            @if (formData().layout !== 'centered_card') {
+              <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Content Panel (Hero)</label>
+                  @if (formData().useCustomContentPanel) {
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
+                      {{ isHeroPanelEmpty() ? 'Empty State' : 'Custom HTML' }}
+                    </span>
+                  } @else {
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 uppercase">Default Hero</span>
+                  }
+                </div>
+
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Customize the hero panel with custom HTML and CSS, or display the empty placeholder state.
+                </p>
+
+                <div class="space-y-2">
+                  <button 
+                    type="button" 
+                    (click)="openContentPanelModal()"
+                    class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
+                    <span class="material-symbols-outlined text-base">code</span>
+                    <span>Edit Content Panel (HTML/CSS)</span>
+                  </button>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <button 
+                      type="button" 
+                      (click)="clearContentPanel()"
+                      class="py-1.5 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
+                      <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">crop_square</span>
+                      <span>Set Empty</span>
+                    </button>
+
+                    <button 
+                      type="button" 
+                      (click)="resetToDefaultHero()"
+                      class="py-1.5 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
+                      <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">restart_alt</span>
+                      <span>Reset Default</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                  <span class="material-symbols-outlined text-sm text-slate-400">crop_square</span>
+                  <span>Single Card Layout Active</span>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Hero content panel customization is disabled because the Single Card layout focuses solely on the authentication card. Switch to Modern Split or Split Hero above to enable the hero panel.
+                </p>
+              </div>
+            }
+
+            <!-- =============================================================== -->
             <!-- MODERN SPLIT CANVAS POSITION & CONTENT CONTROLS                -->
             <!-- =============================================================== -->
             @if (formData().layout === 'split_modern_canvas') {
-              <div class="space-y-4 pt-3 border-t border-slate-200">
+              <div class="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between">
-                  <label class="block text-xs font-bold text-slate-800">Modern Split Canvas Settings</label>
-                  <span class="text-[10px] font-bold text-tenant-600 uppercase">Interactive</span>
+                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Modern Split Canvas Settings</label>
+                  <span class="text-[10px] font-bold text-tenant-600 dark:text-tenant-400 uppercase">Interactive</span>
                 </div>
 
                 <!-- Position Toggle -->
                 <div class="space-y-1">
-                  <span class="text-[11px] text-slate-500 font-medium">Panel / Canvas Position</span>
-                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Panel / Canvas Position</span>
+                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                     <button 
                       type="button"
                       (click)="setSplitPosition('left')"
-                      [class]="formData().splitPosition === 'left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      [class]="formData().splitPosition === 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                       class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
                       <span class="material-symbols-outlined text-sm">dock_to_left</span>
                       <span>Left Canvas</span>
@@ -2276,13 +2438,13 @@
                     <button 
                       type="button"
                       (click)="setSplitPosition('right')"
-                      [class]="formData().splitPosition !== 'left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      [class]="formData().splitPosition !== 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                       class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
                       <span class="material-symbols-outlined text-sm">dock_to_right</span>
                       <span>Right Canvas</span>
                     </button>
                   </div>
-                  <p class="text-[10px] text-slate-500 pt-0.5">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
                     {{ formData().splitPosition === 'left' ? '✨ Canvas on Left, Sign-in Form on Right' : '✨ Sign-in Form on Left, Canvas on Right' }}
                   </p>
                 </div>
@@ -2293,45 +2455,29 @@
             <!-- SIDE PANEL DESIGN & CONTENT CONTROLS (In Split Mode)            -->
             <!-- =============================================================== -->
             @if (formData().layout === 'split_left' || formData().layout === 'split_right') {
-              <div class="space-y-4 pt-3 border-t border-slate-200">
+              <div class="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between">
-                  <label class="block text-xs font-bold text-slate-800">Side Hero Panel Content</label>
-                  <span class="text-[10px] font-bold text-tenant-600 uppercase">Interactive</span>
+                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Side Hero Panel Content</label>
+                  <span class="text-[10px] font-bold text-tenant-600 dark:text-tenant-400 uppercase">Interactive</span>
                 </div>
 
                 <!-- Position Toggle -->
                 <div class="space-y-1">
-                  <span class="text-[11px] text-slate-500 font-medium">Panel Position</span>
-                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Panel Position</span>
+                  <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                     <button 
-                      type="button"
+                      type="button" 
                       (click)="formData().layout = 'split_left'"
-                      [class]="formData().layout === 'split_left' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      [class]="formData().layout === 'split_left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                       class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
                       Left Hero
                     </button>
                     <button 
-                      type="button"
+                      type="button" 
                       (click)="formData().layout = 'split_right'"
-                      [class]="formData().layout === 'split_right' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                      [class]="formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                       class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
                       Right Hero
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Side Panel Visual Theme -->
-                <div class="space-y-1">
-                  <span class="text-[11px] text-slate-500 font-medium">Panel Theme</span>
-                  <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200">
-                    <button type="button" (click)="updateSidePanelTheme('glass')" [class]="formData().sidePanel?.theme === 'glass' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
-                      Glass
-                    </button>
-                    <button type="button" (click)="updateSidePanelTheme('dark')" [class]="formData().sidePanel?.theme === 'dark' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
-                      Dark
-                    </button>
-                    <button type="button" (click)="updateSidePanelTheme('light')" [class]="formData().sidePanel?.theme === 'light' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer">
-                      Light
                     </button>
                   </div>
                 </div>
@@ -2341,9 +2487,9 @@
             <!-- =============================================================== -->
             <!-- ANNOUNCEMENT CALLOUT BANNER CONTROLS                            -->
             <!-- =============================================================== -->
-            <div class="space-y-4 pt-3 border-t border-slate-200">
+            <div class="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800">
               <div class="flex items-center justify-between">
-                <label class="block text-xs font-bold text-slate-800">Announcement Callout</label>
+                <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Announcement Callout</label>
                 <input 
                   type="checkbox" 
                   [ngModel]="formData().announcementBanner?.enabled"
@@ -2355,25 +2501,25 @@
                 <div class="space-y-3">
                   <!-- Announcement Text -->
                   <div class="space-y-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Message Text</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Message Text</span>
                     <textarea 
                       [(ngModel)]="formData().announcementBanner!.text" 
                       rows="2" 
-                      class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 outline-none resize-none">
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none resize-none">
                     </textarea>
                   </div>
 
                   <!-- Callout Style Selector -->
                   <div class="space-y-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Banner Style</span>
-                    <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200">
-                      <button type="button" (click)="setAnnouncementStyle('floating_pill')" [class]="formData().announcementBanner?.style === 'floating_pill' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Banner Style</span>
+                    <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs border border-slate-200 dark:border-slate-700">
+                      <button type="button" (click)="setAnnouncementStyle('floating_pill')" [class]="formData().announcementBanner?.style === 'floating_pill' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Floating Pill
                       </button>
-                      <button type="button" (click)="setAnnouncementStyle('top_bar')" [class]="formData().announcementBanner?.style === 'top_bar' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                      <button type="button" (click)="setAnnouncementStyle('top_bar')" [class]="formData().announcementBanner?.style === 'top_bar' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Top Bar
                       </button>
-                      <button type="button" (click)="setAnnouncementStyle('card_embedded')" [class]="formData().announcementBanner?.style === 'card_embedded' ? 'bg-white text-tenant-600 font-bold shadow-xs' : 'text-slate-600'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                      <button type="button" (click)="setAnnouncementStyle('card_embedded')" [class]="formData().announcementBanner?.style === 'card_embedded' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Card Inline
                       </button>
                     </div>
@@ -2381,18 +2527,18 @@
 
                   <!-- Severity / Type -->
                   <div class="space-y-1">
-                    <span class="text-[11px] text-slate-500 font-medium">Alert Severity</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Alert Severity</span>
                     <div class="grid grid-cols-4 gap-1 text-xs">
-                      <button type="button" (click)="setAnnouncementType('info')" [class]="formData().announcementBanner?.type === 'info' ? 'bg-blue-600 text-white font-bold' : 'bg-blue-50 text-blue-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('info')" [class]="formData().announcementBanner?.type === 'info' ? 'bg-blue-600 text-white font-bold' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Info
                       </button>
-                      <button type="button" (click)="setAnnouncementType('warning')" [class]="formData().announcementBanner?.type === 'warning' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 text-amber-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('warning')" [class]="formData().announcementBanner?.type === 'warning' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Warning
                       </button>
-                      <button type="button" (click)="setAnnouncementType('alert')" [class]="formData().announcementBanner?.type === 'alert' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-50 text-rose-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('alert')" [class]="formData().announcementBanner?.type === 'alert' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Alert
                       </button>
-                      <button type="button" (click)="setAnnouncementType('success')" [class]="formData().announcementBanner?.type === 'success' ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-50 text-emerald-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('success')" [class]="formData().announcementBanner?.type === 'success' ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Success
                       </button>
                     </div>
@@ -2405,15 +2551,15 @@
         }
 
         <!-- =================================================================== -->
-        <!-- TAB 3: CUSTOM CSS (AuthKit Style Overrides - Matches Image 2)       -->
+        <!-- TAB 3: CUSTOM CSS (AuthKit Style Overrides)                         -->
         <!-- =================================================================== -->
         @if (rightPanelTab() === 'custom_css') {
-          <div class="space-y-3 text-slate-200">
+          <div class="space-y-3 text-slate-700 dark:text-slate-200">
             
             <!-- Header: Title, Action Menu, Subtitle -->
             <div class="pb-1 relative">
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-white tracking-tight">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
                   AuthKit style overrides
                 </h3>
 
@@ -2423,42 +2569,42 @@
                     type="button" 
                     (click)="toggleOverridesMenu($event)"
                     title="Style options"
-                    class="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+                    class="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-base">more_horiz</span>
                   </button>
 
-                  <!-- Dropdown Menu (Dark theme) -->
+                  <!-- Dropdown Menu (Theme aware) -->
                   @if (isOverridesMenuOpen()) {
-                    <div class="absolute right-0 top-8 z-50 w-56 p-1.5 bg-[#161b22] rounded-xl shadow-2xl border border-slate-700 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100"
+                    <div class="ak-overrides-menu-container absolute right-0 top-8 z-50 w-56 p-1.5 bg-white dark:bg-[#161b22] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 animate-in fade-in zoom-in-95 duration-100"
                          (click)="$event.stopPropagation()">
                       <button 
                         type="button" 
                         (click)="toggleRemoveOriginalStyles(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span>Remove original element styles</span>
                         @if (removeOriginalStyles()) {
-                          <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
+                          <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
                         }
                       </button>
                       <button 
                         type="button" 
                         (click)="formatCustomCss(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-slate-400">auto_fix_high</span>
                         <span>Format CSS indentation</span>
                       </button>
                       <button 
                         type="button" 
                         (click)="copyAllCss(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-slate-400">content_copy</span>
                         <span>Copy all combined CSS</span>
                       </button>
-                      <div class="my-1 border-t border-slate-800"></div>
+                      <div class="my-1 border-t border-slate-200 dark:border-slate-800"></div>
                       <button 
                         type="button" 
                         (click)="resetAllOverrides(); isOverridesMenuOpen.set(false)"
-                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-rose-950/60 text-rose-400 text-left transition-colors cursor-pointer">
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-left transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm">restart_alt</span>
                         <span>Reset all overrides</span>
                       </button>
@@ -2468,16 +2614,16 @@
               </div>
 
               <!-- Subtitle with Learn more link -->
-              <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 Override element styles across all AuthKit pages with custom CSS.
-                <a href="https://workos.com/docs/authkit/custom-css" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-normal inline-flex items-center gap-0.5 ml-0.5 transition-colors">
+                <a href="https://workos.com/docs/authkit/custom-css" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-normal inline-flex items-center gap-0.5 ml-0.5 transition-colors">
                   <span>Learn more</span>
                   <span class="text-[10px]">↗</span>
                 </a>
               </p>
             </div>
 
-            <!-- Flat Accordion List of AuthKit Elements (Image 2 style) -->
+            <!-- Flat Accordion List of AuthKit Elements (Theme aware) -->
             <div class="space-y-0.5 pt-1">
               @for (elem of scopedCssElements(); track elem.id) {
                 <div class="select-none">
@@ -2487,16 +2633,19 @@
                     (click)="toggleScopedAccordion(elem.id)"
                     (mouseenter)="highlightElement(elem.id)"
                     (mouseleave)="highlightElement(null)"
-                    class="flex items-center justify-between py-2 px-1 text-slate-300 hover:text-white cursor-pointer transition-colors group">
+                    class="flex items-center justify-between py-2 px-1 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors group">
                     
-                    <!-- Left: Arrow + Element Name -->
+                    <!-- Left: Arrow + Element Name + Active Rule Dot -->
                     <div class="flex items-center gap-1.5 min-w-0">
-                      <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-slate-200 transition-transform">
+                      <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform">
                         {{ elem.isOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
                       </span>
-                      <span class="text-xs font-normal transition-colors" [class.text-white]="elem.isOpen" [class.text-slate-300]="!elem.isOpen">
+                      <span class="text-xs font-normal transition-colors" [class.text-slate-900]="elem.isOpen" [class.dark:text-white]="elem.isOpen" [class.text-slate-600]="!elem.isOpen" [class.dark:text-slate-300]="!elem.isOpen">
                         {{ elem.name }}
                       </span>
+                      @if (elem.code && elem.code.trim()) {
+                        <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 shrink-0" title="Custom CSS active"></span>
+                      }
                     </div>
 
                     <!-- Right: When Open -> Visibility Toggle & Fullscreen; When Closed -> Hover Three Dots Menu -->
@@ -2506,7 +2655,7 @@
                           type="button" 
                           (click)="toggleScopedEnabled(elem.id, $event)"
                           [title]="elem.enabled ? 'Disable styles for ' + elem.name : 'Enable styles for ' + elem.name"
-                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">
                             {{ elem.enabled ? 'visibility_off' : 'visibility' }}
                           </span>
@@ -2515,7 +2664,7 @@
                           type="button" 
                           (click)="openScopedFullscreen(elem, $event)"
                           title="Open fullscreen editor"
-                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer">
                           <span class="material-symbols-outlined text-sm">open_in_full</span>
                         </button>
                       </div>
@@ -2525,7 +2674,7 @@
                           type="button" 
                           (click)="toggleBlockMenu(elem.id, $event)"
                           [title]="'Options for ' + elem.name"
-                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           [class.opacity-100]="activeBlockMenuId() === elem.id">
                           <span class="material-symbols-outlined text-base">more_horiz</span>
                         </button>
@@ -2534,27 +2683,35 @@
                         @if (activeBlockMenuId() === elem.id) {
                           <div 
                             (click)="$event.stopPropagation()"
-                            class="absolute right-0 top-7 z-50 w-56 bg-[#161b22] border border-slate-700/80 rounded-xl shadow-2xl p-1.5 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100">
+                            class="ak-block-menu-container absolute right-0 top-7 z-50 w-56 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xl p-1.5 text-xs text-slate-700 dark:text-slate-200 animate-in fade-in zoom-in-95 duration-100">
                             <div class="px-2 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                               {{ elem.name }} Options
                             </div>
                             <button 
                               type="button" 
                               (click)="setBlockStyleMode(elem.id, false, $event)"
-                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                               <span>Extend with current CSS</span>
                               @if (!elem.removeOriginalStyles) {
-                                <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
+                                <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
                               }
                             </button>
                             <button 
                               type="button" 
                               (click)="setBlockStyleMode(elem.id, true, $event)"
-                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left transition-colors cursor-pointer">
+                              class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                               <span>Remove original styles</span>
                               @if (elem.removeOriginalStyles) {
-                                <span class="material-symbols-outlined text-sm text-indigo-400 font-bold">check</span>
+                                <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
                               }
+                            </button>
+                            <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+                            <button 
+                              type="button" 
+                              (click)="clearElementCss(elem.id, $event); activeBlockMenuId.set(null)"
+                              class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-left transition-colors cursor-pointer">
+                              <span class="material-symbols-outlined text-sm">backspace</span>
+                              <span>Clear element CSS</span>
                             </button>
                           </div>
                         }
@@ -2562,42 +2719,122 @@
                     }
                   </div>
 
-                  <!-- Accordion Body: Dark Code Editor Canvas -->
+                  <!-- Accordion Body: Theme-Aware Guided Code Editor Canvas -->
                   @if (elem.isOpen) {
-                    <div class="my-1 rounded-lg border border-slate-800 bg-[#0d1117] overflow-visible relative font-mono text-xs">
+                    <div class="my-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0d1117] overflow-visible relative font-mono text-xs shadow-xs">
                       
-                      <div class="flex">
+                      <!-- Element Control Toolbar & Actions -->
+                      <div class="px-2.5 py-1.5 bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                          <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700/60 truncate">
+                            {{ elem.selector }}
+                          </span>
+                          @if (!elem.code || !elem.code.trim()) {
+                            <span class="text-[9px] text-slate-400 font-sans italic">Empty</span>
+                          }
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                          <!-- Direct Toggle for "Remove original element styles" -->
+                          <button 
+                            type="button" 
+                            (click)="toggleElementRemoveOriginal(elem.id, $event)"
+                            [class]="elem.removeOriginalStyles 
+                              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 font-medium' 
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'"
+                            class="px-2 py-0.5 rounded-md text-[10px] border flex items-center gap-1.5 transition-colors cursor-pointer"
+                            [title]="elem.removeOriginalStyles ? 'Base styles removed. Click to restore.' : 'Click to strip original base CSS from this element.'">
+                            <span class="w-1.5 h-1.5 rounded-full" [class.bg-amber-500]="elem.removeOriginalStyles" [class.bg-slate-400]="!elem.removeOriginalStyles"></span>
+                            <span>{{ elem.removeOriginalStyles ? 'Original styles removed' : 'Remove original styles' }}</span>
+                          </button>
+
+                          <!-- Clear CSS classes button -->
+                          @if (elem.code && elem.code.trim()) {
+                            <button 
+                              type="button" 
+                              (click)="clearElementCss(elem.id, $event)"
+                              class="px-2 py-0.5 rounded-md text-[10px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Clear all CSS rules from this section">
+                              <span class="material-symbols-outlined text-[12px]">backspace</span>
+                              <span>Clear</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Guided Child Classes Quick Chips & Add Base Selector -->
+                      <div class="px-2.5 py-1 bg-slate-100/70 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-1 overflow-x-auto text-[11px]">
+                        @if (!elem.code || !elem.code.trim()) {
+                          <button 
+                            type="button" 
+                            (click)="insertBaseSelector(elem.id, elem.selector)"
+                            class="px-2 py-0.5 rounded text-[10px] font-mono bg-tenant-50 dark:bg-tenant-950/50 hover:bg-tenant-100 dark:hover:bg-tenant-900/50 text-tenant-700 dark:text-tenant-300 border border-tenant-300 dark:border-tenant-700/60 shrink-0 transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                            title="Insert default wrapper class">
+                            <span class="material-symbols-outlined text-[12px]">add</span>
+                            <span>{{ elem.selector }} (Base selector)</span>
+                          </button>
+                        }
+                        @if (elem.childClasses && elem.childClasses.length > 0) {
+                          <span class="text-slate-400 dark:text-slate-500 text-[10px] shrink-0 font-medium">Add class:</span>
+                          @for (cls of elem.childClasses; track cls.name) {
+                            <button 
+                              type="button" 
+                              (click)="insertChildClass(elem.id, cls, codeArea)"
+                              class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0 transition-colors cursor-pointer shadow-2xs"
+                              [title]="cls.desc">
+                              + {{ cls.name }}
+                            </button>
+                          }
+                        }
+                      </div>
+                      
+                      <!-- Editor Surface -->
+                      <div class="flex relative">
                         <!-- Line Number Gutter -->
-                        <div class="py-2.5 px-2 bg-[#0d1117] text-slate-600 border-r border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-7">
+                        <div class="py-2 px-2 bg-slate-50 dark:bg-[#0a0d13] text-slate-400 dark:text-slate-500 border-r border-slate-200 dark:border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-8">
                           @for (line of getElementLineNumbers(elem.code); track line) {
                             <div>{{ line }}</div>
                           }
                         </div>
 
                         <!-- Code Textarea & Autocomplete -->
-                        <div class="flex-1 py-2 px-3 text-slate-200 relative">
+                        <div class="flex-1 relative">
                           <textarea #codeArea
                             [value]="elem.code"
                             (input)="onScopedCodeInput(elem.id, codeArea, $event)"
                             (click)="onScopedTextareaClick(elem.id, codeArea)"
                             (keydown)="onScopedTextareaKeydown(elem.id, codeArea, $event)"
-                            rows="3"
+                            [rows]="getElementTextareaRows(elem.code)"
                             spellcheck="false"
-                            class="w-full bg-transparent text-slate-200 font-mono text-xs leading-relaxed border-0 outline-none resize-none py-0.5 px-0 placeholder:text-slate-600 focus:ring-0">
+                            class="w-full bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs leading-relaxed border-0 outline-none resize-none py-2 px-3 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:ring-0 max-h-72 overflow-y-auto block">
                           </textarea>
 
-                          <!-- Autocomplete Dropdown (Exact Image 2 Replica) -->
+                          <!-- Autocomplete Dropdown with Keyboard Navigation -->
                           @if (showAutocomplete() && activeAutocompleteElementId() === elem.id) {
-                            <div class="absolute left-6 top-8 z-50 w-64 bg-[#161b22] border border-slate-700/80 rounded-lg shadow-2xl py-1 text-xs font-sans overflow-hidden">
-                              @for (cls of activeElementSuggestions().slice(0, 4); track cls.name; let i = $index) {
-                                <div 
-                                  (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
-                                  [class.bg-slate-800]="i === 0"
-                                  class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
-                                  <span class="font-mono text-xs font-medium text-white">{{ getCleanClassName(cls.name) }}</span>
-                                  <span class="text-[10px] text-slate-400 italic font-mono">{{ cls.type }}</span>
-                                </div>
-                              }
+                            <div class="ak-autocomplete-dropdown absolute left-3 top-8 z-50 w-64 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-200">
+                              <div class="p-1 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400 px-2.5">
+                                <span class="font-semibold uppercase tracking-wider">Suggestions</span>
+                                <button type="button" (click)="closeAutocomplete($event)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-xs">✕</button>
+                              </div>
+                              <div class="py-1 max-h-48 overflow-y-auto">
+                                @for (cls of activeElementSuggestions().slice(0, 5); track cls.name; let i = $index) {
+                                  <div 
+                                    (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
+                                    [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
+                                    [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
+                                    [class.text-indigo-600]="i === autocompleteSelectedIndex()"
+                                    [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                                    class="w-full px-2.5 py-1.5 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
+                                    <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
+                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
+                                  </div>
+                                }
+                              </div>
+                              <div class="px-2.5 py-1 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-sans">
+                                <span>↑↓ navigate</span>
+                                <span>↵ select</span>
+                                <span>esc close</span>
+                              </div>
                             </div>
                           }
                         </div>
@@ -2623,28 +2860,28 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- CONTENT PANEL MODAL (Exact Image 2 Replica)                               -->
+<!-- CONTENT PANEL MODAL                                                       -->
 <!-- ========================================================================= -->
 @if (isContentPanelModalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
        (click)="closeContentPanelModal()">
     
     <!-- Modal Dialog Window -->
-    <div class="w-full max-w-2xl bg-[#121824] border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 animate-in zoom-in-95 duration-200"
+    <div class="w-full max-w-2xl bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200"
          (click)="$event.stopPropagation()">
       
       <!-- Top Header -->
       <div class="p-6 pb-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Content panel</h2>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">Content panel</h2>
           <button 
             type="button"
             (click)="closeContentPanelModal()" 
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer">
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
-        <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
           Use custom HTML and CSS to customize your AuthKit page. Code will be validated and sanitized upon save. Invalid strings will be removed.
         </p>
       </div>
@@ -2652,30 +2889,38 @@
       <!-- Code Editor Canvas -->
       <div class="px-6 pb-4 flex-1 flex flex-col min-h-0">
         
-        <div class="bg-[#090d16] border border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-inner">
+        <div class="bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-inner">
           
           <!-- Editor Tabs & Copy Action Header -->
-          <div class="flex items-center justify-between px-4 border-b border-slate-800 bg-[#0c111c]">
+          <div class="flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0c111c]">
             <div class="flex items-center gap-6">
               <button 
                 type="button"
                 (click)="setModalEditorTab('html')"
-                [class.text-white]="modalEditorTab() === 'html'"
+                [class.text-indigo-600]="modalEditorTab() === 'html'"
+                [class.dark:text-white]="modalEditorTab() === 'html'"
                 [class.border-b-2]="modalEditorTab() === 'html'"
-                [class.border-indigo-500]="modalEditorTab() === 'html'"
-                [class.text-slate-400]="modalEditorTab() !== 'html'"
-                [class.hover:text-slate-200]="modalEditorTab() !== 'html'"
+                [class.border-indigo-600]="modalEditorTab() === 'html'"
+                [class.dark:border-indigo-500]="modalEditorTab() === 'html'"
+                [class.text-slate-500]="modalEditorTab() !== 'html'"
+                [class.dark:text-slate-400]="modalEditorTab() !== 'html'"
+                [class.hover:text-slate-800]="modalEditorTab() !== 'html'"
+                [class.dark:hover:text-slate-200]="modalEditorTab() !== 'html'"
                 class="py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
                 HTML
               </button>
               <button 
                 type="button"
                 (click)="setModalEditorTab('css')"
-                [class.text-white]="modalEditorTab() === 'css'"
+                [class.text-indigo-600]="modalEditorTab() === 'css'"
+                [class.dark:text-white]="modalEditorTab() === 'css'"
                 [class.border-b-2]="modalEditorTab() === 'css'"
-                [class.border-indigo-500]="modalEditorTab() === 'css'"
-                [class.text-slate-400]="modalEditorTab() !== 'css'"
-                [class.hover:text-slate-200]="modalEditorTab() !== 'css'"
+                [class.border-indigo-600]="modalEditorTab() === 'css'"
+                [class.dark:border-indigo-500]="modalEditorTab() === 'css'"
+                [class.text-slate-500]="modalEditorTab() !== 'css'"
+                [class.dark:text-slate-400]="modalEditorTab() !== 'css'"
+                [class.hover:text-slate-800]="modalEditorTab() !== 'css'"
+                [class.dark:hover:text-slate-200]="modalEditorTab() !== 'css'"
                 class="py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
                 CSS
               </button>
@@ -2686,16 +2931,16 @@
               type="button"
               (click)="copyModalCode()" 
               title="Copy code to clipboard" 
-              class="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all flex items-center justify-center cursor-pointer">
+              class="p-1.5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all flex items-center justify-center cursor-pointer">
               <span class="material-symbols-outlined text-base">content_copy</span>
             </button>
           </div>
 
           <!-- Code Textarea & Gutter -->
-          <div class="flex min-h-[280px] max-h-[420px] overflow-hidden bg-[#090d16]">
+          <div class="flex min-h-[280px] max-h-[420px] overflow-hidden bg-slate-50 dark:bg-[#090d16]">
             
             <!-- Line Numbers Gutter -->
-            <div class="w-10 py-3 bg-[#070a12] border-r border-slate-800/80 select-none text-right pr-3 font-mono text-[11px] leading-relaxed text-slate-600 overflow-hidden shrink-0">
+            <div class="w-10 py-3 bg-slate-100 dark:bg-[#070a12] border-r border-slate-200 dark:border-slate-800/80 select-none text-right pr-3 font-mono text-[11px] leading-relaxed text-slate-400 dark:text-slate-600 overflow-hidden shrink-0">
               @if (modalEditorTab() === 'html') {
                 @for (num of modalHtmlLineNumbers(); track num) {
                   <div>{{ num }}</div>
@@ -2714,20 +2959,20 @@
                   [ngModel]="modalHtmlCode()"
                   (ngModelChange)="modalHtmlCode.set($event)"
                   placeholder="<!-- Enter custom HTML here. Leave empty to display the empty content panel state -->"
-                  class="w-full h-full min-h-[280px] p-3 bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none placeholder:text-slate-700 focus:ring-0"></textarea>
+                  class="w-full h-full min-h-[280px] p-3 bg-transparent text-slate-800 dark:text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:ring-0"></textarea>
               } @else {
                 <textarea
                   [ngModel]="modalCssCode()"
                   (ngModelChange)="modalCssCode.set($event)"
                   placeholder="/* Enter custom CSS rules here */"
-                  class="w-full h-full min-h-[280px] p-3 bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none placeholder:text-slate-700 focus:ring-0"></textarea>
+                  class="w-full h-full min-h-[280px] p-3 bg-transparent text-slate-800 dark:text-slate-200 font-mono text-xs leading-relaxed outline-none resize-none placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:ring-0"></textarea>
               }
             </div>
           </div>
 
           <!-- Editor Status Footer -->
-          <div class="px-3 py-2 border-t border-slate-800/80 bg-[#070a12] flex items-center justify-between text-[11px] text-slate-400">
-            <div class="flex items-center gap-1.5 text-emerald-400 font-medium">
+          <div class="px-3 py-2 border-t border-slate-200 dark:border-slate-800/80 bg-slate-100 dark:bg-[#070a12] flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
               <span class="material-symbols-outlined text-sm">check_circle</span>
               <span class="text-[10px]">Valid & Ready</span>
             </div>
@@ -2740,11 +2985,11 @@
       </div>
 
       <!-- Action Footer -->
-      <div class="p-6 pt-3 border-t border-slate-800 flex items-center justify-between bg-[#0e1420]">
+      <div class="p-6 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-[#0e1420]">
         <button 
           type="button"
           (click)="clearContentPanel()" 
-          class="text-xs text-rose-400 hover:text-rose-300 font-medium transition-colors flex items-center gap-1 cursor-pointer">
+          class="text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors flex items-center gap-1 cursor-pointer">
           <span class="material-symbols-outlined text-sm">delete_outline</span>
           <span>Clear content</span>
         </button>
@@ -2753,7 +2998,7 @@
           <button 
             type="button"
             (click)="closeContentPanelModal()" 
-            class="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800/90 hover:bg-slate-700 rounded-lg border border-slate-700 transition-all cursor-pointer">
+            class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-300 dark:border-slate-700 transition-all cursor-pointer">
             Cancel
           </button>
           <button 
@@ -2761,6 +3006,199 @@
             (click)="saveContentPanelModal()" 
             class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
             <span>Save changes</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- FULLSCREEN SCOPED CSS GUIDED EDITOR MODAL                                 -->
+<!-- Theme-aware, guided editor for scoped selectors                           -->
+<!-- ========================================================================= -->
+@if (activeExpandedElement(); as elem) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
+       (click)="closeScopedFullscreen()">
+    
+    <!-- Modal Window -->
+    <div class="w-full max-w-4xl max-h-[92vh] bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 bg-slate-50 dark:bg-[#0d121c]">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+            <span class="material-symbols-outlined text-lg">code</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                {{ elem.name }} CSS Editor
+              </h2>
+              <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                {{ elem.selector }}
+              </span>
+              @if (elem.code && elem.code.trim()) {
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                  Customized
+                </span>
+              } @else {
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                  Default Inherited
+                </span>
+              }
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+              {{ elem.description }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Toggle Remove Original Styles -->
+          <button 
+            type="button" 
+            (click)="toggleElementRemoveOriginal(elem.id, $event)"
+            [class]="elem.removeOriginalStyles 
+              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 font-medium' 
+              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'"
+            class="px-2.5 py-1.5 rounded-lg text-xs border flex items-center gap-1.5 transition-colors cursor-pointer"
+            [title]="elem.removeOriginalStyles ? 'Base styles removed. Click to restore.' : 'Click to strip original base CSS.'">
+            <span class="w-1.5 h-1.5 rounded-full" [class.bg-amber-500]="elem.removeOriginalStyles" [class.bg-slate-400]="!elem.removeOriginalStyles"></span>
+            <span>{{ elem.removeOriginalStyles ? 'Original styles removed' : 'Remove original styles' }}</span>
+          </button>
+
+          <!-- Clear Button -->
+          @if (elem.code && elem.code.trim()) {
+            <button 
+              type="button" 
+              (click)="clearElementCss(elem.id, $event)"
+              class="px-2.5 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Clear all CSS rules from this section">
+              <span class="material-symbols-outlined text-sm">backspace</span>
+              <span>Clear classes</span>
+            </button>
+          }
+
+          <!-- Close Modal Button -->
+          <button 
+            type="button"
+            (click)="closeScopedFullscreen()" 
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Guided Child Classes Strip -->
+      <div class="px-6 py-2 bg-slate-100/80 dark:bg-[#0a0f18] border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
+        @if (!elem.code || !elem.code.trim()) {
+          <button 
+            type="button" 
+            (click)="insertBaseSelector(elem.id, elem.selector)"
+            class="px-2.5 py-1 rounded-md text-xs font-mono bg-tenant-50 dark:bg-tenant-950/50 hover:bg-tenant-100 dark:hover:bg-tenant-900 text-tenant-700 dark:text-tenant-300 border border-tenant-300 dark:border-tenant-700 shrink-0 transition-colors cursor-pointer flex items-center gap-1.5 font-semibold shadow-2xs"
+            title="Insert default wrapper class">
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span>{{ elem.selector }} (Add base class)</span>
+          </button>
+        }
+        @if (elem.childClasses && elem.childClasses.length > 0) {
+          <span class="text-slate-400 dark:text-slate-500 text-xs shrink-0 font-medium">Quick Insert:</span>
+          @for (cls of elem.childClasses; track cls.name) {
+            <button 
+              type="button" 
+              (click)="insertChildClass(elem.id, cls, modalCodeArea)"
+              class="px-2 py-1 rounded-md text-xs font-mono bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0 transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+              [title]="cls.desc">
+              <span class="text-indigo-500 dark:text-indigo-400 font-bold">+</span>
+              <span>{{ cls.name }}</span>
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Editor Body -->
+      <div class="p-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <div class="bg-slate-50 dark:bg-[#070a10] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-inner relative">
+          
+          <div class="flex relative min-h-[320px]">
+            <!-- Line numbers gutter -->
+            <div class="py-3 px-3 bg-slate-100/70 dark:bg-[#05080e] text-slate-400 dark:text-slate-500 border-r border-slate-200 dark:border-slate-800/80 select-none text-right font-mono text-xs leading-relaxed shrink-0 w-10">
+              @for (line of getElementLineNumbers(elem.code); track line) {
+                <div>{{ line }}</div>
+              }
+            </div>
+
+            <!-- Fullscreen Textarea -->
+            <div class="flex-1 relative">
+              <textarea #modalCodeArea
+                [value]="elem.code"
+                (input)="onScopedCodeInput(elem.id, modalCodeArea, $event)"
+                (click)="onScopedTextareaClick(elem.id, modalCodeArea)"
+                (keydown)="onScopedTextareaKeydown(elem.id, modalCodeArea, $event)"
+                rows="16"
+                spellcheck="false"
+                placeholder="/* Add CSS rules for this element, e.g. background-color: #ffffff; */"
+                class="w-full h-full min-h-[320px] bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs sm:text-sm leading-relaxed border-0 outline-none resize-none py-3 px-4 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:ring-0 block">
+              </textarea>
+
+              <!-- Modal Autocomplete Dropdown -->
+              @if (showAutocomplete() && activeAutocompleteElementId() === elem.id) {
+                <div class="ak-autocomplete-dropdown absolute left-4 top-10 z-50 w-72 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden text-slate-800 dark:text-slate-200">
+                  <div class="p-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 px-3">
+                    <span class="font-semibold uppercase tracking-wider">Suggestions</span>
+                    <button type="button" (click)="closeAutocomplete($event)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer text-xs">✕</button>
+                  </div>
+                  <div class="py-1 max-h-52 overflow-y-auto">
+                    @for (cls of activeElementSuggestions().slice(0, 7); track cls.name; let i = $index) {
+                      <div 
+                        (click)="insertAutocompleteSuggestion(elem.id, cls, modalCodeArea)"
+                        [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
+                        [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
+                        [class.text-indigo-600]="i === autocompleteSelectedIndex()"
+                        [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                        class="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
+                        <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-sans">
+                    <span>↑↓ navigate</span>
+                    <span>↵ select</span>
+                    <span>esc close</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-[#0d121c]">
+        <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span class="material-symbols-outlined text-sm">info</span>
+          <span>Changes are previewed live on the left canvas. Press <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[10px]">Esc</kbd> to return.</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (elem.code && elem.code.trim()) {
+            <button 
+              type="button" 
+              (click)="clearElementCss(elem.id, $event)"
+              class="px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer">
+              Clear
+            </button>
+          }
+          <button 
+            type="button" 
+            (click)="closeScopedFullscreen()"
+            class="px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-xs transition-all cursor-pointer">
+            Done
           </button>
         </div>
       </div>

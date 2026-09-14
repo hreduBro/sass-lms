@@ -229,20 +229,63 @@
         </div>
 
         <!-- 3. Announcement Banner (Top of Screen if enabled) -->
-        @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text) {
-          <div 
-            class="relative z-30 w-full px-4 py-2 text-xs font-semibold flex items-center justify-center gap-2 text-center shadow-xs backdrop-blur-md"
-            [class.bg-amber-500/90]="branding().announcementBanner?.type === 'warning'"
-            [class.text-amber-950]="branding().announcementBanner?.type === 'warning'"
-            [class.bg-blue-600/90]="branding().announcementBanner?.type === 'info'"
-            [class.text-white]="branding().announcementBanner?.type === 'info'"
-            [class.bg-emerald-600/90]="branding().announcementBanner?.type === 'success'"
-            [class.text-white]="branding().announcementBanner?.type === 'success'"
-            [class.bg-rose-600/90]="branding().announcementBanner?.type === 'alert'"
-            [class.text-white]="branding().announcementBanner?.type === 'alert'">
-            <span class="material-symbols-outlined text-sm">campaign</span>
-            <span>{{ branding().announcementBanner?.text }}</span>
-          </div>
+        @if (branding().layout !== 'split_modern_canvas' && branding().announcementBanner?.enabled && branding().announcementBanner?.text) {
+          @if (branding().announcementBanner?.style === 'top_bar') {
+            <div 
+              class="relative z-30 w-full px-4 py-2.5 text-xs font-semibold flex items-center justify-between gap-2 text-center shadow-xs backdrop-blur-md shrink-0"
+              [class.bg-blue-900/80]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+              [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+              [class.text-blue-100]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+              [class.bg-amber-900/80]="branding().announcementBanner?.type === 'warning'"
+              [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+              [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
+              [class.bg-rose-900/80]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+              [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+              [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+              [class.bg-emerald-900/80]="branding().announcementBanner?.type === 'success'"
+              [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+              [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
+              <div class="flex items-center gap-2 mx-auto">
+                <span class="material-symbols-outlined text-base">campaign</span>
+                <span>{{ branding().announcementBanner?.text }}</span>
+                @if (branding().announcementBanner?.actionText) {
+                  <span class="font-bold underline underline-offset-2 ml-2 cursor-pointer hover:opacity-80">
+                    {{ branding().announcementBanner?.actionText }}
+                  </span>
+                }
+              </div>
+            </div>
+          } @else if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
+            <div class="relative z-30 pt-4 px-4 flex justify-center">
+              <div class="max-w-xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs"
+                   [class.bg-blue-950/85]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                   [class.border-blue-500/40]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                   [class.text-blue-100]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                   [class.bg-amber-950/85]="branding().announcementBanner?.type === 'warning'"
+                   [class.border-amber-500/40]="branding().announcementBanner?.type === 'warning'"
+                   [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
+                   [class.bg-rose-950/85]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.border-rose-500/40]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                   [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
+                   [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
+                   [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
+                <span class="material-symbols-outlined text-base shrink-0"
+                      [class.text-blue-400]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                      [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
+                      [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                      [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
+                  {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
+                </span>
+                <span class="font-medium tracking-tight truncate">{{ branding().announcementBanner?.text }}</span>
+                @if (branding().announcementBanner?.actionText) {
+                  <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                    {{ branding().announcementBanner?.actionText }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
         }
 
         <!-- 5. Main Middle Area: Dynamic Layout Handler -->
@@ -252,41 +295,140 @@
           <!-- LAYOUT 0: MODERN HALF-CANVAS SPLIT (Truet / Fluid Silk Aurora)    -->
           <!-- ================================================================= -->
           @if (branding().layout === 'split_modern_canvas') {
-            <div class="w-full h-full min-h-[560px] flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-2xl border border-white/20"
-                 [class.lg:flex-row-reverse]="branding().splitPosition === 'left'"
+            <div class="w-full h-full min-h-[560px] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-white/20 relative"
                  [class.bg-white]="previewTheme() === 'light'"
                  [class.bg-slate-900]="previewTheme() === 'dark'">
-              
-              <!-- LEFT COLUMN: Clean Form Area -->
-              <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 min-h-full"
-                   [class.text-slate-900]="previewTheme() === 'light'"
-                   [class.text-white]="previewTheme() === 'dark'">
-                
-                <!-- Top Row: Brand Logo & Branding Header -->
-                <div class="flex items-center gap-3 mb-4 sm:mb-6">
-                  @if (branding().logoUrlLight) {
-                    <img 
-                      [src]="branding().logoUrlLight" 
-                      alt="Logo" 
-                      [style.height.px]="branding().logoHeightPx ? (branding().logoHeightPx * 0.8) : 40" 
-                      class="w-auto object-contain drop-shadow-xs" 
-                      referrerpolicy="no-referrer" />
-                  }
-                  <div class="min-w-0">
-                    <div class="text-sm sm:text-base font-black tracking-tight uppercase"
-                         [class.text-white]="previewTheme() === 'dark'"
-                         [class.text-slate-900]="previewTheme() === 'light'">
-                      {{ lms.activeTenant()?.name || 'BRAC Learning Portal' }}
-                    </div>
-                    @if (branding().tagline) {
-                      <p class="text-[11px] leading-tight opacity-70 truncate mt-0.5"
-                         [class.text-white/70]="previewTheme() === 'dark'"
-                         [class.text-slate-500]="previewTheme() === 'light'">
-                        {{ branding().tagline }}
-                      </p>
+
+              <!-- TOP BAR BANNER (Preview Modern Split) -->
+              @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'top_bar') {
+                <div 
+                  class="relative z-30 w-full px-4 py-2.5 text-xs font-semibold flex items-center justify-between gap-2 text-center shadow-xs backdrop-blur-md shrink-0"
+                  [class.bg-blue-900/80]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                  [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                  [class.text-blue-100]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                  [class.bg-amber-900/80]="branding().announcementBanner?.type === 'warning'"
+                  [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+                  [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
+                  [class.bg-rose-900/80]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                  [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                  [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                  [class.bg-emerald-900/80]="branding().announcementBanner?.type === 'success'"
+                  [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+                  [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
+                  <div class="flex items-center gap-2 mx-auto">
+                    <span class="material-symbols-outlined text-base">campaign</span>
+                    <span>{{ branding().announcementBanner?.text }}</span>
+                    @if (branding().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 ml-2 cursor-pointer hover:opacity-80">
+                        {{ branding().announcementBanner?.actionText }}
+                      </span>
                     }
                   </div>
                 </div>
+              }
+
+              <!-- FLOATING PILL BANNER (Preview Modern Split) -->
+              @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style)) {
+                <div class="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-4">
+                  <div class="max-w-xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs"
+                       [class.bg-blue-950/85]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                       [class.border-blue-500/40]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                       [class.text-blue-100]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                       [class.bg-amber-950/85]="branding().announcementBanner?.type === 'warning'"
+                       [class.border-amber-500/40]="branding().announcementBanner?.type === 'warning'"
+                       [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
+                       [class.bg-rose-950/85]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.border-rose-500/40]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
+                       [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
+                       [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
+                    <span class="material-symbols-outlined text-base shrink-0"
+                          [class.text-blue-400]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
+                          [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
+                          [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                          [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
+                      {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
+                    </span>
+                    <span class="font-medium tracking-tight truncate">{{ branding().announcementBanner?.text }}</span>
+                    @if (branding().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                        {{ branding().announcementBanner?.actionText }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- COLUMNS WRAPPER -->
+              <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-0 relative z-10 overflow-hidden"
+                   [class.lg:flex-row-reverse]="branding().splitPosition === 'left'">
+                
+                <!-- LEFT COLUMN: Clean Form Area -->
+                <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 min-h-full"
+                     [class.text-slate-900]="previewTheme() === 'light'"
+                     [class.text-white]="previewTheme() === 'dark'">
+                  
+                  <!-- Top Row: Brand Logo & Branding Header -->
+                  <div class="flex items-center gap-3 mb-4 sm:mb-6">
+                    @if (branding().logoUrlLight) {
+                      <img 
+                        [src]="branding().logoUrlLight" 
+                        alt="Logo" 
+                        [style.height.px]="branding().logoHeightPx ? (branding().logoHeightPx * 0.8) : 40" 
+                        class="w-auto object-contain drop-shadow-xs" 
+                        referrerpolicy="no-referrer" />
+                    }
+                    <div class="min-w-0">
+                      <div class="text-sm sm:text-base font-black tracking-tight uppercase"
+                           [class.text-white]="previewTheme() === 'dark'"
+                           [class.text-slate-900]="previewTheme() === 'light'">
+                        {{ lms.activeTenant()?.name || 'BRAC Learning Portal' }}
+                      </div>
+                      @if (branding().tagline) {
+                        <p class="text-[11px] leading-tight opacity-70 truncate mt-0.5"
+                           [class.text-white/70]="previewTheme() === 'dark'"
+                           [class.text-slate-500]="previewTheme() === 'light'">
+                          {{ branding().tagline }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- CARD EMBEDDED BANNER (Preview Modern Split) -->
+                  @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
+                    <div class="w-full max-w-sm mx-auto mb-3 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
+                         [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
+                         [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+                         [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                         [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
+                         [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+                         [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                      <span class="material-symbols-outlined text-base shrink-0"
+                            [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                            [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                            [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                            [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                        {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
+                      </span>
+                      <span class="font-medium text-[11px] leading-tight flex-1"
+                            [class.text-slate-800]="previewTheme() === 'light'"
+                            [class.text-white]="previewTheme() === 'dark'">
+                        {{ branding().announcementBanner?.text }}
+                      </span>
+                      @if (branding().announcementBanner?.actionText) {
+                        <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                          {{ branding().announcementBanner?.actionText }}
+                        </span>
+                      }
+                    </div>
+                  }
 
                 <!-- Middle: Sign In Form -->
                 <div class="w-full max-w-sm mx-auto my-auto space-y-4 py-2">
@@ -412,9 +554,19 @@
                   </div>
                 </div>
 
-                <!-- Bottom Row: Copyright -->
-                <div class="text-[10px] opacity-50 mt-4 truncate">
-                  {{ branding().copyrightText }}
+                <!-- Bottom Row: Card Section Footer for Modern Split View (No Separated Footer) -->
+                <div class="pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] border-t transition-colors"
+                     [class.border-slate-200]="previewTheme() === 'light'"
+                     [class.text-slate-500]="previewTheme() === 'light'"
+                     [class.border-slate-800]="previewTheme() === 'dark'"
+                     [class.text-slate-400]="previewTheme() === 'dark'">
+                  <div class="truncate">{{ branding().copyrightText }}</div>
+                  <div class="flex items-center gap-1.5 font-medium shrink-0">
+                    <span class="opacity-75">Powered By</span>
+                    <span class="font-bold tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">SSO-ONE</span>
+                  </div>
                 </div>
               </div>
 
@@ -515,6 +667,7 @@
 
               </div>
 
+              </div>
             </div>
           }
 
@@ -654,6 +807,41 @@
                     </p>
                   </div>
 
+                  <!-- CARD EMBEDDED BANNER (Preview Split Hero / Centered Card) -->
+                  @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
+                    <div class="w-full mb-4 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
+                         [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                         [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
+                         [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+                         [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                         [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                         [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
+                         [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+                         [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                      <span class="material-symbols-outlined text-base shrink-0"
+                            [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                            [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                            [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                            [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                        {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
+                      </span>
+                      <span class="font-medium text-[11px] leading-tight flex-1"
+                            [class.text-slate-800]="previewTheme() === 'light'"
+                            [class.text-white]="previewTheme() === 'dark'">
+                        {{ branding().announcementBanner?.text }}
+                      </span>
+                      @if (branding().announcementBanner?.actionText) {
+                        <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                          {{ branding().announcementBanner?.actionText }}
+                        </span>
+                      }
+                    </div>
+                  }
+
                   <!-- Enterprise SSO Buttons -->
                   <div class="space-y-2 mb-5">
                     
@@ -783,7 +971,7 @@
                               (ngModelChange)="simRememberMe.set($event)"
                               name="rememberMe"
                               class="rounded border-slate-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
-                            <span>Remember this device for 30 days</span>
+                            <span>Keep me signed in</span>
                           </label>
                         </div>
                       }
@@ -876,6 +1064,41 @@
                   </p>
                 </div>
 
+                <!-- CARD EMBEDDED BANNER (Preview Single Card / Centered Card) -->
+                @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
+                  <div class="w-full mb-4 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
+                       [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                       [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                       [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                       [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
+                       [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
+                       [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                       [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                       [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
+                       [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
+                       [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                    <span class="material-symbols-outlined text-base shrink-0"
+                          [class.text-blue-500]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                          [class.text-amber-500]="branding().announcementBanner?.type === 'warning'"
+                          [class.text-rose-500]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                          [class.text-emerald-500]="branding().announcementBanner?.type === 'success'">
+                      {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
+                    </span>
+                    <span class="font-medium text-[11px] leading-tight flex-1"
+                          [class.text-slate-800]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">
+                      {{ branding().announcementBanner?.text }}
+                    </span>
+                    @if (branding().announcementBanner?.actionText) {
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
+                        {{ branding().announcementBanner?.actionText }}
+                      </span>
+                    }
+                  </div>
+                }
+
                 <!-- Enterprise SSO Buttons -->
                 <div class="space-y-2 mb-5">
                   @if (branding().enableSsoGoogle) {
@@ -961,12 +1184,15 @@
 
         </main>
 
-        <!-- 6. Footer (Copyright, Legal Links, Security Certifications) -->
+        <!-- 6. Footer (Copyright, Legal Links, Security Certifications - Hidden for modern split view) -->
+        @if (branding().layout !== 'split_modern_canvas') {
         <footer class="relative z-20 w-full px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/80 text-xs border-t border-white/10 backdrop-blur-xs">
           
-          <!-- Copyright -->
-          <div class="text-center sm:text-left">
+          <!-- Copyright & Powered By -->
+          <div class="text-center sm:text-left flex items-center gap-2.5">
             <span>{{ branding().copyrightText }}</span>
+            <span class="opacity-40">·</span>
+            <span class="font-semibold text-white/95">Powered By SSO-ONE</span>
           </div>
 
           <!-- Security Badges & Links -->
@@ -990,6 +1216,7 @@
           </div>
 
         </footer>
+        }
 
       </div>
 

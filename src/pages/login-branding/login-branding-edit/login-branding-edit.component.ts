@@ -71,6 +71,10 @@ export interface ElementMenuItem {
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './login-branding-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    '(document:keydown.escape)': 'onEscapeKey()'
+  }
 })
 export class LoginBrandingEditComponent {
   lms = inject(LmsDataService);
@@ -96,7 +100,7 @@ export class LoginBrandingEditComponent {
   cssTemplates = CSS_TEMPLATES;
 
   // Preview Page Dropdown State
-  selectedPage = signal<PreviewPageId>('accept_invitation');
+  selectedPage = signal<PreviewPageId>('sign_in');
   isPageDropdownOpen = signal<boolean>(false);
 
   // Selected Language & Theme in Preview
@@ -382,11 +386,12 @@ export class LoginBrandingEditComponent {
     if (!current) return null;
     return this.scopedCssElements().find(el => el.id === current.id) || current;
   });
-  showAutocomplete = signal<boolean>(true);
-  activeAutocompleteElementId = signal<string | null>('background');
+  showAutocomplete = signal<boolean>(false);
+  activeAutocompleteElementId = signal<string | null>(null);
   autocompleteFilter = signal<string>('');
   autocompleteSearch = signal<string>('');
   autocompleteCursorLine = signal<number>(1);
+  autocompleteSelectedIndex = signal<number>(0);
 
   autocompleteClasses = [
     { name: 'ak-Branding', type: 'CSS class', desc: 'Brand logo and title container' },
@@ -421,19 +426,29 @@ export class LoginBrandingEditComponent {
   // Active element dependable child classes suggestions
   activeElementSuggestions = computed<ChildClassSuggestion[]>(() => {
     const activeId = this.activeAutocompleteElementId();
-    if (!activeId) return [];
-    const elem = this.scopedCssElements().find(e => e.id === activeId);
-    if (!elem) return [];
+    const elem = activeId ? this.scopedCssElements().find(e => e.id === activeId) : null;
+    const localClasses = elem?.childClasses ? [...elem.childClasses] : [];
+
+    // Also include global AuthKit classes for broader guidance
+    for (const g of this.autocompleteClasses) {
+      if (!localClasses.some(c => c.name === '.' + g.name || c.name === g.name)) {
+        localClasses.push({
+          name: '.' + g.name,
+          type: g.type,
+          desc: g.desc,
+          snippet: `  .${g.name} {\n    \n  }`
+        });
+      }
+    }
 
     const raw = (this.autocompleteSearch() || '').toLowerCase().trim();
     const search = raw.startsWith('.') ? raw.substring(1) : raw;
-    const classes = elem.childClasses || [];
 
     if (!search) {
-      return classes;
+      return localClasses;
     }
 
-    return classes.filter(c =>
+    return localClasses.filter(c =>
       c.name.toLowerCase().includes(search) ||
       c.desc.toLowerCase().includes(search)
     );
@@ -684,6 +699,91 @@ export class LoginBrandingEditComponent {
     );
   }
 
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+
+    // If click is outside the autocomplete dropdown
+    if (this.showAutocomplete() && !target.closest('.ak-autocomplete-dropdown') && !target.closest('textarea')) {
+      this.showAutocomplete.set(false);
+      this.activeAutocompleteElementId.set(null);
+    }
+
+    // If click is outside the active block menu
+    if (this.activeBlockMenuId() && !target.closest('.ak-block-menu-container') && !target.closest('button[title*="Options for"]')) {
+      this.activeBlockMenuId.set(null);
+    }
+
+    // If click is outside the overrides menu
+    if (this.isOverridesMenuOpen() && !target.closest('.ak-overrides-menu-container') && !target.closest('button[title="Style options"]')) {
+      this.isOverridesMenuOpen.set(false);
+    }
+
+    // If click is outside page dropdown
+    if (this.isPageDropdownOpen() && !target.closest('.ak-page-dropdown-container')) {
+      this.isPageDropdownOpen.set(false);
+    }
+  }
+
+  onEscapeKey() {
+    this.showAutocomplete.set(false);
+    this.activeAutocompleteElementId.set(null);
+    this.activeBlockMenuId.set(null);
+    this.isOverridesMenuOpen.set(false);
+    this.isPageDropdownOpen.set(false);
+    if (this.expandedScopedElement()) {
+      this.closeScopedFullscreen();
+    }
+  }
+
+  closeAutocomplete(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showAutocomplete.set(false);
+    this.activeAutocompleteElementId.set(null);
+  }
+
+  clearElementCss(elemId: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === elemId ? { ...el, code: '', removeOriginalStyles: false } : el)
+    );
+    this.showAutocomplete.set(false);
+    this.activeAutocompleteElementId.set(null);
+    this.syncCombinedCss();
+    const elem = this.scopedCssElements().find(el => el.id === elemId);
+    this.lms.showToast(`Cleared custom CSS classes for ${elem?.name || 'element'}`, 'info', 1800, 'Cleared');
+  }
+
+  insertBaseSelector(elemId: string, selector: string) {
+    this.scopedCssElements.update(elements =>
+      elements.map(el => {
+        if (el.id === elemId) {
+          return { ...el, code: `${selector} {\n  \n}` };
+        }
+        return el;
+      })
+    );
+    this.syncCombinedCss();
+    this.lms.showToast(`Restored base class wrapper ${selector}`, 'info', 1600, 'Class Added');
+  }
+
+  setLayoutMode(mode: 'split_modern_canvas' | 'split_right' | 'centered_card') {
+    this.formData.update(f => ({
+      ...f,
+      layout: mode
+    }));
+    const names = {
+      'split_modern_canvas': 'Modern Split',
+      'split_right': 'Split Hero',
+      'centered_card': 'Single Card'
+    };
+    this.lms.showToast(`Layout set to ${names[mode]}`, 'info', 1800, 'Layout Mode');
+  }
+
   openScopedFullscreen(elem: ScopedCssElement, event?: Event) {
     if (event) {
       event.stopPropagation();
@@ -712,7 +812,15 @@ export class LoginBrandingEditComponent {
   }
 
   onScopedTextareaClick(id: string, textarea: HTMLTextAreaElement) {
-    this.checkAutocomplete(id, textarea);
+    const text = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    const beforeCursor = text.substring(0, cursorPos);
+    const currentLine = beforeCursor.split('\n').pop() || '';
+    if (currentLine.includes('.')) {
+      this.checkAutocomplete(id, textarea);
+    } else {
+      this.showAutocomplete.set(false);
+    }
   }
 
   checkAutocomplete(id: string, textarea: HTMLTextAreaElement) {
@@ -725,19 +833,22 @@ export class LoginBrandingEditComponent {
 
     const trimmedLine = currentLine.trim();
     const matchClass = currentLine.match(/(\.[\w-]*)$/);
-    const matchProperty = currentLine.match(/^\s*([\w-]+)\s*$/);
+    const matchProperty = currentLine.match(/^\s*([a-zA-Z-]{2,})\s*$/);
 
     if (matchClass) {
       this.activeAutocompleteElementId.set(id);
       this.autocompleteSearch.set(matchClass[1]);
+      this.autocompleteSelectedIndex.set(0);
       this.showAutocomplete.set(true);
     } else if (trimmedLine === '.' || trimmedLine.endsWith('.')) {
       this.activeAutocompleteElementId.set(id);
       this.autocompleteSearch.set('');
+      this.autocompleteSelectedIndex.set(0);
       this.showAutocomplete.set(true);
     } else if (matchProperty && !trimmedLine.includes('{') && !trimmedLine.includes('}')) {
       this.activeAutocompleteElementId.set(id);
       this.autocompleteSearch.set(matchProperty[1]);
+      this.autocompleteSelectedIndex.set(0);
       this.showAutocomplete.set(true);
     } else {
       this.showAutocomplete.set(false);
@@ -745,6 +856,45 @@ export class LoginBrandingEditComponent {
   }
 
   onScopedTextareaKeydown(id: string, textarea: HTMLTextAreaElement, event: KeyboardEvent) {
+    // Keyboard navigation for autocomplete suggestions
+    if (this.showAutocomplete() && this.activeAutocompleteElementId() === id) {
+      const suggestions = this.activeElementSuggestions();
+      const props = this.activePropertySuggestions();
+      const isClassMode = (this.autocompleteSearch().startsWith('.') || !this.autocompleteSearch()) && suggestions.length > 0;
+      const total = isClassMode ? suggestions.length : props.length;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (total > 0) {
+          this.autocompleteSelectedIndex.update(idx => (idx + 1) % total);
+        }
+        return;
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (total > 0) {
+          this.autocompleteSelectedIndex.update(idx => (idx - 1 + total) % total);
+        }
+        return;
+      } else if (event.key === 'Enter' || event.key === 'Tab') {
+        if (total > 0) {
+          event.preventDefault();
+          const selectedIdx = this.autocompleteSelectedIndex();
+          if (isClassMode) {
+            const item = suggestions[selectedIdx] || suggestions[0];
+            this.insertAutocompleteSuggestion(id, item, textarea);
+          } else {
+            const item = props[selectedIdx] || props[0];
+            this.insertPropertySuggestion(id, item);
+          }
+          return;
+        }
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        this.showAutocomplete.set(false);
+        return;
+      }
+    }
+
     if (event.key === 'Escape') {
       this.showAutocomplete.set(false);
       this.activeBlockMenuId.set(null);
@@ -761,14 +911,36 @@ export class LoginBrandingEditComponent {
   }
 
   insertAutocompleteSuggestion(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
+    const snippetToInsert = suggestion.snippet || `  ${suggestion.name} {\n    \n  }`;
+
     this.scopedCssElements.update(elements =>
       elements.map(el => {
         if (el.id === elemId) {
           let current = el.code;
           const search = this.autocompleteSearch();
-          const snippetToInsert = suggestion.snippet || `  ${suggestion.name} {\n    \n  }`;
 
-          if (search && current.includes(search)) {
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const val = textarea.value;
+            const before = val.substring(0, start);
+            let replaceStart = start;
+
+            if (search && before.endsWith(search)) {
+              replaceStart = start - search.length;
+            } else if (before.endsWith('.')) {
+              replaceStart = start - 1;
+            }
+
+            current = val.substring(0, replaceStart) + snippetToInsert + val.substring(start);
+            setTimeout(() => {
+              textarea.value = current;
+              // place cursor inside the brackets
+              const openBrace = current.indexOf('{', replaceStart);
+              const targetPos = openBrace !== -1 ? openBrace + 6 : replaceStart + snippetToInsert.length;
+              textarea.selectionStart = textarea.selectionEnd = Math.min(targetPos, current.length);
+              textarea.focus();
+            }, 10);
+          } else if (search && current.includes(search)) {
             const lastIdx = current.lastIndexOf(search);
             current = current.substring(0, lastIdx) + snippetToInsert + current.substring(lastIdx + search.length);
           } else if (current.trim().endsWith('.')) {
@@ -790,6 +962,32 @@ export class LoginBrandingEditComponent {
     this.showAutocomplete.set(false);
     this.syncCombinedCss();
     this.lms.showToast(`Inserted ${suggestion.name}`, 'info', 1600, 'Selector Added');
+  }
+
+  insertChildClass(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
+    this.insertAutocompleteSuggestion(elemId, suggestion, textarea);
+  }
+
+  getElementTextareaRows(code: string): number {
+    const lineCount = (code || '').split('\n').length;
+    return Math.min(Math.max(lineCount + 1, 5), 20);
+  }
+
+  toggleElementRemoveOriginal(elemId: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.scopedCssElements.update(elements =>
+      elements.map(el => el.id === elemId ? { ...el, removeOriginalStyles: !el.removeOriginalStyles } : el)
+    );
+    this.syncCombinedCss();
+    const elem = this.scopedCssElements().find(el => el.id === elemId);
+    this.lms.showToast(
+      elem?.removeOriginalStyles ? `Removed original base styles for ${elem.name}` : `Restored original styles for ${elem?.name}`,
+      'info',
+      2000,
+      'Base Styles'
+    );
   }
 
   insertPropertySuggestion(elemId: string, prop: { name: string; type: string; desc: string }) {
@@ -838,18 +1036,20 @@ export class LoginBrandingEditComponent {
     let combined = '';
     
     if (this.removeOriginalStyles()) {
-      combined += `/* Remove original AuthKit base element styles (Global) */\n.ak-Card { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }\n.ak-PrimaryButton { background: none !important; border: none !important; }\n.ak-TextField { background: transparent !important; }\n\n`;
+      combined += `/* Remove original AuthKit base element styles (Global) */\n.ak-Card, .auth-card.ak-Card { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }\n.ak-PrimaryButton, button.ak-PrimaryButton { background: transparent !important; background-color: transparent !important; border: 1px dashed rgba(148, 163, 184, 0.5) !important; color: inherit !important; box-shadow: none !important; }\n.ak-TextField, input.ak-TextField { background: transparent !important; background-color: transparent !important; border: 1px solid rgba(148, 163, 184, 0.3) !important; color: inherit !important; }\n.ak-Background { background: none !important; background-color: transparent !important; }\n.ak-Background > div[style*="background-image"], .ak-Background > .bg-cover { opacity: 0 !important; display: none !important; }\n\n`;
     }
 
     for (const elem of this.scopedCssElements()) {
-      if (elem.enabled && elem.code.trim()) {
+      if (elem.enabled) {
         if (elem.removeOriginalStyles) {
           const resetRules = this.getBlockResetRules(elem.id);
           if (resetRules) {
             combined += `/* Reset original styles for ${elem.name} */\n${resetRules}\n\n`;
           }
         }
-        combined += `${elem.code}\n\n`;
+        if (elem.code && elem.code.trim()) {
+          combined += `/* Custom CSS for ${elem.name} */\n${elem.code}\n\n`;
+        }
       }
     }
 
@@ -862,21 +1062,27 @@ export class LoginBrandingEditComponent {
   getBlockResetRules(elemId: string): string {
     switch (elemId) {
       case 'background':
-        return `.ak-Background { background: none !important; background-color: transparent !important; }`;
+        return `.ak-Background { background: none !important; background-color: transparent !important; }\n.ak-Background > div[style*="background-image"], .ak-Background > .bg-cover, .ak-Background > .absolute.inset-0 { opacity: 0 !important; display: none !important; }`;
       case 'header':
-        return `.ak-Header, .ak-Title, .ak-Subtitle { color: inherit !important; font-family: inherit !important; margin: 0 !important; }`;
+        return `.ak-Header, .ak-Title, .ak-Subtitle { color: inherit !important; font-family: inherit !important; margin: 0 !important; font-size: inherit !important; font-weight: normal !important; text-transform: none !important; letter-spacing: normal !important; }`;
       case 'card':
-        return `.ak-Card { background: transparent !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; backdrop-filter: none !important; }`;
+        return `.ak-Card, .auth-card.ak-Card { background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; border-radius: 0 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }`;
       case 'primary-button':
-        return `.ak-PrimaryButton { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: none !important; color: inherit !important; border-radius: 0 !important; }`;
+        return `.ak-PrimaryButton, button.ak-PrimaryButton { background: transparent !important; background-color: transparent !important; background-image: none !important; box-shadow: none !important; border: 1px dashed rgba(148, 163, 184, 0.5) !important; color: inherit !important; border-radius: 4px !important; }`;
       case 'secondary-button':
-        return `.ak-SecondaryButton { background: transparent !important; box-shadow: none !important; border: none !important; color: inherit !important; }`;
+        return `.ak-SecondaryButton, button.ak-SecondaryButton { background: transparent !important; background-color: transparent !important; box-shadow: none !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; color: inherit !important; border-radius: 4px !important; }`;
       case 'text-field':
-        return `.ak-TextField, .ak-TextField input { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; }`;
+        return `.ak-TextField, input.ak-TextField { background: transparent !important; background-color: transparent !important; border: 1px solid rgba(148, 163, 184, 0.3) !important; box-shadow: none !important; color: inherit !important; border-radius: 4px !important; }`;
       case 'label':
-        return `.ak-Label { color: inherit !important; font-weight: normal !important; text-transform: none !important; }`;
+        return `.ak-Label, label.ak-Label { color: inherit !important; font-weight: normal !important; text-transform: none !important; letter-spacing: normal !important; }`;
       case 'callout':
-        return `.ak-Callout { background: transparent !important; border: none !important; box-shadow: none !important; }`;
+        return `.ak-Callout, div.ak-Callout { background: transparent !important; background-color: transparent !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; box-shadow: none !important; color: inherit !important; }`;
+      case 'org-selection':
+        return `.ak-OrganizationSelection, .ak-OrgItem { background: transparent !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; box-shadow: none !important; }`;
+      case 'sso-trigger':
+        return `.ak-SSOProfileTrigger { background: transparent !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; box-shadow: none !important; }`;
+      case 'sso-menu':
+        return `.ak-SSOProfileMenu { background: transparent !important; box-shadow: none !important; border: 1px dashed rgba(148, 163, 184, 0.4) !important; }`;
       default:
         return '';
     }
@@ -892,13 +1098,13 @@ export class LoginBrandingEditComponent {
   }
 
   resetAllOverrides() {
-    if (confirm('Reset all scoped CSS overrides to empty state?')) {
+    if (confirm('Clear all element CSS classes and reset to empty state?')) {
       this.scopedCssElements.update(elements =>
-        elements.map(el => ({ ...el, code: '  ' }))
+        elements.map(el => ({ ...el, code: '', removeOriginalStyles: false }))
       );
       this.removeOriginalStyles.set(false);
       this.syncCombinedCss();
-      this.lms.showToast('All element CSS overrides reset', 'info', 2000, 'Reset Done');
+      this.lms.showToast('All element CSS classes cleared', 'info', 2000, 'Reset Done');
     }
   }
 
@@ -1228,12 +1434,6 @@ export class LoginBrandingEditComponent {
         actionText: f.announcementBanner?.actionText || 'Details'
       }
     }));
-  }
-
-  // Quick fill demo credentials in preview
-  fillDemoUser(email: string, roleName: string) {
-    this.testEmail.set(email);
-    this.lms.showToast(`Populated credentials for ${roleName}`, 'info', 1800, 'Demo Autofill');
   }
 
   setViewportMode(mode: 'fullscreen' | 'desktop' | 'tablet' | 'mobile') {
