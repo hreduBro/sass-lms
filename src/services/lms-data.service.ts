@@ -100,8 +100,10 @@ import {
   BadgePermissions,
   BadgeMapping,
   BadgeTargetType,
+  EarnedBadge,
   INITIAL_BADGE_TEMPLATES,
-  INITIAL_BADGE_MAPPINGS
+  INITIAL_BADGE_MAPPINGS,
+  INITIAL_EARNED_BADGES
 } from '../models/badge-template.model';
 import {
   Assessment,
@@ -177,7 +179,11 @@ import {
   TranscriptReleaseState,
   TranscriptExportJob,
   TranscriptConfig,
-  INITIAL_TRANSCRIPTS
+  TranscriptTemplate,
+  TranscriptPlaceholderTokenDef,
+  TRANSCRIPT_PLACEHOLDER_TOKENS,
+  INITIAL_TRANSCRIPTS,
+  INITIAL_TRANSCRIPT_TEMPLATES
 } from '../models/transcript.model';
 import {
   Skill,
@@ -2548,6 +2554,36 @@ export class LmsDataService {
   // Badge Templates Store
   badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
   badgeMappings = signal<BadgeMapping[]>(INITIAL_BADGE_MAPPINGS);
+  traineeBadges = signal<EarnedBadge[]>(INITIAL_EARNED_BADGES);
+
+  activeUserEarnedBadges = computed<EarnedBadge[]>(() => {
+    const user = this.currentUser();
+    const all = this.traineeBadges();
+    if (!user) return all;
+    // Match by user ID or email or fallback to all seeded badges for the active demo profile
+    const userBadges = all.filter(b => b.userId === user.id || b.userEmail === user.email);
+    return userBadges.length > 0 ? userBadges : all;
+  });
+
+  activeUserBadgeLmsList = computed<{ id: string; name: string; domain?: string; count: number }[]>(() => {
+    const badges = this.activeUserEarnedBadges();
+    const lmsMap = new Map<string, { id: string; name: string; domain?: string; count: number }>();
+    
+    for (const b of badges) {
+      const existing = lmsMap.get(b.lmsId);
+      if (existing) {
+        existing.count++;
+      } else {
+        lmsMap.set(b.lmsId, {
+          id: b.lmsId,
+          name: b.lmsName,
+          domain: b.lmsDomain,
+          count: 1
+        });
+      }
+    }
+    return Array.from(lmsMap.values());
+  });
 
   // Login Branding Store (System Admin Scope)
   loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
@@ -3016,6 +3052,10 @@ export class LmsDataService {
   courseEntities = signal<CourseEntity[]>(INITIAL_COURSES_ENTITIES);
   instructorsRepo = signal<InstructorRef[]>(MOCK_INSTRUCTORS_REPO);
   creatorsRepo = signal<CreatorRef[]>(MOCK_CREATORS_REPO);
+
+  // Transcript Drag-and-Drop Templates State
+  transcriptTemplates = signal<TranscriptTemplate[]>(INITIAL_TRANSCRIPT_TEMPLATES);
+  activeTranscriptTemplateId = signal<string>('tpl-transcript-default');
 
   // Course Permissions capability object (§4.4)
   coursePermissions = computed<CoursePermissions>(() => {
@@ -8066,6 +8106,100 @@ export class LmsDataService {
     URL.revokeObjectURL(url);
   }
 
+  // -------------------------------------------------------------
+  // TRANSCRIPT DRAG-AND-DROP TEMPLATE STUDIO & REGISTRY
+  // -------------------------------------------------------------
+
+  getTranscriptTemplates(): TranscriptTemplate[] {
+    return this.transcriptTemplates();
+  }
+
+  getTranscriptTemplateById(id: string): TranscriptTemplate | undefined {
+    return this.transcriptTemplates().find(t => t.id === id);
+  }
+
+  saveTranscriptTemplate(template: TranscriptTemplate): TranscriptTemplate {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const user = this.activeUser();
+
+    const existing = this.transcriptTemplates().find(t => t.id === template.id);
+
+    if (existing) {
+      const updated: TranscriptTemplate = {
+        ...template,
+        updatedAt: formatted
+      };
+
+      this.transcriptTemplates.update(list => list.map(t => t.id === template.id ? updated : t));
+      this.showToast(`Transcript template "${updated.name}" successfully updated.`, 'success', 3500, 'Template Updated');
+      this.logAction('Transcript Template Saved', `Updated template ${updated.name} (ID: ${updated.id})`, 'info');
+      return updated;
+    } else {
+      const newTemplate: TranscriptTemplate = {
+        ...template,
+        id: template.id || `tpl-transcript-${Date.now()}`,
+        createdBy: user.name,
+        createdAt: formatted,
+        updatedAt: formatted,
+        usageCount: 0
+      };
+
+      this.transcriptTemplates.update(list => [newTemplate, ...list]);
+      this.showToast(`New transcript template "${newTemplate.name}" created.`, 'success', 3500, 'Template Created');
+      this.logAction('Transcript Template Created', `Created drag-and-drop template ${newTemplate.name}`, 'success');
+      return newTemplate;
+    }
+  }
+
+  deleteTranscriptTemplate(id: string): boolean {
+    const target = this.transcriptTemplates().find(t => t.id === id);
+    if (!target) return false;
+
+    if (target.isDefault) {
+      this.showToast('Cannot delete the default active transcript template.', 'error', 3500, 'Action Blocked');
+      return false;
+    }
+
+    this.transcriptTemplates.update(list => list.filter(t => t.id !== id));
+    this.showToast(`Transcript template "${target.name}" removed.`, 'info', 3000, 'Template Deleted');
+    this.logAction('Transcript Template Deleted', `Deleted template ${target.name} (ID: ${id})`, 'warning');
+    return true;
+  }
+
+  duplicateTranscriptTemplate(id: string): TranscriptTemplate | null {
+    const target = this.transcriptTemplates().find(t => t.id === id);
+    if (!target) return null;
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const user = this.activeUser();
+
+    const clone: TranscriptTemplate = {
+      ...JSON.parse(JSON.stringify(target)),
+      id: `tpl-transcript-${Date.now()}`,
+      name: `${target.name} (Copy)`,
+      isDefault: false,
+      createdBy: user.name,
+      createdAt: formatted,
+      updatedAt: formatted,
+      usageCount: 0
+    };
+
+    this.transcriptTemplates.update(list => [clone, ...list]);
+    this.showToast(`Duplicated template "${target.name}" as a new draft.`, 'success', 3500, 'Template Duplicated');
+    return clone;
+  }
+
+  setDefaultTranscriptTemplate(id: string): void {
+    this.transcriptTemplates.update(list => list.map(t => ({
+      ...t,
+      isDefault: t.id === id
+    })));
+    this.activeTranscriptTemplateId.set(id);
+    this.showToast('Default transcript template updated.', 'success', 3000, 'Default Set');
+  }
+
   // --------------------------------------------------------------------------
   // SKILL MAPPING MODULE METHODS (BRD §4.10)
   // --------------------------------------------------------------------------
@@ -8118,13 +8252,20 @@ export class LmsDataService {
       this.showToast(`Skill "${skillData.name}" has been saved successfully. Changes propagated to all mapped learning elements.`, 'success', 3500, 'Skill Updated');
       return updatedSkill!;
     } else {
-      // Create new skill
+      // Create new skill - guard uniqueness
+      const trimmedName = (skillData.name || '').trim();
+      const existing = this.skills().find(s => s.name.trim().toLowerCase() === trimmedName.toLowerCase());
+      if (existing) {
+        this.showToast('Skill name must be unique.', 'error', 4000, 'Duplicate Skill Name');
+        return existing;
+      }
+
       const newId = `skl-${Date.now()}`;
       const codeIndex = String(this.skills().length + 1).padStart(4, '0');
       const newSkill: Skill = {
         skillId: newId,
         skillCode: skillData.skillCode || `SKL-${codeIndex}`,
-        name: skillData.name || 'New Skill',
+        name: trimmedName || 'New Skill',
         description: skillData.description || '',
         category: skillData.category || 'Technical',
         clusterId: skillData.clusterId,
@@ -8671,6 +8812,35 @@ export class LmsDataService {
 
   getElementsMappedToBadge(templateId: string): BadgeMapping[] {
     return this.badgeMappings().filter(m => m.templateId === templateId);
+  }
+
+  // =========================================================================
+  // TRAINEE BADGES & LMS PROVENANCE
+  // =========================================================================
+  getTraineeBadgesForUser(userId: string): EarnedBadge[] {
+    return this.traineeBadges().filter(b => b.userId === userId);
+  }
+
+  getTraineeBadgesForLms(lmsId: string, userId?: string): EarnedBadge[] {
+    const list = userId ? this.getTraineeBadgesForUser(userId) : this.activeUserEarnedBadges();
+    return list.filter(b => b.lmsId === lmsId);
+  }
+
+  awardBadgeToTrainee(newBadge: Omit<EarnedBadge, 'id' | 'serialNumber' | 'verified' | 'status'> & { id?: string; serialNumber?: string }): EarnedBadge {
+    const id = newBadge.id || `EB-${Date.now().toString().slice(-6)}`;
+    const serial = newBadge.serialNumber || `BDG-${(newBadge.lmsId || 'SYS').replace(/[^a-zA-Z0-9]/g, '')}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    const completeBadge: EarnedBadge = {
+      ...newBadge,
+      id,
+      serialNumber: serial,
+      status: 'active',
+      verified: true
+    };
+
+    this.traineeBadges.update(list => [completeBadge, ...list]);
+    this.showToast(`Awarded "${completeBadge.name}" from ${completeBadge.lmsName}!`, 'success', 3500, 'Badge Awarded');
+    return completeBadge;
   }
 
   // =========================================================================

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { 
@@ -342,11 +342,25 @@ export class SkillGridComponent implements OnInit {
     this.initForms();
   }
 
+  private uniqueSkillNameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const val = control.value.toString().trim().toLowerCase();
+      if (!val) return null;
+      const editingId = this.editingSkill()?.skillId;
+      const skills = this.lmsData.skills();
+      const duplicate = skills.some(s => 
+        s.name.trim().toLowerCase() === val && (!editingId || s.skillId !== editingId)
+      );
+      return duplicate ? { notUnique: true } : null;
+    };
+  }
+
   private initForms() {
     this.skillForm = this.fb.group({
       skillId: [''],
       skillCode: [''],
-      name: ['', [Validators.required, Validators.maxLength(99)]],
+      name: ['', [Validators.required, Validators.maxLength(99), this.uniqueSkillNameValidator()]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       category: ['Technical', Validators.required],
       clusterId: [''],
@@ -469,6 +483,7 @@ export class SkillGridComponent implements OnInit {
       levelAdvanced: true,
       levelExpert: true
     });
+    this.skillForm.get('name')?.updateValueAndValidity();
     this.formSubmitted.set(false);
     this.formError.set(null);
     this.isSkillModalOpen.set(true);
@@ -491,6 +506,7 @@ export class SkillGridComponent implements OnInit {
       levelAdvanced: levels.includes('Advanced'),
       levelExpert: levels.includes('Expert')
     });
+    this.skillForm.get('name')?.updateValueAndValidity();
     this.formSubmitted.set(false);
     this.formError.set(null);
     this.isSkillModalOpen.set(true);
@@ -528,12 +544,35 @@ export class SkillGridComponent implements OnInit {
 
   saveSkill() {
     this.formSubmitted.set(true);
-    if (this.skillForm.invalid) {
-      this.formError.set('Please fill in all mandatory fields with valid values.');
+
+    const val = this.skillForm.value;
+    const trimmedName = (val.name || '').trim();
+
+    // Check duplicate skill name against existing skills
+    const editing = this.editingSkill();
+    const existingSkills = this.lmsData.skills();
+    const isDuplicate = existingSkills.some(s => 
+      s.name.trim().toLowerCase() === trimmedName.toLowerCase() && 
+      (!editing || s.skillId !== editing.skillId)
+    );
+
+    if (isDuplicate) {
+      this.skillForm.get('name')?.setErrors({ notUnique: true });
+      this.formError.set('Skill name must be unique.');
       return;
     }
 
-    const val = this.skillForm.value;
+    if (this.skillForm.invalid) {
+      if (this.skillForm.get('name')?.hasError('notUnique')) {
+        this.formError.set('Skill name must be unique.');
+      } else if (this.skillForm.get('name')?.hasError('required')) {
+        this.formError.set('Skill name is required.');
+      } else {
+        this.formError.set('Please fill in all mandatory fields with valid values.');
+      }
+      return;
+    }
+
     const levels: string[] = [];
     if (val.levelBeginner) levels.push('Beginner');
     if (val.levelIntermediate) levels.push('Intermediate');
@@ -545,12 +584,10 @@ export class SkillGridComponent implements OnInit {
       return;
     }
 
-    const editing = this.editingSkill();
-
     this.lmsData.saveSkill({
       skillId: editing?.skillId,
       skillCode: editing?.skillCode,
-      name: val.name.trim(),
+      name: trimmedName,
       description: val.description.trim(),
       category: val.category,
       clusterId: val.clusterId || undefined,

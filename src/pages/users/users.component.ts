@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { User, UserRole } from '../../models/lms.model';
+import { EarnedBadge } from '../../models/badge-template.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 
@@ -190,6 +191,10 @@ export class UsersComponent {
     if (role === 'lms_admin' || role === 'tenant_admin') return 'LMS Admin';
     if (role === 'instructor') return 'Instructor';
     return 'Learner';
+  }
+
+  getUserEarnedBadges(userId: string): EarnedBadge[] {
+    return this.lms.getTraineeBadgesForUser(userId);
   }
 
   getRoleBadgeClass(role: string): string {

@@ -80,6 +80,8 @@ export class AssessmentGridComponent {
 
   typeOptions: SelectOption[] = [
     { value: 'all', label: 'All Assessment Types' },
+    { value: 'pre-test', label: 'Pre-test (Diagnostic)', icon: 'flag' },
+    { value: 'post-test', label: 'Post-test (Summative)', icon: 'verified' },
     { value: 'exam', label: 'Exam (Formal)', icon: 'school' },
     { value: 'quiz', label: 'Quiz (Formative)', icon: 'quiz' },
     { value: 'assignment', label: 'Assignment / Project', icon: 'assignment' },

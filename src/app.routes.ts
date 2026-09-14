@@ -236,6 +236,13 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
   { 
+    path: 'courses/templates/preview/:id', 
+    loadComponent: () => import('./pages/course-templates/template-preview/course-template-preview.component').then(m => m.CourseTemplatePreviewComponent), 
+    title: 'Blueprint Specification Preview | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  { 
     path: 'courses/templates/dashboard', 
     component: CourseTemplateDashboardComponent, 
     title: 'Course Templates Dashboard | Multi-Tenant LMS',
@@ -346,9 +353,23 @@ export const routes: Routes = [
   {
     path: 'certificates/badges',
     component: BadgeGridComponent,
+    title: 'Digital Badges & Credentials | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'certificates/badges/earned',
+    component: BadgeGridComponent,
+    title: 'Earned Badges | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'certificates/badges/repository',
+    component: BadgeGridComponent,
     title: 'Badge Repository | Multi-Tenant LMS',
     canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
   },
   {
     path: 'certificates/badges/dashboard',
@@ -365,6 +386,8 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
   { path: 'badges', redirectTo: 'certificates/badges', pathMatch: 'full' },
+  { path: 'badges/earned', redirectTo: 'certificates/badges/earned', pathMatch: 'full' },
+  { path: 'badges/repository', redirectTo: 'certificates/badges/repository', pathMatch: 'full' },
   { path: 'badges/dashboard', redirectTo: 'certificates/badges/dashboard', pathMatch: 'full' },
   { path: 'badges/create', redirectTo: 'certificates/badges/create', pathMatch: 'full' },
 

@@ -425,20 +425,32 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
-    label: 'Badge Templates',
+    label: 'Badges & Credentials',
     route: '/certificates/badges',
     icon: 'military_tech',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Badges',
-    description: 'Design, manage, and track OpenBadges digital credentials',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'OpenBadges',
+    description: 'Trainee earned badges with LMS provenance and template repository',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
       {
+        label: 'Earned Badges (LMS Origins)',
+        route: '/certificates/badges',
+        queryParams: { tab: 'earned' },
+        icon: 'verified',
+        badge: 'Trainee',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'Verifiable credentials categorized by originating enterprise LMS portal',
+        matchPatterns: ['/certificates/badges?tab=earned', '/certificates/badges/earned', '/badges/earned']
+      },
+      {
         label: 'Badge Repository',
         route: '/certificates/badges',
+        queryParams: { tab: 'templates' },
         icon: 'grid_view',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Browse, filter & manage digital badge templates',
-        matchPatterns: ['/certificates/badges', '/badges', '/certificates/badges/view/**']
+        matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
       },
       {
         label: 'Badge Dashboard',
@@ -539,17 +551,28 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
   const cleanChildRoute = childRoute.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
-  // Handle items with specific tab query parameters (e.g., Competency Clusters)
+  // Handle items with specific tab query parameters (e.g., Competency Clusters, Earned Badges)
   if (childQueryParams && childQueryParams['tab']) {
     const tabVal = childQueryParams['tab'];
     if (currentUrl.includes(`tab=${tabVal}`) || currentUrl.includes(`${childRoute}/${tabVal}`)) {
       return true;
     }
+    // Default tab when no query parameter is in URL
+    if (childRoute === '/certificates/badges' && tabVal === 'earned' && cleanUrl === '/certificates/badges' && !currentUrl.includes('tab=')) {
+      return true;
+    }
+    return false;
   }
 
   // If this child has no queryParams.tab, check if another tab query param is present in current URL
   if (childRoute === '/skills' && (!childQueryParams || !childQueryParams['tab'])) {
     if (currentUrl.includes('tab=clusters') || currentUrl.includes('tab=mappings') || currentUrl.includes('/skills/clusters') || currentUrl.includes('/skills/mappings')) {
+      return false;
+    }
+  }
+
+  if (childRoute === '/certificates/badges' && (!childQueryParams || !childQueryParams['tab'])) {
+    if (currentUrl.includes('tab=earned') || currentUrl.includes('tab=templates')) {
       return false;
     }
   }

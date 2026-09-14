@@ -78,6 +78,9 @@ export interface CourseContentItem {
   authors: ContentAuthor[]; // Authors tagged at content level (BRD §4.4.2)
   instructorTags?: InstructorRef[]; // Tagged directly on content level (content-wise)
   order: number;
+  isSubscriptionRequired?: boolean; // Subscription gating flag
+  subscriptionTier?: 'all_plans' | 'pro_plus' | 'enterprise'; // Subscription tier requirement
+  accessModel?: 'standard_enrolled' | 'subscription_only' | 'free_preview'; // Subscription model
 }
 
 export interface CourseStructureNode {
@@ -99,6 +102,7 @@ export interface CourseStructureConfig {
 export interface CourseReviewsConfig {
   contentReviewsEnabled: boolean;
   instructorReviewsEnabled: boolean;
+  authorReviewsEnabled?: boolean; // Author Review
   scale?: string; // finalized at SRS (e.g. "5-star-likert", "csat-10")
   allowComments?: boolean;
 }
@@ -207,6 +211,15 @@ export interface LayerLabelPreset {
   icon: string;
   description: string;
   badge?: string;
+  previewImage?: string;
+  previewTheme?: {
+    accentColor: string;
+    bgGradient: string;
+    sampleRoot: string;
+    sampleMid?: string;
+    sampleLeaf?: string;
+    sampleContent: { title: string; type: 'video' | 'quiz' | 'doc' | 'lab'; duration: string; isSubscription?: boolean }[];
+  };
 }
 
 export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
@@ -217,7 +230,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Chapter', 'Topic', 'Lesson'],
     icon: 'auto_stories',
     description: 'Traditional 3-tier structure for comprehensive education & courses',
-    badge: '3 Tiers'
+    badge: '3 Tiers',
+    previewImage: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'indigo',
+      bgGradient: 'from-indigo-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Chapter 1: Foundational Principles & Scope',
+      sampleMid: 'Topic 1.1: Core Operational Standards',
+      sampleLeaf: 'Lesson 1.1.1: Regulatory Guidelines & Governance',
+      sampleContent: [
+        { title: 'Governance Overview & Video Lecture', type: 'video', duration: '18 min' },
+        { title: 'Standard Operating Procedures Document', type: 'doc', duration: '12 min' },
+        { title: 'Checkpoint Knowledge Check (10 Questions)', type: 'quiz', duration: '15 min' }
+      ]
+    }
   },
   { 
     name: 'Academic 3-Tier (Module / Section / Unit)', 
@@ -226,7 +252,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Module', 'Section', 'Unit'],
     icon: 'school',
     description: 'Formal academic hierarchy for semester-based curricula & syllabus units',
-    badge: '3 Tiers'
+    badge: '3 Tiers',
+    previewImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'blue',
+      bgGradient: 'from-blue-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Module 1: Microeconomic Systems & Analysis',
+      sampleMid: 'Section 1.2: Quantitative Risk Modeling',
+      sampleLeaf: 'Unit 1.2.1: Portfolio Diversification Metrics',
+      sampleContent: [
+        { title: 'Theoretical Framework Video Presentation', type: 'video', duration: '25 min' },
+        { title: 'Interactive Risk Sandbox Lab', type: 'lab', duration: '30 min', isSubscription: true },
+        { title: 'Mid-term Formative Assessment', type: 'quiz', duration: '20 min' }
+      ]
+    }
   },
   { 
     name: 'Corporate 3-Tier (Stage / Milestone / Activity)', 
@@ -235,7 +274,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Stage', 'Milestone', 'Activity'],
     icon: 'business_center',
     description: 'Progress-driven tracking for employee training and compliance journeys',
-    badge: '3 Tiers'
+    badge: '3 Tiers',
+    previewImage: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'purple',
+      bgGradient: 'from-purple-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Stage 1: Enterprise Onboarding & Security',
+      sampleMid: 'Milestone 1.1: Data Privacy & Ethics Clearance',
+      sampleLeaf: 'Activity 1.1.1: GDPR Compliance Simulation',
+      sampleContent: [
+        { title: 'Information Security Briefing', type: 'video', duration: '15 min' },
+        { title: 'Phishing Defense Interactive Simulation', type: 'lab', duration: '20 min' },
+        { title: 'Annual Certification Exam (Graded)', type: 'quiz', duration: '25 min' }
+      ]
+    }
   },
   { 
     name: 'Streamlined 2-Tier (Module / Lesson)', 
@@ -244,7 +296,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Module', 'Lesson'],
     icon: 'view_agenda',
     description: 'Standard 2-tier structure ideal for short to medium modular courses',
-    badge: '2 Tiers'
+    badge: '2 Tiers',
+    previewImage: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'teal',
+      bgGradient: 'from-teal-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Module 1: Accelerated Digital Transformation',
+      sampleMid: undefined,
+      sampleLeaf: 'Lesson 1.1: Cloud Infrastructure Strategy',
+      sampleContent: [
+        { title: 'Cloud Migration Architecture Video', type: 'video', duration: '14 min' },
+        { title: 'Hands-on Cloud CLI Lab Exercise', type: 'lab', duration: '25 min', isSubscription: true },
+        { title: 'Core Concepts Quick Quiz', type: 'quiz', duration: '10 min' }
+      ]
+    }
   },
   { 
     name: 'Sprint 2-Tier (Track / Session)', 
@@ -253,7 +318,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Track', 'Session'],
     icon: 'bolt',
     description: 'Fast-paced bootcamp tracks, workshop series, or technical sprints',
-    badge: '2 Tiers'
+    badge: '2 Tiers',
+    previewImage: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'amber',
+      bgGradient: 'from-amber-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Track 1: Full-Stack Engineering Bootcamp',
+      sampleMid: undefined,
+      sampleLeaf: 'Session 1.3: Real-Time WebSockets & Streaming',
+      sampleContent: [
+        { title: 'Live Coding Walkthrough Recording', type: 'video', duration: '35 min' },
+        { title: 'Project Repository Starter Code', type: 'doc', duration: '15 min' },
+        { title: 'Sprint Milestone Coding Challenge', type: 'quiz', duration: '40 min' }
+      ]
+    }
   },
   { 
     name: 'Simple 1-Tier (Module with Content)', 
@@ -262,7 +340,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Module'],
     icon: 'inventory_2',
     description: 'Single-tier container holding direct lessons, videos, and quizzes',
-    badge: '1 Tier'
+    badge: '1 Tier',
+    previewImage: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'emerald',
+      bgGradient: 'from-emerald-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Module 1: Essential Workplace Health & Safety',
+      sampleMid: undefined,
+      sampleLeaf: undefined,
+      sampleContent: [
+        { title: 'Facility Safety Protocols Video', type: 'video', duration: '12 min' },
+        { title: 'Emergency Evacuation Guidelines PDF', type: 'doc', duration: '8 min' },
+        { title: 'Mandatory Safety Evaluation Quiz', type: 'quiz', duration: '10 min' }
+      ]
+    }
   },
   { 
     name: 'Workshop 1-Tier (Session with Content)', 
@@ -271,7 +362,20 @@ export const LAYER_LABEL_PRESETS: LayerLabelPreset[] = [
     labels: ['Session'],
     icon: 'groups',
     description: 'Single-session or live lab workshop with direct learning activities',
-    badge: '1 Tier'
+    badge: '1 Tier',
+    previewImage: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80',
+    previewTheme: {
+      accentColor: 'rose',
+      bgGradient: 'from-rose-900/90 via-slate-900/95 to-slate-950',
+      sampleRoot: 'Session 1: Executive Leadership & Strategy Workshop',
+      sampleMid: undefined,
+      sampleLeaf: undefined,
+      sampleContent: [
+        { title: 'Keynote Address & Strategy Masterclass', type: 'video', duration: '45 min' },
+        { title: 'Executive Case Study Workbook', type: 'doc', duration: '20 min' },
+        { title: 'Strategic Action Plan Submission', type: 'quiz', duration: '30 min' }
+      ]
+    }
   }
 ];
 
@@ -494,6 +598,7 @@ export function summarizeCourseMetrics(course: CourseEntity) {
   let assessmentCount = 0;
   let manualGradingCount = 0;
   let autoGradingCount = 0;
+  let subscriptionCount = 0;
   let totalAuthorsCount = 0;
   const taggedInstructorsMap = new Map<string, InstructorRef>();
   const authorsMap = new Map<string, ContentAuthor>();
@@ -516,6 +621,9 @@ export function summarizeCourseMetrics(course: CourseEntity) {
             } else {
               autoGradingCount++;
             }
+          }
+          if (item.isSubscriptionRequired || item.accessModel === 'subscription_only') {
+            subscriptionCount++;
           }
           if (item.instructorTags) {
             for (const inst of item.instructorTags) {
@@ -540,6 +648,7 @@ export function summarizeCourseMetrics(course: CourseEntity) {
     assessmentCount,
     manualGradingCount,
     autoGradingCount,
+    subscriptionCount,
     uniqueInstructors: Array.from(taggedInstructorsMap.values()),
     uniqueAuthors: Array.from(authorsMap.values()),
     totalAuthorsCount

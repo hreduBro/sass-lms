@@ -10,6 +10,7 @@ import {
   TranscriptReleaseState
 } from '../../../models/transcript.model';
 import { TranscriptSheetComponent } from '../../../components/transcript-sheet/transcript-sheet.component';
+import { TranscriptTemplateDesignerComponent } from '../../../components/transcript-template-designer/transcript-template-designer.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
@@ -23,6 +24,7 @@ import { DataGridComponent, FilterSectionComponent } from '../../../components/d
     FormsModule, 
     RouterModule, 
     TranscriptSheetComponent, 
+    TranscriptTemplateDesignerComponent,
     CustomAvatarComponent, 
     CustomSelectComponent,
     KpiCardComponent,
@@ -64,6 +66,15 @@ import { DataGridComponent, FilterSectionComponent } from '../../../components/d
 
         <!-- Top-Right Action Buttons -->
         <div class="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            (click)="showDesignerModal.set(true)"
+            class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            title="Design and customize transcript template via drag-and-drop">
+            <span class="material-symbols-outlined text-base text-tenant-500">dashboard_customize</span>
+            <span>Design Template</span>
+          </button>
+
           <a 
             routerLink="/plans/dashboard"
             class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
@@ -314,7 +325,7 @@ import { DataGridComponent, FilterSectionComponent } from '../../../components/d
                   </th>
                   <th class="py-3 px-4">Trainee Identity</th>
                   <th class="py-3 px-3">Level</th>
-                  <th class="py-3 px-4">Curriculum Scope & Serial</th>
+                  <th class="py-3 px-4">Academic Scope & Serial</th>
                   <th class="py-3 px-4">Parent Plan</th>
                   <th class="py-3 px-3 text-center">Score / Result</th>
                   <th class="py-3 px-3 text-center">Status</th>
@@ -683,6 +694,13 @@ import { DataGridComponent, FilterSectionComponent } from '../../../components/d
         />
       }
 
+      <!-- Drag & Drop Transcript Template Designer Modal -->
+      @if (showDesignerModal()) {
+        <app-transcript-template-designer
+          (close)="showDesignerModal.set(false)"
+        />
+      }
+
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -690,6 +708,8 @@ import { DataGridComponent, FilterSectionComponent } from '../../../components/d
 export class TranscriptGridComponent {
   lms = inject(LmsDataService);
   private router = inject(Router);
+
+  showDesignerModal = signal<boolean>(false);
 
   // Search & Filter State Signals
   searchTerm = signal<string>('');

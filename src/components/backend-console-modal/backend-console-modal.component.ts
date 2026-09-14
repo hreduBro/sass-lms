@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { CustomSelectComponent, SelectOption } from '../custom-select/custom-select.component';
 import { LmsApiService, BackendHealth } from '../../services/lms-api.service';
 import { LmsDataService } from '../../services/lms-data.service';
 import { NotificationService } from '../../services/notification.service';
@@ -10,7 +11,7 @@ import { StatusIllustrationComponent } from '../status-illustration/status-illus
 
 @Component({
   selector: 'app-backend-console-modal',
-  imports: [CommonModule, FormsModule, RouterModule, StatusIllustrationComponent],
+  imports: [CommonModule, FormsModule, RouterModule, StatusIllustrationComponent, CustomSelectComponent],
   template: `
     <div (click)="onBackdropClick($event)" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
       <div (click)="$event.stopPropagation()" class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-4xl p-6 animate-modal-card max-h-[92vh] flex flex-col">
@@ -518,14 +519,17 @@ import { StatusIllustrationComponent } from '../status-illustration/status-illus
                 <!-- Live Switch Tenant -->
                 <div class="flex items-center gap-2 shrink-0">
                   <span class="text-[11px] font-semibold text-text-secondary">Active Tenant:</span>
-                  <select 
-                    [value]="lms.activeTenantId()" 
-                    (change)="onTenantChange($event)"
-                    class="text-xs py-1.5 px-2.5 rounded-xl bg-base-100 border border-base-300 text-text-primary font-semibold focus:outline-none focus:border-tenant-500 cursor-pointer">
-                    @for (t of lms.tenants(); track t.id) {
-                      <option [value]="t.id">{{ t.name }}</option>
-                    }
-                  </select>
+                  <div class="w-48 sm:w-56">
+                    <app-custom-select
+                      [options]="tenantOptions()"
+                      [value]="lms.activeTenantId()"
+                      (valueChange)="onTenantChange($event)"
+                      [clearable]="false"
+                      [searchable]="false"
+                      size="sm"
+                      placeholder="Select Workspace..."
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -674,6 +678,14 @@ export class BackendConsoleModalComponent {
   close = output<void>();
 
   activeTab = signal<'endpoints' | 'interceptor' | 'dialogs' | 'status-screens'>('endpoints');
+
+  tenantOptions = computed<SelectOption[]>(() => {
+    return this.lms.tenants().map(t => ({
+      value: t.id,
+      label: t.name,
+      icon: 'corporate_fare'
+    }));
+  });
   selectedEndpoint = signal<'health' | 'tenants' | 'courses' | 'analytics' | 'ai'>('health');
   isLoading = signal<boolean>(false);
   isRefreshing = signal<boolean>(false);
@@ -922,8 +934,7 @@ export class BackendConsoleModalComponent {
     });
   }
 
-  onTenantChange(event: Event) {
-    const val = (event.target as HTMLSelectElement).value;
+  onTenantChange(val: string) {
     if (val) {
       this.lms.switchTenant(val);
       this.lms.showToast(`Switched active tenant to ${this.lms.activeTenant().name}`, 'success');

@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
 import { Certificate, Course, CourseEnrollment, User } from '../../models/lms.model';
+import { EarnedBadge } from '../../models/badge-template.model';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent, SelectOption } from '../../components/custom-select/custom-select.component';
 
@@ -576,45 +577,409 @@ interface ProfileTab {
         </div>
       }
 
-      <!-- TAB 4: GAMIFICATION & BADGES -->
+      <!-- TAB 4: GAMIFICATION & BADGES WITH LMS PROVENANCE -->
       @if (activeTab() === 'badges') {
         <div class="space-y-6">
-          <div class="bg-base-100 p-5 rounded-3xl border border-base-300 shadow-sm flex items-center justify-between">
-            <div>
-              <h3 class="font-bold text-base text-text-primary">Skills Mastery & Badges Showcase</h3>
-              <p class="text-xs text-text-secondary">Milestone badges earned through quiz perfection and learning streaks</p>
+          
+          <!-- Top Telemetry & Banner -->
+          <div class="bg-base-100 p-6 rounded-3xl border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px]">military_tech</span>
+                  Trainee Credentials Portfolio
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-mono font-semibold">
+                  OpenBadges 2.0 Verified
+                </span>
+              </div>
+              <h3 class="font-bold text-lg text-text-primary">Skills Mastery & LMS Origin Badges</h3>
+              <p class="text-xs text-text-secondary">
+                Verifiable achievement badges earned across connected enterprise LMS portals. Filter by originating LMS to review issuance provenance.
+              </p>
             </div>
-            <div class="flex items-center gap-2 bg-amber-500/10 px-3.5 py-1.5 rounded-2xl border border-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-xs">
-              <span class="material-symbols-outlined text-base">emoji_events</span>
-              <span>Level 4 Scholar</span>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center gap-3 shrink-0 flex-wrap">
+              <div class="px-3.5 py-2 rounded-2xl bg-base-200 border border-base-300 text-center">
+                <div class="text-sm font-black text-amber-600 dark:text-amber-400 font-mono">{{ filteredTraineeBadges().length }}</div>
+                <div class="text-[10px] text-text-secondary font-semibold">Badges Shown</div>
+              </div>
+              <div class="px-3.5 py-2 rounded-2xl bg-base-200 border border-base-300 text-center">
+                <div class="text-sm font-black text-tenant-600 dark:text-tenant-400 font-mono">{{ distinctLmsBadgesList().length - 1 }}</div>
+                <div class="text-[10px] text-text-secondary font-semibold">Origin LMSs</div>
+              </div>
+              <div class="px-3.5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
+                <div class="text-sm font-black text-amber-700 dark:text-amber-300 font-mono">{{ activeUser().points || 2150 }} XP</div>
+                <div class="text-[10px] text-amber-800 dark:text-amber-300 font-semibold">Mastery Score</div>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            @for (badge of allAvailableBadges; track badge.name) {
+          <!-- LMS ORIGIN TABS & FILTER BAR -->
+          <div class="bg-base-100 p-4 rounded-3xl border border-base-300 shadow-sm space-y-3">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <span class="text-xs font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-tenant-500">domain</span>
+                Filter by Originating LMS:
+              </span>
+
+              <!-- Search Filter -->
+              <div class="relative min-w-[220px]">
+                <span class="material-symbols-outlined absolute left-3 top-2 text-text-secondary text-sm">search</span>
+                <input 
+                  type="text" 
+                  [(ngModel)]="badgeSearchQuery"
+                  placeholder="Search badges, skills, criteria..." 
+                  class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs text-text-primary focus:outline-none focus:border-tenant-500 transition-colors" />
+              </div>
+            </div>
+
+            <!-- LMS Tab Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              @for (lmsTab of distinctLmsBadgesList(); track lmsTab.id) {
+                <button
+                  type="button"
+                  (click)="selectedLmsFilter.set(lmsTab.id)"
+                  class="px-3.5 py-2 rounded-2xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all cursor-pointer border"
+                  [class]="selectedLmsFilter() === lmsTab.id 
+                    ? 'bg-tenant-500 text-white border-tenant-500 shadow-xs' 
+                    : 'bg-base-200 hover:bg-base-300 text-text-primary border-base-300'">
+                  <span class="material-symbols-outlined text-sm">
+                    {{ lmsTab.id === 'all' ? 'hub' : 'school' }}
+                  </span>
+                  <span>{{ lmsTab.name }}</span>
+                  <span 
+                    class="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold"
+                    [class]="selectedLmsFilter() === lmsTab.id ? 'bg-white/20 text-white' : 'bg-base-300 text-text-secondary'">
+                    {{ lmsTab.count }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- BADGES GRID -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (badge of filteredTraineeBadges(); track badge.id) {
               <div 
-                class="p-5 rounded-3xl border text-center space-y-3 transition-all flex flex-col items-center justify-between"
-                [class]="hasBadge(badge.name) 
-                  ? 'bg-base-100 border-tenant-500/40 shadow-sm' 
-                  : 'bg-base-200/50 border-base-300/60 opacity-60 grayscale'">
+                class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between space-y-4 group">
                 
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md"
-                     [class]="hasBadge(badge.name) ? badge.bgClass : 'bg-base-300 text-text-secondary'">
-                  <span class="material-symbols-outlined text-3xl">{{ badge.icon }}</span>
+                <div class="space-y-3.5">
+                  <!-- LMS Origin Header Pill -->
+                  <div class="flex items-center justify-between gap-2 border-b border-base-300/80 pb-2.5">
+                    <div class="flex items-center gap-1.5 min-w-0" title="Issuing LMS">
+                      <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 shrink-0">domain</span>
+                      <span class="text-[11px] font-bold text-tenant-700 dark:text-tenant-300 truncate">
+                        {{ badge.lmsName }}
+                      </span>
+                    </div>
+
+                    <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                      {{ badge.level }}
+                    </span>
+                  </div>
+
+                  <!-- Badge Visual & Title Info -->
+                  <div class="flex items-start gap-3.5">
+                    <!-- SVG Emblem -->
+                    <div class="w-16 h-16 rounded-2xl bg-base-200 border border-base-300 p-1 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform overflow-hidden relative">
+                      @if (badge.emblem.baseShape === 'Shield') {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <path d="M50 5 L90 20 V50 C90 75 50 95 50 95 C50 95 10 75 10 50 V20 Z" [attr.fill]="badge.emblem.fillColor" [attr.stroke]="badge.emblem.accentColor" stroke-width="4"/>
+                        </svg>
+                      } @else if (badge.emblem.baseShape === 'Circle') {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor" [attr.stroke]="badge.emblem.accentColor" stroke-width="5"/>
+                        </svg>
+                      } @else if (badge.emblem.baseShape === 'Hexagon') {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <polygon points="50,5 92,26 92,74 50,95 8,74 8,26" [attr.fill]="badge.emblem.fillColor" [attr.stroke]="badge.emblem.accentColor" stroke-width="4"/>
+                        </svg>
+                      } @else if (badge.emblem.baseShape === 'Star') {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <polygon points="50,4 64,34 96,38 72,60 79,92 50,75 21,92 28,60 4,38 36,34" [attr.fill]="badge.emblem.fillColor" [attr.stroke]="badge.emblem.accentColor" stroke-width="3"/>
+                        </svg>
+                      } @else if (badge.emblem.baseShape === 'Rosette') {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <circle cx="50" cy="50" r="44" [attr.fill]="badge.emblem.fillColor" [attr.stroke]="badge.emblem.accentColor" stroke-width="5" stroke-dasharray="8 3"/>
+                        </svg>
+                      } @else {
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <polygon points="25,65 35,96 50,86 65,96 75,65" [attr.fill]="badge.emblem.accentColor"/>
+                          <circle cx="50" cy="40" r="34" [attr.fill]="badge.emblem.fillColor" stroke="#ffffff" stroke-width="3"/>
+                        </svg>
+                      }
+                      <span class="material-symbols-outlined text-white text-xl absolute inset-0 m-auto flex items-center justify-center drop-shadow-sm">
+                        {{ badge.emblem.iconRef || 'military_tech' }}
+                      </span>
+                    </div>
+
+                    <!-- Texts -->
+                    <div class="min-w-0 flex-1 space-y-1">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                          {{ badge.category }}
+                        </span>
+                        <span class="text-[10px] font-mono text-text-secondary bg-base-200 px-1.5 py-0.5 rounded">
+                          {{ badge.serialNumber }}
+                        </span>
+                      </div>
+                      
+                      <h4 class="font-bold text-xs sm:text-sm text-text-primary group-hover:text-tenant-600 transition-colors line-clamp-1">
+                        {{ badge.name }}
+                      </h4>
+                      <p class="text-[11px] text-text-secondary leading-snug line-clamp-2">
+                        {{ badge.description }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Course / Phase Earning Context -->
+                  @if (badge.courseName || badge.phaseName) {
+                    <div class="p-2.5 rounded-2xl bg-base-200/80 border border-base-300/80 text-[11px] text-text-secondary space-y-1">
+                      @if (badge.courseName) {
+                        <div class="flex items-center gap-1.5 text-text-primary font-medium truncate">
+                          <span class="material-symbols-outlined text-xs text-text-secondary">school</span>
+                          <span class="truncate">{{ badge.courseName }}</span>
+                        </div>
+                      }
+                      @if (badge.phaseName) {
+                        <div class="flex items-center gap-1.5 text-text-secondary text-[10px] truncate">
+                          <span class="material-symbols-outlined text-xs">account_tree</span>
+                          <span class="truncate">{{ badge.phaseName }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Skills Tags -->
+                  @if (badge.skillTags?.length) {
+                    <div class="flex flex-wrap gap-1">
+                      @for (tag of badge.skillTags.slice(0, 3); track tag) {
+                        <span class="text-[9px] font-semibold bg-base-200 text-text-secondary px-2 py-0.5 rounded-md border border-base-300">
+                          #{{ tag }}
+                        </span>
+                      }
+                      @if (badge.skillTags.length > 3) {
+                        <span class="text-[9px] text-text-secondary font-mono">
+                          +{{ badge.skillTags.length - 3 }} more
+                        </span>
+                      }
+                    </div>
+                  }
                 </div>
 
-                <div>
-                  <h4 class="font-bold text-xs text-text-primary">{{ badge.name }}</h4>
-                  <p class="text-[10px] text-text-secondary mt-1 leading-snug">{{ badge.description }}</p>
+                <!-- Footer Action & Earning Date -->
+                <div class="pt-3 border-t border-base-300 flex items-center justify-between gap-2">
+                  <div class="text-[10px] text-text-secondary flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-emerald-500">verified</span>
+                    <span>Earned {{ badge.earnedDate }}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="openBadgeInspector(badge)"
+                    class="px-3 py-1.5 rounded-xl bg-tenant-50 hover:bg-tenant-100 dark:bg-tenant-950/50 dark:hover:bg-tenant-900/60 text-tenant-700 dark:text-tenant-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer border border-tenant-200 dark:border-tenant-800">
+                    <span class="material-symbols-outlined text-sm">visibility</span>
+                    <span>LMS Details</span>
+                  </button>
                 </div>
 
-                <span 
-                  class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  [class]="hasBadge(badge.name) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' : 'bg-base-300 text-text-secondary'">
-                  {{ hasBadge(badge.name) ? 'Unlocked' : 'Locked' }}
-                </span>
+              </div>
+            } @empty {
+              <div class="col-span-full p-12 text-center bg-base-100 rounded-3xl border border-dashed border-base-300 space-y-3">
+                <span class="material-symbols-outlined text-4xl text-text-secondary">search_off</span>
+                <h4 class="font-bold text-sm text-text-primary">No badges found for this LMS</h4>
+                <p class="text-xs text-text-secondary max-w-md mx-auto">
+                  Try switching the LMS filter or adjusting your search query to see other earned credentials.
+                </p>
+                <button 
+                  type="button" 
+                  (click)="selectedLmsFilter.set('all'); badgeSearchQuery = ''"
+                  class="px-4 py-2 rounded-xl bg-tenant-500 text-white text-xs font-semibold">
+                  View All LMS Badges
+                </button>
               </div>
             }
+          </div>
+
+        </div>
+      }
+
+      <!-- BADGE INSPECTOR & LMS PROVENANCE MODAL -->
+      @if (inspectingBadge()) {
+        <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+          <div class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl w-full max-w-2xl p-6 sm:p-7 animate-modal-card space-y-5">
+            
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between border-b border-base-300 pb-4">
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
+                    Verifiable OpenBadge Credential
+                  </span>
+                  <span class="text-xs font-mono text-text-secondary">
+                    {{ inspectingBadge()!.serialNumber }}
+                  </span>
+                </div>
+                <h3 class="font-bold text-lg text-text-primary mt-1">
+                  {{ inspectingBadge()!.name }}
+                </h3>
+              </div>
+
+              <button 
+                type="button"
+                (click)="closeBadgeInspector()" 
+                class="p-1.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200 cursor-pointer">
+                <span class="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+
+            <!-- Emblem & Overview Hero -->
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-tenant-500/10 via-base-200 to-amber-500/10 border border-base-300 flex flex-col sm:flex-row items-center gap-5">
+              <div class="w-20 h-20 rounded-2xl bg-base-100 border-2 border-tenant-500/40 p-2 flex items-center justify-center shrink-0 shadow-md">
+                <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">
+                  {{ inspectingBadge()!.emblem.iconRef || 'military_tech' }}
+                </span>
+              </div>
+
+              <div class="space-y-1 text-center sm:text-left">
+                <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                    {{ inspectingBadge()!.level }} Tier
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-base-200 text-text-secondary">
+                    {{ inspectingBadge()!.category }}
+                  </span>
+                  @if (inspectingBadge()!.gradeScore) {
+                    <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200">
+                      Score: {{ inspectingBadge()!.gradeScore }}%
+                    </span>
+                  }
+                </div>
+                <p class="text-xs text-text-secondary leading-relaxed">
+                  {{ inspectingBadge()!.description }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Two-Column Provenance Breakdown -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- 1. Issuing LMS Profile -->
+              <div class="p-4 rounded-2xl bg-base-200/70 border border-base-300 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-tenant-700 dark:text-tenant-300 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">domain</span>
+                  Originating LMS Institution
+                </span>
+
+                <div class="space-y-2 text-xs">
+                  <div>
+                    <span class="text-text-secondary block text-[10px] uppercase font-bold">LMS Portal Name</span>
+                    <span class="font-bold text-text-primary text-sm">{{ inspectingBadge()!.lmsName }}</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">LMS System ID</span>
+                      <span class="font-mono text-text-primary font-semibold">{{ inspectingBadge()!.lmsId }}</span>
+                    </div>
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">Parent Org</span>
+                      <span class="text-text-primary font-semibold">{{ inspectingBadge()!.organizationName }}</span>
+                    </div>
+                  </div>
+
+                  @if (inspectingBadge()!.lmsDomain) {
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">Portal URL</span>
+                      <span class="font-mono text-tenant-600 dark:text-tenant-400">{{ inspectingBadge()!.lmsDomain }}</span>
+                    </div>
+                  }
+
+                  <div>
+                    <span class="text-text-secondary block text-[10px] uppercase font-bold">Issuing Authority</span>
+                    <span class="text-text-primary">{{ inspectingBadge()!.issuerName }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Trainee Earning Record -->
+              <div class="p-4 rounded-2xl bg-base-200/70 border border-base-300 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-emerald-500">verified_user</span>
+                  Trainee Earning Dossier
+                </span>
+
+                <div class="space-y-2 text-xs">
+                  <div>
+                    <span class="text-text-secondary block text-[10px] uppercase font-bold">Recipient Trainee</span>
+                    <span class="font-bold text-text-primary">{{ inspectingBadge()!.userName }} ({{ inspectingBadge()!.userEmail }})</span>
+                  </div>
+
+                  @if (inspectingBadge()!.courseName) {
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">Curriculum Target</span>
+                      <span class="text-text-primary font-medium">{{ inspectingBadge()!.courseName }}</span>
+                    </div>
+                  }
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">Date Awarded</span>
+                      <span class="text-text-primary">{{ inspectingBadge()!.earnedDate }}</span>
+                    </div>
+                    <div>
+                      <span class="text-text-secondary block text-[10px] uppercase font-bold">Validity</span>
+                      <span class="text-text-primary">{{ inspectingBadge()!.expiryDate ? 'Until ' + inspectingBadge()!.expiryDate : 'Lifetime' }}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span class="text-text-secondary block text-[10px] uppercase font-bold">Earning Criteria</span>
+                    <span class="text-text-secondary text-[11px] leading-snug">{{ inspectingBadge()!.criteria }}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Skills Competencies -->
+            @if (inspectingBadge()!.skillTags?.length) {
+              <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300 space-y-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">
+                  Certified Skill Competencies Mastered
+                </span>
+                <div class="flex flex-wrap gap-1.5">
+                  @for (tag of inspectingBadge()!.skillTags; track tag) {
+                    <span class="text-xs font-semibold bg-base-100 text-text-primary px-2.5 py-1 rounded-lg border border-base-300 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs text-tenant-500">check</span>
+                      {{ tag }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Modal Actions -->
+            <div class="flex items-center justify-between pt-3 border-t border-base-300">
+              <button
+                type="button"
+                (click)="copyVerificationCode(inspectingBadge()!)"
+                class="px-3.5 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-sm">content_copy</span>
+                <span>Copy Serial ID</span>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="closeBadgeInspector()"
+                class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold transition-colors cursor-pointer">
+                Done
+              </button>
+            </div>
+
           </div>
         </div>
       }
@@ -802,6 +1167,77 @@ export class ProfileComponent {
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
     'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
   ];
+
+  // Trainee Badges & LMS Provenance State
+  selectedLmsFilter = signal<string>('all');
+  badgeSearchQuery = '';
+  inspectingBadge = signal<EarnedBadge | null>(null);
+
+  traineeBadgesList = computed<EarnedBadge[]>(() => {
+    return this.lms.activeUserEarnedBadges();
+  });
+
+  distinctLmsBadgesList = computed<{ id: string; name: string; count: number }[]>(() => {
+    const all = this.traineeBadgesList();
+    const lmsMap = new Map<string, { id: string; name: string; count: number }>();
+
+    for (const b of all) {
+      const existing = lmsMap.get(b.lmsId);
+      if (existing) {
+        existing.count++;
+      } else {
+        lmsMap.set(b.lmsId, {
+          id: b.lmsId,
+          name: b.lmsName,
+          count: 1
+        });
+      }
+    }
+
+    return [
+      { id: 'all', name: 'All LMS Portals', count: all.length },
+      ...Array.from(lmsMap.values())
+    ];
+  });
+
+  filteredTraineeBadges = computed<EarnedBadge[]>(() => {
+    let list = this.traineeBadgesList();
+    const filter = this.selectedLmsFilter();
+    const q = this.badgeSearchQuery.trim().toLowerCase();
+
+    if (filter !== 'all') {
+      list = list.filter(b => b.lmsId === filter);
+    }
+
+    if (q) {
+      list = list.filter(b => 
+        b.name.toLowerCase().includes(q) ||
+        b.description.toLowerCase().includes(q) ||
+        b.lmsName.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q) ||
+        (b.courseName && b.courseName.toLowerCase().includes(q)) ||
+        (b.skillTags && b.skillTags.some(t => t.toLowerCase().includes(q))) ||
+        b.serialNumber.toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  });
+
+  openBadgeInspector(badge: EarnedBadge) {
+    this.inspectingBadge.set(badge);
+  }
+
+  closeBadgeInspector() {
+    this.inspectingBadge.set(null);
+  }
+
+  copyVerificationCode(badge: EarnedBadge) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(badge.serialNumber);
+    }
+    this.lms.showToast(`Copied Badge Serial ID: ${badge.serialNumber}`, 'success', 3000, 'Serial Copied');
+  }
 
   allAvailableBadges = [
     { name: 'Security Champion', icon: 'security', description: 'Scored 100% on Cybersecurity & Zero Trust assessments.', bgClass: 'bg-emerald-500 text-white' },

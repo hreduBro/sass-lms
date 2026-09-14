@@ -214,6 +214,47 @@ export class CourseCreateComponent implements OnInit {
     return this.layerLabelPresets.filter(p => p.count === this.selectedLayerCount());
   });
 
+  activePreset = computed<LayerLabelPreset>(() => {
+    const currentCount = this.selectedLayerCount();
+    const l1 = this.layer1Label() || 'Chapter';
+    const l2 = this.layer2Label() || 'Topic';
+    const l3 = this.layer3Label() || 'Lesson';
+
+    const found = this.layerLabelPresets.find(p => 
+      p.count === currentCount &&
+      p.labels[0] === l1 &&
+      (p.count < 2 || p.labels[1] === l2) &&
+      (p.count < 3 || p.labels[2] === l3)
+    );
+    if (found) return found;
+
+    const labels = [l1];
+    if (currentCount >= 2) labels.push(l2);
+    if (currentCount >= 3) labels.push(l3);
+
+    return {
+      name: `Custom ${currentCount}-Tier (${labels.join(' / ')})`,
+      count: currentCount,
+      labels,
+      icon: currentCount === 3 ? 'account_tree' : (currentCount === 2 ? 'view_agenda' : 'inventory_2'),
+      description: `Custom configured ${currentCount}-tier hierarchy for specialized course delivery`,
+      badge: `Custom ${currentCount}-Tier`,
+      previewImage: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
+      previewTheme: {
+        accentColor: 'tenant',
+        bgGradient: 'from-slate-900 via-slate-900/95 to-slate-950',
+        sampleRoot: `${l1} 1: Foundational Framework`,
+        sampleMid: currentCount >= 2 ? `${l2} 1.1: Core Concepts` : undefined,
+        sampleLeaf: currentCount === 3 ? `${l3} 1.1.1: Applied Practice` : undefined,
+        sampleContent: [
+          { title: 'Overview & Orientation Video', type: 'video', duration: '15 min' },
+          { title: 'Interactive Practice Lab', type: 'lab', duration: '20 min', isSubscription: true },
+          { title: 'Knowledge Verification Quiz', type: 'quiz', duration: '15 min' }
+        ]
+      }
+    };
+  });
+
   isPresetActive(preset: LayerLabelPreset): boolean {
     if (this.selectedLayerCount() !== preset.count) return false;
     if (this.layer1Label() !== (preset.labels[0] || '')) return false;
@@ -420,6 +461,7 @@ export class CourseCreateComponent implements OnInit {
   reviewsConfig = signal<CourseReviewsConfig>({
     contentReviewsEnabled: true,
     instructorReviewsEnabled: true,
+    authorReviewsEnabled: true,
     scale: '5-star-likert'
   });
 
@@ -427,6 +469,19 @@ export class CourseCreateComponent implements OnInit {
   showContentModal = signal<boolean>(false);
   activeTargetNodeId = signal<string | null>(null);
   activeEditContentId = signal<string | null>(null);
+
+  // Subscription / Monetization model options
+  subscriptionAccessOptions: SelectOption[] = [
+    { value: 'standard_enrolled', label: 'Standard Course Enrollment', sublabel: 'Included for all enrolled learners in this course', icon: 'lock_open' },
+    { value: 'subscription_only', label: 'Subscription / Premium Pass Only', sublabel: 'Gated for active subscribers with premium membership', icon: 'workspace_premium' },
+    { value: 'free_preview', label: 'Free Public Preview', sublabel: 'Available to prospective learners before enrolling', icon: 'visibility' }
+  ];
+
+  subscriptionTierOptions: SelectOption[] = [
+    { value: 'all_plans', label: 'All Active Subscriptions', sublabel: 'Starter, Pro, and Enterprise membership tiers', icon: 'card_membership' },
+    { value: 'pro_plus', label: 'Pro & Enterprise Tier Only', sublabel: 'Requires Pro Tier or higher subscription', icon: 'star' },
+    { value: 'enterprise', label: 'Enterprise Executive Pass', sublabel: 'Exclusive to enterprise organization licenses', icon: 'diamond' }
+  ];
 
   contentForm: FormGroup = this.fb.group({
     title: ['', Validators.required],
@@ -438,7 +493,10 @@ export class CourseCreateComponent implements OnInit {
     passingScorePct: [80],
     instructions: [''],
     mediaUrl: [''],
-    instructorId: ['__topic__']
+    instructorId: ['__topic__'],
+    isSubscriptionRequired: [false],
+    subscriptionTier: ['all_plans'],
+    accessModel: ['standard_enrolled']
   });
 
   contentModalInstructorOptions = computed<SelectOption[]>(() => {
@@ -1524,7 +1582,10 @@ export class CourseCreateComponent implements OnInit {
       passingScorePct: 80,
       instructions: '',
       mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      instructorId: topicInst ? '__topic__' : ''
+      instructorId: topicInst ? '__topic__' : '',
+      isSubscriptionRequired: false,
+      subscriptionTier: 'all_plans',
+      accessModel: 'standard_enrolled'
     });
     this.showContentModal.set(true);
   }
@@ -1537,6 +1598,8 @@ export class CourseCreateComponent implements OnInit {
       ? item.instructorTags[0].id
       : (parentNode && this.getNodeInstructor(parentNode) ? '__topic__' : '');
 
+    const isSub = item.isSubscriptionRequired || item.accessModel === 'subscription_only';
+
     this.contentForm.patchValue({
       title: item.title,
       family: item.family,
@@ -1547,9 +1610,26 @@ export class CourseCreateComponent implements OnInit {
       passingScorePct: item.assessment?.passingScorePercent || 80,
       instructions: item.assessment?.instructions || '',
       mediaUrl: item.learning?.mediaUrl || '',
-      instructorId: instId
+      instructorId: instId,
+      isSubscriptionRequired: isSub,
+      subscriptionTier: item.subscriptionTier || 'all_plans',
+      accessModel: item.accessModel || (isSub ? 'subscription_only' : 'standard_enrolled')
     });
     this.showContentModal.set(true);
+  }
+
+  toggleContentSubscription(nodeId: string, item: CourseContentItem) {
+    item.isSubscriptionRequired = !item.isSubscriptionRequired;
+    item.accessModel = item.isSubscriptionRequired ? 'subscription_only' : 'standard_enrolled';
+    this.structureNodes.set([...this.structureNodes()]);
+    this.lmsService.showToast(
+      item.isSubscriptionRequired 
+        ? `"${item.title}" is now marked as Subscription-Gated.` 
+        : `"${item.title}" is now included with Standard Enrollment.`,
+      'info',
+      2500,
+      'Subscription Model'
+    );
   }
 
   saveContentItem() {
@@ -1571,12 +1651,17 @@ export class CourseCreateComponent implements OnInit {
       if (foundInst) itemInstructors = [foundInst];
     }
 
+    const isSub = val.accessModel === 'subscription_only' || !!val.isSubscriptionRequired;
+
     const contentItem: CourseContentItem = {
       contentId: this.activeEditContentId() || `cnt-${Date.now()}`,
       title: val.title.trim(),
       family: val.family,
       order: 1,
       instructorTags: itemInstructors,
+      isSubscriptionRequired: isSub,
+      subscriptionTier: val.subscriptionTier || 'all_plans',
+      accessModel: val.accessModel || (isSub ? 'subscription_only' : 'standard_enrolled'),
       learning: val.family === 'learning' ? {
         subtype: val.learningSubtype,
         durationMinutes: val.durationMinutes,

@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
-import { TranscriptRecord, TranscriptLevel } from '../../../models/transcript.model';
+import { TranscriptRecord, TranscriptLevel, TRANSCRIPT_PLACEHOLDER_TOKENS, TranscriptPlaceholderTokenDef } from '../../../models/transcript.model';
 import { TranscriptSheetComponent } from '../../../components/transcript-sheet/transcript-sheet.component';
+import { TranscriptTemplateDesignerComponent } from '../../../components/transcript-template-designer/transcript-template-designer.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { KpiCardComponent } from '../../../components/kpi-card/kpi-card.component';
@@ -19,6 +20,7 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
     FormsModule, 
     RouterModule, 
     TranscriptSheetComponent, 
+    TranscriptTemplateDesignerComponent,
     CustomAvatarComponent,
     CustomSelectComponent,
     KpiCardComponent,
@@ -50,12 +52,12 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
             My Academic Transcripts
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-normal">
-            Official records of your completed courses, training phases, and certified learning plans. Access verified grades and download official PDF transcripts.
+            Official records of your completed courses, training phases, and certified learning plans. Access verified grades, design transcript templates via drag-and-drop, and download official PDF transcripts.
           </p>
         </div>
 
         <!-- Trainee Profile Card & Quick Actions (Redesigned per Image 2) -->
-        <div class="flex items-center gap-3 relative z-10 shrink-0 flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-2.5 relative z-10 shrink-0 flex-wrap sm:flex-nowrap">
           <div class="flex items-center gap-3 bg-slate-50/90 dark:bg-base-200/80 p-3 rounded-2xl border border-slate-200/80 dark:border-base-300 shadow-2xs hover:border-slate-300 transition-all">
             <div class="relative">
               <app-custom-avatar [name]="lms.currentUser().name" [url]="lms.currentUser().avatar" size="md" shape="squircle"></app-custom-avatar>
@@ -70,6 +72,28 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
               </div>
             </div>
           </div>
+
+          <!-- Placeholders Quick Drawer Action -->
+          <button
+            type="button"
+            (click)="showPlaceholdersModal.set(true)"
+            class="px-3.5 py-3 rounded-2xl text-xs font-bold bg-white dark:bg-base-200 hover:bg-slate-50 dark:hover:bg-base-300 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-base-300 flex items-center gap-2 transition-all shadow-2xs hover:border-tenant-500/50 cursor-pointer"
+            title="View available placeholders & tokens for transcripts">
+            <div class="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-base">code</span>
+            </div>
+            <span class="hidden xl:inline">Placeholders</span>
+          </button>
+
+          <!-- Drag-and-Drop Template Designer Action -->
+          <button
+            type="button"
+            (click)="showDesignerModal.set(true)"
+            class="px-4 py-3 rounded-2xl text-xs font-bold bg-tenant-500 hover:bg-tenant-600 text-white flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+            title="Design and customize transcript template via drag-and-drop">
+            <span class="material-symbols-outlined text-base">dashboard_customize</span>
+            <span>Design Template</span>
+          </button>
 
           @if (isAdminRole()) {
             <a 
@@ -371,12 +395,177 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
         />
       }
 
+      <!-- Drag & Drop Transcript Template Designer Modal -->
+      @if (showDesignerModal()) {
+        <app-transcript-template-designer
+          (close)="showDesignerModal.set(false)"
+          (templateSaved)="onTemplateSaved($event)"
+        />
+      }
+
+      <!-- Placeholders & Tokens Reference Modal -->
+      @if (showPlaceholdersModal()) {
+        <div 
+          class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[999999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+          (click)="showPlaceholdersModal.set(false)">
+          <div 
+            class="relative bg-base-100 border border-base-300 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-modal-card m-auto"
+            (click)="$event.stopPropagation()">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-base-200 border-b border-base-300 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 border border-pink-200 dark:border-pink-800/80 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-xl">code</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary tracking-tight">
+                    Academic Transcript Placeholders & Tokens
+                  </h3>
+                  <p class="text-xs text-text-secondary">
+                    Standard data binding tokens available for drag-and-drop transcript and certificate templates.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  (click)="showPlaceholdersModal.set(false); showDesignerModal.set(true)"
+                  class="px-3.5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-sm">dashboard_customize</span>
+                  <span>Open Designer</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="showPlaceholdersModal.set(false)"
+                  class="p-1.5 text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Modal Body (Categories & Searchable Tokens) -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-base-100">
+              
+              <!-- Search & Filter Bar -->
+              <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div class="relative flex-1 min-w-[240px]">
+                  <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary text-sm">search</span>
+                  <input
+                    type="text"
+                    [ngModel]="placeholderSearch()"
+                    (ngModelChange)="placeholderSearch.set($event)"
+                    placeholder="Search placeholder tokens (e.g., trainee_name, score, qr)..."
+                    class="w-full pl-9 pr-3 py-2 text-xs bg-base-200 border border-base-300 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  />
+                </div>
+
+                <div class="flex items-center gap-1.5 text-xs text-text-secondary">
+                  <span class="material-symbols-outlined text-sm text-pink-600">info</span>
+                  <span>Click any token or copy button to copy to clipboard</span>
+                </div>
+              </div>
+
+              <!-- Tokens List by Group -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (token of filteredPlaceholderTokens(); track token.token) {
+                  <div class="p-4 rounded-2xl bg-base-200/60 border border-base-300 space-y-2 hover:border-pink-500/40 transition-all flex flex-col justify-between">
+                    <div class="space-y-1">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-text-primary">{{ token.label }}</span>
+                        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-base-300 text-text-secondary">
+                          {{ token.category }}
+                        </span>
+                      </div>
+                      <p class="text-[11px] text-text-secondary leading-relaxed">
+                        {{ token.description }}
+                      </p>
+                    </div>
+
+                    <div class="pt-2 border-t border-base-300 flex items-center justify-between gap-2">
+                      <code class="text-[11px] font-mono font-bold text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/60 px-2 py-1 rounded-lg border border-pink-200 dark:border-pink-800/80 truncate">
+                        {{ token.token }}
+                      </code>
+
+                      <button
+                        type="button"
+                        (click)="copyPlaceholderToken(token.token)"
+                        class="px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all flex items-center gap-1 cursor-pointer bg-base-100 hover:bg-base-200 text-text-primary border-base-300"
+                        [class]="copiedToken() === token.token ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : ''"
+                      >
+                        <span class="material-symbols-outlined text-xs">
+                          {{ copiedToken() === token.token ? 'check' : 'content_copy' }}
+                        </span>
+                        <span>{{ copiedToken() === token.token ? 'Copied!' : 'Copy' }}</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 bg-base-200 border-t border-base-300 flex items-center justify-between text-xs text-text-secondary">
+              <span>Total Available Placeholders: <strong class="font-bold text-text-primary">{{ allTokens.length }} tokens</strong></span>
+              <button
+                type="button"
+                (click)="showPlaceholdersModal.set(false); showDesignerModal.set(true)"
+                class="text-pink-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Launch Drag & Drop Visual Canvas</span>
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      }
+
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MyTranscriptsComponent {
   lms = inject(LmsDataService);
+
+  // Template Designer & Placeholders State
+  showDesignerModal = signal<boolean>(false);
+  showPlaceholdersModal = signal<boolean>(false);
+  placeholderSearch = signal<string>('');
+  copiedToken = signal<string | null>(null);
+
+  allTokens: TranscriptPlaceholderTokenDef[] = TRANSCRIPT_PLACEHOLDER_TOKENS.map(t => ({
+    ...t,
+    token: t.key
+  }));
+
+  filteredPlaceholderTokens = computed(() => {
+    const q = this.placeholderSearch().toLowerCase().trim();
+    if (!q) return this.allTokens;
+    return this.allTokens.filter(t => 
+      t.label.toLowerCase().includes(q) || 
+      (t.token || t.key).toLowerCase().includes(q) || 
+      t.description.toLowerCase().includes(q) ||
+      t.category.toLowerCase().includes(q)
+    );
+  });
+
+  copyPlaceholderToken(token: string): void {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(token);
+      this.copiedToken.set(token);
+      setTimeout(() => this.copiedToken.set(null), 2000);
+    }
+  }
+
+  onTemplateSaved(template: any): void {
+    // Show quick feedback or reload
+  }
 
   // Filters State (Applied)
   searchTerm = signal<string>('');

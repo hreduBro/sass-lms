@@ -19,26 +19,26 @@
       <h1 class="text-2xl font-bold text-text-primary tracking-tight">
         @if (isEditMode()) {
           @if (currentStep() === 1) { Edit Assessment – Basic Information }
-          @else if (currentStep() === 2) { Edit Assessment – Question Studio }
-          @else if (currentStep() === 3) { Edit Assessment – Scoring & Rules }
+          @else if (currentStep() === 2) { Edit Assessment – Scoring & Rules }
+          @else if (currentStep() === 3) { Edit Assessment – Question Studio }
           @else { Edit Assessment – Preview & Confirm }
         } @else {
           @if (currentStep() === 1) { Create Assessment – Basic Information }
-          @else if (currentStep() === 2) { Create Assessment – Question Studio }
-          @else if (currentStep() === 3) { Create Assessment – Scoring & Rules }
+          @else if (currentStep() === 2) { Create Assessment – Scoring & Rules }
+          @else if (currentStep() === 3) { Create Assessment – Question Studio }
           @else { Create Assessment – Preview & Confirm }
         }
       </h1>
 
       <p class="text-xs text-text-secondary mt-0.5">
-        @if (currentStep() === 1) { Configure assessment identity, type, scoring mode, and assigned instructor. }
-        @else if (currentStep() === 2) { Author test questions, matching pairs, multiple choice keys, and point allocations. }
-        @else if (currentStep() === 3) { Establish passing benchmarks, retake limits, time windows, and result visibility rules. }
-        @else { Review assessment governance checklist and publish live to trainees. }
+        @if (currentStep() === 1) { Configure assessment identity, type (Pre-test, Post-test, Exam, Quiz), and scoring mode. }
+        @else if (currentStep() === 2) { Establish pass benchmarks, negative marking, attempt limits, and question randomization strategies. }
+        @else if (currentStep() === 3) { Author test questions, set difficulty levels (Beginner, Advanced, etc.), or import from Question Repository. }
+        @else { Review governance checklist, randomization matrix, and publish live to trainees. }
       </p>
     </div>
 
-    <!-- Quick Draft Badge / Action (Matching Create Organization) -->
+    <!-- Quick Draft Badge / Action -->
     <div class="flex items-center gap-2">
       <button 
         type="button"
@@ -99,67 +99,69 @@
       
       <!-- Section 1.1: Assessment Identity Details -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+        <div class="flex items-center gap-3 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
-            <span class="material-symbols-outlined text-base">school</span>
+            <span class="material-symbols-outlined text-base">info</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-text-primary">1. Assessment Identity & Classification</h2>
-            <p class="text-[11px] text-text-secondary">Core assessment nomenclature, tracking code, and delivery category</p>
+            <h2 class="text-sm font-bold text-text-primary">1. Assessment Identity & Categorization</h2>
+            <p class="text-[11px] text-text-secondary">Define primary title, assessment classification, and academic owner</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          <!-- Assessment Title * -->
+          <!-- Assessment Title -->
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-text-primary mb-1">
               Assessment Title <span class="text-rose-500">*</span>
             </label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               id="input-assessment-title"
-              [ngModel]="title()" 
-              (ngModelChange)="title.set($event); titleTouched.set(true)"
-              maxlength="120"
-              placeholder="e.g. Q3 SOC-2 Security & Information Privacy Mastery Exam"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
-              [ngClass]="titleTouched() && !title().trim() ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
+              [ngModel]="title()"
+              (ngModelChange)="title.set($event)"
+              (blur)="titleTouched.set(true)"
+              placeholder="e.g. Microfinance Credit Operations & Safeguarding Certification Exam"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs font-medium focus:outline-none focus:border-tenant-500 transition-all"
+              [class.border-rose-500]="titleTouched() && !title().trim()"
+              [class.border-base-300]="!titleTouched() || !!title().trim()" />
             @if (titleTouched() && !title().trim()) {
-              <p class="text-[11px] text-rose-500 mt-1" data-error="true">Assessment Title is required (min 3 characters).</p>
+              <p class="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">warning</span>
+                Assessment title is required.
+              </p>
             }
           </div>
 
-          <!-- Assessment Code (Readonly) -->
+          <!-- Assessment Code -->
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">
-              Assessment Code <span class="text-rose-500">*</span> 
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(System-generated identifier)</span>
+              Assessment Code <span class="text-rose-500">*</span>
             </label>
-            <div class="relative">
-              <input 
-                type="text" 
-                id="input-assessment-code"
-                [ngModel]="code()" 
-                readonly
-                class="w-full px-3.5 py-2.5 rounded-xl bg-base-300/80 border border-base-300 text-xs font-mono font-bold text-text-primary cursor-not-allowed tracking-wider select-all" />
-              <span class="material-symbols-outlined absolute right-3 top-2.5 text-text-secondary text-sm">lock</span>
-            </div>
+            <input
+              type="text"
+              id="input-assessment-code"
+              [ngModel]="code()"
+              (ngModelChange)="code.set($event)"
+              placeholder="e.g. ASM-BRAC-101"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-bold font-mono focus:outline-none focus:border-tenant-500 transition-all" />
           </div>
 
-          <!-- Assessment Type (Custom Select) -->
+          <!-- Assessment Type (Hard-coded Static Options including Pre-test & Post-test) -->
           <div>
             <app-custom-select
               id="select-assessment-type"
               [ngModel]="type()"
               (ngModelChange)="type.set($event)"
               label="Assessment Type"
-              hint="(Delivery format)"
+              hint="(Pre-test, Post-test, Exam, Quiz, etc.)"
+              [required]="true"
               [options]="typeOptions"
-              leadingIcon="military_tech" />
+              leadingIcon="category" />
           </div>
 
-          <!-- Scoring Mode (Custom Select) -->
+          <!-- Scoring Mode -->
           <div>
             <app-custom-select
               id="select-scoring-mode"
@@ -168,33 +170,18 @@
               label="Scoring Mode"
               hint="(Grading methodology)"
               [options]="scoringModeOptions"
-              leadingIcon="score" />
+              leadingIcon="grading" />
           </div>
 
-          <!-- Sharing Scope (Custom Select) -->
+          <!-- Responsible Instructor -->
           <div>
-            <app-custom-select
-              id="select-sharing-scope"
-              [ngModel]="sharingLevel()"
-              (ngModelChange)="sharingLevel.set($event)"
-              label="Sharing Scope"
-              hint="(Branch accessibility)"
-              [options]="sharingLevelOptions"
-              leadingIcon="share" />
-          </div>
-
-          <!-- Responsible Instructor (Custom Select) -->
-          <div class="md:col-span-2">
             <app-custom-select
               id="select-responsible-instructor"
               [ngModel]="responsibleInstructorId()"
               (ngModelChange)="onInstructorChange($event)"
-              label="Responsible Instructor"
-              hint="(Required for manual essay and portfolio evaluations)"
-              placeholder="Search or select responsible instructor..."
+              label="Responsible Instructor / Evaluator"
+              hint="(Grader for essay items)"
               [options]="instructorOptions()"
-              [searchable]="true"
-              [clearable]="true"
               leadingIcon="person" />
             @if (hasManualQuestions() && !responsibleInstructorId()) {
               <p class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
@@ -231,7 +218,7 @@
                 [ngModel]="categoryTagInput()"
                 (ngModelChange)="categoryTagInput.set($event)"
                 (keydown.enter)="$event.preventDefault(); addCategoryTag()"
-                placeholder="Type tag (e.g. Safety, Compliance, JavaScript) and press Enter or Add..."
+                placeholder="Type tag (e.g. Safety, Compliance, Microfinance) and press Enter or Add..."
                 class="flex-1 px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all" />
               <button
                 type="button"
@@ -259,397 +246,19 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- STEP 2: QUESTION STUDIO                                                   -->
+  <!-- STEP 2: SCORING & RULES (Moved before Question Studio)                     -->
   <!-- ========================================================================= -->
   @if (currentStep() === 2) {
     <div class="space-y-6 animate-in fade-in">
       
-      <!-- Step 2 Dynamic Action Alert Banner -->
-      @if (step2Alert(); as alert) {
-        <div 
-          id="step2-action-alert"
-          class="p-4 rounded-2xl flex items-center justify-between gap-3 border transition-all animate-in fade-in"
-          [ngClass]="{
-            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200': alert.type === 'success',
-            'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200': alert.type === 'warning',
-            'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200': alert.type === 'error',
-            'bg-tenant-50 dark:bg-tenant-950/40 border-tenant-300 dark:border-tenant-800 text-tenant-900 dark:text-tenant-200': alert.type === 'info'
-          }">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-xl"
-              [ngClass]="{
-                'text-emerald-600': alert.type === 'success',
-                'text-amber-600': alert.type === 'warning',
-                'text-rose-600': alert.type === 'error',
-                'text-tenant-600': alert.type === 'info'
-              }">
-              {{ alert.type === 'success' ? 'check_circle' : alert.type === 'warning' ? 'warning' : alert.type === 'error' ? 'error' : 'info' }}
-            </span>
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  [ngClass]="{
-                    'bg-emerald-200/60 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300': alert.type === 'success',
-                    'bg-amber-200/60 dark:bg-amber-900 text-amber-800 dark:text-amber-300': alert.type === 'warning',
-                    'bg-rose-200/60 dark:bg-rose-900 text-rose-800 dark:text-rose-300': alert.type === 'error',
-                    'bg-tenant-200/60 dark:bg-tenant-900 text-tenant-800 dark:text-tenant-300': alert.type === 'info'
-                  }">
-                  {{ alert.action }}
-                </span>
-                <span class="text-xs font-semibold">{{ alert.message }}</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            id="btn-dismiss-step2-alert"
-            (click)="step2Alert.set(null)"
-            class="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary cursor-pointer"
-            title="Dismiss alert">
-            <span class="material-symbols-outlined text-sm">close</span>
-          </button>
-        </div>
-      }
-
-      <!-- Studio Header & Summary Bar -->
-      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center font-bold">
-            <span class="material-symbols-outlined text-xl">quiz</span>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-sm font-bold text-text-primary">2. Question Studio & Item Bank</h2>
-              <span class="px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold border border-tenant-200 dark:border-tenant-800">
-                {{ questions().length }} Questions
-              </span>
-            </div>
-            <p class="text-[11px] text-text-secondary">
-              Total Maximum Marks: <span class="font-bold text-text-primary">{{ totalMarks() }} pts</span> &bull; 
-              Manual Review Items: <span class="font-bold text-text-primary">{{ hasManualQuestions() ? 'Yes (Requires Instructor)' : 'No (Auto-Graded)' }}</span>
-            </p>
-          </div>
-        </div>
-
-        <!-- Quick Add Question Buttons Matching Image 2 -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            id="btn-add-mcq-question"
-            (click)="addQuestion('singleSelect')"
-            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
-            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">radio_button_checked</span>
-            + Single Choice
-          </button>
-          <button
-            type="button"
-            id="btn-add-multiselect-question"
-            (click)="addQuestion('multiSelect')"
-            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
-            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">check_box</span>
-            + Multi-Select
-          </button>
-          <button
-            type="button"
-            id="btn-add-matching-question"
-            (click)="addQuestion('matching')"
-            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
-            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">sync_alt</span>
-            + Matching
-          </button>
-          <button
-            type="button"
-            id="btn-add-essay-question"
-            (click)="addQuestion('essay')"
-            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
-            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">article</span>
-            + Essay
-          </button>
-        </div>
-      </div>
-
-      <!-- Question List & Authoring Canvas -->
-      @if (questions().length === 0) {
-        <div class="p-12 rounded-3xl bg-base-100 border border-dashed border-base-300 text-center space-y-3">
-          <div class="w-12 h-12 rounded-2xl bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
-            <span class="material-symbols-outlined text-2xl">post_add</span>
-          </div>
-          <h3 class="text-sm font-bold text-text-primary">No Questions in Assessment Yet</h3>
-          <p class="text-xs text-text-secondary max-w-md mx-auto">
-            Add questions using the quick action buttons above or add a standard multiple choice item to begin authoring.
-          </p>
-          <button
-            type="button"
-            id="btn-add-first-question"
-            (click)="addQuestion('singleSelect')"
-            class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
-            + Add First Question
-          </button>
-        </div>
-      } @else {
-        <div class="space-y-4">
-          @for (q of questions(); track q.questionId; let qIndex = $index) {
-            <div 
-              [id]="'question-card-' + qIndex"
-              class="p-6 rounded-3xl bg-base-100 border transition-all shadow-sm space-y-4"
-              [ngClass]="activeQuestionIndex() === qIndex ? 'border-tenant-400 ring-2 ring-tenant-500/10' : 'border-base-300'">
-              
-              <!-- Question Header Toolbar -->
-              <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-base-300">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-lg bg-tenant-600 text-white font-bold text-xs flex items-center justify-center">
-                    {{ qIndex + 1 }}
-                  </span>
-                  <span class="text-xs font-bold text-text-primary">Question {{ qIndex + 1 }}</span>
-                  <span class="px-2 py-0.5 rounded-md bg-base-200 text-[10px] font-mono font-bold text-text-secondary uppercase">
-                    {{ q.type }}
-                  </span>
-                  @if (q.manualGraded) {
-                    <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-200 dark:border-amber-800">
-                      Manual Graded
-                    </span>
-                  }
-                </div>
-
-                <div class="flex items-center gap-1.5">
-                  <!-- Points Weight Input -->
-                  <div class="flex items-center gap-1 text-xs">
-                    <span class="text-text-secondary text-[11px] font-medium">Points:</span>
-                    <input
-                      type="number"
-                      [id]="'input-question-points-' + qIndex"
-                      [ngModel]="q.points"
-                      (ngModelChange)="updateQuestionPoints(qIndex, $event)"
-                      min="1"
-                      max="100"
-                      class="w-16 px-2 py-1 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-tenant-500" />
-                  </div>
-
-                  <!-- Move Up -->
-                  <button
-                    type="button"
-                    [id]="'btn-move-up-' + qIndex"
-                    [disabled]="qIndex === 0"
-                    (click)="moveQuestion(qIndex, 'up')"
-                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 disabled:opacity-30 cursor-pointer"
-                    title="Move up">
-                    <span class="material-symbols-outlined text-base">arrow_upward</span>
-                  </button>
-
-                  <!-- Move Down -->
-                  <button
-                    type="button"
-                    [id]="'btn-move-down-' + qIndex"
-                    [disabled]="qIndex === questions().length - 1"
-                    (click)="moveQuestion(qIndex, 'down')"
-                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 disabled:opacity-30 cursor-pointer"
-                    title="Move down">
-                    <span class="material-symbols-outlined text-base">arrow_downward</span>
-                  </button>
-
-                  <!-- Duplicate -->
-                  <button
-                    type="button"
-                    [id]="'btn-dup-question-' + qIndex"
-                    (click)="duplicateQuestion(qIndex)"
-                    class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 cursor-pointer"
-                    title="Duplicate question">
-                    <span class="material-symbols-outlined text-base">content_copy</span>
-                  </button>
-
-                  <!-- Delete -->
-                  <button
-                    type="button"
-                    [id]="'btn-delete-question-' + qIndex"
-                    (click)="deleteQuestion(qIndex)"
-                    class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-                    title="Delete question">
-                    <span class="material-symbols-outlined text-base">delete</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Question Prompt Text -->
-              <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Question Prompt / Problem Statement <span class="text-rose-500">*</span>
-                </label>
-                <textarea
-                  [id]="'input-question-text-' + qIndex"
-                  [ngModel]="q.text || q.prompt"
-                  (ngModelChange)="updateQuestionPrompt(qIndex, $event)"
-                  (blur)="onQuestionPromptBlur(qIndex)"
-                  rows="2"
-                  placeholder="Enter the question text or instructions..."
-                  class="w-full px-3.5 py-2 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-medium"
-                  [ngClass]="questionsTouched() && !(q.text || q.prompt)?.trim() ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'"></textarea>
-                @if (questionsTouched() && !(q.text || q.prompt)?.trim()) {
-                  <p class="text-[11px] text-rose-500 mt-1" data-error="true">Question prompt cannot be blank.</p>
-                }
-              </div>
-
-              <!-- SINGLE SELECT & MULTI SELECT OPTIONS -->
-              @if (q.type === 'singleSelect' || q.type === 'multiSelect') {
-                <div class="space-y-2.5 pt-2 border-t border-base-200">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-text-primary">
-                      Answer Choices & Correct Key
-                      <span class="text-[10px] text-text-secondary font-normal ml-1">
-                        ({{ q.type === 'singleSelect' ? 'Select single correct radio' : 'Select all applicable checkboxes' }})
-                      </span>
-                    </span>
-                    <button
-                      type="button"
-                      [id]="'btn-add-option-' + qIndex"
-                      (click)="addOption(qIndex)"
-                      class="px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[11px] font-bold border border-tenant-200 dark:border-tenant-800 hover:bg-tenant-100 cursor-pointer">
-                      + Add Option
-                    </button>
-                  </div>
-
-                  <div class="space-y-2">
-                    @for (opt of q.options || []; track opt.optionId; let optIndex = $index) {
-                      <div class="flex items-center gap-2.5 p-2 rounded-xl bg-base-200 border border-base-300">
-                        @if (q.type === 'singleSelect') {
-                          <input
-                            type="radio"
-                            [id]="'opt-radio-' + qIndex + '-' + optIndex"
-                            [name]="'correct-radio-' + q.questionId"
-                            [checked]="opt.correct || opt.isCorrect"
-                            (change)="toggleSingleSelectCorrect(qIndex, opt.optionId)"
-                            class="text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
-                        } @else {
-                          <input
-                            type="checkbox"
-                            [id]="'opt-check-' + qIndex + '-' + optIndex"
-                            [checked]="opt.correct || opt.isCorrect"
-                            (change)="toggleMultiSelectCorrect(qIndex, opt.optionId)"
-                            class="rounded text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
-                        }
-
-                        <input
-                          type="text"
-                          [id]="'opt-text-' + qIndex + '-' + optIndex"
-                          [ngModel]="opt.text"
-                          (ngModelChange)="opt.text = $event"
-                          placeholder="Option text..."
-                          class="flex-1 px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
-
-                        @if ((opt.correct || opt.isCorrect)) {
-                          <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
-                            Correct
-                          </span>
-                        }
-
-                        <button
-                          type="button"
-                          [id]="'btn-remove-opt-' + qIndex + '-' + optIndex"
-                          [disabled]="(q.options?.length || 0) <= 2"
-                          (click)="removeOption(qIndex, optIndex)"
-                          class="p-1 rounded-lg text-text-secondary hover:text-rose-500 disabled:opacity-20 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">close</span>
-                        </button>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-              <!-- TRUE / FALSE -->
-              @if (q.type === 'trueFalse') {
-                <div class="space-y-2 pt-2 border-t border-base-200">
-                  <span class="text-xs font-bold text-text-primary">Correct Assertion</span>
-                  <div class="flex items-center gap-4">
-                    @for (opt of q.options || []; track opt.optionId) {
-                      <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-base-200 border border-base-300 text-xs font-bold cursor-pointer">
-                        <input
-                          type="radio"
-                          [name]="'tf-correct-' + q.questionId"
-                          [checked]="opt.correct || opt.isCorrect"
-                          (change)="toggleSingleSelectCorrect(qIndex, opt.optionId)"
-                          class="text-tenant-600 focus:ring-tenant-500" />
-                        <span>{{ opt.text }}</span>
-                      </label>
-                    }
-                  </div>
-                </div>
-              }
-
-              <!-- MATCHING PAIRS -->
-              @if (q.type === 'matching') {
-                <div class="space-y-2.5 pt-2 border-t border-base-200">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-text-primary">Matching Pairs (Premise &rarr; Target)</span>
-                    <button
-                      type="button"
-                      (click)="addMatchingPair(qIndex)"
-                      class="px-2.5 py-1 rounded-lg bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[11px] font-bold border border-tenant-200 dark:border-tenant-800 hover:bg-tenant-100 cursor-pointer">
-                      + Add Pair
-                    </button>
-                  </div>
-
-                  <div class="space-y-2">
-                    @for (pair of q.matchingPairs || []; track pair.pairId || $index; let pIdx = $index) {
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 rounded-xl bg-base-200 border border-base-300 items-center">
-                        <input
-                          type="text"
-                          [ngModel]="pair.leftItem || pair.leftText"
-                          (ngModelChange)="pair.leftItem = $event; pair.leftText = $event"
-                          placeholder="Left premise / concept..."
-                          class="px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
-
-                        <div class="flex items-center gap-2">
-                          <span class="text-text-secondary text-xs">&rarr;</span>
-                          <input
-                            type="text"
-                            [ngModel]="pair.rightItem || pair.rightText"
-                            (ngModelChange)="pair.rightItem = $event; pair.rightText = $event"
-                            placeholder="Right target / match..."
-                            class="flex-1 px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
-                          <button
-                            type="button"
-                            [disabled]="(q.matchingPairs?.length || 0) <= 1"
-                            (click)="removeMatchingPair(qIndex, pIdx)"
-                            class="p-1 text-text-secondary hover:text-rose-500 disabled:opacity-20 cursor-pointer">
-                            <span class="material-symbols-outlined text-sm">close</span>
-                          </button>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-              <!-- ESSAY / FILE UPLOAD NOTICE -->
-              @if (q.type === 'essay' || q.type === 'fileUpload') {
-                <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-[11px] text-amber-800 dark:text-amber-200 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-base text-amber-600">rate_review</span>
-                  <span>This item requires manual grading by the responsible instructor upon examinee submission.</span>
-                </div>
-              }
-
-            </div>
-          }
-        </div>
-      }
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- STEP 3: SCORING & RULES                                                   -->
-  <!-- ========================================================================= -->
-  @if (currentStep() === 3) {
-    <div class="space-y-6 animate-in fade-in">
-      
-      <!-- Section 3.1: Pass Mark & Benchmarking -->
+      <!-- Section 2.1: Benchmarks, Attempts & Time Limit -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
-        <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
+        <div class="flex items-center gap-3 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
             <span class="material-symbols-outlined text-base">tune</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-text-primary">3. Scoring Policy, Attempts & Time Limit</h2>
+            <h2 class="text-sm font-bold text-text-primary">2. Scoring Policy, Attempts & Benchmarks</h2>
             <p class="text-[11px] text-text-secondary">Determine passing threshold percentages, allowed attempts, and session duration</p>
           </div>
         </div>
@@ -678,7 +287,7 @@
                     [style.width.%]="passMarkPercent()"></div>
                 </div>
                 <span class="text-[10px] text-text-secondary font-medium mt-0.5 block">
-                  Examinee needs at least {{ ((passMarkPercent() / 100) * totalMarks()).toFixed(1) }} / {{ totalMarks() }} points to pass.
+                  Examinee needs at least {{ passMarkPercent() }}% to achieve passing grade.
                 </span>
               </div>
             </div>
@@ -741,7 +350,7 @@
 
           <!-- Feedback & Answer Visibility Toggles -->
           <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-base-200">
-            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer">
+            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer hover:bg-base-300/60 transition-colors">
               <input
                 type="checkbox"
                 id="check-show-correct-answers"
@@ -754,7 +363,7 @@
               </div>
             </label>
 
-            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer">
+            <label class="flex items-center gap-3 p-3 rounded-2xl bg-base-200 border border-base-300 cursor-pointer hover:bg-base-300/60 transition-colors">
               <input
                 type="checkbox"
                 id="check-show-feedback"
@@ -770,6 +379,625 @@
 
         </div>
       </div>
+
+      <!-- Section 2.2: Advanced Question Randomization Suite -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">shuffle</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Randomization & Question Pool Delivery</h2>
+              <p class="text-[11px] text-text-secondary">Configure test-taker question shuffling, plain sampling, or balanced difficulty pools</p>
+            </div>
+          </div>
+
+          <!-- Main Randomization Toggle -->
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              id="toggle-randomization-enabled"
+              [ngModel]="randomizationEnabled()"
+              (ngModelChange)="randomizationEnabled.set($event)"
+              class="sr-only peer">
+            <div class="w-11 h-6 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            <span class="ml-2.5 text-xs font-bold text-text-primary">
+              {{ randomizationEnabled() ? 'Enabled' : 'Disabled' }}
+            </span>
+          </label>
+        </div>
+
+        @if (randomizationEnabled()) {
+          <div class="space-y-4 animate-in fade-in">
+            
+            <!-- Strategy Selector -->
+            <div>
+              <app-custom-select
+                id="select-randomization-mode"
+                [ngModel]="randomizationMode()"
+                (ngModelChange)="randomizationMode.set($event)"
+                label="Randomization Strategy"
+                hint="(Plain Shuffle vs. Dynamic Pool Sampling vs. Difficulty-Based)"
+                [options]="randomizationModeOptions"
+                leadingIcon="tune" />
+            </div>
+
+            <!-- Option 1: Plain Question Shuffle Info -->
+            @if (randomizationMode() === 'shuffle') {
+              <div class="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-3">
+                <span class="material-symbols-outlined text-purple-600 mt-0.5 text-lg">info</span>
+                <div>
+                  <h4 class="font-bold text-xs mb-0.5">Plain Question Sequence Shuffle</h4>
+                  <p class="text-[11px] opacity-90 leading-relaxed">
+                    Every candidate will receive the complete set of authored questions in a randomized sequence. This mitigates visual screen glancing in co-located testing environments.
+                  </p>
+                </div>
+              </div>
+            }
+
+            <!-- Option 2: Plain Pool Sampling -->
+            @if (randomizationMode() === 'pool_plain') {
+              <div class="p-4 rounded-2xl bg-base-200 border border-base-300 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="text-xs font-bold text-text-primary block">Pool Sampling Quota (Questions Delivered)</label>
+                    <span class="text-[10px] text-text-secondary">Number of questions randomly drawn from the authored pool for each test attempt</span>
+                  </div>
+                  <input
+                    type="number"
+                    id="input-pool-plain-count"
+                    [ngModel]="poolPlainCount()"
+                    (ngModelChange)="poolPlainCount.set(+$event)"
+                    min="1"
+                    max="100"
+                    class="w-24 px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-purple-500" />
+                </div>
+                <p class="text-[11px] text-text-secondary flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs text-purple-600">casino</span>
+                  Candidates receive {{ poolPlainCount() }} random questions drawn from your authored question pool.
+                </p>
+              </div>
+            }
+
+            <!-- Option 3: Balanced Randomization by Difficulty Level -->
+            @if (randomizationMode() === 'pool_by_difficulty') {
+              <div class="p-5 rounded-2xl bg-base-200 border border-base-300 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-text-primary">Difficulty-Based Balanced Pool Sampling</h4>
+                    <p class="text-[10px] text-text-secondary">Specify exact question delivery quotas per difficulty tier</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 text-[10px] font-bold">
+                    Total: {{ difficultyRuleBeginner() + difficultyRuleIntermediate() + difficultyRuleAdvanced() + difficultyRuleExpert() }} Questions
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  
+                  <!-- Beginner Quota -->
+                  <div class="p-3.5 rounded-xl bg-base-100 border border-emerald-300 dark:border-emerald-800/60 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">star_outline</span>
+                        Beginner
+                      </span>
+                      <span class="text-[10px] text-text-secondary font-semibold">
+                        Pool: {{ difficultyDistribution().beginner }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <label class="text-[11px] text-text-secondary">Quota:</label>
+                      <input
+                        type="number"
+                        id="input-quota-beginner"
+                        [ngModel]="difficultyRuleBeginner()"
+                        (ngModelChange)="difficultyRuleBeginner.set(+$event)"
+                        min="0"
+                        class="w-full px-2.5 py-1.5 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-emerald-500" />
+                    </div>
+                  </div>
+
+                  <!-- Intermediate Quota -->
+                  <div class="p-3.5 rounded-xl bg-base-100 border border-sky-300 dark:border-sky-800/60 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">star_half</span>
+                        Intermediate
+                      </span>
+                      <span class="text-[10px] text-text-secondary font-semibold">
+                        Pool: {{ difficultyDistribution().intermediate }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <label class="text-[11px] text-text-secondary">Quota:</label>
+                      <input
+                        type="number"
+                        id="input-quota-intermediate"
+                        [ngModel]="difficultyRuleIntermediate()"
+                        (ngModelChange)="difficultyRuleIntermediate.set(+$event)"
+                        min="0"
+                        class="w-full px-2.5 py-1.5 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-sky-500" />
+                    </div>
+                  </div>
+
+                  <!-- Advanced Quota -->
+                  <div class="p-3.5 rounded-xl bg-base-100 border border-amber-300 dark:border-amber-800/60 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">star</span>
+                        Advanced
+                      </span>
+                      <span class="text-[10px] text-text-secondary font-semibold">
+                        Pool: {{ difficultyDistribution().advanced }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <label class="text-[11px] text-text-secondary">Quota:</label>
+                      <input
+                        type="number"
+                        id="input-quota-advanced"
+                        [ngModel]="difficultyRuleAdvanced()"
+                        (ngModelChange)="difficultyRuleAdvanced.set(+$event)"
+                        min="0"
+                        class="w-full px-2.5 py-1.5 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-amber-500" />
+                    </div>
+                  </div>
+
+                  <!-- Expert Quota -->
+                  <div class="p-3.5 rounded-xl bg-base-100 border border-purple-300 dark:border-purple-800/60 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">military_tech</span>
+                        Expert
+                      </span>
+                      <span class="text-[10px] text-text-secondary font-semibold">
+                        Pool: {{ difficultyDistribution().expert }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <label class="text-[11px] text-text-secondary">Quota:</label>
+                      <input
+                        type="number"
+                        id="input-quota-expert"
+                        [ngModel]="difficultyRuleExpert()"
+                        (ngModelChange)="difficultyRuleExpert.set(+$event)"
+                        min="0"
+                        class="w-full px-2.5 py-1.5 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-purple-500" />
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Real-time Quota Readiness Alert -->
+                <div class="p-3 rounded-xl text-xs flex items-center gap-2.5"
+                  [ngClass]="randomizationCheck().valid ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800'">
+                  <span class="material-symbols-outlined text-base">
+                    {{ randomizationCheck().valid ? 'check_circle' : 'info' }}
+                  </span>
+                  <span class="font-medium text-[11px]">{{ randomizationCheck().message }}</span>
+                </div>
+              </div>
+            }
+
+            <!-- Choice Options Shuffling Toggle -->
+            <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base-200 border border-base-300 cursor-pointer hover:bg-base-300/60 transition-colors">
+              <input
+                type="checkbox"
+                id="check-shuffle-options"
+                [ngModel]="shuffleOptions()"
+                (ngModelChange)="shuffleOptions.set($event)"
+                class="rounded text-purple-600 focus:ring-purple-500" />
+              <div>
+                <span class="text-xs font-bold text-text-primary block">Shuffle Answer Choices within Questions</span>
+                <span class="text-[10px] text-text-secondary">Randomize the order of options (A, B, C, D) for each multiple choice question</span>
+              </div>
+            </label>
+
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- STEP 3: QUESTION STUDIO (With Difficulty Levels & Add from Repository)    -->
+  <!-- ========================================================================= -->
+  @if (currentStep() === 3) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Step 3 Dynamic Action Alert Banner -->
+      @if (step3Alert(); as alert) {
+        <div 
+          id="step3-action-alert"
+          class="p-4 rounded-2xl flex items-center justify-between gap-3 border transition-all animate-in fade-in shadow-xs"
+          [ngClass]="{
+            'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200': alert.type === 'success',
+            'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200': alert.type === 'warning',
+            'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200': alert.type === 'error',
+            'bg-tenant-50 dark:bg-tenant-950/40 border-tenant-300 dark:border-tenant-800 text-tenant-900 dark:text-tenant-200': alert.type === 'info'
+          }">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-xl"
+              [ngClass]="{
+                'text-emerald-600': alert.type === 'success',
+                'text-amber-600': alert.type === 'warning',
+                'text-rose-600': alert.type === 'error',
+                'text-tenant-600': alert.type === 'info'
+              }">
+              {{ alert.type === 'success' ? 'check_circle' : alert.type === 'warning' ? 'warning' : alert.type === 'error' ? 'error' : 'info' }}
+            </span>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  [ngClass]="{
+                    'bg-emerald-200/60 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300': alert.type === 'success',
+                    'bg-amber-200/60 dark:bg-amber-900 text-amber-800 dark:text-amber-300': alert.type === 'warning',
+                    'bg-rose-200/60 dark:bg-rose-900 text-rose-800 dark:text-rose-300': alert.type === 'error',
+                    'bg-tenant-200/60 dark:bg-tenant-900 text-tenant-800 dark:text-tenant-300': alert.type === 'info'
+                  }">
+                  {{ alert.action }}
+                </span>
+                <span class="text-xs font-semibold">{{ alert.message }}</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="btn-dismiss-step3-alert"
+            (click)="step3Alert.set(null)"
+            class="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary cursor-pointer"
+            title="Dismiss alert">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      }
+
+      <!-- Studio Header & Summary Bar -->
+      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-xl">quiz</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-sm font-bold text-text-primary">3. Question Studio & Item Bank</h2>
+              <span class="px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[10px] font-bold border border-tenant-200 dark:border-tenant-800">
+                {{ questions().length }} Questions ({{ totalMarks() }} pts)
+              </span>
+            </div>
+            
+            <!-- Difficulty Breakdown Pills -->
+            <div class="flex items-center gap-1.5 mt-1 flex-wrap text-[10px] font-semibold">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                {{ difficultyDistribution().beginner }} Beginner
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                {{ difficultyDistribution().intermediate }} Intermediate
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                {{ difficultyDistribution().advanced }} Advanced
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                {{ difficultyDistribution().expert }} Expert
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Studio Actions Toolbar -->
+        <div class="flex items-center gap-2 flex-wrap">
+          
+          <!-- Repository Import Button -->
+          <button
+            type="button"
+            id="btn-add-from-repository"
+            (click)="openRepositoryModal()"
+            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base">inventory_2</span>
+            Add from Repository
+          </button>
+
+          <!-- Quick Add Question Dropdown Buttons -->
+          <button
+            type="button"
+            id="btn-add-mcq-question"
+            (click)="addQuestion('singleSelect')"
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">radio_button_checked</span>
+            + Single Choice
+          </button>
+          
+          <button
+            type="button"
+            id="btn-add-multiselect-question"
+            (click)="addQuestion('multiSelect')"
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-pink-600 dark:text-pink-400">check_box</span>
+            + Multi-Select
+          </button>
+
+          <button
+            type="button"
+            id="btn-add-matching-question"
+            (click)="addQuestion('matching')"
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-cyan-600 dark:text-cyan-400">sync_alt</span>
+            + Matching
+          </button>
+
+          <button
+            type="button"
+            id="btn-add-essay-question"
+            (click)="addQuestion('essay')"
+            class="px-3.5 py-2 rounded-xl bg-base-100 dark:bg-base-200 hover:bg-base-200 dark:hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-base text-amber-600 dark:text-amber-400">article</span>
+            + Essay
+          </button>
+        </div>
+      </div>
+
+      <!-- Questions List Cards -->
+      <div class="space-y-4">
+        @for (q of questions(); track q.questionId; let qIndex = $index) {
+          <div 
+            class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4 transition-all hover:border-tenant-400"
+            [id]="'question-card-' + qIndex">
+            
+            <!-- Question Card Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="w-6 h-6 rounded-full bg-tenant-600 text-white text-xs font-bold flex items-center justify-center">
+                  {{ qIndex + 1 }}
+                </span>
+                
+                <span class="text-xs font-bold text-text-primary">
+                  {{ getQuestionTypeLabel(q.type) }}
+                </span>
+
+                <!-- Difficulty Level Selector Dropdown -->
+                <div class="flex items-center gap-1.5 ml-2">
+                  <span class="text-[10px] text-text-secondary font-semibold uppercase tracking-wider">Difficulty:</span>
+                  <select
+                    [id]="'select-difficulty-' + qIndex"
+                    [ngModel]="q.difficulty || 'intermediate'"
+                    (ngModelChange)="updateQuestionDifficulty(qIndex, $event)"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer focus:outline-none transition-colors"
+                    [ngClass]="getDifficultyBadgeClass(q.difficulty)">
+                    <option value="beginner">★ Beginner</option>
+                    <option value="intermediate">★★ Intermediate</option>
+                    <option value="advanced">★★★ Advanced</option>
+                    <option value="expert">★★★★ Expert</option>
+                  </select>
+                </div>
+
+                @if (q.manualGraded) {
+                  <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 text-[10px] font-bold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">assignment_ind</span>
+                    Manual Review
+                  </span>
+                }
+              </div>
+
+              <!-- Question Controls: Points, Required, Reorder, Delete -->
+              <div class="flex items-center gap-2">
+                
+                <!-- Points Input -->
+                <div class="flex items-center gap-1">
+                  <label class="text-[11px] text-text-secondary font-semibold">Points:</label>
+                  <input
+                    type="number"
+                    [id]="'input-points-' + qIndex"
+                    [ngModel]="q.points"
+                    (ngModelChange)="updateQuestionPoints(qIndex, +$event)"
+                    min="1"
+                    max="100"
+                    class="w-14 px-2 py-1 rounded-lg bg-base-200 border border-base-300 text-xs font-bold text-center focus:outline-none focus:border-tenant-500" />
+                </div>
+
+                <!-- Move Up / Down -->
+                <button
+                  type="button"
+                  [disabled]="qIndex === 0"
+                  (click)="moveQuestion(qIndex, 'up')"
+                  class="p-1 rounded-lg hover:bg-base-200 disabled:opacity-30 cursor-pointer"
+                  title="Move question up">
+                  <span class="material-symbols-outlined text-sm">arrow_upward</span>
+                </button>
+
+                <button
+                  type="button"
+                  [disabled]="qIndex === questions().length - 1"
+                  (click)="moveQuestion(qIndex, 'down')"
+                  class="p-1 rounded-lg hover:bg-base-200 disabled:opacity-30 cursor-pointer"
+                  title="Move question down">
+                  <span class="material-symbols-outlined text-sm">arrow_downward</span>
+                </button>
+
+                <!-- Duplicate -->
+                <button
+                  type="button"
+                  (click)="duplicateQuestion(qIndex)"
+                  class="p-1 rounded-lg hover:bg-base-200 text-text-secondary hover:text-tenant-600 cursor-pointer"
+                  title="Duplicate question">
+                  <span class="material-symbols-outlined text-sm">content_copy</span>
+                </button>
+
+                <!-- Delete -->
+                <button
+                  type="button"
+                  (click)="promptDeleteQuestion(qIndex)"
+                  class="p-1 rounded-lg hover:bg-rose-50 text-text-secondary hover:text-rose-600 cursor-pointer"
+                  title="Delete question">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Question Prompt Textarea -->
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Question Prompt <span class="text-rose-500">*</span>
+              </label>
+              <textarea
+                [id]="'textarea-prompt-' + qIndex"
+                [ngModel]="q.text || q.prompt"
+                (ngModelChange)="updateQuestionPrompt(qIndex, $event)"
+                (blur)="onQuestionPromptBlur(qIndex)"
+                rows="2"
+                placeholder="Enter clear, concise question instructions or statement..."
+                class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500 transition-all"></textarea>
+            </div>
+
+            <!-- Single Select / Multi-Select / TrueFalse Options Editor -->
+            @if (q.type === 'singleSelect' || q.type === 'multiSelect' || q.type === 'trueFalse') {
+              <div class="space-y-2 pt-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-text-primary">
+                    Answer Choices & Answer Key 
+                    <span class="text-[10px] font-normal text-text-secondary">
+                      ({{ q.type === 'multiSelect' ? 'Check all correct options' : 'Select the one correct radio' }})
+                    </span>
+                  </span>
+                  
+                  @if (q.type !== 'trueFalse') {
+                    <button
+                      type="button"
+                      (click)="addOption(qIndex)"
+                      class="text-xs font-bold text-tenant-600 hover:text-tenant-700 flex items-center gap-1 cursor-pointer">
+                      <span class="material-symbols-outlined text-sm">add</span>
+                      Add Option
+                    </button>
+                  }
+                </div>
+
+                <div class="space-y-2">
+                  @for (opt of q.options; track opt.optionId; let optIndex = $index) {
+                    <div class="flex items-center gap-2 p-2.5 rounded-xl bg-base-200/80 border border-base-300">
+                      
+                      <!-- Radio / Checkbox Indicator -->
+                      @if (q.type === 'singleSelect' || q.type === 'trueFalse') {
+                        <input
+                          type="radio"
+                          [name]="'correct-opt-' + qIndex"
+                          [checked]="opt.correct || opt.isCorrect"
+                          (change)="toggleSingleSelectCorrect(qIndex, opt.optionId)"
+                          class="text-tenant-600 focus:ring-tenant-500 cursor-pointer"
+                          [title]="'Mark Option ' + (optIndex + 1) + ' as correct'" />
+                      } @else {
+                        <input
+                          type="checkbox"
+                          [checked]="opt.correct || opt.isCorrect"
+                          (change)="toggleMultiSelectCorrect(qIndex, opt.optionId)"
+                          class="rounded text-tenant-600 focus:ring-tenant-500 cursor-pointer"
+                          [title]="'Toggle Option ' + (optIndex + 1) + ' as correct'" />
+                      }
+
+                      <!-- Option Text Input -->
+                      <input
+                        type="text"
+                        [id]="'input-opt-' + qIndex + '-' + optIndex"
+                        [(ngModel)]="opt.text"
+                        placeholder="Option text..."
+                        class="flex-1 px-3 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+
+                      @if (opt.correct || opt.isCorrect) {
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 text-[10px] font-bold">
+                          Correct Answer
+                        </span>
+                      }
+
+                      <!-- Remove Option Button (Except True/False) -->
+                      @if (q.type !== 'trueFalse' && (q.options?.length || 0) > 2) {
+                        <button
+                          type="button"
+                          (click)="removeOption(qIndex, optIndex)"
+                          class="p-1 text-text-secondary hover:text-rose-500 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Matching Pairs Editor -->
+            @if (q.type === 'matching') {
+              <div class="space-y-2 pt-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-text-primary">Matching Concept Pairs</span>
+                  <button
+                    type="button"
+                    (click)="addMatchingPair(qIndex)"
+                    class="text-xs font-bold text-tenant-600 hover:text-tenant-700 flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    Add Pair
+                  </button>
+                </div>
+
+                <div class="space-y-2">
+                  @for (pair of q.matchingPairs; track pair.pairId || $index; let pIndex = $index) {
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-xl bg-base-200/80 border border-base-300 relative">
+                      <div>
+                        <label class="text-[10px] text-text-secondary font-semibold block mb-0.5">Prompt Item / Concept</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="pair.leftText"
+                          placeholder="Premise item..."
+                          class="w-full px-2.5 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="flex-1">
+                          <label class="text-[10px] text-text-secondary font-semibold block mb-0.5">Matching Definition / Value</label>
+                          <input
+                            type="text"
+                            [(ngModel)]="pair.rightText"
+                            placeholder="Target meaning..."
+                            class="w-full px-2.5 py-1.5 rounded-lg bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+                        </div>
+                        @if ((q.matchingPairs?.length || 0) > 2) {
+                          <button
+                            type="button"
+                            (click)="removeMatchingPair(qIndex, pIndex)"
+                            class="p-1 mt-3 text-text-secondary hover:text-rose-500 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Essay / File Upload / Numeric Specifics -->
+            @if (q.type === 'essay' || q.type === 'fileUpload') {
+              <div class="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600 text-base">info</span>
+                <span>Submissions for this question will be routed to the responsible instructor for subjective rubric scoring.</span>
+              </div>
+            }
+
+            <!-- Feedback / Explanation -->
+            <div class="pt-2 border-t border-base-200">
+              <label class="block text-[11px] font-semibold text-text-secondary mb-1">
+                Explanation & Rationale (Visible to candidates upon review)
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="q.explanation"
+                placeholder="Explain the underlying principle or citation justifying the answer..."
+                class="w-full px-3 py-1.5 rounded-lg bg-base-200 border border-base-300 text-xs focus:outline-none focus:border-tenant-500" />
+            </div>
+
+          </div>
+        }
+      </div>
+
     </div>
   }
 
@@ -821,16 +1049,16 @@
               <span class="material-symbols-outlined text-base">{{ validationChecklist().questionsOk ? 'check_circle' : 'cancel' }}</span>
               <span>Item Bank Items</span>
             </div>
-            <p class="text-[10px] opacity-80">{{ questions().length }} authored questions</p>
+            <p class="text-[10px] opacity-80">{{ questions().length }} authored questions ({{ totalMarks() }} pts)</p>
           </div>
 
-          <!-- Check 3: Points Weight -->
-          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().pointsOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
+          <!-- Check 3: Randomization Quota -->
+          <div class="p-3 rounded-2xl border" [ngClass]="validationChecklist().randomizationOk ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-200' : 'bg-rose-50/50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200'">
             <div class="flex items-center gap-1.5 font-bold mb-0.5">
-              <span class="material-symbols-outlined text-base">{{ validationChecklist().pointsOk ? 'check_circle' : 'cancel' }}</span>
-              <span>Score Allocation</span>
+              <span class="material-symbols-outlined text-base">{{ validationChecklist().randomizationOk ? 'check_circle' : 'cancel' }}</span>
+              <span>Randomization Rules</span>
             </div>
-            <p class="text-[10px] opacity-80">{{ totalMarks() }} total maximum points</p>
+            <p class="text-[10px] opacity-80">{{ randomizationEnabled() ? (randomizationMode() === 'pool_by_difficulty' ? 'Difficulty Quotas Met' : 'Sampling Configured') : 'Randomization Off' }}</p>
           </div>
 
           <!-- Check 4: Instructor Rule -->
@@ -846,49 +1074,67 @@
 
       <!-- Section 4.2: Summary Parameters -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
-        <h3 class="text-sm font-bold text-text-primary">Assessment Metadata Summary</h3>
+        <h3 class="text-sm font-bold text-text-primary">Assessment Configuration Summary</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
           <div>
-            <span class="text-text-secondary text-[11px] block">Assessment Code</span>
-            <span class="font-mono font-bold text-text-primary">{{ code() }}</span>
+            <span class="text-text-secondary block text-[10px]">Assessment Code</span>
+            <span class="font-mono font-bold">{{ code() }}</span>
           </div>
           <div>
-            <span class="text-text-secondary text-[11px] block">Format & Mode</span>
-            <span class="font-bold text-text-primary capitalize">{{ type() }} &bull; {{ scoringMode() }}</span>
+            <span class="text-text-secondary block text-[10px]">Assessment Type</span>
+            <span class="font-bold capitalize">{{ type() }}</span>
           </div>
           <div>
-            <span class="text-text-secondary text-[11px] block">Pass Benchmark</span>
+            <span class="text-text-secondary block text-[10px]">Pass Benchmark</span>
             <span class="font-bold text-emerald-600">{{ passMarkPercent() }}%</span>
           </div>
           <div>
-            <span class="text-text-secondary text-[11px] block">Time Window</span>
-            <span class="font-bold text-text-primary">{{ timeLimitMinutes() ? timeLimitMinutes() + ' minutes' : 'Untimed' }}</span>
+            <span class="text-text-secondary block text-[10px]">Time Limit</span>
+            <span class="font-bold">{{ timeLimitMinutes() ? timeLimitMinutes() + ' Mins' : 'Untimed' }}</span>
+          </div>
+          <div>
+            <span class="text-text-secondary block text-[10px]">Allowed Attempts</span>
+            <span class="font-bold">{{ allowedAttempts() }} Attempt(s)</span>
+          </div>
+          <div>
+            <span class="text-text-secondary block text-[10px]">Randomization Mode</span>
+            <span class="font-bold">{{ randomizationEnabled() ? (randomizationMode() === 'pool_by_difficulty' ? 'Difficulty Quotas' : randomizationMode() === 'pool_plain' ? 'Subset Sampling' : 'Sequence Shuffle') : 'Disabled' }}</span>
+          </div>
+          <div>
+            <span class="text-text-secondary block text-[10px]">Score Release</span>
+            <span class="font-bold">{{ showScorePolicy() }}</span>
+          </div>
+          <div>
+            <span class="text-text-secondary block text-[10px]">Answer Keys</span>
+            <span class="font-bold">{{ showCorrectAnswers() ? 'Revealed' : 'Hidden' }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Section 4.3: Authored Questions Preview -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
-        <h3 class="text-sm font-bold text-text-primary">Authored Questions ({{ questions().length }})</h3>
-        <div class="space-y-3">
-          @for (q of questions(); track q.questionId; let i = $index) {
-            <div class="p-4 rounded-2xl bg-base-200 border border-base-300 text-xs space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-text-primary">Q{{ i + 1 }}. {{ q.text || q.prompt }}</span>
-                <span class="font-bold text-tenant-600">{{ q.points }} pts</span>
-              </div>
-              @if (q.options?.length) {
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-2 text-[11px] text-text-secondary">
-                  @for (opt of q.options; track opt.optionId) {
-                    <div class="flex items-center gap-1.5" [class.text-emerald-600]="opt.correct || opt.isCorrect" [class.font-bold]="opt.correct || opt.isCorrect">
-                      <span class="material-symbols-outlined text-xs">{{ (opt.correct || opt.isCorrect) ? 'check_circle' : 'radio_button_unchecked' }}</span>
-                      <span>{{ opt.text }}</span>
-                    </div>
-                  }
-                </div>
-              }
+        <!-- Difficulty Distribution Matrix -->
+        <div class="pt-3 border-t border-base-200">
+          <span class="text-xs font-bold text-text-primary block mb-2">Question Difficulty Matrix</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-xs">
+              <span class="text-emerald-700 dark:text-emerald-300 font-bold block">Beginner</span>
+              <span class="text-lg font-bold text-emerald-800 dark:text-emerald-200">{{ difficultyDistribution().beginner }}</span>
+              <span class="text-[10px] text-text-secondary block">questions in bank</span>
             </div>
-          }
+            <div class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 text-xs">
+              <span class="text-sky-700 dark:text-sky-300 font-bold block">Intermediate</span>
+              <span class="text-lg font-bold text-sky-800 dark:text-sky-200">{{ difficultyDistribution().intermediate }}</span>
+              <span class="text-[10px] text-text-secondary block">questions in bank</span>
+            </div>
+            <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-xs">
+              <span class="text-amber-700 dark:text-amber-300 font-bold block">Advanced</span>
+              <span class="text-lg font-bold text-amber-800 dark:text-amber-200">{{ difficultyDistribution().advanced }}</span>
+              <span class="text-[10px] text-text-secondary block">questions in bank</span>
+            </div>
+            <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 text-xs">
+              <span class="text-purple-700 dark:text-purple-300 font-bold block">Expert</span>
+              <span class="text-lg font-bold text-purple-800 dark:text-purple-200">{{ difficultyDistribution().expert }}</span>
+              <span class="text-[10px] text-text-secondary block">questions in bank</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -896,49 +1142,30 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 5. UNIFIED BOTTOM NAVIGATION & ACTION BAR                                  -->
+  <!-- 5. WIZARD NAVIGATION CONTROLS                                             -->
   <!-- ========================================================================= -->
-  <div class="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-base-300">
-    <!-- Left: Cancel & Reset Step -->
-    <div class="flex items-center gap-2">
-      <button
-        type="button"
-        id="btn-bottom-cancel"
-        (click)="onCancel()"
-        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
-        Cancel
-      </button>
-
-      <button
-        type="button"
-        id="btn-bottom-reset"
-        (click)="onReset(currentStep())"
-        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold text-text-secondary hover:text-rose-600 border border-base-300/80 transition-all cursor-pointer"
-        title="Reset fields on this step">
-        Reset Step
-      </button>
-    </div>
-
-    <!-- Right: Navigation Wizards (Back, Save Draft, Next / Publish) -->
-    <div class="flex items-center gap-2.5">
+  <div class="p-4 rounded-3xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between gap-4">
+    <div>
       @if (currentStep() > 1) {
         <button
           type="button"
-          id="btn-wizard-back"
+          id="btn-wizard-prev"
           (click)="onPrev()"
-          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-bold border border-base-300 transition-all cursor-pointer flex items-center gap-1.5">
+          class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-bold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95">
           <span class="material-symbols-outlined text-sm">arrow_back</span>
           Back
         </button>
       }
+    </div>
 
+    <div class="flex items-center gap-2">
       <button
         type="button"
-        id="btn-bottom-save-draft"
-        (click)="onSaveAsDraft()"
-        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all cursor-pointer shadow-2xs">
+        id="btn-save-draft-bottom"
+        (click)="saveAsDraft()"
+        class="px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 flex items-center gap-1.5 cursor-pointer transition-all">
         <span class="material-symbols-outlined text-sm">bookmark</span>
-        Save as draft
+        Save as Draft
       </button>
 
       @if (currentStep() < 4) {
@@ -946,148 +1173,252 @@
           type="button"
           id="btn-wizard-next"
           (click)="onNext()"
-          class="px-5 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:scale-95 text-white text-xs font-extrabold shadow-md shadow-tenant-500/20 transition-all cursor-pointer flex items-center gap-1.5">
-          <span>Next: Step {{ currentStep() + 1 }}</span>
+          class="px-5 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95">
+          Next Step
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
       } @else {
         <button
           type="button"
-          id="btn-wizard-publish"
+          id="btn-publish-assessment"
           (click)="publishNow()"
           [disabled]="!validationChecklist().isValid"
-          class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-white text-xs font-extrabold shadow-md shadow-emerald-600/30 transition-all cursor-pointer flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-base">verified</span>
-          <span>Publish Assessment Live</span>
+          class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95">
+          <span class="material-symbols-outlined text-sm">publish</span>
+          Publish Assessment Live
         </button>
       }
     </div>
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- STEP 2 CONFIRMATION & ACTION ALERT MODALS                                  -->
-  <!-- ========================================================================= -->
-
-  <!-- Modal: Confirm Delete Question (Step 2) -->
-  @if (showDeleteQuestionConfirm()) {
-    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
-            <span class="material-symbols-outlined text-xl">delete</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-text-primary">Confirm Delete Question</h3>
-            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
-          </div>
-        </div>
-
-        <p class="text-xs text-text-secondary leading-relaxed">
-          Are you sure you want to delete <span class="font-bold text-text-primary">Question #{{ (questionToDeleteIndex() ?? 0) + 1 }}</span>? 
-          This will permanently remove the question, answer choices, and deducted points from the assessment marks.
-        </p>
-
-        <div class="flex items-center justify-end gap-2.5 pt-2">
-          <button
-            type="button"
-            id="btn-cancel-delete-question"
-            (click)="cancelDeleteQuestion()"
-            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
-            Cancel
-          </button>
-          <button
-            type="button"
-            id="btn-confirm-delete-question"
-            (click)="confirmDeleteQuestion()"
-            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-sm">
-            Delete Question
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Modal: Confirm Reset Step 2 -->
-  @if (showResetStep2Confirm()) {
-    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
-            <span class="material-symbols-outlined text-xl">restart_alt</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-text-primary">Reset Question Studio?</h3>
-            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
-          </div>
-        </div>
-
-        <p class="text-xs text-text-secondary leading-relaxed">
-          Are you sure you want to reset all questions in this assessment? All authored questions and answer configurations in Step 2 will be replaced with a blank template question.
-        </p>
-
-        <div class="flex items-center justify-end gap-2.5 pt-2">
-          <button
-            type="button"
-            id="btn-cancel-reset-step2"
-            (click)="cancelResetStep2()"
-            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
-            Cancel
-          </button>
-          <button
-            type="button"
-            id="btn-confirm-reset-step2"
-            (click)="confirmResetStep2()"
-            class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-sm">
-            Reset Step 2
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Modal: Confirm Discard on Cancel in Step 2 -->
-  @if (showCancelConfirmModal()) {
-    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-      <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
-            <span class="material-symbols-outlined text-xl">warning</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-text-primary">Discard Unsaved Questions?</h3>
-            <p class="text-xs text-text-secondary">Step 2 Question Studio Action Alert</p>
-          </div>
-        </div>
-
-        <p class="text-xs text-text-secondary leading-relaxed">
-          You currently have {{ questions().length }} authored question(s) in Step 2. Leaving now will discard unsaved modifications unless saved as a draft.
-        </p>
-
-        <div class="flex items-center justify-end gap-2.5 pt-2">
-          <button
-            type="button"
-            id="btn-cancel-keep-editing"
-            (click)="cancelCloseConfirmModal()"
-            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold cursor-pointer">
-            Keep Editing
-          </button>
-          <button
-            type="button"
-            id="btn-cancel-save-draft"
-            (click)="saveAsDraft()"
-            class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer shadow-sm">
-            Save as Draft
-          </button>
-          <button
-            type="button"
-            id="btn-confirm-cancel-exit"
-            (click)="confirmCancel()"
-            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-sm">
-            Discard & Exit
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
 </div>
+
+<!-- ========================================================================= -->
+<!-- 6. QUESTION REPOSITORY MODAL ("Add from Repository")                      -->
+<!-- ========================================================================= -->
+@if (showRepositoryModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+    <div class="w-full max-w-4xl max-h-[90vh] bg-base-100 rounded-3xl border border-base-300 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-xl">inventory_2</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Question Repository & Assessment Bank</h3>
+            <p class="text-[11px] text-text-secondary">Search, filter by difficulty, and import curated test items into your active assessment</p>
+          </div>
+        </div>
+
+        <button 
+          type="button"
+          (click)="closeRepositoryModal()"
+          class="p-2 rounded-xl text-text-secondary hover:bg-base-200 cursor-pointer">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="p-4 bg-base-200/60 border-b border-base-300 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        
+        <!-- Search Input -->
+        <div>
+          <label class="text-[10px] font-bold text-text-secondary block mb-1">Search Questions</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-xs text-text-secondary">search</span>
+            <input
+              type="text"
+              id="input-repo-search"
+              [ngModel]="repoSearchQuery()"
+              (ngModelChange)="repoSearchQuery.set($event)"
+              placeholder="Search keyword, topic, concept..."
+              class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs focus:outline-none focus:border-purple-500" />
+          </div>
+        </div>
+
+        <!-- Difficulty Filter -->
+        <div>
+          <label class="text-[10px] font-bold text-text-secondary block mb-1">Difficulty Level</label>
+          <select
+            id="select-repo-difficulty-filter"
+            [ngModel]="repoDifficultyFilter()"
+            (ngModelChange)="repoDifficultyFilter.set($event)"
+            class="w-full px-3 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold focus:outline-none focus:border-purple-500 cursor-pointer">
+            <option value="all">All Difficulties</option>
+            <option value="beginner">★ Beginner</option>
+            <option value="intermediate">★★ Intermediate</option>
+            <option value="advanced">★★★ Advanced</option>
+            <option value="expert">★★★★ Expert</option>
+          </select>
+        </div>
+
+        <!-- Question Type Filter -->
+        <div>
+          <label class="text-[10px] font-bold text-text-secondary block mb-1">Question Type</label>
+          <select
+            id="select-repo-type-filter"
+            [ngModel]="repoTypeFilter()"
+            (ngModelChange)="repoTypeFilter.set($event)"
+            class="w-full px-3 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs font-semibold focus:outline-none focus:border-purple-500 cursor-pointer">
+            <option value="all">All Types</option>
+            <option value="singleSelect">Single Choice (MCQ)</option>
+            <option value="multiSelect">Multi-Select</option>
+            <option value="trueFalse">True / False</option>
+            <option value="matching">Matching Pairs</option>
+            <option value="essay">Essay (Manual Review)</option>
+            <option value="numeric">Numeric Target</option>
+            <option value="fillBlank">Fill in the Blank</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Question List Body -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3 max-h-[50vh]">
+        @if (filteredRepositoryQuestions().length === 0) {
+          <div class="p-8 text-center text-text-secondary space-y-2">
+            <span class="material-symbols-outlined text-3xl opacity-40">search_off</span>
+            <p class="text-xs font-semibold">No questions matched the selected filters in the repository.</p>
+          </div>
+        } @else {
+          @for (rq of filteredRepositoryQuestions(); track rq.questionId) {
+            <div 
+              class="p-4 rounded-2xl border transition-all cursor-pointer"
+              [ngClass]="isRepoQuestionSelected(rq.questionId) ? 'bg-purple-50/60 dark:bg-purple-950/40 border-purple-400 dark:border-purple-700 shadow-xs' : 'bg-base-100 border-base-300 hover:border-base-400'"
+              (click)="toggleSelectRepoQuestion(rq.questionId)">
+              <div class="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  [checked]="isRepoQuestionSelected(rq.questionId)"
+                  (click)="$event.stopPropagation()"
+                  (change)="toggleSelectRepoQuestion(rq.questionId)"
+                  class="mt-1 rounded text-purple-600 focus:ring-purple-500 cursor-pointer" />
+                
+                <div class="flex-1 space-y-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Difficulty Badge -->
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                      [ngClass]="getDifficultyBadgeClass(rq.difficulty)">
+                      {{ getDifficultyLabel(rq.difficulty) }}
+                    </span>
+
+                    <!-- Type Badge -->
+                    <span class="px-2 py-0.5 rounded-md bg-base-200 text-text-primary text-[10px] font-bold border border-base-300">
+                      {{ getQuestionTypeLabel(rq.type) }}
+                    </span>
+
+                    <!-- Points Badge -->
+                    <span class="px-2 py-0.5 rounded-md bg-base-200 text-text-secondary text-[10px] font-medium">
+                      {{ rq.points }} pts
+                    </span>
+
+                    @if (rq.category) {
+                      <span class="px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 text-[10px] font-medium border border-tenant-200">
+                        {{ rq.category }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Prompt Preview -->
+                  <p class="text-xs font-semibold text-text-primary leading-relaxed">
+                    {{ rq.text || rq.prompt }}
+                  </p>
+
+                  <!-- Choice Options Preview if any -->
+                  @if (rq.options && rq.options.length > 0) {
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1 text-[11px] text-text-secondary">
+                      @for (opt of rq.options.slice(0, 4); track opt.optionId) {
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="w-1.5 h-1.5 rounded-full" [ngClass]="opt.correct ? 'bg-emerald-500' : 'bg-base-300'"></span>
+                          <span class="truncate" [class.font-bold]="opt.correct" [class.text-emerald-700]="opt.correct">{{ opt.text }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Quick Single Import Button -->
+                <button
+                  type="button"
+                  (click)="$event.stopPropagation(); importSingleQuestion(rq)"
+                  class="px-2.5 py-1.5 rounded-lg bg-base-200 hover:bg-purple-100 hover:text-purple-700 text-text-secondary text-xs font-bold border border-base-300 transition-all cursor-pointer shrink-0"
+                  title="Import only this question">
+                  + Add
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-base-300 bg-base-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="selectAllRepoQuestions()"
+            class="text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer">
+            Select All ({{ filteredRepositoryQuestions().length }})
+          </button>
+          <span class="text-text-secondary text-xs">&bull;</span>
+          <button
+            type="button"
+            (click)="deselectAllRepoQuestions()"
+            class="text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer">
+            Clear Selection
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="closeRepositoryModal()"
+            class="px-3.5 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-base-200 cursor-pointer">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            [disabled]="selectedRepoQuestionIds().size === 0"
+            (click)="importSelectedQuestions()"
+            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95">
+            <span class="material-symbols-outlined text-sm">download</span>
+            Import Selected ({{ selectedRepoQuestionIds().size }})
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Delete Question Confirmation Modal -->
+@if (showDeleteQuestionConfirm()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+    <div class="w-full max-w-md bg-base-100 rounded-3xl border border-base-300 p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 flex items-center justify-center font-bold">
+        <span class="material-symbols-outlined text-2xl">delete_forever</span>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-text-primary">Delete Question?</h3>
+        <p class="text-xs text-text-secondary mt-1">Are you sure you want to remove this question from the assessment item bank?</p>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button
+          type="button"
+          (click)="cancelDeleteQuestion()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-base-200 cursor-pointer">
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="confirmDeleteQuestion()"
+          class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
