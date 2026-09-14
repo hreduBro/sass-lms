@@ -475,6 +475,269 @@ app.delete('/api/tenants/:id', (req: Request, res: Response) => {
   res.json({ success: true, message: `Tenant ${deleted.name} decommissioned` });
 });
 
+// ----------------------------------------------------
+// 2b. Login Branding & Authentication Experience API
+// ----------------------------------------------------
+let loginBrandingConfig: any = {
+  id: 'branding-brac-master',
+  tenantId: 'tenant-brac',
+  pageTitle: 'BRAC Learning Management Portal — Sign In',
+  headline: 'Welcome to BRAC Learning Portal',
+  subheadline: 'Enterprise Multi-Tenant Learning Management System',
+  tagline: 'Empowering knowledge and skills across Bangladesh and global operations',
+  logoUrlLight: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=300&h=80&q=80',
+  logoUrlDark: '',
+  logoHeightPx: 44,
+  faviconUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=32&h=32&q=80',
+  layout: 'split_modern_canvas',
+  splitPosition: 'right',
+  backgroundType: 'image',
+  backgroundImageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1920&q=85',
+  backgroundGradient: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+  backgroundOverlayColor: '#090d16',
+  backgroundOverlayOpacity: 65,
+  backgroundBlurPx: 0,
+  cardStyle: 'glassmorphism',
+  cardBlurAmount: 16,
+  cardBorderRadius: '2xl',
+  cardShadow: '2xl',
+  primaryColor: '#e1197e',
+  accentColor: '#005b94',
+  textColor: '#0f172a',
+  buttonStyle: 'rounded',
+  buttonGradientEnabled: false,
+  enableSsoGoogle: true,
+  enableSsoMicrosoft: true,
+  enableSsoOkta: true,
+  enableSsoSaml: false,
+  enablePasswordLogin: true,
+  enableRememberMe: true,
+  enableForgotPassword: true,
+  enableSelfRegistration: true,
+  supportContactEmail: 'learning.support@brac.net',
+  supportContactPhone: '+880 2 2222 81265',
+  helpdeskUrl: 'https://helpdesk.brac.net',
+  copyrightText: '© 2026 BRAC. All Rights Reserved.',
+  privacyPolicyUrl: 'https://brac.net/privacy-policy',
+  termsOfServiceUrl: 'https://brac.net/terms',
+  showLanguagePicker: true,
+  defaultLanguage: 'English',
+  announcementBanner: {
+    enabled: true,
+    text: 'Scheduled system maintenance on Sunday at 02:00 UTC. SSO logins will remain uninterrupted.',
+    type: 'info',
+    style: 'floating_pill',
+    dismissible: true
+  },
+  sidePanel: {
+    badgeText: 'ENTERPRISE PORTAL',
+    badgeIcon: 'verified_user',
+    theme: 'glass',
+    bullets: [
+      { id: 'b1', icon: 'shield_lock', title: 'Protected by Cloud Security Shield', description: '256-bit AES encryption & adaptive threat radar' },
+      { id: 'b2', icon: 'auto_awesome', title: 'Adaptive AI Learning Path', description: 'Real-time skill cluster mapping and smart recommendations' },
+      { id: 'b3', icon: 'sync_saved_locally', title: 'Real-time Transcript Sync', description: 'Instant credentials and verifiable digital certificates' }
+    ],
+    showSecurityShield: true,
+    showStatsRow: true,
+    stat1Value: '24,500+',
+    stat1Label: 'Active Learners',
+    stat2Value: '99.99%',
+    stat2Label: 'SSO Uptime'
+  },
+  securityBadges: {
+    showSslBadge: true,
+    showSoc2Badge: true,
+    showIsoBadge: true
+  },
+  customHtml: '',
+  customCss: '',
+  useCustomContentPanel: false,
+  status: 'Published',
+  version: 2.4,
+  lastUpdatedBy: 'System Admin',
+  lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+};
+
+// GET current login branding configuration
+app.get('/api/login-branding', (req: Request, res: Response) => {
+  const { tenantId } = req.query;
+  // If specific tenant is queried, we can customize or merge tenant brand colors
+  if (tenantId && tenantId !== 'all') {
+    const tenant = tenants.find(t => t.id === tenantId);
+    if (tenant) {
+      return res.json({
+        success: true,
+        data: {
+          ...loginBrandingConfig,
+          tenantId: tenant.id,
+          headline: `Welcome to ${tenant.name}`,
+          tagline: tenant.branding.tagline,
+          primaryColor: tenant.branding.primaryColor || loginBrandingConfig.primaryColor,
+          accentColor: tenant.branding.accentColor || loginBrandingConfig.accentColor,
+          logoUrlLight: tenant.branding.logoUrl || loginBrandingConfig.logoUrlLight
+        }
+      });
+    }
+  }
+  res.json({ success: true, data: loginBrandingConfig });
+});
+
+// PUT update draft branding configuration
+app.put('/api/login-branding', (req: Request, res: Response) => {
+  const updates = req.body;
+  loginBrandingConfig = {
+    ...loginBrandingConfig,
+    ...updates,
+    status: 'Draft',
+    lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+  };
+
+  res.json({
+    success: true,
+    message: 'Login branding configuration updated as Draft',
+    data: loginBrandingConfig
+  });
+});
+
+// POST publish branding configuration
+app.post('/api/login-branding/publish', (req: Request, res: Response) => {
+  const incoming = req.body || {};
+  const author = req.body?.author || 'System Administrator';
+  const newVersion = Math.round(((loginBrandingConfig.version || 2.4) + 0.1) * 10) / 10;
+
+  loginBrandingConfig = {
+    ...loginBrandingConfig,
+    ...incoming,
+    status: 'Published',
+    version: newVersion,
+    lastUpdatedBy: author,
+    lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+  };
+
+  auditLogs.unshift({
+    id: `log-${Date.now()}`,
+    tenantId: loginBrandingConfig.tenantId || 'tenant-brac',
+    action: 'Login Branding Published',
+    details: `Published Login Branding configuration v${newVersion} by ${author}`,
+    user: author,
+    timestamp: new Date().toISOString(),
+    type: 'success'
+  });
+
+  res.json({
+    success: true,
+    message: `Login branding configuration v${newVersion} published successfully`,
+    data: loginBrandingConfig
+  });
+});
+
+// POST reset to enterprise defaults
+app.post('/api/login-branding/reset', (req: Request, res: Response) => {
+  loginBrandingConfig = {
+    id: 'branding-brac-master',
+    tenantId: 'tenant-brac',
+    pageTitle: 'BRAC Learning Management Portal — Sign In',
+    headline: 'Welcome to BRAC Learning Portal',
+    subheadline: 'Enterprise Multi-Tenant Learning Management System',
+    tagline: 'Empowering knowledge and skills across Bangladesh and global operations',
+    logoUrlLight: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=300&h=80&q=80',
+    logoHeightPx: 44,
+    layout: 'split_modern_canvas',
+    splitPosition: 'right',
+    backgroundType: 'image',
+    backgroundImageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1920&q=85',
+    backgroundGradient: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+    backgroundOverlayColor: '#090d16',
+    backgroundOverlayOpacity: 65,
+    backgroundBlurPx: 0,
+    cardStyle: 'glassmorphism',
+    cardBlurAmount: 16,
+    cardBorderRadius: '2xl',
+    cardShadow: '2xl',
+    primaryColor: '#e1197e',
+    accentColor: '#005b94',
+    textColor: '#0f172a',
+    buttonStyle: 'rounded',
+    buttonGradientEnabled: false,
+    enableSsoGoogle: true,
+    enableSsoMicrosoft: true,
+    enableSsoOkta: true,
+    enableSsoSaml: false,
+    enablePasswordLogin: true,
+    enableRememberMe: true,
+    enableForgotPassword: true,
+    enableSelfRegistration: true,
+    supportContactEmail: 'learning.support@brac.net',
+    copyrightText: '© 2026 BRAC. All Rights Reserved.',
+    privacyPolicyUrl: 'https://brac.net/privacy-policy',
+    termsOfServiceUrl: 'https://brac.net/terms',
+    showLanguagePicker: true,
+    defaultLanguage: 'English',
+    announcementBanner: {
+      enabled: true,
+      text: 'Scheduled system maintenance on Sunday at 02:00 UTC. SSO logins will remain uninterrupted.',
+      type: 'info',
+      style: 'floating_pill',
+      dismissible: true
+    },
+    sidePanel: {
+      badgeText: 'ENTERPRISE PORTAL',
+      badgeIcon: 'verified_user',
+      theme: 'glass',
+      bullets: [
+        { id: 'b1', icon: 'shield_lock', title: 'Protected by Cloud Security Shield', description: '256-bit AES encryption & adaptive threat radar' },
+        { id: 'b2', icon: 'auto_awesome', title: 'Adaptive AI Learning Path', description: 'Real-time skill cluster mapping and smart recommendations' },
+        { id: 'b3', icon: 'sync_saved_locally', title: 'Real-time Transcript Sync', description: 'Instant credentials and verifiable digital certificates' }
+      ],
+      showSecurityShield: true,
+      showStatsRow: true,
+      stat1Value: '24,500+',
+      stat1Label: 'Active Learners',
+      stat2Value: '99.99%',
+      stat2Label: 'SSO Uptime'
+    },
+    securityBadges: {
+      showSslBadge: true,
+      showSoc2Badge: true,
+      showIsoBadge: true
+    },
+    customHtml: '',
+    customCss: '',
+    status: 'Published',
+    version: 1.0,
+    lastUpdatedBy: 'System Admin',
+    lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+  };
+
+  res.json({
+    success: true,
+    message: 'Login branding reset to default enterprise settings',
+    data: loginBrandingConfig
+  });
+});
+
+// PATCH emergency announcement callout banner
+app.patch('/api/login-branding/announcement', (req: Request, res: Response) => {
+  const { enabled, text, type, style, actionText, dismissible } = req.body;
+  loginBrandingConfig.announcementBanner = {
+    ...loginBrandingConfig.announcementBanner,
+    ...(enabled !== undefined && { enabled }),
+    ...(text !== undefined && { text }),
+    ...(type !== undefined && { type }),
+    ...(style !== undefined && { style }),
+    ...(actionText !== undefined && { actionText }),
+    ...(dismissible !== undefined && { dismissible })
+  };
+  loginBrandingConfig.lastUpdatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+  res.json({
+    success: true,
+    message: 'Announcement callout banner updated successfully',
+    data: loginBrandingConfig.announcementBanner
+  });
+});
+
 // 3. Courses API
 app.get('/api/courses', (req: Request, res: Response) => {
   const { tenantId, category, level, mandatory, status } = req.query;

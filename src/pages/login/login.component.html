@@ -33,7 +33,7 @@
   @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded') {
     @if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
       <div class="auth-announcement relative z-30 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center w-full">
-        <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs"
+        <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm"
              [class.bg-blue-950/85]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
              [class.border-blue-500/40]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
              [class.text-blue-100]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
@@ -46,21 +46,16 @@
              [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
              [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
              [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
-          <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
+          <span class="material-symbols-outlined text-base sm:text-lg shrink-0"
                 [class.text-blue-400]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
                 [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
                 [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
                 [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
             {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
           </span>
-          <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+          <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug break-words">
             {{ branding().announcementBanner?.text }}
           </span>
-          @if (branding().announcementBanner?.actionText) {
-            <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
-              {{ branding().announcementBanner?.actionText }}
-            </span>
-          }
         </div>
       </div>
     } @else {

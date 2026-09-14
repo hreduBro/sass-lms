@@ -1096,21 +1096,39 @@ export class LoginBrandingEditComponent {
     }
   }
 
-  onPublish() {
+  async onPublish() {
     this.isSaving.set(true);
-    setTimeout(() => {
-      this.isSaving.set(false);
-      this.lms.publishLoginBranding(this.formData());
-      this.lms.showToast('Login branding changes successfully saved and published!', 'success', 3500, 'Changes Saved');
-      this.router.navigate(['/login-branding']);
-    }, 600);
+    const data = this.formData();
+    try {
+      await fetch('/api/login-branding/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch {
+      // fallback to local service state
+    }
+    this.isSaving.set(false);
+    this.lms.publishLoginBranding(data);
+    this.lms.showToast('Login branding changes successfully saved and published!', 'success', 3500, 'Changes Saved');
+    this.router.navigate(['/login-branding']);
   }
 
-  onSaveDraft() {
-    this.lms.updateLoginBranding({
+  async onSaveDraft() {
+    const draftData = {
       ...this.formData(),
-      status: 'Draft'
-    });
+      status: 'Draft' as const
+    };
+    try {
+      await fetch('/api/login-branding', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draftData)
+      });
+    } catch {
+      // fallback to local service state
+    }
+    this.lms.updateLoginBranding(draftData);
     this.lms.showToast('Login branding draft saved successfully.', 'info', 3000, 'Draft Saved');
   }
 
@@ -1297,8 +1315,7 @@ export class LoginBrandingEditComponent {
           text: current?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC. SSO logins will remain uninterrupted.',
           type: current?.type || 'info',
           style: current?.style || 'floating_pill',
-          dismissible: current?.dismissible ?? true,
-          actionText: current?.actionText || 'System Status'
+          dismissible: current?.dismissible ?? true
         }
       };
     });

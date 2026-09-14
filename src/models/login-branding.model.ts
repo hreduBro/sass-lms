@@ -612,8 +612,7 @@ export const DEFAULT_LOGIN_BRANDING: LoginBrandingConfig = {
     text: 'Scheduled system maintenance on Sunday at 02:00 UTC. SSO logins will remain uninterrupted.',
     type: 'info',
     style: 'floating_pill',
-    dismissible: true,
-    actionText: 'System Status'
+    dismissible: true
   },
   sidePanel: {
     badgeText: 'ENTERPRISE PORTAL',

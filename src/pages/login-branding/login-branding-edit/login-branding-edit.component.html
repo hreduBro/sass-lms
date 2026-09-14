@@ -189,16 +189,6 @@
             </select>
           </div>
 
-          <!-- Inspector Mode Toggle -->
-          <button 
-            type="button"
-            (click)="toggleInspectorMode()"
-            [title]="inspectorMode() ? 'Exit CSS Inspector' : 'Inspect CSS Selectors'"
-            [class]="inspectorMode() ? 'bg-tenant-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'"
-            class="w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-base">near_me</span>
-          </button>
-
           <!-- Light / Dark Preview Canvas Mode Toggle -->
           <button 
             type="button"
@@ -334,7 +324,7 @@
               <!-- STYLE 2: FLOATING PILL CALLOUT BANNER (Modern Split) -->
               @if (selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed())) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style)))) {
                 <div class="absolute top-3 sm:top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-2.5 sm:px-4 auth-announcement ak-Callout w-full">
-                  <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                  <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
                        [class.ring-purple-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
@@ -354,7 +344,7 @@
                         <span>Callout</span>
                       </div>
                     }
-                    <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
+                    <span class="material-symbols-outlined text-base sm:text-lg shrink-0"
                           [class.text-blue-400]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                           [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
@@ -362,15 +352,9 @@
                       {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : 'campaign')) }}
                     </span>
 
-                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug break-words">
                       {{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}
                     </span>
-
-                    @if (formData().announcementBanner?.actionText) {
-                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
-                        {{ formData().announcementBanner?.actionText }}
-                      </span>
-                    }
 
                     @if (formData().announcementBanner?.dismissible) {
                       <button 
@@ -1309,7 +1293,7 @@
               <!-- STYLE A: FLOATING PILL CALLOUT -->
               @if (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) {
                 <div class="relative z-20 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center auth-announcement ak-Callout w-full">
-                  <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                  <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
                        [class.ring-tenant-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info'"
@@ -1325,7 +1309,7 @@
                        [class.border-emerald-500/40]="formData().announcementBanner?.type === 'success'"
                        [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
                     
-                    <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
+                    <span class="material-symbols-outlined text-base sm:text-lg shrink-0"
                           [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
                           [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
@@ -1333,15 +1317,9 @@
                       {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : (formData().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
                     </span>
 
-                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug break-words">
                       {{ formData().announcementBanner?.text }}
                     </span>
-
-                    @if (formData().announcementBanner?.actionText) {
-                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
-                        {{ formData().announcementBanner?.actionText }}
-                      </span>
-                    }
 
                     @if (formData().announcementBanner?.dismissible) {
                       <button 
@@ -3039,13 +3017,9 @@
                 </div>
               </div>
 
-              <!-- Subtitle with Learn more link -->
+              <!-- Subtitle -->
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 Override element styles across all AuthKit pages with custom CSS.
-                <a href="https://workos.com/docs/authkit/custom-css" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-normal inline-flex items-center gap-0.5 ml-0.5 transition-colors">
-                  <span>Learn more</span>
-                  <span class="text-[10px]">↗</span>
-                </a>
               </p>
             </div>
 
