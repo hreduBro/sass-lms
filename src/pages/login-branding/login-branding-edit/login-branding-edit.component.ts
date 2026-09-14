@@ -52,6 +52,7 @@ export interface ScopedCssElement {
   id: string;
   name: string;
   selector: string;
+  description?: string;
   isOpen: boolean;
   enabled: boolean;
   removeOriginalStyles: boolean;
@@ -185,7 +186,8 @@ export class LoginBrandingEditComponent {
     { 
       id: 'background', 
       name: 'Background', 
-      selector: '.ak-Background', 
+      selector: '.ak-Background',
+      description: 'Outer page canvas background wrapper and responsive viewport container',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -208,6 +210,7 @@ export class LoginBrandingEditComponent {
       id: 'header', 
       name: 'Header', 
       selector: '.ak-Header', 
+      description: 'Brand identity, workspace logo, title headline, and subheadline wrapper',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -227,6 +230,7 @@ export class LoginBrandingEditComponent {
       id: 'card', 
       name: 'Card', 
       selector: '.ak-Card', 
+      description: 'Authentication card surface enclosing the login form and credentials input',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -249,6 +253,7 @@ export class LoginBrandingEditComponent {
       id: 'primary-button', 
       name: 'Primary button', 
       selector: '.ak-PrimaryButton', 
+      description: 'Main action submission button for signing in or continuing authorization',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -271,6 +276,7 @@ export class LoginBrandingEditComponent {
       id: 'secondary-button', 
       name: 'Secondary button', 
       selector: '.ak-SecondaryButton', 
+      description: 'Enterprise SSO federation buttons (Google, Microsoft, Okta, SAML)',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -290,6 +296,7 @@ export class LoginBrandingEditComponent {
       id: 'text-field', 
       name: 'Text field', 
       selector: '.ak-TextField', 
+      description: 'Email, username, password input controls, bounding borders, and icons',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -310,6 +317,7 @@ export class LoginBrandingEditComponent {
       id: 'label', 
       name: 'Label', 
       selector: '.ak-Label', 
+      description: 'Form field descriptions, password recovery trigger links, and indicators',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -328,6 +336,7 @@ export class LoginBrandingEditComponent {
       id: 'callout', 
       name: 'Callout', 
       selector: '.ak-Callout', 
+      description: 'System announcement ribbons, security maintenance banners, and alerts',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -346,6 +355,7 @@ export class LoginBrandingEditComponent {
       id: 'org-selection', 
       name: 'Organization selection', 
       selector: '.ak-OrganizationSelection', 
+      description: 'Multi-tenant organization switcher tile cards and selector list items',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -364,6 +374,7 @@ export class LoginBrandingEditComponent {
       id: 'sso-trigger', 
       name: 'SSO profile trigger', 
       selector: '.ak-SSOProfileTrigger', 
+      description: 'Floating or embedded SSO profile avatar badge and current user pill',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -381,6 +392,7 @@ export class LoginBrandingEditComponent {
       id: 'sso-menu', 
       name: 'SSO profile menu', 
       selector: '.ak-SSOProfileMenu', 
+      description: 'SSO user context menu dropdown with logout and account switcher actions',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -861,6 +873,33 @@ export class LoginBrandingEditComponent {
       elements.map(el => el.id === id ? { ...el, code: newCode } : el)
     );
     this.syncCombinedCss();
+
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = textarea.value.substring(0, cursorPos);
+    const lastWord = textBeforeCursor.split(/[\s\n;{}]/).pop() || '';
+    if (lastWord.startsWith('.') || (lastWord.length >= 2 && !lastWord.includes(':'))) {
+      this.activeAutocompleteElementId.set(id);
+      this.autocompleteSearch.set(lastWord);
+      this.autocompleteSelectedIndex.set(0);
+      this.showAutocomplete.set(true);
+    } else {
+      this.showAutocomplete.set(false);
+    }
+  }
+
+  onScopedTextareaClick(id: string, textarea: HTMLTextAreaElement) {
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = textarea.value.substring(0, cursorPos);
+    const lastWord = textBeforeCursor.split(/[\s\n;{}]/).pop() || '';
+    if (lastWord.startsWith('.') || lastWord.startsWith('ak-') || lastWord.length >= 2) {
+      this.activeAutocompleteElementId.set(id);
+      this.autocompleteSearch.set(lastWord);
+      this.autocompleteSelectedIndex.set(0);
+      this.showAutocomplete.set(true);
+    } else {
+      this.showAutocomplete.set(false);
+      this.activeAutocompleteElementId.set(null);
+    }
   }
 
   onScopedCodeChange(id: string, newCode: string) {
@@ -871,6 +910,31 @@ export class LoginBrandingEditComponent {
   }
 
   onScopedTextareaKeydown(id: string, textarea: HTMLTextAreaElement, event: KeyboardEvent) {
+    if (this.showAutocomplete() && this.activeAutocompleteElementId() === id) {
+      const suggestions = this.activeElementSuggestions();
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        this.autocompleteSelectedIndex.update(idx => (idx + 1) % Math.max(suggestions.length, 1));
+        return;
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        this.autocompleteSelectedIndex.update(idx => (idx - 1 + suggestions.length) % Math.max(suggestions.length, 1));
+        return;
+      } else if (event.key === 'Enter' || event.key === 'Tab') {
+        if (suggestions.length > 0) {
+          event.preventDefault();
+          const selected = suggestions[this.autocompleteSelectedIndex()] || suggestions[0];
+          this.insertAutocompleteSuggestion(id, selected, textarea);
+          return;
+        }
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        this.showAutocomplete.set(false);
+        this.activeAutocompleteElementId.set(null);
+        return;
+      }
+    }
+
     if (event.key === 'Tab') {
       event.preventDefault();
       const start = textarea.selectionStart;
@@ -896,6 +960,30 @@ export class LoginBrandingEditComponent {
         this.onScopedCodeInput(id, textarea);
       }
     }
+  }
+
+  insertAutocompleteSuggestion(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
+    const snippetToInsert = suggestion.snippet || `  ${suggestion.name} {\n    \n  }`;
+    if (textarea) {
+      const cursorPos = textarea.selectionStart;
+      const textBeforeCursor = textarea.value.substring(0, cursorPos);
+      const textAfterCursor = textarea.value.substring(cursorPos);
+      const matchWord = textBeforeCursor.match(/(\.[a-zA-Z0-9_-]*|[a-zA-Z0-9_-]+)$/);
+      if (matchWord) {
+        const wordStart = cursorPos - matchWord[0].length;
+        const newText = textarea.value.substring(0, wordStart) + snippetToInsert + textAfterCursor;
+        textarea.value = newText;
+        const newCursor = wordStart + snippetToInsert.length;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        this.onScopedCodeChange(elemId, newText);
+      } else {
+        this.insertChildClass(elemId, suggestion, textarea);
+      }
+    } else {
+      this.insertChildClass(elemId, suggestion);
+    }
+    this.showAutocomplete.set(false);
+    this.activeAutocompleteElementId.set(null);
   }
 
   insertChildClass(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
