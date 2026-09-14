@@ -130,9 +130,22 @@
           </button>
         </div>
 
-        <!-- Right: Language Picker -->
+        <!-- Right: Preview Theme Toggle & Language Picker -->
         <div class="flex items-center gap-2">
           
+          <!-- Canvas Preview Theme Mode Toggle (Dark / Light) -->
+          <button 
+            type="button" 
+            id="btn-studio-preview-theme"
+            (click)="togglePreviewTheme()"
+            [title]="previewTheme() === 'dark' ? 'Switch preview canvas to Light Mode' : 'Switch preview canvas to Dark Mode'"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs">
+            <span class="material-symbols-outlined text-base text-amber-500 dark:text-amber-400">
+              {{ previewTheme() === 'dark' ? 'dark_mode' : 'light_mode' }}
+            </span>
+            <span class="font-medium text-xs">{{ previewTheme() === 'dark' ? 'Dark' : 'Light' }}</span>
+          </button>
+
           <!-- Language Selector -->
           <div class="hidden sm:block w-44">
             <app-custom-select
