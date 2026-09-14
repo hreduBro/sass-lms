@@ -5,10 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { UserRole } from '../../models/lms.model';
 import { LoginBrandingConfig } from '../../models/login-branding.model';
+import { SsoLogoComponent } from '../../components/sso-logo/sso-logo.component';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -24,7 +25,13 @@ export class LoginComponent {
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string>('');
 
-  branding = computed<LoginBrandingConfig>(() => this.lms.loginBranding());
+  branding = computed<LoginBrandingConfig>(() => {
+    const cfg = { ...this.lms.loginBranding() };
+    if (cfg.copyrightText) {
+      cfg.copyrightText = cfg.copyrightText.replace(/\s*&\s*BRAC\s*IT\s*Services/gi, '').replace(/\s*&\s*Brac\s*IT\s*Services/gi, '').trim();
+    }
+    return cfg;
+  });
 
   demoAccounts = [
     { name: 'Farhana Ahmed', role: 'system_admin' as UserRole, email: 'farhana.ahmed@brac.net', label: 'System Admin' },

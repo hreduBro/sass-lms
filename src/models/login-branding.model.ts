@@ -281,75 +281,75 @@ export function getHeroPanelDefaultHtml(config?: Partial<LoginBrandingConfig>): 
   const headline = config?.headline || 'Welcome to BRAC Learning Portal';
   const subheadline = config?.subheadline || 'Sign in to access your assigned curriculum, certifications, virtual classrooms and progress transcripts.';
 
-  return `<div class="space-y-4 max-w-md w-full relative">
+  return `<div class="space-y-4 max-w-md w-full relative hero-content-panel">
   <!-- Ambient Subtle Glow Accent -->
-  <div class="absolute -top-10 -right-10 w-48 h-48 bg-[#EC008C]/15 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -top-10 -right-10 w-48 h-48 bg-[#EC008C]/15 rounded-full blur-3xl pointer-events-none hero-glow-accent"></div>
 
   <!-- Badge & Icon -->
-  <div class="flex items-center gap-2">
-    <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-[#EC008C]/20 border border-[#EC008C]/30 text-[#EC008C]">
+  <div class="flex items-center gap-2 hero-badge-wrapper">
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-[#EC008C]/20 border border-[#EC008C]/30 text-[#EC008C] hero-badge-icon">
       <span class="material-symbols-outlined text-base">verified_user</span>
     </div>
-    <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#EC008C]">ENTERPRISE PORTAL</span>
+    <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#EC008C] hero-badge-text">ENTERPRISE PORTAL</span>
   </div>
 
   <!-- Main Headline -->
   <div>
-    <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight text-white">
+    <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight text-white hero-headline">
       ${headline}
     </h1>
   </div>
 
   <!-- Subheadline -->
-  <p class="text-xs sm:text-sm leading-relaxed text-white/85">
+  <p class="text-xs sm:text-sm leading-relaxed text-white/85 hero-subheadline">
     ${subheadline}
   </p>
 
   <!-- Feature Highlights List -->
-  <div class="space-y-2.5 pt-1">
+  <div class="space-y-2.5 pt-1 hero-feature-list">
     <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors hero-feature-item">
-      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C]">
+      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C] hero-feature-icon">
         <span class="material-symbols-outlined text-xs">shield_lock</span>
       </div>
-      <div class="text-xs min-w-0 text-white">
-        <div class="font-bold truncate">Protected by Cloud Security Shield</div>
-        <div class="text-[10px] text-white/70 mt-0.5">256-bit AES encryption & adaptive threat radar</div>
+      <div class="text-xs min-w-0 text-white hero-feature-text">
+        <div class="font-bold truncate hero-feature-title">Protected by Cloud Security Shield</div>
+        <div class="text-[10px] text-white/70 mt-0.5 hero-feature-desc">256-bit AES encryption & adaptive threat radar</div>
       </div>
     </div>
     <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors hero-feature-item">
-      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C]">
+      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C] hero-feature-icon">
         <span class="material-symbols-outlined text-xs">auto_awesome</span>
       </div>
-      <div class="text-xs min-w-0 text-white">
-        <div class="font-bold truncate">Adaptive AI Learning Path</div>
-        <div class="text-[10px] text-white/70 mt-0.5">Real-time skill cluster mapping and smart recommendations</div>
+      <div class="text-xs min-w-0 text-white hero-feature-text">
+        <div class="font-bold truncate hero-feature-title">Adaptive AI Learning Path</div>
+        <div class="text-[10px] text-white/70 mt-0.5 hero-feature-desc">Real-time skill cluster mapping and smart recommendations</div>
       </div>
     </div>
     <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors hero-feature-item">
-      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C]">
+      <div class="w-5 h-5 rounded-md bg-[#EC008C]/20 border border-[#EC008C]/40 flex items-center justify-center shrink-0 mt-0.5 text-[#EC008C] hero-feature-icon">
         <span class="material-symbols-outlined text-xs">sync_saved_locally</span>
       </div>
-      <div class="text-xs min-w-0 text-white">
-        <div class="font-bold truncate">Real-time Transcript Sync</div>
-        <div class="text-[10px] text-white/70 mt-0.5">Instant credentials and verifiable digital certificates</div>
+      <div class="text-xs min-w-0 text-white hero-feature-text">
+        <div class="font-bold truncate hero-feature-title">Real-time Transcript Sync</div>
+        <div class="text-[10px] text-white/70 mt-0.5 hero-feature-desc">Instant credentials and verifiable digital certificates</div>
       </div>
     </div>
   </div>
 
   <!-- Stats Row -->
-  <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-white">
+  <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-white hero-stats-row">
     <div class="hero-stat-box">
-      <div class="text-lg sm:text-xl font-black text-[#EC008C] tracking-tight">24,500+</div>
-      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider">Active Learners</div>
+      <div class="text-lg sm:text-xl font-black text-[#EC008C] tracking-tight hero-stat-value">24,500+</div>
+      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider hero-stat-label">Active Learners</div>
     </div>
     <div class="hero-stat-box">
-      <div class="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">99.99%</div>
-      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider">SSO Uptime</div>
+      <div class="text-lg sm:text-xl font-black text-emerald-400 tracking-tight hero-stat-value">99.99%</div>
+      <div class="text-[10px] text-white/70 uppercase font-semibold tracking-wider hero-stat-label">SSO Uptime</div>
     </div>
   </div>
 
   <!-- Security Badges Footer in Hero -->
-  <div class="pt-1 flex items-center gap-2.5 text-[11px] text-white/75">
+  <div class="pt-1 flex items-center gap-2.5 text-[11px] text-white/75 hero-security-footer">
     <div class="flex items-center gap-1.5 font-medium">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
       <span>Cloud Security Shield</span>
@@ -365,14 +365,13 @@ export function getHeroPanelDefaultHtml(config?: Partial<LoginBrandingConfig>): 
 
 export function getHeroPanelDefaultCss(): string {
   return `/* Custom Hero Content Panel & Card CSS Overrides */
-.hero-feature-item {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.hero-content-panel {
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-.hero-feature-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateX(4px);
-  border-color: rgba(236, 0, 140, 0.4);
+.hero-feature-item {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-stat-box {
@@ -395,6 +394,172 @@ export function getHeroPanelDefaultCss(): string {
 .auth-primary-btn:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   DARK MODE STYLING: Hero Content Panel & Highlights
+   Active in: .dark, [data-theme="dark"], [data-mode="dark"], or system dark
+   ========================================================================== */
+.dark .hero-content-panel,
+[data-theme="dark"] .hero-content-panel,
+.dark .hero-panel-card,
+[data-theme="dark"] .hero-panel-card {
+  color: #ffffff;
+}
+
+.dark .hero-headline,
+[data-theme="dark"] .hero-headline,
+.dark .hero-content-panel h1,
+[data-theme="dark"] .hero-content-panel h1 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dark .hero-subheadline,
+[data-theme="dark"] .hero-subheadline,
+.dark .hero-content-panel p,
+[data-theme="dark"] .hero-content-panel p {
+  color: rgba(241, 245, 249, 0.85) !important;
+}
+
+/* Dark Mode Feature Highlights */
+.dark .hero-feature-item,
+[data-theme="dark"] .hero-feature-item {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(16px);
+}
+
+.dark .hero-feature-item:hover,
+[data-theme="dark"] .hero-feature-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(236, 0, 140, 0.5) !important;
+  box-shadow: 0 6px 24px -2px rgba(236, 0, 140, 0.3);
+  transform: translateX(4px);
+}
+
+.dark .hero-feature-title,
+[data-theme="dark"] .hero-feature-title,
+.dark .hero-feature-item .font-bold,
+[data-theme="dark"] .hero-feature-item .font-bold {
+  color: #ffffff !important;
+}
+
+.dark .hero-feature-desc,
+[data-theme="dark"] .hero-feature-desc,
+.dark .hero-feature-item [class*="text-white/70"],
+[data-theme="dark"] .hero-feature-item [class*="text-white/70"] {
+  color: rgba(226, 232, 240, 0.75) !important;
+}
+
+/* Dark Mode Stats & Indicators */
+.dark .hero-stats-row,
+[data-theme="dark"] .hero-stats-row {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark .hero-stat-label,
+[data-theme="dark"] .hero-stat-label,
+.dark .hero-stats-row [class*="text-white/70"],
+[data-theme="dark"] .hero-stats-row [class*="text-white/70"] {
+  color: rgba(226, 232, 240, 0.7) !important;
+}
+
+/* Dark Mode Security Badges Footer */
+.dark .hero-security-footer,
+[data-theme="dark"] .hero-security-footer,
+.dark [class*="text-white/75"],
+[data-theme="dark"] [class*="text-white/75"] {
+  color: rgba(226, 232, 240, 0.75) !important;
+}
+
+.dark .hero-glow-accent,
+[data-theme="dark"] .hero-glow-accent {
+  opacity: 0.25;
+}
+
+/* ==========================================================================
+   LIGHT MODE STYLING: Hero Content Panel & Highlights
+   Active in: .light, [data-theme="light"], [data-mode="light"]
+   ========================================================================== */
+.light .hero-content-panel,
+[data-theme="light"] .hero-content-panel,
+.light .hero-panel-card,
+[data-theme="light"] .hero-panel-card {
+  color: #0f172a;
+}
+
+.light .hero-headline,
+[data-theme="light"] .hero-headline,
+.light .hero-content-panel h1,
+[data-theme="light"] .hero-content-panel h1 {
+  color: #0f172a !important;
+  text-shadow: none;
+}
+
+.light .hero-subheadline,
+[data-theme="light"] .hero-subheadline,
+.light .hero-content-panel p,
+[data-theme="light"] .hero-content-panel p {
+  color: #475569 !important;
+}
+
+/* Light Mode Feature Highlights */
+.light .hero-feature-item,
+[data-theme="light"] .hero-feature-item {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+}
+
+.light .hero-feature-item:hover,
+[data-theme="light"] .hero-feature-item:hover {
+  background: #ffffff !important;
+  border-color: rgba(236, 0, 140, 0.45) !important;
+  box-shadow: 0 6px 18px -2px rgba(236, 0, 140, 0.18);
+  transform: translateX(4px);
+}
+
+.light .hero-feature-title,
+[data-theme="light"] .hero-feature-title,
+.light .hero-feature-item .font-bold,
+[data-theme="light"] .hero-feature-item .font-bold {
+  color: #0f172a !important;
+}
+
+.light .hero-feature-desc,
+[data-theme="light"] .hero-feature-desc,
+.light .hero-feature-item [class*="text-white/70"],
+[data-theme="light"] .hero-feature-item [class*="text-white/70"] {
+  color: #64748b !important;
+}
+
+/* Light Mode Stats & Indicators */
+.light .hero-stats-row,
+[data-theme="light"] .hero-stats-row {
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.light .hero-stat-label,
+[data-theme="light"] .hero-stat-label,
+.light .hero-stats-row [class*="text-white/70"],
+[data-theme="light"] .hero-stats-row [class*="text-white/70"] {
+  color: #64748b !important;
+}
+
+/* Light Mode Security Badges Footer */
+.light .hero-security-footer,
+[data-theme="light"] .hero-security-footer,
+.light [class*="text-white/75"],
+[data-theme="light"] [class*="text-white/75"] {
+  color: #64748b !important;
+}
+
+.light .hero-glow-accent,
+[data-theme="light"] .hero-glow-accent {
+  opacity: 0.12;
 }`;
 }
 
@@ -437,7 +602,7 @@ export const DEFAULT_LOGIN_BRANDING: LoginBrandingConfig = {
   supportContactEmail: 'learning.support@brac.net',
   supportContactPhone: '+880 2 2222 81265',
   helpdeskUrl: 'https://helpdesk.brac.net',
-  copyrightText: '© 2026 BRAC & BRAC IT Services. All Rights Reserved.',
+  copyrightText: '© 2026 BRAC. All Rights Reserved.',
   privacyPolicyUrl: 'https://brac.net/privacy-policy',
   termsOfServiceUrl: 'https://brac.net/terms',
   showLanguagePicker: true,

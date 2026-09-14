@@ -242,6 +242,9 @@
           [class.border]="viewportMode() !== 'fullscreen'"
           [class.border-slate-700/60]="viewportMode() !== 'fullscreen' && previewTheme() === 'dark'"
           [class.border-slate-300]="viewportMode() !== 'fullscreen' && previewTheme() === 'light'"
+          [style.--brand-primary]="formData().primaryColor"
+          [style.--brand-primary-glow]="formData().primaryColor + '33'"
+          [style.--brand-primary-border-hover]="formData().primaryColor + '80'"
           [style.backgroundColor]="formData().backgroundType === 'solid' ? (formData().backgroundOverlayColor || formData().primaryColor) : 'transparent'">
 
           <!-- Scoped Live Custom CSS Injection with SafeHtml -->
@@ -287,7 +290,7 @@
                  [class.bg-slate-900]="previewTheme() === 'dark'">
               
               <!-- STYLE 1: TOP BAR RIBBON BANNER (Modern Split) -->
-              @if ((formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'top_bar' && !bannerDismissed()) || (highlightedElement() === 'callout' && formData().announcementBanner?.style === 'top_bar')) {
+              @if (selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'top_bar' && !bannerDismissed())) || (highlightedElement() === 'callout' && formData().announcementBanner?.style === 'top_bar'))) {
                 <div class="relative z-30 w-full px-6 py-2.5 backdrop-blur-md border-b flex items-center justify-between text-xs transition-all auth-announcement ak-Callout shrink-0"
                      [class.ring-2]="highlightedElement() === 'callout'"
                      [class.ring-purple-500]="highlightedElement() === 'callout'"
@@ -329,9 +332,9 @@
               }
 
               <!-- STYLE 2: FLOATING PILL CALLOUT BANNER (Modern Split) -->
-              @if ((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed()) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style))) {
-                <div class="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-4 auth-announcement ak-Callout">
-                  <div class="max-w-2xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+              @if (selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed())) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style)))) {
+                <div class="absolute top-3 sm:top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-2.5 sm:px-4 auth-announcement ak-Callout w-full">
+                  <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
                        [class.ring-purple-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
@@ -351,7 +354,7 @@
                         <span>Callout</span>
                       </div>
                     }
-                    <span class="material-symbols-outlined text-base shrink-0"
+                    <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
                           [class.text-blue-400]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                           [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
@@ -359,10 +362,12 @@
                       {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : 'campaign')) }}
                     </span>
 
-                    <span class="font-medium tracking-tight truncate">{{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}</span>
+                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                      {{ formData().announcementBanner?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC.' }}
+                    </span>
 
                     @if (formData().announcementBanner?.actionText) {
-                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
                         {{ formData().announcementBanner?.actionText }}
                       </span>
                     }
@@ -371,7 +376,7 @@
                       <button 
                         type="button" 
                         (click)="bannerDismissed.set(true)"
-                        class="p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0">
+                        class="p-1 sm:p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0 -mr-1 sm:mr-0">
                         <span class="material-symbols-outlined text-sm">close</span>
                       </button>
                     }
@@ -380,11 +385,20 @@
               }
 
               <!-- COLUMNS WRAPPER -->
-              <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-0 relative z-10 overflow-hidden"
-                   [class.lg:flex-row-reverse]="formData().splitPosition === 'left'">
+              <div class="flex-1 flex w-full h-full min-h-0 relative z-10 overflow-hidden"
+                   [class.flex-col]="isMobileViewport() || isTabletViewport()"
+                   [class.lg:flex-row]="isDesktopOrFull()"
+                   [class.lg:flex-row-reverse]="isDesktopOrFull() && formData().splitPosition === 'left'">
                 
                 <!-- LEFT COLUMN: Clean Form Surface (45%-50% width) -->
-                <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 lg:p-12 min-h-full overflow-y-auto"
+                <div class="w-full flex flex-col justify-between min-h-full overflow-y-auto"
+                     [class.lg:w-[48%]]="isDesktopOrFull()"
+                     [class.xl:w-[45%]]="isDesktopOrFull()"
+                     [class.p-4]="isMobileViewport()"
+                     [class.p-6]="isTabletViewport()"
+                     [class.pt-14]="(isMobileViewport() || isTabletViewport()) && selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed())) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style)))"
+                     [class.sm:p-10]="isDesktopOrFull()"
+                     [class.lg:p-12]="isDesktopOrFull()"
                     [class.text-slate-900]="previewTheme() === 'light'"
                     [class.text-white]="previewTheme() === 'dark'">
                 
@@ -427,7 +441,7 @@
                 </div>
 
                 <!-- STYLE 3: CARD EMBEDDED BANNER (Split Modern Canvas) -->
-                @if (formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
+                @if (selectedPage() === 'sign_in' && formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
                   <div class="w-full max-w-sm mx-auto mb-3 relative auth-announcement ak-Callout">
                     @if (highlightedElement() === 'callout') {
                       <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
@@ -631,7 +645,8 @@
                             type="checkbox" 
                             [ngModel]="rememberMe()"
                             (ngModelChange)="rememberMe.set($event)"
-                            class="rounded text-tenant-600 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                            [style.accentColor]="formData().primaryColor"
+                            class="rounded auth-checkbox w-4 h-4 cursor-pointer" />
                           <span class="text-[11px] font-medium opacity-80">Keep me logged in</span>
                         </label>
 
@@ -807,17 +822,337 @@
                     </div>
                   }
 
-                  <!-- OTHER PAGES (MFA, Org select, SSO consent, Block) -->
-                  @if (selectedPage() !== 'sign_in' && selectedPage() !== 'sign_up' && selectedPage() !== 'accept_invitation' && selectedPage() !== 'password_reset') {
-                    <div class="p-4 rounded-xl border text-center space-y-3" [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.bg-slate-800]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
-                      <span class="material-symbols-outlined text-3xl text-tenant-600">verified_user</span>
-                      <div class="text-sm font-bold capitalize">{{ selectedPage().replace('_', ' ') }}</div>
-                      <p class="text-xs opacity-60">Enterprise authentication workflow view</p>
-                      <button type="button" (click)="selectPage('sign_in')" class="px-4 py-2 rounded-xl text-xs font-bold text-white cursor-pointer" [style.background]="formData().primaryColor">
-                        Return to Sign In
+                  <!-- PAGE: ORGANIZATION SELECTION -->
+                  @if (selectedPage() === 'organization_selection') {
+                    <div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">
+                        Select Workspace
+                      </h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">
+                        Choose an organization to continue your session
+                      </p>
+                    </div>
+
+                    <div class="space-y-3">
+                      <!-- Search Workspace -->
+                      <div class="relative">
+                        <input 
+                          type="text" 
+                          placeholder="Search workspace or entity..."
+                          [ngModel]="orgSearchTerm()"
+                          (ngModelChange)="orgSearchTerm.set($event)"
+                          class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium border outline-none ak-TextField transition-all"
+                          [class.bg-slate-50]="previewTheme() === 'light'"
+                          [class.border-slate-200]="previewTheme() === 'light'"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.bg-slate-800/80]="previewTheme() === 'dark'"
+                          [class.border-slate-700]="previewTheme() === 'dark'"
+                          [class.text-white]="previewTheme() === 'dark'" />
+                        <span class="material-symbols-outlined text-sm absolute left-3 top-3 opacity-50">search</span>
+                      </div>
+
+                      <!-- Organizations List -->
+                      <div class="space-y-2">
+                        <div class="p-3 rounded-2xl border flex items-center justify-between transition-colors cursor-pointer group hover:border-tenant-500"
+                             [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'"
+                             [class.bg-slate-800/60]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                          <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-tenant-600 text-white flex items-center justify-center font-black text-xs">
+                              MF
+                            </div>
+                            <div>
+                              <div class="text-xs font-bold" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">BRAC Microfinance</div>
+                              <div class="text-[10px] opacity-60">learn.brac.net · 2,400 members</div>
+                            </div>
+                          </div>
+                          <span class="material-symbols-outlined text-sm text-tenant-500">check_circle</span>
+                        </div>
+
+                        <div class="p-3 rounded-2xl border flex items-center justify-between transition-colors cursor-pointer group hover:border-tenant-500"
+                             [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'"
+                             [class.bg-slate-800/60]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                          <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xs">
+                              EDU
+                            </div>
+                            <div>
+                              <div class="text-xs font-bold" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">BRAC Institute of Skills</div>
+                              <div class="text-[10px] opacity-60">skills.brac.net · 12,800 members</div>
+                            </div>
+                          </div>
+                          <span class="material-symbols-outlined text-sm opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</span>
+                        </div>
+
+                        <div class="p-3 rounded-2xl border flex items-center justify-between transition-colors cursor-pointer group hover:border-tenant-500"
+                             [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'"
+                             [class.bg-slate-800/60]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'">
+                          <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-xs">
+                              UNI
+                            </div>
+                            <div>
+                              <div class="text-xs font-bold" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">BRAC University</div>
+                              <div class="text-[10px] opacity-60">bu.brac.net · 18,200 members</div>
+                            </div>
+                          </div>
+                          <span class="material-symbols-outlined text-sm opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">chevron_right</span>
+                        </div>
+                      </div>
+
+                      <button 
+                        type="button" 
+                        [style.background]="formData().primaryColor"
+                        [class.rounded-full]="formData().buttonStyle === 'pill'"
+                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                        [class.rounded-md]="formData().buttonStyle === 'square'"
+                        class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton hover:opacity-95">
+                        Continue to Workspace
                       </button>
+
+                      <div class="text-center text-xs pt-1">
+                        <button type="button" (click)="selectPage('sign_in')" class="font-bold text-tenant-600 hover:underline cursor-pointer">
+                          &larr; Back to Sign In
+                        </button>
+                      </div>
                     </div>
                   }
+
+                  <!-- PAGE: MFA SETUP -->
+                  @if (selectedPage() === 'mfa_setup') {
+                    <div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">
+                        Two-Factor Authentication
+                      </h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">
+                        Scan the QR code with your authenticator app or enter the code
+                      </p>
+                    </div>
+
+                    <div class="space-y-4">
+                      <!-- Simulated QR Code Card -->
+                      <div class="p-3.5 rounded-2xl bg-white text-slate-900 flex flex-col items-center justify-center max-w-[160px] mx-auto shadow-md border border-slate-200">
+                        <div class="w-28 h-28 bg-slate-900 rounded-xl p-2 flex items-center justify-center">
+                          <span class="material-symbols-outlined text-5xl text-white">qr_code_2</span>
+                        </div>
+                        <span class="text-[9px] font-mono font-bold mt-1.5 text-slate-600 tracking-wider">KEY: 4928-1729-BRAC</span>
+                      </div>
+
+                      <!-- 6-digit Code Inputs -->
+                      <div class="space-y-1.5 text-center">
+                        <label class="block text-[11px] font-bold"
+                               [class.text-slate-700]="previewTheme() === 'light'"
+                               [class.text-slate-300]="previewTheme() === 'dark'">
+                          Enter 6-digit TOTP verification code
+                        </label>
+                        <div class="flex justify-center gap-1.5">
+                          @for (digit of mfaCode(); track $index) {
+                            <input 
+                              type="text" 
+                              [value]="digit" 
+                              maxlength="1" 
+                              class="w-9 h-11 text-center font-mono font-black text-sm rounded-xl border outline-none transition-all ak-TextField"
+                              [class.bg-slate-50]="previewTheme() === 'light'"
+                              [class.border-slate-300]="previewTheme() === 'light'"
+                              [class.text-slate-900]="previewTheme() === 'light'"
+                              [class.bg-slate-800/90]="previewTheme() === 'dark'"
+                              [class.border-slate-700]="previewTheme() === 'dark'"
+                              [class.text-white]="previewTheme() === 'dark'" />
+                          }
+                        </div>
+                      </div>
+
+                      <button 
+                        type="button" 
+                        [style.background]="formData().primaryColor"
+                        [class.rounded-full]="formData().buttonStyle === 'pill'"
+                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                        [class.rounded-md]="formData().buttonStyle === 'square'"
+                        class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton hover:opacity-95">
+                        Verify & Authenticate
+                      </button>
+
+                      <div class="flex items-center justify-between text-xs pt-1 px-1">
+                        <button type="button" class="text-[11px] font-medium opacity-70 hover:opacity-100 cursor-pointer">
+                          Use recovery code
+                        </button>
+                        <button type="button" (click)="selectPage('sign_in')" class="text-[11px] font-bold text-tenant-600 hover:underline cursor-pointer">
+                          &larr; Back to Sign In
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- PAGE: SSO CONSENT -->
+                  @if (selectedPage() === 'sso_consent') {
+                    <div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight"
+                          [class.text-slate-900]="previewTheme() === 'light'"
+                          [class.text-white]="previewTheme() === 'dark'">
+                        Authorize Application
+                      </h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">
+                        BRAC Learning Portal requires your consent to link account credentials
+                      </p>
+                    </div>
+
+                    <div class="space-y-3.5">
+                      <!-- Identity Box -->
+                      <div class="p-3 rounded-xl border flex items-center gap-3"
+                           [class.bg-slate-50]="previewTheme() === 'light'"
+                           [class.border-slate-200]="previewTheme() === 'light'"
+                           [class.bg-slate-800/70]="previewTheme() === 'dark'"
+                           [class.border-slate-700]="previewTheme() === 'dark'">
+                        <div class="w-9 h-9 rounded-full bg-tenant-600/20 text-tenant-600 flex items-center justify-center font-bold text-xs shrink-0">
+                          SS
+                        </div>
+                        <div class="text-xs min-w-0">
+                          <div class="font-bold truncate" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">shovon.sen@brac.net</div>
+                          <div class="text-[10px] opacity-60 truncate">Authenticated via BRAC Single Sign-On</div>
+                        </div>
+                      </div>
+
+                      <!-- Scope Permissions List -->
+                      <div class="p-3.5 rounded-xl border space-y-2.5 text-xs"
+                           [class.bg-slate-50]="previewTheme() === 'light'"
+                           [class.border-slate-200]="previewTheme() === 'light'"
+                           [class.bg-slate-800/40]="previewTheme() === 'dark'"
+                           [class.border-slate-700]="previewTheme() === 'dark'">
+                        <div class="font-bold text-[11px] uppercase tracking-wider opacity-70">Requested Permissions:</div>
+                        
+                        <div class="flex items-start gap-2 text-[11px]">
+                          <span class="material-symbols-outlined text-sm text-emerald-500 shrink-0 mt-0.5">check_circle</span>
+                          <div>
+                            <span class="font-bold">Basic profile information</span>
+                            <p class="text-[10px] opacity-60">Name, work email, department, and profile avatar</p>
+                          </div>
+                        </div>
+
+                        <div class="flex items-start gap-2 text-[11px]">
+                          <span class="material-symbols-outlined text-sm text-emerald-500 shrink-0 mt-0.5">check_circle</span>
+                          <div>
+                            <span class="font-bold">LMS Course & Transcript records</span>
+                            <p class="text-[10px] opacity-60">Enrollments, certifications, and assessment scores</p>
+                          </div>
+                        </div>
+
+                        <div class="flex items-start gap-2 text-[11px]">
+                          <span class="material-symbols-outlined text-sm text-emerald-500 shrink-0 mt-0.5">check_circle</span>
+                          <div>
+                            <span class="font-bold">Continuous session management</span>
+                            <p class="text-[10px] opacity-60">Maintains secure federated SSO token lifecycle</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Actions -->
+                      <div class="flex gap-2.5 pt-1">
+                        <button 
+                          type="button" 
+                          [style.background]="formData().primaryColor"
+                          [class.rounded-full]="formData().buttonStyle === 'pill'"
+                          [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                          [class.rounded-md]="formData().buttonStyle === 'square'"
+                          class="flex-1 py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton hover:opacity-95">
+                          Grant Access
+                        </button>
+                        <button 
+                          type="button"
+                          [class.rounded-full]="formData().buttonStyle === 'pill'"
+                          [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                          [class.rounded-md]="formData().buttonStyle === 'square'"
+                          class="px-5 py-2.5 text-xs font-semibold border cursor-pointer ak-SecondaryButton transition-colors"
+                          [class.bg-white]="previewTheme() === 'light'"
+                          [class.border-slate-300]="previewTheme() === 'light'"
+                          [class.text-slate-700]="previewTheme() === 'light'"
+                          [class.bg-slate-800]="previewTheme() === 'dark'"
+                          [class.border-slate-700]="previewTheme() === 'dark'"
+                          [class.text-slate-300]="previewTheme() === 'dark'">
+                          Deny
+                        </button>
+                      </div>
+
+                      <div class="text-center text-xs pt-1">
+                        <button type="button" (click)="selectPage('sign_in')" class="font-bold text-tenant-600 hover:underline cursor-pointer">
+                          &larr; Back to Sign In
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- PAGE: RADAR BLOCK -->
+                  @if (selectedPage() === 'radar_block') {
+                    <div>
+                      <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 mb-3">
+                        <span class="material-symbols-outlined text-2xl">shield_locked</span>
+                      </div>
+                      <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-rose-500">
+                        Access Restricted
+                      </h1>
+                      <p class="text-xs sm:text-sm opacity-60 mt-1">
+                        Automated security radar detected an anomalous or restricted authentication attempt
+                      </p>
+                    </div>
+
+                    <div class="space-y-4">
+                      <!-- Incident Card -->
+                      <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs space-y-2 text-rose-400">
+                        <div class="flex items-center justify-between">
+                          <span class="font-mono font-bold">IP: 103.144.201.42</span>
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40">Blocked</span>
+                        </div>
+                        <div class="text-[11px] leading-relaxed text-rose-300/90 font-mono">
+                          Ray ID: <span class="font-bold text-white">RADAR-2026-X98</span><br />
+                          Location: Dhaka, Bangladesh<br />
+                          Flag: Anomalous authentication velocity
+                        </div>
+                      </div>
+
+                      <!-- Contact Admin Button -->
+                      <button 
+                        type="button" 
+                        [style.background]="formData().primaryColor"
+                        [class.rounded-full]="formData().buttonStyle === 'pill'"
+                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                        [class.rounded-md]="formData().buttonStyle === 'square'"
+                        class="w-full py-2.5 px-4 text-xs font-semibold text-white cursor-pointer shadow-xs ak-PrimaryButton hover:opacity-95">
+                        Contact Security Administrator
+                      </button>
+
+                      <!-- Hardware Token Fallback Button -->
+                      <button 
+                        type="button"
+                        [class.rounded-full]="formData().buttonStyle === 'pill'"
+                        [class.rounded-xl]="formData().buttonStyle === 'rounded'"
+                        [class.rounded-md]="formData().buttonStyle === 'square'"
+                        class="w-full py-2.5 px-4 text-xs font-semibold border cursor-pointer ak-SecondaryButton transition-colors"
+                        [class.bg-white]="previewTheme() === 'light'"
+                        [class.border-slate-300]="previewTheme() === 'light'"
+                        [class.text-slate-700]="previewTheme() === 'light'"
+                        [class.bg-slate-800]="previewTheme() === 'dark'"
+                        [class.border-slate-700]="previewTheme() === 'dark'"
+                        [class.text-slate-300]="previewTheme() === 'dark'">
+                        Verify with Hardware Key (FIDO2)
+                      </button>
+
+                      <div class="text-center text-xs pt-1">
+                        <button type="button" (click)="selectPage('sign_in')" class="font-bold text-tenant-600 hover:underline cursor-pointer">
+                          &larr; Back to Sign In
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Card Legal Footer -->
+                  <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-center gap-3 opacity-60"
+                       [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
+                    <a [href]="formData().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
+                    <span>·</span>
+                    <a [href]="formData().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
+                  </div>
 
                 </div>
 
@@ -830,15 +1165,20 @@
                   <div class="truncate">{{ formData().copyrightText }}</div>
                   <div class="flex items-center gap-1.5 font-medium shrink-0">
                     <span class="opacity-75">Powered By</span>
-                    <span class="font-bold tracking-tight"
-                          [class.text-slate-900]="previewTheme() === 'light'"
-                          [class.text-white]="previewTheme() === 'dark'">SSO-ONE</span>
+                    <app-sso-logo [theme]="previewTheme()" width="84" height="17" customClass="h-3.5 w-auto inline-block" />
                   </div>
                 </div>
               </div>
 
               <!-- RIGHT/LEFT COLUMN: Immersive Fluid Silk Hero Canvas (52%-55% width) -->
-              <div class="hidden lg:flex lg:w-[52%] xl:w-[55%] relative overflow-hidden p-8 sm:p-10 lg:p-12 flex-col justify-between text-white shadow-2xl transition-all duration-300"
+              <div class="relative overflow-hidden flex-col justify-between text-white shadow-2xl transition-all duration-300"
+                   [class.hidden]="isMobileViewport() || isTabletViewport()"
+                   [class.lg:flex]="isDesktopOrFull()"
+                   [class.lg:w-[52%]]="isDesktopOrFull()"
+                   [class.xl:w-[55%]]="isDesktopOrFull()"
+                   [class.p-8]="isDesktopOrFull()"
+                   [class.sm:p-10]="isDesktopOrFull()"
+                   [class.lg:p-12]="isDesktopOrFull()"
                    [class.rounded-bl-[64px]]="formData().splitPosition !== 'left'"
                    [class.lg:rounded-bl-[96px]]="formData().splitPosition !== 'left'"
                    [class.rounded-br-[64px]]="formData().splitPosition === 'left'"
@@ -964,12 +1304,12 @@
             <!-- ================================================================= -->
             <!-- MODERN ANNOUNCEMENT CALLOUT BANNER                                -->
             <!-- ================================================================= -->
-            @if (formData().announcementBanner?.enabled && !bannerDismissed()) {
+            @if (selectedPage() === 'sign_in' && formData().announcementBanner?.enabled && !bannerDismissed()) {
               
               <!-- STYLE A: FLOATING PILL CALLOUT -->
               @if (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) {
-                <div class="relative z-20 pt-4 px-4 flex justify-center auth-announcement ak-Callout">
-                  <div class="max-w-2xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                <div class="relative z-20 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center auth-announcement ak-Callout w-full">
+                  <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
                        [class.ring-tenant-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info'"
@@ -985,7 +1325,7 @@
                        [class.border-emerald-500/40]="formData().announcementBanner?.type === 'success'"
                        [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
                     
-                    <span class="material-symbols-outlined text-base shrink-0"
+                    <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
                           [class.text-blue-400]="formData().announcementBanner?.type === 'info'"
                           [class.text-amber-400]="formData().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="formData().announcementBanner?.type === 'alert' || formData().announcementBanner?.type === 'security'"
@@ -993,10 +1333,12 @@
                       {{ formData().announcementBanner?.type === 'warning' ? 'warning' : (formData().announcementBanner?.type === 'alert' ? 'emergency' : (formData().announcementBanner?.type === 'security' ? 'gshield' : (formData().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
                     </span>
 
-                    <span class="font-medium tracking-tight truncate">{{ formData().announcementBanner?.text }}</span>
+                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                      {{ formData().announcementBanner?.text }}
+                    </span>
 
                     @if (formData().announcementBanner?.actionText) {
-                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
                         {{ formData().announcementBanner?.actionText }}
                       </span>
                     }
@@ -1005,7 +1347,7 @@
                       <button 
                         type="button" 
                         (click)="bannerDismissed.set(true)"
-                        class="p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0">
+                        class="p-1 sm:p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer text-white/70 hover:text-white shrink-0 -mr-1 sm:mr-0">
                         <span class="material-symbols-outlined text-sm">close</span>
                       </button>
                     }
@@ -1052,24 +1394,38 @@
             <!-- ================================================================= -->
             <!-- MAIN LAYOUT BODY (Split Mode Hero vs Centered Single Card)         -->
             <!-- ================================================================= -->
-            <div class="flex-1 flex flex-col lg:flex-row relative z-10 p-4 sm:p-8 lg:p-10 items-center justify-center gap-6 lg:gap-12 w-full my-auto">
+            <div class="flex-1 flex flex-col relative z-10 p-4 sm:p-8 lg:p-10 items-center justify-center gap-6 lg:gap-12 w-full my-auto"
+                 [class.lg:flex-row]="isDesktopOrFull()">
             
             <!-- =============================================================== -->
             <!-- 1. EDITABLE SIDE HERO PANEL (In Split Layout)                   -->
             <!-- =============================================================== -->
-            @if ((formData().layout === 'split_left' || formData().layout === 'split_right') && viewportMode() !== 'mobile') {
+            @if ((formData().layout === 'split_left' || formData().layout === 'split_right') && isDesktopOrFull()) {
               @if (isHeroPanelEmpty()) {
                 <!-- EMPTY HERO STATE (Exact Image 1 Replica) -->
                 <div 
                   [class.order-2]="formData().layout === 'split_right'"
                   [class.order-1]="formData().layout === 'split_left'"
                   [class.hidden]="hideContentPanelOnMobile()"
-                  class="w-full lg:flex-1 max-w-md lg:max-w-lg min-h-[380px] flex flex-col items-center justify-center p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden bg-slate-950/80 border-white/15 text-slate-400 cursor-pointer group select-none"
+                  [class.dark]="previewTheme() === 'dark'"
+                  [class.light]="previewTheme() === 'light'"
+                  [attr.data-theme]="previewTheme()"
+                  [class.bg-slate-950/80]="previewTheme() === 'dark'"
+                  [class.border-white/15]="previewTheme() === 'dark'"
+                  [class.text-slate-400]="previewTheme() === 'dark'"
+                  [class.bg-white/90]="previewTheme() === 'light'"
+                  [class.border-slate-200/90]="previewTheme() === 'light'"
+                  [class.text-slate-600]="previewTheme() === 'light'"
+                  class="w-full lg:flex-1 max-w-md lg:max-w-lg min-h-[380px] flex flex-col items-center justify-center p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden cursor-pointer group select-none hero-panel-card"
                   (click)="openContentPanelModal()"
                   title="Click to edit content panel HTML/CSS">
-                  <div class="flex flex-col items-center justify-center gap-3 text-slate-400 group-hover:text-slate-200 transition-colors">
+                  <div class="flex flex-col items-center justify-center gap-3 transition-colors"
+                       [class.text-slate-400]="previewTheme() === 'dark'"
+                       [class.group-hover:text-slate-200]="previewTheme() === 'dark'"
+                       [class.text-slate-500]="previewTheme() === 'light'"
+                       [class.group-hover:text-slate-700]="previewTheme() === 'light'">
                     <div class="text-sm font-mono tracking-tighter opacity-70 flex items-center justify-center">&lt;/&gt;</div>
-                    <div class="text-sm font-medium text-slate-300">Edit content panel</div>
+                    <div class="text-sm font-medium" [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-700]="previewTheme() === 'light'">Edit content panel</div>
                   </div>
                 </div>
               } @else if (formData().useCustomContentPanel && formData().customHtml) {
@@ -1078,7 +1434,16 @@
                   [class.order-2]="formData().layout === 'split_right'"
                   [class.order-1]="formData().layout === 'split_left'"
                   [class.hidden]="hideContentPanelOnMobile()"
-                  class="w-full lg:flex-1 max-w-md lg:max-w-lg p-6 sm:p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden bg-slate-950/80 border-white/15 text-white group">
+                  [class.dark]="previewTheme() === 'dark'"
+                  [class.light]="previewTheme() === 'light'"
+                  [attr.data-theme]="previewTheme()"
+                  [class.bg-slate-950/80]="previewTheme() === 'dark'"
+                  [class.border-white/15]="previewTheme() === 'dark'"
+                  [class.text-white]="previewTheme() === 'dark'"
+                  [class.bg-white/90]="previewTheme() === 'light'"
+                  [class.border-slate-200/90]="previewTheme() === 'light'"
+                  [class.text-slate-900]="previewTheme() === 'light'"
+                  class="w-full lg:flex-1 max-w-md lg:max-w-lg p-6 sm:p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden group hero-panel-wrapper hero-panel-card">
                   <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                     <button (click)="openContentPanelModal()" class="px-2.5 py-1 text-xs font-semibold bg-black/70 hover:bg-black/90 text-white rounded-lg border border-white/20 shadow-md backdrop-blur-md flex items-center gap-1.5 cursor-pointer">
                       <span class="material-symbols-outlined text-xs">edit</span>
@@ -1093,6 +1458,9 @@
                   [class.order-2]="formData().layout === 'split_right'"
                   [class.order-1]="formData().layout === 'split_left'"
                   [class.hidden]="hideContentPanelOnMobile()"
+                  [class.dark]="previewTheme() === 'dark'"
+                  [class.light]="previewTheme() === 'light'"
+                  [attr.data-theme]="previewTheme()"
                   [class.bg-slate-950/80]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
                   [class.border-white/15]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
                   [class.text-white]="formData().sidePanel?.theme === 'dark' || (formData().sidePanel?.theme === 'glass' && previewTheme() === 'dark')"
@@ -1102,7 +1470,7 @@
                   [class.bg-gradient-to-br]="formData().sidePanel?.theme === 'gradient'"
                   [class.from-slate-950/90]="formData().sidePanel?.theme === 'gradient'"
                   [class.to-pink-950/80]="formData().sidePanel?.theme === 'gradient'"
-                  class="w-full lg:flex-1 max-w-md lg:max-w-lg space-y-4 p-6 sm:p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden group">
+                  class="w-full lg:flex-1 max-w-md lg:max-w-lg space-y-4 p-6 sm:p-8 rounded-2xl sm:rounded-3xl backdrop-blur-2xl border shadow-xl transition-all duration-300 relative overflow-hidden group hero-panel-wrapper hero-panel-card">
                   
                   <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                     <button (click)="openContentPanelModal()" class="px-2.5 py-1 text-xs font-semibold bg-black/70 hover:bg-black/90 text-white rounded-lg border border-white/20 shadow-md backdrop-blur-md flex items-center gap-1.5 cursor-pointer">
@@ -1142,14 +1510,24 @@
                   @if (formData().sidePanel?.bullets && formData().sidePanel!.bullets.length > 0) {
                     <div class="space-y-2.5 pt-1">
                       @for (bullet of formData().sidePanel!.bullets; track bullet.id) {
-                        <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                        <div class="flex items-start gap-2.5 p-2 rounded-xl transition-colors border"
+                             [class.bg-white/5]="previewTheme() === 'dark'"
+                             [class.border-white/10]="previewTheme() === 'dark'"
+                             [class.hover:bg-white/10]="previewTheme() === 'dark'"
+                             [class.bg-slate-100/90]="previewTheme() === 'light'"
+                             [class.border-slate-200/90]="previewTheme() === 'light'"
+                             [class.hover:bg-slate-200/70]="previewTheme() === 'light'">
                           <div class="w-5 h-5 rounded-md bg-tenant-500/20 border border-tenant-500/40 flex items-center justify-center shrink-0 mt-0.5">
                             <span class="material-symbols-outlined text-tenant-400 text-xs">{{ bullet.icon || 'check' }}</span>
                           </div>
-                          <div class="text-xs min-w-0">
+                          <div class="text-xs min-w-0"
+                               [class.text-white]="previewTheme() === 'dark'"
+                               [class.text-slate-900]="previewTheme() === 'light'">
                             <div class="font-bold truncate">{{ bullet.title }}</div>
                             @if (bullet.description) {
-                              <div class="text-[10px] opacity-70 mt-0.5 line-clamp-2">{{ bullet.description }}</div>
+                              <div class="text-[10px] mt-0.5 line-clamp-2"
+                                   [class.text-white/70]="previewTheme() === 'dark'"
+                                   [class.text-slate-500]="previewTheme() === 'light'">{{ bullet.description }}</div>
                             }
                           </div>
                         </div>
@@ -1159,12 +1537,16 @@
 
                   <!-- Stats Row (if enabled) -->
                   @if (formData().sidePanel?.showStatsRow) {
-                    <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3">
+                    <div class="pt-3 border-t grid grid-cols-2 gap-3"
+                         [class.border-white/10]="previewTheme() === 'dark'"
+                         [class.border-slate-200/90]="previewTheme() === 'light'">
                       <div>
                         <div class="text-lg sm:text-xl font-black text-tenant-400 tracking-tight">
                           {{ formData().sidePanel?.stat1Value || '24,500+' }}
                         </div>
-                        <div class="text-[10px] opacity-70 uppercase font-semibold tracking-wider">
+                        <div class="text-[10px] uppercase font-semibold tracking-wider"
+                             [class.text-white/70]="previewTheme() === 'dark'"
+                             [class.text-slate-500]="previewTheme() === 'light'">
                           {{ formData().sidePanel?.stat1Label || 'Active Learners' }}
                         </div>
                       </div>
@@ -1172,7 +1554,9 @@
                         <div class="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">
                           {{ formData().sidePanel?.stat2Value || '99.99%' }}
                         </div>
-                        <div class="text-[10px] opacity-70 uppercase font-semibold tracking-wider">
+                        <div class="text-[10px] uppercase font-semibold tracking-wider"
+                             [class.text-white/70]="previewTheme() === 'dark'"
+                             [class.text-slate-500]="previewTheme() === 'light'">
                           {{ formData().sidePanel?.stat2Label || 'SSO Uptime' }}
                         </div>
                       </div>
@@ -1202,8 +1586,8 @@
             <!-- 2. MODERN AUTHENTICATION CARD (Renders based on selectedPage)    -->
             <!-- =============================================================== -->
             <div 
-              [class.order-1]="formData().layout === 'split_right'"
-              [class.order-2]="formData().layout === 'split_left'"
+              [class.order-1]="formData().layout === 'split_right' && isDesktopOrFull()"
+              [class.order-2]="formData().layout === 'split_left' && isDesktopOrFull()"
               class="w-full max-w-md auth-card ak-Card transition-all duration-300 relative z-10 p-5 sm:p-7"
               [class.ring-2]="highlightedElement() === 'card'"
               [class.ring-purple-500]="highlightedElement() === 'card'"
@@ -1234,7 +1618,7 @@
               }
 
               <!-- Card Embedded Announcement Style -->
-              @if (formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
+              @if (selectedPage() === 'sign_in' && formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
                 <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs relative auth-announcement ak-Callout transition-all shadow-xs"
                      [class.ring-2]="highlightedElement() === 'callout'"
                      [class.ring-purple-500]="highlightedElement() === 'callout'"
@@ -1495,7 +1879,7 @@
                   @if (formData().enableRememberMe) {
                     <div class="flex items-center text-xs">
                       <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" [ngModel]="rememberMe()" (ngModelChange)="rememberMe.set($event)" class="rounded text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+                        <input type="checkbox" [ngModel]="rememberMe()" (ngModelChange)="rememberMe.set($event)" [style.accentColor]="formData().primaryColor" class="rounded auth-checkbox cursor-pointer" />
                         <span [class.text-slate-300]="previewTheme() === 'dark'" [class.text-slate-600]="previewTheme() === 'light'">Keep me signed in</span>
                       </label>
                     </div>
@@ -1876,13 +2260,11 @@
               }
 
               <!-- Card Legal Footer -->
-              <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-between opacity-60"
+              <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-center gap-3 opacity-60"
                    [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
-                <a [href]="formData().termsOfServiceUrl" class="hover:underline">Terms of Service</a>
+                <a [href]="formData().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
                 <span>·</span>
-                <a [href]="formData().privacyPolicyUrl" class="hover:underline">Privacy Policy</a>
-                <span>·</span>
-                <span class="cursor-pointer hover:underline">Helpdesk</span>
+                <a [href]="formData().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
               </div>
 
             </div>
@@ -1902,9 +2284,7 @@
             
             <div class="flex items-center gap-1.5 mt-1 sm:mt-0 text-[11px] font-medium">
               <span class="opacity-75">Powered By</span>
-              <span class="font-bold tracking-tight"
-                    [class.text-white]="previewTheme() === 'dark'"
-                    [class.text-slate-900]="previewTheme() === 'light'">SSO-ONE</span>
+              <app-sso-logo [theme]="previewTheme()" width="84" height="17" customClass="h-3.5 w-auto inline-block" />
             </div>
           </div>
 
@@ -2545,6 +2925,52 @@
                   </div>
                 </div>
               }
+            </div>
+
+            <!-- =============================================================== -->
+            <!-- LEGAL & POLICY URL SETTINGS (Terms & Privacy)                   -->
+            <!-- =============================================================== -->
+            <div class="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Legal & Policy Links</label>
+                <span class="text-[10px] font-medium text-slate-400">Footer & Card</span>
+              </div>
+
+              <!-- Terms of Service URL -->
+              <div class="space-y-1">
+                <label class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium">Terms of Service URL</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">link</span>
+                  <input 
+                    type="url" 
+                    [(ngModel)]="formData().termsOfServiceUrl" 
+                    placeholder="https://brac.net/terms"
+                    class="w-full pl-8 pr-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-tenant-500 transition-all font-mono text-[11px]" />
+                </div>
+              </div>
+
+              <!-- Privacy Policy URL -->
+              <div class="space-y-1">
+                <label class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium">Privacy Policy URL</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">policy</span>
+                  <input 
+                    type="url" 
+                    [(ngModel)]="formData().privacyPolicyUrl" 
+                    placeholder="https://brac.net/privacy-policy"
+                    class="w-full pl-8 pr-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-tenant-500 transition-all font-mono text-[11px]" />
+                </div>
+              </div>
+
+              <!-- Copyright Notice Text -->
+              <div class="space-y-1">
+                <label class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium">Copyright Notice Text</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="formData().copyrightText" 
+                  placeholder="© 2026 BRAC. All Rights Reserved."
+                  class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 outline-none focus:ring-1 focus:ring-tenant-500 transition-all text-[11px]" />
+              </div>
             </div>
 
           </div>

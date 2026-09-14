@@ -204,6 +204,49 @@ html.theme-glassmorphism.dark tbody [class*="sticky left-0"] {
   100% { transform: rotate(360deg); }
 }
 
+/* ========================================================================= */
+/* BRAND-ALIGNED INPUT SYSTEM                                                */
+/* Ensures input fields across all login variants dynamically align with the */
+/* primary brand color for border highlights, hover states, and focus rings. */
+/* ========================================================================= */
+.auth-input,
+.ak-TextField,
+input.auth-input,
+input.ak-TextField,
+.auth-card input[type="text"],
+.auth-card input[type="email"],
+.auth-card input[type="password"] {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+}
+
+.auth-input:hover:not(:focus):not(:disabled),
+.ak-TextField:hover:not(:focus):not(:disabled),
+.auth-card input[type="text"]:hover:not(:focus):not(:disabled),
+.auth-card input[type="email"]:hover:not(:focus):not(:disabled),
+.auth-card input[type="password"]:hover:not(:focus):not(:disabled) {
+  border-color: var(--brand-primary-border-hover, #94a3b8) !important;
+}
+
+.auth-input:focus,
+.auth-input:focus-visible,
+.ak-TextField:focus,
+.ak-TextField:focus-visible,
+.auth-card input[type="text"]:focus,
+.auth-card input[type="email"]:focus,
+.auth-card input[type="password"]:focus {
+  outline: none !important;
+  border-color: var(--brand-primary, #EC008C) !important;
+  box-shadow: 0 0 0 3px var(--brand-primary-glow, rgba(236, 0, 140, 0.2)) !important;
+}
+
+/* Checkbox accent color aligned with brand color */
+input[type="checkbox"].auth-checkbox,
+input[type="checkbox"].ak-Checkbox,
+.auth-card input[type="checkbox"] {
+  accent-color: var(--brand-primary, #EC008C) !important;
+}
+
+
 
 
 

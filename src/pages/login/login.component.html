@@ -3,7 +3,10 @@
   <style [innerHTML]="branding().customCss"></style>
 }
 
-<div class="auth-background min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden select-none font-sans bg-slate-950 text-white">
+<div class="auth-background min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden select-none font-sans bg-slate-950 text-white"
+  [style.--brand-primary]="branding().primaryColor"
+  [style.--brand-primary-glow]="branding().primaryColor + '33'"
+  [style.--brand-primary-border-hover]="branding().primaryColor + '80'">
   
   <!-- 1. Background Photography / Gradient Layer -->
   @if (branding().backgroundType === 'image' && branding().backgroundImageUrl) {
@@ -28,24 +31,60 @@
 
   <!-- 3. Top System Announcement Banner (if enabled and not card embedded) -->
   @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded') {
-    <div 
-      class="auth-announcement relative z-30 w-full px-4 py-2.5 text-xs font-semibold flex items-center justify-center gap-2 text-center shadow-md backdrop-blur-md"
-      [class.bg-amber-500/95]="branding().announcementBanner?.type === 'warning'"
-      [class.text-amber-950]="branding().announcementBanner?.type === 'warning'"
-      [class.bg-blue-600/95]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-      [class.text-white]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-      [class.bg-emerald-600/95]="branding().announcementBanner?.type === 'success'"
-      [class.text-white]="branding().announcementBanner?.type === 'success'"
-      [class.bg-rose-600/95]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-      [class.text-white]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'">
-      <span class="material-symbols-outlined text-sm">
-        {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
-      </span>
-      <span>{{ branding().announcementBanner?.text }}</span>
-      @if (branding().announcementBanner?.actionText) {
-        <span class="font-bold underline ml-1 cursor-pointer">{{ branding().announcementBanner?.actionText }}</span>
-      }
-    </div>
+    @if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
+      <div class="auth-announcement relative z-30 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center w-full">
+        <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs"
+             [class.bg-blue-950/85]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+             [class.border-blue-500/40]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+             [class.text-blue-100]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+             [class.bg-amber-950/85]="branding().announcementBanner?.type === 'warning'"
+             [class.border-amber-500/40]="branding().announcementBanner?.type === 'warning'"
+             [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
+             [class.bg-rose-950/85]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+             [class.border-rose-500/40]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+             [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+             [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
+             [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
+             [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
+          <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
+                [class.text-blue-400]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
+                [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
+            {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
+          </span>
+          <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+            {{ branding().announcementBanner?.text }}
+          </span>
+          @if (branding().announcementBanner?.actionText) {
+            <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
+              {{ branding().announcementBanner?.actionText }}
+            </span>
+          }
+        </div>
+      </div>
+    } @else {
+      <div 
+        class="auth-announcement relative z-30 w-full px-3 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-semibold flex items-center justify-between gap-2 text-center shadow-md backdrop-blur-md"
+        [class.bg-amber-500/95]="branding().announcementBanner?.type === 'warning'"
+        [class.text-amber-950]="branding().announcementBanner?.type === 'warning'"
+        [class.bg-blue-600/95]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+        [class.text-white]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+        [class.bg-emerald-600/95]="branding().announcementBanner?.type === 'success'"
+        [class.text-white]="branding().announcementBanner?.type === 'success'"
+        [class.bg-rose-600/95]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+        [class.text-white]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'">
+        <div class="flex items-center gap-2 mx-auto min-w-0">
+          <span class="material-symbols-outlined text-sm sm:text-base shrink-0">
+            {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
+          </span>
+          <span class="truncate">{{ branding().announcementBanner?.text }}</span>
+          @if (branding().announcementBanner?.actionText) {
+            <span class="font-bold underline ml-1 cursor-pointer whitespace-nowrap text-[11px] sm:text-xs shrink-0">{{ branding().announcementBanner?.actionText }}</span>
+          }
+        </div>
+      </div>
+    }
   }
 
   <!-- 5. Main Hero + Login Box Area -->
@@ -277,7 +316,7 @@
                       name="email"
                       required
                       placeholder="name@organization.com"
-                      class="auth-input w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-tenant-500 font-medium" />
+                      class="auth-input ak-TextField w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none font-medium transition-all" />
                   </div>
                 </div>
 
@@ -297,7 +336,7 @@
                       name="password"
                       required
                       placeholder="••••••••••••"
-                      class="auth-input w-full pl-9 pr-10 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-tenant-500 font-medium" />
+                      class="auth-input ak-TextField w-full pl-9 pr-10 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none font-medium transition-all" />
                     <button 
                       type="button" 
                       (click)="togglePasswordVisibility()" 
@@ -315,7 +354,8 @@
                         [ngModel]="rememberMe()" 
                         (ngModelChange)="rememberMe.set($event)"
                         name="rememberMe"
-                        class="rounded border-slate-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+                        [style.accentColor]="branding().primaryColor"
+                        class="rounded border-slate-300 auth-checkbox cursor-pointer" />
                       <span>Keep me signed in</span>
                     </label>
                   </div>
@@ -347,6 +387,13 @@
               </div>
             }
 
+            <!-- Card Legal Footer -->
+            <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] text-center flex items-center justify-center gap-3 opacity-60 text-slate-600 dark:text-slate-400">
+              <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
+              <span>·</span>
+              <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
+            </div>
+
           </div>
 
         </div>
@@ -361,7 +408,10 @@
     <div class="flex items-center gap-2.5">
       <span>{{ branding().copyrightText }}</span>
       <span class="opacity-40">·</span>
-      <span class="font-semibold text-white/95">Powered By SSO-ONE</span>
+      <div class="inline-flex items-center gap-1.5 font-semibold text-white/95">
+        <span>Powered By</span>
+        <app-sso-logo theme="dark" width="95" height="19" customClass="h-4 w-auto inline-block" />
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">

@@ -205,6 +205,12 @@
       <div 
         class="auth-background w-full h-full min-h-[680px] flex flex-col justify-between relative select-none font-sans"
         [class.dark]="previewTheme() === 'dark'"
+        [class.light]="previewTheme() === 'light'"
+        [attr.data-theme]="previewTheme()"
+        [attr.data-mode]="previewTheme()"
+        [style.--brand-primary]="branding().primaryColor"
+        [style.--brand-primary-glow]="branding().primaryColor + '33'"
+        [style.--brand-primary-border-hover]="branding().primaryColor + '80'"
         [style.backgroundColor]="branding().backgroundType === 'solid' ? branding().primaryColor : 'transparent'">
         
         <!-- 1. Background Image or Gradient Layer -->
@@ -256,8 +262,8 @@
               </div>
             </div>
           } @else if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
-            <div class="relative z-30 pt-4 px-4 flex justify-center">
-              <div class="max-w-xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs"
+            <div class="relative z-30 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center w-full">
+              <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs"
                    [class.bg-blue-950/85]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                    [class.border-blue-500/40]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                    [class.text-blue-100]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
@@ -270,16 +276,18 @@
                    [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
                    [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
                    [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
-                <span class="material-symbols-outlined text-base shrink-0"
+                <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
                       [class.text-blue-400]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                       [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
                       [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
                       [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
                   {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
                 </span>
-                <span class="font-medium tracking-tight truncate">{{ branding().announcementBanner?.text }}</span>
+                <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                  {{ branding().announcementBanner?.text }}
+                </span>
                 @if (branding().announcementBanner?.actionText) {
-                  <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                  <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
                     {{ branding().announcementBanner?.actionText }}
                   </span>
                 }
@@ -329,8 +337,8 @@
 
               <!-- FLOATING PILL BANNER (Preview Modern Split) -->
               @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style)) {
-                <div class="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-4">
-                  <div class="max-w-xl px-4 py-2 rounded-full backdrop-blur-xl border shadow-lg flex items-center gap-3 text-xs"
+                <div class="absolute top-3 sm:top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-2.5 sm:px-4 w-full">
+                  <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs"
                        [class.bg-blue-950/85]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                        [class.border-blue-500/40]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                        [class.text-blue-100]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
@@ -343,16 +351,18 @@
                        [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
                        [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
                        [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
-                    <span class="material-symbols-outlined text-base shrink-0"
+                    <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
                           [class.text-blue-400]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
                           [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
                           [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
                           [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
                       {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
                     </span>
-                    <span class="font-medium tracking-tight truncate">{{ branding().announcementBanner?.text }}</span>
+                    <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
+                      {{ branding().announcementBanner?.text }}
+                    </span>
                     @if (branding().announcementBanner?.actionText) {
-                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80">
+                      <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
                         {{ branding().announcementBanner?.actionText }}
                       </span>
                     }
@@ -361,11 +371,19 @@
               }
 
               <!-- COLUMNS WRAPPER -->
-              <div class="flex-1 flex flex-col lg:flex-row w-full h-full min-h-0 relative z-10 overflow-hidden"
-                   [class.lg:flex-row-reverse]="branding().splitPosition === 'left'">
+              <div class="flex-1 flex w-full h-full min-h-0 relative z-10 overflow-hidden"
+                   [class.flex-col]="isMobileViewport() || isTabletViewport()"
+                   [class.lg:flex-row]="isDesktopOrFull()"
+                   [class.lg:flex-row-reverse]="isDesktopOrFull() && branding().splitPosition === 'left'">
                 
                 <!-- LEFT COLUMN: Clean Form Area -->
-                <div class="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-6 sm:p-10 min-h-full"
+                <div class="w-full flex flex-col justify-between min-h-full overflow-y-auto"
+                     [class.lg:w-[48%]]="isDesktopOrFull()"
+                     [class.xl:w-[45%]]="isDesktopOrFull()"
+                     [class.p-4]="isMobileViewport()"
+                     [class.p-6]="isTabletViewport()"
+                     [class.pt-14]="(isMobileViewport() || isTabletViewport()) && branding().announcementBanner?.enabled && branding().announcementBanner?.text && (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style)"
+                     [class.sm:p-10]="isDesktopOrFull()"
                      [class.text-slate-900]="previewTheme() === 'light'"
                      [class.text-white]="previewTheme() === 'dark'">
                   
@@ -486,7 +504,7 @@
                         [ngModel]="simEmail()" 
                         (ngModelChange)="simEmail.set($event)"
                         placeholder="shovon.sen@brac.net"
-                        class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all"
+                        class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
                         [class.bg-slate-50]="previewTheme() === 'light'"
                         [class.border-slate-200]="previewTheme() === 'light'"
                         [class.text-slate-900]="previewTheme() === 'light'"
@@ -505,7 +523,7 @@
                           [ngModel]="simPassword()" 
                           (ngModelChange)="simPassword.set($event)"
                           placeholder="Min 8 characters"
-                          class="w-full px-3.5 pr-10 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all"
+                          class="w-full px-3.5 pr-10 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
                           [class.bg-slate-50]="previewTheme() === 'light'"
                           [class.border-slate-200]="previewTheme() === 'light'"
                           [class.text-slate-900]="previewTheme() === 'light'"
@@ -528,7 +546,8 @@
                           type="checkbox" 
                           [ngModel]="simRememberMe()" 
                           (ngModelChange)="simRememberMe.set($event)"
-                          class="rounded text-tenant-600 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                          [style.accentColor]="branding().primaryColor"
+                          class="rounded auth-checkbox w-4 h-4 cursor-pointer" />
                         <span class="text-[11px] font-medium opacity-80">Keep me logged in</span>
                       </label>
                       <a href="javascript:void(0)" class="text-[11px] font-semibold text-tenant-600 hover:underline">Forgot password?</a>
@@ -551,6 +570,14 @@
                       <span class="opacity-60">Not registered yet? </span>
                       <a href="javascript:void(0)" class="font-bold text-tenant-600 hover:underline">Create an Account</a>
                     </div>
+
+                    <!-- Card Legal Footer -->
+                    <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-center gap-3 opacity-60"
+                         [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
+                      <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
+                      <span>·</span>
+                      <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
+                    </div>
                   </div>
                 </div>
 
@@ -563,15 +590,20 @@
                   <div class="truncate">{{ branding().copyrightText }}</div>
                   <div class="flex items-center gap-1.5 font-medium shrink-0">
                     <span class="opacity-75">Powered By</span>
-                    <span class="font-bold tracking-tight"
-                          [class.text-slate-900]="previewTheme() === 'light'"
-                          [class.text-white]="previewTheme() === 'dark'">SSO-ONE</span>
+                    <app-sso-logo [theme]="previewTheme()" width="88" height="18" customClass="h-4 w-auto inline-block" />
                   </div>
                 </div>
               </div>
 
               <!-- RIGHT/LEFT COLUMN: Immersive Fluid Silk Hero Canvas -->
-              <div class="hidden lg:flex lg:w-[52%] xl:w-[55%] relative overflow-hidden p-8 sm:p-10 lg:p-12 flex-col justify-between text-white shadow-2xl transition-all duration-300"
+              <div class="relative overflow-hidden flex-col justify-between text-white shadow-2xl transition-all duration-300"
+                   [class.hidden]="isMobileViewport() || isTabletViewport()"
+                   [class.lg:flex]="isDesktopOrFull()"
+                   [class.lg:w-[52%]]="isDesktopOrFull()"
+                   [class.xl:w-[55%]]="isDesktopOrFull()"
+                   [class.p-8]="isDesktopOrFull()"
+                   [class.sm:p-10]="isDesktopOrFull()"
+                   [class.lg:p-12]="isDesktopOrFull()"
                    [class.rounded-bl-[64px]]="branding().splitPosition !== 'left'"
                    [class.lg:rounded-bl-[96px]]="branding().splitPosition !== 'left'"
                    [class.rounded-br-[64px]]="branding().splitPosition === 'left'"
@@ -676,19 +708,30 @@
           <!-- ================================================================= -->
           @else if (branding().layout === 'split_right' || branding().layout === 'split_left') {
             <div 
-              class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
-              [class.lg:flex-row-reverse]="branding().layout === 'split_left'">
+              class="w-full grid gap-8 items-center"
+              [class.grid-cols-1]="isMobileViewport() || isTabletViewport()"
+              [class.lg:grid-cols-12]="isDesktopOrFull()"
+              [class.lg:flex-row-reverse]="isDesktopOrFull() && branding().layout === 'split_left'">
               
-              <!-- Hero Content Column (Visible on Desktop / Tablet) -->
+              <!-- Hero Content Column (Visible on Desktop / Full) -->
               <div 
-                class="lg:col-span-6 xl:col-span-7 text-white space-y-5 p-4 lg:p-6"
-                [class.hidden]="viewport() === 'mobile'"
-                [class.lg:order-2]="branding().layout === 'split_left'">
+                class="space-y-5 p-4 lg:p-6 transition-all duration-300 hero-panel-wrapper hero-panel-card"
+                [class.hidden]="isMobileViewport() || isTabletViewport()"
+                [class.lg:col-span-6]="isDesktopOrFull()"
+                [class.xl:col-span-7]="isDesktopOrFull()"
+                [class.lg:order-2]="isDesktopOrFull() && branding().layout === 'split_left'"
+                [class.dark]="previewTheme() === 'dark'"
+                [class.light]="previewTheme() === 'light'"
+                [attr.data-theme]="previewTheme()"
+                [class.text-white]="previewTheme() === 'dark'"
+                [class.text-slate-900]="previewTheme() === 'light'">
                 
                 @if (branding().useCustomContentPanel && branding().customHtml) {
                   <div [innerHTML]="branding().customHtml" class="w-full h-full"></div>
                 } @else if (branding().useCustomContentPanel && !branding().customHtml) {
-                  <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none text-white/50">
+                  <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none"
+                       [class.text-white/50]="previewTheme() === 'dark'"
+                       [class.text-slate-400]="previewTheme() === 'light'">
                     <div class="text-sm font-mono tracking-tighter">&lt;/&gt;</div>
                     <div class="text-xs mt-1">Empty Content Panel</div>
                   </div>
@@ -740,8 +783,10 @@
 
               <!-- Login Form Card Column -->
               <div 
-                class="lg:col-span-6 xl:col-span-5 w-full flex justify-center"
-                [class.lg:order-1]="branding().layout === 'split_left'">
+                class="w-full flex justify-center"
+                [class.lg:col-span-6]="isDesktopOrFull()"
+                [class.xl:col-span-5]="isDesktopOrFull()"
+                [class.lg:order-1]="isDesktopOrFull() && branding().layout === 'split_left'">
                 
                 <!-- The Form Card -->
                 <div 
@@ -927,7 +972,7 @@
                             (ngModelChange)="simEmail.set($event)"
                             name="email"
                             placeholder="name@organization.com"
-                            class="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                            class="auth-input ak-TextField w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none transition-all" />
                         </div>
                       </div>
 
@@ -951,7 +996,7 @@
                             (ngModelChange)="simPassword.set($event)"
                             name="password"
                             placeholder="••••••••••••"
-                            class="w-full pl-9 pr-10 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                            class="auth-input ak-TextField w-full pl-9 pr-10 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none transition-all" />
                           <button 
                             type="button"
                             (click)="togglePasswordVisibility()" 
@@ -970,7 +1015,8 @@
                               [ngModel]="simRememberMe()" 
                               (ngModelChange)="simRememberMe.set($event)"
                               name="rememberMe"
-                              class="rounded border-slate-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+                              [style.accentColor]="branding().primaryColor"
+                              class="rounded border-slate-300 auth-checkbox cursor-pointer" />
                             <span>Keep me signed in</span>
                           </label>
                         </div>
@@ -1013,6 +1059,14 @@
                       </a>
                     </div>
                   }
+
+                  <!-- Card Legal Footer -->
+                  <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-center gap-3 opacity-60"
+                       [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
+                    <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
+                    <span>·</span>
+                    <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
+                  </div>
 
                 </div>
               </div>
@@ -1151,7 +1205,7 @@
                         [ngModel]="simEmail()" 
                         (ngModelChange)="simEmail.set($event)"
                         name="email"
-                        class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                        class="auth-input ak-TextField w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none transition-all" />
                     </div>
 
                     <div>
@@ -1166,7 +1220,7 @@
                         [ngModel]="simPassword()" 
                         (ngModelChange)="simPassword.set($event)"
                         name="password"
-                        class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                        class="auth-input ak-TextField w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-text-primary focus:outline-none transition-all" />
                     </div>
 
                     <button 
@@ -1177,6 +1231,14 @@
                     </button>
                   </form>
                 }
+
+                <!-- Card Legal Footer -->
+                <div class="mt-6 pt-4 border-t text-[11px] text-center flex items-center justify-center gap-3 opacity-60"
+                     [class.border-slate-800]="previewTheme() === 'dark'" [class.border-slate-200]="previewTheme() === 'light'">
+                  <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
+                  <span>·</span>
+                  <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
+                </div>
               </div>
 
             </div>
@@ -1192,7 +1254,10 @@
           <div class="text-center sm:text-left flex items-center gap-2.5">
             <span>{{ branding().copyrightText }}</span>
             <span class="opacity-40">·</span>
-            <span class="font-semibold text-white/95">Powered By SSO-ONE</span>
+            <div class="inline-flex items-center gap-1.5 font-semibold text-white/95">
+              <span>Powered By</span>
+              <app-sso-logo theme="dark" width="88" height="18" customClass="h-4 w-auto inline-block" />
+            </div>
           </div>
 
           <!-- Security Badges & Links -->

@@ -4,12 +4,13 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { LoginBrandingConfig } from '../../../models/login-branding.model';
+import { SsoLogoComponent } from '../../../components/sso-logo/sso-logo.component';
 
 type ViewportMode = 'desktop' | 'laptop' | 'tablet' | 'mobile';
 
 @Component({
   selector: 'app-login-branding-preview',
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent],
   templateUrl: './login-branding-preview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -19,6 +20,9 @@ export class LoginBrandingPreviewComponent {
 
   // Viewport simulation state
   viewport = signal<ViewportMode>('desktop');
+  isMobileViewport = computed(() => this.viewport() === 'mobile');
+  isTabletViewport = computed(() => this.viewport() === 'tablet');
+  isDesktopOrFull = computed(() => this.viewport() === 'desktop' || this.viewport() === 'laptop');
   showDeviceFrame = signal<boolean>(false);
   previewTheme = signal<'light' | 'dark'>('light');
   zoomLevel = signal<number>(100);
@@ -31,7 +35,13 @@ export class LoginBrandingPreviewComponent {
   simSelectedLang = signal<string>('English');
   isSubmitting = signal<boolean>(false);
 
-  branding = computed<LoginBrandingConfig>(() => this.lms.loginBranding());
+  branding = computed<LoginBrandingConfig>(() => {
+    const cfg = { ...this.lms.loginBranding() };
+    if (cfg.copyrightText) {
+      cfg.copyrightText = cfg.copyrightText.replace(/\s*&\s*BRAC\s*IT\s*Services/gi, '').replace(/\s*&\s*Brac\s*IT\s*Services/gi, '').trim();
+    }
+    return cfg;
+  });
 
   // Available tenants for quick-previewing
   tenants = computed(() => this.lms.tenants());
