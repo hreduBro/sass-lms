@@ -74,59 +74,17 @@
       <div class="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-3 z-30 shadow-xs relative text-slate-800 dark:text-slate-100">
         
         <!-- Left: Page Selector Dropdown -->
-        <div class="relative z-40 ak-page-dropdown-container">
-          <button 
-            type="button"
-            (click)="togglePageDropdown()"
-            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-100 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">{{ currentPageObj().icon }}</span>
-            <span>{{ currentPageObj().name }}</span>
-            <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400 transition-transform" [class.rotate-180]="isPageDropdownOpen()">expand_more</span>
-          </button>
-
-          <!-- Dropdown Menu (Pages & Elements) -->
-          @if (isPageDropdownOpen()) {
-            <div class="fixed inset-0 z-40" (click)="isPageDropdownOpen.set(false)"></div>
-            <div class="absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100 max-h-96 overflow-y-auto">
-              
-              <!-- Category: Pages -->
-              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Pages
-              </div>
-              @for (page of pagesMenu; track page.id) {
-                <button 
-                  type="button"
-                  (click)="selectPage(page.id)"
-                  [class]="selectedPage() === page.id ? 'bg-pink-50 dark:bg-pink-950/50 text-tenant-600 dark:text-tenant-400 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                  class="w-full text-left px-3.5 py-2 flex items-center gap-2.5 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-sm" [class.text-tenant-600]="selectedPage() === page.id" [class.dark:text-tenant-400]="selectedPage() === page.id">{{ page.icon }}</span>
-                  <span class="flex-1">{{ page.name }}</span>
-                  @if (selectedPage() === page.id) {
-                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-400">check</span>
-                  }
-                </button>
-              }
-
-              <div class="my-1.5 border-t border-slate-100 dark:border-slate-800"></div>
-
-              <!-- Category: Elements Inspector Shortcuts -->
-              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                <span>Elements</span>
-                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-normal">CSS Target</span>
-              </div>
-              @for (el of elementsMenu; track el.id) {
-                <button 
-                  type="button"
-                  (click)="rightPanelTab.set('custom_css'); openCssAccordions()[el.id] = true; isPageDropdownOpen.set(false); highlightElement(el.id)"
-                  class="w-full text-left px-3.5 py-1.5 flex items-center gap-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-sm text-slate-400 dark:text-slate-500">{{ el.icon }}</span>
-                  <span class="flex-1">{{ el.name }}</span>
-                  <span class="font-mono text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded">{{ el.selector }}</span>
-                </button>
-              }
-
-            </div>
-          }
+        <div class="w-52 relative z-40">
+          <app-custom-select
+            [options]="pageSelectOptions"
+            [ngModel]="selectedPage()"
+            (ngModelChange)="onPageSelectChange($event)"
+            [clearable]="false"
+            [searchable]="false"
+            size="sm"
+            customTriggerClass="bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200/80 dark:hover:bg-slate-700 font-bold text-slate-800 dark:text-slate-100 rounded-xl"
+            customDropdownClass="min-w-[220px]">
+          </app-custom-select>
         </div>
 
         <!-- Center: Device Viewport Controls -->
@@ -172,32 +130,23 @@
           </button>
         </div>
 
-        <!-- Right: Language Picker & Theme Toggles -->
+        <!-- Right: Language Picker -->
         <div class="flex items-center gap-2">
           
           <!-- Language Selector -->
-          <div class="hidden sm:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs text-slate-700 dark:text-slate-300 font-medium">
-            <span class="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">language</span>
-            <select 
-              [ngModel]="selectedLanguage()" 
-              (ngModelChange)="selectedLanguage.set($event)"
-              class="bg-transparent border-none text-xs font-medium text-slate-700 dark:text-slate-300 outline-none cursor-pointer">
-              <option value="English (US)">English (US)</option>
-              <option value="Bengali (বাংলা)">Bengali (বাংলা)</option>
-              <option value="Spanish (Español)">Spanish (Español)</option>
-              <option value="French (Français)">French (Français)</option>
-            </select>
+          <div class="hidden sm:block w-44">
+            <app-custom-select
+              [options]="languageSelectOptions"
+              [ngModel]="selectedLanguage()"
+              (ngModelChange)="onLanguageChange($event)"
+              [clearable]="false"
+              [searchable]="false"
+              leadingIcon="language"
+              size="sm"
+              customTriggerClass="bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-xl"
+              customDropdownClass="min-w-[190px]">
+            </app-custom-select>
           </div>
-
-          <!-- Light / Dark Preview Canvas Mode Toggle -->
-          <button 
-            type="button"
-            (click)="togglePreviewTheme()"
-            [title]="previewTheme() === 'dark' ? 'Switch Preview Canvas to Light' : 'Switch Preview Canvas to Dark'"
-            [class]="previewTheme() === 'dark' ? 'bg-slate-800 text-amber-300 border-slate-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-700'"
-            class="w-8 h-8 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-base">{{ previewTheme() === 'dark' ? 'dark_mode' : 'light_mode' }}</span>
-          </button>
 
         </div>
 
@@ -217,7 +166,7 @@
         <div 
           class="transition-all duration-300 ak-Background auth-background flex flex-col justify-between relative overflow-y-auto overflow-x-hidden"
           [class.ring-2]="highlightedElement() === 'background'"
-          [class.ring-purple-500]="highlightedElement() === 'background'"
+          [class.ring-tenant-500]="highlightedElement() === 'background'"
           [class.w-full]="true"
           [class.h-full]="viewportMode() === 'fullscreen'"
           [class.min-h-full]="viewportMode() === 'fullscreen'"
@@ -244,7 +193,7 @@
 
           <!-- Background Hover Highlight Badge -->
           @if (highlightedElement() === 'background') {
-            <div class="absolute top-2 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+            <div class="absolute top-2 left-2 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
               <span>Background</span>
             </div>
           }
@@ -283,7 +232,7 @@
               @if (selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && formData().announcementBanner?.style === 'top_bar' && !bannerDismissed())) || (highlightedElement() === 'callout' && formData().announcementBanner?.style === 'top_bar'))) {
                 <div class="relative z-30 w-full px-6 py-2.5 backdrop-blur-md border-b flex items-center justify-between text-xs transition-all auth-announcement ak-Callout shrink-0"
                      [class.ring-2]="highlightedElement() === 'callout'"
-                     [class.ring-purple-500]="highlightedElement() === 'callout'"
+                     [class.ring-tenant-500]="highlightedElement() === 'callout'"
                      [class.bg-blue-900/80]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                      [class.border-blue-500/30]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                      [class.text-blue-100]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
@@ -297,7 +246,7 @@
                      [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
                      [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
                   @if (highlightedElement() === 'callout') {
-                    <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                    <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                       <span>Callout</span>
                     </div>
                   }
@@ -324,9 +273,9 @@
               <!-- STYLE 2: FLOATING PILL CALLOUT BANNER (Modern Split) -->
               @if (selectedPage() === 'sign_in' && (((formData().announcementBanner?.enabled && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) && !bannerDismissed())) || (highlightedElement() === 'callout' && (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style)))) {
                 <div class="absolute top-3 sm:top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-2.5 sm:px-4 auth-announcement ak-Callout w-full">
-                  <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                  <div class="w-full max-w-[98%] sm:max-w-4xl md:max-w-5xl lg:max-w-6xl px-4 sm:px-6 py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
-                       [class.ring-purple-500]="highlightedElement() === 'callout'"
+                       [class.ring-tenant-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                        [class.border-blue-500/40]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
                        [class.text-blue-100]="formData().announcementBanner?.type === 'info' || !formData().announcementBanner?.type"
@@ -340,7 +289,7 @@
                        [class.border-emerald-500/40]="formData().announcementBanner?.type === 'success'"
                        [class.text-emerald-100]="formData().announcementBanner?.type === 'success'">
                     @if (highlightedElement() === 'callout') {
-                      <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                         <span>Callout</span>
                       </div>
                     }
@@ -389,11 +338,11 @@
                 <!-- Top Row: Brand Logo & Branding Header (Header) -->
                 <div class="mb-4 sm:mb-6 transition-all relative ak-Header"
                      [class.ring-2]="highlightedElement() === 'header'"
-                     [class.ring-purple-500]="highlightedElement() === 'header'"
+                     [class.ring-tenant-500]="highlightedElement() === 'header'"
                      [class.rounded-xl]="highlightedElement() === 'header'"
                      [class.p-2]="highlightedElement() === 'header'">
                   @if (highlightedElement() === 'header') {
-                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                       <span>Header</span>
                     </div>
                   }
@@ -428,13 +377,13 @@
                 @if (selectedPage() === 'sign_in' && formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
                   <div class="w-full max-w-sm mx-auto mb-3 relative auth-announcement ak-Callout">
                     @if (highlightedElement() === 'callout') {
-                      <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                         <span>Callout</span>
                       </div>
                     }
                     <div class="p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
                          [class.ring-2]="highlightedElement() === 'callout'"
-                         [class.ring-purple-500]="highlightedElement() === 'callout'"
+                         [class.ring-tenant-500]="highlightedElement() === 'callout'"
                          [class.bg-blue-500/10]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
                          [class.border-blue-500/30]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
                          [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
@@ -476,28 +425,28 @@
                 <!-- Middle: Active Auth Page Form (Card) -->
                 <div class="w-full max-w-sm mx-auto my-auto space-y-5 py-2 relative transition-all"
                      [class.ring-2]="highlightedElement() === 'card'"
-                     [class.ring-purple-500]="highlightedElement() === 'card'"
+                     [class.ring-tenant-500]="highlightedElement() === 'card'"
                      [class.rounded-2xl]="highlightedElement() === 'card'"
                      [class.p-3]="highlightedElement() === 'card'">
                   
                   <!-- Card Hover Highlight Badge -->
                   @if (highlightedElement() === 'card') {
-                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                    <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                       <span>Card</span>
                     </div>
                   }
 
                   <!-- Organization Selection Highlight Indicator -->
                   @if (highlightedElement() === 'org-selection') {
-                    <div class="mb-3 p-2.5 rounded-xl border border-purple-500 ring-2 ring-purple-500 bg-purple-500/10 text-xs flex items-center justify-between relative ak-OrganizationSelection select-none animate-in fade-in duration-100">
-                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm flex items-center">
+                    <div class="mb-3 p-2.5 rounded-xl border border-tenant-500 ring-2 ring-tenant-500 bg-tenant-500/10 text-xs flex items-center justify-between relative ak-OrganizationSelection select-none animate-in fade-in duration-100">
+                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm flex items-center">
                         <span>Organization selection</span>
                       </div>
                       <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm text-purple-400">domain</span>
+                        <span class="material-symbols-outlined text-sm text-tenant-500 dark:text-tenant-400">domain</span>
                         <span class="font-medium text-xs ak-OrgName" [class.text-slate-900]="previewTheme() === 'light'" [class.text-white]="previewTheme() === 'dark'">Acme Global (Workspace)</span>
                       </div>
-                      <span class="material-symbols-outlined text-xs text-purple-400">unfold_more</span>
+                      <span class="material-symbols-outlined text-xs text-tenant-500 dark:text-tenant-400">unfold_more</span>
                     </div>
                   }
                   
@@ -518,14 +467,14 @@
                     @if (formData().enableSsoGoogle) {
                       <div class="relative">
                         @if (highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu') {
-                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                             <span>{{ highlightedElement() === 'sso-trigger' ? 'SSO profile trigger' : (highlightedElement() === 'sso-menu' ? 'SSO profile menu' : 'Secondary button') }}</span>
                           </div>
                         }
                         <button 
                           type="button"
                           [class.ring-2]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu'"
-                          [class.ring-purple-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu'"
+                          [class.ring-tenant-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger' || highlightedElement() === 'sso-menu'"
                           class="w-full py-2.5 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 cursor-pointer shadow-2xs auth-sso-btn ak-SecondaryButton"
                           [class.bg-white]="previewTheme() === 'light'"
                           [class.border-slate-200]="previewTheme() === 'light'"
@@ -559,13 +508,13 @@
                       <div class="space-y-1">
                         <div class="relative inline-block">
                           @if (highlightedElement() === 'label') {
-                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap">
+                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap">
                               Label
                             </div>
                           }
                           <label class="text-[11px] font-bold block transition-all"
                                  [class.ring-2]="highlightedElement() === 'label'"
-                                 [class.ring-purple-500]="highlightedElement() === 'label'"
+                                 [class.ring-tenant-500]="highlightedElement() === 'label'"
                                  [class.rounded]="highlightedElement() === 'label'"
                                  [class.px-1]="highlightedElement() === 'label'"
                                  [class.text-slate-700]="previewTheme() === 'light'" 
@@ -575,7 +524,7 @@
                         </div>
                         <div class="relative">
                           @if (highlightedElement() === 'text-field') {
-                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100">
+                            <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100">
                               Text field
                             </div>
                           }
@@ -585,7 +534,7 @@
                             (ngModelChange)="testEmail.set($event)"
                             placeholder="shovon.sen@brac.net"
                             [class.ring-2]="highlightedElement() === 'text-field'"
-                            [class.ring-purple-500]="highlightedElement() === 'text-field'"
+                            [class.ring-tenant-500]="highlightedElement() === 'text-field'"
                             class="w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
                             [class.bg-slate-50]="previewTheme() === 'light'"
                             [class.border-slate-200]="previewTheme() === 'light'"
@@ -645,7 +594,7 @@
                       <!-- Sign In CTA Button (Primary Button) -->
                       <div class="relative">
                         @if (highlightedElement() === 'primary-button') {
-                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                          <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                             <span>Primary button</span>
                           </div>
                         }
@@ -656,7 +605,7 @@
                           [class.rounded-xl]="formData().buttonStyle === 'rounded'"
                           [class.rounded-md]="formData().buttonStyle === 'square'"
                           [class.ring-2]="highlightedElement() === 'primary-button'"
-                          [class.ring-purple-500]="highlightedElement() === 'primary-button'"
+                          [class.ring-tenant-500]="highlightedElement() === 'primary-button'"
                           class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
                           <span>Sign In</span>
                         </button>
@@ -1258,19 +1207,6 @@
 
                   </div>
 
-                  <!-- Hero Action Glass Card -->
-                  <div class="relative z-10 pt-4 max-w-md">
-                    <div class="p-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg text-center hover:bg-white/15 transition-all group cursor-pointer">
-                      <div class="text-[11px] text-white/80 font-medium">
-                        Learn more about BRAC LMS features on
-                      </div>
-                      <div class="text-lg font-black tracking-tight text-white mt-0.5 group-hover:underline flex items-center justify-center gap-1">
-                        <span>learn.brac.net</span>
-                        <span class="material-symbols-outlined text-sm">arrow_outward</span>
-                      </div>
-                    </div>
-                  </div>
-
                   <!-- Hero Footer Links -->
                   <div class="relative z-10 pt-4 flex items-center gap-4 text-[11px] text-white/70">
                     <a href="javascript:void(0)" class="hover:text-white transition-colors">Integrations</a>
@@ -1293,7 +1229,7 @@
               <!-- STYLE A: FLOATING PILL CALLOUT -->
               @if (formData().announcementBanner?.style === 'floating_pill' || !formData().announcementBanner?.style) {
                 <div class="relative z-20 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center auth-announcement ak-Callout w-full">
-                  <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+                  <div class="w-full max-w-[98%] sm:max-w-4xl md:max-w-5xl lg:max-w-6xl px-4 sm:px-6 py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm transition-all animate-in fade-in slide-in-from-top-2 duration-200"
                        [class.ring-2]="highlightedElement() === 'callout'"
                        [class.ring-tenant-500]="highlightedElement() === 'callout'"
                        [class.bg-blue-950/85]="formData().announcementBanner?.type === 'info'"
@@ -1568,7 +1504,7 @@
               [class.order-2]="formData().layout === 'split_left' && isDesktopOrFull()"
               class="w-full max-w-md auth-card ak-Card transition-all duration-300 relative z-10 p-5 sm:p-7"
               [class.ring-2]="highlightedElement() === 'card'"
-              [class.ring-purple-500]="highlightedElement() === 'card'"
+              [class.ring-tenant-500]="highlightedElement() === 'card'"
               [class.rounded-none]="formData().cardBorderRadius === 'none'"
               [class.rounded-lg]="formData().cardBorderRadius === 'sm'"
               [class.rounded-xl]="formData().cardBorderRadius === 'md' || formData().cardBorderRadius === 'lg'"
@@ -1590,7 +1526,7 @@
 
               <!-- Card Hover Highlight Badge -->
               @if (highlightedElement() === 'card') {
-                <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                <div class="absolute -top-3.5 left-4 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                   <span>Card</span>
                 </div>
               }
@@ -1599,7 +1535,7 @@
               @if (selectedPage() === 'sign_in' && formData().announcementBanner?.style === 'card_embedded' && ((formData().announcementBanner?.enabled && !bannerDismissed()) || highlightedElement() === 'callout')) {
                 <div class="mb-5 p-3 rounded-xl border flex items-center gap-2.5 text-xs relative auth-announcement ak-Callout transition-all shadow-xs"
                      [class.ring-2]="highlightedElement() === 'callout'"
-                     [class.ring-purple-500]="highlightedElement() === 'callout'"
+                     [class.ring-tenant-500]="highlightedElement() === 'callout'"
                      [class.bg-blue-500/10]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
                      [class.border-blue-500/30]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
                      [class.text-blue-500]="!formData().announcementBanner?.type || formData().announcementBanner?.type === 'info'"
@@ -1613,7 +1549,7 @@
                      [class.border-emerald-500/30]="formData().announcementBanner?.type === 'success'"
                      [class.text-emerald-500]="formData().announcementBanner?.type === 'success'">
                   @if (highlightedElement() === 'callout') {
-                    <div class="absolute -top-3 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                    <div class="absolute -top-3 left-2 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                       <span>Callout</span>
                     </div>
                   }
@@ -1645,13 +1581,13 @@
               <!-- Central Brand Header in Card (Header) -->
               <div class="text-center mb-5 pb-3 border-b transition-all relative"
                    [class.ring-2]="highlightedElement() === 'header'"
-                   [class.ring-purple-500]="highlightedElement() === 'header'"
+                   [class.ring-tenant-500]="highlightedElement() === 'header'"
                    [class.rounded-lg]="highlightedElement() === 'header'"
                    [class.p-1.5]="highlightedElement() === 'header'"
                    [class.border-white/10]="previewTheme() === 'dark'"
                    [class.border-slate-100]="previewTheme() === 'light'">
                 @if (highlightedElement() === 'header') {
-                  <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                  <div class="absolute -top-3.5 left-2 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                     <span>Header</span>
                   </div>
                 }
@@ -1752,13 +1688,13 @@
                   @if (formData().enableSsoGoogle || formData().enableSsoMicrosoft || formData().enableSsoOkta) {
                     <div class="relative">
                       @if (highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger') {
-                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                           <span>{{ highlightedElement() === 'sso-trigger' ? 'SSO profile trigger' : 'Secondary button' }}</span>
                         </div>
                       }
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 auth-sso-container transition-all"
                            [class.ring-2]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
-                           [class.ring-purple-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
+                           [class.ring-tenant-500]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
                            [class.rounded-xl]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'"
                            [class.p-1]="highlightedElement() === 'secondary-button' || highlightedElement() === 'sso-trigger'">
                         @if (formData().enableSsoGoogle) {
@@ -1793,13 +1729,13 @@
                   <div class="space-y-1.5">
                     <div class="relative inline-block">
                       @if (highlightedElement() === 'label') {
-                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap flex items-center">
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 whitespace-nowrap flex items-center">
                           <span>Label</span>
                         </div>
                       }
                       <label class="block text-xs font-bold auth-label ak-Label transition-all"
                              [class.ring-2]="highlightedElement() === 'label'"
-                             [class.ring-purple-500]="highlightedElement() === 'label'"
+                             [class.ring-tenant-500]="highlightedElement() === 'label'"
                              [class.rounded]="highlightedElement() === 'label'"
                              [class.px-1]="highlightedElement() === 'label'"
                              [class.text-slate-300]="previewTheme() === 'dark'" 
@@ -1809,7 +1745,7 @@
                     </div>
                     <div class="relative">
                       @if (highlightedElement() === 'text-field') {
-                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                        <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                           <span>Text field</span>
                         </div>
                       }
@@ -1818,7 +1754,7 @@
                         [ngModel]="testEmail()" 
                         (ngModelChange)="testEmail.set($event)"
                         [class.ring-2]="highlightedElement() === 'text-field'"
-                        [class.ring-purple-500]="highlightedElement() === 'text-field'"
+                        [class.ring-tenant-500]="highlightedElement() === 'text-field'"
                         class="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium border outline-none transition-all auth-input ak-TextField"
                         [class.bg-slate-950]="previewTheme() === 'dark'" [class.border-slate-700]="previewTheme() === 'dark'" [class.text-white]="previewTheme() === 'dark'"
                         [class.bg-slate-50]="previewTheme() === 'light'" [class.border-slate-200]="previewTheme() === 'light'" [class.text-slate-900]="previewTheme() === 'light'" />
@@ -1866,7 +1802,7 @@
                   <!-- Primary CTA Button -->
                   <div class="relative">
                     @if (highlightedElement() === 'primary-button') {
-                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-purple-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
+                      <div class="absolute -top-3.5 left-0 z-50 px-1.5 py-0.5 rounded bg-tenant-600 text-white text-[10px] font-medium leading-none pointer-events-none shadow-sm select-none animate-in fade-in duration-100 flex items-center">
                         <span>Primary button</span>
                       </div>
                     }
@@ -1877,7 +1813,7 @@
                       [class.rounded-xl]="formData().buttonStyle === 'rounded'"
                       [class.rounded-md]="formData().buttonStyle === 'square'"
                       [class.ring-2]="highlightedElement() === 'primary-button'"
-                      [class.ring-purple-500]="highlightedElement() === 'primary-button'"
+                      [class.ring-tenant-500]="highlightedElement() === 'primary-button'"
                       class="w-full py-2.5 px-4 text-xs font-semibold tracking-wide text-white transition-all cursor-pointer flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] shadow-xs auth-primary-btn ak-PrimaryButton">
                       <span>Sign In</span>
                       <span class="material-symbols-outlined text-sm">arrow_forward</span>
@@ -2362,10 +2298,10 @@
                     @for (cls of activeElementSuggestions().slice(0, 6); track cls.name; let i = $index) {
                       <div 
                         (click)="insertAutocompleteSuggestion(el.id, cls, fullPaneArea)"
-                        [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
-                        [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
-                        [class.text-indigo-600]="i === autocompleteSelectedIndex()"
-                        [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                        [class.bg-tenant-50]="i === autocompleteSelectedIndex()"
+                        [class.dark:bg-tenant-950/60]="i === autocompleteSelectedIndex()"
+                        [class.text-tenant-600]="i === autocompleteSelectedIndex()"
+                        [class.dark:text-tenant-300]="i === autocompleteSelectedIndex()"
                         class="w-full px-3 py-1.5 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
                         <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
@@ -2391,7 +2327,7 @@
           type="button" 
           (click)="setRightPanelTab('global_styles')"
           [class]="rightPanelTab() === 'global_styles' 
-            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            ? 'text-tenant-600 dark:text-tenant-400 border-tenant-600 dark:border-tenant-400 font-bold' 
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Global styles
@@ -2401,7 +2337,7 @@
           type="button" 
           (click)="setRightPanelTab('page_settings')"
           [class]="rightPanelTab() === 'page_settings' 
-            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            ? 'text-tenant-600 dark:text-tenant-400 border-tenant-600 dark:border-tenant-400 font-bold' 
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Page settings
@@ -2411,7 +2347,7 @@
           type="button" 
           (click)="setRightPanelTab('custom_css')"
           [class]="rightPanelTab() === 'custom_css' 
-            ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-400 font-bold' 
+            ? 'text-tenant-600 dark:text-tenant-400 border-tenant-600 dark:border-tenant-400 font-bold' 
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent font-medium'"
           class="h-full border-b-2 text-xs transition-colors cursor-pointer flex items-center">
           Custom CSS
@@ -2501,21 +2437,21 @@
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('photo')"
-                  [class]="backgroundCategory() === 'photo' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="backgroundCategory() === 'photo' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-200 dark:border-tenant-700/60' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Photography
                 </button>
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('solid')"
-                  [class]="backgroundCategory() === 'solid' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="backgroundCategory() === 'solid' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-200 dark:border-tenant-700/60' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Solid Color
                 </button>
                 <button 
                   type="button" 
                   (click)="backgroundCategory.set('texture')"
-                  [class]="backgroundCategory() === 'texture' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="backgroundCategory() === 'texture' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-200 dark:border-tenant-700/60' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="py-1.5 rounded-lg transition-all cursor-pointer text-center">
                   Textured
                 </button>
@@ -2528,15 +2464,17 @@
                     @for (bg of presetBgs; track bg.id) {
                       <div 
                         (click)="selectPresetBackground(bg)"
+                        [class.border-2]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
+                        [class.border-tenant-600]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
                         [class.ring-2]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
                         [class.ring-tenant-600]="formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url"
-                        class="h-14 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer relative group shadow-xs">
+                        class="h-14 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer relative group shadow-xs transition-all">
                         <img [src]="bg.url" [alt]="bg.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform" referrerpolicy="no-referrer" />
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-1.5">
                           <span class="text-[10px] font-bold text-white truncate">{{ bg.name }}</span>
                         </div>
                         @if (formData().backgroundType === 'image' && formData().backgroundImageUrl === bg.url) {
-                          <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-tenant-600 text-white flex items-center justify-center shadow-xs">
+                          <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-tenant-600 text-white flex items-center justify-center shadow-xs z-10">
                             <span class="material-symbols-outlined text-[10px] font-bold">check</span>
                           </div>
                         }
@@ -2544,7 +2482,7 @@
                     }
                   </div>
 
-                  <label class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-tenant-500 bg-slate-50 dark:bg-slate-800/60 hover:bg-pink-50/40 dark:hover:bg-pink-950/20 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                  <label class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-tenant-500 bg-slate-50 dark:bg-slate-800/60 hover:bg-tenant-50/40 dark:hover:bg-tenant-950/20 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 cursor-pointer transition-colors">
                     <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">add_photo_alternate</span>
                     <span>Upload Custom Photo</span>
                     <input type="file" (change)="onBgUploadSimulated($event)" accept="image/*" class="hidden" />
@@ -2562,6 +2500,8 @@
                         (click)="selectSolidBackground(colorItem.color)"
                         [title]="colorItem.name + ' (' + colorItem.color + ')'"
                         [style.background]="colorItem.color"
+                        [class.border-2]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
+                        [class.border-tenant-600]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
                         [class.ring-2]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
                         [class.ring-tenant-600]="formData().backgroundType === 'solid' && formData().backgroundOverlayColor === colorItem.color"
                         class="h-9 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer hover:scale-105 transition-transform relative flex items-center justify-center">
@@ -2589,14 +2529,21 @@
                     @for (tex of texturePresets; track tex.id) {
                       <div 
                         (click)="selectTextureBackground(tex)"
+                        [class.border-2]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
+                        [class.border-tenant-600]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
                         [class.ring-2]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
                         [class.ring-tenant-600]="formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground"
-                        class="h-16 rounded-xl border border-slate-300 dark:border-slate-700 cursor-pointer relative group overflow-hidden shadow-xs">
+                        class="h-16 rounded-xl border border-slate-300 dark:border-slate-700 cursor-pointer relative group overflow-hidden shadow-xs transition-all">
                         <div class="w-full h-full" [style.background]="tex.cssBackground"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-1.5">
                           <span class="text-[10px] font-bold text-white leading-tight truncate">{{ tex.name }}</span>
                           <span class="text-[9px] text-slate-300">{{ tex.category }}</span>
                         </div>
+                        @if (formData().backgroundType === 'gradient' && formData().backgroundGradient === tex.cssBackground) {
+                          <div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-tenant-600 text-white flex items-center justify-center shadow-xs z-10">
+                            <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                          </div>
+                        }
                       </div>
                     }
                   </div>
@@ -2684,7 +2631,7 @@
                 <button 
                   type="button"
                   (click)="setLayoutMode('split_modern_canvas')"
-                  [class]="formData().layout === 'split_modern_canvas' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="formData().layout === 'split_modern_canvas' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">splitscreen</span>
                   <span class="text-[10px] leading-tight font-medium">Modern Split</span>
@@ -2693,7 +2640,7 @@
                 <button 
                   type="button"
                   (click)="setLayoutMode('split_right')"
-                  [class]="formData().layout === 'split_left' || formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="formData().layout === 'split_left' || formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">vertical_split</span>
                   <span class="text-[10px] leading-tight font-medium">Split Hero</span>
@@ -2702,7 +2649,7 @@
                 <button 
                   type="button"
                   (click)="setLayoutMode('centered_card')"
-                  [class]="formData().layout === 'centered_card' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                  [class]="formData().layout === 'centered_card' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                   class="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs transition-all cursor-pointer text-center">
                   <span class="material-symbols-outlined text-base">crop_square</span>
                   <span class="text-[10px] leading-tight font-medium">Single Card</span>
@@ -2719,7 +2666,7 @@
                 <div class="flex items-center justify-between">
                   <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">Content Panel (Hero)</label>
                   @if (formData().useCustomContentPanel) {
-                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase">
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800 uppercase">
                       {{ isHeroPanelEmpty() ? 'Empty State' : 'Custom HTML' }}
                     </span>
                   } @else {
@@ -2735,7 +2682,7 @@
                   <button 
                     type="button" 
                     (click)="openContentPanelModal()"
-                    class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
+                    class="w-full py-2.5 px-3 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:bg-tenant-800 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center justify-center gap-2 transition-all">
                     <span class="material-symbols-outlined text-base">code</span>
                     <span>Edit Content Panel (HTML/CSS)</span>
                   </button>
@@ -2788,7 +2735,7 @@
                     <button 
                       type="button"
                       (click)="setSplitPosition('left')"
-                      [class]="formData().splitPosition === 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                      [class]="formData().splitPosition === 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                       class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
                       <span class="material-symbols-outlined text-sm">dock_to_left</span>
                       <span>Left Canvas</span>
@@ -2796,7 +2743,7 @@
                     <button 
                       type="button"
                       (click)="setSplitPosition('right')"
-                      [class]="formData().splitPosition !== 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                      [class]="formData().splitPosition !== 'left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                       class="py-2 rounded-lg text-xs transition-all cursor-pointer text-center flex items-center justify-center gap-1.5">
                       <span class="material-symbols-outlined text-sm">dock_to_right</span>
                       <span>Right Canvas</span>
@@ -2826,14 +2773,14 @@
                     <button 
                       type="button" 
                       (click)="formData().layout = 'split_left'"
-                      [class]="formData().layout === 'split_left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                      [class]="formData().layout === 'split_left' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                       class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
                       Left Hero
                     </button>
                     <button 
                       type="button" 
                       (click)="formData().layout = 'split_right'"
-                      [class]="formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                      [class]="formData().layout === 'split_right' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'"
                       class="py-1.5 rounded-lg text-xs transition-all cursor-pointer text-center">
                       Right Hero
                     </button>
@@ -2871,13 +2818,13 @@
                   <div class="space-y-1">
                     <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Banner Style</span>
                     <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs border border-slate-200 dark:border-slate-700">
-                      <button type="button" (click)="setAnnouncementStyle('floating_pill')" [class]="formData().announcementBanner?.style === 'floating_pill' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                      <button type="button" (click)="setAnnouncementStyle('floating_pill')" [class]="formData().announcementBanner?.style === 'floating_pill' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Floating Pill
                       </button>
-                      <button type="button" (click)="setAnnouncementStyle('top_bar')" [class]="formData().announcementBanner?.style === 'top_bar' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                      <button type="button" (click)="setAnnouncementStyle('top_bar')" [class]="formData().announcementBanner?.style === 'top_bar' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Top Bar
                       </button>
-                      <button type="button" (click)="setAnnouncementStyle('card_embedded')" [class]="formData().announcementBanner?.style === 'card_embedded' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
+                      <button type="button" (click)="setAnnouncementStyle('card_embedded')" [class]="formData().announcementBanner?.style === 'card_embedded' ? 'bg-white dark:bg-slate-700 text-tenant-600 dark:text-tenant-400 font-bold shadow-xs border border-tenant-300 dark:border-tenant-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'" class="py-1 rounded-lg text-center cursor-pointer text-[11px]">
                         Card Inline
                       </button>
                     </div>
@@ -2887,16 +2834,16 @@
                   <div class="space-y-1">
                     <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Alert Severity</span>
                     <div class="grid grid-cols-4 gap-1 text-xs">
-                      <button type="button" (click)="setAnnouncementType('info')" [class]="formData().announcementBanner?.type === 'info' ? 'bg-blue-600 text-white font-bold' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('info')" [class]="formData().announcementBanner?.type === 'info' ? 'bg-tenant-600 text-white font-bold shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Info
                       </button>
-                      <button type="button" (click)="setAnnouncementType('warning')" [class]="formData().announcementBanner?.type === 'warning' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('warning')" [class]="formData().announcementBanner?.type === 'warning' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Warning
                       </button>
-                      <button type="button" (click)="setAnnouncementType('alert')" [class]="formData().announcementBanner?.type === 'alert' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('alert')" [class]="formData().announcementBanner?.type === 'alert' ? 'bg-rose-600 text-white font-bold shadow-xs' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Alert
                       </button>
-                      <button type="button" (click)="setAnnouncementType('success')" [class]="formData().announcementBanner?.type === 'success' ? 'bg-emerald-600 text-white font-bold' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
+                      <button type="button" (click)="setAnnouncementType('success')" [class]="formData().announcementBanner?.type === 'success' ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'" class="py-1.5 rounded-lg text-center cursor-pointer">
                         Success
                       </button>
                     </div>
@@ -2987,7 +2934,7 @@
                         class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                         <span>Remove original element styles</span>
                         @if (removeOriginalStyles()) {
-                          <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
+                          <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 font-bold">check</span>
                         }
                       </button>
                       <button 
@@ -3093,7 +3040,7 @@
                               class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                               <span>Extend with current CSS</span>
                               @if (!elem.removeOriginalStyles) {
-                                <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
+                                <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 font-bold">check</span>
                               }
                             </button>
                             <button 
@@ -3102,7 +3049,7 @@
                               class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer">
                               <span>Remove original styles</span>
                               @if (elem.removeOriginalStyles) {
-                                <span class="material-symbols-outlined text-sm text-indigo-500 dark:text-indigo-400 font-bold">check</span>
+                                <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 font-bold">check</span>
                               }
                             </button>
                             <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
@@ -3220,10 +3167,10 @@
                                 @for (cls of activeElementSuggestions().slice(0, 5); track cls.name; let i = $index) {
                                   <div 
                                     (click)="insertAutocompleteSuggestion(elem.id, cls, codeArea)"
-                                    [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
-                                    [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
-                                    [class.text-indigo-600]="i === autocompleteSelectedIndex()"
-                                    [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                                    [class.bg-tenant-50]="i === autocompleteSelectedIndex()"
+                                    [class.dark:bg-tenant-950/60]="i === autocompleteSelectedIndex()"
+                                    [class.text-tenant-600]="i === autocompleteSelectedIndex()"
+                                    [class.dark:text-tenant-300]="i === autocompleteSelectedIndex()"
                                     class="w-full px-2.5 py-1.5 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
                                     <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
                                     <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
@@ -3297,11 +3244,11 @@
               <button 
                 type="button"
                 (click)="setModalEditorTab('html')"
-                [class.text-indigo-600]="modalEditorTab() === 'html'"
-                [class.dark:text-white]="modalEditorTab() === 'html'"
+                [class.text-tenant-600]="modalEditorTab() === 'html'"
+                [class.dark:text-tenant-400]="modalEditorTab() === 'html'"
                 [class.border-b-2]="modalEditorTab() === 'html'"
-                [class.border-indigo-600]="modalEditorTab() === 'html'"
-                [class.dark:border-indigo-500]="modalEditorTab() === 'html'"
+                [class.border-tenant-600]="modalEditorTab() === 'html'"
+                [class.dark:border-tenant-400]="modalEditorTab() === 'html'"
                 [class.text-slate-500]="modalEditorTab() !== 'html'"
                 [class.dark:text-slate-400]="modalEditorTab() !== 'html'"
                 [class.hover:text-slate-800]="modalEditorTab() !== 'html'"
@@ -3312,11 +3259,11 @@
               <button 
                 type="button"
                 (click)="setModalEditorTab('css')"
-                [class.text-indigo-600]="modalEditorTab() === 'css'"
-                [class.dark:text-white]="modalEditorTab() === 'css'"
+                [class.text-tenant-600]="modalEditorTab() === 'css'"
+                [class.dark:text-tenant-400]="modalEditorTab() === 'css'"
                 [class.border-b-2]="modalEditorTab() === 'css'"
-                [class.border-indigo-600]="modalEditorTab() === 'css'"
-                [class.dark:border-indigo-500]="modalEditorTab() === 'css'"
+                [class.border-tenant-600]="modalEditorTab() === 'css'"
+                [class.dark:border-tenant-400]="modalEditorTab() === 'css'"
                 [class.text-slate-500]="modalEditorTab() !== 'css'"
                 [class.dark:text-slate-400]="modalEditorTab() !== 'css'"
                 [class.hover:text-slate-800]="modalEditorTab() !== 'css'"
@@ -3370,17 +3317,6 @@
             </div>
           </div>
 
-          <!-- Editor Status Footer -->
-          <div class="px-3 py-2 border-t border-slate-200 dark:border-slate-800/80 bg-slate-100 dark:bg-[#070a12] flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span class="material-symbols-outlined text-sm">check_circle</span>
-              <span class="text-[10px]">Valid & Ready</span>
-            </div>
-            <div class="text-[10px] text-slate-500 font-mono">
-              {{ modalEditorTab() === 'html' ? (modalHtmlCode()?.length || 0) : (modalCssCode()?.length || 0) }} chars
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -3404,7 +3340,7 @@
           <button 
             type="button"
             (click)="saveContentPanelModal()" 
-            class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+            class="px-5 py-2 text-xs font-semibold text-white bg-tenant-600 hover:bg-tenant-500 active:bg-tenant-700 rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
             <span>Save changes</span>
           </button>
         </div>
@@ -3429,7 +3365,7 @@
       <!-- Header -->
       <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 bg-slate-50 dark:bg-[#0d121c]">
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+          <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800/60 flex items-center justify-center text-tenant-600 dark:text-tenant-400 shrink-0">
             <span class="material-symbols-outlined text-lg">code</span>
           </div>
           <div class="min-w-0">
@@ -3512,7 +3448,7 @@
               (click)="insertChildClass(elem.id, cls, modalCodeArea)"
               class="px-2 py-1 rounded-md text-xs font-mono bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0 transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
               [title]="cls.desc">
-              <span class="text-indigo-500 dark:text-indigo-400 font-bold">+</span>
+              <span class="text-tenant-500 dark:text-tenant-400 font-bold">+</span>
               <span>{{ cls.name }}</span>
             </button>
           }
@@ -3555,10 +3491,10 @@
                     @for (cls of activeElementSuggestions().slice(0, 7); track cls.name; let i = $index) {
                       <div 
                         (click)="insertAutocompleteSuggestion(elem.id, cls, modalCodeArea)"
-                        [class.bg-indigo-50]="i === autocompleteSelectedIndex()"
-                        [class.dark:bg-indigo-950/60]="i === autocompleteSelectedIndex()"
-                        [class.text-indigo-600]="i === autocompleteSelectedIndex()"
-                        [class.dark:text-indigo-300]="i === autocompleteSelectedIndex()"
+                        [class.bg-tenant-50]="i === autocompleteSelectedIndex()"
+                        [class.dark:bg-tenant-950/60]="i === autocompleteSelectedIndex()"
+                        [class.text-tenant-600]="i === autocompleteSelectedIndex()"
+                        [class.dark:text-tenant-300]="i === autocompleteSelectedIndex()"
                         class="w-full px-3 py-2 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer select-none">
                         <span class="font-mono text-xs font-medium">{{ getCleanClassName(cls.name) }}</span>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500 italic font-mono">{{ cls.type }}</span>
@@ -3597,7 +3533,7 @@
           <button 
             type="button" 
             (click)="closeScopedFullscreen()"
-            class="px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-xs transition-all cursor-pointer">
+            class="px-4 py-1.5 text-xs font-semibold text-white bg-tenant-600 hover:bg-tenant-500 active:bg-tenant-700 rounded-lg shadow-xs transition-all cursor-pointer">
             Done
           </button>
         </div>

@@ -42,16 +42,16 @@
       <!-- Action Buttons -->
       <div class="flex flex-wrap items-center gap-2.5 flex-shrink-0">
         <!-- Tenant Switcher for previewing other orgs -->
-        <div class="flex items-center gap-1.5 bg-base-200 border border-base-300 rounded-xl px-2.5 py-1.5">
-          <span class="material-symbols-outlined text-sm text-slate-400">corporate_fare</span>
-          <select 
-            [ngModel]="activeTenantId()" 
+        <div class="w-48">
+          <app-custom-select
+            [options]="tenantOptions()"
+            [ngModel]="activeTenantId()"
             (ngModelChange)="onTenantChange($event)"
-            class="bg-transparent text-xs font-bold text-text-primary outline-none cursor-pointer pr-2">
-            @for (t of tenants(); track t.id) {
-              <option [value]="t.id">{{ t.name }}</option>
-            }
-          </select>
+            [clearable]="false"
+            [searchable]="false"
+            leadingIcon="corporate_fare"
+            size="sm">
+          </app-custom-select>
         </div>
 
         <!-- Reset Button -->
@@ -146,16 +146,16 @@
       </button>
 
       <!-- Zoom Level Indicator -->
-      <div class="hidden md:flex items-center gap-1 bg-base-200 rounded-xl px-2 py-1 border border-base-300 text-xs text-text-secondary">
-        <span class="material-symbols-outlined text-sm">zoom_in</span>
-        <select 
-          [ngModel]="zoomLevel()" 
+      <div class="hidden md:block w-28">
+        <app-custom-select
+          [options]="zoomOptions"
+          [ngModel]="zoomLevel()"
           (ngModelChange)="zoomLevel.set($event)"
-          class="bg-transparent text-xs font-bold text-text-primary outline-none cursor-pointer">
-          <option [value]="75">75%</option>
-          <option [value]="90">90%</option>
-          <option [value]="100">100%</option>
-        </select>
+          [clearable]="false"
+          [searchable]="false"
+          leadingIcon="zoom_in"
+          size="sm">
+        </app-custom-select>
       </div>
 
       <!-- Quick Info Meta -->

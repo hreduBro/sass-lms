@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { LoginBrandingConfig } from '../../../models/login-branding.model';
 import { SsoLogoComponent } from '../../../components/sso-logo/sso-logo.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 type ViewportMode = 'desktop' | 'laptop' | 'tablet' | 'mobile';
 
 @Component({
   selector: 'app-login-branding-preview',
-  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent],
+  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent, CustomSelectComponent],
   templateUrl: './login-branding-preview.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,6 +27,12 @@ export class LoginBrandingPreviewComponent {
   showDeviceFrame = signal<boolean>(false);
   previewTheme = signal<'light' | 'dark'>('light');
   zoomLevel = signal<number>(100);
+
+  zoomOptions: SelectOption[] = [
+    { value: 75, label: '75%' },
+    { value: 90, label: '90%' },
+    { value: 100, label: '100%' }
+  ];
 
   // Form simulation state
   simEmail = signal<string>('farhana.ahmed@brac.net');
@@ -46,6 +53,13 @@ export class LoginBrandingPreviewComponent {
   // Available tenants for quick-previewing
   tenants = computed(() => this.lms.tenants());
   activeTenantId = computed(() => this.lms.activeTenant().id);
+  tenantOptions = computed<SelectOption[]>(() => {
+    return this.tenants().map(t => ({
+      value: t.id,
+      label: t.name,
+      icon: 'corporate_fare'
+    }));
+  });
 
   setViewport(mode: ViewportMode) {
     this.viewport.set(mode);
