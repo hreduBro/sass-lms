@@ -1,0 +1,462 @@
+<div class="space-y-6 pb-12">
+  @if (author()) {
+    @let a = author()!;
+
+    <!-- Top Breadcrumbs & Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+          <a routerLink="/settings" class="hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors">Settings</a>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span>Personnel Management</span>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <a routerLink="/authors" class="hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors">Authors</a>
+          <span class="material-symbols-outlined text-xs">chevron_right</span>
+          <span class="text-slate-800 dark:text-slate-200 font-semibold">{{ a.name }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{{ a.name }}</h1>
+          @if (a.status === 'Active') {
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Active Author
+            </span>
+          } @else {
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              Inactive
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <a
+          routerLink="/authors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          <span>Back to Grid</span>
+        </a>
+
+        <a
+          [routerLink]="['/authors/edit', a.id]"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition-colors"
+        >
+          <span class="material-symbols-outlined text-lg">edit</span>
+          <span>Edit Profile</span>
+        </a>
+
+        <button
+          (click)="handleToggleStatus()"
+          [class.bg-emerald-600]="a.status === 'Inactive'"
+          [class.hover:bg-emerald-700]="a.status === 'Inactive'"
+          [class.text-white]="a.status === 'Inactive'"
+          [class.bg-rose-50]="a.status === 'Active'"
+          [class.hover:bg-rose-100]="a.status === 'Active'"
+          [class.text-rose-700]="a.status === 'Active'"
+          [class.border]="a.status === 'Active'"
+          [class.border-rose-200]="a.status === 'Active'"
+          [class.dark:bg-rose-950/40]="a.status === 'Active'"
+          [class.dark:text-rose-300]="a.status === 'Active'"
+          [class.dark:border-rose-900/50]="a.status === 'Active'"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold shadow-xs transition-colors"
+        >
+          <span class="material-symbols-outlined text-lg">
+            {{ a.status === 'Active' ? 'power_settings_new' : 'check_circle' }}
+          </span>
+          <span>{{ a.status === 'Active' ? 'Deactivate Author' : 'Activate Author' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Author Profile Card (§4) -->
+    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+      <div class="flex flex-col md:flex-row md:items-start gap-6">
+        <!-- Avatar -->
+        <div class="relative shrink-0">
+          <img
+            [src]="a.avatar"
+            [alt]="a.name"
+            class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover ring-4 ring-slate-100 dark:ring-slate-800 shadow-sm"
+            referrerpolicy="no-referrer"
+          />
+          @if (a.status === 'Active') {
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-3 border-white dark:border-slate-900 rounded-full"></span>
+          }
+        </div>
+
+        <!-- Details -->
+        <div class="flex-1 space-y-4">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">{{ a.name }}</h2>
+              @if (a.isInstructor) {
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                  <span class="material-symbols-outlined text-sm">school</span>
+                  Dual-Role (Author + Instructor)
+                </span>
+              }
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                <span class="material-symbols-outlined text-sm">domain</span>
+                BRAC (Organization-Wide Scope)
+              </span>
+            </div>
+
+            <!-- Content Specialization Tag -->
+            <div class="mt-2 flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Content Specialization:</span>
+              <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-tenant-50 text-tenant-700 dark:bg-tenant-950/60 dark:text-tenant-300 border border-tenant-200/60 dark:border-tenant-800/60">
+                {{ a.specialization }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Contact & Identity Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div class="space-y-0.5">
+              <span class="text-slate-400 font-medium">Email Address</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">{{ a.email }}</p>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-slate-400 font-medium">Contact Number</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">{{ a.contactNumber || 'Not provided' }}</p>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-slate-400 font-medium">Date Profile Added</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">{{ a.createdAt }}</p>
+            </div>
+          </div>
+
+          <!-- Bio / Credentials -->
+          @if (a.bio) {
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Pedagogical Credentials & Media Background:</span>
+              <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl">
+                {{ a.bio }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- AUTHORSHIP HISTORY SECTION (§4 - Core Value) -->
+    <!-- ========================================================================= -->
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400">library_books</span>
+            Authorship History & Content Credits
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Complete record of specific video lessons, documents, readings, and assessments authored by {{ a.name }} across all courses.
+          </p>
+        </div>
+
+        <!-- Filter controls -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Content Type Filter -->
+          <div class="flex items-center gap-1.5 text-xs text-slate-500 min-w-[180px]">
+            <span class="font-medium shrink-0">Type:</span>
+            <app-custom-select
+              [options]="contentTypeOptions"
+              [value]="contentTypeFilter()"
+              (valueChange)="contentTypeFilter.set($any($event))"
+              size="sm"
+              dropdownPosition="bottom"
+              placeholder="All Content Types"
+              class="w-full" />
+          </div>
+
+          <!-- Course Status Filter -->
+          <div class="flex items-center gap-1.5 text-xs text-slate-500 min-w-[180px]">
+            <span class="font-medium shrink-0">Status:</span>
+            <app-custom-select
+              [options]="courseStatusOptions"
+              [value]="courseStatusFilter()"
+              (valueChange)="courseStatusFilter.set($any($event))"
+              size="sm"
+              dropdownPosition="bottom"
+              placeholder="All Course Statuses"
+              class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Metrics Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-medium text-slate-400 block">Total Authored Items</span>
+          <span class="text-lg font-bold text-slate-900 dark:text-white">{{ totalItems() }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-medium text-slate-400 block">Video Lessons</span>
+          <span class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ videoCount() }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-medium text-slate-400 block">Documents & SOPs</span>
+          <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ docCount() }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <span class="text-[11px] font-medium text-slate-400 block">Quizzes & Labs</span>
+          <span class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ quizCount() }}</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs col-span-2 sm:col-span-1">
+          <span class="text-[11px] font-medium text-slate-400 block">Active Courses</span>
+          <span class="text-lg font-bold text-tenant-600 dark:text-tenant-400">{{ activeCoursesCount() }}</span>
+        </div>
+      </div>
+
+      <!-- Reused Content Architecture Note Banner -->
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-300">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg shrink-0 mt-0.5">info</span>
+        <div class="space-y-0.5">
+          <strong class="font-semibold text-slate-900 dark:text-white">Content-Level Credit Provenance:</strong>
+          <p>
+            Unlike instructors who are tagged at the chapter/module tier, Authors are credited directly on individual learning items. When a video or document is reused across multiple courses, this author's credit is automatically maintained across all delivery instances.
+          </p>
+        </div>
+      </div>
+
+      <!-- History Table / Grid -->
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300 tracking-wider">
+                <th class="py-3.5 px-4 sm:px-6">CONTENT ITEM</th>
+                <th class="py-3.5 px-4">TYPE</th>
+                <th class="py-3.5 px-4">COURSE & LMS INSTANCE</th>
+                <th class="py-3.5 px-4">STRUCTURE NODE</th>
+                <th class="py-3.5 px-4">VERSION</th>
+                <th class="py-3.5 px-4 sm:px-6 text-right">CREDITED DATE</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
+              @for (rec of filteredHistory(); track rec.id) {
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                  <!-- Content Item Name -->
+                  <td class="py-3.5 px-4 sm:px-6">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-base">
+                          {{ getContentTypeIcon(rec.contentType) }}
+                        </span>
+                      </div>
+                      <span class="font-semibold text-slate-900 dark:text-white">
+                        {{ rec.contentItemTitle }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Type Badge -->
+                  <td class="py-3.5 px-4">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold border capitalize" [class]="getContentTypeBadgeClass(rec.contentType)">
+                      {{ rec.contentType }}
+                    </span>
+                  </td>
+
+                  <!-- Course & LMS -->
+                  <td class="py-3.5 px-4">
+                    <div class="space-y-0.5">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-800 dark:text-slate-200">{{ rec.courseName }}</span>
+                        <span
+                          class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold"
+                          [class.bg-emerald-100]="rec.courseStatus === 'Published'"
+                          [class.text-emerald-800]="rec.courseStatus === 'Published'"
+                          [class.bg-slate-100]="rec.courseStatus !== 'Published'"
+                          [class.text-slate-600]="rec.courseStatus !== 'Published'"
+                        >
+                          {{ rec.courseStatus }}
+                        </span>
+                      </div>
+                      <div class="text-xs text-slate-500 dark:text-slate-400">
+                        {{ rec.lmsName }}
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Structure Node -->
+                  <td class="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-300">
+                    {{ rec.nodeTitle || 'Direct Lesson' }}
+                  </td>
+
+                  <!-- Version -->
+                  <td class="py-3.5 px-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      {{ rec.version }}
+                    </span>
+                  </td>
+
+                  <!-- Credited Date -->
+                  <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-slate-500 dark:text-slate-400">
+                    {{ rec.creditedDate }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="py-12 px-4 text-center">
+                    <div class="max-w-sm mx-auto space-y-2">
+                      <span class="material-symbols-outlined text-3xl text-slate-400">menu_book</span>
+                      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Not currently credited on any content</h3>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">
+                        When courses tag {{ a.name }} to video lectures, documents, quizzes, or interactive labs, their authored items will appear here automatically.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- BLOCKED DEACTIVATION RESOLUTION MODAL (§3.4) -->
+    <!-- ========================================================================= -->
+    @if (showBlockedModal()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-xl">block</span>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Cannot Deactivate Author</h3>
+                <p class="text-xs text-rose-700 dark:text-rose-300 font-medium">
+                  Active Content Credits Dependency Detected
+                </p>
+              </div>
+            </div>
+            <button
+              (click)="closeBlockedModal()"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg"
+            >
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+              <span class="font-bold">{{ a.name }}</span> is credited on
+              <span class="font-bold">{{ blockedActiveRecords().length }} content item(s)</span> in actively-delivering published course(s). Reassign or remove each credit below before deactivating this profile.
+            </div>
+
+            @if (blockedActiveRecords().length > 0) {
+              <div class="space-y-3">
+                @for (rec of blockedActiveRecords(); track rec.contentItemId + rec.courseId) {
+                  <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                          <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">
+                            {{ getContentTypeIcon(rec.contentType) }}
+                          </span>
+                          <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ rec.contentItemTitle }}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span>Course: <strong class="text-slate-700 dark:text-slate-300">{{ rec.courseName }}</strong></span>
+                          <span>•</span>
+                          <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                            {{ rec.courseStatus }}
+                          </span>
+                          <span>•</span>
+                          <span>{{ rec.lmsName }}</span>
+                          <span>•</span>
+                          <span class="font-mono">{{ rec.version }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div class="flex items-center gap-2 flex-1">
+                        <label class="text-xs text-slate-600 dark:text-slate-400 shrink-0 font-medium">Reassign to:</label>
+                        <div class="flex-1 min-w-[200px]">
+                          <app-custom-select
+                            [options]="replacementAuthorOptions()"
+                            [value]="reassignmentSelections()[rec.contentItemId + '_' + rec.courseId] || ''"
+                            (valueChange)="setReplacementSelection(rec.contentItemId + '_' + rec.courseId, $any($event))"
+                            size="sm"
+                            placeholder="Select active author..."
+                            [searchable]="true"
+                            dropdownPosition="bottom" />
+                        </div>
+                        <button
+                          (click)="resolveItemReassign(rec)"
+                          class="px-3 py-1.5 rounded-lg bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
+                        >
+                          Reassign
+                        </button>
+                      </div>
+
+                      <div class="flex items-center gap-1.5 justify-end">
+                        <span class="text-xs text-slate-400">or</span>
+                        <button
+                          (click)="resolveItemRemove(rec)"
+                          class="px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold transition-colors"
+                        >
+                          Remove Credit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-2">
+                <span class="material-symbols-outlined text-3xl text-emerald-600 dark:text-emerald-400">check_circle</span>
+                <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">All Active Course Credits Resolved</p>
+                <p class="text-xs text-emerald-700 dark:text-emerald-300">
+                  There are no remaining active content dependencies. You can now safely deactivate {{ a.name }}.
+                </p>
+              </div>
+            }
+          </div>
+
+          <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+            <div class="text-xs text-slate-500">
+              Remaining items to resolve: <strong class="text-slate-900 dark:text-white">{{ blockedActiveRecords().length }}</strong>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                (click)="closeBlockedModal()"
+                class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="finalizeDeactivationAfterResolutions()"
+                [disabled]="blockedActiveRecords().length > 0"
+                [class.opacity-50]="blockedActiveRecords().length > 0"
+                [class.cursor-not-allowed]="blockedActiveRecords().length > 0"
+                class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold shadow-sm transition-all"
+              >
+                Confirm Deactivation
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+  } @else {
+    <div class="p-12 text-center space-y-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+      <span class="material-symbols-outlined text-4xl text-slate-400">person_off</span>
+      <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">Author Profile Not Found</h2>
+      <p class="text-sm text-slate-500">The requested author profile does not exist or has been removed.</p>
+      <a
+        routerLink="/authors"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-tenant-600 text-white text-sm font-semibold shadow-sm"
+      >
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        Return to Authors Grid
+      </a>
+    </div>
+  }
+</div>

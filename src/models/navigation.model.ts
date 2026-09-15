@@ -311,8 +311,50 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/users',
     icon: 'groups',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    description: 'Personnel directory & permissions',
-    matchPatterns: ['/users/**']
+    badge: 'Pools',
+    description: 'Personnel directory, author pool & instructor assignments',
+    matchPatterns: ['/users/**', '/authors/**', '/instructors/**', '/authors', '/instructors'],
+    children: [
+      {
+        label: 'All Users',
+        route: '/users',
+        icon: 'manage_accounts',
+        description: 'System user accounts, roles & permissions',
+        matchPatterns: ['/users']
+      },
+      {
+        label: 'Authors Pool',
+        route: '/authors',
+        icon: 'history_edu',
+        badge: 'Credits',
+        description: 'Organization-scoped author pool & media credits',
+        matchPatterns: ['/authors', '/authors/:id', '/authors/*']
+      },
+      {
+        label: 'Instructors Pool',
+        route: '/instructors',
+        icon: 'co_present',
+        badge: 'Faculty',
+        description: 'Faculty pool & course layer assignments',
+        matchPatterns: ['/instructors', '/instructors/:id', '/instructors/*']
+      },
+      {
+        label: 'Create Author',
+        route: '/authors/create',
+        icon: 'person_add',
+        badge: 'New',
+        description: 'Onboard new content author with duplicate check',
+        matchPatterns: ['/authors/create']
+      },
+      {
+        label: 'Create Instructor',
+        route: '/instructors/create',
+        icon: 'school',
+        badge: 'New',
+        description: 'Onboard new course delivery instructor',
+        matchPatterns: ['/instructors/create']
+      }
+    ]
   },
   {
     label: 'Compliance & Analytics',

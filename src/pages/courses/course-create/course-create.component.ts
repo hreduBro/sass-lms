@@ -1806,22 +1806,111 @@ export class CourseCreateComponent implements OnInit {
     return list.filter(entry => entry.item.family === filter);
   }
 
-  addAuthorToContentItem(item: CourseContentItem, instructorId: string) {
-    if (!instructorId) return;
-    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId);
-    if (!inst) return;
-    if (!item.authors) item.authors = [];
-    if (!item.authors.some(a => a.personId === inst.id)) {
-      item.authors.push({
-        personId: inst.id,
-        name: inst.name,
-        email: inst.email,
-        avatar: inst.avatar,
-        kind: 'authorOnly',
-        source: 'instructor_mgmt'
-      });
-      this.structureNodes.set([...this.structureNodes()]);
-      this.lmsService.showToast(`Added ${inst.name} as contributor to "${item.title}".`, 'success', 2500);
+  // Global Author pool options for content tagging
+  authorPoolOptions = computed<SelectOption[]>(() => {
+    return this.lmsService.activeAuthors().map(a => ({
+      value: a.id,
+      label: `${a.name} (${a.specialization})`,
+      sublabel: `${a.email}${a.isInstructor ? ' • Dual-Role Instructor' : ''}`,
+      icon: 'edit_note'
+    }));
+  });
+
+  // Quick Inline Author Creation Modal State
+  showQuickAuthorModal = signal<boolean>(false);
+  quickAuthorTargetItem = signal<CourseContentItem | null>(null);
+  quickAuthorForm = {
+    name: '',
+    email: '',
+    contactNumber: '',
+    specialization: 'Video Scripting & Pedagogical Content',
+    bio: ''
+  };
+
+  openQuickAuthorModal(item?: CourseContentItem) {
+    if (item) this.quickAuthorTargetItem.set(item);
+    this.quickAuthorForm = {
+      name: '',
+      email: '',
+      contactNumber: '',
+      specialization: 'Video Scripting & Pedagogical Content',
+      bio: ''
+    };
+    this.showQuickAuthorModal.set(true);
+  }
+
+  closeQuickAuthorModal() {
+    this.showQuickAuthorModal.set(false);
+    this.quickAuthorTargetItem.set(null);
+  }
+
+  saveQuickAuthor() {
+    if (!this.quickAuthorForm.name.trim() || !this.quickAuthorForm.email.trim()) {
+      this.lmsService.showToast('Please provide author name and email.', 'error', 3000, 'Required Fields');
+      return;
+    }
+
+    const res = this.lmsService.addAuthor({
+      name: this.quickAuthorForm.name.trim(),
+      email: this.quickAuthorForm.email.trim(),
+      contactNumber: this.quickAuthorForm.contactNumber.trim() || undefined,
+      specialization: this.quickAuthorForm.specialization.trim(),
+      bio: this.quickAuthorForm.bio.trim() || undefined,
+      status: 'Active'
+    });
+
+    if (res.success) {
+      const targetItem = this.quickAuthorTargetItem();
+      if (targetItem) {
+        this.addAuthorToContentItem(targetItem, res.author.id);
+      }
+      this.closeQuickAuthorModal();
+    }
+  }
+
+  addAuthorToContentItem(item: CourseContentItem, authorOrInstructorId: string) {
+    if (!authorOrInstructorId) return;
+
+    // Check in Author pool first
+    const author = this.lmsService.authors().find(a => a.id === authorOrInstructorId || a.personId === authorOrInstructorId);
+    if (author) {
+      if (!item.authors) item.authors = [];
+      const alreadyTagged = item.authors.some(a => 
+        (a.personId && (a.personId === author.id || a.personId === author.personId)) ||
+        (a.email && a.email.toLowerCase() === author.email.toLowerCase())
+      );
+
+      if (!alreadyTagged) {
+        item.authors.push({
+          personId: author.personId || author.id,
+          name: author.name,
+          email: author.email,
+          avatar: author.avatar,
+          kind: author.isInstructor ? 'both' : 'authorOnly',
+          source: 'author_pool'
+        });
+        this.structureNodes.set([...this.structureNodes()]);
+        this.lmsService.showToast(`Added Author "${author.name}" to "${item.title}".`, 'success', 2500);
+      }
+      return;
+    }
+
+    // Check in Instructor pool
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === authorOrInstructorId);
+    if (inst) {
+      if (!item.authors) item.authors = [];
+      if (!item.authors.some(a => a.personId === inst.id || a.email.toLowerCase() === inst.email.toLowerCase())) {
+        item.authors.push({
+          personId: inst.id,
+          name: inst.name,
+          email: inst.email,
+          avatar: inst.avatar,
+          kind: 'authorOnly',
+          source: 'instructor_mgmt'
+        });
+        this.structureNodes.set([...this.structureNodes()]);
+        this.lmsService.showToast(`Added ${inst.name} as contributor to "${item.title}".`, 'success', 2500);
+      }
     }
   }
 

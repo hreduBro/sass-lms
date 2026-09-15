@@ -2174,6 +2174,153 @@
           </div>
         }
       </div>
+
+      <!-- Section 4: Content Author Attribution & Media Creators -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-base-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-xl">edit_note</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-text-primary">Content Author Attribution &amp; Media Crediting</h3>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 uppercase tracking-wide">
+                  Organization Pool
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary mt-0.5">
+                Tag authors and content creators from the organization pool to specific video lessons, documents, readings, or quizzes.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="openQuickAuthorModal()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200/80 dark:border-tenant-800 text-xs font-semibold hover:bg-tenant-100 transition-colors cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            <span>+ Quick Add Author</span>
+          </button>
+        </div>
+
+        <!-- Filter bar for leaf items -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-text-secondary font-medium">Filter Units:</span>
+            <div class="inline-flex p-0.5 rounded-xl bg-base-200 border border-base-300">
+              <button
+                type="button"
+                (click)="step4ContentFilter.set('all')"
+                [class.bg-base-100]="step4ContentFilter() === 'all'"
+                [class.font-bold]="step4ContentFilter() === 'all'"
+                [class.shadow-2xs]="step4ContentFilter() === 'all'"
+                class="px-2.5 py-1 rounded-lg text-xs text-text-primary transition-all cursor-pointer">
+                All ({{ getAllLeafContentItems().length }})
+              </button>
+              <button
+                type="button"
+                (click)="step4ContentFilter.set('learning')"
+                [class.bg-base-100]="step4ContentFilter() === 'learning'"
+                [class.font-bold]="step4ContentFilter() === 'learning'"
+                [class.shadow-2xs]="step4ContentFilter() === 'learning'"
+                class="px-2.5 py-1 rounded-lg text-xs text-text-primary transition-all cursor-pointer">
+                Learning Units
+              </button>
+              <button
+                type="button"
+                (click)="step4ContentFilter.set('assessment')"
+                [class.bg-base-100]="step4ContentFilter() === 'assessment'"
+                [class.font-bold]="step4ContentFilter() === 'assessment'"
+                [class.shadow-2xs]="step4ContentFilter() === 'assessment'"
+                class="px-2.5 py-1 rounded-lg text-xs text-text-primary transition-all cursor-pointer">
+                Assessments
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaf Content Items Author Attribution List -->
+        <div class="space-y-3">
+          @for (entry of getFilteredLeafContentItems(); track entry.item.contentId) {
+            <div class="p-4 rounded-2xl bg-base-200/40 border border-base-300 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">
+                      {{ entry.item.family === 'learning' ? 'smart_display' : 'quiz' }}
+                    </span>
+                    <span class="text-xs font-bold text-text-primary">{{ entry.item.title }}</span>
+                    <span class="px-2 py-0.2 rounded-full text-[10px] font-semibold bg-base-300 text-text-secondary capitalize">
+                      {{ entry.item.family === 'learning' ? (entry.item.learning?.subtype || 'Lesson') : (entry.item.assessment?.subtype || 'Assessment') }}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-text-secondary font-mono">{{ entry.path }}</p>
+                </div>
+
+                <!-- Add Author Dropdown & Quick Add -->
+                <div class="flex items-center gap-2">
+                  <select
+                    #authorSel
+                    (change)="addAuthorToContentItem(entry.item, authorSel.value); authorSel.value = ''"
+                    class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
+                  >
+                    <option value="" disabled selected>+ Tag Author from Pool...</option>
+                    @for (opt of authorPoolOptions(); track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                  <button
+                    type="button"
+                    (click)="openQuickAuthorModal(entry.item)"
+                    class="p-1.5 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 text-text-secondary hover:text-tenant-600 transition-colors cursor-pointer"
+                    title="Create new author inline"
+                  >
+                    <span class="material-symbols-outlined text-base">person_add</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tagged Authors Pill List -->
+              <div class="pt-2 border-t border-base-300/60">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[11px] text-text-secondary font-medium">Credited Authors:</span>
+                  @if (entry.item.authors && entry.item.authors.length > 0) {
+                    @for (auth of entry.item.authors; track $index) {
+                      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-base-100 border border-base-300 text-xs shadow-2xs">
+                        <img [src]="auth.avatar" [alt]="auth.name" class="w-4 h-4 rounded-full object-cover" referrerpolicy="no-referrer" />
+                        <span class="font-semibold text-text-primary">{{ auth.name }}</span>
+                        
+                        <select
+                          [value]="auth.kind"
+                          (change)="setAuthorKind(entry.item, $index, $any($event.target).value)"
+                          class="bg-transparent border-none text-[10px] font-semibold text-tenant-600 dark:text-tenant-400 focus:outline-none cursor-pointer"
+                        >
+                          <option value="authorOnly">Author</option>
+                          <option value="instructor">Instructor</option>
+                          <option value="both">Author + Instructor</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          (click)="removeAuthorFromContentItem(entry.item, $index)"
+                          class="text-text-secondary hover:text-error ml-1 cursor-pointer"
+                          title="Remove author credit"
+                        >
+                          <span class="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      </div>
+                    }
+                  } @else {
+                    <span class="text-xs text-text-secondary/70 italic">Inherits course faculty lead</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
     </div>
   }
 
@@ -2809,6 +2956,94 @@
             (click)="closeCertPreviewModal()"
             class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white font-semibold cursor-pointer">
             Done
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Quick Inline Author Creation Modal -->
+  @if (showQuickAuthorModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">person_add</span>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Quick Add Author</h3>
+              <p class="text-xs text-slate-500">Adds author to organization pool and tags to this unit</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="closeQuickAuthorModal()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg"
+          >
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name *</label>
+            <input
+              type="text"
+              [(ngModel)]="quickAuthorForm.name"
+              placeholder="e.g. Mahbubur Rahman"
+              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address *</label>
+              <input
+                type="email"
+                [(ngModel)]="quickAuthorForm.email"
+                placeholder="e.g. mahbubur.r@brac.net"
+                class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Contact Number</label>
+              <input
+                type="text"
+                [(ngModel)]="quickAuthorForm.contactNumber"
+                placeholder="e.g. +880 1711-000000"
+                class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Content Specialization</label>
+            <input
+              type="text"
+              [(ngModel)]="quickAuthorForm.specialization"
+              placeholder="e.g. Video Scripting, Interactive Simulations, Rubrics"
+              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+            />
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeQuickAuthorModal()"
+            class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="saveQuickAuthor()"
+            [disabled]="!quickAuthorForm.name.trim() || !quickAuthorForm.email.trim()"
+            [class.opacity-50]="!quickAuthorForm.name.trim() || !quickAuthorForm.email.trim()"
+            class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-sm font-semibold shadow-sm transition-all"
+          >
+            Save &amp; Tag Author
           </button>
         </div>
       </div>

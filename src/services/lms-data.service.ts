@@ -210,6 +210,22 @@ import {
   INITIAL_SIGNATORY_CHANGE_LOGS
 } from '../models/signatory.model';
 import {
+  AuthorProfile,
+  AuthorshipRecord,
+  AuthorCreateForm,
+  DeactivationBlockResolution,
+  INITIAL_AUTHORS_REPO,
+  INITIAL_AUTHORSHIP_RECORDS
+} from '../models/author.model';
+import {
+  InstructorProfile,
+  InstructorAssignmentRecord,
+  InstructorCreateForm,
+  InstructorDeactivationResolution,
+  INITIAL_INSTRUCTORS_REPO,
+  INITIAL_INSTRUCTOR_ASSIGNMENTS
+} from '../models/instructor.model';
+import {
   LoginBrandingConfig,
   DEFAULT_LOGIN_BRANDING
 } from '../models/login-branding.model';
@@ -2587,6 +2603,22 @@ export class LmsDataService {
 
   // Login Branding Store (System Admin Scope)
   loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
+
+  // Author Profile Store (Organization-Scoped Author Pool)
+  authors = signal<AuthorProfile[]>(INITIAL_AUTHORS_REPO);
+  authorshipRecords = signal<AuthorshipRecord[]>(INITIAL_AUTHORSHIP_RECORDS);
+
+  activeAuthors = computed<AuthorProfile[]>(() => {
+    return this.authors().filter(a => a.status === 'Active');
+  });
+
+  // Instructor Profile Store (Organization-Scoped Instructor Pool)
+  instructors = signal<InstructorProfile[]>(INITIAL_INSTRUCTORS_REPO);
+  instructorAssignments = signal<InstructorAssignmentRecord[]>(INITIAL_INSTRUCTOR_ASSIGNMENTS);
+
+  activeInstructors = computed<InstructorProfile[]>(() => {
+    return this.instructors().filter(i => i.status === 'Active');
+  });
 
   badgePermissions = computed<BadgePermissions>(() => {
     const role = this.activeRole();
@@ -8885,6 +8917,472 @@ export class LmsDataService {
     };
     this.loginBranding.set(defaultBrac);
     this.showToast('Login branding reset to organization standard defaults.', 'info', 3000, 'Reset Complete');
+  }
+
+  // =========================================================================
+  // AUTHOR PROFILE MANAGEMENT (Organization-Scoped Author Pool)
+  // =========================================================================
+
+  getAuthorById(authorId: string): AuthorProfile | undefined {
+    return this.authors().find(a => a.id === authorId || a.personId === authorId);
+  }
+
+  getAuthorByEmail(email: string): AuthorProfile | undefined {
+    if (!email) return undefined;
+    const clean = email.trim().toLowerCase();
+    return this.authors().find(a => a.email.trim().toLowerCase() === clean);
+  }
+
+  getAuthorshipHistory(authorId: string): AuthorshipRecord[] {
+    const targetAuthor = this.getAuthorById(authorId);
+    if (!targetAuthor) return [];
+    return this.authorshipRecords().filter(r => r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase());
+  }
+
+  findExistingPerson(email: string): { found: boolean; name?: string; email?: string; avatar?: string; isInstructor?: boolean; instructorId?: string; isUser?: boolean; isAuthor?: boolean; authorId?: string } {
+    if (!email) return { found: false };
+    const clean = email.trim().toLowerCase();
+
+    // Check existing authors
+    const existingAuthor = this.authors().find(a => a.email.trim().toLowerCase() === clean);
+    if (existingAuthor) {
+      return {
+        found: true,
+        name: existingAuthor.name,
+        email: existingAuthor.email,
+        avatar: existingAuthor.avatar,
+        isInstructor: existingAuthor.isInstructor,
+        instructorId: existingAuthor.instructorId,
+        isAuthor: true,
+        authorId: existingAuthor.id
+      };
+    }
+
+    // Check existing instructors
+    const existingInstructor = this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+    if (existingInstructor) {
+      return {
+        found: true,
+        name: existingInstructor.name,
+        email: existingInstructor.email,
+        avatar: existingInstructor.avatar,
+        isInstructor: true,
+        instructorId: existingInstructor.id,
+        isAuthor: existingInstructor.isAuthor,
+        authorId: existingInstructor.authorId
+      };
+    }
+
+    // Check users
+    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === clean);
+    if (existingUser) {
+      return {
+        found: true,
+        name: existingUser.name,
+        email: existingUser.email,
+        avatar: existingUser.avatar,
+        isInstructor: existingUser.role === 'instructor',
+        isAuthor: false
+      };
+    }
+
+    return { found: false };
+  }
+
+  addAuthor(formData: AuthorCreateForm): { success: boolean; author: AuthorProfile; isExistingPersonLinked: boolean } {
+    const cleanEmail = formData.email.trim();
+    const cleanName = formData.name.trim();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    // Duplicate guard check
+    const existingAuthor = this.getAuthorByEmail(cleanEmail);
+    if (existingAuthor) {
+      this.showToast(`An Author profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Author');
+      return { success: false, author: existingAuthor, isExistingPersonLinked: false };
+    }
+
+    // Check if Person exists as Instructor or User
+    const existingPerson = this.findExistingPerson(cleanEmail);
+    const isExistingLinked = existingPerson.found;
+    const authorId = `auth-${Date.now().toString().slice(-6)}`;
+    const personId = isExistingLinked ? (existingPerson.instructorId ? `person-${existingPerson.instructorId}` : `person-${Date.now()}`) : `person-${authorId}`;
+
+    const newAuthor: AuthorProfile = {
+      id: authorId,
+      personId,
+      name: cleanName,
+      email: cleanEmail,
+      contactNumber: formData.contactNumber?.trim() || undefined,
+      bio: formData.bio?.trim() || undefined,
+      specialization: formData.specialization?.trim() || 'General Learning Content',
+      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      status: formData.status || 'Active',
+      isInstructor: existingPerson.isInstructor || false,
+      instructorId: existingPerson.instructorId,
+      organizationId: this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      authoredItemsCount: 0
+    };
+
+    this.authors.update(list => [newAuthor, ...list]);
+
+    // If linked to an instructor, also mark that instructor as isAuthor: true
+    if (existingPerson.instructorId) {
+      this.instructors.update(list => list.map(inst => {
+        if (inst.id === existingPerson.instructorId || inst.email.toLowerCase() === cleanEmail.toLowerCase()) {
+          return { ...inst, isAuthor: true, authorId };
+        }
+        return inst;
+      }));
+    }
+
+    if (isExistingLinked) {
+      this.showToast(`Author role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Author Role Added', `Added Author role to existing person ${cleanName} (${cleanEmail})`, 'info');
+    } else {
+      this.showToast(`${cleanName} has been added as an Author.`, 'success', 3500, 'Author Created');
+      this.logAction('Author Created', `Created new Author profile for ${cleanName} (${cleanEmail})`, 'success');
+    }
+
+    return { success: true, author: newAuthor, isExistingPersonLinked: isExistingLinked };
+  }
+
+  updateAuthor(authorId: string, updates: Partial<AuthorProfile>): boolean {
+    const existing = this.getAuthorById(authorId);
+    if (!existing) {
+      this.showToast('Author profile not found.', 'error', 3000, 'Update Failed');
+      return false;
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    this.authors.update(list => list.map(a => {
+      if (a.id === authorId || a.personId === authorId) {
+        return {
+          ...a,
+          ...updates,
+          updatedAt: formattedDate
+        };
+      }
+      return a;
+    }));
+
+    // Also update authorship records name if name changed
+    if (updates.name) {
+      this.authorshipRecords.update(recs => recs.map(r => {
+        if (r.authorId === authorId || r.authorEmail.toLowerCase() === existing.email.toLowerCase()) {
+          return { ...r, authorName: updates.name! };
+        }
+        return r;
+      }));
+    }
+
+    this.showToast(`Author profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
+    return true;
+  }
+
+  checkAuthorDeactivationBlocked(authorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: AuthorshipRecord[] } {
+    const targetAuthor = this.getAuthorById(authorId);
+    if (!targetAuthor) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
+
+    const records = this.authorshipRecords().filter(r => 
+      (r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase()) &&
+      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
+    );
+
+    return {
+      isBlocked: records.length > 0,
+      activeCreditsCount: records.length,
+      activeRecords: records
+    };
+  }
+
+  resolveAuthorCredit(resolution: DeactivationBlockResolution): void {
+    const { contentItemId, courseId, action, replacementAuthorId } = resolution;
+    
+    if (action === 'remove') {
+      this.authorshipRecords.update(list => list.filter(r => !(r.contentItemId === contentItemId && r.courseId === courseId)));
+      this.showToast('Authorship credit removed from content item.', 'info', 2500, 'Credit Removed');
+    } else if (action === 'reassign' && replacementAuthorId) {
+      const replacement = this.getAuthorById(replacementAuthorId);
+      if (!replacement) return;
+
+      this.authorshipRecords.update(list => list.map(r => {
+        if (r.contentItemId === contentItemId && r.courseId === courseId) {
+          return {
+            ...r,
+            authorId: replacement.id,
+            authorName: replacement.name,
+            authorEmail: replacement.email
+          };
+        }
+        return r;
+      }));
+      this.showToast(`Authorship credit reassigned to ${replacement.name}.`, 'success', 2500, 'Credit Reassigned');
+    }
+
+    // Refresh authored items counts
+    this.refreshAuthorsCounts();
+  }
+
+  addAuthorshipCredit(credit: Omit<AuthorshipRecord, 'id'>): void {
+    const newRecord: AuthorshipRecord = {
+      id: `rec-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      ...credit
+    };
+    this.authorshipRecords.update(list => [newRecord, ...list]);
+    this.refreshAuthorsCounts();
+  }
+
+  private refreshAuthorsCounts(): void {
+    const records = this.authorshipRecords();
+    this.authors.update(authorsList => authorsList.map(auth => {
+      const count = records.filter(r => r.authorId === auth.id || r.authorEmail.toLowerCase() === auth.email.toLowerCase()).length;
+      return { ...auth, authoredItemsCount: count };
+    }));
+  }
+
+  deactivateAuthor(authorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: AuthorshipRecord[] } {
+    const author = this.getAuthorById(authorId);
+    if (!author) {
+      return { success: false, message: 'Author not found.' };
+    }
+
+    const check = this.checkAuthorDeactivationBlocked(authorId);
+    if (check.isBlocked && !force) {
+      return {
+        success: false,
+        message: `${author.name} is credited on ${check.activeCreditsCount} content item(s) in active course(s). Reassign or remove these credits before deactivating.`,
+        blockedRecords: check.activeRecords
+      };
+    }
+
+    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Inactive' } : a));
+    this.showToast(`${author.name} has been deactivated.`, 'info', 3000, 'Author Deactivated');
+    this.logAction('Author Deactivated', `Deactivated Author profile for ${author.name}`, 'warning');
+    return { success: true, message: `${author.name} has been deactivated.` };
+  }
+
+  activateAuthor(authorId: string): void {
+    const author = this.getAuthorById(authorId);
+    if (!author) return;
+
+    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Active' } : a));
+    this.showToast(`${author.name} has been activated.`, 'success', 3000, 'Author Activated');
+    this.logAction('Author Activated', `Activated Author profile for ${author.name}`, 'info');
+  }
+
+  // =========================================================================
+  // INSTRUCTOR PROFILE MANAGEMENT (Organization-Scoped Instructor Pool)
+  // =========================================================================
+
+  getInstructorById(instructorId: string): InstructorProfile | undefined {
+    return this.instructors().find(i => i.id === instructorId || i.personId === instructorId);
+  }
+
+  getInstructorByEmail(email: string): InstructorProfile | undefined {
+    if (!email) return undefined;
+    const clean = email.trim().toLowerCase();
+    return this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+  }
+
+  getInstructorAssignments(instructorId: string): InstructorAssignmentRecord[] {
+    const target = this.getInstructorById(instructorId);
+    if (!target) return [];
+    return this.instructorAssignments().filter(a => a.instructorId === target.id || a.instructorEmail.toLowerCase() === target.email.toLowerCase());
+  }
+
+  addInstructor(formData: InstructorCreateForm): { success: boolean; instructor: InstructorProfile; isExistingPersonLinked: boolean } {
+    const cleanEmail = formData.email.trim();
+    const cleanName = formData.name.trim();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    // Duplicate guard check
+    const existingInst = this.getInstructorByEmail(cleanEmail);
+    if (existingInst) {
+      this.showToast(`An Instructor profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Instructor');
+      return { success: false, instructor: existingInst, isExistingPersonLinked: false };
+    }
+
+    // Check if Person exists as Author or User
+    const existingPerson = this.findExistingPerson(cleanEmail);
+    const isExistingLinked = existingPerson.found;
+    const instructorId = `inst-${Date.now().toString().slice(-6)}`;
+    const personId = isExistingLinked ? (existingPerson.authorId ? `person-${existingPerson.authorId}` : `person-${Date.now()}`) : `person-${instructorId}`;
+
+    const specs: string[] = typeof formData.specialization === 'string'
+      ? formData.specialization.split(',').map(s => s.trim()).filter(Boolean)
+      : (formData.specialization || ['General Pedagogy']);
+
+    const newInstructor: InstructorProfile = {
+      id: instructorId,
+      personId,
+      name: cleanName,
+      email: cleanEmail,
+      contactNumber: formData.contactNumber?.trim() || undefined,
+      bio: formData.bio?.trim() || undefined,
+      specialization: specs.length > 0 ? specs : ['General Pedagogy'],
+      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      status: formData.status || 'Active',
+      isAuthor: existingPerson.isAuthor || false,
+      authorId: existingPerson.authorId,
+      department: formData.department?.trim() || 'Academic & Faculty Division',
+      title: formData.title?.trim() || 'Senior Faculty Instructor',
+      organizationId: this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      assignmentsCount: 0,
+      rating: 5.0
+    };
+
+    this.instructors.update(list => [newInstructor, ...list]);
+
+    // If linked to an author, also mark that author as isInstructor: true
+    if (existingPerson.authorId) {
+      this.authors.update(list => list.map(auth => {
+        if (auth.id === existingPerson.authorId || auth.email.toLowerCase() === cleanEmail.toLowerCase()) {
+          return { ...auth, isInstructor: true, instructorId };
+        }
+        return auth;
+      }));
+    }
+
+    if (isExistingLinked) {
+      this.showToast(`Instructor role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Instructor Role Added', `Added Instructor role to existing person ${cleanName} (${cleanEmail})`, 'info');
+    } else {
+      this.showToast(`${cleanName} has been added as an Instructor.`, 'success', 3500, 'Instructor Created');
+      this.logAction('Instructor Created', `Created new Instructor profile for ${cleanName} (${cleanEmail})`, 'success');
+    }
+
+    return { success: true, instructor: newInstructor, isExistingPersonLinked: isExistingLinked };
+  }
+
+  updateInstructor(instructorId: string, updates: Partial<InstructorProfile>): boolean {
+    const existing = this.getInstructorById(instructorId);
+    if (!existing) {
+      this.showToast('Instructor profile not found.', 'error', 3000, 'Update Failed');
+      return false;
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    this.instructors.update(list => list.map(i => {
+      if (i.id === instructorId || i.personId === instructorId) {
+        return {
+          ...i,
+          ...updates,
+          updatedAt: formattedDate
+        };
+      }
+      return i;
+    }));
+
+    // Also update assignment records if name changed
+    if (updates.name) {
+      this.instructorAssignments.update(recs => recs.map(r => {
+        if (r.instructorId === instructorId || r.instructorEmail.toLowerCase() === existing.email.toLowerCase()) {
+          return { ...r, instructorName: updates.name! };
+        }
+        return r;
+      }));
+    }
+
+    this.showToast(`Instructor profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
+    return true;
+  }
+
+  checkInstructorDeactivationBlocked(instructorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: InstructorAssignmentRecord[] } {
+    const target = this.getInstructorById(instructorId);
+    if (!target) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
+
+    const records = this.instructorAssignments().filter(r => 
+      (r.instructorId === target.id || r.instructorEmail.toLowerCase() === target.email.toLowerCase()) &&
+      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
+    );
+
+    return {
+      isBlocked: records.length > 0,
+      activeCreditsCount: records.length,
+      activeRecords: records
+    };
+  }
+
+  resolveInstructorAssignment(resolution: InstructorDeactivationResolution): void {
+    const { assignmentId, action, replacementInstructorId } = resolution;
+
+    if (action === 'remove') {
+      this.instructorAssignments.update(list => list.filter(a => a.id !== assignmentId));
+      this.showToast('Instructor assignment removed from course layer.', 'info', 2500, 'Assignment Removed');
+    } else if (action === 'reassign' && replacementInstructorId) {
+      const replacement = this.getInstructorById(replacementInstructorId);
+      if (!replacement) return;
+
+      this.instructorAssignments.update(list => list.map(a => {
+        if (a.id === assignmentId) {
+          return {
+            ...a,
+            instructorId: replacement.id,
+            instructorName: replacement.name,
+            instructorEmail: replacement.email
+          };
+        }
+        return a;
+      }));
+      this.showToast(`Assignment reassigned to ${replacement.name}.`, 'success', 2500, 'Assignment Reassigned');
+    }
+
+    this.refreshInstructorsCounts();
+  }
+
+  addInstructorAssignment(assignment: Omit<InstructorAssignmentRecord, 'id'>): void {
+    const newRecord: InstructorAssignmentRecord = {
+      id: `inst-asg-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      ...assignment
+    };
+    this.instructorAssignments.update(list => [newRecord, ...list]);
+    this.refreshInstructorsCounts();
+  }
+
+  private refreshInstructorsCounts(): void {
+    const records = this.instructorAssignments();
+    this.instructors.update(instList => instList.map(inst => {
+      const count = records.filter(r => r.instructorId === inst.id || r.instructorEmail.toLowerCase() === inst.email.toLowerCase()).length;
+      return { ...inst, assignmentsCount: count };
+    }));
+  }
+
+  deactivateInstructor(instructorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: InstructorAssignmentRecord[] } {
+    const instructor = this.getInstructorById(instructorId);
+    if (!instructor) {
+      return { success: false, message: 'Instructor not found.' };
+    }
+
+    const check = this.checkInstructorDeactivationBlocked(instructorId);
+    if (check.isBlocked && !force) {
+      return {
+        success: false,
+        message: `${instructor.name} is currently tagged to ${check.activeCreditsCount} active course layer(s). Reassign or remove these before deactivating.`,
+        blockedRecords: check.activeRecords
+      };
+    }
+
+    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Inactive' } : i));
+    this.showToast(`${instructor.name} has been deactivated.`, 'info', 3000, 'Instructor Deactivated');
+    this.logAction('Instructor Deactivated', `Deactivated Instructor profile for ${instructor.name}`, 'warning');
+    return { success: true, message: `${instructor.name} has been deactivated.` };
+  }
+
+  activateInstructor(instructorId: string): void {
+    const instructor = this.getInstructorById(instructorId);
+    if (!instructor) return;
+
+    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Active' } : i));
+    this.showToast(`${instructor.name} has been activated.`, 'success', 3000, 'Instructor Activated');
+    this.logAction('Instructor Activated', `Activated Instructor profile for ${instructor.name}`, 'info');
   }
 }
 

@@ -1,0 +1,311 @@
+<div class="max-w-3xl mx-auto space-y-6 pb-12">
+  <!-- Breadcrumbs & Header -->
+  <div>
+    <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+      <a routerLink="/settings" class="hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors">Settings</a>
+      <span class="material-symbols-outlined text-xs">chevron_right</span>
+      <span>Personnel Management</span>
+      <span class="material-symbols-outlined text-xs">chevron_right</span>
+      <a routerLink="/authors" class="hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors">Authors</a>
+      <span class="material-symbols-outlined text-xs">chevron_right</span>
+      <span class="text-slate-800 dark:text-slate-200 font-semibold">{{ isEditMode() ? 'Edit Author' : 'Create Author' }}</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+        {{ isEditMode() ? 'Edit Author Profile' : 'Create New Author' }}
+      </h1>
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 text-tenant-700 dark:bg-tenant-900/30 dark:text-tenant-300 border border-tenant-200/60 dark:border-tenant-700/50">
+        <span class="material-symbols-outlined text-xs">domain</span>
+        Organization Scope
+      </span>
+    </div>
+    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+      {{ isEditMode() ? 'Update this author\'s specialization and contact credentials.' : 'Add a content author or media designer to the organization repository. Authors can be credited on video lessons, articles, quizzes, and simulations across all courses.' }}
+    </p>
+  </div>
+
+  <!-- Entry Guidance Alert (§ Entry Info Alert) -->
+  @if (showEnterAlert()) {
+    <div class="p-4 rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 flex items-start gap-3 shadow-xs animate-in fade-in duration-200" id="author-entry-alert">
+      <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-lg">info</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-xs font-bold text-blue-950 dark:text-blue-200 flex items-center gap-2">
+          <span>Author Onboarding &amp; Universal Identity</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-200/60 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-mono">Org-Wide</span>
+        </h4>
+        <p class="text-xs text-blue-800 dark:text-blue-300 mt-0.5 leading-relaxed">
+          Authors in this pool are organization-scoped. Use their institutional email as the universal Person ID key. The system automatically inspects for existing instructor or user accounts and links roles seamlessly.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="dismissEnterAlert()"
+        class="text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 p-1 rounded-lg transition-colors cursor-pointer"
+        title="Dismiss Alert"
+      >
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Error Alert Banner (§ Validation Error Alert) -->
+  @if (showErrorAlert()) {
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 flex items-start gap-3 shadow-sm animate-in fade-in duration-200" id="author-error-alert">
+      <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-lg">error</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-xs font-bold text-rose-950 dark:text-rose-200">
+          Form Validation Required
+        </h4>
+        <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">
+          {{ errorMessage() || 'Please correct the highlighted fields before submitting the profile.' }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="dismissErrorAlert()"
+        class="text-rose-400 hover:text-rose-700 dark:hover:text-rose-200 p-1 rounded-lg transition-colors cursor-pointer"
+        title="Dismiss Alert"
+      >
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Success Alert Banner (§ Operation Success Alert) -->
+  @if (showSuccessAlert()) {
+    <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex items-start gap-3 shadow-sm animate-in fade-in duration-200" id="author-success-alert">
+      <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+        <span class="material-symbols-outlined text-lg">check_circle</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+          Operation Completed Successfully
+        </h4>
+        <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 leading-relaxed">
+          {{ successMessage() }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="dismissSuccessAlert()"
+        class="text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-200 p-1 rounded-lg transition-colors cursor-pointer"
+        title="Dismiss Alert"
+      >
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Form Card -->
+  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <form (ngSubmit)="onSubmit()" class="p-6 sm:p-8 space-y-6">
+
+      <!-- Section: Person Identity -->
+      <div class="space-y-4">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400">person</span>
+            Basic Profile Information
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Full Name -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="author-fullname">
+              Full Name <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="author-fullname"
+              [value]="form().name"
+              (input)="updateFormField('name', $any($event.target).value)"
+              placeholder="e.g. Mahbubur Rahman"
+              required
+              class="w-full px-4 py-2.5 rounded-xl text-sm transition-all"
+              [ngClass]="fieldErrors().name ? 'bg-rose-50/40 dark:bg-rose-950/20 border-2 border-rose-500 text-slate-900 dark:text-white placeholder:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20' : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-tenant-500'"
+            />
+            @if (fieldErrors().name) {
+              <p class="text-[11px] font-semibold text-rose-500 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">error</span>
+                <span>{{ fieldErrors().name }}</span>
+              </p>
+            }
+          </div>
+
+          <!-- Email (Duplicate-Guard Key) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="author-email">
+              Email Address <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="author-email"
+              [value]="form().email"
+              (input)="updateFormField('email', $any($event.target).value)"
+              placeholder="e.g. mahbubur.r@brac.net"
+              required
+              class="w-full px-4 py-2.5 rounded-xl text-sm transition-all font-mono"
+              [ngClass]="fieldErrors().email ? 'bg-rose-50/40 dark:bg-rose-950/20 border-2 border-rose-500 text-slate-900 dark:text-white placeholder:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20' : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-tenant-500'"
+            />
+            @if (fieldErrors().email) {
+              <p class="text-[11px] font-semibold text-rose-500 mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">error</span>
+                <span>{{ fieldErrors().email }}</span>
+              </p>
+            } @else {
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Used as the unique Person identity key across the organization.</p>
+            }
+          </div>
+
+          <!-- Contact Number -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="author-phone">
+              Contact Number <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              id="author-phone"
+              [value]="form().contactNumber"
+              (input)="updateFormField('contactNumber', $any($event.target).value)"
+              placeholder="e.g. +880 1711-450921"
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-tenant-500 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Live Duplicate Guard Alert (§ Duplicate-Guard Mechanism) -->
+        @if (existingPersonMatch()) {
+          @let match = existingPersonMatch()!;
+          <div class="p-4 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/80 dark:bg-amber-950/40 space-y-2 animate-in fade-in duration-200">
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-xl shrink-0 mt-0.5">info</span>
+              <div class="space-y-1">
+                <h4 class="text-xs font-bold text-amber-900 dark:text-amber-200">
+                  Existing Profile Record Detected
+                </h4>
+                @if (match.isAuthor) {
+                  <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                    An Author profile already exists for <strong>{{ match.name }}</strong> ({{ match.email }}). Saving will update or preserve their existing profile.
+                  </p>
+                } @else {
+                  <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                    A profile already exists for <strong>{{ match.name }}</strong> ({{ match.email }}) with the
+                    <span class="font-bold underline">{{ match.isInstructor ? 'Instructor' : 'User' }}</span> role.
+                    Adding the Author role will link this profile to their existing record without creating a duplicate identity.
+                  </p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Section: Content Specialization -->
+      <div class="space-y-4">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400">category</span>
+            Content Specialization &amp; Expertise
+          </h2>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="author-specialization">
+            Content Specialization <span class="text-slate-400 font-normal">(Free text, e.g. "Video Scripting", "Assessment Design")</span>
+          </label>
+          <input
+            type="text"
+            id="author-specialization"
+            [value]="form().specialization"
+            (input)="updateFormField('specialization', $any($event.target).value)"
+            placeholder="e.g. Video Scripting, Scenario Simulation & Rubrics Design"
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-tenant-500 transition-all"
+          />
+
+          <!-- Quick Suggestion Chips -->
+          <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] text-slate-400 font-medium mr-1">Quick suggestions:</span>
+            @for (sug of specializationSuggestions; track sug) {
+              <button
+                type="button"
+                (click)="selectSuggestion(sug)"
+                class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-tenant-50 hover:text-tenant-700 dark:hover:bg-tenant-950/40 dark:hover:text-tenant-300 transition-colors cursor-pointer"
+              >
+                {{ sug }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Bio / Credentials -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="author-bio">
+            Bio &amp; Pedagogical Credentials <span class="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <textarea
+            id="author-bio"
+            rows="4"
+            [value]="form().bio"
+            (input)="updateFormField('bio', $any($event.target).value)"
+            placeholder="Outline this author's instructional background, publications, awards, or media production expertise..."
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-tenant-500 transition-all leading-relaxed"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Section: Status Configuration using Custom Dropdown Component -->
+      <div class="space-y-4">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400">toggle_on</span>
+            Initial Status Configuration
+          </h2>
+        </div>
+
+        <div class="max-w-md">
+          <app-custom-select
+            [label]="'Initial Author Status'"
+            [options]="statusOptions"
+            [value]="form().status"
+            (valueChange)="updateFormField('status', $event)"
+            [clearable]="false"
+            [searchable]="false"
+            leadingIcon="toggle_on"
+            hint="Controls whether this profile is available for new course content credit tagging"
+          ></app-custom-select>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
+        <a
+          routerLink="/authors"
+          class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          [disabled]="isSubmitting()"
+          class="px-6 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-sm font-semibold shadow-sm shadow-tenant-600/20 hover:shadow transition-all flex items-center gap-2 cursor-pointer"
+          id="btn-submit-author-form"
+        >
+          @if (isSubmitting()) {
+            <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>Saving Author...</span>
+          } @else {
+            <span class="material-symbols-outlined text-lg">{{ isEditMode() ? 'save' : 'person_add' }}</span>
+            <span>{{ isEditMode() ? 'Save Changes' : 'Create Author' }}</span>
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+

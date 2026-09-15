@@ -285,6 +285,52 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
 
+  // Author Management (Organization-Scoped Author Pool)
+  {
+    path: 'authors',
+    loadComponent: () => import('./pages/authors/author-grid/author-grid.component').then(m => m.AuthorGridComponent),
+    title: 'Content Authors Pool | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'authors/create',
+    loadComponent: () => import('./pages/authors/author-create/author-create.component').then(m => m.AuthorCreateComponent),
+    title: 'Create Author Profile | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'authors/:id',
+    loadComponent: () => import('./pages/authors/author-details/author-details.component').then(m => m.AuthorDetailsComponent),
+    title: 'Author Profile & History | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Instructor Management (Organization-Scoped Instructor Pool)
+  {
+    path: 'instructors',
+    loadComponent: () => import('./pages/instructors/instructor-grid/instructor-grid.component').then(m => m.InstructorGridComponent),
+    title: 'Instructors Pool | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'instructors/create',
+    loadComponent: () => import('./pages/instructors/instructor-create/instructor-create.component').then(m => m.InstructorCreateComponent),
+    title: 'Create Instructor Profile | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'instructors/:id',
+    loadComponent: () => import('./pages/instructors/instructor-details/instructor-details.component').then(m => m.InstructorDetailsComponent),
+    title: 'Instructor Profile & History | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
   // Compliance Analytics & Audit
   { 
     path: 'analytics', 
