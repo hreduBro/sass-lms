@@ -100,8 +100,10 @@ import {
   BadgePermissions,
   BadgeMapping,
   BadgeTargetType,
+  EarnedBadge,
   INITIAL_BADGE_TEMPLATES,
-  INITIAL_BADGE_MAPPINGS
+  INITIAL_BADGE_MAPPINGS,
+  INITIAL_EARNED_BADGES
 } from '../models/badge-template.model';
 import {
   Assessment,
@@ -177,7 +179,11 @@ import {
   TranscriptReleaseState,
   TranscriptExportJob,
   TranscriptConfig,
-  INITIAL_TRANSCRIPTS
+  TranscriptTemplate,
+  TranscriptPlaceholderTokenDef,
+  TRANSCRIPT_PLACEHOLDER_TOKENS,
+  INITIAL_TRANSCRIPTS,
+  INITIAL_TRANSCRIPT_TEMPLATES
 } from '../models/transcript.model';
 import {
   Skill,
@@ -204,16 +210,25 @@ import {
   INITIAL_SIGNATORY_CHANGE_LOGS
 } from '../models/signatory.model';
 import {
+  AuthorProfile,
+  AuthorshipRecord,
+  AuthorCreateForm,
+  DeactivationBlockResolution,
+  INITIAL_AUTHORS_REPO,
+  INITIAL_AUTHORSHIP_RECORDS
+} from '../models/author.model';
+import {
+  InstructorProfile,
+  InstructorAssignmentRecord,
+  InstructorCreateForm,
+  InstructorDeactivationResolution,
+  INITIAL_INSTRUCTORS_REPO,
+  INITIAL_INSTRUCTOR_ASSIGNMENTS
+} from '../models/instructor.model';
+import {
   LoginBrandingConfig,
   DEFAULT_LOGIN_BRANDING
 } from '../models/login-branding.model';
-import {
-  LandingPageConfig,
-  LandingSection,
-  LandingSectionType,
-  createDefaultLandingPage
-} from '../models/landing-page.model';
-
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -2555,9 +2570,55 @@ export class LmsDataService {
   // Badge Templates Store
   badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
   badgeMappings = signal<BadgeMapping[]>(INITIAL_BADGE_MAPPINGS);
+  traineeBadges = signal<EarnedBadge[]>(INITIAL_EARNED_BADGES);
+
+  activeUserEarnedBadges = computed<EarnedBadge[]>(() => {
+    const user = this.currentUser();
+    const all = this.traineeBadges();
+    if (!user) return all;
+    // Match by user ID or email or fallback to all seeded badges for the active demo profile
+    const userBadges = all.filter(b => b.userId === user.id || b.userEmail === user.email);
+    return userBadges.length > 0 ? userBadges : all;
+  });
+
+  activeUserBadgeLmsList = computed<{ id: string; name: string; domain?: string; count: number }[]>(() => {
+    const badges = this.activeUserEarnedBadges();
+    const lmsMap = new Map<string, { id: string; name: string; domain?: string; count: number }>();
+    
+    for (const b of badges) {
+      const existing = lmsMap.get(b.lmsId);
+      if (existing) {
+        existing.count++;
+      } else {
+        lmsMap.set(b.lmsId, {
+          id: b.lmsId,
+          name: b.lmsName,
+          domain: b.lmsDomain,
+          count: 1
+        });
+      }
+    }
+    return Array.from(lmsMap.values());
+  });
 
   // Login Branding Store (System Admin Scope)
   loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
+
+  // Author Profile Store (Organization-Scoped Author Pool)
+  authors = signal<AuthorProfile[]>(INITIAL_AUTHORS_REPO);
+  authorshipRecords = signal<AuthorshipRecord[]>(INITIAL_AUTHORSHIP_RECORDS);
+
+  activeAuthors = computed<AuthorProfile[]>(() => {
+    return this.authors().filter(a => a.status === 'Active');
+  });
+
+  // Instructor Profile Store (Organization-Scoped Instructor Pool)
+  instructors = signal<InstructorProfile[]>(INITIAL_INSTRUCTORS_REPO);
+  instructorAssignments = signal<InstructorAssignmentRecord[]>(INITIAL_INSTRUCTOR_ASSIGNMENTS);
+
+  activeInstructors = computed<InstructorProfile[]>(() => {
+    return this.instructors().filter(i => i.status === 'Active');
+  });
 
   badgePermissions = computed<BadgePermissions>(() => {
     const role = this.activeRole();
@@ -3023,6 +3084,10 @@ export class LmsDataService {
   courseEntities = signal<CourseEntity[]>(INITIAL_COURSES_ENTITIES);
   instructorsRepo = signal<InstructorRef[]>(MOCK_INSTRUCTORS_REPO);
   creatorsRepo = signal<CreatorRef[]>(MOCK_CREATORS_REPO);
+
+  // Transcript Drag-and-Drop Templates State
+  transcriptTemplates = signal<TranscriptTemplate[]>(INITIAL_TRANSCRIPT_TEMPLATES);
+  activeTranscriptTemplateId = signal<string>('tpl-transcript-default');
 
   // Course Permissions capability object (§4.4)
   coursePermissions = computed<CoursePermissions>(() => {
@@ -5335,16 +5400,6 @@ export class LmsDataService {
   // Get specific plan by ID
   getPlan(planId: string): Plan | undefined {
     return this.plans().find(p => p.id === planId);
-  }
-
-  // Save or update Plan (v2.3)
-  savePlan(plan: Plan): void {
-    const existing = this.plans().find(p => p.id === plan.id);
-    if (existing) {
-      this.plans.update(list => list.map(p => p.id === plan.id ? plan : p));
-    } else {
-      this.plans.update(list => [plan, ...list]);
-    }
   }
 
   // Get phases for a specific plan
@@ -8083,6 +8138,100 @@ export class LmsDataService {
     URL.revokeObjectURL(url);
   }
 
+  // -------------------------------------------------------------
+  // TRANSCRIPT DRAG-AND-DROP TEMPLATE STUDIO & REGISTRY
+  // -------------------------------------------------------------
+
+  getTranscriptTemplates(): TranscriptTemplate[] {
+    return this.transcriptTemplates();
+  }
+
+  getTranscriptTemplateById(id: string): TranscriptTemplate | undefined {
+    return this.transcriptTemplates().find(t => t.id === id);
+  }
+
+  saveTranscriptTemplate(template: TranscriptTemplate): TranscriptTemplate {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const user = this.activeUser();
+
+    const existing = this.transcriptTemplates().find(t => t.id === template.id);
+
+    if (existing) {
+      const updated: TranscriptTemplate = {
+        ...template,
+        updatedAt: formatted
+      };
+
+      this.transcriptTemplates.update(list => list.map(t => t.id === template.id ? updated : t));
+      this.showToast(`Transcript template "${updated.name}" successfully updated.`, 'success', 3500, 'Template Updated');
+      this.logAction('Transcript Template Saved', `Updated template ${updated.name} (ID: ${updated.id})`, 'info');
+      return updated;
+    } else {
+      const newTemplate: TranscriptTemplate = {
+        ...template,
+        id: template.id || `tpl-transcript-${Date.now()}`,
+        createdBy: user.name,
+        createdAt: formatted,
+        updatedAt: formatted,
+        usageCount: 0
+      };
+
+      this.transcriptTemplates.update(list => [newTemplate, ...list]);
+      this.showToast(`New transcript template "${newTemplate.name}" created.`, 'success', 3500, 'Template Created');
+      this.logAction('Transcript Template Created', `Created drag-and-drop template ${newTemplate.name}`, 'success');
+      return newTemplate;
+    }
+  }
+
+  deleteTranscriptTemplate(id: string): boolean {
+    const target = this.transcriptTemplates().find(t => t.id === id);
+    if (!target) return false;
+
+    if (target.isDefault) {
+      this.showToast('Cannot delete the default active transcript template.', 'error', 3500, 'Action Blocked');
+      return false;
+    }
+
+    this.transcriptTemplates.update(list => list.filter(t => t.id !== id));
+    this.showToast(`Transcript template "${target.name}" removed.`, 'info', 3000, 'Template Deleted');
+    this.logAction('Transcript Template Deleted', `Deleted template ${target.name} (ID: ${id})`, 'warning');
+    return true;
+  }
+
+  duplicateTranscriptTemplate(id: string): TranscriptTemplate | null {
+    const target = this.transcriptTemplates().find(t => t.id === id);
+    if (!target) return null;
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const user = this.activeUser();
+
+    const clone: TranscriptTemplate = {
+      ...JSON.parse(JSON.stringify(target)),
+      id: `tpl-transcript-${Date.now()}`,
+      name: `${target.name} (Copy)`,
+      isDefault: false,
+      createdBy: user.name,
+      createdAt: formatted,
+      updatedAt: formatted,
+      usageCount: 0
+    };
+
+    this.transcriptTemplates.update(list => [clone, ...list]);
+    this.showToast(`Duplicated template "${target.name}" as a new draft.`, 'success', 3500, 'Template Duplicated');
+    return clone;
+  }
+
+  setDefaultTranscriptTemplate(id: string): void {
+    this.transcriptTemplates.update(list => list.map(t => ({
+      ...t,
+      isDefault: t.id === id
+    })));
+    this.activeTranscriptTemplateId.set(id);
+    this.showToast('Default transcript template updated.', 'success', 3000, 'Default Set');
+  }
+
   // --------------------------------------------------------------------------
   // SKILL MAPPING MODULE METHODS (BRD §4.10)
   // --------------------------------------------------------------------------
@@ -8135,13 +8284,20 @@ export class LmsDataService {
       this.showToast(`Skill "${skillData.name}" has been saved successfully. Changes propagated to all mapped learning elements.`, 'success', 3500, 'Skill Updated');
       return updatedSkill!;
     } else {
-      // Create new skill
+      // Create new skill - guard uniqueness
+      const trimmedName = (skillData.name || '').trim();
+      const existing = this.skills().find(s => s.name.trim().toLowerCase() === trimmedName.toLowerCase());
+      if (existing) {
+        this.showToast('Skill name must be unique.', 'error', 4000, 'Duplicate Skill Name');
+        return existing;
+      }
+
       const newId = `skl-${Date.now()}`;
       const codeIndex = String(this.skills().length + 1).padStart(4, '0');
       const newSkill: Skill = {
         skillId: newId,
         skillCode: skillData.skillCode || `SKL-${codeIndex}`,
-        name: skillData.name || 'New Skill',
+        name: trimmedName || 'New Skill',
         description: skillData.description || '',
         category: skillData.category || 'Technical',
         clusterId: skillData.clusterId,
@@ -8691,6 +8847,35 @@ export class LmsDataService {
   }
 
   // =========================================================================
+  // TRAINEE BADGES & LMS PROVENANCE
+  // =========================================================================
+  getTraineeBadgesForUser(userId: string): EarnedBadge[] {
+    return this.traineeBadges().filter(b => b.userId === userId);
+  }
+
+  getTraineeBadgesForLms(lmsId: string, userId?: string): EarnedBadge[] {
+    const list = userId ? this.getTraineeBadgesForUser(userId) : this.activeUserEarnedBadges();
+    return list.filter(b => b.lmsId === lmsId);
+  }
+
+  awardBadgeToTrainee(newBadge: Omit<EarnedBadge, 'id' | 'serialNumber' | 'verified' | 'status'> & { id?: string; serialNumber?: string }): EarnedBadge {
+    const id = newBadge.id || `EB-${Date.now().toString().slice(-6)}`;
+    const serial = newBadge.serialNumber || `BDG-${(newBadge.lmsId || 'SYS').replace(/[^a-zA-Z0-9]/g, '')}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    const completeBadge: EarnedBadge = {
+      ...newBadge,
+      id,
+      serialNumber: serial,
+      status: 'active',
+      verified: true
+    };
+
+    this.traineeBadges.update(list => [completeBadge, ...list]);
+    this.showToast(`Awarded "${completeBadge.name}" from ${completeBadge.lmsName}!`, 'success', 3500, 'Badge Awarded');
+    return completeBadge;
+  }
+
+  // =========================================================================
   // LOGIN BRANDING MANAGEMENT (System Admin Scope)
   // =========================================================================
   updateLoginBranding(changes: Partial<LoginBrandingConfig>): void {
@@ -8735,108 +8920,471 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // LANDING PAGE BUILDER STATE & ACTIONS (Multi-Tenant LMS Scope)
+  // AUTHOR PROFILE MANAGEMENT (Organization-Scoped Author Pool)
   // =========================================================================
-  landingPages = signal<Record<string, LandingPageConfig>>({});
 
-  activeLandingPage = computed<LandingPageConfig>(() => {
-    const curLms = this.activeLms();
-    const curTenant = this.activeTenant();
-    const lmsId = curLms?.id || curTenant?.id || 'default';
-    const store = this.landingPages();
+  getAuthorById(authorId: string): AuthorProfile | undefined {
+    return this.authors().find(a => a.id === authorId || a.personId === authorId);
+  }
 
-    if (store[lmsId]) {
-      return store[lmsId];
+  getAuthorByEmail(email: string): AuthorProfile | undefined {
+    if (!email) return undefined;
+    const clean = email.trim().toLowerCase();
+    return this.authors().find(a => a.email.trim().toLowerCase() === clean);
+  }
+
+  getAuthorshipHistory(authorId: string): AuthorshipRecord[] {
+    const targetAuthor = this.getAuthorById(authorId);
+    if (!targetAuthor) return [];
+    return this.authorshipRecords().filter(r => r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase());
+  }
+
+  findExistingPerson(email: string): { found: boolean; name?: string; email?: string; avatar?: string; isInstructor?: boolean; instructorId?: string; isUser?: boolean; isAuthor?: boolean; authorId?: string } {
+    if (!email) return { found: false };
+    const clean = email.trim().toLowerCase();
+
+    // Check existing authors
+    const existingAuthor = this.authors().find(a => a.email.trim().toLowerCase() === clean);
+    if (existingAuthor) {
+      return {
+        found: true,
+        name: existingAuthor.name,
+        email: existingAuthor.email,
+        avatar: existingAuthor.avatar,
+        isInstructor: existingAuthor.isInstructor,
+        instructorId: existingAuthor.instructorId,
+        isAuthor: true,
+        authorId: existingAuthor.id
+      };
     }
 
-    // Auto-inherit branding attributes from active LMS and Tenant
-    const defaultPage = createDefaultLandingPage(
-      lmsId,
-      curTenant?.id || 'tenant-1',
-      curLms?.basicInfo?.lmsName || curTenant?.name || 'BRAC Learning Management Portal',
-      curLms?.branding?.tagline || curTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
-      curLms?.branding?.logoUrl || curLms?.basicInfo?.logo?.url || curTenant?.branding?.logoUrl || '',
-      curLms?.branding?.primaryColor || curTenant?.branding?.primaryColor || '#EC008C',
-      curLms?.branding?.accentColor || curTenant?.branding?.accentColor || '#005b94'
-    );
-
-    return defaultPage;
-  });
-
-  getLandingPageForLms(lmsId: string): LandingPageConfig {
-    const store = this.landingPages();
-    if (store[lmsId]) {
-      return store[lmsId];
+    // Check existing instructors
+    const existingInstructor = this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+    if (existingInstructor) {
+      return {
+        found: true,
+        name: existingInstructor.name,
+        email: existingInstructor.email,
+        avatar: existingInstructor.avatar,
+        isInstructor: true,
+        instructorId: existingInstructor.id,
+        isAuthor: existingInstructor.isAuthor,
+        authorId: existingInstructor.authorId
+      };
     }
 
-    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
-    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
+    // Check users
+    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === clean);
+    if (existingUser) {
+      return {
+        found: true,
+        name: existingUser.name,
+        email: existingUser.email,
+        avatar: existingUser.avatar,
+        isInstructor: existingUser.role === 'instructor',
+        isAuthor: false
+      };
+    }
 
-    const created = createDefaultLandingPage(
-      lmsId,
-      targetTenant?.id || 'tenant-1',
-      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
-      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
-      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
-      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
-      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
-    );
-
-    this.landingPages.update(s => ({ ...s, [lmsId]: created }));
-    return created;
+    return { found: false };
   }
 
-  saveLandingPage(config: LandingPageConfig): void {
-    if (!config || !config.lmsId) return;
-    const author = this.activeUser()?.name || 'System Admin';
-    const updated: LandingPageConfig = {
-      ...config,
-      lastUpdatedBy: author,
-      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+  addAuthor(formData: AuthorCreateForm): { success: boolean; author: AuthorProfile; isExistingPersonLinked: boolean } {
+    const cleanEmail = formData.email.trim();
+    const cleanName = formData.name.trim();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    // Duplicate guard check
+    const existingAuthor = this.getAuthorByEmail(cleanEmail);
+    if (existingAuthor) {
+      this.showToast(`An Author profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Author');
+      return { success: false, author: existingAuthor, isExistingPersonLinked: false };
+    }
+
+    // Check if Person exists as Instructor or User
+    const existingPerson = this.findExistingPerson(cleanEmail);
+    const isExistingLinked = existingPerson.found;
+    const authorId = `auth-${Date.now().toString().slice(-6)}`;
+    const personId = isExistingLinked ? (existingPerson.instructorId ? `person-${existingPerson.instructorId}` : `person-${Date.now()}`) : `person-${authorId}`;
+
+    const newAuthor: AuthorProfile = {
+      id: authorId,
+      personId,
+      name: cleanName,
+      email: cleanEmail,
+      contactNumber: formData.contactNumber?.trim() || undefined,
+      bio: formData.bio?.trim() || undefined,
+      specialization: formData.specialization?.trim() || 'General Learning Content',
+      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      status: formData.status || 'Active',
+      isInstructor: existingPerson.isInstructor || false,
+      instructorId: existingPerson.instructorId,
+      organizationId: this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      authoredItemsCount: 0
     };
 
-    this.landingPages.update(s => ({ ...s, [config.lmsId]: updated }));
-    this.logAction('Landing Page Draft Saved', `Saved Landing Page configuration draft for ${config.lmsName}`, 'info');
-    this.showToast(`Landing page draft saved for ${config.lmsName}`, 'success', 2500, 'Draft Saved');
+    this.authors.update(list => [newAuthor, ...list]);
+
+    // If linked to an instructor, also mark that instructor as isAuthor: true
+    if (existingPerson.instructorId) {
+      this.instructors.update(list => list.map(inst => {
+        if (inst.id === existingPerson.instructorId || inst.email.toLowerCase() === cleanEmail.toLowerCase()) {
+          return { ...inst, isAuthor: true, authorId };
+        }
+        return inst;
+      }));
+    }
+
+    if (isExistingLinked) {
+      this.showToast(`Author role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Author Role Added', `Added Author role to existing person ${cleanName} (${cleanEmail})`, 'info');
+    } else {
+      this.showToast(`${cleanName} has been added as an Author.`, 'success', 3500, 'Author Created');
+      this.logAction('Author Created', `Created new Author profile for ${cleanName} (${cleanEmail})`, 'success');
+    }
+
+    return { success: true, author: newAuthor, isExistingPersonLinked: isExistingLinked };
   }
 
-  publishLandingPageConfig(config: LandingPageConfig): void {
-    if (!config || !config.lmsId) return;
-    const newVer = Math.round(((config.version || 1) + 0.1) * 10) / 10;
-    const author = this.activeUser()?.name || 'System Admin';
-    const published: LandingPageConfig = {
-      ...config,
-      status: 'Published',
-      version: newVer,
-      lastUpdatedBy: author,
-      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    };
+  updateAuthor(authorId: string, updates: Partial<AuthorProfile>): boolean {
+    const existing = this.getAuthorById(authorId);
+    if (!existing) {
+      this.showToast('Author profile not found.', 'error', 3000, 'Update Failed');
+      return false;
+    }
 
-    this.landingPages.update(s => ({ ...s, [config.lmsId]: published }));
-    this.logAction('Landing Page Published Live', `Published Landing Page v${newVer} for ${config.lmsName}`, 'success');
-    this.showToast(`Landing page for ${config.lmsName} is now live! (v${newVer})`, 'success', 4000, 'Page Published');
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    this.authors.update(list => list.map(a => {
+      if (a.id === authorId || a.personId === authorId) {
+        return {
+          ...a,
+          ...updates,
+          updatedAt: formattedDate
+        };
+      }
+      return a;
+    }));
+
+    // Also update authorship records name if name changed
+    if (updates.name) {
+      this.authorshipRecords.update(recs => recs.map(r => {
+        if (r.authorId === authorId || r.authorEmail.toLowerCase() === existing.email.toLowerCase()) {
+          return { ...r, authorName: updates.name! };
+        }
+        return r;
+      }));
+    }
+
+    this.showToast(`Author profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
+    return true;
   }
 
-  resetLandingPageForLms(lmsId: string): LandingPageConfig {
-    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
-    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
+  checkAuthorDeactivationBlocked(authorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: AuthorshipRecord[] } {
+    const targetAuthor = this.getAuthorById(authorId);
+    if (!targetAuthor) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
 
-    const fresh = createDefaultLandingPage(
-      lmsId,
-      targetTenant?.id || 'tenant-1',
-      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
-      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
-      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
-      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
-      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+    const records = this.authorshipRecords().filter(r => 
+      (r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase()) &&
+      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
     );
 
-    this.landingPages.update(s => ({ ...s, [lmsId]: fresh }));
-    this.showToast(`Landing page reset to LMS branding preset for ${fresh.lmsName}`, 'info', 3000, 'Reset Complete');
-    return fresh;
+    return {
+      isBlocked: records.length > 0,
+      activeCreditsCount: records.length,
+      activeRecords: records
+    };
+  }
+
+  resolveAuthorCredit(resolution: DeactivationBlockResolution): void {
+    const { contentItemId, courseId, action, replacementAuthorId } = resolution;
+    
+    if (action === 'remove') {
+      this.authorshipRecords.update(list => list.filter(r => !(r.contentItemId === contentItemId && r.courseId === courseId)));
+      this.showToast('Authorship credit removed from content item.', 'info', 2500, 'Credit Removed');
+    } else if (action === 'reassign' && replacementAuthorId) {
+      const replacement = this.getAuthorById(replacementAuthorId);
+      if (!replacement) return;
+
+      this.authorshipRecords.update(list => list.map(r => {
+        if (r.contentItemId === contentItemId && r.courseId === courseId) {
+          return {
+            ...r,
+            authorId: replacement.id,
+            authorName: replacement.name,
+            authorEmail: replacement.email
+          };
+        }
+        return r;
+      }));
+      this.showToast(`Authorship credit reassigned to ${replacement.name}.`, 'success', 2500, 'Credit Reassigned');
+    }
+
+    // Refresh authored items counts
+    this.refreshAuthorsCounts();
+  }
+
+  addAuthorshipCredit(credit: Omit<AuthorshipRecord, 'id'>): void {
+    const newRecord: AuthorshipRecord = {
+      id: `rec-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      ...credit
+    };
+    this.authorshipRecords.update(list => [newRecord, ...list]);
+    this.refreshAuthorsCounts();
+  }
+
+  private refreshAuthorsCounts(): void {
+    const records = this.authorshipRecords();
+    this.authors.update(authorsList => authorsList.map(auth => {
+      const count = records.filter(r => r.authorId === auth.id || r.authorEmail.toLowerCase() === auth.email.toLowerCase()).length;
+      return { ...auth, authoredItemsCount: count };
+    }));
+  }
+
+  deactivateAuthor(authorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: AuthorshipRecord[] } {
+    const author = this.getAuthorById(authorId);
+    if (!author) {
+      return { success: false, message: 'Author not found.' };
+    }
+
+    const check = this.checkAuthorDeactivationBlocked(authorId);
+    if (check.isBlocked && !force) {
+      return {
+        success: false,
+        message: `${author.name} is credited on ${check.activeCreditsCount} content item(s) in active course(s). Reassign or remove these credits before deactivating.`,
+        blockedRecords: check.activeRecords
+      };
+    }
+
+    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Inactive' } : a));
+    this.showToast(`${author.name} has been deactivated.`, 'info', 3000, 'Author Deactivated');
+    this.logAction('Author Deactivated', `Deactivated Author profile for ${author.name}`, 'warning');
+    return { success: true, message: `${author.name} has been deactivated.` };
+  }
+
+  activateAuthor(authorId: string): void {
+    const author = this.getAuthorById(authorId);
+    if (!author) return;
+
+    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Active' } : a));
+    this.showToast(`${author.name} has been activated.`, 'success', 3000, 'Author Activated');
+    this.logAction('Author Activated', `Activated Author profile for ${author.name}`, 'info');
+  }
+
+  // =========================================================================
+  // INSTRUCTOR PROFILE MANAGEMENT (Organization-Scoped Instructor Pool)
+  // =========================================================================
+
+  getInstructorById(instructorId: string): InstructorProfile | undefined {
+    return this.instructors().find(i => i.id === instructorId || i.personId === instructorId);
+  }
+
+  getInstructorByEmail(email: string): InstructorProfile | undefined {
+    if (!email) return undefined;
+    const clean = email.trim().toLowerCase();
+    return this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+  }
+
+  getInstructorAssignments(instructorId: string): InstructorAssignmentRecord[] {
+    const target = this.getInstructorById(instructorId);
+    if (!target) return [];
+    return this.instructorAssignments().filter(a => a.instructorId === target.id || a.instructorEmail.toLowerCase() === target.email.toLowerCase());
+  }
+
+  addInstructor(formData: InstructorCreateForm): { success: boolean; instructor: InstructorProfile; isExistingPersonLinked: boolean } {
+    const cleanEmail = formData.email.trim();
+    const cleanName = formData.name.trim();
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    // Duplicate guard check
+    const existingInst = this.getInstructorByEmail(cleanEmail);
+    if (existingInst) {
+      this.showToast(`An Instructor profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Instructor');
+      return { success: false, instructor: existingInst, isExistingPersonLinked: false };
+    }
+
+    // Check if Person exists as Author or User
+    const existingPerson = this.findExistingPerson(cleanEmail);
+    const isExistingLinked = existingPerson.found;
+    const instructorId = `inst-${Date.now().toString().slice(-6)}`;
+    const personId = isExistingLinked ? (existingPerson.authorId ? `person-${existingPerson.authorId}` : `person-${Date.now()}`) : `person-${instructorId}`;
+
+    const specs: string[] = typeof formData.specialization === 'string'
+      ? formData.specialization.split(',').map(s => s.trim()).filter(Boolean)
+      : (formData.specialization || ['General Pedagogy']);
+
+    const newInstructor: InstructorProfile = {
+      id: instructorId,
+      personId,
+      name: cleanName,
+      email: cleanEmail,
+      contactNumber: formData.contactNumber?.trim() || undefined,
+      bio: formData.bio?.trim() || undefined,
+      specialization: specs.length > 0 ? specs : ['General Pedagogy'],
+      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      status: formData.status || 'Active',
+      isAuthor: existingPerson.isAuthor || false,
+      authorId: existingPerson.authorId,
+      department: formData.department?.trim() || 'Academic & Faculty Division',
+      title: formData.title?.trim() || 'Senior Faculty Instructor',
+      organizationId: this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      assignmentsCount: 0,
+      rating: 5.0
+    };
+
+    this.instructors.update(list => [newInstructor, ...list]);
+
+    // If linked to an author, also mark that author as isInstructor: true
+    if (existingPerson.authorId) {
+      this.authors.update(list => list.map(auth => {
+        if (auth.id === existingPerson.authorId || auth.email.toLowerCase() === cleanEmail.toLowerCase()) {
+          return { ...auth, isInstructor: true, instructorId };
+        }
+        return auth;
+      }));
+    }
+
+    if (isExistingLinked) {
+      this.showToast(`Instructor role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Instructor Role Added', `Added Instructor role to existing person ${cleanName} (${cleanEmail})`, 'info');
+    } else {
+      this.showToast(`${cleanName} has been added as an Instructor.`, 'success', 3500, 'Instructor Created');
+      this.logAction('Instructor Created', `Created new Instructor profile for ${cleanName} (${cleanEmail})`, 'success');
+    }
+
+    return { success: true, instructor: newInstructor, isExistingPersonLinked: isExistingLinked };
+  }
+
+  updateInstructor(instructorId: string, updates: Partial<InstructorProfile>): boolean {
+    const existing = this.getInstructorById(instructorId);
+    if (!existing) {
+      this.showToast('Instructor profile not found.', 'error', 3000, 'Update Failed');
+      return false;
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    this.instructors.update(list => list.map(i => {
+      if (i.id === instructorId || i.personId === instructorId) {
+        return {
+          ...i,
+          ...updates,
+          updatedAt: formattedDate
+        };
+      }
+      return i;
+    }));
+
+    // Also update assignment records if name changed
+    if (updates.name) {
+      this.instructorAssignments.update(recs => recs.map(r => {
+        if (r.instructorId === instructorId || r.instructorEmail.toLowerCase() === existing.email.toLowerCase()) {
+          return { ...r, instructorName: updates.name! };
+        }
+        return r;
+      }));
+    }
+
+    this.showToast(`Instructor profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
+    return true;
+  }
+
+  checkInstructorDeactivationBlocked(instructorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: InstructorAssignmentRecord[] } {
+    const target = this.getInstructorById(instructorId);
+    if (!target) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
+
+    const records = this.instructorAssignments().filter(r => 
+      (r.instructorId === target.id || r.instructorEmail.toLowerCase() === target.email.toLowerCase()) &&
+      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
+    );
+
+    return {
+      isBlocked: records.length > 0,
+      activeCreditsCount: records.length,
+      activeRecords: records
+    };
+  }
+
+  resolveInstructorAssignment(resolution: InstructorDeactivationResolution): void {
+    const { assignmentId, action, replacementInstructorId } = resolution;
+
+    if (action === 'remove') {
+      this.instructorAssignments.update(list => list.filter(a => a.id !== assignmentId));
+      this.showToast('Instructor assignment removed from course layer.', 'info', 2500, 'Assignment Removed');
+    } else if (action === 'reassign' && replacementInstructorId) {
+      const replacement = this.getInstructorById(replacementInstructorId);
+      if (!replacement) return;
+
+      this.instructorAssignments.update(list => list.map(a => {
+        if (a.id === assignmentId) {
+          return {
+            ...a,
+            instructorId: replacement.id,
+            instructorName: replacement.name,
+            instructorEmail: replacement.email
+          };
+        }
+        return a;
+      }));
+      this.showToast(`Assignment reassigned to ${replacement.name}.`, 'success', 2500, 'Assignment Reassigned');
+    }
+
+    this.refreshInstructorsCounts();
+  }
+
+  addInstructorAssignment(assignment: Omit<InstructorAssignmentRecord, 'id'>): void {
+    const newRecord: InstructorAssignmentRecord = {
+      id: `inst-asg-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      ...assignment
+    };
+    this.instructorAssignments.update(list => [newRecord, ...list]);
+    this.refreshInstructorsCounts();
+  }
+
+  private refreshInstructorsCounts(): void {
+    const records = this.instructorAssignments();
+    this.instructors.update(instList => instList.map(inst => {
+      const count = records.filter(r => r.instructorId === inst.id || r.instructorEmail.toLowerCase() === inst.email.toLowerCase()).length;
+      return { ...inst, assignmentsCount: count };
+    }));
+  }
+
+  deactivateInstructor(instructorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: InstructorAssignmentRecord[] } {
+    const instructor = this.getInstructorById(instructorId);
+    if (!instructor) {
+      return { success: false, message: 'Instructor not found.' };
+    }
+
+    const check = this.checkInstructorDeactivationBlocked(instructorId);
+    if (check.isBlocked && !force) {
+      return {
+        success: false,
+        message: `${instructor.name} is currently tagged to ${check.activeCreditsCount} active course layer(s). Reassign or remove these before deactivating.`,
+        blockedRecords: check.activeRecords
+      };
+    }
+
+    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Inactive' } : i));
+    this.showToast(`${instructor.name} has been deactivated.`, 'info', 3000, 'Instructor Deactivated');
+    this.logAction('Instructor Deactivated', `Deactivated Instructor profile for ${instructor.name}`, 'warning');
+    return { success: true, message: `${instructor.name} has been deactivated.` };
+  }
+
+  activateInstructor(instructorId: string): void {
+    const instructor = this.getInstructorById(instructorId);
+    if (!instructor) return;
+
+    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Active' } : i));
+    this.showToast(`${instructor.name} has been activated.`, 'success', 3000, 'Instructor Activated');
+    this.logAction('Instructor Activated', `Activated Instructor profile for ${instructor.name}`, 'info');
   }
 }
-
 
 
 

@@ -37,7 +37,7 @@ export interface ContentAuthor {
   email: string;
   avatar: string;
   kind: AuthorKind; // authorOnly | instructor | both (BRD §4.4.2)
-  source: 'instructor_mgmt' | 'creator_mgmt';
+  source: 'instructor_mgmt' | 'creator_mgmt' | 'author_pool';
 }
 
 export interface LearningPayload {
