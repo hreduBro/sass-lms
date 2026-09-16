@@ -1,415 +1,536 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16 max-w-7xl mx-auto">
 
-  <!-- TOP BREADCRUMB & HEADER -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-        <a routerLink="/offline-trainings" class="hover:text-emerald-600 transition-colors">Offline Trainings</a>
-        <span>/</span>
-        <span class="text-slate-900 dark:text-white">{{ isEditMode() ? 'Edit Training' : '5-Step Offline Training Wizard' }}</span>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <a routerLink="/offline-trainings" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">groups_3</span>
+          Offline Trainings
+        </a>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          {{ isEditMode() ? 'Edit Training' : '5-Step Offline Training Wizard' }}
+        </span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40">
+          {{ trainingForm.get('code')?.value || 'TRN-DRAFT' }}
+        </span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-emerald-600 dark:text-emerald-400">add_circle</mat-icon>
-        {{ isEditMode() ? 'Edit In-Person Training Module' : 'Design In-Person Offline Training' }}
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">add_circle</span>
+        <span>{{ isEditMode() ? 'Edit In-Person Training Module' : 'Design In-Person Offline Training' }}</span>
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         BRD §4.11 / Spec 2 compliant workflow: Meta details, physical facility, trainer assignment, multi-mode evaluation & attendance outputs.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5 flex-wrap">
       <button type="button" (click)="cancel()"
-              class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50">
+              class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
         Cancel
       </button>
-      <button type="button" (click)="saveTraining()"
-              [disabled]="trainingForm.invalid"
-              class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl shadow-xs transition-all flex items-center gap-2">
-        <mat-icon class="text-base">check_circle</mat-icon>
+
+      <button type="button" (click)="saveTraining()" [disabled]="trainingForm.invalid"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-lg">check_circle</span>
         <span>{{ isEditMode() ? 'Save Changes' : 'Publish & Finalize Training' }}</span>
       </button>
     </div>
   </div>
 
-  <!-- 5-STEP WIZARD PROGRESS BAR -->
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-    <div class="grid grid-cols-5 gap-2 text-xs font-semibold">
-      <button type="button" (click)="currentStep.set(1)"
-              [class]="currentStep() === 1 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
-        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">1</span>
-        <span class="truncate">1. Basics</span>
-      </button>
+  <!-- ========================================================================= -->
+  <!-- 2. 2-COLUMN WIZARD LAYOUT: VERTICAL STEPPER LEFT, FORMS RIGHT             -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Left Column: Sticky Stepper Navigation -->
+    <div class="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6 space-y-4">
+      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <app-stepper
+          [steps]="steps"
+          [currentStep]="currentStep()"
+          [completedSteps]="completedSteps()"
+          orientation="vertical"
+          (stepChange)="goToStep($event)">
+        </app-stepper>
 
-      <button type="button" (click)="currentStep.set(2)"
-              [class]="currentStep() === 2 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
-        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">2</span>
-        <span class="truncate">2. Venue & Room</span>
-      </button>
-
-      <button type="button" (click)="currentStep.set(3)"
-              [class]="currentStep() === 3 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
-        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">3</span>
-        <span class="truncate">3. Trainers</span>
-      </button>
-
-      <button type="button" (click)="currentStep.set(4)"
-              [class]="currentStep() === 4 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
-        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">4</span>
-        <span class="truncate">4. Content & Assessment</span>
-      </button>
-
-      <button type="button" (click)="currentStep.set(5)"
-              [class]="currentStep() === 5 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
-        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">5</span>
-        <span class="truncate">5. Attendance & Certs</span>
-      </button>
-    </div>
-  </div>
-
-  <form [formGroup]="trainingForm" (ngSubmit)="saveTraining()" class="space-y-6">
-
-    <!-- STEP 1: BASICS & META -->
-    @if (currentStep() === 1) {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">info</mat-icon>
-          Step 1: Workshop Information & Scope
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Training Code *</label>
-            <input type="text" formControlName="code" class="w-full px-3 py-2 text-sm font-mono uppercase bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+        <div class="pt-4 border-t border-base-300 text-xs text-text-secondary space-y-2">
+          <div class="flex items-center justify-between">
+            <span>Duration:</span>
+            <strong class="text-text-primary">{{ trainingForm.get('durationHours')?.value || 0 }} hrs ({{ trainingForm.get('durationDays')?.value || 0 }} days)</strong>
           </div>
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Workshop Title *</label>
-            <input type="text" formControlName="title" placeholder="e.g. Field Emergency Response & Tactical Leadership"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          <div class="flex items-center justify-between">
+            <span>Seating Cap:</span>
+            <strong class="text-tenant-600 dark:text-tenant-400 font-mono font-bold">{{ trainingForm.get('maxCapacity')?.value || 0 }} seats</strong>
           </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Comprehensive Description *</label>
-          <textarea formControlName="description" rows="3" placeholder="Provide complete learning outcomes, workshop methodology, and hands-on session breakdowns..."
-                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl"></textarea>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Curriculum Category</label>
-            <input type="text" formControlName="category" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          <div class="flex items-center justify-between">
+            <span>Assessment:</span>
+            <span class="font-bold text-text-primary capitalize truncate max-w-[120px]">
+              {{ (trainingForm.get('assessmentMode')?.value || 'none').replace('_', ' ') }}
+            </span>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Delivery Format *</label>
-            <select formControlName="deliveryMode" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-              <option value="in_person">100% In-Person Physical Workshop</option>
-              <option value="hybrid">Hybrid (Physical with Virtual Broadcast)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Target Audience</label>
-            <input type="text" formControlName="targetAudience" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Total Duration (Hours) *</label>
-            <input type="number" formControlName="durationHours" min="1" max="200"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Duration (Days) *</label>
-            <input type="number" formControlName="durationDays" min="1" max="30"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-        </div>
-
-        <div class="flex justify-end pt-4">
-          <button type="button" (click)="currentStep.set(2)"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Venue & Room</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
         </div>
       </div>
-    }
+    </div>
 
-    <!-- STEP 2: VENUE & ROOM SELECTION -->
-    @if (currentStep() === 2) {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">location_city</mat-icon>
-          Step 2: Physical Venue & Room Configuration
-        </h3>
+    <!-- Right Column: Form Steps Container -->
+    <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+      <form [formGroup]="trainingForm" (ngSubmit)="saveTraining()" class="space-y-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Select Physical Venue *</label>
-            <select [value]="selectedVenueId()"
-                    (change)="onVenueChange($any($event.target).value)"
-                    formControlName="venueId"
-                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-              @for (v of venues(); track v.venueId) {
-                <option [value]="v.venueId">{{ v.name }} ({{ v.address.city }})</option>
-              }
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Select Room *</label>
-            <select [value]="selectedRoomId()"
-                    (change)="onRoomChange($any($event.target).value)"
-                    formControlName="roomId"
-                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-              @for (r of availableRooms(); track r.roomId) {
-                <option [value]="r.roomId">{{ r.name }} (Cap: {{ r.capacity }} seats)</option>
-              }
-            </select>
-          </div>
-        </div>
-
-        @if (selectedRoom(); as r) {
-          <div class="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5">
-                <mat-icon class="text-sm">verified</mat-icon>
-                Selected Room: {{ r.name }}
-              </span>
-              <span class="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                Max Capacity: {{ r.capacity }} Seats
-              </span>
+        <!-- STEP 1: BASICS & SCOPE -->
+        @if (currentStep() === 1) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">info</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 1: Workshop Information & Scope</h3>
+                  <p class="text-xs text-text-secondary">Official curriculum code, descriptive metadata, and session durations</p>
+                </div>
+              </div>
             </div>
-            <div class="text-2xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2">
-              <span>Seating Layouts: {{ r.seatingLayouts.join(', ') }}</span>
-              <span>•</span>
-              <span>Floor: {{ r.floorLevel || 'Standard' }}</span>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Training Code *</label>
+                <input type="text" formControlName="code"
+                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-text-primary mb-1">Workshop Title *</label>
+                <input type="text" formControlName="title" placeholder="e.g. Field Emergency Response & Tactical Leadership"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Comprehensive Description *</label>
+              <textarea formControlName="description" rows="3" placeholder="Provide complete learning outcomes, workshop methodology, and hands-on session breakdowns..."
+                        class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Curriculum Category *</label>
+                <input type="text" formControlName="category"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Delivery Duration (Hours) *</label>
+                <input type="number" formControlName="durationHours" min="1" max="200"
+                       class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Estimated Days</label>
+                <input type="number" formControlName="durationDays" min="1" max="30"
+                       class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Target Participant Profile</label>
+              <input type="text" formControlName="targetAudience" placeholder="e.g. Field Officers, Project Managers, Logistics Coordinators"
+                     class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+            </div>
+
+            <div class="flex items-center justify-end pt-4 border-t border-base-300 gap-3">
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Venue</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
             </div>
           </div>
         }
 
-        <div class="flex items-center justify-between pt-4">
-          <button type="button" (click)="currentStep.set(1)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back
-          </button>
-          <button type="button" (click)="currentStep.set(3)"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Trainer Assignment</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- STEP 3: TRAINERS & CO-FACILITATORS -->
-    @if (currentStep() === 3) {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">record_voice_over</mat-icon>
-          Step 3: Primary Instructor & Facilitator Pool
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Primary Trainer Name *</label>
-            <input type="text" formControlName="primaryTrainerName" placeholder="e.g. Dr. Tanvir Ahmed"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Trainer Official Email</label>
-            <input type="email" formControlName="primaryTrainerEmail" placeholder="e.g. tanvir.ahmed@learningcenter.brac.net"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-        </div>
-
-        <div class="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Co-Trainers / Support Facilitators</h4>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Co-Trainer 1</label>
-              <input type="text" formControlName="coTrainerName1" placeholder="e.g. Fatima Rahman (Field Specialist)"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Co-Trainer 2 (Optional)</label>
-              <input type="text" formControlName="coTrainerName2" placeholder="e.g. Kazi Tariqul Islam"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-            </div>
-          </div>
-        </div>
-
-        <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/60 dark:border-purple-800/60 text-xs text-purple-900 dark:text-purple-200">
-          <span class="font-bold">BRD Override Notice:</span> When this offline training is embedded into a specific course cohort or learning plan, course administrators will have the flexibility to override this trainer for their specific delivery.
-        </div>
-
-        <div class="flex items-center justify-between pt-4">
-          <button type="button" (click)="currentStep.set(2)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back
-          </button>
-          <button type="button" (click)="currentStep.set(4)"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Content & Assessments</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- STEP 4: REUSABLE CONTENT & MULTI-MODE ASSESSMENT -->
-    @if (currentStep() === 4) {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">fact_check</mat-icon>
-          Step 4: Reusable Handouts & Assessment Mode
-        </h3>
-
-        <!-- Content Handouts Section -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Reusable Training Materials ({{ attachments().length }})</h4>
-            <button type="button" (click)="addAttachment()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
-              <mat-icon class="text-xs">add</mat-icon> Attach Handout
-            </button>
-          </div>
-
-          <div class="space-y-2">
-            @for (att of attachments(); track att.attachmentId; let idx = $index) {
-              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 text-xs">
-                <div class="flex items-center gap-2">
-                  <mat-icon class="text-base text-rose-500">picture_as_pdf</mat-icon>
-                  <span class="font-medium text-slate-800 dark:text-slate-200">{{ att.title }}</span>
-                  @if (att.isRequiredPreRead) {
-                    <span class="px-2 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pre-Read Required</span>
-                  }
+        <!-- STEP 2: VENUE & ROOM ALLOCATION -->
+        @if (currentStep() === 2) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">location_city</span>
                 </div>
-                <button type="button" (click)="removeAttachment(idx)" class="text-rose-500 hover:text-rose-700">
-                  <mat-icon class="text-sm">delete</mat-icon>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 2: Physical Venue & Room Allocation</h3>
+                  <p class="text-xs text-text-secondary">Bind classroom workshop to verified facility and enforce capacity rules</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Designated Training Center *</label>
+                <select formControlName="venueId" (change)="onVenueChange($any($event.target).value)"
+                        class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary">
+                  @for (v of venues(); track v.venueId) {
+                    <option [value]="v.venueId">{{ v.name }} ({{ v.address.city }})</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Classroom / Hall *</label>
+                <select formControlName="roomId" (change)="onRoomChange($any($event.target).value)"
+                        class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary">
+                  @for (r of availableRooms(); track r.roomId) {
+                    <option [value]="r.roomId">{{ r.name }} — {{ r.capacity }} Max Seats</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Configured Enrollment Capacity *</label>
+              <input type="number" formControlName="maxCapacity" min="1" max="1000"
+                     class="w-full max-w-xs px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              <p class="text-[11px] text-text-secondary mt-1">Classroom enrollments exceeding this capacity will trigger over-capacity alerts.</p>
+            </div>
+
+            @if (selectedRoom(); as r) {
+              <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-text-primary">Room Specs & Installed Equipment:</span>
+                  <span class="text-tenant-600 dark:text-tenant-400 font-mono font-bold">{{ r.capacity }} physical seats</span>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs text-text-secondary pt-1">
+                  @if (r.equipment.projector) { <span class="px-2.5 py-0.5 rounded-lg bg-base-100 border border-base-300 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-tenant-600">videocam</span> Projector</span> }
+                  @if (r.equipment.soundSystem) { <span class="px-2.5 py-0.5 rounded-lg bg-base-100 border border-base-300 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-tenant-600">speaker</span> Sound</span> }
+                  @if (r.equipment.microphone) { <span class="px-2.5 py-0.5 rounded-lg bg-base-100 border border-base-300 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-tenant-600">mic</span> Mic</span> }
+                  @if (r.equipment.displayScreen) { <span class="px-2.5 py-0.5 rounded-lg bg-base-100 border border-base-300 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-tenant-600">tv</span> Screen</span> }
+                </div>
+              </div>
+            }
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Trainers</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 3: FACULTY & TRAINERS -->
+        @if (currentStep() === 3) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">school</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 3: Primary Instructor & Co-Facilitators</h3>
+                  <p class="text-xs text-text-secondary">Default trainer profile (can be overridden when embedding into specific courses)</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Primary Trainer ID *</label>
+                <input type="text" formControlName="primaryTrainerId"
+                       class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Instructor Full Name *</label>
+                <input type="text" formControlName="primaryTrainerName"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Instructor Email</label>
+                <input type="email" formControlName="primaryTrainerEmail"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Co-Facilitator 1</label>
+                <input type="text" formControlName="coTrainerName1" placeholder="e.g. Fatima Rahman"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Co-Facilitator 2</label>
+                <input type="text" formControlName="coTrainerName2" placeholder="e.g. Tariqul Islam"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+            </div>
+
+            <!-- Reusable Attachments Section -->
+            <div class="border-t border-base-300 pt-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-text-primary uppercase tracking-wider">Reusable Training Materials</h4>
+                  <p class="text-[11px] text-text-secondary">Slides, manuals, and handouts bundled with this module</p>
+                </div>
+                <button type="button" (click)="addAttachment()"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-sm">add</span>
+                  <span>Add Material</span>
                 </button>
               </div>
-            }
+
+              <div class="space-y-2">
+                @for (att of attachments(); track att.attachmentId; let idx = $index) {
+                  <div class="p-3 rounded-xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 truncate">
+                      <span class="material-symbols-outlined text-tenant-600">description</span>
+                      <span class="text-xs font-semibold text-text-primary truncate">{{ att.title }}</span>
+                      <span class="text-[10px] font-mono uppercase bg-base-300/60 px-1.5 py-0.5 rounded text-text-secondary">{{ att.fileType }}</span>
+                    </div>
+                    <button type="button" (click)="removeAttachment(idx)" class="text-error hover:opacity-80 p-1 cursor-pointer">
+                      <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Assessment</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
           </div>
-        </div>
+        }
 
-        <!-- Multi-Mode Assessment Selection (BRD Spec 2) -->
-        <div class="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-4">
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Assessment & Evaluation Mode</h4>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
-              <div>
-                <input type="radio" formControlName="assessmentMode" value="manual_marks" class="text-emerald-600" />
-                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode C: Manual Marks</span>
-                <p class="text-2xs text-slate-500 mt-1">Instructor scores viva, participation & classroom performance</p>
-              </div>
-            </label>
-
-            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
-              <div>
-                <input type="radio" formControlName="assessmentMode" value="reference_assessment" class="text-emerald-600" />
-                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode A: Reference Assessment</span>
-                <p class="text-2xs text-slate-500 mt-1">Link an existing digital assessment / exam module</p>
-              </div>
-            </label>
-
-            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
-              <div>
-                <input type="radio" formControlName="assessmentMode" value="inline_assessment" class="text-emerald-600" />
-                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode B: Inline Quiz</span>
-                <p class="text-2xs text-slate-500 mt-1">Custom inline practical evaluation questionnaire</p>
-              </div>
-            </label>
-          </div>
-
-          <!-- Manual Marks Configuration Fields -->
-          @if (trainingForm.get('assessmentMode')?.value === 'manual_marks') {
-            <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 space-y-3">
-              <h5 class="text-xs font-bold text-purple-900 dark:text-purple-200">Mode C: Instructor Evaluation Criteria</h5>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Max Total Marks *</label>
-                  <input type="number" formControlName="manualMaxMarks" min="1" max="1000"
-                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+        <!-- STEP 4: ASSESSMENT ARCHITECTURE -->
+        @if (currentStep() === 4) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">fact_check</span>
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Pass Mark Threshold *</label>
-                  <input type="number" formControlName="manualPassMarks" min="1" max="1000"
-                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+                  <h3 class="text-base font-bold text-text-primary">Step 4: Multi-Mode Assessment Architecture</h3>
+                  <p class="text-xs text-text-secondary">Configure Mode A (Referenced), Mode B (Inline Exam), Mode C (Manual Viva Rubric), or No Grading</p>
                 </div>
               </div>
             </div>
-          }
-        </div>
 
-        <div class="flex items-center justify-between pt-4">
-          <button type="button" (click)="currentStep.set(3)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back
-          </button>
-          <button type="button" (click)="currentStep.set(5)"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Attendance & Certs</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
+            <!-- Mode Selector Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label [class]="trainingForm.get('assessmentMode')?.value === 'manual_marks' 
+                             ? 'p-4 rounded-2xl border-2 border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 shadow-xs cursor-pointer flex flex-col justify-between' 
+                             : 'p-4 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 cursor-pointer flex flex-col justify-between'">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl">rate_review</span>
+                    <span class="font-bold text-sm text-text-primary">Mode C: Manual Marks</span>
+                  </div>
+                  <input type="radio" formControlName="assessmentMode" value="manual_marks" class="accent-tenant-500" />
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Instructor evaluates students with classroom participation, viva scores, and practical simulation rubrics.
+                </p>
+              </label>
 
-    <!-- STEP 5: ATTENDANCE & CERTIFICATION -->
-    @if (currentStep() === 5) {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">verified</mat-icon>
-          Step 5: Attendance Rules & Certificate Output
-        </h3>
+              <label [class]="trainingForm.get('assessmentMode')?.value === 'reference_assessment' 
+                             ? 'p-4 rounded-2xl border-2 border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 shadow-xs cursor-pointer flex flex-col justify-between' 
+                             : 'p-4 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 cursor-pointer flex flex-col justify-between'">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl">link</span>
+                    <span class="font-bold text-sm text-text-primary">Mode A: Referenced Quiz</span>
+                  </div>
+                  <input type="radio" formControlName="assessmentMode" value="reference_assessment" class="accent-tenant-500" />
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Links to an existing online assessment module in the portal. Trainees complete the digital exam upon workshop conclusion.
+                </p>
+              </label>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Minimum Attendance Required (%) *</label>
-            <input type="number" formControlName="minAttendancePercentage" min="0" max="100"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-            <p class="text-2xs text-slate-400 mt-1">Trainees below this threshold fail course completion automatically</p>
-          </div>
+              <label [class]="trainingForm.get('assessmentMode')?.value === 'inline_assessment' 
+                             ? 'p-4 rounded-2xl border-2 border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 shadow-xs cursor-pointer flex flex-col justify-between' 
+                             : 'p-4 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 cursor-pointer flex flex-col justify-between'">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl">quiz</span>
+                    <span class="font-bold text-sm text-text-primary">Mode B: Inline Assessment</span>
+                  </div>
+                  <input type="radio" formControlName="assessmentMode" value="inline_assessment" class="accent-tenant-500" />
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Embedded test created directly within this training module with instant computerized grading.
+                </p>
+              </label>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Attendance Tracking Mode *</label>
-            <select formControlName="attendanceMode" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-              <option value="multi_session_daily">Multi-Session Daily Tracking (Morning + Afternoon)</option>
-              <option value="single_session">Single Workshop Attendance (1-Time Check-in)</option>
-            </select>
-          </div>
-        </div>
+              <label [class]="trainingForm.get('assessmentMode')?.value === 'none' 
+                             ? 'p-4 rounded-2xl border-2 border-tenant-500 bg-tenant-50/20 dark:bg-tenant-950/20 shadow-xs cursor-pointer flex flex-col justify-between' 
+                             : 'p-4 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 cursor-pointer flex flex-col justify-between'">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl">remove_circle_outline</span>
+                    <span class="font-bold text-sm text-text-primary">No Assessment</span>
+                  </div>
+                  <input type="radio" formControlName="assessmentMode" value="none" class="accent-tenant-500" />
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Attendance-only certification. Passing is solely determined by meeting minimum physical presence criteria.
+                </p>
+              </label>
+            </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Linked Certificate Template</label>
-          <select formControlName="linkedCertificateTemplateId" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-            <option value="">No Direct Certificate (Inherited from Host Course)</option>
-            @for (t of certTemplates(); track t.templateId) {
-              <option [value]="t.templateId">{{ t.title }} ({{ t.code }})</option>
+            <!-- Conditional Details Sub-form -->
+            @if (trainingForm.get('assessmentMode')?.value === 'manual_marks') {
+              <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-4">
+                <h4 class="text-xs font-bold text-text-primary uppercase tracking-wider">Mode C: Rubric & Passing Scores</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div class="md:col-span-1">
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Max Total Score *</label>
+                    <input type="number" formControlName="manualMaxMarks"
+                           class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Required Pass Marks *</label>
+                    <input type="number" formControlName="manualPassMarks"
+                           class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Rubric Title</label>
+                    <input type="text" formControlName="manualRubricTitle"
+                           class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                </div>
+              </div>
             }
-          </select>
-        </div>
 
-        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-          <div>
-            <span class="font-bold text-xs text-slate-900 dark:text-white block">Directly Publish on Save?</span>
-            <p class="text-2xs text-slate-500">Uncheck to save as Draft in the workshop library</p>
+            @if (trainingForm.get('assessmentMode')?.value === 'reference_assessment') {
+              <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-4">
+                <h4 class="text-xs font-bold text-text-primary uppercase tracking-wider">Mode A: External Assessment Reference</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Assessment ID</label>
+                    <input type="text" formControlName="refAssessmentId"
+                           class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Assessment Title</label>
+                    <input type="text" formControlName="refAssessmentTitle"
+                           class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Compliance</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
           </div>
-          <input type="checkbox" formControlName="publishDirectly" class="rounded text-emerald-600 h-5 w-5" />
-        </div>
+        }
 
-        <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
-          <button type="button" (click)="currentStep.set(4)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back
-          </button>
-          <button type="submit" [disabled]="trainingForm.invalid"
-                  class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md flex items-center gap-2">
-            <mat-icon class="text-base">check_circle</mat-icon>
-            <span>{{ isEditMode() ? 'Save Changes' : 'Confirm & Save Offline Workshop' }}</span>
-          </button>
-        </div>
-      </div>
-    }
+        <!-- STEP 5: ATTENDANCE & CERTIFICATION -->
+        @if (currentStep() === 5) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">verified</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 5: Attendance Rules & Certification</h3>
+                  <p class="text-xs text-text-secondary">Specify attendance thresholds and automated certificate issuance</p>
+                </div>
+              </div>
+            </div>
 
-  </form>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Minimum Attendance Threshold (%) *</label>
+                <input type="number" formControlName="minAttendancePercentage" min="0" max="100"
+                       class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                <p class="text-[11px] text-text-secondary mt-1">Participants with lower attendance cannot pass or receive certification.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Attendance Tracking Mode *</label>
+                <select formControlName="attendanceMode"
+                        class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary">
+                  <option value="multi_session_daily">Multi-Session Daily (Morning & Afternoon Sign-in)</option>
+                  <option value="once_daily">Once Daily Sign-in</option>
+                  <option value="single_event">Single Event Checklist</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">Linked Certificate Template</label>
+              <select formControlName="linkedCertificateTemplateId"
+                      class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary">
+                <option value="">-- None (No Certificate Issued) --</option>
+                @for (tmpl of certTemplates(); track tmpl.id) {
+                  <option [value]="tmpl.id">{{ tmpl.name }} (Template)</option>
+                }
+              </select>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" formControlName="publishDirectly" class="accent-tenant-500 rounded w-4 h-4 cursor-pointer" />
+                <div>
+                  <span class="text-xs font-bold text-text-primary">Publish Directly to Catalog</span>
+                  <p class="text-[11px] text-text-secondary">If unchecked, this module will be stored as a Draft design.</p>
+                </div>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+
+              <button type="submit" [disabled]="trainingForm.invalid"
+                      class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                <span>{{ isEditMode() ? 'Save Changes' : 'Publish & Finalize Training' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+
+      </form>
+    </div>
+
+  </div>
 
 </div>

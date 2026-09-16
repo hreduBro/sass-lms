@@ -1,10 +1,11 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineAssessmentMode, OfflineAttendanceConfig, OfflineContentAttachment, ManualMarkCriteria } from '../../../models/offline-training.model';
 import { Venue, Room } from '../../../models/venue.model';
+import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
 
 @Component({
   selector: 'app-offline-training-create',
@@ -13,9 +14,9 @@ import { Venue, Room } from '../../../models/venue.model';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    StepperComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './offline-training-create.component.html'
 })
 export class OfflineTrainingCreateComponent implements OnInit {
@@ -29,7 +30,38 @@ export class OfflineTrainingCreateComponent implements OnInit {
   trainingId = signal<string | null>(null);
 
   // 5 Steps Wizard
+  steps: StepperStep[] = [
+    { id: 1, shortTitle: '1. Basics', title: 'Basic Details & Scope', icon: 'info' },
+    { id: 2, shortTitle: '2. Venue', title: 'Venue & Room Allocation', icon: 'location_city' },
+    { id: 3, shortTitle: '3. Trainers', title: 'Faculty & Trainers', icon: 'school' },
+    { id: 4, shortTitle: '4. Evaluation', title: 'Assessment Architecture', icon: 'fact_check' },
+    { id: 5, shortTitle: '5. Compliance', title: 'Attendance & Certs', icon: 'verified' }
+  ];
   currentStep = signal<number>(1);
+  completedSteps = signal<number[]>([]);
+
+  goToStep(stepId: number): void {
+    if (stepId >= 1 && stepId <= 5) {
+      this.currentStep.set(stepId);
+    }
+  }
+
+  nextStep(): void {
+    const cur = this.currentStep();
+    if (!this.completedSteps().includes(cur)) {
+      this.completedSteps.update(c => [...c, cur]);
+    }
+    if (cur < 5) {
+      this.currentStep.set(cur + 1);
+    }
+  }
+
+  prevStep(): void {
+    const cur = this.currentStep();
+    if (cur > 1) {
+      this.currentStep.set(cur - 1);
+    }
+  }
 
   // Available Venues and Rooms
   venues = computed(() => this.lmsData.venues().filter(v => v.status === 'active'));

@@ -1,9 +1,10 @@
-import { Component, signal, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Venue, Room, SeatingLayout, calculateVenueTotalCapacity } from '../../../models/venue.model';
+import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
 
 @Component({
   selector: 'app-venue-create',
@@ -12,9 +13,9 @@ import { Venue, Room, SeatingLayout, calculateVenueTotalCapacity } from '../../.
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    StepperComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './venue-create.component.html'
 })
 export class VenueCreateComponent implements OnInit {
@@ -26,7 +27,38 @@ export class VenueCreateComponent implements OnInit {
   venueForm!: FormGroup;
   isEditMode = signal<boolean>(false);
   venueId = signal<string | null>(null);
-  activeTab = signal<'basic' | 'rooms' | 'facilities' | 'contact' | 'review'>('basic');
+
+  steps: StepperStep[] = [
+    { id: 1, shortTitle: '1. Basic Info', title: 'Basic Info & Location', icon: 'pin_drop' },
+    { id: 2, shortTitle: '2. Rooms', title: 'Rooms & Seating Layout', icon: 'meeting_room' },
+    { id: 3, shortTitle: '3. Amenities', title: 'Amenities & Facilities', icon: 'tune' },
+    { id: 4, shortTitle: '4. Manager', title: 'Facility Manager', icon: 'badge' }
+  ];
+  currentStep = signal<number>(1);
+  completedSteps = signal<number[]>([]);
+
+  goToStep(stepId: number): void {
+    if (stepId >= 1 && stepId <= 4) {
+      this.currentStep.set(stepId);
+    }
+  }
+
+  nextStep(): void {
+    const cur = this.currentStep();
+    if (!this.completedSteps().includes(cur)) {
+      this.completedSteps.update(c => [...c, cur]);
+    }
+    if (cur < 4) {
+      this.currentStep.set(cur + 1);
+    }
+  }
+
+  prevStep(): void {
+    const cur = this.currentStep();
+    if (cur > 1) {
+      this.currentStep.set(cur - 1);
+    }
+  }
 
   facilitiesOtherInput = signal<string>('');
 

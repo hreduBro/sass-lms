@@ -1,9 +1,10 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineTrainingEmbedding, OfflineTraineeResult } from '../../../models/offline-training.model';
+import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-offline-training-view',
@@ -12,9 +13,9 @@ import { OfflineTraining, OfflineTrainingEmbedding, OfflineTraineeResult } from 
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    ModalOverlayComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './offline-training-view.component.html'
 })
 export class OfflineTrainingViewComponent implements OnInit {

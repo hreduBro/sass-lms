@@ -1,109 +1,155 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16">
 
-  <!-- TOP HEADER -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-        <a routerLink="/venues" class="hover:text-emerald-600 transition-colors">Venues</a>
-        <span>/</span>
-        <span class="text-slate-900 dark:text-white">Telemetry & Analytics Dashboard</span>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Delivery Infrastructure &bull; Capacity Telemetry
+        </span>
+        <span class="text-xs text-text-secondary">
+          Active Org: <strong class="font-bold text-text-primary">{{ activeTenant().name }}</strong>
+        </span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-emerald-600 dark:text-emerald-400">space_dashboard</mat-icon>
-        Physical Venue Telemetry & Seating Analytics
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">space_dashboard</span>
+        <span>Physical Venue Telemetry & Seating Analytics</span>
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         Regional distribution, seating density, room capacity distribution, and facility amenities coverage.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a routerLink="/venues" 
-         class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-xs transition-colors flex items-center gap-2">
-        <mat-icon class="text-base text-slate-500">domain</mat-icon>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">domain</span>
         <span>Venue Directory</span>
       </a>
+
       <a routerLink="/venues/create" 
-         class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all flex items-center gap-2">
-        <mat-icon class="text-base">add_location_alt</mat-icon>
+         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-lg">add_location_alt</span>
         <span>Add Venue</span>
       </a>
     </div>
   </div>
 
-  <!-- KPI SUMMARY STATS -->
+  <!-- ========================================================================= -->
+  <!-- 2. KPI SUMMARY STATS CARDS                                                -->
+  <!-- ========================================================================= -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Venues</span>
-      <div class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{{ totalVenues() }}</div>
-      <span class="text-2xs text-emerald-600 font-semibold">{{ activeVenues() }} actively bookable</span>
+    <!-- Total Venues -->
+    <div class="p-5 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Venues</span>
+        <div class="text-2xl sm:text-3xl font-extrabold text-text-primary mt-1">{{ totalVenues() }}</div>
+        <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">{{ activeVenues() }} actively bookable</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800 flex items-center justify-center text-tenant-600 dark:text-tenant-400">
+        <span class="material-symbols-outlined">domain</span>
+      </div>
     </div>
 
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Rooms</span>
-      <div class="text-3xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">{{ totalRooms() }}</div>
-      <span class="text-2xs text-slate-400">Classrooms & auditoriums</span>
+    <!-- Total Rooms -->
+    <div class="p-5 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Rooms</span>
+        <div class="text-2xl sm:text-3xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">{{ totalRooms() }}</div>
+        <span class="text-xs text-text-secondary">Classrooms & auditoriums</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">meeting_room</span>
+      </div>
     </div>
 
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Gross Capacity</span>
-      <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">{{ totalCapacity() }}</div>
-      <span class="text-2xs text-slate-400">concurrent trainee desks</span>
+    <!-- Gross Capacity -->
+    <div class="p-5 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Gross Capacity</span>
+        <div class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">{{ totalCapacity() }}</div>
+        <span class="text-xs text-text-secondary">concurrent trainee desks</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
     </div>
 
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Geographic Zones</span>
-      <div class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ cityBreakdown().length }}</div>
-      <span class="text-2xs text-slate-400">Metropolitan divisions</span>
+    <!-- Geographic Zones -->
+    <div class="p-5 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Geographic Zones</span>
+        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ cityBreakdown().length }}</div>
+        <span class="text-xs text-text-secondary">Metropolitan divisions</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">map</span>
+      </div>
     </div>
   </div>
 
-  <!-- REGIONAL CAPACITY BREAKDOWN & TOP VENUES -->
+  <!-- ========================================================================= -->
+  <!-- 3. REGIONAL CAPACITY BREAKDOWN & TOP VENUES                               -->
+  <!-- ========================================================================= -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     
     <!-- City Breakdown -->
-    <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-      <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-        <mat-icon class="text-emerald-500">location_city</mat-icon>
-        Regional Venue & Capacity Distribution
+    <div class="p-6 bg-base-100 rounded-2xl border border-base-300 shadow-xs space-y-4">
+      <h3 class="font-bold text-base text-text-primary flex items-center gap-2">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400">location_city</span>
+        <span>Regional Venue & Capacity Distribution</span>
       </h3>
 
       <div class="space-y-3">
         @for (item of cityBreakdown(); track item.city) {
-          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+          <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300/60 flex items-center justify-between">
             <div class="space-y-0.5">
-              <span class="font-bold text-sm text-slate-900 dark:text-white">{{ item.city }}</span>
-              <div class="text-xs text-slate-500">{{ item.count }} venue(s) registered</div>
+              <span class="font-bold text-sm text-text-primary">{{ item.city }}</span>
+              <div class="text-xs text-text-secondary">{{ item.count }} venue(s) registered</div>
             </div>
             <div class="text-right">
-              <span class="text-sm font-bold text-purple-600 dark:text-purple-400 font-mono">{{ item.capacity }}</span>
-              <span class="text-xs text-slate-400 block">seats capacity</span>
+              <span class="text-sm font-bold text-tenant-600 dark:text-tenant-400 font-mono">{{ item.capacity }}</span>
+              <span class="text-xs text-text-secondary block">seats capacity</span>
             </div>
+          </div>
+        }
+        @if (cityBreakdown().length === 0) {
+          <div class="p-6 text-center text-xs text-text-secondary">
+            No regional distribution records available.
           </div>
         }
       </div>
     </div>
 
     <!-- Top Venues by Capacity -->
-    <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
-      <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-        <mat-icon class="text-purple-500">leaderboard</mat-icon>
-        Largest Facilities by Total Seating
+    <div class="p-6 bg-base-100 rounded-2xl border border-base-300 shadow-xs space-y-4">
+      <h3 class="font-bold text-base text-text-primary flex items-center gap-2">
+        <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">leaderboard</span>
+        <span>Largest Facilities by Total Seating</span>
       </h3>
 
       <div class="space-y-3">
         @for (v of topVenuesByCapacity(); track v.venueId) {
-          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+          <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300/60 flex items-center justify-between">
             <div>
-              <a [routerLink]="['/venues/view', v.venueId]" class="font-bold text-sm text-slate-900 dark:text-white hover:text-emerald-600 transition-colors">
+              <a [routerLink]="['/venues/view', v.venueId]" class="font-bold text-sm text-text-primary hover:text-tenant-600 transition-colors">
                 {{ v.name }}
               </a>
-              <div class="text-xs text-slate-500">{{ v.address.city }} • {{ v.rooms.length }} rooms</div>
+              <div class="text-xs text-text-secondary">{{ v.address.city }} &bull; {{ v.rooms.length }} room(s)</div>
             </div>
             <div class="text-right">
-              <span class="text-sm font-bold text-slate-900 dark:text-white font-mono">{{ getCap(v) }} seats</span>
-              <span class="text-2xs text-emerald-600 block">{{ v.status }}</span>
+              <span class="text-sm font-bold text-text-primary font-mono">{{ getCap(v) }} seats</span>
+              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block capitalize">{{ v.status }}</span>
             </div>
+          </div>
+        }
+        @if (topVenuesByCapacity().length === 0) {
+          <div class="p-6 text-center text-xs text-text-secondary">
+            No venue facilities recorded yet.
           </div>
         }
       </div>
@@ -112,3 +158,4 @@
   </div>
 
 </div>
+

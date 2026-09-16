@@ -1,15 +1,16 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineTraineeResult } from '../../../models/offline-training.model';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-offline-training-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent, ModalOverlayComponent],
   templateUrl: './offline-training-results.component.html'
 })
 export class OfflineTrainingResultsComponent implements OnInit {
@@ -29,6 +30,34 @@ export class OfflineTrainingResultsComponent implements OnInit {
     return this.lmsData.offlineTrainingEmbeddings().filter(e => e.offlineTrainingId === id);
   });
   selectedEmbeddingId = signal<string>('all');
+  searchQuery = signal<string>('');
+  statusFilter = signal<string>('all');
+
+  // Select Options
+  trainingOptions = computed<SelectOption[]>(() => {
+    return this.trainings().map(t => ({
+      label: `${t.title} (${t.code})`,
+      value: t.trainingId || t.id,
+      sublabel: `${t.category || 'Workshop'} • ${t.durationHours || 0} hrs`
+    }));
+  });
+
+  cohortOptions = computed<SelectOption[]>(() => {
+    return [
+      { label: 'All Cohorts & Embeddings', value: 'all' },
+      ...this.cohorts().map(c => ({
+        label: `${c.hostEntityTitle || c.hostTitle} (${c.hostType.toUpperCase()})`,
+        value: c.embeddingId,
+        sublabel: `Trainer: ${c.effectiveTrainerName || 'Lead Trainer'}`
+      }))
+    ];
+  });
+
+  statusFilterOptions: SelectOption[] = [
+    { label: 'All Statuses', value: 'all' },
+    { label: 'Passed Only', value: 'passed' },
+    { label: 'Failed Only', value: 'failed' }
+  ];
 
   // Trainee results
   results = computed<OfflineTraineeResult[]>(() => {
@@ -38,12 +67,27 @@ export class OfflineTrainingResultsComponent implements OnInit {
     if (this.selectedEmbeddingId() !== 'all') {
       list = list.filter(r => r.embeddingId === this.selectedEmbeddingId());
     }
+    const q = this.searchQuery().toLowerCase().trim();
+    if (q) {
+      list = list.filter(r =>
+        r.traineeName.toLowerCase().includes(q) ||
+        r.traineeEmail.toLowerCase().includes(q)
+      );
+    }
+    const status = this.statusFilter();
+    if (status !== 'all') {
+      list = list.filter(r => r.passStatus === status);
+    }
     return list;
   });
 
   // Local editable rows
   editableMarks = signal<Record<string, { marks: number; attendance: number; remarks: string }>>({});
   saveSuccessAlert = signal<string | null>(null);
+
+  // Modal State
+  selectedTraineeForModal = signal<OfflineTraineeResult | null>(null);
+  showDetailModal = signal(false);
 
   ngOnInit(): void {
     if (this.trainings().length > 0) {
@@ -55,6 +99,11 @@ export class OfflineTrainingResultsComponent implements OnInit {
   onTrainingChange(id: string): void {
     this.selectedTrainingId.set(id);
     this.selectedEmbeddingId.set('all');
+    this.syncEditableState();
+  }
+
+  onCohortChange(id: string): void {
+    this.selectedEmbeddingId.set(id);
     this.syncEditableState();
   }
 
@@ -75,7 +124,7 @@ export class OfflineTrainingResultsComponent implements OnInit {
       ...curr,
       [resultId]: {
         ...curr[resultId],
-        marks: val
+        marks: isNaN(val) ? 0 : Math.min(100, Math.max(0, val))
       }
     }));
   }
@@ -85,7 +134,7 @@ export class OfflineTrainingResultsComponent implements OnInit {
       ...curr,
       [resultId]: {
         ...curr[resultId],
-        attendance: val
+        attendance: isNaN(val) ? 0 : Math.min(100, Math.max(0, val))
       }
     }));
   }
@@ -120,8 +169,18 @@ export class OfflineTrainingResultsComponent implements OnInit {
       }
     });
 
-    this.saveSuccessAlert.set(`All ${this.results().length} trainee records updated successfully.`);
+    this.saveSuccessAlert.set(`All ${this.results().length} trainee grade records saved successfully.`);
     setTimeout(() => this.saveSuccessAlert.set(null), 3500);
+  }
+
+  openTraineeModal(r: OfflineTraineeResult): void {
+    this.selectedTraineeForModal.set(r);
+    this.showDetailModal.set(true);
+  }
+
+  closeTraineeModal(): void {
+    this.showDetailModal.set(false);
+    this.selectedTraineeForModal.set(null);
   }
 
   // Summary Metrics
@@ -133,4 +192,13 @@ export class OfflineTrainingResultsComponent implements OnInit {
   });
 
   passCount = computed(() => this.results().filter(r => r.passStatus === 'passed').length);
+
+  failCount = computed(() => this.results().filter(r => r.passStatus === 'failed').length);
+
+  passRate = computed(() => {
+    const list = this.results();
+    if (list.length === 0) return 0;
+    return Math.round((this.passCount() / list.length) * 100);
+  });
 }
+

@@ -1,178 +1,192 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16 max-w-7xl mx-auto">
 
-  <!-- TOP HEADER & CONTROLS -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-        <span>Curriculum & Delivery</span>
-        <span>•</span>
-        <span class="text-emerald-600 dark:text-emerald-400 font-bold">BRD §4.11 Physical Workshops</span>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="text-xs font-semibold text-text-secondary">Curriculum & Delivery</span>
+        <span class="text-text-secondary text-xs">•</span>
+        <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40">
+          Physical Workshops
+        </span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-emerald-600 dark:text-emerald-400">groups_3</mat-icon>
-        Offline Training Management
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">groups_3</span>
+        <span>Offline Training Management</span>
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         Classroom workshops, physical venue capacity, reusable materials, multi-mode assessments & trainer overrides.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a routerLink="/offline-trainings/results" 
-         class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-xs transition-colors flex items-center gap-2">
-        <mat-icon class="text-base text-purple-500">fact_check</mat-icon>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base text-tenant-600">fact_check</span>
         <span>Trainee Gradebook</span>
       </a>
 
       <a routerLink="/offline-trainings/dashboard" 
-         class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-xs transition-colors flex items-center gap-2">
-        <mat-icon class="text-base text-emerald-500">space_dashboard</mat-icon>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base text-tenant-600">space_dashboard</span>
         <span>Telemetry</span>
       </a>
 
       @if (permissions().canCreateOfflineTraining) {
         <button (click)="navigateToCreate()"
-                class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-sm transition-all flex items-center gap-2">
-          <mat-icon class="text-base">add_circle</mat-icon>
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
           <span>Create Offline Training</span>
         </button>
       }
     </div>
   </div>
 
-  <!-- KPI SUMMARY STATS -->
+  <!-- ========================================================================= -->
+  <!-- 2. KPI SUMMARY STATS CARDS                                                -->
+  <!-- ========================================================================= -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Total Workshops</span>
-        <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ totalCount() }}</div>
+        <span class="text-xs font-medium text-text-secondary">Total Workshops</span>
+        <div class="text-2xl font-bold text-text-primary mt-1">{{ totalCount() }}</div>
+        <span class="text-[11px] text-text-secondary">catalog modules</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
-        <mat-icon>groups</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+        <span class="material-symbols-outlined">groups</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Published Modules</span>
+        <span class="text-xs font-medium text-text-secondary">Published Modules</span>
         <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ publishedCount() }}</div>
+        <span class="text-[11px] text-emerald-600 font-semibold">ready for delivery</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
-        <mat-icon>verified</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center border border-emerald-200 dark:border-emerald-800/40">
+        <span class="material-symbols-outlined">verified</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Draft Designs</span>
+        <span class="text-xs font-medium text-text-secondary">Draft Designs</span>
         <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ draftCount() }}</div>
+        <span class="text-[11px] text-amber-600 font-semibold">in curation</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
-        <mat-icon>edit_note</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center border border-amber-200 dark:border-amber-800/40">
+        <span class="material-symbols-outlined">edit_note</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Active Embeddings</span>
-        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ embeddedCount() }}</div>
+        <span class="text-xs font-medium text-text-secondary">Active Embeddings</span>
+        <div class="text-2xl font-bold text-tenant-600 dark:text-tenant-400 mt-1">{{ embeddedCount() }}</div>
+        <span class="text-[11px] text-text-secondary">course & plan linkages</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center">
-        <mat-icon>hub</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+        <span class="material-symbols-outlined">hub</span>
       </div>
     </div>
   </div>
 
-  <!-- TOOLBAR: SEARCH & SELECTORS -->
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+  <!-- ========================================================================= -->
+  <!-- 3. TOOLBAR: SEARCH & CUSTOM SELECTORS                                     -->
+  <!-- ========================================================================= -->
+  <div class="p-4 bg-base-100 rounded-2xl border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
     
     <div class="relative flex-1 max-w-md">
-      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</mat-icon>
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
       <input type="text"
              [value]="searchQuery()"
              (input)="searchQuery.set($any($event.target).value)"
              placeholder="Search by title, code, venue, trainer, or tags..."
-             class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white placeholder:text-slate-400" />
+             class="w-full pl-9 pr-8 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:outline-none focus:border-tenant-500 text-text-primary placeholder:text-text-secondary" />
       @if (searchQuery()) {
-        <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-          <mat-icon class="text-sm">close</mat-icon>
+        <button (click)="searchQuery.set('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+          <span class="material-symbols-outlined text-sm">close</span>
         </button>
       }
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
       <!-- Status Filter -->
-      <div class="w-40">
+      <div class="w-36 sm:w-40">
         <app-custom-select [options]="statusOptions" 
-                           [selected]="selectedStatus()" 
-                           (selectionChange)="selectedStatus.set($event)">
+                           [ngModel]="selectedStatus()" 
+                           (ngModelChange)="selectedStatus.set($event)">
         </app-custom-select>
       </div>
 
       <!-- Venue Filter -->
-      <div class="w-44">
+      <div class="w-40 sm:w-44">
         <app-custom-select [options]="venueOptions()" 
-                           [selected]="selectedVenue()" 
-                           (selectionChange)="selectedVenue.set($event)">
+                           [ngModel]="selectedVenue()" 
+                           (ngModelChange)="selectedVenue.set($event)">
         </app-custom-select>
       </div>
 
       <!-- Assessment Mode Filter -->
-      <div class="w-48">
+      <div class="w-44 sm:w-48">
         <app-custom-select [options]="assessmentModeOptions" 
-                           [selected]="selectedAssessmentMode()" 
-                           (selectionChange)="selectedAssessmentMode.set($event)">
+                           [ngModel]="selectedAssessmentMode()" 
+                           (ngModelChange)="selectedAssessmentMode.set($event)">
         </app-custom-select>
       </div>
 
-      <!-- Sort -->
-      <div class="w-44">
+      <!-- Sort Filter -->
+      <div class="w-40 sm:w-44">
         <app-custom-select [options]="sortOptions" 
-                           [selected]="sortBy()" 
-                           (selectionChange)="sortBy.set($event)">
+                           [ngModel]="sortBy()" 
+                           (ngModelChange)="sortBy.set($event)">
         </app-custom-select>
       </div>
 
-      <!-- Grid / Table toggle -->
-      <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200 dark:border-slate-700 ml-1">
+      <!-- View Toggle -->
+      <div class="flex items-center p-1 bg-base-200 rounded-xl border border-base-300 ml-1">
         <button (click)="viewMode.set('grid')"
-                [class.bg-white]="viewMode() === 'grid'"
-                [class.dark:bg-slate-800]="viewMode() === 'grid'"
+                [class.bg-base-100]="viewMode() === 'grid'"
                 [class.shadow-xs]="viewMode() === 'grid'"
-                [class.text-emerald-600]="viewMode() === 'grid'"
-                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                [class.text-tenant-600]="viewMode() === 'grid'"
+                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                 title="Grid View">
-          <mat-icon class="text-base">grid_view</mat-icon>
+          <span class="material-symbols-outlined text-base">grid_view</span>
         </button>
         <button (click)="viewMode.set('table')"
-                [class.bg-white]="viewMode() === 'table'"
-                [class.dark:bg-slate-800]="viewMode() === 'table'"
+                [class.bg-base-100]="viewMode() === 'table'"
                 [class.shadow-xs]="viewMode() === 'table'"
-                [class.text-emerald-600]="viewMode() === 'table'"
-                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                [class.text-tenant-600]="viewMode() === 'table'"
+                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                 title="Table View">
-          <mat-icon class="text-base">view_list</mat-icon>
+          <span class="material-symbols-outlined text-base">view_list</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- EMPTY STATE -->
+  <!-- ========================================================================= -->
+  <!-- 4. EMPTY STATE                                                            -->
+  <!-- ========================================================================= -->
   @if (filteredTrainings().length === 0) {
-    <div class="p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-      <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mb-4">
-        <mat-icon class="text-3xl">school</mat-icon>
+    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-sm">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center mb-4">
+        <span class="material-symbols-outlined text-3xl">school</span>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 dark:text-white">No Offline Trainings Found</h3>
-      <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-6">
-        No offline trainings matched your search or filters. You can clear your filters or start creating a new in-person classroom module.
+      <h3 class="text-lg font-bold text-text-primary">No Offline Trainings Found</h3>
+      <p class="text-xs sm:text-sm text-text-secondary max-w-md mx-auto mt-1 mb-6">
+        No offline trainings matched your search query or filter options. You can reset filters or register a new workshop module.
       </p>
       <div class="flex items-center justify-center gap-3">
-        <button (click)="clearFilters()" class="px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
+        <button (click)="clearFilters()" class="px-4 py-2 text-xs font-semibold bg-base-200 hover:bg-base-300 text-text-primary rounded-xl border border-base-300 transition-colors cursor-pointer">
           Reset Filters
         </button>
-        @if (permissions().canCreate) {
-          <button (click)="navigateToCreate()" class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700">
+        @if (permissions().canCreateOfflineTraining) {
+          <button (click)="navigateToCreate()" class="px-4 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 active:scale-95 rounded-xl shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
             Create Offline Training
           </button>
         }
@@ -180,24 +194,26 @@
     </div>
   }
 
-  <!-- GRID VIEW -->
+  <!-- ========================================================================= -->
+  <!-- 5. GRID VIEW                                                              -->
+  <!-- ========================================================================= -->
   @if (viewMode() === 'grid' && filteredTrainings().length > 0) {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (item of filteredTrainings(); track item.trainingId) {
-        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all flex flex-col justify-between overflow-hidden group">
+        <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
           
           <div class="p-5">
             <!-- Top Status & Actions Menu -->
             <div class="flex items-start justify-between gap-3 mb-3">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
                   {{ item.code }}
                 </span>
                 <span [class]="item.status === 'published' 
-                               ? 'px-2 py-0.5 text-2xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                               ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
                                : (item.status === 'draft' 
-                                  ? 'px-2 py-0.5 text-2xs font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
-                                  : 'px-2 py-0.5 text-2xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
+                                  ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
+                                  : 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
                   {{ item.status | uppercase }}
                 </span>
               </div>
@@ -205,53 +221,53 @@
               <!-- 3-Dots Dropdown -->
               <div class="relative">
                 <button (click)="toggleActionMenu(item.trainingId, $event)" 
-                        class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                  <mat-icon class="text-lg">more_vert</mat-icon>
+                        class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
+                  <span class="material-symbols-outlined text-lg">more_vert</span>
                 </button>
 
                 @if (openActionMenuId() === item.trainingId) {
-                  <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1.5 z-30 text-xs font-medium text-slate-700 dark:text-slate-200">
-                    <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <mat-icon class="text-sm text-slate-400">visibility</mat-icon>
+                  <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
+                    <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                      <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
                       <span>View Training Details</span>
                     </button>
-                    @if (permissions().canEdit) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                        <mat-icon class="text-sm text-sky-500">edit</mat-icon>
+                    @if (permissions().canEditOfflineTraining) {
+                      <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
                         <span>Edit Module</span>
                       </button>
                     }
-                    @if (permissions().canEmbed) {
-                      <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold">
-                        <mat-icon class="text-sm">hub</mat-icon>
+                    @if (permissions().canEmbedOfflineTraining) {
+                      <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">hub</span>
                         <span>Embed to Course/Plan</span>
                       </button>
                     }
-                    <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <mat-icon class="text-sm text-emerald-500">content_copy</mat-icon>
+                    <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                      <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
                       <span>Duplicate Module</span>
                     </button>
-                    <div class="my-1 border-t border-slate-100 dark:border-slate-700"></div>
-                    @if (item.status === 'draft' && permissions().canPublish) {
-                      <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">verified</mat-icon>
+                    <div class="my-1 border-t border-base-300"></div>
+                    @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
+                      <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">verified</span>
                         <span>Publish Module</span>
                       </button>
                     }
-                    @if (item.status === 'published' && permissions().canDeactivate) {
-                      <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">power_settings_new</mat-icon>
+                    @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
+                      <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">power_settings_new</span>
                         <span>Deactivate</span>
                       </button>
-                    } @else if (item.status === 'inactive' && permissions().canDeactivate) {
-                      <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">check_circle</mat-icon>
+                    } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
+                      <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
                         <span>Reactivate</span>
                       </button>
                     }
-                    @if (permissions().canDelete) {
-                      <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">delete</mat-icon>
+                    @if (permissions().canDeleteOfflineTraining) {
+                      <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">delete</span>
                         <span>Delete</span>
                       </button>
                     }
@@ -261,67 +277,67 @@
             </div>
 
             <!-- Title & Description -->
-            <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-              <h3 class="font-bold text-base text-slate-900 dark:text-white line-clamp-1 mb-1">
+            <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-tenant-600 transition-colors">
+              <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
                 {{ item.title }}
               </h3>
             </a>
-            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+            <p class="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
               {{ item.description }}
             </p>
 
             <!-- Venue & Room Badge -->
-            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/60 mb-3 space-y-1">
-              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
-                <mat-icon class="text-sm text-emerald-500 shrink-0">location_on</mat-icon>
+            <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300 mb-3 space-y-1">
+              <div class="text-xs font-semibold text-text-primary flex items-center gap-1.5 truncate">
+                <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">location_on</span>
                 <span>{{ item.venueName || 'Unassigned Venue' }}</span>
               </div>
-              <div class="text-2xs text-slate-500 flex items-center justify-between pl-5">
-                <span>Room: <strong>{{ item.roomName || 'TBD' }}</strong></span>
-                <span class="font-mono text-purple-600 dark:text-purple-400">Cap: {{ item.maxCapacity || '--' }} seats</span>
+              <div class="text-[11px] text-text-secondary flex items-center justify-between pl-5">
+                <span>Room: <strong class="text-text-primary">{{ item.roomName || 'TBD' }}</strong></span>
+                <span class="font-mono text-tenant-600 dark:text-tenant-400">Cap: {{ item.maxCapacity || '--' }} seats</span>
               </div>
             </div>
 
             <!-- Trainer & Duration Row -->
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-1">
+            <div class="flex items-center justify-between text-xs text-text-primary pt-1">
               <div class="flex items-center gap-2 truncate">
-                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-2xs flex items-center justify-center shrink-0">
+                <div class="w-6 h-6 rounded-full bg-tenant-50 text-tenant-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
                   {{ item.primaryTrainerName ? item.primaryTrainerName[0] : 'T' }}
                 </div>
                 <span class="truncate font-medium">{{ item.primaryTrainerName || 'Trainer Pool' }}</span>
               </div>
-              <span class="text-2xs font-mono font-semibold text-slate-500 shrink-0 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md">
+              <span class="text-[11px] font-mono font-semibold text-text-secondary shrink-0 bg-base-200 border border-base-300 px-2 py-0.5 rounded-md">
                 {{ item.durationHours }} Hours
               </span>
             </div>
 
             <!-- Assessment Mode Tag -->
-            <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-2xs">
-              <span class="text-slate-400">Assessment:</span>
+            <div class="mt-3 pt-2.5 border-t border-base-300 flex items-center justify-between text-[11px]">
+              <span class="text-text-secondary">Assessment:</span>
               <span [class]="item.assessmentMode === 'manual_marks' 
                              ? 'font-semibold text-purple-600 dark:text-purple-400' 
                              : (item.assessmentMode === 'inline_assessment' 
                                 ? 'font-semibold text-sky-600 dark:text-sky-400' 
-                                : 'font-semibold text-emerald-600 dark:text-emerald-400')">
+                                : 'font-semibold text-tenant-600 dark:text-tenant-400')">
                 {{ item.assessmentMode === 'manual_marks' ? 'Mode C (Manual Marks)' : (item.assessmentMode === 'inline_assessment' ? 'Mode B (Inline Exam)' : (item.assessmentMode === 'reference_assessment' ? 'Mode A (Ref Module)' : 'None')) }}
               </span>
             </div>
           </div>
 
           <!-- Bottom Footer -->
-          <div class="px-5 py-3 bg-slate-50/70 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
-            <span class="text-2xs text-slate-400">
+          <div class="px-5 py-3 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
+            <span class="text-[11px] text-text-secondary">
               {{ item.embeddingCount || 0 }} Course Embedding(s)
             </span>
             <div class="flex items-center gap-2">
               <button (click)="openEmbedModal(item)"
-                      class="px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 rounded-lg transition-colors flex items-center gap-1">
-                <mat-icon class="text-xs">hub</mat-icon> Embed
+                      class="px-2.5 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 border border-tenant-200 dark:border-tenant-800/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-xs">hub</span> Embed
               </button>
               <button (click)="navigateToView(item.trainingId)"
-                      class="px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 rounded-lg transition-colors flex items-center gap-1">
+                      class="px-3 py-1 text-xs font-semibold text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
                 <span>View</span>
-                <mat-icon class="text-xs">arrow_forward</mat-icon>
+                <span class="material-symbols-outlined text-xs">arrow_forward</span>
               </button>
             </div>
           </div>
@@ -331,12 +347,14 @@
     </div>
   }
 
-  <!-- TABLE VIEW -->
+  <!-- ========================================================================= -->
+  <!-- 6. TABLE VIEW                                                             -->
+  <!-- ========================================================================= -->
   @if (viewMode() === 'table' && filteredTrainings().length > 0) {
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-          <thead class="bg-slate-50 dark:bg-slate-900/60 text-xs uppercase font-bold text-slate-500 border-b border-slate-200 dark:border-slate-700">
+        <table class="w-full text-left text-sm text-text-primary">
+          <thead class="bg-base-200/70 text-xs uppercase font-bold text-text-secondary border-b border-base-300">
             <tr>
               <th class="px-5 py-3.5">Training Title & Code</th>
               <th class="px-4 py-3.5">Venue & Room</th>
@@ -344,22 +362,22 @@
               <th class="px-4 py-3.5">Duration</th>
               <th class="px-4 py-3.5">Assessment Mode</th>
               <th class="px-4 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right">Actions</th>
+              <th class="px-5 py-3.5 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+          <tbody class="divide-y divide-base-300">
             @for (item of filteredTrainings(); track item.trainingId) {
-              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors">
+              <tr class="hover:bg-base-200/40 transition-colors">
                 <td class="px-5 py-4">
-                  <div class="font-bold text-slate-900 dark:text-white">{{ item.title }}</div>
-                  <div class="text-2xs font-mono text-slate-400">{{ item.code }} • {{ item.category }}</div>
+                  <div class="font-bold text-text-primary">{{ item.title }}</div>
+                  <div class="text-[11px] font-mono text-text-secondary">{{ item.code }} • {{ item.category }}</div>
                 </td>
                 <td class="px-4 py-4 text-xs">
-                  <div class="font-semibold text-slate-700 dark:text-slate-200">{{ item.venueName || 'TBD' }}</div>
-                  <div class="text-2xs text-slate-400">{{ item.roomName || 'Room TBD' }} (Cap: {{ item.maxCapacity || '--' }})</div>
+                  <div class="font-semibold text-text-primary">{{ item.venueName || 'TBD' }}</div>
+                  <div class="text-[11px] text-text-secondary">{{ item.roomName || 'Room TBD' }} (Cap: {{ item.maxCapacity || '--' }})</div>
                 </td>
                 <td class="px-4 py-4 text-xs">
-                  <div class="font-medium text-slate-700 dark:text-slate-200">{{ item.primaryTrainerName }}</div>
+                  <div class="font-medium text-text-primary">{{ item.primaryTrainerName }}</div>
                 </td>
                 <td class="px-4 py-4 text-xs font-mono">
                   {{ item.durationHours }} Hours
@@ -368,23 +386,23 @@
                   <span class="capitalize">{{ item.assessmentMode.replace('_', ' ') }}</span>
                 </td>
                 <td class="px-4 py-4">
-                  <span [class]="item.status === 'published' ? 'px-2.5 py-1 text-2xs font-semibold rounded-full bg-emerald-50 text-emerald-700' : 'px-2.5 py-1 text-2xs font-semibold rounded-full bg-amber-50 text-amber-700'">
+                  <span [class]="item.status === 'published' ? 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200' : 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200'">
                     {{ item.status }}
                   </span>
                 </td>
-                <td class="px-5 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
-                      <mat-icon class="text-sm">visibility</mat-icon>
+                <td class="px-5 py-4 text-right sticky right-0 bg-base-100/90 backdrop-blur-xs">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="View Details">
+                      <span class="material-symbols-outlined text-base">visibility</span>
                     </button>
-                    @if (permissions().canEmbed) {
-                      <button (click)="openEmbedModal(item)" class="p-1.5 text-slate-400 hover:text-purple-600 rounded-lg hover:bg-slate-100" title="Embed">
-                        <mat-icon class="text-sm">hub</mat-icon>
+                    @if (permissions().canEmbedOfflineTraining) {
+                      <button (click)="openEmbedModal(item)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Embed Workshop">
+                        <span class="material-symbols-outlined text-base">hub</span>
                       </button>
                     }
-                    @if (permissions().canEdit) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100">
-                        <mat-icon class="text-sm">edit</mat-icon>
+                    @if (permissions().canEditOfflineTraining) {
+                      <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Edit Workshop">
+                        <span class="material-symbols-outlined text-base">edit</span>
                       </button>
                     }
                   </div>
@@ -397,105 +415,103 @@
     </div>
   }
 
-  <!-- EMBED MODAL -->
-  @if (isEmbedModalOpen() && activeTrainingForEmbed()) {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center">
-              <mat-icon class="text-base">hub</mat-icon>
-            </div>
-            <div>
-              <h3 class="font-bold text-slate-900 dark:text-white text-base">Embed Offline Workshop</h3>
-              <p class="text-xs text-slate-400">{{ activeTrainingForEmbed()?.title }}</p>
-            </div>
-          </div>
-          <button (click)="closeEmbedModal()" class="text-slate-400 hover:text-slate-600">
-            <mat-icon>close</mat-icon>
-          </button>
+  <!-- ========================================================================= -->
+  <!-- 7. EMBED WORKSHOP MODAL                                                   -->
+  <!-- ========================================================================= -->
+  <app-modal-overlay
+    [isOpen]="isEmbedModalOpen()"
+    (close)="closeEmbedModal()"
+    maxWidth="lg"
+    title="Embed Offline Workshop"
+    [subtitle]="activeTrainingForEmbed()?.title || 'Course / Learning Plan Linking'"
+    icon="hub">
+
+    <form [formGroup]="embedForm" (ngSubmit)="submitEmbed()" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Host Entity Target *</label>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-base-200/50 border border-base-300 cursor-pointer hover:border-tenant-300">
+            <input type="radio" formControlName="hostEntityType" value="course" class="accent-tenant-500 cursor-pointer" />
+            <span class="font-medium text-text-primary">Course Unit / Activity</span>
+          </label>
+          <label class="flex items-center gap-2 p-3 rounded-xl bg-base-200/50 border border-base-300 cursor-pointer hover:border-tenant-300">
+            <input type="radio" formControlName="hostEntityType" value="learning_plan" class="accent-tenant-500 cursor-pointer" />
+            <span class="font-medium text-text-primary">Learning Plan Phase</span>
+          </label>
         </div>
-
-        <form [formGroup]="embedForm" (ngSubmit)="submitEmbed()" class="p-5 space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Host Entity Target *</label>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="radio" formControlName="hostEntityType" value="course" class="text-purple-600" />
-                <span>Course Unit / Activity</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="radio" formControlName="hostEntityType" value="learning_plan" class="text-purple-600" />
-                <span>Learning Plan Phase</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Target Course / Plan Title *</label>
-            <input type="text" formControlName="hostEntityTitle"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Cohort / Batch Label</label>
-            <input type="text" formControlName="customBatchName"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-          </div>
-
-          <!-- Trainer Override Setting (BRD Spec 2) -->
-          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 space-y-2">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" formControlName="overrideTrainer" class="rounded text-purple-600" />
-              <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Override Default Trainer for this Delivery?</span>
-            </label>
-            <p class="text-2xs text-slate-500">
-              Default trainer: <strong>{{ activeTrainingForEmbed()?.primaryTrainerName }}</strong>. You can assign an alternate instructor for this specific host embedding.
-            </p>
-
-            @if (embedForm.get('overrideTrainer')?.value) {
-              <div class="pt-2">
-                <input type="text" formControlName="customTrainerName" placeholder="Enter alternate instructor name"
-                       class="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg" />
-              </div>
-            }
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-end gap-3">
-            <button type="button" (click)="closeEmbedModal()" class="px-4 py-2 text-xs font-medium text-slate-700 bg-slate-100 rounded-xl">
-              Cancel
-            </button>
-            <button type="submit" [disabled]="embedForm.invalid"
-                    class="px-5 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-xs">
-              Confirm Embedding
-            </button>
-          </div>
-        </form>
-
       </div>
-    </div>
-  }
 
-  <!-- CONFIRMATION MODAL -->
-  @if (confirmDialog().isOpen) {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">{{ confirmDialog().title }}</h3>
-        <p class="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-          {{ confirmDialog().message }}
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Target Course / Plan Title *</label>
+        <input type="text" formControlName="hostEntityTitle"
+               class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Cohort / Batch Label</label>
+        <input type="text" formControlName="customBatchName"
+               class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+      </div>
+
+      <!-- Trainer Override Setting (BRD Spec 2) -->
+      <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" formControlName="overrideTrainer" class="accent-tenant-500 rounded cursor-pointer" />
+          <span class="text-xs font-bold text-text-primary">Override Default Trainer for this Delivery?</span>
+        </label>
+        <p class="text-xs text-text-secondary">
+          Default trainer: <strong>{{ activeTrainingForEmbed()?.primaryTrainerName }}</strong>. You can assign an alternate instructor for this specific host embedding.
         </p>
-        <div class="flex items-center justify-end gap-3">
-          <button (click)="closeConfirmDialog()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl">
-            Cancel
-          </button>
-          <button (click)="executeConfirmAction()"
-                  class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">
-            {{ confirmDialog().confirmBtnLabel }}
-          </button>
-        </div>
+
+        @if (embedForm.get('overrideTrainer')?.value) {
+          <div class="pt-2">
+            <input type="text" formControlName="customTrainerName" placeholder="Enter alternate instructor name"
+                   class="w-full px-3 py-2 text-xs bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+          </div>
+        }
+      </div>
+
+      <div class="pt-3 border-t border-base-300 flex items-center justify-end gap-2.5">
+        <button type="button" (click)="closeEmbedModal()"
+                class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button type="submit" [disabled]="embedForm.invalid"
+                class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
+          Confirm Embedding
+        </button>
+      </div>
+    </form>
+  </app-modal-overlay>
+
+  <!-- ========================================================================= -->
+  <!-- 8. CONFIRMATION MODAL                                                     -->
+  <!-- ========================================================================= -->
+  <app-modal-overlay
+    [isOpen]="confirmDialog().isOpen"
+    (close)="closeConfirmDialog()"
+    maxWidth="md"
+    [title]="confirmDialog().title"
+    subtitle="Please review the requested action"
+    icon="warning">
+
+    <div class="space-y-4">
+      <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
+        {{ confirmDialog().message }}
+      </p>
+
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-base-300">
+        <button (click)="closeConfirmDialog()"
+                class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button (click)="executeConfirmAction()"
+                class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          {{ confirmDialog().confirmBtnLabel }}
+        </button>
       </div>
     </div>
-  }
+  </app-modal-overlay>
 
 </div>
+

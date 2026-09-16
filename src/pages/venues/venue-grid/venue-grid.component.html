@@ -1,543 +1,617 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16">
 
-  <!-- TOP HEADER & TELEMETRY ROW -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-        <span>Delivery Infrastructure</span>
-        <span>•</span>
-        <span class="text-emerald-600 dark:text-emerald-400 font-bold">BRD §4.11</span>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Delivery Infrastructure &bull; Physical Facilities
+        </span>
+        <span class="text-xs text-text-secondary">
+          Active Org: <strong class="font-bold text-text-primary">{{ activeTenant().name }}</strong>
+        </span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-emerald-600 dark:text-emerald-400">location_city</mat-icon>
-        Venues & Facilities Management
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">location_city</span>
+        <span>Venues & Facilities Management</span>
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         Physical training centers, interactive rooms, seating layouts, and capacity guidance rules.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <!-- Header Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a routerLink="/venues/dashboard" 
-         class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-xs transition-colors flex items-center gap-2">
-        <mat-icon class="text-base text-emerald-500">space_dashboard</mat-icon>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">space_dashboard</span>
         <span>Telemetry Studio</span>
       </a>
 
       @if (permissions().canCreateVenue) {
         <button (click)="navigateToCreate()"
-                class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-sm transition-all flex items-center gap-2">
-          <mat-icon class="text-base">add_location_alt</mat-icon>
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">add_location_alt</span>
           <span>Create Physical Venue</span>
         </button>
       }
     </div>
   </div>
 
-  <!-- KPI SUMMARY STATS CARDS -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+  <!-- ========================================================================= -->
+  <!-- 2. KPI SUMMARY METRICS ROW                                                -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Venues -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Total Venues</span>
-        <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ totalVenuesCount() }}</div>
+        <p class="text-xs font-medium text-text-secondary">Total Venues</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ totalVenuesCount() }}</h3>
+        <span class="text-[11px] text-text-secondary">Registered facilities</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-        <mat-icon>domain</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 border border-tenant-200 dark:border-tenant-800/60 flex items-center justify-center text-tenant-600 dark:text-tenant-400">
+        <span class="material-symbols-outlined">domain</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <!-- Active Facilities -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Active Facilities</span>
-        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ activeVenuesCount() }}</div>
+        <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Active Facilities</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ activeVenuesCount() }}</h3>
+        <span class="text-[11px] text-text-secondary">Bookable & operational</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-        <mat-icon>check_circle</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <span class="material-symbols-outlined">check_circle</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <!-- Configured Rooms -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Configured Rooms</span>
-        <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ totalRoomsCount() }}</div>
+        <p class="text-xs font-medium text-sky-600 dark:text-sky-400">Configured Rooms</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ totalRoomsCount() }}</h3>
+        <span class="text-[11px] text-text-secondary">Classrooms & labs</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-        <mat-icon>meeting_room</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400">
+        <span class="material-symbols-outlined">meeting_room</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <!-- Seating Capacity -->
+    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
-        <span class="text-xs font-medium text-slate-500">Total Seating Capacity</span>
-        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ totalLearnerCapacity() }} <span class="text-xs font-normal text-slate-400">seats</span></div>
+        <p class="text-xs font-medium text-purple-600 dark:text-purple-400">Seating Capacity</p>
+        <h3 class="text-2xl font-bold text-text-primary mt-1">{{ totalLearnerCapacity() }} <span class="text-xs font-normal text-text-secondary">seats</span></h3>
+        <span class="text-[11px] text-text-secondary">Gross learner desks</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-        <mat-icon>groups</mat-icon>
+      <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
+        <span class="material-symbols-outlined">groups</span>
       </div>
     </div>
   </div>
 
-  <!-- CONTROL TOOLBAR: SEARCH, FILTERS, VIEW TOGGLE -->
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-    
-    <!-- Search Bar -->
-    <div class="relative flex-1 max-w-md">
-      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</mat-icon>
-      <input type="text"
-             [value]="searchQuery()"
-             (input)="searchQuery.set($any($event.target).value)"
-             placeholder="Search by venue name, code, city, address, or room..."
-             class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white placeholder:text-slate-400" />
-      @if (searchQuery()) {
-        <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-          <mat-icon class="text-sm">close</mat-icon>
-        </button>
+  <!-- ========================================================================= -->
+  <!-- 3. DATA GRID CONTAINER                                                    -->
+  <!-- ========================================================================= -->
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="searchQuery.set($event)"
+    searchPlaceholder="Search by venue name, code, city, address, or room..."
+    [isFilterOpen]="isFilterPanelOpen()"
+    (filterToggle)="onFilterToggle($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="hasActiveFilters()"
+    [showReset]="hasActiveFilters()"
+    (resetGrid)="clearFilters()"
+    [viewMode]="viewMode()"
+    (viewModeChange)="viewMode.set($event)"
+    [showViewSwitcher]="true"
+    [itemCountText]="'Showing ' + filteredVenues().length + ' of ' + lmsData.venues().length + ' Facilities'"
+    filterPanelTitle="FILTER PHYSICAL VENUES"
+    filterPanelSubtitle="Filter learning facilities by status, metropolitan city, or available amenities"
+    [emptyStateType]="filteredVenues().length === 0 ? (hasActiveFilters() ? 'no-results' : 'empty') : 'none'"
+    emptyTitle="No Physical Venues configured"
+    emptyMessage="Register your first physical learning facility to organize in-person classrooms and training sessions."
+    emptyIcon="location_off"
+    emptyActionText="Create Venue"
+    (emptyAction)="navigateToCreate()"
+    (clearFilters)="clearFilters()"
+    (cancelFilters)="isFilterPanelOpen.set(false)"
+    (applyFilters)="applyFilters()"
+    [showPagination]="false">
+
+    <!-- Filter Drawer Slot -->
+    <div filter-panel class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-1">
+      <!-- 1. Status Multi-options -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="1. Facility Status">
+          <div class="space-y-2">
+            @for (st of statusOptions; track st.value) {
+              <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer p-1.5 rounded-lg hover:bg-base-200 transition-colors">
+                <input 
+                  type="radio" 
+                  name="filterVenueStatus" 
+                  [value]="st.value" 
+                  [checked]="draftStatus() === st.value" 
+                  (change)="draftStatus.set(st.value)" 
+                  class="rounded-full text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                <span class="font-medium">{{ st.label }}</span>
+              </label>
+            }
+          </div>
+        </app-filter-section>
+      </div>
+
+      <!-- 2. City Dropdown -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="2. Metropolitan City">
+          <app-custom-select
+            [options]="cityOptions()"
+            [ngModel]="draftCity()"
+            (ngModelChange)="draftCity.set($event)">
+          </app-custom-select>
+        </app-filter-section>
+      </div>
+
+      <!-- 3. Amenities Filter -->
+      <div class="lg:col-span-4">
+        <app-filter-section title="3. Facility Amenities">
+          <app-custom-select
+            [options]="facilityOptions"
+            [ngModel]="draftFacility()"
+            (ngModelChange)="draftFacility.set($event)">
+          </app-custom-select>
+        </app-filter-section>
+      </div>
+    </div>
+
+    <!-- Active Filter Chips Slot -->
+    <div filter-chips class="contents">
+      @if (selectedStatus() !== 'all') {
+        <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+          <span>Status: <strong class="capitalize">{{ selectedStatus() }}</strong></span>
+          <button type="button" (click)="selectedStatus.set('all')" class="hover:text-rose-500 cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">close</span>
+          </button>
+        </span>
+      }
+      @if (selectedCity() !== 'all') {
+        <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+          <span>City: <strong>{{ selectedCity() }}</strong></span>
+          <button type="button" (click)="selectedCity.set('all')" class="hover:text-rose-500 cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">close</span>
+          </button>
+        </span>
+      }
+      @if (selectedFacility() !== 'all') {
+        <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+          <span>Amenity: <strong class="capitalize">{{ selectedFacility() }}</strong></span>
+          <button type="button" (click)="selectedFacility.set('all')" class="hover:text-rose-500 cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">close</span>
+          </button>
+        </span>
       }
     </div>
 
-    <!-- Quick Dropdowns & View Mode Buttons -->
-    <div class="flex flex-wrap items-center gap-2">
-      <!-- Status Filter Dropdown -->
-      <div class="w-40">
-        <app-custom-select [options]="statusOptions" 
-                           [selected]="selectedStatus()" 
-                           (selectionChange)="selectedStatus.set($event)">
-        </app-custom-select>
-      </div>
+    <!-- MAIN DATA DISPLAY: TABLE OR GRID -->
+    @if (viewMode() === 'table') {
+      <!-- TABLE VIEW -->
+      <div class="rounded-2xl border border-base-300 bg-base-100 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto min-h-[360px]">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-base-300 bg-base-200/50 text-[11px] font-bold text-text-secondary uppercase tracking-wider select-none">
+                <th class="py-3 px-4 min-w-[220px]">Venue & Code</th>
+                <th class="py-3 px-4 min-w-[180px]">City & Address</th>
+                <th class="py-3 px-4 min-w-[120px] whitespace-nowrap">Rooms</th>
+                <th class="py-3 px-4 min-w-[120px] whitespace-nowrap">Total Capacity</th>
+                <th class="py-3 px-4 min-w-[160px]">Amenities</th>
+                <th class="py-3 px-4 min-w-[100px] whitespace-nowrap">Status</th>
+                <th class="py-3.5 px-4 text-center sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[70px] min-w-[70px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-300">
+              @for (venue of filteredVenues(); track venue.venueId) {
+                <tr class="hover:bg-base-200/50 transition-colors group cursor-pointer"
+                    (click)="navigateToView(venue.venueId)">
+                  <!-- Venue & Code -->
+                  <td class="py-3.5 px-4 font-semibold text-text-primary">
+                    <div class="flex items-start gap-2.5">
+                      <div class="w-8 h-8 rounded-lg bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 mt-0.5 border border-tenant-200 dark:border-tenant-800">
+                        <span class="material-symbols-outlined text-base">domain</span>
+                      </div>
+                      <div class="min-w-0">
+                        <span class="group-hover:text-tenant-600 transition-colors">{{ venue.name }}</span>
+                        <div class="text-[11px] font-mono font-bold text-text-secondary mt-0.5">
+                          {{ venue.code }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
 
-      <!-- City Filter Dropdown -->
-      <div class="w-40">
-        <app-custom-select [options]="cityOptions()" 
-                           [selected]="selectedCity()" 
-                           (selectionChange)="selectedCity.set($event)">
-        </app-custom-select>
-      </div>
+                  <!-- City & Address -->
+                  <td class="py-3.5 px-4">
+                    <div class="font-medium text-text-primary">{{ venue.address.city }}</div>
+                    <div class="text-[11px] text-text-secondary truncate max-w-xs mt-0.5">
+                      {{ venue.address.formatted || venue.address.line1 }}
+                    </div>
+                  </td>
 
-      <!-- Sort Dropdown -->
-      <div class="w-44">
-        <app-custom-select [options]="sortOptions" 
-                           [selected]="sortBy()" 
-                           (selectionChange)="sortBy.set($event)">
-        </app-custom-select>
-      </div>
+                  <!-- Rooms -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs font-semibold">
+                      <span class="material-symbols-outlined text-sm">meeting_room</span>
+                      {{ venue.rooms.length }} Rooms
+                    </span>
+                  </td>
 
-      <!-- View Switcher (Grid vs Table) -->
-      <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-900/70 rounded-xl border border-slate-200 dark:border-slate-700 ml-1">
-        <button (click)="viewMode.set('grid')"
-                [class.bg-white]="viewMode() === 'grid'"
-                [class.dark:bg-slate-800]="viewMode() === 'grid'"
-                [class.shadow-xs]="viewMode() === 'grid'"
-                [class.text-emerald-600]="viewMode() === 'grid'"
-                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                title="Grid View">
-          <mat-icon class="text-base">grid_view</mat-icon>
-        </button>
-        <button (click)="viewMode.set('table')"
-                [class.bg-white]="viewMode() === 'table'"
-                [class.dark:bg-slate-800]="viewMode() === 'table'"
-                [class.shadow-xs]="viewMode() === 'table'"
-                [class.text-emerald-600]="viewMode() === 'table'"
-                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                title="Table View">
-          <mat-icon class="text-base">view_list</mat-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+                  <!-- Capacity -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span class="font-mono font-bold text-text-primary text-sm">{{ getTotalCapacity(venue) }}</span>
+                    <span class="text-text-secondary text-xs ml-1">seats</span>
+                  </td>
 
-  <!-- ACTIVE VENUES COUNT & RESET BANNER -->
-  @if (selectedStatus() !== 'all' || selectedCity() !== 'all' || selectedFacility() !== 'all' || searchQuery()) {
-    <div class="flex items-center justify-between text-xs px-2 text-slate-500">
-      <span>Showing <strong>{{ filteredVenues().length }}</strong> venue(s) matching current criteria</span>
-      <button (click)="clearFilters()" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1">
-        <mat-icon class="text-xs">restart_alt</mat-icon>
-        Reset Filters
-      </button>
-    </div>
-  }
+                  <!-- Amenities -->
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-1.5 text-text-secondary">
+                      @if (venue.facilities.internet) {
+                        <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400" title="High-Speed Wi-Fi">wifi</span>
+                      }
+                      @if (venue.facilities.parking) {
+                        <span class="material-symbols-outlined text-base text-sky-600 dark:text-sky-400" title="Dedicated Parking">local_parking</span>
+                      }
+                      @if (venue.facilities.accessibility) {
+                        <span class="material-symbols-outlined text-base text-purple-600 dark:text-purple-400" title="Wheelchair Accessible">accessible</span>
+                      }
+                      @if (!venue.facilities.internet && !venue.facilities.parking && !venue.facilities.accessibility) {
+                        <span class="text-text-secondary text-[11px] italic">Standard amenities</span>
+                      }
+                    </div>
+                  </td>
 
-  <!-- EMPTY STATE -->
-  @if (filteredVenues().length === 0) {
-    <div class="p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-      <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-        <mat-icon class="text-3xl">location_off</mat-icon>
+                  <!-- Status -->
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    @if (venue.status === 'active') {
+                      <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Active
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 inline-flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        Inactive
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Sticky Actions Column -->
+                  <td class="py-3.5 px-4 text-center sticky right-0 bg-base-100 group-hover:bg-base-200/50 z-10 border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                      (click)="$event.stopPropagation()">
+                    <div class="flex items-center justify-center gap-1">
+                      <button 
+                        (click)="navigateToView(venue.venueId)"
+                        title="View Details"
+                        class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-base">visibility</span>
+                      </button>
+
+                      @if (permissions().canEditVenue) {
+                        <button 
+                          (click)="navigateToEdit(venue.venueId)"
+                          title="Edit Venue"
+                          class="p-1.5 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 transition-colors cursor-pointer">
+                          <span class="material-symbols-outlined text-base">edit</span>
+                        </button>
+                      }
+
+                      @if (venue.status === 'active' && permissions().canDeactivateVenue) {
+                        <button 
+                          (click)="promptDeactivate(venue)"
+                          title="Deactivate Venue"
+                          class="p-1.5 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer">
+                          <span class="material-symbols-outlined text-base">power_settings_new</span>
+                        </button>
+                      } @else if (venue.status === 'inactive' && permissions().canDeactivateVenue) {
+                        <button 
+                          (click)="promptReactivate(venue)"
+                          title="Reactivate Venue"
+                          class="p-1.5 rounded-lg text-text-secondary hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer">
+                          <span class="material-symbols-outlined text-base">check_circle</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 dark:text-white">No Physical Venues Found</h3>
-      <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-6">
-        No venues matched your selected query or filters. You can reset filters or register a new physical training center.
-      </p>
-      <div class="flex items-center justify-center gap-3">
-        <button (click)="clearFilters()" class="px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
-          Clear Filters
-        </button>
-        @if (permissions().canCreateVenue) {
-          <button (click)="navigateToCreate()" class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700">
-            Create Venue
-          </button>
+    } @else {
+      <!-- GRID VIEW -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (venue of filteredVenues(); track venue.venueId) {
+          <div class="bg-base-100 rounded-2xl border border-base-300 shadow-xs hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
+            
+            <div class="p-5">
+              <!-- Top Row: Code & Status & Menu -->
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
+                    {{ venue.code }}
+                  </span>
+                  @if (venue.status === 'active') {
+                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      Active
+                    </span>
+                  } @else {
+                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                      Inactive
+                    </span>
+                  }
+                </div>
+
+                <div class="relative">
+                  <button (click)="toggleActionMenu(venue.venueId, $event)" 
+                          class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">more_vert</span>
+                  </button>
+
+                  @if (openActionMenuId() === venue.venueId) {
+                    <div class="absolute right-0 mt-1 w-48 bg-base-100 rounded-xl shadow-lg border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary animate-in fade-in zoom-in-95">
+                      <button (click)="navigateToView(venue.venueId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
+                        <span>View Details</span>
+                      </button>
+                      @if (permissions().canEditVenue) {
+                        <button (click)="navigateToEdit(venue.venueId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
+                          <span>Edit Venue</span>
+                        </button>
+                      }
+                      @if (permissions().canAddRoom) {
+                        <button (click)="openAddRoomModal(venue)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-sky-600">meeting_room</span>
+                          <span>Add Room</span>
+                        </button>
+                      }
+                      <div class="my-1 border-t border-base-300"></div>
+                      @if (venue.status === 'active' && permissions().canDeactivateVenue) {
+                        <button (click)="promptDeactivate(venue)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">power_settings_new</span>
+                          <span>Deactivate Venue</span>
+                        </button>
+                      } @else if (venue.status === 'inactive' && permissions().canDeactivateVenue) {
+                        <button (click)="promptReactivate(venue)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">check_circle</span>
+                          <span>Reactivate Venue</span>
+                        </button>
+                      }
+                      @if (permissions().canDeleteVenue) {
+                        <button (click)="promptDelete(venue)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                          <span>Delete Venue</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Title & Location -->
+              <a [routerLink]="['/venues/view', venue.venueId]" class="block group-hover:text-tenant-600 transition-colors">
+                <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
+                  {{ venue.name }}
+                </h3>
+              </a>
+              <p class="text-xs text-text-secondary flex items-start gap-1.5 mb-4 line-clamp-2">
+                <span class="material-symbols-outlined text-sm text-text-secondary shrink-0 mt-0.5">place</span>
+                <span>{{ venue.address.formatted || (venue.address.line1 + ', ' + venue.address.city) }}</span>
+              </p>
+
+              <!-- Amenities Pills -->
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                @if (venue.facilities.internet) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <span class="material-symbols-outlined text-xs">wifi</span> Wi-Fi
+                  </span>
+                }
+                @if (venue.facilities.parking) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                    <span class="material-symbols-outlined text-xs">local_parking</span> Parking
+                  </span>
+                }
+                @if (venue.facilities.accessibility) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                    <span class="material-symbols-outlined text-xs">accessible</span> Accessible
+                  </span>
+                }
+              </div>
+
+              <!-- Room Preview Box -->
+              <div class="bg-base-200/60 rounded-xl p-3 border border-base-300 space-y-2">
+                <div class="flex items-center justify-between text-2xs font-bold text-text-secondary uppercase tracking-wider">
+                  <span>Rooms ({{ venue.rooms.length }})</span>
+                  <span class="text-tenant-600 dark:text-tenant-400">{{ getTotalCapacity(venue) }} Total Capacity</span>
+                </div>
+                <div class="space-y-1.5">
+                  @for (room of venue.rooms.slice(0, 3); track room.roomId) {
+                    <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-base-100 border border-base-300">
+                      <span class="font-medium text-text-primary truncate max-w-[150px]">{{ room.name }}</span>
+                      <span class="text-2xs text-text-secondary font-mono flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">person</span>
+                        Cap: <strong>{{ room.capacity }}</strong>
+                      </span>
+                    </div>
+                  }
+                  @if (venue.rooms.length > 3) {
+                    <div class="text-2xs text-center text-text-secondary pt-0.5">
+                      +{{ venue.rooms.length - 3 }} more rooms
+                    </div>
+                  }
+                  @if (venue.rooms.length === 0) {
+                    <div class="text-2xs text-amber-600 dark:text-amber-400 italic py-1 text-center">
+                      No rooms configured yet.
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Bottom Meta & Actions -->
+            <div class="px-5 py-3.5 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
+              <span class="text-2xs text-text-secondary">
+                {{ venue.usedInClassesCount || 0 }} Class Deliveries
+              </span>
+              <div class="flex items-center gap-2">
+                <button (click)="openAddRoomModal(venue)"
+                        class="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">add</span> Room
+                </button>
+                <button (click)="navigateToView(venue.venueId)"
+                        class="px-3 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/50 hover:bg-tenant-100 rounded-lg border border-tenant-200 dark:border-tenant-800 transition-colors flex items-center gap-1 cursor-pointer">
+                  <span>Details</span>
+                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
         }
       </div>
-    </div>
-  }
+    }
+  </app-data-grid>
 
-  <!-- GRID VIEW -->
-  @if (viewMode() === 'grid' && filteredVenues().length > 0) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (venue of filteredVenues(); track venue.venueId) {
-        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all flex flex-col justify-between overflow-hidden group">
-          
-          <!-- Card Top & Status -->
-          <div class="p-5">
-            <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-                  {{ venue.code }}
-                </span>
-                <span [class]="venue.status === 'active' 
-                               ? 'px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                               : 'px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
-                  {{ venue.status === 'active' ? 'Active' : 'Inactive' }}
-                </span>
-              </div>
+  <!-- ========================================================================= -->
+  <!-- 4. ADD ROOM MODAL (UPGRADED TO APP-MODAL-OVERLAY)                          -->
+  <!-- ========================================================================= -->
+  <app-modal-overlay
+    [isOpen]="isAddRoomModalOpen() && !!activeVenueForRoom()"
+    (close)="closeAddRoomModal()"
+    maxWidth="lg"
+    title="Configure New Room"
+    [subtitle]="activeVenueForRoom()?.name || ''"
+    icon="meeting_room">
 
-              <!-- 3-Dots Action Menu -->
-              <div class="relative">
-                <button (click)="toggleActionMenu(venue.venueId, $event)" 
-                        class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                  <mat-icon class="text-lg">more_vert</mat-icon>
-                </button>
-
-                @if (openActionMenuId() === venue.venueId) {
-                  <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1.5 z-30 text-xs font-medium text-slate-700 dark:text-slate-200">
-                    <button (click)="navigateToView(venue.venueId)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                      <mat-icon class="text-sm text-slate-400">visibility</mat-icon>
-                      <span>View Details</span>
-                    </button>
-                    @if (permissions().canEditVenue) {
-                      <button (click)="navigateToEdit(venue.venueId)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                        <mat-icon class="text-sm text-sky-500">edit</mat-icon>
-                        <span>Edit Venue</span>
-                      </button>
-                    }
-                    @if (permissions().canAddRoom) {
-                      <button (click)="openAddRoomModal(venue)" class="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
-                        <mat-icon class="text-sm text-emerald-500">meeting_room</mat-icon>
-                        <span>Add Room</span>
-                      </button>
-                    }
-                    <div class="my-1 border-t border-slate-100 dark:border-slate-700"></div>
-                    @if (venue.status === 'active' && permissions().canDeactivateVenue) {
-                      <button (click)="promptDeactivate(venue)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">power_settings_new</mat-icon>
-                        <span>Deactivate Venue</span>
-                      </button>
-                    } @else if (venue.status === 'inactive' && permissions().canDeactivateVenue) {
-                      <button (click)="promptReactivate(venue)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">check_circle</mat-icon>
-                        <span>Reactivate Venue</span>
-                      </button>
-                    }
-                    @if (permissions().canDeleteVenue) {
-                      <button (click)="promptDelete(venue)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <mat-icon class="text-sm">delete</mat-icon>
-                        <span>Delete Venue</span>
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Venue Title & Address -->
-            <a [routerLink]="['/venues/view', venue.venueId]" class="block group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-              <h3 class="font-bold text-base text-slate-900 dark:text-white line-clamp-1 mb-1">
-                {{ venue.name }}
-              </h3>
-            </a>
-            <p class="text-xs text-slate-500 dark:text-slate-400 flex items-start gap-1.5 mb-4 line-clamp-2">
-              <mat-icon class="text-sm text-slate-400 shrink-0 mt-0.5">place</mat-icon>
-              <span>{{ venue.address.formatted || (venue.address.line1 + ', ' + venue.address.city) }}</span>
-            </p>
-
-            <!-- Facilities Pill List -->
-            <div class="flex flex-wrap gap-1.5 mb-4">
-              @if (venue.facilities.internet) {
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">
-                  <mat-icon class="text-2xs">wifi</mat-icon> Wi-Fi
-                </span>
-              }
-              @if (venue.facilities.parking) {
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300">
-                  <mat-icon class="text-2xs">local_parking</mat-icon> Parking
-                </span>
-              }
-              @if (venue.facilities.accessibility) {
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-medium rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300">
-                  <mat-icon class="text-2xs">accessible</mat-icon> Accessible
-                </span>
-              }
-            </div>
-
-            <!-- Room Previews Mini List -->
-            <div class="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-100 dark:border-slate-700/60 space-y-2">
-              <div class="flex items-center justify-between text-2xs font-bold text-slate-500 uppercase tracking-wider">
-                <span>Rooms ({{ venue.rooms.length }})</span>
-                <span class="text-emerald-600 dark:text-emerald-400">{{ getTotalCapacity(venue) }} Total Capacity</span>
-              </div>
-              <div class="space-y-1.5">
-                @for (room of venue.rooms.slice(0, 3); track room.roomId) {
-                  <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50">
-                    <span class="font-medium text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{{ room.name }}</span>
-                    <span class="text-2xs text-slate-500 font-mono flex items-center gap-1">
-                      <mat-icon class="text-2xs text-slate-400">person</mat-icon>
-                      Cap: <strong>{{ room.capacity }}</strong>
-                    </span>
-                  </div>
-                }
-                @if (venue.rooms.length > 3) {
-                  <div class="text-2xs text-center text-slate-400 pt-0.5">
-                    +{{ venue.rooms.length - 3 }} more rooms
-                  </div>
-                }
-                @if (venue.rooms.length === 0) {
-                  <div class="text-2xs text-amber-600 dark:text-amber-400 italic py-1 text-center">
-                    No rooms configured yet.
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Bottom Meta & Quick Buttons -->
-          <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
-            <div class="text-2xs text-slate-400">
-              <span>{{ venue.usedInClassesCount || 0 }} Class Deliveries</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button (click)="openAddRoomModal(venue)"
-                      class="px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1">
-                <mat-icon class="text-xs">add</mat-icon> Room
-              </button>
-              <button (click)="navigateToView(venue.venueId)"
-                      class="px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 rounded-lg transition-colors flex items-center gap-1">
-                <span>Details</span>
-                <mat-icon class="text-xs">arrow_forward</mat-icon>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      }
-    </div>
-  }
-
-  <!-- TABLE VIEW -->
-  @if (viewMode() === 'table' && filteredVenues().length > 0) {
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-          <thead class="bg-slate-50 dark:bg-slate-900/60 text-xs uppercase font-bold text-slate-500 border-b border-slate-200 dark:border-slate-700">
-            <tr>
-              <th class="px-5 py-3.5">Venue & Code</th>
-              <th class="px-4 py-3.5">City & Address</th>
-              <th class="px-4 py-3.5">Rooms</th>
-              <th class="px-4 py-3.5">Total Capacity</th>
-              <th class="px-4 py-3.5">Facilities</th>
-              <th class="px-4 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
-            @for (venue of filteredVenues(); track venue.venueId) {
-              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors">
-                <td class="px-5 py-4">
-                  <div class="font-bold text-slate-900 dark:text-white">{{ venue.name }}</div>
-                  <div class="text-2xs font-mono text-slate-400">{{ venue.code }}</div>
-                </td>
-                <td class="px-4 py-4 text-xs">
-                  <div class="font-semibold text-slate-700 dark:text-slate-200">{{ venue.address.city }}</div>
-                  <div class="text-2xs text-slate-400 truncate max-w-xs">{{ venue.address.formatted || venue.address.line1 }}</div>
-                </td>
-                <td class="px-4 py-4 text-xs font-semibold">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300">
-                    <mat-icon class="text-xs">meeting_room</mat-icon>
-                    {{ venue.rooms.length }} Rooms
-                  </span>
-                </td>
-                <td class="px-4 py-4 text-xs font-semibold">
-                  <span class="text-slate-900 dark:text-white font-mono">{{ getTotalCapacity(venue) }}</span> seats
-                </td>
-                <td class="px-4 py-4">
-                  <div class="flex items-center gap-1 text-slate-400">
-                    @if (venue.facilities.internet) { <mat-icon class="text-sm text-emerald-500" title="Wi-Fi">wifi</mat-icon> }
-                    @if (venue.facilities.parking) { <mat-icon class="text-sm text-sky-500" title="Parking">local_parking</mat-icon> }
-                    @if (venue.facilities.accessibility) { <mat-icon class="text-sm text-purple-500" title="Accessible">accessible</mat-icon> }
-                  </div>
-                </td>
-                <td class="px-4 py-4">
-                  <span [class]="venue.status === 'active' 
-                                 ? 'px-2.5 py-1 text-2xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
-                                 : 'px-2.5 py-1 text-2xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'">
-                    {{ venue.status === 'active' ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button (click)="navigateToView(venue.venueId)" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
-                      <mat-icon class="text-sm">visibility</mat-icon>
-                    </button>
-                    @if (permissions().canEditVenue) {
-                      <button (click)="navigateToEdit(venue.venueId)" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100">
-                        <mat-icon class="text-sm">edit</mat-icon>
-                      </button>
-                    }
-                    @if (venue.status === 'active') {
-                      <button (click)="promptDeactivate(venue)" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100" title="Deactivate">
-                        <mat-icon class="text-sm">power_settings_new</mat-icon>
-                      </button>
-                    } @else {
-                      <button (click)="promptReactivate(venue)" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100" title="Reactivate">
-                        <mat-icon class="text-sm">check_circle</mat-icon>
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+    <form [formGroup]="roomForm" (ngSubmit)="submitAddRoom()" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Room Name / Number *</label>
+        <input type="text" formControlName="name" placeholder="e.g. Hall B (Auditorium), Room 204"
+               class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
       </div>
-    </div>
-  }
 
-  <!-- ADD ROOM MODAL -->
-  @if (isAddRoomModalOpen() && activeVenueForRoom()) {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
-              <mat-icon class="text-base">meeting_room</mat-icon>
-            </div>
-            <div>
-              <h3 class="font-bold text-slate-900 dark:text-white text-base">Add Room to Venue</h3>
-              <p class="text-xs text-slate-400">{{ activeVenueForRoom()?.name }}</p>
-            </div>
-          </div>
-          <button (click)="closeAddRoomModal()" class="text-slate-400 hover:text-slate-600 p-1">
-            <mat-icon class="text-lg">close</mat-icon>
-          </button>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Seating Capacity *</label>
+          <input type="number" formControlName="capacity" min="1" max="1000"
+                 class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
         </div>
-
-        <form [formGroup]="roomForm" (ngSubmit)="submitAddRoom()" class="p-5 space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Room Name / Number *</label>
-            <input type="text" formControlName="name" placeholder="e.g. Hall B (Auditorium), Room 204"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Seating Capacity *</label>
-              <input type="number" formControlName="capacity" min="1" max="1000"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Floor Level</label>
-              <input type="text" formControlName="floorLevel" placeholder="e.g. 2nd Floor"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-          </div>
-
-          <!-- Supported Seating Layouts -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">Supported Seating Layouts</label>
-            <div class="grid grid-cols-3 gap-2 text-xs">
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="layoutTheatre" class="rounded text-emerald-600 focus:ring-emerald-500" />
-                <span>Theatre</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="layoutClassroom" class="rounded text-emerald-600 focus:ring-emerald-500" />
-                <span>Classroom</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="layoutUshape" class="rounded text-emerald-600 focus:ring-emerald-500" />
-                <span>U-Shape</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="layoutBoardroom" class="rounded text-emerald-600 focus:ring-emerald-500" />
-                <span>Boardroom</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="layoutBanquet" class="rounded text-emerald-600 focus:ring-emerald-500" />
-                <span>Banquet</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Equipment Toggles -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">Installed AV Equipment</label>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="hasProjector" class="rounded text-emerald-600" />
-                <span>Projector</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="hasSoundSystem" class="rounded text-emerald-600" />
-                <span>Sound System</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="hasMicrophone" class="rounded text-emerald-600" />
-                <span>Microphone</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                <input type="checkbox" formControlName="hasDisplayScreen" class="rounded text-emerald-600" />
-                <span>Display Screen</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-end gap-3">
-            <button type="button" (click)="closeAddRoomModal()" class="px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
-              Cancel
-            </button>
-            <button type="submit" [disabled]="roomForm.invalid"
-                    class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl shadow-xs">
-              Save Room
-            </button>
-          </div>
-        </form>
-
-      </div>
-    </div>
-  }
-
-  <!-- CONFIRMATION MODAL -->
-  @if (confirmDialog().isOpen) {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
-        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 flex items-center justify-center mb-4">
-          <mat-icon class="text-2xl">warning</mat-icon>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">{{ confirmDialog().title }}</h3>
-        <p class="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-          {{ confirmDialog().message }}
-        </p>
-        <div class="flex items-center justify-end gap-3">
-          <button (click)="closeConfirmDialog()" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
-            Cancel
-          </button>
-          <button (click)="executeConfirmAction()"
-                  [class]="confirmDialog().action === 'reactivate' 
-                          ? 'px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs' 
-                          : 'px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs'">
-            {{ confirmDialog().confirmBtnLabel }}
-          </button>
+        <div>
+          <label class="block text-xs font-semibold text-text-primary mb-1">Floor Level</label>
+          <input type="text" formControlName="floorLevel" placeholder="e.g. 2nd Floor"
+                 class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
         </div>
       </div>
+
+      <!-- Supported Seating Layouts -->
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-2">Supported Seating Layouts</label>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="layoutTheatre" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Theatre</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="layoutClassroom" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Classroom</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="layoutUshape" class="rounded text-tenant-500" />
+            <span class="text-text-primary">U-Shape</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="layoutBoardroom" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Boardroom</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="layoutBanquet" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Banquet</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Equipment Toggles -->
+      <div>
+        <label class="block text-xs font-semibold text-text-primary mb-2">Installed AV Equipment</label>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="hasProjector" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Projector</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="hasSoundSystem" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Sound System</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="hasMicrophone" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Microphone</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg bg-base-200 border border-base-300 cursor-pointer">
+            <input type="checkbox" formControlName="hasDisplayScreen" class="rounded text-tenant-500" />
+            <span class="text-text-primary">Display Screen</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-base-300 flex items-center justify-end gap-3">
+        <button type="button" (click)="closeAddRoomModal()" 
+                class="px-4 py-2 text-xs font-medium text-text-secondary bg-base-200 hover:bg-base-300 rounded-xl transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button type="submit" [disabled]="roomForm.invalid"
+                class="px-4 py-2 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 disabled:opacity-50 rounded-xl shadow-xs transition-colors cursor-pointer">
+          Save Room
+        </button>
+      </div>
+    </form>
+  </app-modal-overlay>
+
+  <!-- ========================================================================= -->
+  <!-- 5. CONFIRMATION DIALOG (UPGRADED TO APP-MODAL-OVERLAY)                     -->
+  <!-- ========================================================================= -->
+  <app-modal-overlay
+    [isOpen]="confirmDialog().isOpen"
+    (close)="closeConfirmDialog()"
+    maxWidth="md"
+    [title]="confirmDialog().title"
+    [icon]="confirmDialog().action === 'delete' ? 'delete' : (confirmDialog().action === 'reactivate' ? 'check_circle' : 'warning')">
+
+    <div class="space-y-4">
+      <p class="text-sm text-text-secondary leading-relaxed">
+        {{ confirmDialog().message }}
+      </p>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-base-300">
+        <button type="button" (click)="closeConfirmDialog()" 
+                class="px-4 py-2 text-xs font-medium text-text-secondary bg-base-200 hover:bg-base-300 rounded-xl transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" (click)="executeConfirmAction()"
+                [class]="confirmDialog().action === 'reactivate' 
+                        ? 'px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs cursor-pointer' 
+                        : (confirmDialog().action === 'delete' 
+                            ? 'px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs cursor-pointer' 
+                            : 'px-4 py-2 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-xs cursor-pointer')">
+          {{ confirmDialog().confirmBtnLabel }}
+        </button>
+      </div>
     </div>
-  }
+  </app-modal-overlay>
 
 </div>
+
