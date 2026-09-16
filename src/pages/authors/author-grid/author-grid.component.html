@@ -474,128 +474,19 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- EDIT AUTHOR MODAL -->
-<!-- ========================================================================= -->
-@if (showEditModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-    <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-      <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
-            <span class="material-symbols-outlined text-lg">edit</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Edit Author Profile</h3>
-            <p class="text-xs text-slate-500">Update credentials and content specialization</p>
-          </div>
-        </div>
-        <button
-          (click)="closeEditModal()"
-          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg"
-        >
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name *</label>
-          <input
-            type="text"
-            [(ngModel)]="editForm.name"
-            placeholder="e.g. Mahbubur Rahman"
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address *</label>
-            <input
-              type="email"
-              [(ngModel)]="editForm.email"
-              placeholder="e.g. mahbubur.r@brac.net"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Contact Number</label>
-            <input
-              type="text"
-              [(ngModel)]="editForm.contactNumber"
-              placeholder="e.g. +880 1711-000000"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Content Specialization</label>
-          <input
-            type="text"
-            [(ngModel)]="editForm.specialization"
-            placeholder="e.g. Video Scripting, Interactive Simulations, Microfinance Rubrics"
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Bio & Credentials</label>
-          <textarea
-            [(ngModel)]="editForm.bio"
-            rows="3"
-            placeholder="Brief pedagogical credentials or media design background..."
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
-          ></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
-          <div class="flex items-center gap-3">
-            <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-              <input type="radio" name="editStatus" value="Active" [(ngModel)]="editForm.status" class="text-tenant-600 focus:ring-tenant-500" />
-              <span>Active</span>
-            </label>
-            <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-              <input type="radio" name="editStatus" value="Inactive" [(ngModel)]="editForm.status" class="text-tenant-600 focus:ring-tenant-500" />
-              <span>Inactive</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-end gap-3">
-        <button
-          (click)="closeEditModal()"
-          class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          (click)="saveEdit()"
-          class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-sm font-semibold shadow-sm transition-all"
-        >
-          Save Changes
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- ========================================================================= -->
 <!-- BLOCKED DEACTIVATION RESOLUTION MODAL (§3.4) -->
 <!-- ========================================================================= -->
 @if (showBlockedModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-    <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+    <div class="w-full max-w-2xl rounded-3xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden animate-modal-card">
       <!-- Header -->
-      <div class="p-5 border-b border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/20 flex items-center justify-between">
+      <div class="p-5 border-b border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/20 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-xl">block</span>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Cannot Deactivate Author</h3>
+            <h3 class="text-base font-bold text-text-primary">Cannot Deactivate Author</h3>
             <p class="text-xs text-rose-700 dark:text-rose-300 font-medium">
               Active Content Credits Dependency Detected
             </p>
@@ -603,7 +494,7 @@
         </div>
         <button
           (click)="closeBlockedModal()"
-          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg"
+          class="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
         >
           <span class="material-symbols-outlined text-lg">close</span>
         </button>

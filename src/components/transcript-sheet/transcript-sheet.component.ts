@@ -295,14 +295,14 @@ import { LmsDataService } from '../../services/lms-data.service';
             <!-- 4. Overall Performance Summary & Result Boxes -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
               <!-- Cumulative Result -->
-              <div class="p-4.5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
+              <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
                 <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Cumulative Score / Result</div>
                 <div class="text-xl font-black text-slate-900 font-mono tracking-tight">{{ transcript().content.result }}</div>
                 <div class="text-[11px] text-slate-500 font-mono font-medium">Total Points: {{ transcript().content.score }} / {{ transcript().content.maxScore || 100 }}</div>
               </div>
 
               <!-- Final Outcome -->
-              <div class="p-4.5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
+              <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
                 <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Final Status Outcome</div>
                 <div class="text-base font-black uppercase tracking-tight flex items-center justify-center gap-1.5"
                      [class.text-emerald-700]="transcript().content.status === 'pass'"
@@ -317,7 +317,7 @@ import { LmsDataService } from '../../services/lms-data.service';
               </div>
 
               <!-- Official Release Status -->
-              <div class="p-4.5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
+              <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-slate-50/80 text-center space-y-1 shadow-2xs">
                 <div class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Official Release Status</div>
                 <div class="text-sm font-black text-slate-800 capitalize flex items-center justify-center gap-1.5">
                   <span class="w-2 h-2 rounded-full" [class.bg-emerald-500]="transcript().releaseState === 'released'" [class.bg-amber-500]="transcript().releaseState !== 'released'"></span>

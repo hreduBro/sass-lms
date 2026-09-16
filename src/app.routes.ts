@@ -25,6 +25,15 @@ import { CertificateTemplateCreateComponent } from './pages/certificate-template
 import { CertificatesVaultComponent } from './pages/certificate-templates/certificates-vault/certificates-vault.component';
 import { SignatoryGridComponent } from './pages/signatories/signatory-grid/signatory-grid.component';
 import { SignatoryDashboardComponent } from './pages/signatories/signatory-dashboard/signatory-dashboard.component';
+import { VenueGridComponent } from './pages/venues/venue-grid/venue-grid.component';
+import { VenueDashboardComponent } from './pages/venues/venue-dashboard/venue-dashboard.component';
+import { VenueCreateComponent } from './pages/venues/venue-create/venue-create.component';
+import { VenueViewComponent } from './pages/venues/venue-view/venue-view.component';
+import { OfflineTrainingGridComponent } from './pages/offline-trainings/offline-training-grid/offline-training-grid.component';
+import { OfflineTrainingDashboardComponent } from './pages/offline-trainings/offline-training-dashboard/offline-training-dashboard.component';
+import { OfflineTrainingCreateComponent } from './pages/offline-trainings/offline-training-create/offline-training-create.component';
+import { OfflineTrainingViewComponent } from './pages/offline-trainings/offline-training-view/offline-training-view.component';
+import { OfflineTrainingResultsComponent } from './pages/offline-trainings/offline-training-results/offline-training-results.component';
 import { BadgeGridComponent } from './pages/badge-templates/badge-grid/badge-grid.component';
 import { BadgeDashboardComponent } from './pages/badge-templates/badge-dashboard/badge-dashboard.component';
 import { BadgeCreateComponent } from './pages/badge-templates/badge-create/badge-create.component';
@@ -301,6 +310,13 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
   {
+    path: 'authors/edit/:id',
+    loadComponent: () => import('./pages/authors/author-create/author-create.component').then(m => m.AuthorCreateComponent),
+    title: 'Edit Author Profile | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
     path: 'authors/:id',
     loadComponent: () => import('./pages/authors/author-details/author-details.component').then(m => m.AuthorDetailsComponent),
     title: 'Author Profile & History | Multi-Tenant LMS',
@@ -320,6 +336,13 @@ export const routes: Routes = [
     path: 'instructors/create',
     loadComponent: () => import('./pages/instructors/instructor-create/instructor-create.component').then(m => m.InstructorCreateComponent),
     title: 'Create Instructor Profile | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'instructors/edit/:id',
+    loadComponent: () => import('./pages/instructors/instructor-create/instructor-create.component').then(m => m.InstructorCreateComponent),
+    title: 'Edit Instructor Profile | Multi-Tenant LMS',
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
@@ -525,6 +548,87 @@ export const routes: Routes = [
     path: 'assessments/results/:attemptId', 
     loadComponent: () => import('./pages/assessments/assessment-results/assessment-results.component').then(m => m.AssessmentResultsComponent), 
     title: 'Grade Assessment Attempt | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Venues & Physical Facilities Management (BRD §4.11 / Spec 2)
+  {
+    path: 'venues',
+    component: VenueGridComponent,
+    title: 'Venues & Facilities | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'venues/dashboard',
+    component: VenueDashboardComponent,
+    title: 'Venue Capacity & Utilization | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'venues/create',
+    component: VenueCreateComponent,
+    title: 'Register Venue | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+  {
+    path: 'venues/edit/:id',
+    component: VenueCreateComponent,
+    title: 'Edit Venue | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+  {
+    path: 'venues/view/:id',
+    component: VenueViewComponent,
+    title: 'Venue Details & Room Directory | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
+  // Offline Training & In-Person Classroom Delivery (BRD §4.11 / Spec 2)
+  {
+    path: 'offline-trainings',
+    component: OfflineTrainingGridComponent,
+    title: 'In-Person Workshops | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'offline-trainings/dashboard',
+    component: OfflineTrainingDashboardComponent,
+    title: 'Offline Training Telemetry | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'offline-trainings/create',
+    component: OfflineTrainingCreateComponent,
+    title: 'Design Offline Training | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'offline-trainings/edit/:id',
+    component: OfflineTrainingCreateComponent,
+    title: 'Edit Offline Training | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'offline-trainings/view/:id',
+    component: OfflineTrainingViewComponent,
+    title: 'Offline Training Details & Cohorts | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'offline-trainings/results',
+    component: OfflineTrainingResultsComponent,
+    title: 'Trainee Gradebook & Manual Marks | Multi-Tenant LMS',
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },

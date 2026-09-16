@@ -739,6 +739,67 @@
             </div>
           </div>
 
+          <!-- Section 5: Data Sharing Governance & Federation -->
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">hub</span>
+              5. Data Sharing Governance & Federation
+            </h3>
+            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-3 text-xs">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-text-secondary block">Org Master Policy</span>
+                  <strong class="text-text-primary">
+                    {{ isOrgDataSharingEnabled(selectedLms()) ? 'Organization Sharing Permitted (Yes)' : 'Strict Data Segregation Enforced (No)' }}
+                  </strong>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold border"
+                      [ngClass]="isOrgDataSharingEnabled(selectedLms()) 
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' 
+                        : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-800'">
+                  {{ isOrgDataSharingEnabled(selectedLms()) ? 'Org Sharing: Yes' : 'Org Sharing: No (Locked)' }}
+                </span>
+              </div>
+
+              @if (isOrgDataSharingEnabled(selectedLms())) {
+                <div class="p-3 rounded-xl bg-base-100 border border-base-300 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-text-secondary text-[11px]">LMS Instance Status:</span>
+                    <strong class="font-bold" [ngClass]="isLmsSharingActive(selectedLms()) ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'">
+                      {{ isLmsSharingActive(selectedLms()) ? 'Active Sharing Participant' : 'Opted Out (Private)' }}
+                    </strong>
+                  </div>
+
+                  @if (isLmsSharingActive(selectedLms())) {
+                    <div class="grid grid-cols-2 gap-2 pt-1 border-t border-base-200 text-[11px]">
+                      <div class="flex items-center gap-1.5" [ngClass]="selectedLms()?.resources?.dataSharing?.shareCourses !== false ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ selectedLms()?.resources?.dataSharing?.shareCourses !== false ? 'check_circle' : 'cancel' }}</span>
+                        <span>Courses: <strong>{{ selectedLms()?.resources?.dataSharing?.shareCourses !== false ? 'Shared' : 'Private' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="selectedLms()?.resources?.dataSharing?.shareFacultyPool !== false ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ selectedLms()?.resources?.dataSharing?.shareFacultyPool !== false ? 'check_circle' : 'cancel' }}</span>
+                        <span>Faculty: <strong>{{ selectedLms()?.resources?.dataSharing?.shareFacultyPool !== false ? 'Shared' : 'Private' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="selectedLms()?.resources?.dataSharing?.shareAssessmentBank !== false ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ selectedLms()?.resources?.dataSharing?.shareAssessmentBank !== false ? 'check_circle' : 'cancel' }}</span>
+                        <span>Assessments: <strong>{{ selectedLms()?.resources?.dataSharing?.shareAssessmentBank !== false ? 'Shared' : 'Private' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="selectedLms()?.resources?.dataSharing?.shareTranscripts ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ selectedLms()?.resources?.dataSharing?.shareTranscripts ? 'check_circle' : 'cancel' }}</span>
+                        <span>Transcripts: <strong>{{ selectedLms()?.resources?.dataSharing?.shareTranscripts ? 'Shared' : 'Private' }}</strong></span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-amber-600">lock</span>
+                  <span>Master Organization Policy enforces full data segregation. No cross-LMS federation permitted.</span>
+                </div>
+              }
+            </div>
+          </div>
+
         </div>
 
         <!-- Modal Footer Actions -->

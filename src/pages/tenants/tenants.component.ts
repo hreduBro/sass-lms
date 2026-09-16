@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { Tenant, TenantPlan, TenantStatus } from '../../models/lms.model';
-import { OrganizationDraft } from '../../models/organization.model';
+import { OrganizationDraft, isOrgDataSharingAllowed } from '../../models/organization.model';
 
 export interface OrgGridFilters {
   status: TenantStatus[];
@@ -450,14 +450,13 @@ export class TenantsComponent {
   }
 
   getSharingModeText(tenant: Tenant): string {
+    return this.isSharingAllowed(tenant) ? 'Yes – Sharing Allowed' : 'No – Strict Segregation';
+  }
+
+  isSharingAllowed(tenant: Tenant): boolean {
+    if (tenant.id === 'tenant-stanford' || tenant.id === 'tenant-finedge') return false;
     const mode = tenant.resourceAllocation?.dataSharingMode;
-    if (mode === 'No – Segregated' || tenant.id === 'tenant-stanford' || tenant.id === 'tenant-finedge') {
-      return 'No – Segregated';
-    }
-    if (mode === 'Custom' || tenant.id === 'tenant-apexhealth') {
-      return 'Custom';
-    }
-    return 'Yes – Shared';
+    return isOrgDataSharingAllowed(mode);
   }
 
   getLearnerUsagePct(tenant: Tenant): number {

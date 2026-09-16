@@ -1816,9 +1816,24 @@ export class CourseCreateComponent implements OnInit {
     }));
   });
 
-  // Quick Inline Author Creation Modal State
+  // Author Role / Kind Options for custom select
+  authorKindOptions: SelectOption[] = [
+    { value: 'authorOnly', label: 'Author', icon: 'edit_note' },
+    { value: 'instructor', label: 'Instructor', icon: 'school' },
+    { value: 'both', label: 'Author + Instructor', icon: 'badge' }
+  ];
+
+  // Quick Inline Author / Instructor Creation Modal State
   showQuickAuthorModal = signal<boolean>(false);
   quickAuthorTargetItem = signal<CourseContentItem | null>(null);
+  quickPersonnelRole = signal<'author' | 'instructor' | 'both'>('author');
+
+  quickRoleOptions: SelectOption[] = [
+    { value: 'author', label: 'Content Author', sublabel: 'Curriculum & lesson instructional author', icon: 'edit_note' },
+    { value: 'instructor', label: 'Faculty Instructor', sublabel: 'Faculty member delivering course layers', icon: 'school' },
+    { value: 'both', label: 'Dual-Role (Author + Instructor)', sublabel: 'Course author with faculty teaching privileges', icon: 'badge' }
+  ];
+
   quickAuthorForm = {
     name: '',
     email: '',
@@ -1829,6 +1844,7 @@ export class CourseCreateComponent implements OnInit {
 
   openQuickAuthorModal(item?: CourseContentItem) {
     if (item) this.quickAuthorTargetItem.set(item);
+    this.quickPersonnelRole.set('author');
     this.quickAuthorForm = {
       name: '',
       email: '',
@@ -1844,28 +1860,92 @@ export class CourseCreateComponent implements OnInit {
     this.quickAuthorTargetItem.set(null);
   }
 
+  onSelectAuthorForContent(item: CourseContentItem, authorId: string | string[]) {
+    const id = Array.isArray(authorId) ? authorId[0] : authorId;
+    if (id) {
+      this.addAuthorToContentItem(item, id);
+    }
+  }
+
   saveQuickAuthor() {
     if (!this.quickAuthorForm.name.trim() || !this.quickAuthorForm.email.trim()) {
-      this.lmsService.showToast('Please provide author name and email.', 'error', 3000, 'Required Fields');
+      this.lmsService.showToast('Please provide full name and email address.', 'error', 3000, 'Required Fields');
       return;
     }
 
-    const res = this.lmsService.addAuthor({
-      name: this.quickAuthorForm.name.trim(),
-      email: this.quickAuthorForm.email.trim(),
-      contactNumber: this.quickAuthorForm.contactNumber.trim() || undefined,
-      specialization: this.quickAuthorForm.specialization.trim(),
-      bio: this.quickAuthorForm.bio.trim() || undefined,
-      status: 'Active'
-    });
+    const role = this.quickPersonnelRole();
+    const cleanName = this.quickAuthorForm.name.trim();
+    const cleanEmail = this.quickAuthorForm.email.trim();
+    const contact = this.quickAuthorForm.contactNumber.trim() || undefined;
+    const spec = this.quickAuthorForm.specialization.trim() || 'General Learning Content';
+    const bio = this.quickAuthorForm.bio.trim() || undefined;
 
-    if (res.success) {
-      const targetItem = this.quickAuthorTargetItem();
-      if (targetItem) {
-        this.addAuthorToContentItem(targetItem, res.author.id);
-      }
-      this.closeQuickAuthorModal();
+    let createdId = '';
+
+    if (role === 'author') {
+      const res = this.lmsService.addAuthor({
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: contact,
+        specialization: spec,
+        bio: bio,
+        status: 'Active',
+        isQuickAdd: true
+      });
+      if (!res.success) return;
+      createdId = res.author.id;
+    } else if (role === 'instructor') {
+      const res = this.lmsService.addInstructor({
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: contact,
+        specialization: spec,
+        bio: bio,
+        department: 'Academic & Faculty Division',
+        title: 'Faculty Instructor',
+        status: 'Active',
+        isQuickAdd: true
+      });
+      if (!res.success) return;
+      createdId = res.instructor.id;
+    } else {
+      // Both Author and Instructor
+      const authRes = this.lmsService.addAuthor({
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: contact,
+        specialization: spec,
+        bio: bio,
+        status: 'Active',
+        isQuickAdd: true
+      });
+      const instRes = this.lmsService.addInstructor({
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: contact,
+        specialization: spec,
+        bio: bio,
+        department: 'Academic & Faculty Division',
+        title: 'Faculty Instructor & Author',
+        status: 'Active',
+        isQuickAdd: true
+      });
+      createdId = authRes.author?.id || instRes.instructor?.id || '';
     }
+
+    const targetItem = this.quickAuthorTargetItem();
+    if (targetItem && createdId) {
+      this.addAuthorToContentItem(targetItem, createdId);
+    }
+
+    this.lmsService.showToast(
+      `Quick-added "${cleanName}". Tagged to item and marked with "Incomplete profile" badge in All Users.`,
+      'info',
+      4500,
+      'Quick Personnel Added'
+    );
+
+    this.closeQuickAuthorModal();
   }
 
   addAuthorToContentItem(item: CourseContentItem, authorOrInstructorId: string) {

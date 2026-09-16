@@ -1197,8 +1197,8 @@
 <!-- 6. QUESTION REPOSITORY MODAL ("Add from Repository")                      -->
 <!-- ========================================================================= -->
 @if (showRepositoryModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-    <div class="w-full max-w-4xl max-h-[90vh] bg-base-100 rounded-3xl border border-base-300 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+    <div class="w-full max-w-4xl max-h-[90vh] bg-base-100 rounded-3xl border border-base-300 shadow-2xl flex flex-col overflow-hidden animate-modal-card">
       
       <!-- Modal Header -->
       <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-100">
@@ -1396,8 +1396,8 @@
 
 <!-- Delete Question Confirmation Modal -->
 @if (showDeleteQuestionConfirm()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-    <div class="w-full max-w-md bg-base-100 rounded-3xl border border-base-300 p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+  <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+    <div class="w-full max-w-md bg-base-100 rounded-3xl border border-base-300 p-6 shadow-2xl space-y-4 animate-modal-card">
       <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 flex items-center justify-center font-bold">
         <span class="material-symbols-outlined text-2xl">delete_forever</span>
       </div>

@@ -210,6 +210,85 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    label: 'Offline Trainings',
+    route: '/offline-trainings',
+    icon: 'groups_3',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'In-Person',
+    description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
+    matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
+    children: [
+      {
+        label: 'Training Catalog',
+        route: '/offline-trainings',
+        icon: 'grid_view',
+        description: 'Browse, filter & search offline trainings',
+        matchPatterns: ['/offline-trainings', '/offline-trainings/view/**']
+      },
+      {
+        label: 'Training Dashboard',
+        route: '/offline-trainings/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Telemetry',
+        description: 'Classroom statistics, venue distribution & capacity metrics',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/dashboard']
+      },
+      {
+        label: 'Create Training',
+        route: '/offline-trainings/create',
+        icon: 'add_circle',
+        badge: 'Builder',
+        description: '5-step in-person offline training creation wizard',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/create', '/offline-trainings/edit/**']
+      },
+      {
+        label: 'Trainee Results',
+        route: '/offline-trainings/results',
+        icon: 'fact_check',
+        badge: 'Gradebook',
+        description: 'Attendance log, manual mark entry & cohort pass status',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/results']
+      }
+    ]
+  },
+  {
+    label: 'Venues & Facilities',
+    route: '/venues',
+    icon: 'location_city',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Physical',
+    description: 'Manage physical learning centers, rooms, seating layouts & capacity guidance',
+    matchPatterns: ['/venues', '/venues/**'],
+    children: [
+      {
+        label: 'Venue Directory',
+        route: '/venues',
+        icon: 'domain',
+        description: 'Browse, filter & manage physical venues & rooms',
+        matchPatterns: ['/venues', '/venues/view/**']
+      },
+      {
+        label: 'Venue Dashboard',
+        route: '/venues/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Metrics',
+        description: 'Venue telemetry, room utilization & capacity benchmarks',
+        matchPatterns: ['/venues/dashboard']
+      },
+      {
+        label: 'Create Venue',
+        route: '/venues/create',
+        icon: 'add_location_alt',
+        badge: 'New',
+        description: 'Register physical venue with geo-coords & room configurations',
+        matchPatterns: ['/venues/create', '/venues/edit/**']
+      }
+    ]
+  },
+  {
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
@@ -328,7 +407,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'history_edu',
         badge: 'Credits',
         description: 'Organization-scoped author pool & media credits',
-        matchPatterns: ['/authors', '/authors/:id', '/authors/*']
+        matchPatterns: ['/authors', '/authors/view/**', '/authors/details/**']
       },
       {
         label: 'Instructors Pool',
@@ -336,7 +415,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'co_present',
         badge: 'Faculty',
         description: 'Faculty pool & course layer assignments',
-        matchPatterns: ['/instructors', '/instructors/:id', '/instructors/*']
+        matchPatterns: ['/instructors', '/instructors/view/**', '/instructors/details/**']
       },
       {
         label: 'Create Author',
@@ -344,7 +423,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'person_add',
         badge: 'New',
         description: 'Onboard new content author with duplicate check',
-        matchPatterns: ['/authors/create']
+        matchPatterns: ['/authors/create', '/authors/edit/**']
       },
       {
         label: 'Create Instructor',
@@ -352,7 +431,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'school',
         badge: 'New',
         description: 'Onboard new course delivery instructor',
-        matchPatterns: ['/instructors/create']
+        matchPatterns: ['/instructors/create', '/instructors/edit/**']
       }
     ]
   },
@@ -616,6 +695,38 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   if (childRoute === '/certificates/badges' && (!childQueryParams || !childQueryParams['tab'])) {
     if (currentUrl.includes('tab=earned') || currentUrl.includes('tab=templates')) {
       return false;
+    }
+  }
+
+  // Disambiguation for Authors Pool vs Create / Edit Author
+  if (cleanChildRoute === '/authors') {
+    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
+      return false;
+    }
+    if (cleanUrl === '/authors' || cleanUrl.startsWith('/authors/')) {
+      return true;
+    }
+  }
+
+  if (cleanChildRoute === '/authors/create') {
+    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
+      return true;
+    }
+  }
+
+  // Disambiguation for Instructors Pool vs Create / Edit Instructor
+  if (cleanChildRoute === '/instructors') {
+    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
+      return false;
+    }
+    if (cleanUrl === '/instructors' || cleanUrl.startsWith('/instructors/')) {
+      return true;
+    }
+  }
+
+  if (cleanChildRoute === '/instructors/create') {
+    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
+      return true;
     }
   }
 

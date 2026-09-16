@@ -685,7 +685,7 @@
           }
 
           <!-- Grid Info Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <!-- Resource Quotas -->
             <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300/60 space-y-1 text-xs">
               <span class="text-[11px] font-bold text-text-primary flex items-center gap-1">
@@ -695,7 +695,7 @@
               <span class="text-sm font-mono font-bold text-text-primary block">
                 {{ selectedTenant()?.resourceAllocation?.databaseSizeGb || selectedTenant()?.stats?.storageLimitGb }} GB
               </span>
-              <span class="text-[10px] text-text-secondary">Dedicated partition</span>
+              <span class="text-[10px] text-text-secondary">Dedicated pool</span>
             </div>
 
             <!-- File Storage -->
@@ -707,7 +707,21 @@
               <span class="text-sm font-mono font-bold text-text-primary block">
                 {{ selectedTenant()?.resourceAllocation?.fileStorageGb || selectedTenant()?.stats?.storageLimitGb }} GB
               </span>
-              <span class="text-[10px] text-text-secondary">Media, SCORM & Assets</span>
+              <span class="text-[10px] text-text-secondary">Media & SCORM</span>
+            </div>
+
+            <!-- Data Sharing Governance -->
+            <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300/60 space-y-1 text-xs">
+              <span class="text-[11px] font-bold text-text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm" [ngClass]="isSharingAllowed(selectedTenant()!) ? 'text-emerald-500' : 'text-amber-500'">
+                  {{ isSharingAllowed(selectedTenant()!) ? 'verified_user' : 'lock' }}
+                </span>
+                Data Sharing
+              </span>
+              <span class="text-xs font-bold block" [ngClass]="isSharingAllowed(selectedTenant()!) ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">
+                {{ isSharingAllowed(selectedTenant()!) ? 'Permitted (LMS Config)' : 'Locked (Strict Segregation)' }}
+              </span>
+              <span class="text-[10px] text-text-secondary">Org Governance Policy</span>
             </div>
 
             <!-- LMS Instances Count -->

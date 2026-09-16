@@ -1,0 +1,343 @@
+@if (venue(); as v) {
+  <div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+          <a routerLink="/venues" class="hover:text-emerald-600 transition-colors">Venues</a>
+          <span>/</span>
+          <span class="text-slate-900 dark:text-white">{{ v.code }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {{ v.name }}
+          </h1>
+          <span [class]="v.status === 'active' 
+                         ? 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                         : 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800'">
+            {{ v.status === 'active' ? 'Active Physical Facility' : 'Inactive Facility' }}
+          </span>
+        </div>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+          <mat-icon class="text-sm text-slate-400">place</mat-icon>
+          <span>{{ v.address.formatted || (v.address.line1 + ', ' + v.address.city + ' ' + v.address.postcode) }}</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a [routerLink]="['/venues/edit', v.venueId]"
+           class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5">
+          <mat-icon class="text-base text-sky-500">edit</mat-icon>
+          <span>Edit Details</span>
+        </a>
+
+        @if (v.status === 'active') {
+          <button (click)="promptDeactivateVenue()"
+                  class="px-4 py-2 text-sm font-semibold text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 rounded-xl transition-colors flex items-center gap-1.5">
+            <mat-icon class="text-base">power_settings_new</mat-icon>
+            <span>Deactivate</span>
+          </button>
+        } @else {
+          <button (click)="promptReactivateVenue()"
+                  class="px-4 py-2 text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 rounded-xl transition-colors flex items-center gap-1.5">
+            <mat-icon class="text-base">check_circle</mat-icon>
+            <span>Reactivate</span>
+          </button>
+        }
+
+        <button (click)="openAddRoomModal()"
+                class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5">
+          <mat-icon class="text-base">add</mat-icon>
+          <span>Add Room</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI STATS CARDS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+        <span class="text-xs font-medium text-slate-500">Total Rooms</span>
+        <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ v.rooms.length }}</div>
+        <span class="text-2xs text-emerald-600 font-semibold">{{ getActiveRoomsCount() }} active rooms</span>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+        <span class="text-xs font-medium text-slate-500">Total Seating Capacity</span>
+        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ getTotalCapacity() }}</div>
+        <span class="text-2xs text-slate-400">concurrent seats</span>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+        <span class="text-xs font-medium text-slate-500">Delivery Classes</span>
+        <div class="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-1">{{ v.usedInClassesCount || 0 }}</div>
+        <span class="text-2xs text-slate-400">historical bookings</span>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+        <span class="text-xs font-medium text-slate-500">Campus Facilities</span>
+        <div class="flex items-center gap-2 mt-2">
+          @if (v.facilities.internet) { <mat-icon class="text-emerald-500" title="Wi-Fi">wifi</mat-icon> }
+          @if (v.facilities.parking) { <mat-icon class="text-sky-500" title="Parking">local_parking</mat-icon> }
+          @if (v.facilities.accessibility) { <mat-icon class="text-purple-500" title="Accessibility">accessible</mat-icon> }
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT: ROOMS LISTING (2 COLUMNS) -->
+      <div class="lg:col-span-2 space-y-4">
+        
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <mat-icon class="text-emerald-500">meeting_room</mat-icon>
+              Configured Training Rooms ({{ v.rooms.length }})
+            </h3>
+            <button (click)="openAddRoomModal()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+              <mat-icon class="text-xs">add</mat-icon> Add Room
+            </button>
+          </div>
+
+          @if (v.rooms.length === 0) {
+            <div class="text-center py-8 text-slate-400 text-sm">
+              No rooms currently configured in this venue.
+            </div>
+          }
+
+          <div class="space-y-3">
+            @for (room of v.rooms; track room.roomId) {
+              <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900/80 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm text-slate-900 dark:text-white">{{ room.name }}</span>
+                    <span [class]="room.status === 'active' 
+                                   ? 'px-2 py-0.5 text-2xs font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
+                                   : 'px-2 py-0.5 text-2xs font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'">
+                      {{ room.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                    @if (room.floorLevel) {
+                      <span class="text-2xs text-slate-400 bg-slate-200/60 dark:bg-slate-700 px-2 py-0.5 rounded-md">
+                        {{ room.floorLevel }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span class="font-mono flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
+                      <mat-icon class="text-xs text-purple-500">groups</mat-icon>
+                      Capacity: <strong>{{ room.capacity }}</strong> seats
+                    </span>
+                    <span>•</span>
+                    <span class="capitalize">Layouts: {{ room.seatingLayouts.join(', ') }}</span>
+                  </div>
+
+                  @if (room.notes) {
+                    <p class="text-2xs text-slate-400 italic">{{ room.notes }}</p>
+                  }
+                </div>
+
+                <!-- Hardware & Quick Actions -->
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="flex items-center gap-1 text-slate-400 border-r border-slate-200 dark:border-slate-700 pr-3">
+                    @if (room.equipment.projector) { <mat-icon class="text-sm text-emerald-500" title="Projector">videocam</mat-icon> }
+                    @if (room.equipment.soundSystem) { <mat-icon class="text-sm text-sky-500" title="Sound System">speaker</mat-icon> }
+                    @if (room.equipment.microphone) { <mat-icon class="text-sm text-purple-500" title="Microphone">mic</mat-icon> }
+                    @if (room.equipment.displayScreen) { <mat-icon class="text-sm text-amber-500" title="Screen">tv</mat-icon> }
+                  </div>
+
+                  <div class="flex items-center gap-1">
+                    <button (click)="openEditRoomModal(room)" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <mat-icon class="text-sm">edit</mat-icon>
+                    </button>
+                    @if (room.status === 'active') {
+                      <button (click)="promptDeactivateRoom(room)" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Deactivate Room">
+                        <mat-icon class="text-sm">power_settings_new</mat-icon>
+                      </button>
+                    } @else {
+                      <button (click)="promptReactivateRoom(room)" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Reactivate Room">
+                        <mat-icon class="text-sm">check_circle</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- INTERACTIVE CAPACITY GUIDANCE RULE TESTER (BRD §4.11 / Spec 2) -->
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <mat-icon class="text-purple-500">rule</mat-icon>
+              Interactive Room Capacity Guidance Rule
+            </h3>
+            <span class="text-2xs font-mono text-slate-400">BRD Capacity Enforcement Rule</span>
+          </div>
+
+          <p class="text-xs text-slate-500">
+            Simulate a batch enrollment count against any room in this facility to verify whether the system permits booking or generates an over-capacity alert.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Select Target Room</label>
+              <select [value]="selectedRoomForCapacityCheck()"
+                      (change)="selectedRoomForCapacityCheck.set($any($event.target).value)"
+                      class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                @for (r of v.rooms; track r.roomId) {
+                  <option [value]="r.roomId">{{ r.name }} (Max Cap: {{ r.capacity }} seats)</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Simulated Trainee Batch Count</label>
+              <input type="number" min="1" max="500"
+                     [value]="testBatchSize()"
+                     (input)="testBatchSize.set($any($event.target).valueAsNumber || 1)"
+                     class="w-full px-3 py-2 text-sm font-mono bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+            </div>
+          </div>
+
+          @if (capacityCheckResult(); as res) {
+            <div [class]="res.isOverCapacity 
+                         ? 'p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-start gap-2.5' 
+                         : 'p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-start gap-2.5'">
+              <mat-icon class="text-base shrink-0 mt-0.5">{{ res.isOverCapacity ? 'warning' : 'check_circle' }}</mat-icon>
+              <div>
+                <span class="font-bold">{{ res.isOverCapacity ? 'Capacity Alert: Limit Exceeded' : 'Capacity Validated: Acceptable' }}</span>
+                <p class="mt-0.5 leading-relaxed">{{ res.message }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- RIGHT: FACILITY INFO & CONTACT PERSON (1 COLUMN) -->
+      <div class="space-y-4">
+        
+        <!-- Campus Supervisor Card -->
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+            <mat-icon class="text-emerald-500">badge</mat-icon>
+            Campus Point of Contact
+          </h3>
+
+          @if (v.contactPerson) {
+            <div class="space-y-2 text-xs">
+              <div class="font-bold text-slate-900 dark:text-white text-sm">{{ v.contactPerson.name }}</div>
+              <div class="text-slate-500">{{ v.contactPerson.role }}</div>
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1 text-slate-600 dark:text-slate-300">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-xs text-slate-400">call</mat-icon>
+                  <span>{{ v.contactPerson.phone }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-xs text-slate-400">mail</mat-icon>
+                  <span>{{ v.contactPerson.email }}</span>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="text-xs text-slate-400 italic">No facility manager assigned yet.</div>
+          }
+        </div>
+
+        <!-- Geo Coordinates Card -->
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+            <mat-icon class="text-sky-500">map</mat-icon>
+            Location & Geo Coordinates
+          </h3>
+          <div class="text-xs space-y-1 font-mono text-slate-600 dark:text-slate-300">
+            <div>Lat: <strong>{{ v.geo.lat || '23.7925' }}</strong></div>
+            <div>Lng: <strong>{{ v.geo.lng || '90.4078' }}</strong></div>
+          </div>
+          <div class="pt-2 text-2xs text-slate-400">
+            Mapped into Enterprise Learning GPS dispatcher.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+}
+
+<!-- ROOM EDIT/CREATE MODAL -->
+@if (isRoomModalOpen()) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900 dark:text-white text-base">
+          {{ editingRoom() ? 'Edit Room Configuration' : 'Add New Room' }}
+        </h3>
+        <button (click)="closeRoomModal()" class="text-slate-400 hover:text-slate-600">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="roomForm" (ngSubmit)="submitRoomForm()" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Room Name *</label>
+          <input type="text" formControlName="name" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Capacity (Seats) *</label>
+            <input type="number" formControlName="capacity" min="1" max="1000" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Floor Level</label>
+            <input type="text" formControlName="floorLevel" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Notes</label>
+          <input type="text" formControlName="notes" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" (click)="closeRoomModal()" class="px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="roomForm.invalid"
+                  class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+            Save Room
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- CONFIRMATION MODAL -->
+@if (confirmDialog().isOpen) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">{{ confirmDialog().title }}</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+        {{ confirmDialog().message }}
+      </p>
+      <div class="flex items-center justify-end gap-3">
+        <button (click)="closeConfirm()" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200">
+          Cancel
+        </button>
+        <button (click)="executeConfirm()"
+                class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">
+          {{ confirmDialog().confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

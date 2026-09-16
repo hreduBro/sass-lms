@@ -1,0 +1,153 @@
+<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+
+  <!-- TOP HEADER -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+        <a routerLink="/offline-trainings" class="hover:text-emerald-600 transition-colors">Offline Trainings</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white">Trainee Gradebook & Manual Mark Entry</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+        <mat-icon class="text-purple-600 dark:text-purple-400">fact_check</mat-icon>
+        Offline Trainee Gradebook (Mode C Evaluator)
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        Record attendance percentages, enter manual instructor evaluation rubric scores, and calculate automated cohort pass statuses.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button (click)="saveAll()"
+              class="px-5 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-xs transition-all flex items-center gap-2">
+        <mat-icon class="text-base">save</mat-icon>
+        <span>Save All Grades</span>
+      </button>
+    </div>
+  </div>
+
+  @if (saveSuccessAlert()) {
+    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+      <mat-icon class="text-base text-emerald-600">check_circle</mat-icon>
+      <span class="font-semibold">{{ saveSuccessAlert() }}</span>
+    </div>
+  }
+
+  <!-- SELECTION CONTROLS -->
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 max-w-2xl">
+      <div>
+        <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Target Offline Workshop</label>
+        <select [value]="selectedTrainingId()"
+                (change)="onTrainingChange($any($event.target).value)"
+                class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-800 dark:text-slate-200">
+          @for (t of trainings(); track t.trainingId) {
+            <option [value]="t.trainingId">{{ t.title }} ({{ t.code }})</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Course Cohort / Embedding</label>
+        <select [value]="selectedEmbeddingId()"
+                (change)="selectedEmbeddingId.set($any($event.target).value)"
+                class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200">
+          <option value="all">All Cohorts & Embeddings</option>
+          @for (c of cohorts(); track c.embeddingId) {
+            <option [value]="c.embeddingId">{{ c.hostEntityTitle }} ({{ c.customBatchName || 'Default Batch' }})</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- QUICK STATS PILL -->
+    <div class="flex items-center gap-4 text-xs">
+      <div class="text-right">
+        <span class="text-slate-400 block text-2xs uppercase font-bold">Class Average</span>
+        <span class="font-mono text-base font-bold text-slate-900 dark:text-white">{{ avgScore() }}%</span>
+      </div>
+      <div class="text-right">
+        <span class="text-slate-400 block text-2xs uppercase font-bold">Passed</span>
+        <span class="font-mono text-base font-bold text-emerald-600">{{ passCount() }} / {{ results().length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRADEBOOK TABLE -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+        <thead class="bg-slate-50 dark:bg-slate-900/60 uppercase font-bold text-slate-500 border-b border-slate-200 dark:border-slate-700">
+          <tr>
+            <th class="px-5 py-3.5">Trainee</th>
+            <th class="px-4 py-3.5">Attendance (%)</th>
+            <th class="px-4 py-3.5">Manual Score (0 - 100)</th>
+            <th class="px-4 py-3.5">Calculated Status</th>
+            <th class="px-4 py-3.5">Instructor Remarks / Viva Feedback</th>
+            <th class="px-5 py-3.5 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+          @for (r of results(); track r.resultId) {
+            <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors">
+              <td class="px-5 py-3.5">
+                <div class="font-bold text-slate-900 dark:text-white">{{ r.traineeName }}</div>
+                <div class="text-2xs text-slate-400 font-mono">{{ r.traineeEmail }}</div>
+              </td>
+
+              <!-- Attendance Input -->
+              <td class="px-4 py-3.5">
+                <div class="flex items-center gap-1.5">
+                  <input type="number" min="0" max="100"
+                         [value]="editableMarks()[r.resultId]?.attendance ?? r.attendancePercentage"
+                         (input)="updateAttendance(r.resultId, $any($event.target).valueAsNumber)"
+                         class="w-16 px-2 py-1 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center" />
+                  <span class="text-slate-400 font-bold">%</span>
+                </div>
+              </td>
+
+              <!-- Manual Score Input -->
+              <td class="px-4 py-3.5">
+                <div class="flex items-center gap-1.5">
+                  <input type="number" min="0" max="100"
+                         [value]="editableMarks()[r.resultId]?.marks ?? r.manualMarkScore ?? 0"
+                         (input)="updateMark(r.resultId, $any($event.target).valueAsNumber)"
+                         class="w-16 px-2 py-1 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-purple-600 dark:text-purple-400" />
+                  <span class="text-slate-400 font-bold">/ 100</span>
+                </div>
+              </td>
+
+              <!-- Calculated Status -->
+              <td class="px-4 py-3.5">
+                <span [class]="r.passStatus === 'passed' 
+                               ? 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
+                               : 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'">
+                  {{ r.passStatus | uppercase }}
+                </span>
+                <span class="text-2xs text-slate-400 block mt-0.5">Overall: {{ r.finalOverallScore ?? '--' }}%</span>
+              </td>
+
+              <!-- Instructor Feedback -->
+              <td class="px-4 py-3.5">
+                <input type="text"
+                       [value]="editableMarks()[r.resultId]?.remarks ?? r.instructorRemarks ?? ''"
+                       (input)="updateRemarks(r.resultId, $any($event.target).value)"
+                       placeholder="Add performance feedback or viva notes..."
+                       class="w-full px-2.5 py-1 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg" />
+              </td>
+
+              <!-- Save Button -->
+              <td class="px-5 py-3.5 text-right">
+                <button (click)="saveRow(r)"
+                        class="px-3 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 rounded-lg transition-colors">
+                  Save
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

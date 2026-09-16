@@ -13,6 +13,18 @@ export interface PersonRecord {
   updatedAt?: string;
 }
 
+export interface PersonnelAttachment {
+  id: string;
+  name: string;
+  size: number;
+  sizeFormatted: string;
+  type: string;
+  category: 'CV / Resume' | 'Certificate / Credential' | 'Portfolio / Sample' | 'Identity / Government ID' | 'General Document' | 'Other Media';
+  url: string;
+  uploadedAt: string;
+  isImage?: boolean;
+}
+
 export interface AuthorProfile {
   id: string;
   personId: string;
@@ -29,6 +41,9 @@ export interface AuthorProfile {
   createdAt: string;
   updatedAt?: string;
   authoredItemsCount?: number;
+  isProfileComplete?: boolean;
+  incompleteReason?: string;
+  attachments?: PersonnelAttachment[];
 }
 
 export interface AuthorshipRecord {
@@ -63,6 +78,9 @@ export interface AuthorCreateForm {
   bio?: string;
   specialization: string;
   status: 'Active' | 'Inactive';
+  avatar?: string;
+  attachments?: PersonnelAttachment[];
+  isQuickAdd?: boolean;
 }
 
 export const INITIAL_AUTHORS_REPO: AuthorProfile[] = [

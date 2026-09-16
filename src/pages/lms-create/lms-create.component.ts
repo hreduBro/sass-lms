@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ConfirmationModalService } from '../../services/confirmation-modal.service';
-import { TIMEZONE_OPTIONS, TimezoneOption } from '../../models/organization.model';
-import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance } from '../../models/lms-instance.model';
+import { TIMEZONE_OPTIONS, TimezoneOption, isOrgDataSharingAllowed } from '../../models/organization.model';
+import { LmsBasicInfo, LmsResourceAllocation, LmsAdminInfo, LmsDraft, LmsType, LmsInstance, LmsDataSharingConfig } from '../../models/lms-instance.model';
 import { CustomSelectComponent } from '../../components/custom-select/custom-select.component';
 import { StepperComponent, StepperStep } from '../../components/stepper/stepper.component';
 
@@ -62,6 +62,23 @@ export class LmsCreateComponent implements OnInit {
   databaseSizeGb = signal<number | null>(null);
   fileStorageGb = signal<number | null>(null);
   usageAlertThresholdPct = signal<number | null>(null);
+
+  // Step 2: Data Sharing Governance & LMS Admin Configuration (§4.2)
+  // Governance check: parent org dataSharingMode acts as master gate
+  isOrgDataSharingEnabled = computed(() => {
+    const org = this.parentOrg();
+    const mode = org?.resourceAllocation?.dataSharingMode;
+    if (org?.id === 'tenant-stanford' || org?.id === 'tenant-finedge') return false;
+    return isOrgDataSharingAllowed(mode);
+  });
+
+  lmsDataSharingEnabled = signal<boolean>(true);
+  lmsSharingMode = signal<'Shared' | 'Segregated' | 'Custom'>('Shared');
+  shareCourses = signal<boolean>(true);
+  shareFacultyPool = signal<boolean>(true);
+  shareAssessmentBank = signal<boolean>(true);
+  shareTranscripts = signal<boolean>(true);
+  customCohortName = signal<string>('Primary Org Shared Pool');
 
   // Step 3: Admin Assignment State (Multi-Administrator List)
   adminsList = signal<Array<{ id: string; name: string; contactNumber: string; email: string }>>([
@@ -297,6 +314,16 @@ export class LmsCreateComponent implements OnInit {
       this.databaseSizeGb.set(instance.resources.databaseSizeGb);
       this.fileStorageGb.set(instance.resources.fileStorageGb);
       this.usageAlertThresholdPct.set(instance.resources.usageAlertThresholdPct || 80);
+
+      if (instance.resources.dataSharing) {
+        this.lmsDataSharingEnabled.set(instance.resources.dataSharing.enabled);
+        this.lmsSharingMode.set(instance.resources.dataSharing.mode || 'Shared');
+        this.shareCourses.set(instance.resources.dataSharing.shareCourses ?? true);
+        this.shareFacultyPool.set(instance.resources.dataSharing.shareFacultyPool ?? true);
+        this.shareAssessmentBank.set(instance.resources.dataSharing.shareAssessmentBank ?? true);
+        this.shareTranscripts.set(instance.resources.dataSharing.shareTranscripts ?? true);
+        this.customCohortName.set(instance.resources.dataSharing.customCohortName || 'Primary Org Shared Pool');
+      }
     }
 
     // Admins
@@ -356,6 +383,16 @@ export class LmsCreateComponent implements OnInit {
       this.databaseSizeGb.set(draft.resources.databaseSizeGb);
       this.fileStorageGb.set(draft.resources.fileStorageGb);
       this.usageAlertThresholdPct.set(draft.resources.usageAlertThresholdPct || 80);
+
+      if (draft.resources.dataSharing) {
+        this.lmsDataSharingEnabled.set(draft.resources.dataSharing.enabled);
+        this.lmsSharingMode.set(draft.resources.dataSharing.mode || 'Shared');
+        this.shareCourses.set(draft.resources.dataSharing.shareCourses ?? true);
+        this.shareFacultyPool.set(draft.resources.dataSharing.shareFacultyPool ?? true);
+        this.shareAssessmentBank.set(draft.resources.dataSharing.shareAssessmentBank ?? true);
+        this.shareTranscripts.set(draft.resources.dataSharing.shareTranscripts ?? true);
+        this.customCohortName.set(draft.resources.dataSharing.customCohortName || 'Primary Org Shared Pool');
+      }
     }
 
     // Admins
@@ -730,6 +767,33 @@ export class LmsCreateComponent implements OnInit {
     }
   }
 
+  toggleLmsDataSharing(enabled: boolean) {
+    if (!this.isOrgDataSharingEnabled()) return; // Governance lock
+    this.lmsDataSharingEnabled.set(enabled);
+  }
+
+  togglePermission(key: 'courses' | 'faculty' | 'assessments' | 'transcripts') {
+    if (!this.isOrgDataSharingEnabled() || !this.lmsDataSharingEnabled()) return;
+    if (key === 'courses') this.shareCourses.update(v => !v);
+    if (key === 'faculty') this.shareFacultyPool.update(v => !v);
+    if (key === 'assessments') this.shareAssessmentBank.update(v => !v);
+    if (key === 'transcripts') this.shareTranscripts.update(v => !v);
+  }
+
+  getDataSharingPayload(): LmsDataSharingConfig {
+    const isAllowed = this.isOrgDataSharingEnabled();
+    const isLmsEnabled = isAllowed && this.lmsDataSharingEnabled();
+    return {
+      enabled: isLmsEnabled,
+      mode: isLmsEnabled ? this.lmsSharingMode() : 'Segregated',
+      shareCourses: isLmsEnabled ? this.shareCourses() : false,
+      shareFacultyPool: isLmsEnabled ? this.shareFacultyPool() : false,
+      shareAssessmentBank: isLmsEnabled ? this.shareAssessmentBank() : false,
+      shareTranscripts: isLmsEnabled ? this.shareTranscripts() : false,
+      customCohortName: this.customCohortName()
+    };
+  }
+
   onReset() {
     const step = this.currentStep();
     if (step === 1) {
@@ -746,6 +810,12 @@ export class LmsCreateComponent implements OnInit {
       this.databaseSizeGb.set(null);
       this.fileStorageGb.set(null);
       this.usageAlertThresholdPct.set(80);
+      this.lmsDataSharingEnabled.set(this.isOrgDataSharingEnabled());
+      this.lmsSharingMode.set('Shared');
+      this.shareCourses.set(true);
+      this.shareFacultyPool.set(true);
+      this.shareAssessmentBank.set(true);
+      this.shareTranscripts.set(true);
     } else if (step === 3) {
       this.adminsList.set([
         { id: `admin-${Date.now()}`, name: '', contactNumber: '', email: '' }
@@ -793,7 +863,8 @@ export class LmsCreateComponent implements OnInit {
       resources: {
         databaseSizeGb: this.databaseSizeGb(),
         fileStorageGb: this.fileStorageGb(),
-        usageAlertThresholdPct: this.usageAlertThresholdPct()
+        usageAlertThresholdPct: this.usageAlertThresholdPct(),
+        dataSharing: this.getDataSharingPayload()
       },
       admins: this.getAllAdmins()
     };
@@ -835,7 +906,8 @@ export class LmsCreateComponent implements OnInit {
         resources: {
           databaseSizeGb: this.databaseSizeGb() || 50,
           fileStorageGb: this.fileStorageGb() || 100,
-          usageAlertThresholdPct: this.usageAlertThresholdPct() || 80
+          usageAlertThresholdPct: this.usageAlertThresholdPct() || 80,
+          dataSharing: this.getDataSharingPayload()
         },
         admins: this.getAllAdmins()
       };
@@ -885,7 +957,8 @@ export class LmsCreateComponent implements OnInit {
       resources: {
         databaseSizeGb: this.databaseSizeGb() || 50,
         fileStorageGb: this.fileStorageGb() || 100,
-        usageAlertThresholdPct: this.usageAlertThresholdPct() || 80
+        usageAlertThresholdPct: this.usageAlertThresholdPct() || 80,
+        dataSharing: this.getDataSharingPayload()
       },
       admins: this.getAllAdmins()
     };

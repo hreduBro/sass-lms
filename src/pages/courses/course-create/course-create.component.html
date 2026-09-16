@@ -2201,7 +2201,7 @@
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200/80 dark:border-tenant-800 text-xs font-semibold hover:bg-tenant-100 transition-colors cursor-pointer"
           >
             <span class="material-symbols-outlined text-sm">person_add</span>
-            <span>+ Quick Add Author</span>
+            <span>+ Quick Add Personnel</span>
           </button>
         </div>
 
@@ -2259,23 +2259,24 @@
                   <p class="text-[11px] text-text-secondary font-mono">{{ entry.path }}</p>
                 </div>
 
-                <!-- Add Author Dropdown & Quick Add -->
+                <!-- Add Author Dropdown & Quick Add with app-custom-select -->
                 <div class="flex items-center gap-2">
-                  <select
-                    #authorSel
-                    (change)="addAuthorToContentItem(entry.item, authorSel.value); authorSel.value = ''"
-                    class="px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-tenant-500"
-                  >
-                    <option value="" disabled selected>+ Tag Author from Pool...</option>
-                    @for (opt of authorPoolOptions(); track opt.value) {
-                      <option [value]="opt.value">{{ opt.label }}</option>
-                    }
-                  </select>
+                  <div class="w-56 sm:w-64">
+                    <app-custom-select
+                      [options]="authorPoolOptions()"
+                      [value]="''"
+                      (valueChange)="onSelectAuthorForContent(entry.item, $event)"
+                      placeholder="+ Tag Author from Pool..."
+                      [searchable]="true"
+                      size="sm"
+                      leadingIcon="person_add"
+                      dropdownPosition="bottom" />
+                  </div>
                   <button
                     type="button"
                     (click)="openQuickAuthorModal(entry.item)"
-                    class="p-1.5 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 text-text-secondary hover:text-tenant-600 transition-colors cursor-pointer"
-                    title="Create new author inline"
+                    class="p-2 rounded-xl border border-base-300 bg-base-100 hover:bg-base-200 text-text-secondary hover:text-tenant-600 transition-colors cursor-pointer shadow-2xs flex items-center justify-center shrink-0"
+                    title="Quick add new author or instructor inline"
                   >
                     <span class="material-symbols-outlined text-base">person_add</span>
                   </button>
@@ -2283,32 +2284,31 @@
               </div>
 
               <!-- Tagged Authors Pill List -->
-              <div class="pt-2 border-t border-base-300/60">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-[11px] text-text-secondary font-medium">Credited Authors:</span>
+              <div class="pt-2.5 border-t border-base-300/60">
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <span class="text-[11px] text-text-secondary font-medium shrink-0">Credited Personnel:</span>
                   @if (entry.item.authors && entry.item.authors.length > 0) {
                     @for (auth of entry.item.authors; track $index) {
-                      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-base-100 border border-base-300 text-xs shadow-2xs">
-                        <img [src]="auth.avatar" [alt]="auth.name" class="w-4 h-4 rounded-full object-cover" referrerpolicy="no-referrer" />
-                        <span class="font-semibold text-text-primary">{{ auth.name }}</span>
+                      <div class="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-base-100 border border-base-300 text-xs shadow-2xs">
+                        <img [src]="auth.avatar" [alt]="auth.name" class="w-5 h-5 rounded-full object-cover shrink-0" referrerpolicy="no-referrer" />
+                        <span class="font-semibold text-text-primary text-xs truncate max-w-[120px]">{{ auth.name }}</span>
                         
-                        <select
-                          [value]="auth.kind"
-                          (change)="setAuthorKind(entry.item, $index, $any($event.target).value)"
-                          class="bg-transparent border-none text-[10px] font-semibold text-tenant-600 dark:text-tenant-400 focus:outline-none cursor-pointer"
-                        >
-                          <option value="authorOnly">Author</option>
-                          <option value="instructor">Instructor</option>
-                          <option value="both">Author + Instructor</option>
-                        </select>
+                        <div class="w-36 shrink-0">
+                          <app-custom-select
+                            [options]="authorKindOptions"
+                            [value]="auth.kind"
+                            (valueChange)="setAuthorKind(entry.item, $index, $any($event))"
+                            size="sm"
+                            dropdownPosition="bottom" />
+                        </div>
 
                         <button
                           type="button"
                           (click)="removeAuthorFromContentItem(entry.item, $index)"
-                          class="text-text-secondary hover:text-error ml-1 cursor-pointer"
+                          class="text-text-secondary hover:text-rose-600 p-0.5 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                           title="Remove author credit"
                         >
-                          <span class="material-symbols-outlined text-xs">close</span>
+                          <span class="material-symbols-outlined text-sm">close</span>
                         </button>
                       </div>
                     }
@@ -2829,8 +2829,8 @@
   <!-- MODAL: FULLSCREEN CERTIFICATE PREVIEW -->
   <!-- ========================================================================= -->
   @if (isCertPreviewModalOpen()) {
-    <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-      <div class="relative w-full max-w-5xl max-h-[95vh] bg-base-100 rounded-3xl border border-base-300 shadow-2xl flex flex-col overflow-hidden">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/75 backdrop-blur-md z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+      <div class="relative w-full max-w-5xl max-h-[95vh] bg-base-100 rounded-3xl border border-base-300 shadow-2xl flex flex-col overflow-hidden animate-modal-card">
         <!-- Modal Header -->
         <div class="p-4 sm:p-5 border-b border-base-300 flex items-center justify-between bg-base-200/50">
           <div class="flex items-center gap-3">
@@ -2962,77 +2962,97 @@
     </div>
   }
 
-  <!-- Quick Inline Author Creation Modal -->
+  <!-- Quick Inline Author / Instructor Creation Modal -->
   @if (showQuickAuthorModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
-        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+      <div class="w-full max-w-lg rounded-3xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden animate-modal-card">
+        <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
               <span class="material-symbols-outlined text-lg">person_add</span>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900 dark:text-white">Quick Add Author</h3>
-              <p class="text-xs text-slate-500">Adds author to organization pool and tags to this unit</p>
+              <h3 class="text-base font-bold text-text-primary">Quick Add Personnel</h3>
+              <p class="text-xs text-text-secondary">Adds Author or Faculty Instructor to central pool &amp; tags to unit</p>
             </div>
           </div>
           <button
             type="button"
             (click)="closeQuickAuthorModal()"
-            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg"
+            class="text-text-secondary hover:text-text-primary p-1.5 rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
           >
             <span class="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
 
         <div class="p-6 space-y-4">
+          <!-- Role selector using custom-select -->
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name *</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Personnel Role *</label>
+            <app-custom-select
+              [options]="quickRoleOptions"
+              [value]="quickPersonnelRole()"
+              (valueChange)="quickPersonnelRole.set($any($event))"
+              placeholder="Select Role..."
+              dropdownPosition="bottom" />
+          </div>
+
+          <!-- Notice about Incomplete Profile badge -->
+          <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-base shrink-0 mt-0.5">info</span>
+            <div class="text-[11px] text-amber-800 dark:text-amber-300 space-y-0.5">
+              <p class="font-semibold">Profile Completion Notice</p>
+              <p>Quick-added personnel will appear in <strong class="underline">All Users</strong> with an <span class="inline-flex items-center px-1.5 py-0.2 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-bold">Incomplete profile</span> badge. Admins can click "Edit" anytime in All Users to complete full academic &amp; contact credentials.</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Full Name *</label>
             <input
               type="text"
               [(ngModel)]="quickAuthorForm.name"
               placeholder="e.g. Mahbubur Rahman"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
             />
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address *</label>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Email Address *</label>
               <input
                 type="email"
                 [(ngModel)]="quickAuthorForm.email"
                 placeholder="e.g. mahbubur.r@brac.net"
-                class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
               />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Contact Number</label>
+              <label class="block text-xs font-semibold text-text-primary mb-1.5">Contact Number</label>
               <input
                 type="text"
                 [(ngModel)]="quickAuthorForm.contactNumber"
                 placeholder="e.g. +880 1711-000000"
-                class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
               />
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Content Specialization</label>
+            <label class="block text-xs font-semibold text-text-primary mb-1.5">Specialization / Expertise</label>
             <input
               type="text"
               [(ngModel)]="quickAuthorForm.specialization"
-              placeholder="e.g. Video Scripting, Interactive Simulations, Rubrics"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-tenant-500"
+              placeholder="e.g. Video Scripting, Interactive Simulations, Pedagogy"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/50 border border-base-300 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
             />
           </div>
         </div>
 
-        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-end gap-3">
+        <div class="p-4 border-t border-base-300 bg-base-200/40 flex items-center justify-end gap-3">
           <button
             type="button"
             (click)="closeQuickAuthorModal()"
-            class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+            class="px-4 py-2 rounded-xl border border-base-300 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -3041,9 +3061,10 @@
             (click)="saveQuickAuthor()"
             [disabled]="!quickAuthorForm.name.trim() || !quickAuthorForm.email.trim()"
             [class.opacity-50]="!quickAuthorForm.name.trim() || !quickAuthorForm.email.trim()"
-            class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-sm font-semibold shadow-sm transition-all"
+            class="px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
           >
-            Save &amp; Tag Author
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            Save &amp; Tag Unit
           </button>
         </div>
       </div>

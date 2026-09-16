@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
-import { AuthorProfile, AuthorshipRecord, DeactivationBlockResolution } from '../../../models/author.model';
+import { AuthorProfile, AuthorshipRecord, DeactivationBlockResolution, PersonnelAttachment } from '../../../models/author.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
@@ -18,6 +18,7 @@ export class AuthorDetailsComponent implements OnInit {
   router = inject(Router);
 
   authorId = signal<string>('');
+  previewModalAttachment = signal<PersonnelAttachment | null>(null);
 
   // Active Author profile
   author = computed<AuthorProfile | undefined>(() => {
@@ -50,6 +51,38 @@ export class AuthorDetailsComponent implements OnInit {
     { value: 'published', label: 'Published (Active)', icon: 'check_circle' },
     { value: 'draft', label: 'Drafts', icon: 'edit_document' }
   ];
+
+  getFileIcon(attachment: PersonnelAttachment): string {
+    const ext = attachment.name.split('.').pop()?.toLowerCase() || '';
+    if (attachment.isImage || attachment.type.startsWith('image/')) return 'image';
+    if (attachment.type.includes('pdf') || ext === 'pdf') return 'picture_as_pdf';
+    if (['doc', 'docx', 'odt', 'rtf'].includes(ext) || attachment.type.includes('word')) return 'description';
+    if (['xls', 'xlsx', 'csv'].includes(ext) || attachment.type.includes('sheet')) return 'table_chart';
+    if (['ppt', 'pptx'].includes(ext) || attachment.type.includes('presentation')) return 'slideshow';
+    if (attachment.type.startsWith('video/') || ['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video_file';
+    if (attachment.type.startsWith('audio/') || ['mp3', 'wav', 'aac', 'ogg', 'm4a'].includes(ext)) return 'audio_file';
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || attachment.type.includes('zip')) return 'folder_zip';
+    return 'draft';
+  }
+
+  openPreview(att: PersonnelAttachment): void {
+    this.previewModalAttachment.set(att);
+  }
+
+  closePreview(): void {
+    this.previewModalAttachment.set(null);
+  }
+
+  downloadAttachment(att: PersonnelAttachment): void {
+    if (!att.url) return;
+    const a = document.createElement('a');
+    a.href = att.url;
+    a.download = att.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    this.lms.showToast(`Downloading "${att.name}"...`, 'info', 2000);
+  }
 
   filteredHistory = computed(() => {
     const records = this.history();

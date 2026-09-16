@@ -1,0 +1,415 @@
+<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+
+  <!-- TOP BREADCRUMB & HEADER -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+        <a routerLink="/offline-trainings" class="hover:text-emerald-600 transition-colors">Offline Trainings</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white">{{ isEditMode() ? 'Edit Training' : '5-Step Offline Training Wizard' }}</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+        <mat-icon class="text-emerald-600 dark:text-emerald-400">add_circle</mat-icon>
+        {{ isEditMode() ? 'Edit In-Person Training Module' : 'Design In-Person Offline Training' }}
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        BRD §4.11 / Spec 2 compliant workflow: Meta details, physical facility, trainer assignment, multi-mode evaluation & attendance outputs.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="button" (click)="cancel()"
+              class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50">
+        Cancel
+      </button>
+      <button type="button" (click)="saveTraining()"
+              [disabled]="trainingForm.invalid"
+              class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl shadow-xs transition-all flex items-center gap-2">
+        <mat-icon class="text-base">check_circle</mat-icon>
+        <span>{{ isEditMode() ? 'Save Changes' : 'Publish & Finalize Training' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 5-STEP WIZARD PROGRESS BAR -->
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
+    <div class="grid grid-cols-5 gap-2 text-xs font-semibold">
+      <button type="button" (click)="currentStep.set(1)"
+              [class]="currentStep() === 1 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">1</span>
+        <span class="truncate">1. Basics</span>
+      </button>
+
+      <button type="button" (click)="currentStep.set(2)"
+              [class]="currentStep() === 2 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">2</span>
+        <span class="truncate">2. Venue & Room</span>
+      </button>
+
+      <button type="button" (click)="currentStep.set(3)"
+              [class]="currentStep() === 3 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">3</span>
+        <span class="truncate">3. Trainers</span>
+      </button>
+
+      <button type="button" (click)="currentStep.set(4)"
+              [class]="currentStep() === 4 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">4</span>
+        <span class="truncate">4. Content & Assessment</span>
+      </button>
+
+      <button type="button" (click)="currentStep.set(5)"
+              [class]="currentStep() === 5 ? 'p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 flex items-center gap-2 font-bold' : 'p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 flex items-center gap-2'">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xs">5</span>
+        <span class="truncate">5. Attendance & Certs</span>
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="trainingForm" (ngSubmit)="saveTraining()" class="space-y-6">
+
+    <!-- STEP 1: BASICS & META -->
+    @if (currentStep() === 1) {
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-500">info</mat-icon>
+          Step 1: Workshop Information & Scope
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Training Code *</label>
+            <input type="text" formControlName="code" class="w-full px-3 py-2 text-sm font-mono uppercase bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Workshop Title *</label>
+            <input type="text" formControlName="title" placeholder="e.g. Field Emergency Response & Tactical Leadership"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Comprehensive Description *</label>
+          <textarea formControlName="description" rows="3" placeholder="Provide complete learning outcomes, workshop methodology, and hands-on session breakdowns..."
+                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Curriculum Category</label>
+            <input type="text" formControlName="category" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Delivery Format *</label>
+            <select formControlName="deliveryMode" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <option value="in_person">100% In-Person Physical Workshop</option>
+              <option value="hybrid">Hybrid (Physical with Virtual Broadcast)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Target Audience</label>
+            <input type="text" formControlName="targetAudience" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Total Duration (Hours) *</label>
+            <input type="number" formControlName="durationHours" min="1" max="200"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Duration (Days) *</label>
+            <input type="number" formControlName="durationDays" min="1" max="30"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button type="button" (click)="currentStep.set(2)"
+                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
+            <span>Next: Venue & Room</span>
+            <mat-icon class="text-sm">arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: VENUE & ROOM SELECTION -->
+    @if (currentStep() === 2) {
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-500">location_city</mat-icon>
+          Step 2: Physical Venue & Room Configuration
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Select Physical Venue *</label>
+            <select [value]="selectedVenueId()"
+                    (change)="onVenueChange($any($event.target).value)"
+                    formControlName="venueId"
+                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+              @for (v of venues(); track v.venueId) {
+                <option [value]="v.venueId">{{ v.name }} ({{ v.address.city }})</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Select Room *</label>
+            <select [value]="selectedRoomId()"
+                    (change)="onRoomChange($any($event.target).value)"
+                    formControlName="roomId"
+                    class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+              @for (r of availableRooms(); track r.roomId) {
+                <option [value]="r.roomId">{{ r.name }} (Cap: {{ r.capacity }} seats)</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (selectedRoom(); as r) {
+          <div class="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5">
+                <mat-icon class="text-sm">verified</mat-icon>
+                Selected Room: {{ r.name }}
+              </span>
+              <span class="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                Max Capacity: {{ r.capacity }} Seats
+              </span>
+            </div>
+            <div class="text-2xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2">
+              <span>Seating Layouts: {{ r.seatingLayouts.join(', ') }}</span>
+              <span>•</span>
+              <span>Floor: {{ r.floorLevel || 'Standard' }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="flex items-center justify-between pt-4">
+          <button type="button" (click)="currentStep.set(1)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
+            Back
+          </button>
+          <button type="button" (click)="currentStep.set(3)"
+                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
+            <span>Next: Trainer Assignment</span>
+            <mat-icon class="text-sm">arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: TRAINERS & CO-FACILITATORS -->
+    @if (currentStep() === 3) {
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-500">record_voice_over</mat-icon>
+          Step 3: Primary Instructor & Facilitator Pool
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Primary Trainer Name *</label>
+            <input type="text" formControlName="primaryTrainerName" placeholder="e.g. Dr. Tanvir Ahmed"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Trainer Official Email</label>
+            <input type="email" formControlName="primaryTrainerEmail" placeholder="e.g. tanvir.ahmed@learningcenter.brac.net"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-3">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Co-Trainers / Support Facilitators</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Co-Trainer 1</label>
+              <input type="text" formControlName="coTrainerName1" placeholder="e.g. Fatima Rahman (Field Specialist)"
+                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Co-Trainer 2 (Optional)</label>
+              <input type="text" formControlName="coTrainerName2" placeholder="e.g. Kazi Tariqul Islam"
+                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/60 dark:border-purple-800/60 text-xs text-purple-900 dark:text-purple-200">
+          <span class="font-bold">BRD Override Notice:</span> When this offline training is embedded into a specific course cohort or learning plan, course administrators will have the flexibility to override this trainer for their specific delivery.
+        </div>
+
+        <div class="flex items-center justify-between pt-4">
+          <button type="button" (click)="currentStep.set(2)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
+            Back
+          </button>
+          <button type="button" (click)="currentStep.set(4)"
+                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
+            <span>Next: Content & Assessments</span>
+            <mat-icon class="text-sm">arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 4: REUSABLE CONTENT & MULTI-MODE ASSESSMENT -->
+    @if (currentStep() === 4) {
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-500">fact_check</mat-icon>
+          Step 4: Reusable Handouts & Assessment Mode
+        </h3>
+
+        <!-- Content Handouts Section -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Reusable Training Materials ({{ attachments().length }})</h4>
+            <button type="button" (click)="addAttachment()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+              <mat-icon class="text-xs">add</mat-icon> Attach Handout
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            @for (att of attachments(); track att.attachmentId; let idx = $index) {
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-base text-rose-500">picture_as_pdf</mat-icon>
+                  <span class="font-medium text-slate-800 dark:text-slate-200">{{ att.title }}</span>
+                  @if (att.isRequiredPreRead) {
+                    <span class="px-2 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pre-Read Required</span>
+                  }
+                </div>
+                <button type="button" (click)="removeAttachment(idx)" class="text-rose-500 hover:text-rose-700">
+                  <mat-icon class="text-sm">delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Multi-Mode Assessment Selection (BRD Spec 2) -->
+        <div class="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-4">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Assessment & Evaluation Mode</h4>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
+              <div>
+                <input type="radio" formControlName="assessmentMode" value="manual_marks" class="text-emerald-600" />
+                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode C: Manual Marks</span>
+                <p class="text-2xs text-slate-500 mt-1">Instructor scores viva, participation & classroom performance</p>
+              </div>
+            </label>
+
+            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
+              <div>
+                <input type="radio" formControlName="assessmentMode" value="reference_assessment" class="text-emerald-600" />
+                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode A: Reference Assessment</span>
+                <p class="text-2xs text-slate-500 mt-1">Link an existing digital assessment / exam module</p>
+              </div>
+            </label>
+
+            <label class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 cursor-pointer flex flex-col justify-between hover:border-emerald-500">
+              <div>
+                <input type="radio" formControlName="assessmentMode" value="inline_assessment" class="text-emerald-600" />
+                <span class="font-bold text-xs text-slate-900 dark:text-white block mt-1">Mode B: Inline Quiz</span>
+                <p class="text-2xs text-slate-500 mt-1">Custom inline practical evaluation questionnaire</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Manual Marks Configuration Fields -->
+          @if (trainingForm.get('assessmentMode')?.value === 'manual_marks') {
+            <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 space-y-3">
+              <h5 class="text-xs font-bold text-purple-900 dark:text-purple-200">Mode C: Instructor Evaluation Criteria</h5>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Max Total Marks *</label>
+                  <input type="number" formControlName="manualMaxMarks" min="1" max="1000"
+                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Pass Mark Threshold *</label>
+                  <input type="number" formControlName="manualPassMarks" min="1" max="1000"
+                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="flex items-center justify-between pt-4">
+          <button type="button" (click)="currentStep.set(3)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
+            Back
+          </button>
+          <button type="button" (click)="currentStep.set(5)"
+                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
+            <span>Next: Attendance & Certs</span>
+            <mat-icon class="text-sm">arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 5: ATTENDANCE & CERTIFICATION -->
+    @if (currentStep() === 5) {
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <mat-icon class="text-emerald-500">verified</mat-icon>
+          Step 5: Attendance Rules & Certificate Output
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Minimum Attendance Required (%) *</label>
+            <input type="number" formControlName="minAttendancePercentage" min="0" max="100"
+                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+            <p class="text-2xs text-slate-400 mt-1">Trainees below this threshold fail course completion automatically</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Attendance Tracking Mode *</label>
+            <select formControlName="attendanceMode" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+              <option value="multi_session_daily">Multi-Session Daily Tracking (Morning + Afternoon)</option>
+              <option value="single_session">Single Workshop Attendance (1-Time Check-in)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Linked Certificate Template</label>
+          <select formControlName="linkedCertificateTemplateId" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+            <option value="">No Direct Certificate (Inherited from Host Course)</option>
+            @for (t of certTemplates(); track t.templateId) {
+              <option [value]="t.templateId">{{ t.title }} ({{ t.code }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <div>
+            <span class="font-bold text-xs text-slate-900 dark:text-white block">Directly Publish on Save?</span>
+            <p class="text-2xs text-slate-500">Uncheck to save as Draft in the workshop library</p>
+          </div>
+          <input type="checkbox" formControlName="publishDirectly" class="rounded text-emerald-600 h-5 w-5" />
+        </div>
+
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" (click)="currentStep.set(4)" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
+            Back
+          </button>
+          <button type="submit" [disabled]="trainingForm.invalid"
+                  class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md flex items-center gap-2">
+            <mat-icon class="text-base">check_circle</mat-icon>
+            <span>{{ isEditMode() ? 'Save Changes' : 'Confirm & Save Offline Workshop' }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+  </form>
+
+</div>

@@ -1,3 +1,5 @@
+import { PersonnelAttachment } from './author.model';
+
 export interface InstructorProfile {
   id: string;
   personId: string;
@@ -17,6 +19,9 @@ export interface InstructorProfile {
   department?: string;
   title?: string;
   rating?: number;
+  isProfileComplete?: boolean;
+  incompleteReason?: string;
+  attachments?: PersonnelAttachment[];
 }
 
 export interface InstructorAssignmentRecord {
@@ -52,6 +57,9 @@ export interface InstructorCreateForm {
   status: 'Active' | 'Inactive';
   department?: string;
   title?: string;
+  avatar?: string;
+  attachments?: PersonnelAttachment[];
+  isQuickAdd?: boolean;
 }
 
 export interface BulkAssignRequest {
