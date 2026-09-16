@@ -73,10 +73,6 @@
               <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs" [class]="getStatusBadgeClass(st)">
                 @if (st === 'Active') {
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                } @else if (st === 'Under Processing') {
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                } @else if (st === 'Drafted') {
-                  <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                 } @else {
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                 }

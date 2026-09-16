@@ -88,7 +88,7 @@ export type StepItem = StepperStep;
                     'text-emerald-600 dark:text-emerald-400 font-bold': getStepState(step.id) === 'done',
                     'text-slate-700 dark:text-slate-200 font-bold group-hover:text-text-primary': getStepState(step.id) === 'disabled'
                   }">
-                  {{ step.shortTitle || step.title }}
+                  {{ cleanTitle(step.shortTitle || step.title) }}
                 </div>
 
                 @if (step.isDeferrable) {
@@ -190,7 +190,7 @@ export type StepItem = StepperStep;
                       'text-emerald-600 dark:text-emerald-400 font-bold': getStepState(step.id) === 'done',
                       'text-slate-600 dark:text-slate-300 font-bold group-hover:text-text-primary': getStepState(step.id) === 'disabled'
                     }">
-                    {{ step.shortTitle || step.title }}
+                    {{ cleanTitle(step.shortTitle || step.title) }}
                   </div>
                   @if (step.sublabel) {
                     <div class="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-normal whitespace-nowrap leading-tight mt-0.5">
@@ -367,5 +367,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         stepElV.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }, 60);
+  }
+
+  cleanTitle(text: string | undefined): string {
+    if (!text) return '';
+    return text.replace(/^\d+\.\s*/, '').trim();
   }
 }

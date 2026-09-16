@@ -43,8 +43,8 @@ export class UsersComponent {
   // Filter Drawer State
   isFilterPanelOpen = signal<boolean>(false);
 
-  // Status Filter Options (matching UI image 2 preset)
-  statusOptions = ['Active', 'Under Processing', 'Drafted', 'Trial'];
+  // Status Filter Options (Active and Inactive)
+  statusOptions = ['Active', 'Inactive'];
 
   // Role Options for Filter & Invite Form
   roleFilterOptions = [
@@ -167,14 +167,8 @@ export class UsersComponent {
           if (st === 'Active') {
             return u.status === 'Active' || u.complianceStatus === 'Compliant';
           }
-          if (st === 'Under Processing') {
-            return u.status === 'Invited' || u.complianceStatus === 'At Risk';
-          }
-          if (st === 'Drafted') {
-            return u.status === 'Suspended';
-          }
-          if (st === 'Trial') {
-            return u.complianceStatus === 'Overdue';
+          if (st === 'Inactive' || st === 'Deactive') {
+            return u.status === 'Suspended' || u.status === 'Invited' || u.complianceStatus === 'At Risk' || u.complianceStatus === 'Overdue';
           }
           return false;
         });
@@ -370,11 +364,8 @@ export class UsersComponent {
     switch (st) {
       case 'Active':
         return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/60';
-      case 'Under Processing':
-        return 'bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-200 border-amber-200 dark:border-amber-800/60';
-      case 'Drafted':
-        return 'bg-slate-100 text-slate-700 dark:bg-base-200 dark:text-slate-300 border-slate-200 dark:border-base-300';
-      case 'Trial':
+      case 'Inactive':
+      case 'Deactive':
         return 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-200 border-rose-200 dark:border-rose-800/60';
       default:
         return 'bg-base-200 text-text-primary border-base-300';

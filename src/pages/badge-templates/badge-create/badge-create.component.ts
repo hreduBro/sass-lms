@@ -37,9 +37,9 @@ export class BadgeCreateComponent implements OnInit {
 
   // Stepper Step Definitions
   steps: StepperStep[] = [
-    { id: 1, key: 'emblem', title: 'Emblem & Details', shortTitle: '1. Emblem & Details', sublabel: 'Badge Info & Emblem Art', icon: 'military_tech' },
-    { id: 2, key: 'designer', title: 'Designer Canvas', shortTitle: '2. Designer', sublabel: 'Labels & Placeholders', icon: 'palette' },
-    { id: 3, key: 'preview', title: 'Preview & Publish', shortTitle: '3. Preview & Publish', sublabel: 'Review & Publish', icon: 'visibility' }
+    { id: 1, key: 'emblem', title: 'Emblem & Details', shortTitle: 'Emblem & Details', sublabel: 'Badge Info & Emblem Art', icon: 'military_tech' },
+    { id: 2, key: 'designer', title: 'Designer Canvas', shortTitle: 'Designer', sublabel: 'Labels & Placeholders', icon: 'palette' },
+    { id: 3, key: 'preview', title: 'Preview & Publish', shortTitle: 'Preview & Publish', sublabel: 'Review & Publish', icon: 'visibility' }
   ];
 
   // Step 1 Form State

@@ -9855,7 +9855,8 @@ export class LmsDataService {
   // OFFLINE TRAINING & EMBEDDING MANAGEMENT (Spec 2)
   // =========================================================================
   getOfflineTrainingById(id: string): OfflineTraining | undefined {
-    return this.offlineTrainings().find(t => t.id === id);
+    if (!id) return undefined;
+    return this.offlineTrainings().find(t => t.id === id || t.code === id || (t as any).trainingId === id);
   }
 
   createOfflineTraining(data: Partial<OfflineTraining>): OfflineTraining {
@@ -9972,7 +9973,7 @@ export class LmsDataService {
       return { success: false, message: msg };
     }
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'published' } : t));
     this.showToast('Offline training has been published successfully.', 'success', 3500, 'Published');
     this.logAction('Offline Training Published', `Published offline training ${training.title}`, 'info');
     return { success: true, message: 'Offline training has been published successfully.' };
@@ -9982,7 +9983,7 @@ export class LmsDataService {
     const training = this.getOfflineTrainingById(id);
     if (!training) return { success: false, message: 'Offline training not found.' };
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'inactive' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'inactive' } : t));
     this.showToast(`"${training.title}" has been deactivated.`, 'error', 3500, 'Training Deactivated');
     this.logAction('Offline Training Deactivated', `Deactivated ${training.title}. Not embeddable in new learning; existing embeddings retained.`, 'warning');
     return { success: true, message: `Offline training "${training.title}" deactivated.` };
@@ -9992,7 +9993,7 @@ export class LmsDataService {
     const training = this.getOfflineTrainingById(id);
     if (!training) return { success: false, message: 'Offline training not found.' };
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'published' } : t));
     this.showToast(`"${training.title}" has been reactivated.`, 'success', 3000, 'Training Reactivated');
     return { success: true, message: `Offline training reactivated.` };
   }
@@ -10019,7 +10020,7 @@ export class LmsDataService {
       return { success: false, message: msg };
     }
 
-    this.offlineTrainings.update(list => list.filter(t => t.id !== id));
+    this.offlineTrainings.update(list => list.filter(t => t.id !== id && t.code !== id));
     this.showToast('Offline training deleted.', 'info', 2500, 'Training Deleted');
     return { success: true, message: 'Offline training deleted.' };
   }

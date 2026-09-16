@@ -6,6 +6,7 @@ import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineAssessmentMode, OfflineAttendanceConfig, OfflineContentAttachment, ManualMarkCriteria } from '../../../models/offline-training.model';
 import { Venue, Room } from '../../../models/venue.model';
 import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-offline-training-create',
@@ -15,7 +16,8 @@ import { StepperComponent, StepperStep } from '../../../components/stepper/stepp
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    StepperComponent
+    StepperComponent,
+    CustomSelectComponent
   ],
   templateUrl: './offline-training-create.component.html'
 })
@@ -31,16 +33,143 @@ export class OfflineTrainingCreateComponent implements OnInit {
 
   // 5 Steps Wizard
   steps: StepperStep[] = [
-    { id: 1, shortTitle: '1. Basics', title: 'Basic Details & Scope', icon: 'info' },
-    { id: 2, shortTitle: '2. Venue', title: 'Venue & Room Allocation', icon: 'location_city' },
-    { id: 3, shortTitle: '3. Trainers', title: 'Faculty & Trainers', icon: 'school' },
-    { id: 4, shortTitle: '4. Evaluation', title: 'Assessment Architecture', icon: 'fact_check' },
-    { id: 5, shortTitle: '5. Compliance', title: 'Attendance & Certs', icon: 'verified' }
+    { id: 1, shortTitle: 'Basics', title: 'Basic Details & Scope', icon: 'info' },
+    { id: 2, shortTitle: 'Venue', title: 'Venue & Room Allocation', icon: 'location_city' },
+    { id: 3, shortTitle: 'Trainers', title: 'Faculty & Trainers', icon: 'school' },
+    { id: 4, shortTitle: 'Evaluation', title: 'Assessment Architecture', icon: 'fact_check' },
+    { id: 5, shortTitle: 'Compliance', title: 'Attendance & Certs', icon: 'verified' }
   ];
   currentStep = signal<number>(1);
   completedSteps = signal<number[]>([]);
 
+  // Alerts state: Welcome, Error, Success
+  showWelcomeAlert = signal<boolean>(false);
+  formErrors = signal<string[]>([]);
+  showSuccessAlert = signal<boolean>(false);
+
+  validateCurrentStep(step: number): boolean {
+    const errors: string[] = [];
+
+    if (step === 1) {
+      const codeCtrl = this.trainingForm.get('code');
+      const titleCtrl = this.trainingForm.get('title');
+      const descCtrl = this.trainingForm.get('description');
+      const catCtrl = this.trainingForm.get('category');
+      const hrsCtrl = this.trainingForm.get('durationHours');
+      const daysCtrl = this.trainingForm.get('durationDays');
+
+      if (codeCtrl?.invalid) {
+        codeCtrl.markAsTouched();
+        errors.push('Training Code is required (max 30 characters).');
+      }
+      if (titleCtrl?.invalid) {
+        titleCtrl.markAsTouched();
+        errors.push('Training Title is required.');
+      }
+      if (descCtrl?.invalid) {
+        descCtrl.markAsTouched();
+        errors.push('Curriculum Description & Objectives is required.');
+      }
+      if (catCtrl?.invalid) {
+        catCtrl.markAsTouched();
+        errors.push('Training Category is required.');
+      }
+      if (hrsCtrl?.invalid) {
+        hrsCtrl.markAsTouched();
+        errors.push('Duration in Hours must be at least 1.');
+      }
+      if (daysCtrl?.invalid) {
+        daysCtrl.markAsTouched();
+        errors.push('Duration in Days must be at least 1.');
+      }
+    } else if (step === 2) {
+      const venueCtrl = this.trainingForm.get('venueId');
+      const roomCtrl = this.trainingForm.get('roomId');
+      const capCtrl = this.trainingForm.get('maxCapacity');
+
+      if (venueCtrl?.invalid) {
+        venueCtrl.markAsTouched();
+        errors.push('Physical Training Venue must be selected.');
+      }
+      if (roomCtrl?.invalid) {
+        roomCtrl.markAsTouched();
+        errors.push('Room / Classroom allocation must be selected.');
+      }
+      if (capCtrl?.invalid) {
+        capCtrl.markAsTouched();
+        errors.push('Classroom Maximum Capacity must be at least 1.');
+      }
+    } else if (step === 3) {
+      const trainerCtrl = this.trainingForm.get('primaryTrainerName');
+      if (trainerCtrl?.invalid) {
+        trainerCtrl.markAsTouched();
+        errors.push('Lead Instructor / Trainer Name is required.');
+      }
+    } else if (step === 4) {
+      const mode = this.trainingForm.get('assessmentMode')?.value;
+      if (mode === 'manual_marks') {
+        const maxMarksCtrl = this.trainingForm.get('manualMaxMarks');
+        const passMarksCtrl = this.trainingForm.get('manualPassMarks');
+        if (maxMarksCtrl?.invalid) {
+          maxMarksCtrl.markAsTouched();
+          errors.push('Assessment Maximum Marks must be at least 1.');
+        }
+        if (passMarksCtrl?.invalid) {
+          passMarksCtrl.markAsTouched();
+          errors.push('Assessment Passing Marks must be at least 1.');
+        }
+      }
+    } else if (step === 5) {
+      const attCtrl = this.trainingForm.get('minAttendancePercentage');
+      if (attCtrl?.invalid) {
+        attCtrl.markAsTouched();
+        errors.push('Minimum Attendance Percentage must be between 0 and 100%.');
+      }
+    }
+
+    this.formErrors.set(errors);
+
+    if (errors.length > 0) {
+      this.lmsData.showToast(
+        `Please resolve the highlighted validation errors (${errors.length} issue${errors.length > 1 ? 's' : ''}) before continuing.`,
+        'error',
+        4500,
+        'Validation Error',
+        'REQUIRED'
+      );
+      this.scrollToFirstError();
+      return false;
+    }
+    return true;
+  }
+
+  scrollToFirstError(): void {
+    setTimeout(() => {
+      const invalidEl = document.querySelector(
+        'form input.ng-invalid, form select.ng-invalid, form textarea.ng-invalid, [formcontrolname].ng-invalid'
+      ) as HTMLElement | null;
+
+      if (invalidEl) {
+        invalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        invalidEl.focus?.();
+        invalidEl.classList.add('ring-2', 'ring-rose-500', 'animate-pulse');
+        setTimeout(() => {
+          invalidEl.classList.remove('ring-2', 'ring-rose-500', 'animate-pulse');
+        }, 2500);
+      } else {
+        const errorBanner = document.getElementById('training-error-alert');
+        errorBanner?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
+
   goToStep(stepId: number): void {
+    if (stepId > this.currentStep()) {
+      if (!this.validateCurrentStep(this.currentStep())) {
+        return;
+      }
+    }
+    this.formErrors.set([]);
     if (stepId >= 1 && stepId <= 5) {
       this.currentStep.set(stepId);
     }
@@ -48,6 +177,10 @@ export class OfflineTrainingCreateComponent implements OnInit {
 
   nextStep(): void {
     const cur = this.currentStep();
+    if (!this.validateCurrentStep(cur)) {
+      return;
+    }
+    this.formErrors.set([]);
     if (!this.completedSteps().includes(cur)) {
       this.completedSteps.update(c => [...c, cur]);
     }
@@ -57,6 +190,7 @@ export class OfflineTrainingCreateComponent implements OnInit {
   }
 
   prevStep(): void {
+    this.formErrors.set([]);
     const cur = this.currentStep();
     if (cur > 1) {
       this.currentStep.set(cur - 1);
@@ -78,6 +212,42 @@ export class OfflineTrainingCreateComponent implements OnInit {
   // Certificate templates
   certTemplates = computed(() => this.lmsData.certificateTemplates().filter(t => (t as any).status === 'active' || true));
 
+  venueOptions = computed<SelectOption[]>(() => {
+    return this.venues().map(v => ({
+      value: v.venueId,
+      label: `${v.name} (${v.address.city})`,
+      sublabel: `${v.rooms.length} room(s) available`,
+      icon: 'location_city'
+    }));
+  });
+
+  roomOptions = computed<SelectOption[]>(() => {
+    return this.availableRooms().map(r => ({
+      value: r.roomId,
+      label: `${r.name} — ${r.capacity} Max Seats`,
+      badge: `${r.capacity} seats`,
+      icon: 'meeting_room'
+    }));
+  });
+
+  attendanceModeOptions: SelectOption[] = [
+    { value: 'multi_session_daily', label: 'Multi-Session Daily (Morning & Afternoon Sign-in)', icon: 'event_repeat' },
+    { value: 'once_daily', label: 'Once Daily Sign-in', icon: 'today' },
+    { value: 'single_event', label: 'Single Event Checklist', icon: 'check_circle' }
+  ];
+
+  certTemplateOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: '-- None (No Certificate Issued) --', icon: 'block' },
+      ...this.certTemplates().map(t => ({
+        value: t.id,
+        label: `${t.name}`,
+        badge: 'Template',
+        icon: 'workspace_premium'
+      }))
+    ];
+  });
+
   // Content attachment custom items
   attachments = signal<OfflineContentAttachment[]>([
     {
@@ -94,11 +264,37 @@ export class OfflineTrainingCreateComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
 
+    const isEdit = this.router.url.includes('/edit') || 
+                   !!this.route.snapshot.params['id'] || 
+                   !!this.route.snapshot.queryParams['id'] || 
+                   !!this.route.snapshot.queryParams['editId'] || 
+                   !!this.route.snapshot.queryParams['edit'];
+
+    if (isEdit) {
+      this.isEditMode.set(true);
+      this.showWelcomeAlert.set(false);
+    }
+
     this.route.params.subscribe(params => {
-      if (params['id']) {
+      const editId = params['id'] || this.route.snapshot.queryParams['id'] || this.route.snapshot.queryParams['editId'] || this.route.snapshot.queryParams['edit'];
+      if (editId || this.router.url.includes('/edit')) {
         this.isEditMode.set(true);
-        this.trainingId.set(params['id']);
-        this.loadTraining(params['id']);
+        this.showWelcomeAlert.set(false);
+        if (editId) {
+          this.trainingId.set(editId);
+          this.loadTraining(editId);
+        }
+      } else {
+        this.isEditMode.set(false);
+        this.showWelcomeAlert.set(true);
+        // Welcome alert toast on create only
+        this.lmsData.showToast(
+          'Welcome to the Offline Training Designer! Follow the 5 horizontal stages to configure your course.',
+          'info',
+          5000,
+          'Welcome',
+          'DESIGNER'
+        );
       }
     });
   }
@@ -242,8 +438,48 @@ export class OfflineTrainingCreateComponent implements OnInit {
   saveTraining(): void {
     if (this.trainingForm.invalid) {
       this.trainingForm.markAllAsTouched();
+      const allErrors: string[] = [];
+      if (this.trainingForm.get('code')?.invalid) allErrors.push('Training Code is required.');
+      if (this.trainingForm.get('title')?.invalid) allErrors.push('Training Title is required.');
+      if (this.trainingForm.get('description')?.invalid) allErrors.push('Curriculum Description is required.');
+      if (this.trainingForm.get('category')?.invalid) allErrors.push('Training Category is required.');
+      if (this.trainingForm.get('durationHours')?.invalid) allErrors.push('Duration (Hours) must be at least 1.');
+      if (this.trainingForm.get('durationDays')?.invalid) allErrors.push('Duration (Days) must be at least 1.');
+      if (this.trainingForm.get('venueId')?.invalid) allErrors.push('Venue allocation is required.');
+      if (this.trainingForm.get('roomId')?.invalid) allErrors.push('Room allocation is required.');
+      if (this.trainingForm.get('primaryTrainerName')?.invalid) allErrors.push('Lead Trainer Name is required.');
+      if (this.trainingForm.get('minAttendancePercentage')?.invalid) allErrors.push('Attendance Percentage must be 0-100%.');
+
+      if (allErrors.length === 0) {
+        allErrors.push('Please ensure all required fields marked with * are filled accurately.');
+      }
+      this.formErrors.set(allErrors);
+      this.lmsData.showToast(
+        'Training form has missing or invalid entries. Review the highlighted fields.',
+        'error',
+        5000,
+        'Form Incomplete',
+        'ACTION REQUIRED'
+      );
+
+      // Auto-switch to the first step that contains an invalid field
+      if (this.trainingForm.get('title')?.invalid || this.trainingForm.get('description')?.invalid || this.trainingForm.get('code')?.invalid) {
+        this.currentStep.set(1);
+      } else if (this.trainingForm.get('venueId')?.invalid || this.trainingForm.get('roomId')?.invalid) {
+        this.currentStep.set(2);
+      } else if (this.trainingForm.get('primaryTrainerName')?.invalid) {
+        this.currentStep.set(3);
+      } else if (this.trainingForm.get('manualMaxMarks')?.invalid || this.trainingForm.get('manualPassMarks')?.invalid) {
+        this.currentStep.set(4);
+      } else if (this.trainingForm.get('minAttendancePercentage')?.invalid) {
+        this.currentStep.set(5);
+      }
+
+      this.scrollToFirstError();
       return;
     }
+
+    this.formErrors.set([]);
 
     const val = this.trainingForm.value;
     const v = this.lmsData.getVenueById(val.venueId);
@@ -305,9 +541,11 @@ export class OfflineTrainingCreateComponent implements OnInit {
 
     if (this.isEditMode() && this.trainingId()) {
       this.lmsData.updateOfflineTraining(this.trainingId()!, payload);
+      this.lmsData.showToast('Offline training module updated successfully!', 'success', 5000, 'Training Updated', 'ACTIVE');
       this.router.navigate(['/offline-trainings/view', this.trainingId()]);
     } else {
       const created = this.lmsData.createOfflineTraining(payload);
+      this.lmsData.showToast('Offline training module finalized & published successfully!', 'success', 5000, 'Training Created', 'PUBLISHED');
       this.router.navigate(['/offline-trainings/view', created.trainingId]);
     }
   }

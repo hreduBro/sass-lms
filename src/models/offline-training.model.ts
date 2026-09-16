@@ -463,10 +463,161 @@ export const INITIAL_OFFLINE_TRAINING_EMBEDDINGS: OfflineTrainingEmbedding[] = [
     customSessionTime: '10:00 AM',
     embeddedBy: 'Regional Phaser Lead',
     embeddedAt: '20/01/2026 14:00:00'
+  },
+  {
+    embeddingId: 'embed-003',
+    offlineTrainingId: 'off-002',
+    offlineTrainingVersion: 1,
+    hostType: 'course',
+    hostId: 'course-cloud-202',
+    hostTitle: 'Executive Cloud & SQL Architecture Track',
+    effectiveTrainerId: 'inst-02',
+    effectiveTrainerName: 'Engr. Sarah Rahman',
+    effectiveTrainerEmail: 'sarah.rahman@grameenphone.com',
+    effectiveTrainerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    trainerOverridden: false,
+    customSessionDate: '05/04/2026',
+    customSessionTime: '10:00 AM',
+    embeddedBy: 'Curriculum Director',
+    embeddedAt: '25/01/2026 09:15:00'
+  },
+  {
+    embeddingId: 'embed-004',
+    offlineTrainingId: 'off-002',
+    offlineTrainingVersion: 1,
+    hostType: 'plan',
+    hostId: 'plan-devops-01',
+    hostTitle: 'Accelerated Enterprise Cloud & DevOps Apprenticeship',
+    effectiveTrainerId: 'inst-02',
+    effectiveTrainerName: 'Engr. Sarah Rahman',
+    effectiveTrainerEmail: 'sarah.rahman@grameenphone.com',
+    effectiveTrainerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    trainerOverridden: false,
+    customSessionDate: '12/04/2026',
+    customSessionTime: '02:00 PM',
+    embeddedBy: 'Talent Development Lead',
+    embeddedAt: '28/01/2026 14:30:00'
   }
 ];
 
 export const INITIAL_OFFLINE_TRAINEE_RESULTS: OfflineTraineeResult[] = [
+  {
+    traineeId: 'usr-201',
+    traineeName: 'Fatima Al-Zahra',
+    traineeEmail: 'fatima.zahra@grameenphone.com',
+    traineeAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    embeddingId: 'embed-003',
+    offlineTrainingId: 'off-002',
+    manualMarks: [
+      {
+        assessmentRef: 'manual:Hands-on Query Optimization Benchmark Rubric',
+        mark: 48,
+        maxMark: 50,
+        remark: 'Exceptional index tree configuration and EXPLAIN plan analysis.',
+        enteredBy: 'Engr. Sarah Rahman',
+        enteredAt: '05/04/2026 13:30:00'
+      }
+    ],
+    attendance: {
+      status: 'present',
+      markedBy: 'Engr. Sarah Rahman',
+      markedAt: '05/04/2026 10:02:00'
+    },
+    onlineAssessmentPassed: true,
+    onlineScore: 96,
+    overallScore: 96,
+    completed: true,
+    passed: true,
+    updatedAt: '05/04/2026 14:00:00'
+  },
+  {
+    traineeId: 'usr-202',
+    traineeName: 'Tariq Mansoor',
+    traineeEmail: 'tariq.mansoor@grameenphone.com',
+    traineeAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    embeddingId: 'embed-003',
+    offlineTrainingId: 'off-002',
+    manualMarks: [
+      {
+        assessmentRef: 'manual:Hands-on Query Optimization Benchmark Rubric',
+        mark: 42,
+        maxMark: 50,
+        remark: 'Good partitioning design; optimize join algorithms for large table scans.',
+        enteredBy: 'Engr. Sarah Rahman',
+        enteredAt: '05/04/2026 13:40:00'
+      }
+    ],
+    attendance: {
+      status: 'present',
+      markedBy: 'Engr. Sarah Rahman',
+      markedAt: '05/04/2026 10:05:00'
+    },
+    onlineAssessmentPassed: true,
+    onlineScore: 84,
+    overallScore: 84,
+    completed: true,
+    passed: true,
+    updatedAt: '05/04/2026 14:00:00'
+  },
+  {
+    traineeId: 'usr-203',
+    traineeName: 'Nusrat Jahan',
+    traineeEmail: 'nusrat.jahan@grameenphone.com',
+    traineeAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    embeddingId: 'embed-003',
+    offlineTrainingId: 'off-002',
+    manualMarks: [
+      {
+        assessmentRef: 'manual:Hands-on Query Optimization Benchmark Rubric',
+        mark: 46,
+        maxMark: 50,
+        remark: 'Demonstrated deep mastery of vacuum thresholds and buffer cache tuning.',
+        enteredBy: 'Engr. Sarah Rahman',
+        enteredAt: '05/04/2026 13:45:00'
+      }
+    ],
+    attendance: {
+      status: 'present',
+      markedBy: 'Engr. Sarah Rahman',
+      markedAt: '05/04/2026 09:55:00'
+    },
+    onlineAssessmentPassed: true,
+    onlineScore: 92,
+    overallScore: 92,
+    completed: true,
+    passed: true,
+    updatedAt: '05/04/2026 14:00:00'
+  },
+  {
+    traineeId: 'usr-204',
+    traineeName: 'Arifuzzaman Khan',
+    traineeEmail: 'arif.khan@grameenphone.com',
+    traineeAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    embeddingId: 'embed-003',
+    offlineTrainingId: 'off-002',
+    manualMarks: [
+      {
+        assessmentRef: 'manual:Hands-on Query Optimization Benchmark Rubric',
+        mark: 34,
+        maxMark: 50,
+        remark: 'Passed practical benchmark; minor errors in connection pooling setup.',
+        enteredBy: 'Engr. Sarah Rahman',
+        enteredAt: '05/04/2026 13:50:00'
+      }
+    ],
+    attendance: {
+      status: 'late',
+      markedBy: 'Engr. Sarah Rahman',
+      markedAt: '05/04/2026 10:25:00',
+      remarks: 'Arrived 25m late due to transit delay'
+    },
+    onlineAssessmentPassed: true,
+    onlineScore: 68,
+    overallScore: 68,
+    completed: true,
+    passed: true,
+    updatedAt: '05/04/2026 14:00:00'
+  },
   {
     traineeId: 'usr-101',
     traineeName: 'Shakil Ahmed',

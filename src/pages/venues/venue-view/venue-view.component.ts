@@ -5,6 +5,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Venue, Room, SeatingLayout, calculateVenueTotalCapacity, getActiveRoomsCount } from '../../../models/venue.model';
 import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-venue-view',
@@ -14,7 +15,8 @@ import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-o
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    ModalOverlayComponent
+    ModalOverlayComponent,
+    CustomSelectComponent
   ],
   templateUrl: './venue-view.component.html'
 })
@@ -38,6 +40,18 @@ export class VenueViewComponent implements OnInit {
   // Capacity Checker Interactive Tool
   testBatchSize = signal<number>(35);
   selectedRoomForCapacityCheck = signal<string>('');
+  roomOptionsForCapacityCheck = computed<SelectOption[]>(() => {
+    const v = this.venue();
+    if (!v || !v.rooms) return [];
+    return v.rooms.map(r => ({
+      value: r.roomId,
+      label: `${r.name} (Max Cap: ${r.capacity} seats)`,
+      icon: 'meeting_room',
+      badge: `${r.capacity} seats`,
+      badgeClass: 'bg-tenant-50 text-tenant-700 dark:bg-tenant-950/60 dark:text-tenant-300'
+    }));
+  });
+
   capacityCheckResult = computed(() => {
     const roomId = this.selectedRoomForCapacityCheck();
     if (!roomId) return null;

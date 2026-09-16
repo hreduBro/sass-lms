@@ -96,77 +96,368 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. TOOLBAR: SEARCH & CUSTOM SELECTORS                                     -->
+  <!-- 3. TOP TOOLBAR & FILTER DRAWER (IMAGE 1 & IMAGE 2)                         -->
   <!-- ========================================================================= -->
-  <div class="p-4 bg-base-100 rounded-2xl border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-    
-    <div class="relative flex-1 max-w-md">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
-      <input type="text"
-             [value]="searchQuery()"
-             (input)="searchQuery.set($any($event.target).value)"
-             placeholder="Search by title, code, venue, trainer, or tags..."
-             class="w-full pl-9 pr-8 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:outline-none focus:border-tenant-500 text-text-primary placeholder:text-text-secondary" />
-      @if (searchQuery()) {
-        <button (click)="searchQuery.set('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
-          <span class="material-symbols-outlined text-sm">close</span>
-        </button>
-      }
+  <div class="space-y-3 relative z-30">
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs">
+      
+      <!-- Top Row: Search Input + Filters Toggle + View Mode Switcher (Image 1) -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        
+        <!-- Left: Search Field + Filters Toggle Button -->
+        <div class="flex items-center gap-2.5 sm:gap-3 flex-1 flex-wrap sm:flex-nowrap">
+          
+          <!-- Search Field -->
+          <div class="relative flex-1 min-w-[220px]">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">search</span>
+            <input
+              type="text"
+              id="search-trainings-input"
+              [value]="searchQuery()"
+              (input)="searchQuery.set($any($event.target).value)"
+              placeholder="Search offline trainings by title, code, venue, or trainer..."
+              class="w-full pl-11 pr-10 py-3 rounded-full bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs sm:text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-300 dark:focus:border-slate-600 transition-all shadow-2xs" />
+            
+            @if (searchQuery()) {
+              <button
+                type="button"
+                (click)="searchQuery.set('')"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer transition-colors"
+                title="Clear Search">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            }
+          </div>
+
+          <!-- Filters Toggle Button -->
+          <button
+            type="button"
+            id="btn-toggle-filters"
+            (click)="toggleFilterDrawer()"
+            class="px-5 py-3 rounded-full border text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap active:scale-95 shrink-0"
+            [class]="isFilterExpanded() 
+              ? 'bg-[#ff007a] hover:bg-[#e0006c] text-white border-[#ff007a] shadow-md shadow-pink-500/20' 
+              : 'bg-white dark:bg-base-200/60 hover:bg-slate-50 dark:hover:bg-base-200 border-slate-200/80 dark:border-base-300 text-slate-700 dark:text-slate-200 shadow-2xs hover:border-slate-300'"
+            title="Toggle Filters">
+            <span class="material-symbols-outlined text-base leading-none">filter_list</span>
+            <span>Filters</span>
+            @if (activeFilterCount() > 0) {
+              <span 
+                class="w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center shadow-xs"
+                [class]="isFilterExpanded() ? 'bg-white text-[#ff007a]' : 'bg-[#ff007a] text-white'">
+                {{ activeFilterCount() }}
+              </span>
+            }
+          </button>
+
+        </div>
+
+        <!-- Right: View Mode Switcher (Grid / Table) -->
+        <div class="flex items-center justify-end gap-2.5 self-end sm:self-auto shrink-0">
+          <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
+            <button
+              type="button"
+              id="btn-view-mode-grid"
+              (click)="viewMode.set('grid')"
+              class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+              title="Grid View">
+              <span class="material-symbols-outlined text-base leading-none">grid_view</span>
+            </button>
+            <button
+              type="button"
+              id="btn-view-mode-table"
+              (click)="viewMode.set('table')"
+              class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+              title="Table View">
+              <span class="material-symbols-outlined text-base leading-none">format_list_bulleted</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <div class="flex flex-wrap items-center gap-2">
-      <!-- Status Filter -->
-      <div class="w-36 sm:w-40">
-        <app-custom-select [options]="statusOptions" 
-                           [ngModel]="selectedStatus()" 
-                           (ngModelChange)="selectedStatus.set($event)">
-        </app-custom-select>
-      </div>
+    <!-- ======================================================================= -->
+    <!-- EXPANDABLE FILTER DRAWER PANEL: RENAMED TO FILTER OFFLINE TRAININGS     -->
+    <!-- INSIDE: 4 DROPDOWNS (EXISTING LMS CHECKBOXES & DATES REMOVED)           -->
+    <!-- ======================================================================= -->
+    @if (isFilterExpanded()) {
+      <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-7 shadow-sm space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+        
+        <!-- Filter Header: Pink Tune Icon + FILTER OFFLINE TRAININGS + Subtitle -->
+        <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-base-300">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#ff007a] text-xl font-bold">tune</span>
+            <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-slate-100">
+              FILTER OFFLINE TRAININGS
+            </h3>
+          </div>
+          <span class="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
+            Combine criteria with AND • Multiple values in same category with OR
+          </span>
+        </div>
 
-      <!-- Venue Filter -->
-      <div class="w-40 sm:w-44">
-        <app-custom-select [options]="venueOptions()" 
-                           [ngModel]="selectedVenue()" 
-                           (ngModelChange)="selectedVenue.set($event)">
-        </app-custom-select>
-      </div>
+        <!-- Filter Body: The 4 Dropdowns Inside the Filter Panel (Replacing Old LMS Content) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-1">
+          
+          <!-- Dropdown 1: Training Status -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+              1. Status
+            </label>
+            <div class="relative" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                id="drawer-filter-status"
+                (click)="toggleFilterDropdown('status', $event)"
+                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white dark:bg-base-200 border text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                [class]="draftStatus() !== 'all' 
+                  ? 'border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20' 
+                  : 'border-slate-200/80 dark:border-base-300 text-slate-700 dark:text-slate-200 hover:border-slate-300'">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="material-symbols-outlined text-base text-slate-500">verified</span>
+                  <span class="truncate">{{ draftStatusLabel() }}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 ml-2">
+                  @if (draftStatus() !== 'all') {
+                    <span 
+                      (click)="draftStatus.set('all'); $event.stopPropagation()" 
+                      class="hover:text-rose-500 cursor-pointer p-0.5"
+                      title="Clear Status">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </span>
+                  }
+                  <span class="material-symbols-outlined text-sm text-slate-400 transition-transform duration-200"
+                        [class.rotate-180]="openFilterDropdown() === 'status'">keyboard_arrow_down</span>
+                </div>
+              </button>
 
-      <!-- Assessment Mode Filter -->
-      <div class="w-44 sm:w-48">
-        <app-custom-select [options]="assessmentModeOptions" 
-                           [ngModel]="selectedAssessmentMode()" 
-                           (ngModelChange)="selectedAssessmentMode.set($event)">
-        </app-custom-select>
-      </div>
+              @if (openFilterDropdown() === 'status') {
+                <div class="absolute left-0 top-full mt-1.5 w-full min-w-[200px] bg-white dark:bg-base-100 rounded-2xl border border-slate-200 dark:border-base-300 shadow-xl p-1.5 z-50 animate-in fade-in duration-150">
+                  @for (opt of statusOptions; track opt.value) {
+                    <button
+                      type="button"
+                      (click)="selectFilterValue('status', opt.value, $event)"
+                      class="w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer text-left"
+                      [class]="draftStatus() === opt.value
+                        ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 font-bold'
+                        : 'hover:bg-slate-50 dark:hover:bg-base-200 text-slate-700 dark:text-slate-300'">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-slate-400">{{ opt.icon }}</span>
+                        <span>{{ opt.label }}</span>
+                      </div>
+                      @if (draftStatus() === opt.value) {
+                        <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
 
-      <!-- Sort Filter -->
-      <div class="w-40 sm:w-44">
-        <app-custom-select [options]="sortOptions" 
-                           [ngModel]="sortBy()" 
-                           (ngModelChange)="sortBy.set($event)">
-        </app-custom-select>
-      </div>
+          <!-- Dropdown 2: Physical Venue -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+              2. Venue
+            </label>
+            <div class="relative" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                id="drawer-filter-venue"
+                (click)="toggleFilterDropdown('venue', $event)"
+                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white dark:bg-base-200 border text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                [class]="draftVenue() !== 'all' 
+                  ? 'border-indigo-400 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/20' 
+                  : 'border-slate-200/80 dark:border-base-300 text-slate-700 dark:text-slate-200 hover:border-slate-300'">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="material-symbols-outlined text-base text-slate-500">apartment</span>
+                  <span class="truncate">{{ draftVenueLabel() }}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 ml-2">
+                  @if (draftVenue() !== 'all') {
+                    <span 
+                      (click)="draftVenue.set('all'); $event.stopPropagation()" 
+                      class="hover:text-rose-500 cursor-pointer p-0.5"
+                      title="Clear Venue">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </span>
+                  }
+                  <span class="material-symbols-outlined text-sm text-slate-400 transition-transform duration-200"
+                        [class.rotate-180]="openFilterDropdown() === 'venue'">keyboard_arrow_down</span>
+                </div>
+              </button>
 
-      <!-- View Toggle -->
-      <div class="flex items-center p-1 bg-base-200 rounded-xl border border-base-300 ml-1">
-        <button (click)="viewMode.set('grid')"
-                [class.bg-base-100]="viewMode() === 'grid'"
-                [class.shadow-xs]="viewMode() === 'grid'"
-                [class.text-tenant-600]="viewMode() === 'grid'"
-                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                title="Grid View">
-          <span class="material-symbols-outlined text-base">grid_view</span>
-        </button>
-        <button (click)="viewMode.set('table')"
-                [class.bg-base-100]="viewMode() === 'table'"
-                [class.shadow-xs]="viewMode() === 'table'"
-                [class.text-tenant-600]="viewMode() === 'table'"
-                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                title="Table View">
-          <span class="material-symbols-outlined text-base">view_list</span>
-        </button>
+              @if (openFilterDropdown() === 'venue') {
+                <div class="absolute left-0 top-full mt-1.5 w-full min-w-[240px] max-h-60 overflow-y-auto bg-white dark:bg-base-100 rounded-2xl border border-slate-200 dark:border-base-300 shadow-xl p-1.5 z-50 animate-in fade-in duration-150">
+                  @for (opt of venueOptions(); track opt.value) {
+                    <button
+                      type="button"
+                      (click)="selectFilterValue('venue', opt.value, $event)"
+                      class="w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer text-left"
+                      [class]="draftVenue() === opt.value
+                        ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 font-bold'
+                        : 'hover:bg-slate-50 dark:hover:bg-base-200 text-slate-700 dark:text-slate-300'">
+                      <div class="flex items-center gap-2 truncate">
+                        <span class="material-symbols-outlined text-sm text-slate-400">apartment</span>
+                        <span class="truncate">{{ opt.label }}</span>
+                      </div>
+                      @if (draftVenue() === opt.value) {
+                        <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Dropdown 3: Assessment Mechanism -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+              3. Assessment Type
+            </label>
+            <div class="relative" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                id="drawer-filter-assessment"
+                (click)="toggleFilterDropdown('assessment', $event)"
+                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white dark:bg-base-200 border text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                [class]="draftAssessmentMode() !== 'all' 
+                  ? 'border-amber-400 text-amber-700 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-950/20' 
+                  : 'border-slate-200/80 dark:border-base-300 text-slate-700 dark:text-slate-200 hover:border-slate-300'">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="material-symbols-outlined text-base text-slate-500">fact_check</span>
+                  <span class="truncate">{{ draftAssessmentLabel() }}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 ml-2">
+                  @if (draftAssessmentMode() !== 'all') {
+                    <span 
+                      (click)="draftAssessmentMode.set('all'); $event.stopPropagation()" 
+                      class="hover:text-rose-500 cursor-pointer p-0.5"
+                      title="Clear Assessment Type">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </span>
+                  }
+                  <span class="material-symbols-outlined text-sm text-slate-400 transition-transform duration-200"
+                        [class.rotate-180]="openFilterDropdown() === 'assessment'">keyboard_arrow_down</span>
+                </div>
+              </button>
+
+              @if (openFilterDropdown() === 'assessment') {
+                <div class="absolute left-0 top-full mt-1.5 w-full min-w-[260px] bg-white dark:bg-base-100 rounded-2xl border border-slate-200 dark:border-base-300 shadow-xl p-1.5 z-50 animate-in fade-in duration-150">
+                  @for (opt of assessmentModeOptions; track opt.value) {
+                    <button
+                      type="button"
+                      (click)="selectFilterValue('assessment', opt.value, $event)"
+                      class="w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer text-left"
+                      [class]="draftAssessmentMode() === opt.value
+                        ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 font-bold'
+                        : 'hover:bg-slate-50 dark:hover:bg-base-200 text-slate-700 dark:text-slate-300'">
+                      <div class="flex items-center gap-2 truncate">
+                        <span class="material-symbols-outlined text-sm text-slate-400">{{ opt.icon }}</span>
+                        <span class="truncate">{{ opt.label }}</span>
+                      </div>
+                      @if (draftAssessmentMode() === opt.value) {
+                        <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Dropdown 4: Sort Order -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+              4. Sort By
+            </label>
+            <div class="relative" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                id="drawer-filter-sort"
+                (click)="toggleFilterDropdown('sort', $event)"
+                class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white dark:bg-base-200 border text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                [class]="draftSort() !== 'newest' 
+                  ? 'border-tenant-400 text-tenant-700 dark:text-tenant-300 bg-tenant-50/50 dark:bg-tenant-950/20' 
+                  : 'border-slate-200/80 dark:border-base-300 text-slate-700 dark:text-slate-200 hover:border-slate-300'">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="material-symbols-outlined text-base text-slate-500">sort</span>
+                  <span class="truncate">{{ draftSortLabel() }}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 ml-2">
+                  @if (draftSort() !== 'newest') {
+                    <span 
+                      (click)="draftSort.set('newest'); $event.stopPropagation()" 
+                      class="hover:text-rose-500 cursor-pointer p-0.5"
+                      title="Reset Sort">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </span>
+                  }
+                  <span class="material-symbols-outlined text-sm text-slate-400 transition-transform duration-200"
+                        [class.rotate-180]="openFilterDropdown() === 'sort'">keyboard_arrow_down</span>
+                </div>
+              </button>
+
+              @if (openFilterDropdown() === 'sort') {
+                <div class="absolute left-0 top-full mt-1.5 w-full min-w-[220px] bg-white dark:bg-base-100 rounded-2xl border border-slate-200 dark:border-base-300 shadow-xl p-1.5 z-50 animate-in fade-in duration-150">
+                  @for (opt of sortOptions; track opt.value) {
+                    <button
+                      type="button"
+                      (click)="selectFilterValue('sort', opt.value, $event)"
+                      class="w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer text-left"
+                      [class]="draftSort() === opt.value
+                        ? 'bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 font-bold'
+                        : 'hover:bg-slate-50 dark:hover:bg-base-200 text-slate-700 dark:text-slate-300'">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-slate-400">{{ opt.icon }}</span>
+                        <span>{{ opt.label }}</span>
+                      </div>
+                      @if (draftSort() === opt.value) {
+                        <span class="material-symbols-outlined text-xs text-tenant-600">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer Actions: Clear All on left, Cancel & Apply Filter on right -->
+        <div class="pt-4 border-t border-slate-100 dark:border-base-300 flex items-center justify-between flex-wrap gap-3">
+          <button 
+            type="button" 
+            (click)="clearDrawerSelections()" 
+            class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">restart_alt</span>
+            <span>Clear All Selections</span>
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button 
+              type="button" 
+              (click)="cancelDrawer()" 
+              class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-base-200 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer transition-colors">
+              Cancel
+            </button>
+            <button 
+              type="button" 
+              (click)="applyDrawerFilter()" 
+              class="px-6 py-2 rounded-xl bg-[#ff007a] hover:bg-[#e0006c] text-white text-xs font-bold shadow-md shadow-pink-500/20 cursor-pointer transition-all active:scale-95">
+              Apply Filter
+            </button>
+          </div>
+        </div>
+
       </div>
-    </div>
+    }
+
   </div>
 
   <!-- ========================================================================= -->
@@ -195,148 +486,247 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 5. GRID VIEW                                                              -->
+  <!-- 5. GRID VIEW (REDESIGNED LIKE LMS INSTANCES GRID)                         -->
   <!-- ========================================================================= -->
   @if (viewMode() === 'grid' && filteredTrainings().length > 0) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (item of filteredTrainings(); track item.trainingId) {
-        <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      @for (item of filteredTrainings(); track (item.trainingId || item.id)) {
+        <!-- Training Card (Matching LMS Instance Card Architecture) -->
+        <div 
+          [id]="'training-card-' + (item.trainingId || item.id)"
+          (click)="navigateToView(item.trainingId || item.id)"
+          class="bg-base-100 rounded-3xl border border-base-300 hover:border-tenant-500/50 hover:shadow-lg transition-all duration-200 p-5 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
           
-          <div class="p-5">
-            <!-- Top Status & Actions Menu -->
-            <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
-                  {{ item.code }}
+          <div class="space-y-3.5">
+            <!-- Zone 1: Top Row (ID/Code, Category Badge & Status / Menu) -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-md bg-base-200 text-text-secondary text-[10px] font-mono font-bold tracking-tight shrink-0">
+                  {{ item.code || 'OFL' }}
                 </span>
-                <span [class]="item.status === 'published' 
-                               ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                               : (item.status === 'draft' 
-                                  ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
-                                  : 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
-                  {{ item.status | uppercase }}
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 truncate">
+                  {{ item.category || 'Workshop' }}
                 </span>
               </div>
 
-              <!-- 3-Dots Dropdown -->
-              <div class="relative">
-                <button (click)="toggleActionMenu(item.trainingId, $event)" 
-                        class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-lg">more_vert</span>
-                </button>
-
-                @if (openActionMenuId() === item.trainingId) {
-                  <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
-                    <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                      <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
-                      <span>View Training Details</span>
-                    </button>
-                    @if (permissions().canEditOfflineTraining) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
-                        <span>Edit Module</span>
-                      </button>
-                    }
-                    @if (permissions().canEmbedOfflineTraining) {
-                      <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">hub</span>
-                        <span>Embed to Course/Plan</span>
-                      </button>
-                    }
-                    <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                      <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
-                      <span>Duplicate Module</span>
-                    </button>
-                    <div class="my-1 border-t border-base-300"></div>
-                    @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
-                      <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">verified</span>
-                        <span>Publish Module</span>
-                      </button>
-                    }
-                    @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
-                      <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">power_settings_new</span>
-                        <span>Deactivate</span>
-                      </button>
-                    } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
-                      <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">check_circle</span>
-                        <span>Reactivate</span>
-                      </button>
-                    }
-                    @if (permissions().canDeleteOfflineTraining) {
-                      <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                        <span>Delete</span>
-                      </button>
-                    }
-                  </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Status Badge with Dot Indicator (LMS Instances style) -->
+                @if (item.status === 'published') {
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Published
+                  </span>
+                } @else if (item.status === 'draft') {
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Draft
+                  </span>
+                } @else {
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    Inactive
+                  </span>
                 }
+
+                <!-- Actions Menu Trigger -->
+                <div class="relative" (click)="$event.stopPropagation()">
+                  <button 
+                    type="button"
+                    [id]="'btn-training-menu-' + (item.trainingId || item.id)"
+                    (click)="toggleActionMenu(item.trainingId || item.id, $event)" 
+                    class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+                    title="Actions menu">
+                    <span class="material-symbols-outlined text-base">more_vert</span>
+                  </button>
+
+                  @if (openActionMenuId() === (item.trainingId || item.id)) {
+                    <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary animate-in fade-in zoom-in-95">
+                      <button (click)="navigateToView(item.trainingId || item.id)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
+                        <span>View Training Details</span>
+                      </button>
+                      @if (permissions().canEditOfflineTraining) {
+                        <button (click)="navigateToEdit(item.trainingId || item.id)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
+                          <span>Edit Module</span>
+                        </button>
+                      }
+                      @if (permissions().canEmbedOfflineTraining) {
+                        <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">hub</span>
+                          <span>Embed to Course/Plan</span>
+                        </button>
+                      }
+                      <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
+                        <span>Duplicate Module</span>
+                      </button>
+                      <div class="my-1 border-t border-base-300"></div>
+                      @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
+                        <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">verified</span>
+                          <span>Publish Module</span>
+                        </button>
+                      }
+                      @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
+                        <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">power_settings_new</span>
+                          <span>Deactivate</span>
+                        </button>
+                      } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
+                        <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">check_circle</span>
+                          <span>Reactivate</span>
+                        </button>
+                      }
+                      @if (permissions().canDeleteOfflineTraining) {
+                        <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                          <span>Delete</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               </div>
             </div>
 
-            <!-- Title & Description -->
-            <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-tenant-600 transition-colors">
-              <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
-                {{ item.title }}
-              </h3>
-            </a>
-            <p class="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
-              {{ item.description }}
+            <!-- Zone 2: Primary Content (Tile Icon, Training Title, Category, Venue/Room Meta) -->
+            <div class="flex items-start gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-base-200 border border-base-300/80 p-1 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-2xs group-hover:scale-105 transition-transform">
+                <span class="material-symbols-outlined text-tenant-600 text-2xl">co_present</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <!-- Training Title -->
+                <h3 class="text-sm font-bold text-text-primary group-hover:text-tenant-600 transition-colors line-clamp-1">
+                  {{ item.title }}
+                </h3>
+                <!-- Category & Duration Subtitle -->
+                <span class="text-xs text-text-secondary block font-medium truncate mt-0.5">
+                  {{ item.category || 'Curriculum Delivery' }} &bull; {{ item.durationHours }} Hours ({{ item.durationDays || 1 }} Days)
+                </span>
+                <!-- Location & Room with Location Icon -->
+                <div class="flex items-center gap-1 mt-0.5 text-[11px] text-tenant-600 dark:text-tenant-400">
+                  <span class="material-symbols-outlined text-xs flex-shrink-0">location_on</span>
+                  <span class="truncate font-mono">{{ item.venueName || 'Campus Venue' }} &bull; {{ item.roomName || 'Room TBD' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Zone 3: Middle Content (Summary / Description) -->
+            <p class="text-xs text-text-secondary line-clamp-2 leading-relaxed">
+              {{ item.description || 'Hands-on practical offline workshop curriculum with physical classroom instruction.' }}
             </p>
 
-            <!-- Venue & Room Badge -->
-            <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300 mb-3 space-y-1">
-              <div class="text-xs font-semibold text-text-primary flex items-center gap-1.5 truncate">
-                <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">location_on</span>
-                <span>{{ item.venueName || 'Unassigned Venue' }}</span>
-              </div>
-              <div class="text-[11px] text-text-secondary flex items-center justify-between pl-5">
-                <span>Room: <strong class="text-text-primary">{{ item.roomName || 'TBD' }}</strong></span>
-                <span class="font-mono text-tenant-600 dark:text-tenant-400">Cap: {{ item.maxCapacity || '--' }} seats</span>
-              </div>
+            <!-- Zone 3.5: Mode Badges & Amenities (Pills matching LMS & Venue Grids) -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <!-- Assessment Mode Badge -->
+              @if (item.assessmentMode === 'manual_marks') {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-2xs">
+                  <span class="material-symbols-outlined text-[12px]">rate_review</span>
+                  <span>Mode C (Manual Marks)</span>
+                </span>
+              } @else if (item.assessmentMode === 'inline_assessment') {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shadow-2xs">
+                  <span class="material-symbols-outlined text-[12px]">quiz</span>
+                  <span>Mode B (Inline Exam)</span>
+                </span>
+              } @else if (item.assessmentMode === 'reference_assessment') {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shadow-2xs">
+                  <span class="material-symbols-outlined text-[12px]">link</span>
+                  <span>Mode A (Ref Module)</span>
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-base-200 text-text-secondary border border-base-300">
+                  <span class="material-symbols-outlined text-[12px]">remove_circle_outline</span>
+                  <span>No Exam</span>
+                </span>
+              }
+
+              <!-- Duration Pill -->
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-base-200 border border-base-300/80 text-text-secondary">
+                <span class="material-symbols-outlined text-[12px]">schedule</span>
+                <span>{{ item.durationHours }} hrs</span>
+              </span>
+
+              <!-- Linkages Pill -->
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 shadow-2xs">
+                <span class="material-symbols-outlined text-[12px]">hub</span>
+                <span>{{ getEmbeddingCount(item.trainingId || item.id) }} Embeds</span>
+              </span>
+
+              <!-- Delivery Mode Pill -->
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                <span class="material-symbols-outlined text-[12px]">groups</span>
+                <span>In-Person</span>
+              </span>
             </div>
 
-            <!-- Trainer & Duration Row -->
-            <div class="flex items-center justify-between text-xs text-text-primary pt-1">
-              <div class="flex items-center gap-2 truncate">
-                <div class="w-6 h-6 rounded-full bg-tenant-50 text-tenant-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
-                  {{ item.primaryTrainerName ? item.primaryTrainerName[0] : 'T' }}
+            <!-- Zone 4: Resource / Delivery Quota Box (Matching LMS Instance §3 Quota specs) -->
+            <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300/60 space-y-2 text-xs">
+              <div class="flex items-center justify-between text-text-secondary text-[11px]">
+                <span>Capacity: <strong class="text-text-primary font-mono font-semibold">{{ getCapacityDisplay(item) }}</strong></span>
+                <span>Duration: <strong class="text-text-primary font-mono font-semibold">{{ item.durationHours }} hrs</strong></span>
+                <span>Embeds: <strong class="text-text-primary font-mono font-semibold">{{ getEmbeddingCount(item.trainingId || item.id) }}</strong></span>
+              </div>
+
+              <!-- Zone 5: Primary Trainer / Instructor Contact Area (Matching LMS Admin Format) -->
+              <div class="pt-2 border-t border-base-300/60 flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="material-symbols-outlined text-xs text-text-secondary shrink-0">person</span>
+                  <span class="font-bold text-text-primary truncate">{{ item.primaryTrainerName || item.defaultTrainerName || 'Trainer Pool' }}</span>
                 </div>
-                <span class="truncate font-medium">{{ item.primaryTrainerName || 'Trainer Pool' }}</span>
+                <span class="text-text-secondary font-mono text-[10px] truncate max-w-[140px] shrink-0">
+                  {{ item.primaryTrainerEmail || item.defaultTrainerEmail || (item.venueName ? item.venueName : 'Campus Workshop') }}
+                </span>
               </div>
-              <span class="text-[11px] font-mono font-semibold text-text-secondary shrink-0 bg-base-200 border border-base-300 px-2 py-0.5 rounded-md">
-                {{ item.durationHours }} Hours
-              </span>
             </div>
 
-            <!-- Assessment Mode Tag -->
-            <div class="mt-3 pt-2.5 border-t border-base-300 flex items-center justify-between text-[11px]">
-              <span class="text-text-secondary">Assessment:</span>
-              <span [class]="item.assessmentMode === 'manual_marks' 
-                             ? 'font-semibold text-purple-600 dark:text-purple-400' 
-                             : (item.assessmentMode === 'inline_assessment' 
-                                ? 'font-semibold text-sky-600 dark:text-sky-400' 
-                                : 'font-semibold text-tenant-600 dark:text-tenant-400')">
-                {{ item.assessmentMode === 'manual_marks' ? 'Mode C (Manual Marks)' : (item.assessmentMode === 'inline_assessment' ? 'Mode B (Inline Exam)' : (item.assessmentMode === 'reference_assessment' ? 'Mode A (Ref Module)' : 'None')) }}
-              </span>
-            </div>
           </div>
 
-          <!-- Bottom Footer -->
-          <div class="px-5 py-3 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
-            <span class="text-[11px] text-text-secondary">
-              {{ item.embeddingCount || 0 }} Course Embedding(s)
-            </span>
-            <div class="flex items-center gap-2">
-              <button (click)="openEmbedModal(item)"
-                      class="px-2.5 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 border border-tenant-200 dark:border-tenant-800/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-xs">hub</span> Embed
+          <!-- Zone 6: Card Footer & Action Buttons (Matching LMS Instance Grid §3.3) -->
+          <div class="pt-3.5 mt-3 border-t border-base-300 flex items-center justify-between gap-2" (click)="$event.stopPropagation()">
+            <!-- Left action icons: Edit, View Details, Embed Workshop -->
+            <div class="flex items-center gap-1.5 text-text-secondary">
+              @if (permissions().canEditOfflineTraining) {
+                <button 
+                  type="button"
+                  [id]="'btn-edit-training-' + (item.trainingId || item.id)"
+                  (click)="navigateToEdit(item.trainingId || item.id)"
+                  class="p-1 rounded-lg text-slate-400 hover:text-tenant-500 hover:bg-base-200 transition-colors cursor-pointer"
+                  title="Edit Training">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </button>
+              }
+              <button 
+                type="button"
+                [id]="'btn-view-training-' + (item.trainingId || item.id)"
+                (click)="navigateToView(item.trainingId || item.id)"
+                class="p-1 rounded-lg text-tenant-500 hover:opacity-80 hover:bg-base-200 transition-all cursor-pointer"
+                title="View Details">
+                <span class="material-symbols-outlined text-base">diamond</span>
               </button>
-              <button (click)="navigateToView(item.trainingId)"
-                      class="px-3 py-1 text-xs font-semibold text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                <span>View</span>
+              @if (permissions().canEmbedOfflineTraining) {
+                <button 
+                  type="button"
+                  [id]="'btn-embed-training-' + (item.trainingId || item.id)"
+                  (click)="openEmbedModal(item)"
+                  class="p-1 rounded-lg text-sky-600 hover:opacity-80 hover:bg-base-200 transition-all cursor-pointer"
+                  title="Embed Workshop to Course/Plan">
+                  <span class="material-symbols-outlined text-base">hub</span>
+                </button>
+              }
+            </div>
+
+            <!-- Right: Primary View Workshop Button -->
+            <div>
+              <button 
+                type="button"
+                [id]="'btn-primary-view-training-' + (item.trainingId || item.id)"
+                (click)="navigateToView(item.trainingId || item.id)"
+                class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer">
+                <span>View Workshop</span>
                 <span class="material-symbols-outlined text-xs">arrow_forward</span>
               </button>
             </div>
@@ -348,65 +738,142 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 6. TABLE VIEW                                                             -->
+  <!-- 6. TABLE VIEW (REDESIGNED LIKE LMS INSTANCES TABLE)                       -->
   <!-- ========================================================================= -->
   @if (viewMode() === 'table' && filteredTrainings().length > 0) {
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm overflow-hidden">
+    <div class="bg-base-100 rounded-3xl border border-base-300 overflow-hidden shadow-xs">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-text-primary">
-          <thead class="bg-base-200/70 text-xs uppercase font-bold text-text-secondary border-b border-base-300">
+        <table class="min-w-[1050px] w-full text-left text-xs border-separate border-spacing-0">
+          <thead class="bg-base-200/90 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
             <tr>
-              <th class="px-5 py-3.5">Training Title & Code</th>
-              <th class="px-4 py-3.5">Venue & Room</th>
-              <th class="px-4 py-3.5">Primary Trainer</th>
-              <th class="px-4 py-3.5">Duration</th>
-              <th class="px-4 py-3.5">Assessment Mode</th>
-              <th class="px-4 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
+              <th class="py-3.5 px-4 min-w-[240px] border-b border-base-300">Workshop Details</th>
+              <th class="py-3.5 px-4 min-w-[170px] border-b border-base-300">Venue & Room</th>
+              <th class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Primary Trainer</th>
+              <th class="py-3.5 px-4 min-w-[130px] border-b border-base-300">Duration & Mode</th>
+              <th class="py-3.5 px-4 min-w-[160px] border-b border-base-300">Assessment & Links</th>
+              <th class="py-3.5 px-4 min-w-[130px] border-b border-base-300">Status</th>
+              <th class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-300 z-10 w-[140px] min-w-[140px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-base-300">
-            @for (item of filteredTrainings(); track item.trainingId) {
-              <tr class="hover:bg-base-200/40 transition-colors">
-                <td class="px-5 py-4">
-                  <div class="font-bold text-text-primary">{{ item.title }}</div>
-                  <div class="text-[11px] font-mono text-text-secondary">{{ item.code }} • {{ item.category }}</div>
+          <tbody>
+            @for (item of filteredTrainings(); track (item.trainingId || item.id)) {
+              <tr 
+                (click)="navigateToView(item.trainingId || item.id)"
+                class="group hover:bg-base-200/50 transition-colors cursor-pointer">
+                
+                <!-- Workshop Details -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <div class="flex items-center gap-3 min-w-[220px]">
+                    <div class="w-9 h-9 rounded-xl bg-base-200 border border-base-300 flex items-center justify-center flex-shrink-0">
+                      <span class="material-symbols-outlined text-tenant-600 text-base">co_present</span>
+                    </div>
+                    <div>
+                      <span class="font-bold text-text-primary block group-hover:text-tenant-600 transition-colors">{{ item.title }}</span>
+                      <span class="font-mono text-[10px] text-text-secondary">{{ item.code }} &bull; {{ item.category }}</span>
+                    </div>
+                  </div>
                 </td>
-                <td class="px-4 py-4 text-xs">
-                  <div class="font-semibold text-text-primary">{{ item.venueName || 'TBD' }}</div>
-                  <div class="text-[11px] text-text-secondary">{{ item.roomName || 'Room TBD' }} (Cap: {{ item.maxCapacity || '--' }})</div>
+
+                <!-- Venue & Room -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <div class="font-medium text-text-primary">{{ item.venueName || 'Campus Venue' }}</div>
+                  <div class="text-[11px] text-text-secondary">
+                    {{ item.roomName || 'Room TBD' }} <span class="font-mono text-tenant-600 dark:text-tenant-400">({{ getCapacityDisplay(item) }})</span>
+                  </div>
                 </td>
-                <td class="px-4 py-4 text-xs">
-                  <div class="font-medium text-text-primary">{{ item.primaryTrainerName }}</div>
+
+                <!-- Primary Trainer -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <div class="font-bold text-text-primary">{{ item.primaryTrainerName || item.defaultTrainerName || 'Trainer Pool' }}</div>
+                  <div class="text-[10px] text-text-secondary font-mono">{{ item.primaryTrainerEmail || item.defaultTrainerEmail || 'Campus Ops' }}</div>
                 </td>
-                <td class="px-4 py-4 text-xs font-mono">
-                  {{ item.durationHours }} Hours
+
+                <!-- Duration & Delivery -->
+                <td class="py-3.5 px-4 font-mono text-[11px] text-text-secondary border-b border-base-300/60">
+                  <div class="text-text-primary font-bold">{{ item.durationHours }} Hours</div>
+                  <div class="text-[10px] text-text-secondary">{{ item.durationDays || 1 }} Day(s) &bull; In-Person</div>
                 </td>
-                <td class="px-4 py-4 text-xs">
-                  <span class="capitalize">{{ item.assessmentMode.replace('_', ' ') }}</span>
+
+                <!-- Assessment & Links -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <div class="flex flex-col gap-1">
+                    @if (item.assessmentMode === 'manual_marks') {
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 dark:text-purple-300">
+                        <span class="material-symbols-outlined text-[13px]">rate_review</span> Mode C (Manual)
+                      </span>
+                    } @else if (item.assessmentMode === 'inline_assessment') {
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300">
+                        <span class="material-symbols-outlined text-[13px]">quiz</span> Mode B (Inline)
+                      </span>
+                    } @else if (item.assessmentMode === 'reference_assessment') {
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+                        <span class="material-symbols-outlined text-[13px]">link</span> Mode A (Ref)
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 text-[11px] text-text-secondary">
+                        <span class="material-symbols-outlined text-[13px]">remove_circle_outline</span> No Exam
+                      </span>
+                    }
+                    <span class="text-[10px] text-text-secondary font-mono">
+                      {{ getEmbeddingCount(item.trainingId || item.id) }} Embeddings
+                    </span>
+                  </div>
                 </td>
-                <td class="px-4 py-4">
-                  <span [class]="item.status === 'published' ? 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200' : 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200'">
-                    {{ item.status }}
-                  </span>
+
+                <!-- Status -->
+                <td class="py-3.5 px-4 min-w-[130px] whitespace-nowrap border-b border-base-300/60">
+                  @if (item.status === 'published') {
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      Published
+                    </span>
+                  } @else if (item.status === 'draft') {
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800 shadow-2xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      Draft
+                    </span>
+                  } @else {
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800 shadow-2xs">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      Inactive
+                    </span>
+                  }
                 </td>
-                <td class="px-5 py-4 text-right sticky right-0 bg-base-100/90 backdrop-blur-xs">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="View Details">
+
+                <!-- Actions (Sticky right) -->
+                <td class="py-3.5 px-4 text-right sticky right-0 bg-base-100 dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[140px] min-w-[140px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                  <div class="flex items-center justify-end gap-1.5" (click)="$event.stopPropagation()">
+                    <button 
+                      type="button"
+                      [id]="'btn-table-view-training-' + (item.trainingId || item.id)"
+                      (click)="navigateToView(item.trainingId || item.id)" 
+                      class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-500 transition-colors cursor-pointer" 
+                      title="View Details">
                       <span class="material-symbols-outlined text-base">visibility</span>
                     </button>
                     @if (permissions().canEmbedOfflineTraining) {
-                      <button (click)="openEmbedModal(item)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Embed Workshop">
+                      <button 
+                        type="button"
+                        [id]="'btn-table-embed-training-' + (item.trainingId || item.id)"
+                        (click)="openEmbedModal(item)" 
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-sky-600 transition-colors cursor-pointer" 
+                        title="Embed Workshop">
                         <span class="material-symbols-outlined text-base">hub</span>
                       </button>
                     }
                     @if (permissions().canEditOfflineTraining) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Edit Workshop">
+                      <button 
+                        type="button"
+                        [id]="'btn-table-edit-training-' + (item.trainingId || item.id)"
+                        (click)="navigateToEdit(item.trainingId || item.id)" 
+                        class="p-1.5 rounded-lg bg-base-200 hover:bg-base-300 text-slate-400 hover:text-tenant-500 transition-colors cursor-pointer" 
+                        title="Edit Workshop">
                         <span class="material-symbols-outlined text-base">edit</span>
                       </button>
                     }
                   </div>
                 </td>
+
               </tr>
             }
           </tbody>
@@ -428,7 +895,7 @@
 
     <form [formGroup]="embedForm" (ngSubmit)="submitEmbed()" class="space-y-4">
       <div>
-        <label class="block text-xs font-semibold text-text-primary mb-1">Host Entity Target *</label>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Host Entity Target <span class="text-rose-500 font-bold">*</span></label>
         <div class="grid grid-cols-2 gap-2 text-xs">
           <label class="flex items-center gap-2 p-3 rounded-xl bg-base-200/50 border border-base-300 cursor-pointer hover:border-tenant-300">
             <input type="radio" formControlName="hostEntityType" value="course" class="accent-tenant-500 cursor-pointer" />
@@ -442,7 +909,7 @@
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-text-primary mb-1">Target Course / Plan Title *</label>
+        <label class="block text-xs font-semibold text-text-primary mb-1">Target Course / Plan Title <span class="text-rose-500 font-bold">*</span></label>
         <input type="text" formControlName="hostEntityTitle"
                class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
       </div>

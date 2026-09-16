@@ -42,14 +42,20 @@ export class VenueGridComponent implements OnInit {
 
   // Search & Filters
   searchQuery = signal<string>('');
-  selectedStatus = signal<string>('all'); // all | active | inactive
+  selectedStatuses = signal<string[]>([]); // active | inactive
   selectedCity = signal<string>('all');
   selectedFacility = signal<string>('all'); // all | internet | parking | accessibility
   sortBy = signal<string>('newest'); // newest | oldest | name_asc | name_desc | capacity_desc | rooms_desc
 
-  draftStatus = signal<string>('all');
+  draftStatuses = signal<string[]>([]);
   draftCity = signal<string>('all');
   draftFacility = signal<string>('all');
+
+  // Status Filter Options (Active and Inactive)
+  statusFilterOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' }
+  ];
 
   // Dropdown action menu ID
   openActionMenuId = signal<string | null>(null);
@@ -113,7 +119,6 @@ export class VenueGridComponent implements OnInit {
   filteredVenues = computed(() => {
     let list = this.lmsData.venues();
     const q = this.searchQuery().toLowerCase().trim();
-    const status = this.selectedStatus();
     const city = this.selectedCity();
     const facility = this.selectedFacility();
     const sort = this.sortBy();
@@ -128,8 +133,8 @@ export class VenueGridComponent implements OnInit {
       );
     }
 
-    if (status !== 'all') {
-      list = list.filter(v => v.status === status);
+    if (this.selectedStatuses().length > 0) {
+      list = list.filter(v => this.selectedStatuses().includes(v.status));
     }
 
     if (city !== 'all') {
@@ -165,7 +170,11 @@ export class VenueGridComponent implements OnInit {
     // Check query params if deactivating or opening specific modal
     this.route.queryParams.subscribe(params => {
       if (params['filter']) {
-        this.selectedStatus.set(params['filter']);
+        const f = params['filter'];
+        if (f === 'active' || f === 'inactive') {
+          this.selectedStatuses.set([f]);
+          this.draftStatuses.set([f]);
+        }
       }
     });
   }
@@ -253,7 +262,8 @@ export class VenueGridComponent implements OnInit {
   }
 
   getTotalCapacity(venue: Venue): number {
-    return calculateVenueTotalCapacity(venue);
+    if (!venue.rooms || venue.rooms.length === 0) return 0;
+    return venue.rooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
   }
 
   getActiveRooms(venue: Venue): number {
@@ -336,9 +346,35 @@ export class VenueGridComponent implements OnInit {
     });
   }
 
+  toggleStatusDraft(st: string): void {
+    this.draftStatuses.update(current => {
+      const exists = current.includes(st);
+      return exists ? current.filter(x => x !== st) : [...current, st];
+    });
+  }
+
+  getStatusBadgeClass(st: string): string {
+    switch (st) {
+      case 'active':
+      case 'Active':
+        return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/60';
+      case 'inactive':
+      case 'Inactive':
+      case 'Deactive':
+        return 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-200 border-rose-200 dark:border-rose-800/60';
+      default:
+        return 'bg-base-200 text-text-primary border-base-300';
+    }
+  }
+
+  removeStatusChip(st: string): void {
+    this.selectedStatuses.update(list => list.filter(x => x !== st));
+    this.draftStatuses.set([...this.selectedStatuses()]);
+  }
+
   activeFilterCount = computed(() => {
     let count = 0;
-    if (this.selectedStatus() !== 'all') count++;
+    count += this.selectedStatuses().length;
     if (this.selectedCity() !== 'all') count++;
     if (this.selectedFacility() !== 'all') count++;
     return count;
@@ -349,14 +385,14 @@ export class VenueGridComponent implements OnInit {
   onFilterToggle(isOpen: boolean): void {
     this.isFilterPanelOpen.set(isOpen);
     if (isOpen) {
-      this.draftStatus.set(this.selectedStatus());
+      this.draftStatuses.set([...this.selectedStatuses()]);
       this.draftCity.set(this.selectedCity());
       this.draftFacility.set(this.selectedFacility());
     }
   }
 
   applyFilters(): void {
-    this.selectedStatus.set(this.draftStatus());
+    this.selectedStatuses.set([...this.draftStatuses()]);
     this.selectedCity.set(this.draftCity());
     this.selectedFacility.set(this.draftFacility());
     this.isFilterPanelOpen.set(false);
@@ -364,10 +400,10 @@ export class VenueGridComponent implements OnInit {
 
   clearFilters(): void {
     this.searchQuery.set('');
-    this.selectedStatus.set('all');
+    this.selectedStatuses.set([]);
+    this.draftStatuses.set([]);
     this.selectedCity.set('all');
     this.selectedFacility.set('all');
-    this.draftStatus.set('all');
     this.draftCity.set('all');
     this.draftFacility.set('all');
     this.sortBy.set('newest');
