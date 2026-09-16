@@ -1,4 +1,4 @@
-import { Component, computed, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
@@ -8,11 +8,11 @@ import { calculateVenueTotalCapacity } from '../../../models/venue.model';
   selector: 'app-venue-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './venue-dashboard.component.html'
 })
 export class VenueDashboardComponent {
   lmsData = inject(LmsDataService);
+  activeTenant = computed(() => this.lmsData.activeTenant());
 
   totalVenues = computed(() => this.lmsData.venues().length);
   activeVenues = computed(() => this.lmsData.venues().filter(v => v.status === 'active').length);

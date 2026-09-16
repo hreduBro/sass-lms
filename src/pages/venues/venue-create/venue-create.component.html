@@ -1,369 +1,431 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6 pb-16 max-w-7xl mx-auto">
 
-  <!-- TOP BREADCRUMB & HEADER -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+  <!-- ========================================================================= -->
+  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-        <a routerLink="/venues" class="hover:text-emerald-600 transition-colors">Venues</a>
-        <span>/</span>
-        <span class="text-slate-900 dark:text-white">{{ isEditMode() ? 'Edit Venue' : 'Create New Physical Venue' }}</span>
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <a routerLink="/venues" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">domain</span>
+          Venues Directory
+        </a>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          {{ isEditMode() ? 'Edit Venue' : 'Register Facility' }}
+        </span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40">
+          {{ venueForm.get('code')?.value || 'VEN-DRAFT' }}
+        </span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-emerald-600 dark:text-emerald-400">add_location_alt</mat-icon>
-        {{ isEditMode() ? 'Update Physical Venue & Facilities' : 'Register New Physical Learning Facility' }}
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 text-3xl">add_location_alt</span>
+        <span>{{ isEditMode() ? 'Update Physical Facility' : 'Register Physical Learning Facility' }}</span>
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
         Specify geo-coordinates, room configurations, audio-visual equipment, seating capacities, and point of contact.
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5 flex-wrap">
       <button type="button" (click)="cancel()"
-              class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors">
+              class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
         Cancel
       </button>
-      <button type="button" (click)="saveVenue()"
-              [disabled]="venueForm.invalid"
-              class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-xs transition-all flex items-center gap-2">
-        <mat-icon class="text-base">save</mat-icon>
+
+      <button type="button" (click)="saveVenue()" [disabled]="venueForm.invalid"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-lg">save</span>
         <span>{{ isEditMode() ? 'Update Venue' : 'Save & Register Venue' }}</span>
       </button>
     </div>
   </div>
 
-  <form [formGroup]="venueForm" (ngSubmit)="saveVenue()" class="space-y-6">
+  <!-- ========================================================================= -->
+  <!-- 2. 2-COLUMN WIZARD LAYOUT: STEPPER ON LEFT, FORM ON RIGHT                -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Left Column: Vertical Stepper Navigation -->
+    <div class="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6">
+      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <app-stepper
+          [steps]="steps"
+          [currentStep]="currentStep()"
+          [completedSteps]="completedSteps()"
+          orientation="vertical"
+          (stepChange)="goToStep($event)">
+        </app-stepper>
 
-    <!-- TAB NAVIGATION HEADER -->
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
-      <button type="button" (click)="activeTab.set('basic')"
-              [class]="activeTab() === 'basic' ? 'px-4 py-2 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 dark:text-emerald-400' : 'px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
-        1. Basic Info & Location
-      </button>
-      <button type="button" (click)="activeTab.set('rooms')"
-              [class]="activeTab() === 'rooms' ? 'px-4 py-2 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 dark:text-emerald-400' : 'px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
-        2. Rooms & Seating ({{ roomsArray.length }})
-      </button>
-      <button type="button" (click)="activeTab.set('facilities')"
-              [class]="activeTab() === 'facilities' ? 'px-4 py-2 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 dark:text-emerald-400' : 'px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
-        3. Amenities & Facilities
-      </button>
-      <button type="button" (click)="activeTab.set('contact')"
-              [class]="activeTab() === 'contact' ? 'px-4 py-2 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 dark:text-emerald-400' : 'px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
-        4. Facility Manager
-      </button>
+        <div class="pt-4 border-t border-base-300 text-xs text-text-secondary">
+          <div class="flex items-center justify-between">
+            <span>Configured Rooms:</span>
+            <strong class="text-text-primary">{{ roomsArray.length }}</strong>
+          </div>
+          <div class="flex items-center justify-between mt-1">
+            <span>Gross Seating:</span>
+            <strong class="text-tenant-600 dark:text-tenant-400 font-mono">{{ calculateTotalCapacity() }} seats</strong>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- TAB 1: BASIC INFO & ADDRESS -->
-    @if (activeTab() === 'basic') {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">pin_drop</mat-icon>
-          General Venue Identification
-        </h3>
+    <!-- Right Column: Form Container -->
+    <div class="lg:col-span-8 xl:col-span-9 space-y-6">
+      <form [formGroup]="venueForm" (ngSubmit)="saveVenue()" class="space-y-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Venue Unique Code *</label>
-            <input type="text" formControlName="code" placeholder="e.g. VEN-DHK-01"
-                   class="w-full px-3 py-2 text-sm font-mono uppercase bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            <p class="text-2xs text-slate-400 mt-1">Unique alphanumeric facility identifier</p>
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Venue Name *</label>
-            <input type="text" formControlName="name" placeholder="e.g. Dhaka Executive Learning Center"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-          </div>
-        </div>
-
-        <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
-          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Address & Geography</h4>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Address Line 1 *</label>
-              <input type="text" formControlName="addressLine1" placeholder="e.g. House 45, Road 11, Block D, Banani"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
+        <!-- STEP 1: BASIC INFO & ADDRESS -->
+        @if (currentStep() === 1) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6 animate-fade-in">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">pin_drop</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 1: Facility Identification & Location</h3>
+                  <p class="text-xs text-text-secondary">Official facility nomenclature, reference identifier and geographic coordinates</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Address Line 2 (Optional)</label>
-              <input type="text" formControlName="addressLine2" placeholder="e.g. Level 4-6, BRAC Learning Hub"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">City / Region *</label>
-              <input type="text" formControlName="city" placeholder="e.g. Dhaka"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Postal Code</label>
-              <input type="text" formControlName="postcode" placeholder="e.g. 1213"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Country *</label>
-              <input type="text" formControlName="country" placeholder="e.g. Bangladesh"
-                     class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
-            </div>
-          </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Venue Unique Code *</label>
+                <input type="text" formControlName="code" placeholder="e.g. VEN-DHK-01"
+                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
+                <p class="text-[11px] text-text-secondary mt-1">Unique alphanumeric facility identifier</p>
+              </div>
 
-          <div class="grid grid-cols-2 gap-4 mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-700/60">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Latitude</label>
-              <input type="number" step="0.000001" formControlName="lat"
-                     class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-text-primary mb-1">Venue Name *</label>
+                <input type="text" formControlName="name" placeholder="e.g. Dhaka Executive Learning Center"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Longitude</label>
-              <input type="number" step="0.000001" formControlName="lng"
-                     class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
-            </div>
-          </div>
-        </div>
 
-        <div class="flex justify-end pt-4">
-          <button type="button" (click)="activeTab.set('rooms')"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Configure Rooms</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- TAB 2: ROOMS & SEATING -->
-    @if (activeTab() === 'rooms') {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <mat-icon class="text-emerald-500">meeting_room</mat-icon>
-              Interactive Rooms & Capacities
-            </h3>
-            <p class="text-xs text-slate-500">
-              Total Venue Capacity: <strong>{{ calculateTotalCapacity() }}</strong> seats across {{ roomsArray.length }} room(s)
-            </p>
-          </div>
-          <button type="button" (click)="addRoomRow()"
-                  class="px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 rounded-xl transition-colors flex items-center gap-1.5">
-            <mat-icon class="text-sm">add</mat-icon>
-            <span>Add Another Room</span>
-          </button>
-        </div>
-
-        <div formArrayName="rooms" class="space-y-4">
-          @for (roomGroup of roomsArray.controls; track $index) {
-            <div [formGroupName]="$index" class="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="border-t border-base-300 pt-4">
+              <h4 class="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Address & Geography</h4>
               
-              <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Room #{{ $index + 1 }} Configuration
-                </span>
-                @if (roomsArray.length > 1) {
-                  <button type="button" (click)="removeRoomRow($index)" class="text-rose-500 hover:text-rose-700 text-xs font-semibold flex items-center gap-1">
-                    <mat-icon class="text-sm">delete</mat-icon>
-                    <span>Remove Room</span>
-                  </button>
-                }
-              </div>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">Street Address Line 1 *</label>
+                  <input type="text" formControlName="addressLine1" placeholder="e.g. 75 Mohakhali C/A, Level 4"
+                         class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="md:col-span-2">
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Room Name / Label *</label>
-                  <input type="text" formControlName="name" placeholder="e.g. Hall A (Executive Auditorium)"
-                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">City *</label>
+                    <input type="text" formControlName="city" placeholder="e.g. Dhaka"
+                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Postal Code</label>
+                    <input type="text" formControlName="postcode" placeholder="e.g. 1212"
+                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Country *</label>
+                    <input type="text" formControlName="country" placeholder="e.g. Bangladesh"
+                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Latitude</label>
+                    <input type="number" step="0.0001" formControlName="lat" placeholder="23.7925"
+                           class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">Longitude</label>
+                    <input type="number" step="0.0001" formControlName="lng" placeholder="90.4078"
+                           class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 1 Footer -->
+            <div class="flex items-center justify-end pt-4 border-t border-base-300 gap-3">
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Rooms</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 2: ROOMS CONFIGURATION -->
+        @if (currentStep() === 2) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300 flex-wrap gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">meeting_room</span>
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Max Capacity (Seats) *</label>
-                  <input type="number" formControlName="capacity" min="1" max="1000"
-                         class="w-full px-3 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:text-white" />
+                  <h3 class="text-base font-bold text-text-primary">Step 2: Room Inventory & Equipment Specs</h3>
+                  <p class="text-xs text-text-secondary">Register halls, labs, seating capacities, and A/V installations</p>
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Floor Level</label>
-                  <input type="text" formControlName="floorLevel" placeholder="e.g. 2nd Floor, Wing B"
-                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+              <button type="button" (click)="addRoomRow()"
+                      class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/50 hover:bg-tenant-100 text-xs font-bold transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">add</span>
+                <span>Add Room</span>
+              </button>
+            </div>
+
+            <!-- Rooms FormArray -->
+            <div formArrayName="rooms" class="space-y-4">
+              @for (roomCtrl of roomsArray.controls; track $index) {
+                <div [formGroupName]="$index" class="p-4 sm:p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-lg bg-tenant-500 text-white font-mono text-xs font-bold flex items-center justify-center">
+                        {{ $index + 1 }}
+                      </span>
+                      <span class="text-sm font-bold text-text-primary">Room Configuration</span>
+                    </div>
+
+                    @if (roomsArray.length > 1) {
+                      <button type="button" (click)="removeRoomRow($index)"
+                              class="text-xs text-error hover:underline flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Remove
+                      </button>
+                    }
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                      <label class="block text-xs font-semibold text-text-primary mb-1">Room Name / Label *</label>
+                      <input type="text" formControlName="name" placeholder="e.g. Executive Seminar Hall 1"
+                             class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                    </div>
+
+                    <div>
+                      <label class="block text-xs font-semibold text-text-primary mb-1">Capacity (Max Seats) *</label>
+                      <input type="number" formControlName="capacity" placeholder="40"
+                             class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-text-primary mb-1">Floor / Building Wing</label>
+                      <input type="text" formControlName="floorLevel" placeholder="e.g. 3rd Floor, West Wing"
+                             class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-text-primary mb-1">Notes / Restrictions</label>
+                      <input type="text" formControlName="notes" placeholder="e.g. Strict no-food policy, wheelchair lift access"
+                             class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                    </div>
+                  </div>
+
+                  <!-- Audio-Visual Checkboxes -->
+                  <div>
+                    <label class="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">Available Equipment</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="hasProjector" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Projector</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="hasSoundSystem" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Sound System</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="hasMicrophone" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Microphones</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="hasDisplayScreen" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Display / TV</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Seating Layout Checkboxes -->
+                  <div>
+                    <label class="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">Supported Seating Layouts</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="theatre" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Theatre</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="classroom" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Classroom</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="uShape" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">U-Shape</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="boardroom" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Boardroom</span>
+                      </label>
+                      <label class="flex items-center gap-2 p-2 rounded-xl bg-base-100 border border-base-300 cursor-pointer hover:border-tenant-300">
+                        <input type="checkbox" formControlName="banquet" class="accent-tenant-500 rounded cursor-pointer" />
+                        <span class="text-xs font-medium text-text-primary">Banquet</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Step 2 Footer -->
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Amenities</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 3: AMENITIES & FACILITIES -->
+        @if (currentStep() === 3) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">tune</span>
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Room Notes / Description</label>
-                  <input type="text" formControlName="notes" placeholder="e.g. Soundproofed, dual wireless mics included"
-                         class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
+                  <h3 class="text-base font-bold text-text-primary">Step 3: Building Facilities & Accessibility</h3>
+                  <p class="text-xs text-text-secondary">Indicate high-speed networking, vehicle parking, and disability provisions</p>
                 </div>
               </div>
+            </div>
 
-              <!-- Seating Layouts -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <label class="p-5 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 flex flex-col gap-3 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-2xl text-tenant-600">wifi</span>
+                  <input type="checkbox" formControlName="internet" class="accent-tenant-500 rounded w-4 h-4 cursor-pointer" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-text-primary">High-Speed Wi-Fi</h4>
+                  <p class="text-xs text-text-secondary mt-1">Dedicated fiber broadband with guest captive portal</p>
+                </div>
+              </label>
+
+              <label class="p-5 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 flex flex-col gap-3 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-2xl text-tenant-600">local_parking</span>
+                  <input type="checkbox" formControlName="parking" class="accent-tenant-500 rounded w-4 h-4 cursor-pointer" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-text-primary">Vehicle Parking</h4>
+                  <p class="text-xs text-text-secondary mt-1">Secured on-site basement or visitor parking slots</p>
+                </div>
+              </label>
+
+              <label class="p-5 rounded-2xl border border-base-300 bg-base-200/30 hover:border-tenant-300 flex flex-col gap-3 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <span class="material-symbols-outlined text-2xl text-tenant-600">accessible</span>
+                  <input type="checkbox" formControlName="accessibility" class="accent-tenant-500 rounded w-4 h-4 cursor-pointer" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-text-primary">Wheelchair Accessible</h4>
+                  <p class="text-xs text-text-secondary mt-1">Elevators, ramp access, and accessible restroom facilities</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Step 3 Footer -->
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
+              <button type="button" (click)="nextStep()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 cursor-pointer transition-all">
+                <span>Continue to Manager</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 4: FACILITY MANAGER CONTACT -->
+        @if (currentStep() === 4) {
+          <div class="p-6 sm:p-8 rounded-3xl border border-base-300 bg-base-100 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-4 border-b border-base-300">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">badge</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">Step 4: Facility Manager & Point of Contact</h3>
+                  <p class="text-xs text-text-secondary">Designated manager responsible for logistics, keys, and technical maintenance</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-2">Supported Seating Layouts</label>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="theatre" class="rounded text-emerald-600" />
-                    <span>Theatre</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="classroom" class="rounded text-emerald-600" />
-                    <span>Classroom</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="uShape" class="rounded text-emerald-600" />
-                    <span>U-Shape</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="boardroom" class="rounded text-emerald-600" />
-                    <span>Boardroom</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="banquet" class="rounded text-emerald-600" />
-                    <span>Banquet</span>
-                  </label>
-                </div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Contact Officer Name *</label>
+                <input type="text" formControlName="contactName" placeholder="e.g. Lt. Col. Farhad Reza (Retd.)"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
               </div>
 
-              <!-- AV Equipment -->
               <div>
-                <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-2">AV Hardware Installed</label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="hasProjector" class="rounded text-emerald-600" />
-                    <span>HD Projector</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="hasSoundSystem" class="rounded text-emerald-600" />
-                    <span>Sound System</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="hasMicrophone" class="rounded text-emerald-600" />
-                    <span>Microphones</span>
-                  </label>
-                  <label class="flex items-center gap-1.5 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                    <input type="checkbox" formControlName="hasDisplayScreen" class="rounded text-emerald-600" />
-                    <span>Smart Display</span>
-                  </label>
-                </div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Official Designation / Role</label>
+                <input type="text" formControlName="contactRole" placeholder="e.g. Senior Facilities Director"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
               </div>
 
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Direct Telephone / Mobile *</label>
+                <input type="text" formControlName="contactPhone" placeholder="e.g. +880 1711-445566"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-text-primary mb-1">Official Email Address *</label>
+                <input type="email" formControlName="contactEmail" placeholder="e.g. facilities@brac.net"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+              </div>
             </div>
-          }
-        </div>
 
-        <div class="flex items-center justify-between pt-4">
-          <button type="button" (click)="activeTab.set('basic')" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back: Basic Info
-          </button>
-          <button type="button" (click)="activeTab.set('facilities')"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Amenities</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
+            <!-- Step 4 Footer -->
+            <div class="flex items-center justify-between pt-4 border-t border-base-300">
+              <button type="button" (click)="prevStep()"
+                      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Previous Step</span>
+              </button>
 
-    <!-- TAB 3: FACILITIES & AMENITIES -->
-    @if (activeTab() === 'facilities') {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">tune</mat-icon>
-          Facility Amenities & Campus Badges
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-start gap-3 cursor-pointer hover:border-emerald-500 transition-colors">
-            <input type="checkbox" formControlName="internet" class="mt-1 rounded text-emerald-600 focus:ring-emerald-500" />
-            <div>
-              <span class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                <mat-icon class="text-base text-emerald-500">wifi</mat-icon> High-Speed Internet
-              </span>
-              <p class="text-xs text-slate-500 mt-0.5">Dedicated optical gigabit Wi-Fi across all training zones</p>
+              <button type="submit" [disabled]="venueForm.invalid"
+                      class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                <span>{{ isEditMode() ? 'Save Changes' : 'Confirm & Register Venue' }}</span>
+              </button>
             </div>
-          </label>
-
-          <label class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-start gap-3 cursor-pointer hover:border-emerald-500 transition-colors">
-            <input type="checkbox" formControlName="parking" class="mt-1 rounded text-emerald-600 focus:ring-emerald-500" />
-            <div>
-              <span class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                <mat-icon class="text-base text-sky-500">local_parking</mat-icon> Dedicated Parking
-              </span>
-              <p class="text-xs text-slate-500 mt-0.5">Underground secure parking for trainees and instructors</p>
-            </div>
-          </label>
-
-          <label class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 flex items-start gap-3 cursor-pointer hover:border-emerald-500 transition-colors">
-            <input type="checkbox" formControlName="accessibility" class="mt-1 rounded text-emerald-600 focus:ring-emerald-500" />
-            <div>
-              <span class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                <mat-icon class="text-base text-purple-500">accessible</mat-icon> Full Accessibility
-              </span>
-              <p class="text-xs text-slate-500 mt-0.5">Elevators, wheelchair ramps, and accessible restroom facilities</p>
-            </div>
-          </label>
-        </div>
-
-        <div class="flex items-center justify-between pt-4">
-          <button type="button" (click)="activeTab.set('rooms')" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back: Rooms
-          </button>
-          <button type="button" (click)="activeTab.set('contact')"
-                  class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 flex items-center gap-1">
-            <span>Next: Facility Manager</span>
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- TAB 4: FACILITY MANAGER CONTACT -->
-    @if (activeTab() === 'contact') {
-      <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-6">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <mat-icon class="text-emerald-500">badge</mat-icon>
-          Point of Contact & Campus Supervisor
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Contact Person Name</label>
-            <input type="text" formControlName="contactName" placeholder="e.g. Lt. Col. Farhad Reza (Retd.)"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Role / Designation</label>
-            <input type="text" formControlName="contactRole" placeholder="e.g. Senior Facilities Director"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
-          </div>
-        </div>
+        }
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Direct Telephone / Mobile</label>
-            <input type="text" formControlName="contactPhone" placeholder="e.g. +880 1711-445566"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Contact Email</label>
-            <input type="email" formControlName="contactEmail" placeholder="e.g. farhad.reza@learningcenter.brac.net"
-                   class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl dark:text-white" />
-          </div>
-        </div>
+      </form>
+    </div>
 
-        <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
-          <button type="button" (click)="activeTab.set('facilities')" class="px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100">
-            Back: Amenities
-          </button>
-          <button type="submit" [disabled]="venueForm.invalid"
-                  class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md flex items-center gap-2">
-            <mat-icon class="text-base">check_circle</mat-icon>
-            <span>{{ isEditMode() ? 'Save Changes' : 'Confirm & Register Venue' }}</span>
-          </button>
-        </div>
-      </div>
-    }
-
-  </form>
+  </div>
 
 </div>

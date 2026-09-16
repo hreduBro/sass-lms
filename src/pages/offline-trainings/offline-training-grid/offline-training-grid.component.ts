@@ -1,10 +1,11 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineTrainingStatus, OfflineAssessmentMode } from '../../../models/offline-training.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-offline-training-grid',
@@ -14,9 +15,9 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    CustomSelectComponent
+    CustomSelectComponent,
+    ModalOverlayComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './offline-training-grid.component.html'
 })
 export class OfflineTrainingGridComponent implements OnInit {

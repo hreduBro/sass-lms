@@ -1,9 +1,10 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Venue, Room, SeatingLayout, calculateVenueTotalCapacity, getActiveRoomsCount } from '../../../models/venue.model';
+import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-venue-view',
@@ -12,9 +13,9 @@ import { Venue, Room, SeatingLayout, calculateVenueTotalCapacity, getActiveRooms
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    ModalOverlayComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './venue-view.component.html'
 })
 export class VenueViewComponent implements OnInit {

@@ -1,10 +1,12 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Venue, Room, VenueStatus, RoomStatus, SeatingLayout, calculateVenueTotalCapacity, getActiveRoomsCount } from '../../../models/venue.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DataGridComponent, FilterSectionComponent, GridViewMode } from '../../../components/data-grid';
+import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-venue-grid',
@@ -14,9 +16,11 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    CustomSelectComponent
+    CustomSelectComponent,
+    DataGridComponent,
+    FilterSectionComponent,
+    ModalOverlayComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './venue-grid.component.html'
 })
 export class VenueGridComponent implements OnInit {
@@ -25,11 +29,13 @@ export class VenueGridComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  activeTenant = computed(() => this.lmsData.activeTenant());
+
   // Permissions
   permissions = this.lmsData.venuePermissions;
 
   // View Mode: Grid vs Table
-  viewMode = signal<'grid' | 'table'>('grid');
+  viewMode = signal<GridViewMode>('table');
 
   // Filter Drawer Open State
   isFilterPanelOpen = signal<boolean>(false);
@@ -40,6 +46,10 @@ export class VenueGridComponent implements OnInit {
   selectedCity = signal<string>('all');
   selectedFacility = signal<string>('all'); // all | internet | parking | accessibility
   sortBy = signal<string>('newest'); // newest | oldest | name_asc | name_desc | capacity_desc | rooms_desc
+
+  draftStatus = signal<string>('all');
+  draftCity = signal<string>('all');
+  draftFacility = signal<string>('all');
 
   // Dropdown action menu ID
   openActionMenuId = signal<string | null>(null);
@@ -326,11 +336,41 @@ export class VenueGridComponent implements OnInit {
     });
   }
 
+  activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedCity() !== 'all') count++;
+    if (this.selectedFacility() !== 'all') count++;
+    return count;
+  });
+
+  hasActiveFilters = computed(() => this.searchQuery().trim() !== '' || this.activeFilterCount() > 0);
+
+  onFilterToggle(isOpen: boolean): void {
+    this.isFilterPanelOpen.set(isOpen);
+    if (isOpen) {
+      this.draftStatus.set(this.selectedStatus());
+      this.draftCity.set(this.selectedCity());
+      this.draftFacility.set(this.selectedFacility());
+    }
+  }
+
+  applyFilters(): void {
+    this.selectedStatus.set(this.draftStatus());
+    this.selectedCity.set(this.draftCity());
+    this.selectedFacility.set(this.draftFacility());
+    this.isFilterPanelOpen.set(false);
+  }
+
   clearFilters(): void {
     this.searchQuery.set('');
     this.selectedStatus.set('all');
     this.selectedCity.set('all');
     this.selectedFacility.set('all');
+    this.draftStatus.set('all');
+    this.draftCity.set('all');
+    this.draftFacility.set('all');
     this.sortBy.set('newest');
+    this.isFilterPanelOpen.set(false);
   }
 }

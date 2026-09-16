@@ -1,98 +1,182 @@
-<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+<div class="space-y-6">
 
-  <!-- TOP HEADER -->
-  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-    <div>
-      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-        <a routerLink="/offline-trainings" class="hover:text-emerald-600 transition-colors">Offline Trainings</a>
-        <span>/</span>
-        <span class="text-slate-900 dark:text-white">Trainee Gradebook & Manual Mark Entry</span>
+  <!-- UNBOXED TOP HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 text-tenant-600 dark:text-tenant-400">
+        <span class="material-symbols-outlined text-2xl">fact_check</span>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-        <mat-icon class="text-purple-600 dark:text-purple-400">fact_check</mat-icon>
-        Offline Trainee Gradebook (Mode C Evaluator)
-      </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-        Record attendance percentages, enter manual instructor evaluation rubric scores, and calculate automated cohort pass statuses.
-      </p>
+      <div>
+        <div class="flex items-center gap-2 text-xs text-text-secondary mb-0.5">
+          <a routerLink="/offline-trainings" class="hover:text-tenant-600 transition-colors flex items-center gap-1 font-medium">
+            <span class="material-symbols-outlined text-xs">arrow_back</span>
+            Offline Trainings
+          </a>
+          <span>/</span>
+          <span class="text-text-primary font-medium">Gradebook & Evaluations</span>
+        </div>
+        <h1 class="text-2xl font-bold text-text-primary tracking-tight">Trainee Gradebook & Evaluations</h1>
+        <p class="text-xs text-text-secondary mt-0.5">
+          Record attendance percentages, enter manual instructor evaluation rubric scores, and synchronize cohort grading.
+        </p>
+      </div>
     </div>
 
     <div class="flex items-center gap-3">
+      <a routerLink="/offline-trainings"
+         class="px-3.5 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-all flex items-center gap-1.5 shadow-xs">
+        <span class="material-symbols-outlined text-base">dashboard</span>
+        <span>All Workshops</span>
+      </a>
       <button (click)="saveAll()"
-              class="px-5 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-xs transition-all flex items-center gap-2">
-        <mat-icon class="text-base">save</mat-icon>
+              class="px-4 py-2 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-xs transition-all flex items-center gap-2">
+        <span class="material-symbols-outlined text-base">save</span>
         <span>Save All Grades</span>
       </button>
     </div>
   </div>
 
+  <!-- SUCCESS ALERT BANNER -->
   @if (saveSuccessAlert()) {
-    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in duration-200">
-      <mat-icon class="text-base text-emerald-600">check_circle</mat-icon>
-      <span class="font-semibold">{{ saveSuccessAlert() }}</span>
+    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between gap-2 animate-in fade-in duration-200">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400">check_circle</span>
+        <span class="font-semibold">{{ saveSuccessAlert() }}</span>
+      </div>
+      <button (click)="saveSuccessAlert.set(null)" class="text-emerald-700 hover:text-emerald-900 dark:text-emerald-300">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
     </div>
   }
 
-  <!-- SELECTION CONTROLS -->
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 max-w-2xl">
-      <div>
-        <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Target Offline Workshop</label>
-        <select [value]="selectedTrainingId()"
-                (change)="onTrainingChange($any($event.target).value)"
-                class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-800 dark:text-slate-200">
-          @for (t of trainings(); track t.trainingId) {
-            <option [value]="t.trainingId">{{ t.title }} ({{ t.code }})</option>
-          }
-        </select>
+  <!-- 4 KPI SUMMARY METRIC CARDS -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Trainees -->
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+        <span class="material-symbols-outlined text-xl">groups</span>
       </div>
-
-      <div>
-        <label class="block text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">Course Cohort / Embedding</label>
-        <select [value]="selectedEmbeddingId()"
-                (change)="selectedEmbeddingId.set($any($event.target).value)"
-                class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200">
-          <option value="all">All Cohorts & Embeddings</option>
-          @for (c of cohorts(); track c.embeddingId) {
-            <option [value]="c.embeddingId">{{ c.hostEntityTitle }} ({{ c.customBatchName || 'Default Batch' }})</option>
-          }
-        </select>
+      <div class="min-w-0">
+        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Cohort Trainees</p>
+        <p class="text-xl font-bold text-text-primary tracking-tight">{{ results().length }}</p>
       </div>
     </div>
 
-    <!-- QUICK STATS PILL -->
-    <div class="flex items-center gap-4 text-xs">
-      <div class="text-right">
-        <span class="text-slate-400 block text-2xs uppercase font-bold">Class Average</span>
-        <span class="font-mono text-base font-bold text-slate-900 dark:text-white">{{ avgScore() }}%</span>
+    <!-- Class Average -->
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 flex items-center justify-center text-tenant-600 dark:text-tenant-400 shrink-0">
+        <span class="material-symbols-outlined text-xl">analytics</span>
       </div>
-      <div class="text-right">
-        <span class="text-slate-400 block text-2xs uppercase font-bold">Passed</span>
-        <span class="font-mono text-base font-bold text-emerald-600">{{ passCount() }} / {{ results().length }}</span>
+      <div class="min-w-0">
+        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Class Average</p>
+        <p class="text-xl font-bold text-tenant-600 dark:text-tenant-400 tracking-tight">{{ avgScore() }}%</p>
+      </div>
+    </div>
+
+    <!-- Passed Count -->
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+        <span class="material-symbols-outlined text-xl">verified</span>
+      </div>
+      <div class="min-w-0">
+        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Passed Count</p>
+        <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{{ passCount() }}</p>
+      </div>
+    </div>
+
+    <!-- Pass Rate -->
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+        <span class="material-symbols-outlined text-xl">rate_review</span>
+      </div>
+      <div class="min-w-0">
+        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Pass Rate</p>
+        <p class="text-xl font-bold text-text-primary tracking-tight">{{ passRate() }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSHOP & COHORT SELECTORS + SEARCH FILTER TOOLBAR -->
+  <div class="p-4 bg-base-100 rounded-2xl border border-base-300 shadow-xs space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- Target Offline Workshop -->
+      <div class="lg:col-span-2">
+        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Target Offline Workshop</label>
+        <app-custom-select
+          [options]="trainingOptions()"
+          [ngModel]="selectedTrainingId()"
+          (ngModelChange)="onTrainingChange($event)"
+          placeholder="Select Workshop">
+        </app-custom-select>
+      </div>
+
+      <!-- Cohort / Embedding Filter -->
+      <div>
+        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Cohort / Batch Embedding</label>
+        <app-custom-select
+          [options]="cohortOptions()"
+          [ngModel]="selectedEmbeddingId()"
+          (ngModelChange)="onCohortChange($event)"
+          placeholder="Select Batch">
+        </app-custom-select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Pass/Fail Status</label>
+        <app-custom-select
+          [options]="statusFilterOptions"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          placeholder="Filter Status">
+        </app-custom-select>
+      </div>
+    </div>
+
+    <!-- Search Input Row -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-base-300">
+      <div class="relative flex-1 max-w-md">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
+        <input type="text"
+               [value]="searchQuery()"
+               (input)="searchQuery.set($any($event.target).value)"
+               placeholder="Search trainee name or email..."
+               class="w-full pl-9 pr-4 py-2 text-xs bg-base-200/50 border border-base-300 rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors">
+      </div>
+      <div class="flex items-center gap-2 text-xs text-text-secondary">
+        <span>Showing <strong class="text-text-primary font-semibold">{{ results().length }}</strong> trainees</span>
       </div>
     </div>
   </div>
 
   <!-- GRADEBOOK TABLE -->
-  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+  <div class="bg-base-100 rounded-2xl border border-base-300 shadow-xs overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-        <thead class="bg-slate-50 dark:bg-slate-900/60 uppercase font-bold text-slate-500 border-b border-slate-200 dark:border-slate-700">
+      <table class="w-full text-left text-xs text-text-secondary">
+        <thead class="bg-base-200/60 uppercase font-bold text-text-secondary border-b border-base-300">
           <tr>
             <th class="px-5 py-3.5">Trainee</th>
             <th class="px-4 py-3.5">Attendance (%)</th>
             <th class="px-4 py-3.5">Manual Score (0 - 100)</th>
             <th class="px-4 py-3.5">Calculated Status</th>
             <th class="px-4 py-3.5">Instructor Remarks / Viva Feedback</th>
-            <th class="px-5 py-3.5 text-right">Action</th>
+            <th class="px-5 py-3.5 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+        <tbody class="divide-y divide-base-300">
           @for (r of results(); track r.resultId) {
-            <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors">
+            <tr class="hover:bg-base-200/40 transition-colors">
+              <!-- Trainee Info -->
               <td class="px-5 py-3.5">
-                <div class="font-bold text-slate-900 dark:text-white">{{ r.traineeName }}</div>
-                <div class="text-2xs text-slate-400 font-mono">{{ r.traineeEmail }}</div>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 text-tenant-600 dark:text-tenant-400 font-bold flex items-center justify-center text-xs shrink-0">
+                    {{ r.traineeName.charAt(0) }}
+                  </div>
+                  <div>
+                    <div class="font-bold text-text-primary">{{ r.traineeName }}</div>
+                    <div class="text-2xs text-text-secondary font-mono">{{ r.traineeEmail }}</div>
+                  </div>
+                </div>
               </td>
 
               <!-- Attendance Input -->
@@ -101,8 +185,8 @@
                   <input type="number" min="0" max="100"
                          [value]="editableMarks()[r.resultId]?.attendance ?? r.attendancePercentage"
                          (input)="updateAttendance(r.resultId, $any($event.target).valueAsNumber)"
-                         class="w-16 px-2 py-1 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center" />
-                  <span class="text-slate-400 font-bold">%</span>
+                         class="w-16 px-2 py-1.5 text-xs font-mono font-bold bg-base-200/60 border border-base-300 rounded-lg text-center text-text-primary focus:outline-none focus:border-tenant-500" />
+                  <span class="text-text-secondary font-semibold text-xs">%</span>
                 </div>
               </td>
 
@@ -112,19 +196,19 @@
                   <input type="number" min="0" max="100"
                          [value]="editableMarks()[r.resultId]?.marks ?? r.manualMarkScore ?? 0"
                          (input)="updateMark(r.resultId, $any($event.target).valueAsNumber)"
-                         class="w-16 px-2 py-1 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-purple-600 dark:text-purple-400" />
-                  <span class="text-slate-400 font-bold">/ 100</span>
+                         class="w-16 px-2 py-1.5 text-xs font-mono font-bold bg-base-200/60 border border-base-300 rounded-lg text-center text-tenant-600 dark:text-tenant-400 focus:outline-none focus:border-tenant-500" />
+                  <span class="text-text-secondary font-semibold text-xs">/ 100</span>
                 </div>
               </td>
 
               <!-- Calculated Status -->
               <td class="px-4 py-3.5">
                 <span [class]="r.passStatus === 'passed' 
-                               ? 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
-                               : 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'">
+                               ? 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                               : 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'">
                   {{ r.passStatus | uppercase }}
                 </span>
-                <span class="text-2xs text-slate-400 block mt-0.5">Overall: {{ r.finalOverallScore ?? '--' }}%</span>
+                <span class="text-2xs text-text-secondary block mt-0.5">Overall: {{ r.finalOverallScore ?? '--' }}%</span>
               </td>
 
               <!-- Instructor Feedback -->
@@ -133,15 +217,32 @@
                        [value]="editableMarks()[r.resultId]?.remarks ?? r.instructorRemarks ?? ''"
                        (input)="updateRemarks(r.resultId, $any($event.target).value)"
                        placeholder="Add performance feedback or viva notes..."
-                       class="w-full px-2.5 py-1 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg" />
+                       class="w-full px-2.5 py-1.5 text-xs bg-base-200/60 border border-base-300 rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors" />
               </td>
 
-              <!-- Save Button -->
+              <!-- Actions -->
               <td class="px-5 py-3.5 text-right">
-                <button (click)="saveRow(r)"
-                        class="px-3 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 rounded-lg transition-colors">
-                  Save
-                </button>
+                <div class="flex items-center justify-end gap-1.5">
+                  <button (click)="openTraineeModal(r)"
+                          title="View Trainee Record"
+                          class="p-1.5 text-text-secondary hover:text-tenant-600 hover:bg-tenant-50 dark:hover:bg-tenant-950/40 rounded-lg transition-colors">
+                    <span class="material-symbols-outlined text-base">visibility</span>
+                  </button>
+                  <button (click)="saveRow(r)"
+                          class="px-3 py-1.5 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 hover:bg-tenant-500 hover:text-white rounded-lg transition-all shadow-2xs">
+                    Save
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-5 py-12 text-center text-text-secondary">
+                <div class="max-w-xs mx-auto space-y-2">
+                  <span class="material-symbols-outlined text-3xl text-text-secondary opacity-40">assignment_late</span>
+                  <p class="text-sm font-semibold text-text-primary">No trainee records match filter</p>
+                  <p class="text-xs text-text-secondary">Try selecting a different cohort or resetting search query.</p>
+                </div>
               </td>
             </tr>
           }
@@ -150,4 +251,63 @@
     </div>
   </div>
 
+  <!-- TRAINEE DETAIL MODAL -->
+  @if (selectedTraineeForModal()) {
+    <app-modal-overlay
+      [isOpen]="showDetailModal()"
+      (close)="closeTraineeModal()"
+      maxWidth="max-w-xl"
+      title="Trainee Evaluation Dossier"
+      [subtitle]="selectedTraineeForModal()?.traineeName"
+      icon="account_circle">
+      <div class="space-y-4 text-xs text-text-secondary">
+        <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-sm text-text-primary">{{ selectedTraineeForModal()?.traineeName }}</div>
+            <div class="font-mono text-2xs text-text-secondary">{{ selectedTraineeForModal()?.traineeEmail }}</div>
+          </div>
+          <span [class]="selectedTraineeForModal()?.passStatus === 'passed' 
+                         ? 'px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                         : 'px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'">
+            {{ selectedTraineeForModal()?.passStatus | uppercase }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
+            <span class="text-2xs font-semibold uppercase text-text-secondary block">Attendance Record</span>
+            <span class="text-base font-bold text-text-primary">{{ selectedTraineeForModal()?.attendancePercentage }}%</span>
+          </div>
+          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
+            <span class="text-2xs font-semibold uppercase text-text-secondary block">Manual Practical Score</span>
+            <span class="text-base font-bold text-tenant-600 dark:text-tenant-400">{{ selectedTraineeForModal()?.manualMarkScore ?? 0 }} / 100</span>
+          </div>
+          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
+            <span class="text-2xs font-semibold uppercase text-text-secondary block">Overall Grade</span>
+            <span class="text-base font-bold text-text-primary">{{ selectedTraineeForModal()?.finalOverallScore ?? '--' }}%</span>
+          </div>
+          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
+            <span class="text-2xs font-semibold uppercase text-text-secondary block">Result ID</span>
+            <span class="text-xs font-mono font-bold text-text-primary truncate block">{{ selectedTraineeForModal()?.resultId }}</span>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-base-200/40 border border-base-300">
+          <span class="text-2xs font-semibold uppercase text-text-secondary block mb-1">Instructor Remarks</span>
+          <p class="text-xs text-text-primary italic">
+            "{{ selectedTraineeForModal()?.instructorRemarks || 'No qualitative remarks logged yet.' }}"
+          </p>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button (click)="closeTraineeModal()"
+                  class="px-4 py-2 text-xs font-semibold text-text-primary bg-base-200 hover:bg-base-300 border border-base-300 rounded-xl transition-all">
+            Close Dossier
+          </button>
+        </div>
+      </div>
+    </app-modal-overlay>
+  }
+
 </div>
+
