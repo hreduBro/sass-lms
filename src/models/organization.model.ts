@@ -1,5 +1,10 @@
 export type OrganizationStatus = 'Active' | 'In-Progress' | 'Suspended';
-export type DataSharingMode = 'Yes – Shared' | 'No – Segregated' | 'Custom';
+export type DataSharingMode = 'Yes' | 'No' | 'Yes – Shared' | 'No – Segregated' | 'Custom';
+
+export function isOrgDataSharingAllowed(mode?: string): boolean {
+  if (!mode) return true; // default allowed
+  return mode === 'Yes' || mode === 'Yes – Shared' || mode === 'Custom';
+}
 
 export interface TimezoneOption {
   display: string;

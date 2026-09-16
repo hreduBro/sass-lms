@@ -229,6 +229,30 @@ import {
   LoginBrandingConfig,
   DEFAULT_LOGIN_BRANDING
 } from '../models/login-branding.model';
+import {
+  Venue,
+  Room,
+  VenueStatus,
+  RoomStatus,
+  VenuePermissions,
+  DEFAULT_VENUE_PERMISSIONS,
+  INITIAL_VENUES,
+  calculateVenueTotalCapacity,
+  getActiveRoomsCount
+} from '../models/venue.model';
+import {
+  OfflineTraining,
+  OfflineTrainingEmbedding,
+  OfflineTraineeResult,
+  OfflineTrainingStatus,
+  AssessmentMode,
+  AttendanceStatus,
+  OfflineTrainingPermissions,
+  DEFAULT_OFFLINE_TRAINING_PERMISSIONS,
+  INITIAL_OFFLINE_TRAININGS,
+  INITIAL_OFFLINE_TRAINING_EMBEDDINGS,
+  INITIAL_OFFLINE_TRAINEE_RESULTS
+} from '../models/offline-training.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -1354,6 +1378,46 @@ const INITIAL_USERS: User[] = [
     lastActive: '1 hour ago',
     status: 'Active',
     complianceStatus: 'Compliant'
+  },
+  {
+    id: 'usr-brac-quick-1',
+    tenantId: 'tenant-brac',
+    name: 'Tariq Al-Amin',
+    email: 'tariq.alamin@brac.net',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
+    role: 'instructor',
+    department: 'Digital Financial Literacy',
+    enrolledCourses: [],
+    completedCourses: [],
+    earnedCertificates: [],
+    points: 120,
+    badges: [],
+    lastActive: '10 mins ago',
+    status: 'Active',
+    complianceStatus: 'At Risk',
+    isProfileComplete: false,
+    incompleteReason: 'Quick-added from Course Creator: Missing bio and faculty credentials',
+    instructorId: 'inst-003'
+  },
+  {
+    id: 'usr-brac-quick-2',
+    tenantId: 'tenant-brac',
+    name: 'Shamima Akter',
+    email: 'shamima.akter@brac.net',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+    role: 'learner',
+    department: 'Education & Youth Skills (BEP)',
+    enrolledCourses: [],
+    completedCourses: [],
+    earnedCertificates: [],
+    points: 50,
+    badges: [],
+    lastActive: '1 day ago',
+    status: 'Active',
+    complianceStatus: 'Compliant',
+    isProfileComplete: false,
+    incompleteReason: 'Quick-added from Course Creator: Missing bio and content specialization',
+    authorId: 'auth-004'
   },
   // Lumina Spatial Labs (Glassmorphism LMS Users)
   {
@@ -2618,6 +2682,24 @@ export class LmsDataService {
 
   activeInstructors = computed<InstructorProfile[]>(() => {
     return this.instructors().filter(i => i.status === 'Active');
+  });
+
+  // Venue Management Store (BRD §4.11)
+  venues = signal<Venue[]>(INITIAL_VENUES);
+  venuePermissions = signal<VenuePermissions>(DEFAULT_VENUE_PERMISSIONS);
+
+  activeVenues = computed<Venue[]>(() => {
+    return this.venues().filter(v => v.status === 'active');
+  });
+
+  // Offline Training Store (Component Embedding & Override Chain)
+  offlineTrainings = signal<OfflineTraining[]>(INITIAL_OFFLINE_TRAININGS.map(t => ({ ...t, trainingId: t.trainingId || t.id })));
+  offlineTrainingPermissions = signal<OfflineTrainingPermissions>(DEFAULT_OFFLINE_TRAINING_PERMISSIONS);
+  offlineTrainingEmbeddings = signal<OfflineTrainingEmbedding[]>(INITIAL_OFFLINE_TRAINING_EMBEDDINGS);
+  offlineTraineeResults = signal<OfflineTraineeResult[]>(INITIAL_OFFLINE_TRAINEE_RESULTS.map(r => ({ ...r, resultId: r.resultId || `${r.traineeId}-${r.embeddingId}` })));
+
+  publishedOfflineTrainings = computed<OfflineTraining[]>(() => {
+    return this.offlineTrainings().filter(t => t.status === 'published');
   });
 
   badgePermissions = computed<BadgePermissions>(() => {
@@ -9008,6 +9090,8 @@ export class LmsDataService {
     const authorId = `auth-${Date.now().toString().slice(-6)}`;
     const personId = isExistingLinked ? (existingPerson.instructorId ? `person-${existingPerson.instructorId}` : `person-${Date.now()}`) : `person-${authorId}`;
 
+    const isComplete = !formData.isQuickAdd && Boolean(formData.bio && formData.contactNumber && formData.specialization);
+
     const newAuthor: AuthorProfile = {
       id: authorId,
       personId,
@@ -9016,16 +9100,62 @@ export class LmsDataService {
       contactNumber: formData.contactNumber?.trim() || undefined,
       bio: formData.bio?.trim() || undefined,
       specialization: formData.specialization?.trim() || 'General Learning Content',
-      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      avatar: formData.avatar || existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
       status: formData.status || 'Active',
       isInstructor: existingPerson.isInstructor || false,
       instructorId: existingPerson.instructorId,
       organizationId: this.activeTenantId() || 'tenant-brac',
       createdAt: formattedDate,
-      authoredItemsCount: 0
+      authoredItemsCount: 0,
+      isProfileComplete: isComplete,
+      incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing bio, contact details, or specialization credentials',
+      attachments: formData.attachments || []
     };
 
     this.authors.update(list => [newAuthor, ...list]);
+
+    // Ensure synchronized with platform users directory
+    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === cleanEmail.toLowerCase());
+    if (existingUser) {
+      this.users.update(list => list.map(u => {
+        if (u.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
+          return {
+            ...u,
+            name: cleanName,
+            authorId,
+            phone: formData.contactNumber || u.phone,
+            bio: formData.bio || u.bio,
+            isProfileComplete: isComplete,
+            incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing bio, contact details, or specialization credentials'
+          };
+        }
+        return u;
+      }));
+    } else {
+      const newUser: User = {
+        id: `usr-${Date.now().toString().slice(-6)}`,
+        tenantId: this.activeTenantId() || 'tenant-brac',
+        name: cleanName,
+        email: cleanEmail,
+        avatar: newAuthor.avatar,
+        role: newAuthor.isInstructor ? 'instructor' : 'learner',
+        department: 'Content Creation & Instructional Design',
+        enrolledCourses: [],
+        completedCourses: [],
+        earnedCertificates: [],
+        points: 0,
+        badges: [],
+        lastActive: 'Just now',
+        status: 'Active',
+        complianceStatus: 'Compliant',
+        phone: formData.contactNumber,
+        bio: formData.bio,
+        authorId,
+        isProfileComplete: isComplete,
+        incompleteReason: isComplete ? undefined : 'Quick-added from Course Creator: Missing bio, contact details, or specialization credentials'
+      };
+      this.users.update(list => [newUser, ...list]);
+    }
 
     // If linked to an instructor, also mark that instructor as isAuthor: true
     if (existingPerson.instructorId) {
@@ -9063,10 +9193,27 @@ export class LmsDataService {
         return {
           ...a,
           ...updates,
+          isProfileComplete: true,
+          incompleteReason: undefined,
           updatedAt: formattedDate
         };
       }
       return a;
+    }));
+
+    // Synchronize users directory and mark profile as complete
+    this.users.update(list => list.map(u => {
+      if (u.email.trim().toLowerCase() === existing.email.toLowerCase() || u.authorId === authorId) {
+        return {
+          ...u,
+          name: updates.name || u.name,
+          phone: updates.contactNumber || u.phone,
+          bio: updates.bio || u.bio,
+          isProfileComplete: true,
+          incompleteReason: undefined
+        };
+      }
+      return u;
     }));
 
     // Also update authorship records name if name changed
@@ -9217,6 +9364,8 @@ export class LmsDataService {
       ? formData.specialization.split(',').map(s => s.trim()).filter(Boolean)
       : (formData.specialization || ['General Pedagogy']);
 
+    const isComplete = !formData.isQuickAdd && Boolean(formData.bio && formData.contactNumber && formData.title && formData.department && specs.length > 0);
+
     const newInstructor: InstructorProfile = {
       id: instructorId,
       personId,
@@ -9225,7 +9374,7 @@ export class LmsDataService {
       contactNumber: formData.contactNumber?.trim() || undefined,
       bio: formData.bio?.trim() || undefined,
       specialization: specs.length > 0 ? specs : ['General Pedagogy'],
-      avatar: existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
+      avatar: formData.avatar || existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
       status: formData.status || 'Active',
       isAuthor: existingPerson.isAuthor || false,
       authorId: existingPerson.authorId,
@@ -9234,10 +9383,60 @@ export class LmsDataService {
       organizationId: this.activeTenantId() || 'tenant-brac',
       createdAt: formattedDate,
       assignmentsCount: 0,
-      rating: 5.0
+      rating: 5.0,
+      isProfileComplete: isComplete,
+      incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing faculty bio, academic credentials, or contact details',
+      attachments: formData.attachments || []
     };
 
     this.instructors.update(list => [newInstructor, ...list]);
+
+    // Ensure synchronized with platform users directory
+    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === cleanEmail.toLowerCase());
+    if (existingUser) {
+      this.users.update(list => list.map(u => {
+        if (u.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
+          return {
+            ...u,
+            name: cleanName,
+            role: 'instructor',
+            instructorId,
+            phone: formData.contactNumber || u.phone,
+            bio: formData.bio || u.bio,
+            department: formData.department?.trim() || u.department,
+            title: formData.title?.trim() || u.title,
+            isProfileComplete: isComplete,
+            incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing faculty bio, academic credentials, or contact details'
+          };
+        }
+        return u;
+      }));
+    } else {
+      const newUser: User = {
+        id: `usr-${Date.now().toString().slice(-6)}`,
+        tenantId: this.activeTenantId() || 'tenant-brac',
+        name: cleanName,
+        email: cleanEmail,
+        avatar: newInstructor.avatar,
+        role: 'instructor',
+        department: formData.department?.trim() || 'Academic & Faculty Division',
+        title: formData.title?.trim() || 'Faculty Instructor',
+        enrolledCourses: [],
+        completedCourses: [],
+        earnedCertificates: [],
+        points: 0,
+        badges: [],
+        lastActive: 'Just now',
+        status: 'Active',
+        complianceStatus: 'Compliant',
+        phone: formData.contactNumber,
+        bio: formData.bio,
+        instructorId,
+        isProfileComplete: isComplete,
+        incompleteReason: isComplete ? undefined : 'Quick-added from Course Creator: Missing faculty bio, academic credentials, or contact details'
+      };
+      this.users.update(list => [newUser, ...list]);
+    }
 
     // If linked to an author, also mark that author as isInstructor: true
     if (existingPerson.authorId) {
@@ -9275,10 +9474,29 @@ export class LmsDataService {
         return {
           ...i,
           ...updates,
+          isProfileComplete: true,
+          incompleteReason: undefined,
           updatedAt: formattedDate
         };
       }
       return i;
+    }));
+
+    // Synchronize users directory and mark profile as complete
+    this.users.update(list => list.map(u => {
+      if (u.email.trim().toLowerCase() === existing.email.toLowerCase() || u.instructorId === instructorId) {
+        return {
+          ...u,
+          name: updates.name || u.name,
+          phone: updates.contactNumber || u.phone,
+          bio: updates.bio || u.bio,
+          department: updates.department || u.department,
+          title: updates.title || u.title,
+          isProfileComplete: true,
+          incompleteReason: undefined
+        };
+      }
+      return u;
     }));
 
     // Also update assignment records if name changed
@@ -9384,7 +9602,583 @@ export class LmsDataService {
     this.showToast(`${instructor.name} has been activated.`, 'success', 3000, 'Instructor Activated');
     this.logAction('Instructor Activated', `Activated Instructor profile for ${instructor.name}`, 'info');
   }
+
+  // =========================================================================
+  // VENUE & ROOM MANAGEMENT (BRD §4.11)
+  // =========================================================================
+  getVenueById(venueId: string): Venue | undefined {
+    return this.venues().find(v => v.venueId === venueId);
+  }
+
+  getRoomById(venueId: string, roomId: string): Room | undefined {
+    const venue = this.getVenueById(venueId);
+    if (!venue) return undefined;
+    return venue.rooms.find(r => r.roomId === roomId);
+  }
+
+  createVenue(data: Partial<Venue>): Venue {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const code = data.code?.trim().toUpperCase() || `VEN-${Date.now().toString().slice(-4)}`;
+    
+    const newVenue: Venue = {
+      venueId: `venue-${Date.now()}`,
+      code,
+      name: data.name?.trim() || 'New Physical Venue',
+      type: 'physical',
+      address: data.address || { line1: '', city: 'Dhaka', postcode: '', country: 'Bangladesh', formatted: '' },
+      geo: data.geo || { lat: null, lng: null },
+      facilities: data.facilities || { internet: true, parking: true, accessibility: true, otherTags: [] },
+      organizationId: data.organizationId || 'org-01',
+      organizationName: data.organizationName || 'Grameenphone Corporate Academy',
+      lmsId: data.lmsId || 'lms-01',
+      lmsName: data.lmsName || 'Enterprise Leadership Portal',
+      status: data.status || 'active',
+      rooms: data.rooms || [],
+      usedInClassesCount: 0,
+      contactPerson: data.contactPerson,
+      createdBy: this.activeRole(),
+      createdAt: formatted,
+      updatedAt: formatted
+    };
+
+    this.venues.update(list => [newVenue, ...list]);
+    this.showToast('Venue has been saved successfully.', 'success', 3000, 'Venue Created');
+    this.logAction('Venue Created', `Created physical venue ${newVenue.name} (${newVenue.code})`, 'info');
+    return newVenue;
+  }
+
+  updateVenue(venueId: string, data: Partial<Venue>): void {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        return {
+          ...v,
+          ...data,
+          updatedAt: formatted
+        };
+      }
+      return v;
+    }));
+    this.showToast('Venue has been updated successfully.', 'success', 3000, 'Venue Updated');
+    this.logAction('Venue Updated', `Updated venue record ID ${venueId}`, 'info');
+  }
+
+  deactivateVenue(venueId: string): { success: boolean; message: string } {
+    const venue = this.getVenueById(venueId);
+    if (!venue) return { success: false, message: 'Venue not found.' };
+
+    this.venues.update(list => list.map(v => v.venueId === venueId ? { ...v, status: 'inactive' } : v));
+    this.showToast(`${venue.name} has been deactivated`, 'error', 3500, 'Venue Deactivated');
+    this.logAction('Venue Deactivated', `Deactivated venue ${venue.name}. Rooms are excluded from new class tagging; historical references retained.`, 'warning');
+    return { success: true, message: `${venue.name} has been deactivated` };
+  }
+
+  reactivateVenue(venueId: string): { success: boolean; message: string } {
+    const venue = this.getVenueById(venueId);
+    if (!venue) return { success: false, message: 'Venue not found.' };
+
+    this.venues.update(list => list.map(v => v.venueId === venueId ? { ...v, status: 'active' } : v));
+    this.showToast(`${venue.name} has been reactivated`, 'success', 3500, 'Venue Reactivated');
+    this.logAction('Venue Reactivated', `Reactivated venue ${venue.name}`, 'info');
+    return { success: true, message: `${venue.name} has been reactivated` };
+  }
+
+  deleteVenue(venueId: string): { success: boolean; message: string } {
+    const venue = this.getVenueById(venueId);
+    if (!venue) return { success: false, message: 'Venue not found.' };
+
+    if (venue.usedInClassesCount && venue.usedInClassesCount > 0) {
+      const msg = `Cannot delete "${venue.name}" because it is referenced in ${venue.usedInClassesCount} historical classes. Please deactivate it instead to preserve audit logs.`;
+      this.showToast(msg, 'error', 4500, 'Deletion Blocked');
+      return { success: false, message: msg };
+    }
+
+    this.venues.update(list => list.filter(v => v.venueId !== venueId));
+    this.showToast(`Venue "${venue.name}" deleted.`, 'info', 3000, 'Venue Deleted');
+    return { success: true, message: 'Venue deleted.' };
+  }
+
+  addRoom(venueId: string, roomData: Partial<Room>): Room {
+    const venue = this.getVenueById(venueId);
+    if (!venue) throw new Error('Venue not found');
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newRoom: Room = {
+      roomId: `room-${Date.now()}`,
+      venueId,
+      venueName: venue.name,
+      name: roomData.name?.trim() || 'Room New',
+      capacity: Number(roomData.capacity) || 30,
+      equipment: roomData.equipment || { projector: true, soundSystem: true, microphone: true, displayScreen: true, otherTags: [] },
+      seatingLayouts: roomData.seatingLayouts && roomData.seatingLayouts.length > 0 ? roomData.seatingLayouts : ['theatre', 'classroom'],
+      status: roomData.status || 'active',
+      usedInClassesCount: 0,
+      floorLevel: roomData.floorLevel,
+      notes: roomData.notes,
+      createdAt: formatted,
+      updatedAt: formatted
+    };
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        return {
+          ...v,
+          rooms: [...v.rooms, newRoom],
+          updatedAt: formatted
+        };
+      }
+      return v;
+    }));
+
+    this.showToast('Room has been added.', 'success', 3000, 'Room Registered');
+    this.logAction('Room Added', `Added room ${newRoom.name} (Cap: ${newRoom.capacity}) to venue ${venue.name}`, 'info');
+    return newRoom;
+  }
+
+  updateRoom(venueId: string, roomId: string, roomData: Partial<Room>): void {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        const updatedRooms = v.rooms.map(r => {
+          if (r.roomId === roomId) {
+            return {
+              ...r,
+              ...roomData,
+              updatedAt: formatted
+            };
+          }
+          return r;
+        });
+        return { ...v, rooms: updatedRooms, updatedAt: formatted };
+      }
+      return v;
+    }));
+
+    this.showToast('Room updated successfully.', 'success', 2500, 'Room Updated');
+  }
+
+  deactivateRoom(venueId: string, roomId: string): { success: boolean; message: string } {
+    const room = this.getRoomById(venueId, roomId);
+    if (!room) return { success: false, message: 'Room not found.' };
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        return {
+          ...v,
+          rooms: v.rooms.map(r => r.roomId === roomId ? { ...r, status: 'inactive' } : r)
+        };
+      }
+      return v;
+    }));
+
+    this.showToast(`Room "${room.name}" has been deactivated.`, 'error', 3000, 'Room Deactivated');
+    return { success: true, message: `Room "${room.name}" deactivated.` };
+  }
+
+  reactivateRoom(venueId: string, roomId: string): { success: boolean; message: string } {
+    const room = this.getRoomById(venueId, roomId);
+    if (!room) return { success: false, message: 'Room not found.' };
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        return {
+          ...v,
+          rooms: v.rooms.map(r => r.roomId === roomId ? { ...r, status: 'active' } : r)
+        };
+      }
+      return v;
+    }));
+
+    this.showToast(`Room "${room.name}" has been reactivated.`, 'success', 3000, 'Room Reactivated');
+    return { success: true, message: `Room "${room.name}" reactivated.` };
+  }
+
+  deleteRoom(venueId: string, roomId: string): { success: boolean; message: string } {
+    const room = this.getRoomById(venueId, roomId);
+    if (!room) return { success: false, message: 'Room not found.' };
+
+    if (room.usedInClassesCount && room.usedInClassesCount > 0) {
+      const msg = `Cannot delete room "${room.name}" because it is referenced in ${room.usedInClassesCount} delivery classes. Deactivate instead to preserve reporting integrity.`;
+      this.showToast(msg, 'error', 4500, 'Room Deletion Blocked');
+      return { success: false, message: msg };
+    }
+
+    this.venues.update(list => list.map(v => {
+      if (v.venueId === venueId) {
+        return { ...v, rooms: v.rooms.filter(r => r.roomId !== roomId) };
+      }
+      return v;
+    }));
+
+    this.showToast(`Room "${room.name}" deleted.`, 'info', 2500, 'Room Deleted');
+    return { success: true, message: 'Room deleted.' };
+  }
+
+  checkCapacityGuidance(roomId: string, plannedBatchSize: number): { isOverCapacity: boolean; capacity: number; difference: number; message: string } {
+    let targetRoom: Room | undefined;
+    for (const v of this.venues()) {
+      const found = v.rooms.find(r => r.roomId === roomId);
+      if (found) {
+        targetRoom = found;
+        break;
+      }
+    }
+
+    if (!targetRoom) {
+      return { isOverCapacity: false, capacity: 0, difference: 0, message: '' };
+    }
+
+    const capacity = targetRoom.capacity;
+    const diff = plannedBatchSize - capacity;
+    const isOver = diff > 0;
+
+    const message = isOver
+      ? `This room holds ${capacity} trainees. The selected batch has ${plannedBatchSize} (${diff} trainee(s) over room capacity).`
+      : `This room holds ${capacity} trainees. The selected batch has ${plannedBatchSize} (within maximum capacity limit).`;
+
+    return {
+      isOverCapacity: isOver,
+      capacity,
+      difference: diff,
+      message
+    };
+  }
+
+  // =========================================================================
+  // OFFLINE TRAINING & EMBEDDING MANAGEMENT (Spec 2)
+  // =========================================================================
+  getOfflineTrainingById(id: string): OfflineTraining | undefined {
+    return this.offlineTrainings().find(t => t.id === id);
+  }
+
+  createOfflineTraining(data: Partial<OfflineTraining>): OfflineTraining {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const code = data.code?.trim().toUpperCase() || `OFL-${Date.now().toString().slice(-4)}`;
+
+    const venue = this.getVenueById(data.venueId || '');
+    const room = venue ? venue.rooms.find(r => r.roomId === data.roomId) : undefined;
+    const trainer = this.getInstructorById(data.defaultTrainerId || '');
+
+    const newTraining: OfflineTraining = {
+      id: `off-${Date.now()}`,
+      code,
+      title: data.title?.trim() || 'New In-Person Offline Training',
+      description: data.description?.trim() || '',
+      categoryTags: data.categoryTags || ['Technical', 'Hands-On'],
+      sessionMeta: data.sessionMeta,
+      venueId: data.venueId || (venue ? venue.venueId : ''),
+      venueName: venue ? venue.name : data.venueName,
+      roomId: data.roomId || (room ? room.roomId : ''),
+      roomName: room ? room.name : data.roomName,
+      roomCapacityAtTagging: room ? room.capacity : (data.roomCapacityAtTagging || 30),
+      defaultTrainerId: data.defaultTrainerId || (trainer ? trainer.id : ''),
+      defaultTrainerName: trainer ? trainer.name : data.defaultTrainerName,
+      defaultTrainerEmail: trainer ? trainer.email : data.defaultTrainerEmail,
+      defaultTrainerAvatar: trainer ? trainer.avatar : data.defaultTrainerAvatar,
+      coTrainerIds: data.coTrainerIds || [],
+      content: data.content || [],
+      assessments: data.assessments || [],
+      attendance: data.attendance || { required: true, requiredForCompletion: true },
+      outputs: data.outputs || { certificateTemplateId: null, badgeTemplateId: null, transcriptEnabled: true },
+      completionRule: data.completionRule || 'attended_and_passed',
+      skillIds: data.skillIds || [],
+      status: data.status || 'draft',
+      version: 1,
+      usedInCount: 0,
+      createdBy: this.activeRole(),
+      createdAt: formatted,
+      updatedAt: formatted
+    };
+
+    this.offlineTrainings.update(list => [newTraining, ...list]);
+    this.showToast('Offline training created successfully.', 'success', 3000, 'Training Saved');
+    this.logAction('Offline Training Created', `Created offline training "${newTraining.title}" (${newTraining.code})`, 'info');
+    return newTraining;
+  }
+
+  updateOfflineTraining(id: string, data: Partial<OfflineTraining>): void {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    let venueName = data.venueName;
+    let roomName = data.roomName;
+    let roomCap = data.roomCapacityAtTagging;
+
+    if (data.venueId && data.roomId) {
+      const venue = this.getVenueById(data.venueId);
+      const room = venue?.rooms.find(r => r.roomId === data.roomId);
+      if (venue) venueName = venue.name;
+      if (room) {
+        roomName = room.name;
+        roomCap = room.capacity;
+      }
+    }
+
+    let trainerName = data.defaultTrainerName;
+    let trainerEmail = data.defaultTrainerEmail;
+    let trainerAvatar = data.defaultTrainerAvatar;
+    if (data.defaultTrainerId) {
+      const inst = this.getInstructorById(data.defaultTrainerId);
+      if (inst) {
+        trainerName = inst.name;
+        trainerEmail = inst.email;
+        trainerAvatar = inst.avatar;
+      }
+    }
+
+    this.offlineTrainings.update(list => list.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          ...data,
+          venueName: venueName || t.venueName,
+          roomName: roomName || t.roomName,
+          roomCapacityAtTagging: roomCap || t.roomCapacityAtTagging,
+          defaultTrainerName: trainerName || t.defaultTrainerName,
+          defaultTrainerEmail: trainerEmail || t.defaultTrainerEmail,
+          defaultTrainerAvatar: trainerAvatar || t.defaultTrainerAvatar,
+          updatedAt: formatted
+        };
+      }
+      return t;
+    }));
+
+    this.showToast('Offline training updated successfully.', 'success', 2500, 'Training Updated');
+  }
+
+  publishOfflineTraining(id: string): { success: boolean; message: string } {
+    const training = this.getOfflineTrainingById(id);
+    if (!training) return { success: false, message: 'Offline training not found.' };
+
+    if (!training.venueId || !training.roomId) {
+      const msg = 'Publishing blocked: A physical Venue and Room are required for an in-person offline training.';
+      this.showToast(msg, 'error', 4000, 'Missing Venue');
+      return { success: false, message: msg };
+    }
+
+    // Check if manual assessment exists without a trainer assigned
+    const hasManual = training.assessments.some(a => a.mode === 'manual');
+    if (hasManual && !training.defaultTrainerId) {
+      const msg = 'Publishing blocked: Manual mark entry rubric requires a default instructor assigned.';
+      this.showToast(msg, 'error', 4000, 'Missing Trainer');
+      return { success: false, message: msg };
+    }
+
+    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.showToast('Offline training has been published successfully.', 'success', 3500, 'Published');
+    this.logAction('Offline Training Published', `Published offline training ${training.title}`, 'info');
+    return { success: true, message: 'Offline training has been published successfully.' };
+  }
+
+  deactivateOfflineTraining(id: string): { success: boolean; message: string } {
+    const training = this.getOfflineTrainingById(id);
+    if (!training) return { success: false, message: 'Offline training not found.' };
+
+    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'inactive' } : t));
+    this.showToast(`"${training.title}" has been deactivated.`, 'error', 3500, 'Training Deactivated');
+    this.logAction('Offline Training Deactivated', `Deactivated ${training.title}. Not embeddable in new learning; existing embeddings retained.`, 'warning');
+    return { success: true, message: `Offline training "${training.title}" deactivated.` };
+  }
+
+  reactivateOfflineTraining(id: string): { success: boolean; message: string } {
+    const training = this.getOfflineTrainingById(id);
+    if (!training) return { success: false, message: 'Offline training not found.' };
+
+    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.showToast(`"${training.title}" has been reactivated.`, 'success', 3000, 'Training Reactivated');
+    return { success: true, message: `Offline training reactivated.` };
+  }
+
+  duplicateOfflineTraining(id: string): OfflineTraining {
+    const source = this.getOfflineTrainingById(id);
+    if (!source) throw new Error('Source training not found');
+
+    return this.createOfflineTraining({
+      ...source,
+      code: `${source.code}-COPY`,
+      title: `${source.title} (Copy)`,
+      status: 'draft'
+    });
+  }
+
+  deleteOfflineTraining(id: string): { success: boolean; message: string } {
+    const training = this.getOfflineTrainingById(id);
+    if (!training) return { success: false, message: 'Offline training not found.' };
+
+    if (training.usedInCount && training.usedInCount > 0) {
+      const msg = `Cannot delete "${training.title}" because it is embedded in ${training.usedInCount} active course/phase/plan(s). Deactivate it instead.`;
+      this.showToast(msg, 'error', 4500, 'Deletion Blocked');
+      return { success: false, message: msg };
+    }
+
+    this.offlineTrainings.update(list => list.filter(t => t.id !== id));
+    this.showToast('Offline training deleted.', 'info', 2500, 'Training Deleted');
+    return { success: true, message: 'Offline training deleted.' };
+  }
+
+  embedOfflineTraining(embeddingData: Omit<OfflineTrainingEmbedding, 'embeddingId' | 'embeddedAt'>): OfflineTrainingEmbedding {
+    const training = this.getOfflineTrainingById(embeddingData.offlineTrainingId);
+    if (!training) throw new Error('Offline training not found');
+
+    const trainer = this.getInstructorById(embeddingData.effectiveTrainerId) || 
+                    this.getInstructorById(training.defaultTrainerId);
+
+    const isOverridden = embeddingData.effectiveTrainerId !== training.defaultTrainerId;
+
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    const newEmbedding: OfflineTrainingEmbedding = {
+      embeddingId: `embed-${Date.now()}`,
+      offlineTrainingId: training.id,
+      offlineTrainingVersion: training.version,
+      hostType: embeddingData.hostType,
+      hostId: embeddingData.hostId,
+      hostTitle: embeddingData.hostTitle,
+      effectiveTrainerId: trainer ? trainer.id : training.defaultTrainerId,
+      effectiveTrainerName: trainer ? trainer.name : (training.defaultTrainerName || 'Assigned Trainer'),
+      effectiveTrainerEmail: trainer ? trainer.email : training.defaultTrainerEmail,
+      effectiveTrainerAvatar: trainer ? trainer.avatar : training.defaultTrainerAvatar,
+      trainerOverridden: isOverridden,
+      customSessionDate: embeddingData.customSessionDate,
+      customSessionTime: embeddingData.customSessionTime,
+      embeddedBy: this.activeRole(),
+      embeddedAt: formatted
+    };
+
+    this.offlineTrainingEmbeddings.update(list => [newEmbedding, ...list]);
+    this.offlineTrainings.update(list => list.map(t => t.id === training.id ? { ...t, usedInCount: (t.usedInCount || 0) + 1 } : t));
+
+    this.showToast(`Offline training embedded into ${embeddingData.hostType}.`, 'success', 2500, 'Component Embedded');
+    return newEmbedding;
+  }
+
+  overrideEmbeddingTrainer(embeddingId: string, newTrainerId: string): void {
+    const newTrainer = this.getInstructorById(newTrainerId);
+    if (!newTrainer) {
+      this.showToast('Selected instructor not found.', 'error', 3000);
+      return;
+    }
+
+    this.offlineTrainingEmbeddings.update(list => list.map(emb => {
+      if (emb.embeddingId === embeddingId) {
+        return {
+          ...emb,
+          effectiveTrainerId: newTrainer.id,
+          effectiveTrainerName: newTrainer.name,
+          effectiveTrainerEmail: newTrainer.email,
+          effectiveTrainerAvatar: newTrainer.avatar,
+          trainerOverridden: true
+        };
+      }
+      return emb;
+    }));
+
+    this.showToast(`Trainer updated for this embedding to ${newTrainer.name}.`, 'success', 3000, 'Trainer Overridden');
+  }
+
+  saveOfflineManualMarks(embeddingId: string, traineeId: string, assessmentRef: string, mark: number, maxMark: number, remark?: string): void {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.offlineTraineeResults.update(results => {
+      const existing = results.find(r => r.embeddingId === embeddingId && r.traineeId === traineeId);
+      if (existing) {
+        const marks = existing.manualMarks.filter(m => m.assessmentRef !== assessmentRef);
+        marks.push({
+          assessmentRef,
+          mark,
+          maxMark,
+          remark,
+          enteredBy: this.activeRole(),
+          enteredAt: formatted
+        });
+
+        const overallPct = Math.round((marks.reduce((sum, m) => sum + (m.mark / m.maxMark * 100), 0)) / marks.length);
+        const passed = overallPct >= 60 && existing.attendance.status === 'present';
+
+        return results.map(r => r.embeddingId === embeddingId && r.traineeId === traineeId ? {
+          ...r,
+          manualMarks: marks,
+          overallScore: overallPct,
+          passed,
+          completed: passed,
+          updatedAt: formatted
+        } : r);
+      } else {
+        // Create new trainee result entry
+        const user = this.users().find(u => u.id === traineeId);
+        const newResult: OfflineTraineeResult = {
+          traineeId,
+          traineeName: user ? user.name : 'Enrolled Trainee',
+          traineeEmail: user ? user.email : 'trainee@onelms.com',
+          traineeAvatar: user ? user.avatar : undefined,
+          embeddingId,
+          offlineTrainingId: '',
+          manualMarks: [{
+            assessmentRef,
+            mark,
+            maxMark,
+            remark,
+            enteredBy: this.activeRole(),
+            enteredAt: formatted
+          }],
+          attendance: { status: 'present', markedBy: this.activeRole(), markedAt: formatted },
+          overallScore: Math.round((mark / maxMark) * 100),
+          completed: (mark / maxMark) >= 0.6,
+          passed: (mark / maxMark) >= 0.6,
+          updatedAt: formatted
+        };
+        return [...results, newResult];
+      }
+    });
+
+    this.showToast('Marks have been saved.', 'success', 2500, 'Gradebook Updated');
+  }
+
+  saveOfflineAttendance(embeddingId: string, traineeId: string, status: AttendanceStatus, remarks?: string): void {
+    const now = new Date();
+    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.offlineTraineeResults.update(results => {
+      const existing = results.find(r => r.embeddingId === embeddingId && r.traineeId === traineeId);
+      if (existing) {
+        return results.map(r => r.embeddingId === embeddingId && r.traineeId === traineeId ? {
+          ...r,
+          attendance: { status, markedBy: this.activeRole(), markedAt: formatted, remarks },
+          updatedAt: formatted
+        } : r);
+      } else {
+        const user = this.users().find(u => u.id === traineeId);
+        const newResult: OfflineTraineeResult = {
+          traineeId,
+          traineeName: user ? user.name : 'Enrolled Trainee',
+          traineeEmail: user ? user.email : 'trainee@onelms.com',
+          traineeAvatar: user ? user.avatar : undefined,
+          embeddingId,
+          offlineTrainingId: '',
+          manualMarks: [],
+          attendance: { status, markedBy: this.activeRole(), markedAt: formatted, remarks },
+          completed: status === 'present',
+          passed: status === 'present',
+          updatedAt: formatted
+        };
+        return [...results, newResult];
+      }
+    });
+
+    this.showToast('Attendance has been recorded.', 'success', 2500, 'Attendance Logged');
+  }
 }
+
 
 
 

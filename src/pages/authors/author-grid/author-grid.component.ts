@@ -85,18 +85,6 @@ export class AuthorGridComponent {
   blockedActiveRecords = signal<AuthorshipRecord[]>([]);
   reassignmentSelections = signal<Record<string, string>>({}); // key: contentItemId+courseId -> replacement authorId
 
-  // Quick Edit Modal State
-  showEditModal = signal<boolean>(false);
-  editingAuthor = signal<AuthorProfile | null>(null);
-  editForm = {
-    name: '',
-    email: '',
-    contactNumber: '',
-    specialization: '',
-    bio: '',
-    status: 'Active' as 'Active' | 'Inactive'
-  };
-
   // Metrics
   totalAuthorsCount = computed(() => this.lms.authors().length);
   activeAuthorsCount = computed(() => this.lms.authors().filter(a => a.status === 'Active').length);
@@ -411,38 +399,7 @@ export class AuthorGridComponent {
 
   openEditModal(author: AuthorProfile, event?: Event): void {
     if (event) event.stopPropagation();
-    this.editingAuthor.set(author);
-    this.editForm = {
-      name: author.name,
-      email: author.email,
-      contactNumber: author.contactNumber || '',
-      specialization: author.specialization,
-      bio: author.bio || '',
-      status: author.status
-    };
-    this.showEditModal.set(true);
-  }
-
-  closeEditModal(): void {
-    this.showEditModal.set(false);
-    this.editingAuthor.set(null);
-  }
-
-  saveEdit(): void {
-    const target = this.editingAuthor();
-    if (!target) return;
-    if (!this.editForm.name.trim() || !this.editForm.email.trim()) return;
-
-    this.lms.updateAuthor(target.id, {
-      name: this.editForm.name.trim(),
-      email: this.editForm.email.trim(),
-      contactNumber: this.editForm.contactNumber.trim() || undefined,
-      specialization: this.editForm.specialization.trim(),
-      bio: this.editForm.bio.trim() || undefined,
-      status: this.editForm.status
-    });
-
-    this.closeEditModal();
+    this.router.navigate(['/authors/edit', author.id]);
   }
 
   handleToggleStatus(author: AuthorProfile, event?: Event): void {

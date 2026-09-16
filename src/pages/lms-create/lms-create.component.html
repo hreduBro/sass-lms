@@ -503,6 +503,191 @@
         </div>
       </div>
 
+      <!-- Section 3: Data Sharing Mode & Cross-LMS Resource Federation -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">hub</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">3. Data Sharing & Resource Federation</h2>
+              <p class="text-[11px] text-text-secondary">Cross-LMS resource sharing controlled by Organization Governance</p>
+            </div>
+          </div>
+
+          <!-- Governance Policy Badge -->
+          <div class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+               [ngClass]="isOrgDataSharingEnabled() 
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' 
+                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800'">
+            <span class="material-symbols-outlined text-sm">
+              {{ isOrgDataSharingEnabled() ? 'verified_user' : 'lock' }}
+            </span>
+            <span>Org Governance: {{ isOrgDataSharingEnabled() ? 'Sharing Permitted (Yes)' : 'Locked (No – Segregated)' }}</span>
+          </div>
+        </div>
+
+        <!-- If Organization-level sharing is DISABLED (No) -->
+        @if (!isOrgDataSharingEnabled()) {
+          <div class="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 space-y-3">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="material-symbols-outlined text-lg">shield_lock</span>
+              </div>
+              <div class="space-y-1 text-xs">
+                <h3 class="font-bold text-amber-900 dark:text-amber-200">Organization Governance Policy: Strict Data Segregation Enforced</h3>
+                <p class="text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                  The parent organization (<strong class="text-amber-950 dark:text-amber-100">{{ parentOrg().name }}</strong>) has set Data Sharing Mode to <strong>"No"</strong>. Under enterprise compliance rules, all LMS instances are strictly isolated. Cross-instance course pooling, faculty sharing, and unified transcripts are disabled at the master governance tier.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-amber-200/60 dark:border-amber-800/60 text-[11px] opacity-75">
+              <div class="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <span class="material-symbols-outlined text-sm text-rose-500">cancel</span>
+                <span>Courses Segregated</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <span class="material-symbols-outlined text-sm text-rose-500">cancel</span>
+                <span>Faculty Pool Isolated</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <span class="material-symbols-outlined text-sm text-rose-500">cancel</span>
+                <span>Assessment Bank Private</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                <span class="material-symbols-outlined text-sm text-rose-500">cancel</span>
+                <span>Transcripts Isolated</span>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <!-- If Organization-level sharing is ENABLED (Yes) -->
+          <div class="space-y-4">
+            <!-- LMS Admin Master Toggle -->
+            <div class="p-4 rounded-2xl bg-base-200 border border-base-300 flex items-center justify-between gap-4">
+              <div class="space-y-0.5">
+                <label class="text-xs font-bold text-text-primary flex items-center gap-1.5 cursor-pointer" (click)="toggleLmsDataSharing(!lmsDataSharingEnabled())">
+                  <span>Enable Data Sharing for this LMS Instance</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Governance Authorized</span>
+                </label>
+                <p class="text-[11px] text-text-secondary">
+                  Allow this LMS portal to participate in cross-programme resource federation within {{ parentOrg().name }}.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button"
+                  (click)="toggleLmsDataSharing(true)"
+                  class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  [ngClass]="lmsDataSharingEnabled() 
+                    ? 'bg-tenant-500 text-white shadow-xs' 
+                    : 'bg-base-100 text-text-secondary hover:text-text-primary border border-base-300'">
+                  <span class="material-symbols-outlined text-sm">check</span>
+                  <span>Yes (Share)</span>
+                </button>
+                <button 
+                  type="button"
+                  (click)="toggleLmsDataSharing(false)"
+                  class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  [ngClass]="!lmsDataSharingEnabled() 
+                    ? 'bg-slate-700 text-white shadow-xs' 
+                    : 'bg-base-100 text-text-secondary hover:text-text-primary border border-base-300'">
+                  <span class="material-symbols-outlined text-sm">block</span>
+                  <span>No (Private)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Granular Permissions Grid (When Enabled) -->
+            @if (lmsDataSharingEnabled()) {
+              <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">tune</span>
+                    Granular Resource Sharing Configuration
+                  </span>
+                  <span class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">LMS Admin Controls</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <!-- Courses -->
+                  <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-base text-tenant-600">menu_book</span>
+                      <div>
+                        <div class="font-bold text-text-primary">Shared Courses & Curricula</div>
+                        <div class="text-[10px] text-text-secondary">Allow other LMS portals to enroll in published courses</div>
+                      </div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      [checked]="shareCourses()" 
+                      (change)="togglePermission('courses')"
+                      class="rounded border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  </div>
+
+                  <!-- Faculty -->
+                  <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-base text-indigo-600">groups</span>
+                      <div>
+                        <div class="font-bold text-text-primary">Faculty & Instructor Pool</div>
+                        <div class="text-[10px] text-text-secondary">Enable cross-department teaching assignments</div>
+                      </div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      [checked]="shareFacultyPool()" 
+                      (change)="togglePermission('faculty')"
+                      class="rounded border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  </div>
+
+                  <!-- Assessment Bank -->
+                  <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-base text-amber-600">quiz</span>
+                      <div>
+                        <div class="font-bold text-text-primary">Centralized Question Bank</div>
+                        <div class="text-[10px] text-text-secondary">Pool standardized rubrics and question items</div>
+                      </div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      [checked]="shareAssessmentBank()" 
+                      (change)="togglePermission('assessments')"
+                      class="rounded border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  </div>
+
+                  <!-- Transcripts -->
+                  <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-base text-cyan-600">verified</span>
+                      <div>
+                        <div class="font-bold text-text-primary">Unified Transcripts & Certs</div>
+                        <div class="text-[10px] text-text-secondary">Cross-verify learner badges and credits across org</div>
+                      </div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      [checked]="shareTranscripts()" 
+                      (change)="togglePermission('transcripts')"
+                      class="rounded border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="p-3.5 rounded-2xl bg-base-200 border border-base-300 text-xs text-text-secondary flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-slate-500">lock</span>
+                <span>Data sharing is opted out for this instance. All courses, learners, and assessments will remain completely private to this portal.</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
       <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Save as draft, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
@@ -900,6 +1085,71 @@
                 <span class="text-text-secondary">Remaining {{ parentOrg()?.name || 'Org' }} File Capacity:</span>
                 <strong class="font-mono text-text-primary">{{ remainingOrgFileAvailable() }} GB</strong>
               </div>
+            </div>
+          </div>
+
+          <!-- Data Sharing Governance & Federation Preview Card -->
+          <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-base-300">
+              <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-tenant-600 text-base">hub</span>
+                Data Sharing & Resource Federation
+              </span>
+              <button (click)="jumpToStep(2)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between p-3 rounded-2xl bg-base-200 border border-base-300">
+                <div>
+                  <span class="text-[10px] text-text-secondary uppercase block font-semibold">Master Governance Control</span>
+                  <span class="font-bold text-text-primary">
+                    {{ isOrgDataSharingEnabled() ? 'Organization Sharing Permitted (Yes)' : 'Organization Strictly Segregated (No)' }}
+                  </span>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold border"
+                      [ngClass]="isOrgDataSharingEnabled() 
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' 
+                        : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-800'">
+                  {{ isOrgDataSharingEnabled() ? 'Yes' : 'No' }}
+                </span>
+              </div>
+
+              @if (isOrgDataSharingEnabled()) {
+                <div class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-emerald-900 dark:text-emerald-200">LMS Admin Instance Setting:</span>
+                    <span class="font-bold text-xs" [ngClass]="lmsDataSharingEnabled() ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'">
+                      {{ lmsDataSharingEnabled() ? 'Active Sharing Participant' : 'Opted-Out (Private)' }}
+                    </span>
+                  </div>
+
+                  @if (lmsDataSharingEnabled()) {
+                    <div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                      <div class="flex items-center gap-1.5" [ngClass]="shareCourses() ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ shareCourses() ? 'check_circle' : 'cancel' }}</span>
+                        <span>Courses Sharing: <strong>{{ shareCourses() ? 'Enabled' : 'Disabled' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="shareFacultyPool() ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ shareFacultyPool() ? 'check_circle' : 'cancel' }}</span>
+                        <span>Faculty Pool: <strong>{{ shareFacultyPool() ? 'Enabled' : 'Disabled' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="shareAssessmentBank() ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ shareAssessmentBank() ? 'check_circle' : 'cancel' }}</span>
+                        <span>Assessment Bank: <strong>{{ shareAssessmentBank() ? 'Enabled' : 'Disabled' }}</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5" [ngClass]="shareTranscripts() ? 'text-emerald-700 dark:text-emerald-300' : 'text-text-secondary opacity-60'">
+                        <span class="material-symbols-outlined text-xs">{{ shareTranscripts() ? 'check_circle' : 'cancel' }}</span>
+                        <span>Transcripts: <strong>{{ shareTranscripts() ? 'Enabled' : 'Disabled' }}</strong></span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base text-amber-600">lock</span>
+                  <span>Data sharing locked by enterprise governance policy. Fully isolated tenant partition.</span>
+                </div>
+              }
             </div>
           </div>
 

@@ -32,10 +32,21 @@ export interface LmsBasicInfo {
   logo?: LmsLogo;
 }
 
+export interface LmsDataSharingConfig {
+  enabled: boolean;
+  mode: 'Shared' | 'Segregated' | 'Custom';
+  shareCourses: boolean;
+  shareFacultyPool: boolean;
+  shareAssessmentBank: boolean;
+  shareTranscripts: boolean;
+  customCohortName?: string;
+}
+
 export interface LmsResourceAllocation {
   databaseSizeGb: number | null;
   fileStorageGb: number | null;
   usageAlertThresholdPct: number | null;
+  dataSharing?: LmsDataSharingConfig;
 }
 
 export interface LmsInstance {

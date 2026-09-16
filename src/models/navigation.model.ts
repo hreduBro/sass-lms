@@ -146,15 +146,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: '4-step LMS creation wizard', 
         roles: ['system_admin', 'super_admin', 'tenant_admin'],
         matchPatterns: ['/lms/create']
-      },
-      { 
-        label: 'Landing Page Builder', 
-        route: '/landing-builder', 
-        icon: 'design_services', 
-        badge: 'Studio', 
-        description: 'Design public LMS landing page in WordPress-like builder', 
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
-        matchPatterns: ['/landing-builder', '/landing-builder/**']
       }
     ]
   },
@@ -215,6 +206,85 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: 'Design new learning plan & phase structure', 
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/plans/create', '/plans/edit/**']
+      }
+    ]
+  },
+  {
+    label: 'Offline Trainings',
+    route: '/offline-trainings',
+    icon: 'groups_3',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'In-Person',
+    description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
+    matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
+    children: [
+      {
+        label: 'Training Catalog',
+        route: '/offline-trainings',
+        icon: 'grid_view',
+        description: 'Browse, filter & search offline trainings',
+        matchPatterns: ['/offline-trainings', '/offline-trainings/view/**']
+      },
+      {
+        label: 'Training Dashboard',
+        route: '/offline-trainings/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Telemetry',
+        description: 'Classroom statistics, venue distribution & capacity metrics',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/dashboard']
+      },
+      {
+        label: 'Create Training',
+        route: '/offline-trainings/create',
+        icon: 'add_circle',
+        badge: 'Builder',
+        description: '5-step in-person offline training creation wizard',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/create', '/offline-trainings/edit/**']
+      },
+      {
+        label: 'Trainee Results',
+        route: '/offline-trainings/results',
+        icon: 'fact_check',
+        badge: 'Gradebook',
+        description: 'Attendance log, manual mark entry & cohort pass status',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/offline-trainings/results']
+      }
+    ]
+  },
+  {
+    label: 'Venues & Facilities',
+    route: '/venues',
+    icon: 'location_city',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Physical',
+    description: 'Manage physical learning centers, rooms, seating layouts & capacity guidance',
+    matchPatterns: ['/venues', '/venues/**'],
+    children: [
+      {
+        label: 'Venue Directory',
+        route: '/venues',
+        icon: 'domain',
+        description: 'Browse, filter & manage physical venues & rooms',
+        matchPatterns: ['/venues', '/venues/view/**']
+      },
+      {
+        label: 'Venue Dashboard',
+        route: '/venues/dashboard',
+        icon: 'space_dashboard',
+        badge: 'Metrics',
+        description: 'Venue telemetry, room utilization & capacity benchmarks',
+        matchPatterns: ['/venues/dashboard']
+      },
+      {
+        label: 'Create Venue',
+        route: '/venues/create',
+        icon: 'add_location_alt',
+        badge: 'New',
+        description: 'Register physical venue with geo-coords & room configurations',
+        matchPatterns: ['/venues/create', '/venues/edit/**']
       }
     ]
   },
@@ -337,7 +407,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'history_edu',
         badge: 'Credits',
         description: 'Organization-scoped author pool & media credits',
-        matchPatterns: ['/authors', '/authors/:id', '/authors/*']
+        matchPatterns: ['/authors', '/authors/view/**', '/authors/details/**']
       },
       {
         label: 'Instructors Pool',
@@ -345,7 +415,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'co_present',
         badge: 'Faculty',
         description: 'Faculty pool & course layer assignments',
-        matchPatterns: ['/instructors', '/instructors/:id', '/instructors/*']
+        matchPatterns: ['/instructors', '/instructors/view/**', '/instructors/details/**']
       },
       {
         label: 'Create Author',
@@ -353,7 +423,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'person_add',
         badge: 'New',
         description: 'Onboard new content author with duplicate check',
-        matchPatterns: ['/authors/create']
+        matchPatterns: ['/authors/create', '/authors/edit/**']
       },
       {
         label: 'Create Instructor',
@@ -361,7 +431,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'school',
         badge: 'New',
         description: 'Onboard new course delivery instructor',
-        matchPatterns: ['/instructors/create']
+        matchPatterns: ['/instructors/create', '/instructors/edit/**']
       }
     ]
   },
@@ -476,20 +546,32 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
-    label: 'Badge Templates',
+    label: 'Badges & Credentials',
     route: '/certificates/badges',
     icon: 'military_tech',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Badges',
-    description: 'Design, manage, and track OpenBadges digital credentials',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'OpenBadges',
+    description: 'Trainee earned badges with LMS provenance and template repository',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
       {
+        label: 'Earned Badges (LMS Origins)',
+        route: '/certificates/badges',
+        queryParams: { tab: 'earned' },
+        icon: 'verified',
+        badge: 'Trainee',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'Verifiable credentials categorized by originating enterprise LMS portal',
+        matchPatterns: ['/certificates/badges?tab=earned', '/certificates/badges/earned', '/badges/earned']
+      },
+      {
         label: 'Badge Repository',
         route: '/certificates/badges',
+        queryParams: { tab: 'templates' },
         icon: 'grid_view',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Browse, filter & manage digital badge templates',
-        matchPatterns: ['/certificates/badges', '/badges', '/certificates/badges/view/**']
+        matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
       },
       {
         label: 'Badge Dashboard',
@@ -519,15 +601,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     badge: 'Live',
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
-  },
-  {
-    label: 'Landing Page Builder',
-    route: '/landing-builder',
-    icon: 'web',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
-    badge: 'WYSIWYG',
-    description: 'Design public-facing LMS landing page in full-screen visual builder',
-    matchPatterns: ['/landing-builder', '/landing-builder/**', '/landing', '/landing/**']
   },
   {
     label: 'LMS Theming & Layout',
@@ -599,18 +672,61 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
   const cleanChildRoute = childRoute.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
-  // Handle items with specific tab query parameters (e.g., Competency Clusters)
+  // Handle items with specific tab query parameters (e.g., Competency Clusters, Earned Badges)
   if (childQueryParams && childQueryParams['tab']) {
     const tabVal = childQueryParams['tab'];
     if (currentUrl.includes(`tab=${tabVal}`) || currentUrl.includes(`${childRoute}/${tabVal}`)) {
       return true;
     }
+    // Default tab when no query parameter is in URL
+    if (childRoute === '/certificates/badges' && tabVal === 'earned' && cleanUrl === '/certificates/badges' && !currentUrl.includes('tab=')) {
+      return true;
+    }
+    return false;
   }
 
   // If this child has no queryParams.tab, check if another tab query param is present in current URL
   if (childRoute === '/skills' && (!childQueryParams || !childQueryParams['tab'])) {
     if (currentUrl.includes('tab=clusters') || currentUrl.includes('tab=mappings') || currentUrl.includes('/skills/clusters') || currentUrl.includes('/skills/mappings')) {
       return false;
+    }
+  }
+
+  if (childRoute === '/certificates/badges' && (!childQueryParams || !childQueryParams['tab'])) {
+    if (currentUrl.includes('tab=earned') || currentUrl.includes('tab=templates')) {
+      return false;
+    }
+  }
+
+  // Disambiguation for Authors Pool vs Create / Edit Author
+  if (cleanChildRoute === '/authors') {
+    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
+      return false;
+    }
+    if (cleanUrl === '/authors' || cleanUrl.startsWith('/authors/')) {
+      return true;
+    }
+  }
+
+  if (cleanChildRoute === '/authors/create') {
+    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
+      return true;
+    }
+  }
+
+  // Disambiguation for Instructors Pool vs Create / Edit Instructor
+  if (cleanChildRoute === '/instructors') {
+    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
+      return false;
+    }
+    if (cleanUrl === '/instructors' || cleanUrl.startsWith('/instructors/')) {
+      return true;
+    }
+  }
+
+  if (cleanChildRoute === '/instructors/create') {
+    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
+      return true;
     }
   }
 

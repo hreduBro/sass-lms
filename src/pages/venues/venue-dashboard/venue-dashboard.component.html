@@ -1,0 +1,114 @@
+<div class="min-h-screen bg-slate-50/50 dark:bg-slate-900/50 p-6 lg:p-8 space-y-6">
+
+  <!-- TOP HEADER -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+        <a routerLink="/venues" class="hover:text-emerald-600 transition-colors">Venues</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white">Telemetry & Analytics Dashboard</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+        <mat-icon class="text-emerald-600 dark:text-emerald-400">space_dashboard</mat-icon>
+        Physical Venue Telemetry & Seating Analytics
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        Regional distribution, seating density, room capacity distribution, and facility amenities coverage.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a routerLink="/venues" 
+         class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-xs transition-colors flex items-center gap-2">
+        <mat-icon class="text-base text-slate-500">domain</mat-icon>
+        <span>Venue Directory</span>
+      </a>
+      <a routerLink="/venues/create" 
+         class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all flex items-center gap-2">
+        <mat-icon class="text-base">add_location_alt</mat-icon>
+        <span>Add Venue</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI SUMMARY STATS -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Venues</span>
+      <div class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{{ totalVenues() }}</div>
+      <span class="text-2xs text-emerald-600 font-semibold">{{ activeVenues() }} actively bookable</span>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Rooms</span>
+      <div class="text-3xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">{{ totalRooms() }}</div>
+      <span class="text-2xs text-slate-400">Classrooms & auditoriums</span>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Gross Capacity</span>
+      <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">{{ totalCapacity() }}</div>
+      <span class="text-2xs text-slate-400">concurrent trainee desks</span>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Geographic Zones</span>
+      <div class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ cityBreakdown().length }}</div>
+      <span class="text-2xs text-slate-400">Metropolitan divisions</span>
+    </div>
+  </div>
+
+  <!-- REGIONAL CAPACITY BREAKDOWN & TOP VENUES -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- City Breakdown -->
+    <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+      <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-emerald-500">location_city</mat-icon>
+        Regional Venue & Capacity Distribution
+      </h3>
+
+      <div class="space-y-3">
+        @for (item of cityBreakdown(); track item.city) {
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <span class="font-bold text-sm text-slate-900 dark:text-white">{{ item.city }}</span>
+              <div class="text-xs text-slate-500">{{ item.count }} venue(s) registered</div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-bold text-purple-600 dark:text-purple-400 font-mono">{{ item.capacity }}</span>
+              <span class="text-xs text-slate-400 block">seats capacity</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Top Venues by Capacity -->
+    <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-4">
+      <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+        <mat-icon class="text-purple-500">leaderboard</mat-icon>
+        Largest Facilities by Total Seating
+      </h3>
+
+      <div class="space-y-3">
+        @for (v of topVenuesByCapacity(); track v.venueId) {
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+            <div>
+              <a [routerLink]="['/venues/view', v.venueId]" class="font-bold text-sm text-slate-900 dark:text-white hover:text-emerald-600 transition-colors">
+                {{ v.name }}
+              </a>
+              <div class="text-xs text-slate-500">{{ v.address.city }} • {{ v.rooms.length }} rooms</div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-bold text-slate-900 dark:text-white font-mono">{{ getCap(v) }} seats</span>
+              <span class="text-2xs text-emerald-600 block">{{ v.status }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+</div>

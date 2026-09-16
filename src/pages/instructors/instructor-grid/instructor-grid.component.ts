@@ -92,20 +92,6 @@ export class InstructorGridComponent {
   blockedActiveRecords = signal<InstructorAssignmentRecord[]>([]);
   reassignmentSelections = signal<Record<string, string>>({}); // key: assignmentId -> replacement instructorId
 
-  // Quick Edit Modal State
-  showEditModal = signal<boolean>(false);
-  editingInstructor = signal<InstructorProfile | null>(null);
-  editForm = {
-    name: '',
-    email: '',
-    contactNumber: '',
-    title: '',
-    department: '',
-    specialization: '',
-    bio: '',
-    status: 'Active' as 'Active' | 'Inactive'
-  };
-
   // Metrics (§1)
   totalInstructorsCount = computed(() => this.lms.instructors().length);
   activeInstructorsCount = computed(() => this.lms.instructors().filter(i => i.status === 'Active').length);
@@ -272,11 +258,6 @@ export class InstructorGridComponent {
     if (!target) return this.lms.activeInstructors();
     return this.lms.activeInstructors().filter(i => i.id !== target.id);
   });
-
-  editStatusOptions: SelectOption[] = [
-    { value: 'Active', label: 'Active (Available for Assignment)', icon: 'check_circle' },
-    { value: 'Inactive', label: 'Inactive (Deactivated)', icon: 'cancel' }
-  ];
 
   resolutionOptions = computed<SelectOption[]>(() => {
     const options: SelectOption[] = [
@@ -462,44 +443,10 @@ export class InstructorGridComponent {
     this.showEmailModal.set(true);
   }
 
-  // Quick Edit
-  openEditModal(inst: InstructorProfile): void {
-    this.editingInstructor.set(inst);
-    this.editForm = {
-      name: inst.name,
-      email: inst.email,
-      contactNumber: inst.contactNumber || '',
-      title: inst.title || '',
-      department: inst.department || '',
-      specialization: inst.specialization.join(', '),
-      bio: inst.bio || '',
-      status: inst.status
-    };
-    this.showEditModal.set(true);
-  }
-
-  saveEdit(): void {
-    const inst = this.editingInstructor();
-    if (!inst) return;
-
-    const specs = this.editForm.specialization
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    this.lms.updateInstructor(inst.id, {
-      name: this.editForm.name.trim(),
-      email: this.editForm.email.trim(),
-      contactNumber: this.editForm.contactNumber.trim() || undefined,
-      title: this.editForm.title.trim() || undefined,
-      department: this.editForm.department.trim() || undefined,
-      specialization: specs.length > 0 ? specs : inst.specialization,
-      bio: this.editForm.bio.trim() || undefined,
-      status: this.editForm.status
-    });
-
-    this.showEditModal.set(false);
-    this.editingInstructor.set(null);
+  // Edit Profile Navigation
+  openEditModal(inst: InstructorProfile, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.router.navigate(['/instructors/edit', inst.id]);
   }
 
   // Status Management & Blocked Deactivation Guard (§3.4)

@@ -8,6 +8,7 @@ import {
   InstructorAssignmentRecord,
   InstructorDeactivationResolution
 } from '../../../models/instructor.model';
+import { PersonnelAttachment } from '../../../models/author.model';
 import { ComposeEmailModalComponent, EmailRecipientInfo } from '../../../components/compose-email-modal/compose-email-modal.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
@@ -23,28 +24,48 @@ export class InstructorDetailsComponent {
   lms = inject(LmsDataService);
 
   instructorId = signal<string>('');
+  previewModalAttachment = signal<PersonnelAttachment | null>(null);
 
   statusOptions: SelectOption[] = [
     { value: 'Active', label: 'Active (Available for Assignment)', icon: 'check_circle' },
     { value: 'Inactive', label: 'Inactive (Deactivated)', icon: 'cancel' }
   ];
 
+  getFileIcon(attachment: PersonnelAttachment): string {
+    const ext = attachment.name.split('.').pop()?.toLowerCase() || '';
+    if (attachment.isImage || attachment.type.startsWith('image/')) return 'image';
+    if (attachment.type.includes('pdf') || ext === 'pdf') return 'picture_as_pdf';
+    if (['doc', 'docx', 'odt', 'rtf'].includes(ext) || attachment.type.includes('word')) return 'description';
+    if (['xls', 'xlsx', 'csv'].includes(ext) || attachment.type.includes('sheet')) return 'table_chart';
+    if (['ppt', 'pptx'].includes(ext) || attachment.type.includes('presentation')) return 'slideshow';
+    if (attachment.type.startsWith('video/') || ['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video_file';
+    if (attachment.type.startsWith('audio/') || ['mp3', 'wav', 'aac', 'ogg', 'm4a'].includes(ext)) return 'audio_file';
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || attachment.type.includes('zip')) return 'folder_zip';
+    return 'draft';
+  }
+
+  openPreview(att: PersonnelAttachment): void {
+    this.previewModalAttachment.set(att);
+  }
+
+  closePreview(): void {
+    this.previewModalAttachment.set(null);
+  }
+
+  downloadAttachment(att: PersonnelAttachment): void {
+    if (!att.url) return;
+    const a = document.createElement('a');
+    a.href = att.url;
+    a.download = att.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    this.lms.showToast(`Downloading "${att.name}"...`, 'info', 2000);
+  }
+
   // Email Modal State (§5)
   showEmailModal = signal<boolean>(false);
   emailRecipient = signal<EmailRecipientInfo | null>(null);
-
-  // Edit Modal State
-  showEditModal = signal<boolean>(false);
-  editForm = {
-    name: '',
-    email: '',
-    contactNumber: '',
-    title: '',
-    department: '',
-    specialization: '',
-    bio: '',
-    status: 'Active' as 'Active' | 'Inactive'
-  };
 
   // Blocked Deactivation Modal State (§3.4)
   showBlockedModal = signal<boolean>(false);
@@ -110,40 +131,7 @@ export class InstructorDetailsComponent {
   openEditModal(): void {
     const inst = this.instructor();
     if (!inst) return;
-    this.editForm = {
-      name: inst.name,
-      email: inst.email,
-      contactNumber: inst.contactNumber || '',
-      title: inst.title || '',
-      department: inst.department || '',
-      specialization: inst.specialization.join(', '),
-      bio: inst.bio || '',
-      status: inst.status
-    };
-    this.showEditModal.set(true);
-  }
-
-  saveEdit(): void {
-    const inst = this.instructor();
-    if (!inst) return;
-
-    const specs = this.editForm.specialization
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-
-    this.lms.updateInstructor(inst.id, {
-      name: this.editForm.name.trim(),
-      email: this.editForm.email.trim(),
-      contactNumber: this.editForm.contactNumber.trim() || undefined,
-      title: this.editForm.title.trim() || undefined,
-      department: this.editForm.department.trim() || undefined,
-      specialization: specs.length > 0 ? specs : inst.specialization,
-      bio: this.editForm.bio.trim() || undefined,
-      status: this.editForm.status
-    });
-
-    this.showEditModal.set(false);
+    this.router.navigate(['/instructors/edit', inst.id]);
   }
 
   toggleStatus(): void {

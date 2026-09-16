@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { LmsDataService } from '../../services/lms-data.service';
 import { User, UserRole } from '../../models/lms.model';
 import { EarnedBadge } from '../../models/badge-template.model';
@@ -33,6 +34,7 @@ export interface UserGridFilters {
 })
 export class UsersComponent {
   lms = inject(LmsDataService);
+  router = inject(Router);
 
   // Search & View Mode
   searchQuery = signal<string>('');
@@ -377,6 +379,49 @@ export class UsersComponent {
       default:
         return 'bg-base-200 text-text-primary border-base-300';
     }
+  }
+
+  editUserProfile(user: User, event?: Event) {
+    if (event) event.stopPropagation();
+
+    // Check if user is Author or has author profile
+    const author = this.lms.authors().find(a => 
+      (user.authorId && a.id === user.authorId) || 
+      a.email.toLowerCase() === user.email.toLowerCase()
+    );
+
+    // Check if user is Instructor or has instructor profile
+    const instructor = this.lms.instructorsRepo().find(i => 
+      (user.instructorId && i.id === user.instructorId) || 
+      i.email.toLowerCase() === user.email.toLowerCase()
+    );
+
+    if (user.authorId || (author && !instructor)) {
+      if (author) {
+        this.router.navigate(['/authors/create'], { queryParams: { id: author.id } });
+      } else {
+        this.router.navigate(['/authors/create'], { queryParams: { email: user.email } });
+      }
+      return;
+    }
+
+    if (user.role === 'instructor' || user.instructorId || instructor) {
+      if (instructor) {
+        this.router.navigate(['/instructors/create'], { queryParams: { id: instructor.id } });
+      } else {
+        this.router.navigate(['/instructors/create'], { queryParams: { email: user.email } });
+      }
+      return;
+    }
+
+    if (author) {
+      this.router.navigate(['/authors/create'], { queryParams: { id: author.id } });
+      return;
+    }
+
+    // Default fallback: navigate to authors create or show toast
+    this.lms.showToast(`Directing to profile completion for ${user.name}...`, 'info', 3000);
+    this.router.navigate(['/instructors/create'], { queryParams: { email: user.email } });
   }
 
   getRoleBadgeClass(role: string): string {

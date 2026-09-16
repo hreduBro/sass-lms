@@ -177,6 +177,80 @@
       </div>
     </div>
 
+    <!-- Attached Documents & Media Files Section -->
+    @if (instructor()!.attachments && instructor()!.attachments!.length > 0) {
+      <div class="rounded-3xl bg-base-100 border border-base-300 shadow-sm p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">folder_open</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-text-primary">Attached Documents, Media &amp; Faculty Credentials</h3>
+              <p class="text-xs text-text-secondary">{{ instructor()!.attachments!.length }} file(s) available in faculty repository</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="openEditModal()"
+            class="text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span>Upload More</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          @for (att of instructor()!.attachments!; track att.id) {
+            <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300 hover:border-tenant-500/50 transition-all flex flex-col justify-between space-y-3 group">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-base-100 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 border border-base-300 shadow-2xs">
+                  @if (att.isImage && att.url) {
+                    <img [src]="att.url" [alt]="att.name" class="w-10 h-10 rounded-xl object-cover" />
+                  } @else {
+                    <span class="material-symbols-outlined text-xl">{{ getFileIcon(att) }}</span>
+                  }
+                </div>
+                <div class="min-w-0 flex-1">
+                  <span class="text-xs font-bold text-text-primary truncate block group-hover:text-tenant-600 transition-colors" [title]="att.name">
+                    {{ att.name }}
+                  </span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] font-mono text-text-secondary">{{ att.sizeFormatted }}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-tenant-100/70 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300">
+                      {{ att.category }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-base-300 text-xs">
+                <span class="text-[10px] text-text-secondary">{{ att.uploadedAt }}</span>
+                <div class="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    (click)="openPreview(att)"
+                    class="p-1 rounded-md text-text-secondary hover:bg-base-300 transition-colors cursor-pointer"
+                    title="Preview file"
+                  >
+                    <span class="material-symbols-outlined text-base">visibility</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="downloadAttachment(att)"
+                    class="p-1 rounded-md text-text-secondary hover:bg-base-300 transition-colors cursor-pointer"
+                    title="Download file"
+                  >
+                    <span class="material-symbols-outlined text-base">download</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Assignment History Section (§3.2) -->
     <div class="rounded-3xl bg-base-100 border border-base-300 shadow-sm overflow-hidden space-y-0">
       <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/40">
@@ -294,134 +368,10 @@
     </div>
   }
 
-  <!-- Quick Edit Modal -->
-  @if (showEditModal() && instructor()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div class="w-full max-w-lg rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
-        <div class="p-5 border-b border-base-300 flex items-center justify-between bg-base-200/50">
-          <div class="flex items-center gap-2.5">
-            <span class="material-symbols-outlined text-tenant-600">edit_note</span>
-            <h3 class="text-base font-bold text-text-primary">Edit Instructor Profile</h3>
-          </div>
-          <button
-            type="button"
-            (click)="showEditModal.set(false)"
-            class="text-text-secondary hover:text-text-primary p-1 rounded-lg"
-          >
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-
-        <form (ngSubmit)="saveEdit()" class="p-6 space-y-4 text-xs">
-          <div>
-            <label class="block font-semibold text-text-primary mb-1">Full Name *</label>
-            <input
-              type="text"
-              [(ngModel)]="editForm.name"
-              name="name"
-              required
-              class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Email Address *</label>
-              <input
-                type="email"
-                [(ngModel)]="editForm.email"
-                name="email"
-                required
-                class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-tenant-500"
-              />
-            </div>
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Contact Number</label>
-              <input
-                type="text"
-                [(ngModel)]="editForm.contactNumber"
-                name="contactNumber"
-                placeholder="+880 1819-..."
-                class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Title / Designation</label>
-              <input
-                type="text"
-                [(ngModel)]="editForm.title"
-                name="title"
-                class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
-              />
-            </div>
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Department</label>
-              <input
-                type="text"
-                [(ngModel)]="editForm.department"
-                name="department"
-                class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-semibold text-text-primary mb-1">Specialization Tags</label>
-            <input
-              type="text"
-              [(ngModel)]="editForm.specialization"
-              name="specialization"
-              class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500"
-            />
-          </div>
-
-          <div>
-            <label class="block font-semibold text-text-primary mb-1">Bio / Credentials</label>
-            <textarea
-              rows="3"
-              [(ngModel)]="editForm.bio"
-              name="bio"
-              class="w-full px-3.5 py-2 rounded-xl bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500 resize-none"
-            ></textarea>
-          </div>
-
-          <div>
-            <app-custom-select
-              label="Status"
-              [options]="statusOptions"
-              [(ngModel)]="editForm.status"
-              name="status"
-              size="md"
-              dropdownPosition="bottom" />
-          </div>
-
-          <div class="pt-3 border-t border-base-300 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              (click)="showEditModal.set(false)"
-              class="px-4 py-2 rounded-xl border border-base-300 text-text-secondary hover:bg-base-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-5 py-2 rounded-xl bg-tenant-600 text-white font-bold hover:bg-tenant-700"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  }
-
   <!-- Blocked Deactivation Resolution Modal (§3.4) -->
   @if (showBlockedModal() && instructor()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div class="w-full max-w-2xl rounded-2xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
+      <div class="w-full max-w-2xl rounded-3xl bg-base-100 border border-base-300 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-modal-card">
         <!-- Modal Header -->
         <div class="p-5 border-b border-red-500/20 bg-red-500/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -510,4 +460,86 @@
     [recipient]="emailRecipient()"
     (close)="showEmailModal.set(false)"
   ></app-compose-email-modal>
+
+  <!-- Document / Media Preview Modal -->
+  @if (previewModalAttachment()) {
+    @let att = previewModalAttachment()!;
+    <div 
+      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/75 backdrop-blur-md z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
+      (click)="closePreview()">
+      <div 
+        class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-modal-card"
+        (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="p-4 sm:p-5 border-b border-base-300 flex items-center justify-between gap-3 bg-base-200/50">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 border border-tenant-200/50 dark:border-tenant-800/50">
+              <span class="material-symbols-outlined text-xl">{{ getFileIcon(att) }}</span>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-bold text-text-primary truncate" [title]="att.name">{{ att.name }}</h3>
+              <div class="flex items-center gap-2 text-[11px] text-text-secondary mt-0.5">
+                <span class="font-mono">{{ att.sizeFormatted }}</span>
+                <span>•</span>
+                <span class="font-semibold text-tenant-600 dark:text-tenant-400">{{ att.category }}</span>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="closePreview()"
+            class="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <!-- Modal Body Preview -->
+        <div class="p-6 overflow-y-auto flex-1 flex flex-col items-center justify-center bg-base-200/30 min-h-[300px]">
+          @if (att.isImage && att.url) {
+            <div class="max-h-[60vh] flex items-center justify-center overflow-hidden rounded-2xl shadow-md border border-base-300">
+              <img [src]="att.url" [alt]="att.name" class="max-h-[55vh] max-w-full object-contain" />
+            </div>
+          } @else {
+            <div class="text-center space-y-4 max-w-md p-6 bg-base-100 rounded-2xl border border-base-300 shadow-sm">
+              <div class="w-16 h-16 rounded-2xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 flex items-center justify-center mx-auto border border-tenant-200/60 dark:border-tenant-800/60">
+                <span class="material-symbols-outlined text-3xl">{{ getFileIcon(att) }}</span>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-text-primary">{{ att.name }}</h4>
+                <p class="text-xs text-text-secondary mt-1 font-mono">
+                  File Type: {{ att.type }} • Size: {{ att.sizeFormatted }}
+                </p>
+                <p class="text-xs text-text-secondary mt-2 bg-base-200/60 p-3 rounded-xl border border-base-300">
+                  Document or faculty asset attached to this profile.
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-base-300 flex items-center justify-between gap-3 bg-base-100">
+          <span class="text-xs text-text-secondary">Uploaded: {{ att.uploadedAt }}</span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="downloadAttachment(att)"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-sm">download</span>
+              <span>Download File</span>
+            </button>
+            <button
+              type="button"
+              (click)="closePreview()"
+              class="px-4 py-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
