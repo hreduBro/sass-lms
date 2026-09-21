@@ -14,10 +14,9 @@ import {
 
 @Component({
   selector: 'app-assessment-runtime',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './assessment-runtime.component.html',
-  styleUrls: ['./assessment-runtime.component.css']
+  styleUrl: './assessment-runtime.component.css'
 })
 export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
   lmsService = inject(LmsDataService);

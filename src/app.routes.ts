@@ -43,9 +43,44 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { LoginBrandingPreviewComponent } from './pages/login-branding/login-branding-preview/login-branding-preview.component';
 import { LoginBrandingEditComponent } from './pages/login-branding/login-branding-edit/login-branding-edit.component';
 import { LoginComponent } from './pages/login/login.component';
+import { LandingBuilderComponent } from './pages/landing-builder/landing-builder.component';
+import { LandingComponent } from './pages/landing/landing.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  
+  // Public-Facing Multi-Tenant Landing Pages (SSR SEO Enabled)
+  {
+    path: 'landing',
+    component: LandingComponent,
+    title: 'Learning Academy & Public Portal | Multi-Tenant LMS'
+  },
+  {
+    path: 'landing/:id',
+    component: LandingComponent,
+    title: 'Learning Academy & Public Portal | Multi-Tenant LMS'
+  },
+  {
+    path: 'p/:id',
+    component: LandingComponent,
+    title: 'Learning Academy & Public Portal | Multi-Tenant LMS'
+  },
+
+  // Multi-Tenant LMS Landing Page Builder Studio (WordPress-Style Full Screen)
+  {
+    path: 'landing-builder',
+    component: LandingBuilderComponent,
+    title: 'Landing Page Builder | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
+  {
+    path: 'landing-builder/:id',
+    component: LandingBuilderComponent,
+    title: 'Landing Page Builder | Multi-Tenant LMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+  },
   
   // Dashboard & Profile: Accessible to all roles
   { 

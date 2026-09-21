@@ -1,0 +1,2182 @@
+<div class="min-h-screen bg-white text-slate-900 font-sans select-text flex flex-col" id="public-landing-root">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. ANNOUNCEMENT STRIP (IF ENABLED)                                        -->
+  <!-- ========================================================================= -->
+  @if (pageConfig().navbar.showAnnouncementBar) {
+    <div class="py-2.5 px-4 text-center text-xs font-semibold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800 flex items-center justify-center gap-2 select-text shadow-xs z-50">
+      <span>{{ pageConfig().navbar.announcementText }}</span>
+      @if (pageConfig().navbar.announcementLink) {
+        <a [href]="pageConfig().navbar.announcementLink" class="underline underline-offset-2 hover:text-pink-400 flex items-center gap-0.5">
+          <span>Learn more</span>
+          <span class="material-symbols-outlined text-xs">arrow_forward</span>
+        </a>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY GLASS HEADER & NAVIGATION                                       -->
+  <!-- ========================================================================= -->
+  <header 
+    [class.sticky]="pageConfig().navbar.sticky"
+    [class.top-0]="pageConfig().navbar.sticky"
+    [class.relative]="!pageConfig().navbar.sticky"
+    [class.z-40]="true"
+    [class.bg-white/90]="pageConfig().navbar.sticky"
+    [class.backdrop-blur-xl]="pageConfig().navbar.sticky"
+    [class.bg-white]="!pageConfig().navbar.sticky"
+    [class.shadow-xs]="pageConfig().navbar.sticky"
+    class="w-full px-4 sm:px-8 lg:px-12 py-3.5 border-b border-slate-200/60 flex items-center justify-between transition-all">
+    
+    <!-- Logo & Title -->
+    <a routerLink="/" class="flex items-center gap-3 group">
+      @if (lmsLogo()) {
+        <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[170px] object-contain group-hover:opacity-90 transition-opacity" referrerpolicy="no-referrer" />
+      }
+      <span class="text-base font-black text-slate-900 tracking-tight hidden sm:inline">
+        {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
+      </span>
+    </a>
+
+    <!-- Navigation Links -->
+    <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-bold text-slate-700">
+      @for (link of pageConfig().navbar.links; track link.id) {
+        <a 
+          [href]="link.target" 
+          (click)="scrollToSection(link.target); $event.preventDefault()"
+          [class.text-pink-600]="isLinkActive(link)"
+          [class.font-extrabold]="isLinkActive(link)"
+          class="relative py-1 hover:text-pink-600 transition-colors flex items-center gap-1 cursor-pointer">
+          <span>{{ link.label }}</span>
+          @if (link.badge) {
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
+          }
+          @if (isLinkActive(link)) {
+            <span class="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-pink-600"></span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-3">
+      <!-- Admin Edit Link (if admin user is previewing) -->
+      @if (lms.activeUser()?.role === 'system_admin' || lms.activeUser()?.role === 'lms_admin') {
+        <a 
+          [routerLink]="['/landing-builder', activeLmsId()]"
+          class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-xs text-pink-600">design_services</span>
+          <span class="hidden sm:inline">Page Builder</span>
+        </a>
+      }
+
+      @if (pageConfig().navbar.ctaButton.enabled) {
+        <a 
+          routerLink="/login"
+          class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+          [style.backgroundColor]="primaryColor()">
+          <span class="material-symbols-outlined text-sm">login</span>
+          <span>{{ pageConfig().navbar.ctaButton.label }}</span>
+        </a>
+      }
+
+      <!-- Mobile Hamburger Button -->
+      <button 
+        type="button" 
+        (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+        class="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
+        aria-label="Toggle Navigation Menu">
+        <span class="material-symbols-outlined text-xl">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Dropdown Navigation Menu -->
+  @if (mobileMenuOpen()) {
+    <div class="md:hidden sticky top-[61px] z-30 bg-white border-b border-slate-200 px-6 py-4 shadow-lg flex flex-col gap-3 animate-fadeIn">
+      @for (link of pageConfig().navbar.links; track link.id) {
+        <a 
+          [href]="link.target" 
+          (click)="scrollToSection(link.target); $event.preventDefault()"
+          class="py-2 text-sm font-bold text-slate-800 hover:text-pink-600 flex items-center justify-between border-b border-slate-100">
+          <span>{{ link.label }}</span>
+          @if (link.badge) {
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
+          }
+        </a>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN CONTENT: RENDERED LANDING SECTIONS                                -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 w-full space-y-0">
+    @for (sec of pageConfig().sections; track sec.id) {
+      @if (sec.enabled) {
+        <section 
+          [id]="sec.id"
+          class="relative transition-all"
+          [class]="sec.padding === 'compact' ? 'py-10 px-4 sm:px-8 lg:px-16' : sec.padding === 'standard' ? 'py-16 px-4 sm:px-8 lg:px-20' : 'py-24 px-4 sm:px-8 lg:px-24'"
+          [class.bg-slate-50]="sec.background.type === 'neutral'"
+          [class.bg-white]="sec.background.type === 'theme_light'"
+          [class.bg-slate-950]="sec.background.type === 'dark'"
+          [class.text-white]="sec.background.type === 'dark'"
+          [style.background]="sec.background.type === 'theme_gradient' ? 'linear-gradient(135deg, ' + primaryColor() + '10 0%, ' + accentColor() + '15 100%)' : null">
+
+          <div class="max-w-6xl mx-auto w-full">
+            
+            <!-- 1. HERO BANNER WIDGET -->
+            @if (sec.type === 'hero_banner') {
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                  @if (sec.content.badgeText) {
+                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border"
+                         [style.borderColor]="primaryColor() + '40'"
+                         [style.backgroundColor]="primaryColor() + '10'">
+                      <span class="material-symbols-outlined text-sm" [style.color]="primaryColor()">{{ sec.content.badgeIcon || 'verified' }}</span>
+                      <span [style.color]="primaryColor()">{{ sec.content.badgeText }}</span>
+                    </div>
+                  }
+
+                  <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+                    {{ sec.content.headline }}
+                  </h1>
+
+                  <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
+                    {{ sec.content.subheadline }}
+                  </p>
+
+                  <!-- Search Box -->
+                  @if (sec.content.showSearchBox) {
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-2xl p-1.5 border border-slate-200 shadow-lg max-w-xl gap-1 sm:gap-0">
+                      <div class="flex items-center flex-1 min-w-0">
+                        <span class="material-symbols-outlined text-slate-400 pl-3">search</span>
+                        <input 
+                          type="text" 
+                          [ngModel]="courseSearchQuery()" 
+                          (ngModelChange)="courseSearchQuery.set($event)"
+                          (keyup.enter)="onHeroSearchSubmit()"
+                          [placeholder]="sec.content.searchPlaceholder || 'Search 250+ courses, skills, or certifications...'"
+                          class="w-full px-3 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent" />
+                        @if (courseSearchQuery()) {
+                          <button 
+                            type="button" 
+                            (click)="courseSearchQuery.set('')" 
+                            class="p-1 text-slate-400 hover:text-slate-600 mr-2 cursor-pointer" 
+                            title="Clear search">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        }
+                      </div>
+                      <button 
+                        type="button"
+                        (click)="onHeroSearchSubmit()"
+                        class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer active:scale-95"
+                        [style.backgroundColor]="primaryColor()">
+                        <span>Search Courses</span>
+                        <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
+                  }
+
+                  <!-- Primary & Secondary CTA Buttons -->
+                  <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <button 
+                      type="button"
+                      (click)="scrollToSection(sec.content.primaryCtaAction || '#courses')"
+                      class="px-7 py-4 rounded-xl text-sm font-extrabold text-white shadow-lg hover:shadow-xl transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                      [style.backgroundColor]="primaryColor()">
+                      <span>{{ sec.content.primaryCtaText }}</span>
+                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+
+                    @if (sec.content.secondaryCtaText && sec.content.showSecondaryCta !== false) {
+                      <button 
+                        type="button"
+                        (click)="handleHeroSecondaryCta(sec.content)"
+                        class="px-6 py-4 rounded-xl text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                        <span class="material-symbols-outlined text-base text-pink-600">
+                          {{ sec.content.secondaryCtaActionType === 'video_modal' ? 'play_circle' : (sec.content.secondaryCtaActionType === 'route_link' || sec.content.secondaryCtaActionType === 'route' ? 'arrow_forward' : (sec.content.secondaryCtaActionType === 'external_url' || sec.content.secondaryCtaActionType === 'link' ? 'open_in_new' : 'arrow_downward')) }}
+                        </span>
+                        <span>{{ sec.content.secondaryCtaText }}</span>
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Statistics Chips -->
+                  @if (sec.content.statChips?.length) {
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200">
+                      @for (stat of sec.content.statChips; track stat.id) {
+                        <div>
+                          <div class="text-xl sm:text-2xl font-black text-slate-900">{{ stat.value }}</div>
+                          <div class="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-xs text-pink-600">{{ stat.icon }}</span>
+                            <span>{{ stat.label }}</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Hero Graphic Visual -->
+                <div class="lg:col-span-5 relative">
+                  <div class="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-950 group">
+                    <img 
+                      [src]="sec.content.heroImageUrl || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80'" 
+                      alt="Hero Platform Visual"
+                      (error)="onImgError($event, 'technology')"
+                      class="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700" 
+                      referrerpolicy="no-referrer" />
+
+                    @if (sec.content.showCardOverlay !== false) {
+                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent flex flex-col justify-end p-6 text-white">
+                        <div class="flex items-center gap-2 mb-2">
+                          @if (sec.content.cardBadgePulse !== false) {
+                            <span 
+                              class="w-2.5 h-2.5 rounded-full"
+                              [class.bg-emerald-400]="!sec.content.cardBadgeColor || sec.content.cardBadgeColor === 'emerald'"
+                              [class.bg-pink-500]="sec.content.cardBadgeColor === 'pink'"
+                              [class.bg-sky-400]="sec.content.cardBadgeColor === 'sky'"
+                              [class.bg-amber-400]="sec.content.cardBadgeColor === 'amber'"
+                              [class.bg-indigo-400]="sec.content.cardBadgeColor === 'indigo'"
+                              [class.bg-rose-400]="sec.content.cardBadgeColor === 'rose'"
+                              [class.animate-pulse]="sec.content.cardBadgePulse !== false"></span>
+                          }
+                          <span 
+                            class="text-xs font-bold uppercase tracking-wider"
+                            [class.text-emerald-300]="!sec.content.cardBadgeColor || sec.content.cardBadgeColor === 'emerald'"
+                            [class.text-pink-300]="sec.content.cardBadgeColor === 'pink'"
+                            [class.text-sky-300]="sec.content.cardBadgeColor === 'sky'"
+                            [class.text-amber-300]="sec.content.cardBadgeColor === 'amber'"
+                            [class.text-indigo-300]="sec.content.cardBadgeColor === 'indigo'"
+                            [class.text-rose-300]="sec.content.cardBadgeColor === 'rose'">
+                            {{ sec.content.cardBadgeText || 'LIVE VIRTUAL CLASSROOMS ACTIVE' }}
+                          </span>
+                        </div>
+
+                        <h4 class="text-lg sm:text-xl font-extrabold text-white leading-snug">
+                          {{ sec.content.cardTitle || 'Interactive Learning Platform' }}
+                        </h4>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                          {{ sec.content.cardDescription || 'Multi-Tenant LMS with SCORM Support, Transcripts & Verifiable Badges' }}
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- 2. CAROUSEL SLIDER WIDGET (ALL 5 VARIANTS WITH UNIFIED CONTROLS & CONTENT) -->
+            @if (sec.type === 'carousel_slider') {
+              <div class="space-y-6">
+                
+                <!-- VARIANT 1: DEPTH COVERFLOW (3D CENTER STAGE + TIMELINE SCRUBBER) -->
+                @if (!sec.content.variant || sec.content.variant === 'depth_coverflow') {
+                  <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 text-white p-4 sm:p-8 border border-slate-800/80">
+                    
+                    <!-- Carousel Slide Center Window -->
+                    <div class="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center overflow-hidden">
+                      @for (slide of sec.content.slides; track slide.id; let idx = $index) {
+                        <div 
+                          class="absolute inset-0 w-full h-full rounded-2xl overflow-hidden transition-all duration-700 ease-out flex flex-col justify-end p-6 sm:p-12"
+                          [class.opacity-100]="activeSlideIndex() === idx"
+                          [class.opacity-0]="activeSlideIndex() !== idx"
+                          [class.pointer-events-none]="activeSlideIndex() !== idx"
+                          [style.transform]="activeSlideIndex() === idx ? 'scale(1) translateY(0)' : (idx < activeSlideIndex() ? 'scale(0.92) translateX(-40px)' : 'scale(0.92) translateX(40px)')">
+                          
+                          <img [src]="slide.imageUrl" [alt]="slide.title" class="absolute inset-0 w-full h-full object-cover opacity-40 transition-transform duration-1000 scale-100 hover:scale-105" referrerpolicy="no-referrer" />
+                          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/20"></div>
+
+                          <div class="relative z-10 max-w-2xl space-y-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                              @if (slide.badge) {
+                                <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-pink-600 text-white shadow-sm">
+                                  {{ slide.badge }}
+                                </span>
+                              }
+                              @if (slide.category) {
+                                <span class="text-[10px] sm:text-xs font-bold text-slate-200 bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-xs border border-white/10">
+                                  {{ slide.category }}
+                                </span>
+                              }
+                              @if (slide.dateLabel) {
+                                <span class="text-[10px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
+                                  <span class="material-symbols-outlined text-xs text-pink-400">calendar_today</span>
+                                  {{ slide.dateLabel }}
+                                </span>
+                              }
+                            </div>
+
+                            <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+                              {{ slide.title }}
+                            </h3>
+
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+                              {{ slide.subtitle }}
+                            </p>
+
+                            <div class="pt-2 flex items-center gap-3">
+                              <button 
+                                type="button" 
+                                (click)="scrollToSection(slide.ctaAction || '#courses')" 
+                                class="px-5 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-extrabold shadow-lg hover:bg-pink-50 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                                <span>{{ slide.ctaText || 'Explore Initiative' }}</span>
+                                <span class="material-symbols-outlined text-xs text-pink-600">arrow_forward</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- Side Navigation Arrows -->
+                      @if (sec.content.showArrows !== false) {
+                        <button 
+                          type="button" 
+                          (click)="prevSlide()" 
+                          class="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
+                          aria-label="Previous Slide">
+                          <span class="material-symbols-outlined text-xl">chevron_left</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          (click)="nextSlide(true)" 
+                          class="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
+                          aria-label="Next Slide">
+                          <span class="material-symbols-outlined text-xl">chevron_right</span>
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Bottom Scrubber & Controls Bar -->
+                    <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      
+                      <!-- Play/Pause & Step Counter -->
+                      <div class="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          (click)="toggleCarouselPlay()" 
+                          class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-slate-700/60"
+                          [title]="carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay'">
+                          <span class="material-symbols-outlined text-base">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
+                        </button>
+
+                        <div class="text-[11px] font-bold text-slate-400 px-2">
+                          <span class="text-white">{{ activeSlideIndex() + 1 }}</span>
+                          <span class="text-slate-600"> / </span>
+                          <span>{{ sec.content.slides.length }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Animated Progress Scrubber Bar -->
+                      @if (sec.content.showTimelineBar !== false) {
+                        <div class="flex-1 max-w-md w-full flex items-center gap-2">
+                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                            <button 
+                              type="button" 
+                              (click)="setSlide(sIdx)"
+                              class="flex-1 h-2 rounded-full overflow-hidden bg-slate-800 transition-all cursor-pointer relative group"
+                              [title]="slide.title">
+                              @if (activeSlideIndex() === sIdx) {
+                                <div 
+                                  class="h-full bg-gradient-to-r from-pink-500 to-rose-400 transition-all duration-100 ease-linear rounded-full"
+                                  [style.width.%]="carouselProgressPercent()"></div>
+                              } @else if (sIdx < activeSlideIndex()) {
+                                <div class="h-full bg-pink-500/70 rounded-full w-full"></div>
+                              }
+                            </button>
+                          }
+                        </div>
+                      }
+
+                      <!-- Direct Slide Select Thumbnails / Chips / Dots -->
+                      @if (sec.content.showDots !== false) {
+                        <div class="flex items-center gap-1.5">
+                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                            <button 
+                              type="button" 
+                              (click)="setSlide(sIdx)"
+                              class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                              [class]="activeSlideIndex() === sIdx ? 'bg-pink-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'">
+                              {{ slide.badge || ('0' + (sIdx + 1)) }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                  </div>
+                }
+
+                <!-- VARIANT 2: SPLIT EDITORIAL MAGAZINE SHOWCASE -->
+                @if (sec.content.variant === 'split_editorial') {
+                  <div class="bg-slate-950 text-white rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-800 space-y-6">
+                    @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
+                    @if (activeSlide) {
+                      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-5 space-y-4">
+                          <div class="flex flex-wrap items-center gap-2">
+                            @if (activeSlide.badge) {
+                              <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-pink-600 text-white">
+                                {{ activeSlide.badge }}
+                              </span>
+                            }
+                            @if (activeSlide.category) {
+                              <span class="text-[10px] sm:text-xs font-bold text-slate-300 bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-xs">
+                                {{ activeSlide.category }}
+                              </span>
+                            }
+                            @if (activeSlide.dateLabel) {
+                              <span class="text-[10px] sm:text-xs text-slate-400 font-medium">
+                                {{ activeSlide.dateLabel }}
+                              </span>
+                            }
+                          </div>
+
+                          <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
+                            {{ activeSlide.title }}
+                          </h3>
+
+                          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                            {{ activeSlide.subtitle }}
+                          </p>
+
+                          <div class="pt-4 flex flex-wrap items-center gap-3">
+                            <button 
+                              type="button" 
+                              (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
+                              class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-extrabold shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                              <span>{{ activeSlide.ctaText || 'Explore Module' }}</span>
+                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                            </button>
+
+                            @if (sec.content.showArrows !== false) {
+                              <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                                <button type="button" (click)="prevSlide()" class="p-2 rounded-lg bg-slate-800 hover:bg-pink-600 text-white cursor-pointer transition-all" aria-label="Previous Slide">
+                                  <span class="material-symbols-outlined text-sm">chevron_left</span>
+                                </button>
+                                <button type="button" (click)="nextSlide(true)" class="p-2 rounded-lg bg-slate-800 hover:bg-pink-600 text-white cursor-pointer transition-all" aria-label="Next Slide">
+                                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        </div>
+
+                        <div class="lg:col-span-7 relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-slate-900 shadow-xl border border-white/10 group">
+                          <img 
+                            [src]="activeSlide.imageUrl" 
+                            [alt]="activeSlide.title"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                            referrerpolicy="no-referrer" />
+                          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
+                          
+                          @if (activeSlide.badge) {
+                            <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-slate-900/80 text-white backdrop-blur-md text-xs font-bold border border-white/10">
+                              {{ activeSlide.badge }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Split Editorial Bottom Control Bar -->
+                      <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                          <button 
+                            type="button" 
+                            (click)="toggleCarouselPlay()" 
+                            class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-slate-700/60">
+                            <span class="material-symbols-outlined text-base">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
+                          </button>
+                          <span class="text-xs text-slate-400 font-bold">Slide {{ activeSlideIndex() + 1 }} of {{ sec.content.slides.length }}</span>
+                        </div>
+
+                        @if (sec.content.showTimelineBar !== false) {
+                          <div class="flex-1 max-w-xs w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              class="h-full bg-pink-500 transition-all duration-100 ease-linear rounded-full"
+                              [style.width.%]="carouselProgressPercent()"></div>
+                          </div>
+                        }
+
+                        @if (sec.content.showDots !== false) {
+                          <div class="flex items-center gap-2">
+                            @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                              <button 
+                                type="button" 
+                                (click)="setSlide(sIdx)"
+                                class="h-2 rounded-full transition-all cursor-pointer"
+                                [class]="activeSlideIndex() === sIdx ? 'w-6 bg-pink-500' : 'w-2 bg-slate-700 hover:bg-slate-600'"></button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- VARIANT 3: CARD DECK ROW (MULTI-CARD HORIZONTAL SLIDER) -->
+                @if (sec.content.variant === 'card_deck_row') {
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-pink-600 uppercase tracking-wider">Initiatives Catalog</span>
+                        <span class="text-xs text-slate-400">({{ sec.content.slides.length }} items • Slide {{ activeSlideIndex() + 1 }} of {{ sec.content.slides.length }})</span>
+                      </div>
+                      
+                      <div class="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          (click)="toggleCarouselPlay()" 
+                          class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all"
+                          [title]="carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay'">
+                          <span class="material-symbols-outlined text-sm">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
+                        </button>
+
+                        @if (sec.content.showArrows !== false) {
+                          <div class="flex items-center gap-1.5">
+                            <button type="button" (click)="prevSlide()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all" aria-label="Previous Slide">
+                              <span class="material-symbols-outlined text-sm">chevron_left</span>
+                            </button>
+                            <button type="button" (click)="nextSlide(true)" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all" aria-label="Next Slide">
+                              <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Slide Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                        <div 
+                          (click)="setSlide(sIdx)"
+                          class="rounded-2xl border transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between bg-white shadow-xs hover:shadow-lg relative group"
+                          [class.border-pink-500]="activeSlideIndex() === sIdx"
+                          [class.ring-2]="activeSlideIndex() === sIdx"
+                          [class.ring-pink-500/20]="activeSlideIndex() === sIdx"
+                          [class.border-slate-200]="activeSlideIndex() !== sIdx">
+                          <div class="relative h-48 overflow-hidden bg-slate-950">
+                            <img [src]="slide.imageUrl" [alt]="slide.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                            
+                            <div class="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
+                              @if (slide.badge) {
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-pink-600 text-white shadow-sm">
+                                  {{ slide.badge }}
+                                </span>
+                              }
+                              @if (slide.category) {
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-900/80 text-white backdrop-blur-xs">
+                                  {{ slide.category }}
+                                </span>
+                              }
+                            </div>
+
+                            @if (slide.dateLabel) {
+                              <span class="absolute bottom-2 right-3 text-[10px] font-medium text-slate-200 bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">
+                                {{ slide.dateLabel }}
+                              </span>
+                            }
+                          </div>
+
+                          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                              <h4 class="text-base font-bold text-slate-900 group-hover:text-pink-600 transition-colors line-clamp-2">{{ slide.title }}</h4>
+                              <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ slide.subtitle }}</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                              <button 
+                                type="button" 
+                                (click)="scrollToSection(slide.ctaAction || '#courses'); $event.stopPropagation()"
+                                class="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1">
+                                <span>{{ slide.ctaText || 'Learn More' }}</span>
+                                <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                              </button>
+                              @if (activeSlideIndex() === sIdx) {
+                                <span class="w-2 h-2 rounded-full bg-pink-600 animate-pulse"></span>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Card Deck Row Indicators -->
+                    @if (sec.content.showDots !== false || sec.content.showTimelineBar !== false) {
+                      <div class="flex items-center justify-center gap-2 pt-2">
+                        @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                          <button 
+                            type="button" 
+                            (click)="setSlide(sIdx)"
+                            class="h-2 rounded-full transition-all cursor-pointer"
+                            [class]="activeSlideIndex() === sIdx ? 'w-8 bg-pink-600' : 'w-2 bg-slate-300 hover:bg-slate-400'"></button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- VARIANT 4: CINEMATIC HERO SLIDER -->
+                @if (sec.content.variant === 'cinematic_hero') {
+                  @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
+                  @if (activeSlide) {
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 text-white min-h-[440px] sm:min-h-[500px] flex items-center justify-center p-6 sm:p-12">
+                      <img 
+                        [src]="activeSlide.imageUrl" 
+                        [alt]="activeSlide.title"
+                        class="absolute inset-0 w-full h-full object-cover transition-all duration-1000 scale-100 opacity-50" 
+                        referrerpolicy="no-referrer" />
+                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/40"></div>
+
+                      <div class="relative z-10 text-center max-w-3xl px-4 space-y-4">
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                          @if (activeSlide.badge) {
+                            <span class="inline-block px-3.5 py-1 rounded-full bg-pink-600 text-xs font-black text-white shadow-sm uppercase tracking-wider">
+                              {{ activeSlide.badge }}
+                            </span>
+                          }
+                          @if (activeSlide.category) {
+                            <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold text-white border border-white/10">
+                              {{ activeSlide.category }}
+                            </span>
+                          }
+                          @if (activeSlide.dateLabel) {
+                            <span class="inline-block px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-xs font-medium text-slate-300">
+                              {{ activeSlide.dateLabel }}
+                            </span>
+                          }
+                        </div>
+
+                        <h3 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
+                          {{ activeSlide.title }}
+                        </h3>
+
+                        <p class="text-xs sm:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed">
+                          {{ activeSlide.subtitle }}
+                        </p>
+
+                        <div class="pt-3 flex items-center justify-center gap-3">
+                          <button 
+                            type="button" 
+                            (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
+                            class="px-7 py-3.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs sm:text-sm font-extrabold shadow-xl hover:shadow-pink-600/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                            <span>{{ activeSlide.ctaText || 'Get Started' }}</span>
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Side Navigation Arrows -->
+                      @if (sec.content.showArrows !== false) {
+                        <button 
+                          type="button" 
+                          (click)="prevSlide()" 
+                          class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
+                          aria-label="Previous Slide">
+                          <span class="material-symbols-outlined text-xl">chevron_left</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          (click)="nextSlide(true)" 
+                          class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
+                          aria-label="Next Slide">
+                          <span class="material-symbols-outlined text-xl">chevron_right</span>
+                        </button>
+                      }
+
+                      <!-- Bottom Progress & Dots Controls -->
+                      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
+                        @if (sec.content.showDots !== false) {
+                          <div class="flex items-center gap-2">
+                            @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                              <button 
+                                type="button" 
+                                (click)="setSlide(sIdx)"
+                                class="h-2 rounded-full transition-all cursor-pointer"
+                                [class]="activeSlideIndex() === sIdx ? 'w-8 bg-pink-500' : 'w-2 bg-white/50'"></button>
+                            }
+                          </div>
+                        }
+
+                        <button 
+                          type="button" 
+                          (click)="toggleCarouselPlay()" 
+                          class="text-[11px] font-bold text-slate-300 hover:text-white flex items-center gap-1 bg-black/40 px-2.5 py-0.5 rounded-full backdrop-blur-xs cursor-pointer">
+                          <span class="material-symbols-outlined text-xs">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
+                          <span>{{ activeSlideIndex() + 1 }} / {{ sec.content.slides.length }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                }
+
+                <!-- VARIANT 5: TIMELINE SCRUBBER SLIDER -->
+                @if (sec.content.variant === 'timeline_scrubber') {
+                  @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
+                  @if (activeSlide) {
+                    <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-lg space-y-6">
+                      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-6 space-y-4">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-bold text-pink-600 uppercase tracking-wider">Step 0{{ activeSlideIndex() + 1 }}</span>
+                            @if (activeSlide.category) {
+                              <span class="text-xs text-slate-400 font-semibold">• {{ activeSlide.category }}</span>
+                            }
+                            @if (activeSlide.badge) {
+                              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-pink-100 text-pink-700">
+                                {{ activeSlide.badge }}
+                              </span>
+                            }
+                            @if (activeSlide.dateLabel) {
+                              <span class="text-xs text-slate-400">• {{ activeSlide.dateLabel }}</span>
+                            }
+                          </div>
+
+                          <h3 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+                            {{ activeSlide.title }}
+                          </h3>
+
+                          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                            {{ activeSlide.subtitle }}
+                          </p>
+
+                          <div class="pt-2 flex flex-wrap items-center gap-3">
+                            <button 
+                              type="button" 
+                              (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
+                              class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                              <span>{{ activeSlide.ctaText || 'Explore Milestone' }}</span>
+                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                            </button>
+
+                            @if (sec.content.showArrows !== false) {
+                              <div class="flex items-center gap-1.5">
+                                <button type="button" (click)="prevSlide()" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer" aria-label="Previous Slide">
+                                  <span class="material-symbols-outlined text-sm">chevron_left</span>
+                                </button>
+                                <button type="button" (click)="nextSlide(true)" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer" aria-label="Next Slide">
+                                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        </div>
+
+                        <div class="lg:col-span-6 h-64 sm:h-80 rounded-2xl overflow-hidden bg-slate-100 shadow-inner relative group">
+                          <img [src]="activeSlide.imageUrl" [alt]="activeSlide.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
+                        </div>
+                      </div>
+
+                      <!-- Interactive Milestones Progress Steps -->
+                      <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                            <button 
+                              type="button" 
+                              (click)="setSlide(sIdx)"
+                              class="p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden"
+                              [class]="activeSlideIndex() === sIdx ? 'border-pink-500 bg-pink-50/50 text-pink-900 shadow-xs ring-1 ring-pink-500/30' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'">
+                              
+                              @if (activeSlideIndex() === sIdx && sec.content.showTimelineBar !== false) {
+                                <div 
+                                  class="absolute bottom-0 left-0 h-1 bg-pink-500 transition-all duration-100 ease-linear"
+                                  [style.width.%]="carouselProgressPercent()"></div>
+                              }
+
+                              <div class="text-[10px] font-extrabold uppercase text-slate-400">Step 0{{ sIdx + 1 }}</div>
+                              <div class="text-xs font-bold line-clamp-1 mt-0.5">{{ slide.title }}</div>
+                            </button>
+                          }
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
+                          <button 
+                            type="button" 
+                            (click)="toggleCarouselPlay()" 
+                            class="flex items-center gap-1 hover:text-pink-600 font-medium cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
+                            <span>{{ carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay' }}</span>
+                          </button>
+                          
+                          @if (sec.content.showDots !== false) {
+                            <div class="flex items-center gap-1.5">
+                              @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
+                                <button 
+                                  type="button" 
+                                  (click)="setSlide(sIdx)"
+                                  class="h-1.5 rounded-full transition-all cursor-pointer"
+                                  [class]="activeSlideIndex() === sIdx ? 'w-5 bg-pink-500' : 'w-1.5 bg-slate-300'"></button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+
+              </div>
+            }
+
+            <!-- 3. VIDEO SHOWCASE WIDGET -->
+            @if (sec.type === 'video_showcase') {
+              <!-- Section Title & Subtitle -->
+              @if (sec.title || sec.badge) {
+                <div class="text-center max-w-3xl mx-auto mb-12">
+                  @if (sec.badge) {
+                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-2 inline-block">
+                      {{ sec.badge }}
+                    </span>
+                  }
+                  @if (sec.title) {
+                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                  }
+                  @if (sec.subtitle) {
+                    <p class="text-sm text-slate-600 mt-2">{{ sec.subtitle }}</p>
+                  }
+                </div>
+              }
+
+              <!-- A. USE AS BANNER MODE (FULL WIDTH BANNER) -->
+              @if (sec.content.useAsBanner || sec.content.mode === 'banner') {
+                <div [class]="sec.content.containerWidth === 'full_bleed' ? '-mx-4 sm:-mx-6 lg:-mx-8 w-auto' : 'max-w-7xl mx-auto'">
+                  <div 
+                    [class]="(sec.content.bannerHeight === 'cinematic' ? 'aspect-21/9 min-h-[380px] md:min-h-[520px]' : (sec.content.bannerHeight === 'compact' ? 'h-72 sm:h-88 md:h-96' : (sec.content.bannerHeight === 'screen' ? 'min-h-[65vh] h-[75vh]' : 'aspect-video min-h-[320px] md:min-h-[480px]'))) + ' relative overflow-hidden bg-black border border-slate-800/80 shadow-2xl ' + (sec.content.containerWidth === 'full_bleed' ? 'rounded-none' : 'rounded-3xl')"
+                    class="group">
+                    
+                    <!-- Video Player (HTML5 Direct vs Iframe Embed) -->
+                    @if (isVideoDirectFile(sec.content.videoUrl)) {
+                      <video 
+                        [src]="sec.content.videoUrl" 
+                        [poster]="sec.content.posterUrl" 
+                        [autoplay]="sec.content.autoPlay" 
+                        [muted]="sec.content.muted !== false" 
+                        [loop]="sec.content.loop !== false" 
+                        [controls]="sec.content.showControls !== false" 
+                        playsinline 
+                        class="w-full h-full object-cover">
+                      </video>
+                    } @else {
+                      <iframe 
+                        [src]="formatEmbedUrl(sec.content.videoUrl, sec.content.autoPlay, sec.content.muted !== false, sec.content.loop !== false, sec.content.showControls !== false) | safeResourceUrl" 
+                        title="LMS Platform Video Banner" 
+                        class="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                      </iframe>
+                    }
+
+                    <!-- Duration Badge -->
+                    @if (sec.content.durationText) {
+                      <div class="absolute top-4 right-4 z-20 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <span class="material-symbols-outlined text-sm text-pink-400">timer</span>
+                        <span>{{ sec.content.durationText }}</span>
+                      </div>
+                    }
+
+                    <!-- Overlay Variant: Bottom Scrim & Captions -->
+                    @if (sec.content.bannerOverlay === 'gradient_bottom') {
+                      <div class="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent pointer-events-none flex flex-col justify-end p-6 sm:p-10">
+                        <div class="max-w-2xl pointer-events-auto space-y-2">
+                          @if (sec.content.badgeText) {
+                            <span class="px-2.5 py-0.5 rounded-md bg-pink-600/90 text-white text-[11px] font-bold uppercase tracking-wider inline-block">
+                              {{ sec.content.badgeText }}
+                            </span>
+                          }
+                          <h3 class="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight">
+                            {{ sec.content.videoTitle || sec.title }}
+                          </h3>
+                          @if (sec.content.description) {
+                            <p class="text-xs sm:text-sm text-slate-300 line-clamp-2">{{ sec.content.description }}</p>
+                          }
+                          @if (sec.content.primaryCtaText) {
+                            <div class="pt-2 flex items-center gap-3">
+                              <a 
+                                [href]="sec.content.primaryCtaUrl || '#courses'"
+                                class="px-5 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs sm:text-sm font-bold transition-all shadow-md flex items-center gap-1.5">
+                                <span>{{ sec.content.primaryCtaText }}</span>
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                              </a>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Overlay Variant: Floating Glass Card -->
+                    @if (sec.content.bannerOverlay === 'glass_card') {
+                      <div class="absolute inset-0 z-10 p-6 sm:p-8 flex items-end pointer-events-none">
+                        <div class="bg-slate-950/85 backdrop-blur-md p-5 sm:p-6 rounded-2xl border border-white/10 shadow-2xl max-w-md pointer-events-auto space-y-2.5">
+                          <div class="flex items-center justify-between gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full bg-pink-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+                              {{ sec.content.badgeText || 'Featured Tour' }}
+                            </span>
+                            @if (sec.content.durationText) {
+                              <span class="text-[11px] font-semibold text-slate-300">{{ sec.content.durationText }}</span>
+                            }
+                          </div>
+                          <h3 class="text-lg sm:text-xl font-bold text-white">{{ sec.content.videoTitle || sec.title }}</h3>
+                          @if (sec.content.description) {
+                            <p class="text-xs text-slate-300 leading-relaxed">{{ sec.content.description }}</p>
+                          }
+                          @if (sec.content.primaryCtaText) {
+                            <div class="pt-1">
+                              <a 
+                                [href]="sec.content.primaryCtaUrl || '#courses'"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold transition-all">
+                                <span>{{ sec.content.primaryCtaText }}</span>
+                                <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                              </a>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Overlay Variant: Centered Hero Overlay -->
+                    @if (sec.content.bannerOverlay === 'centered_hero') {
+                      <div class="absolute inset-0 z-10 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 sm:p-12 pointer-events-none">
+                        <div class="max-w-2xl pointer-events-auto space-y-3">
+                          @if (sec.content.badgeText || sec.badge) {
+                            <span class="px-3 py-1 rounded-full bg-pink-600/90 text-white text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-lg">
+                              <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                              <span>{{ sec.content.badgeText || sec.badge }}</span>
+                            </span>
+                          }
+                          <h3 class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                            {{ sec.content.videoTitle || sec.title }}
+                          </h3>
+                          @if (sec.content.description || sec.subtitle) {
+                            <p class="text-xs sm:text-sm md:text-base text-slate-200 max-w-xl mx-auto leading-relaxed">
+                              {{ sec.content.description || sec.subtitle }}
+                            </p>
+                          }
+                          @if (sec.content.primaryCtaText) {
+                            <div class="pt-3 flex items-center justify-center gap-3">
+                              <a 
+                                [href]="sec.content.primaryCtaUrl || '#courses'"
+                                class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs sm:text-sm font-bold shadow-xl hover:scale-105 transition-all flex items-center gap-2">
+                                <span>{{ sec.content.primaryCtaText }}</span>
+                                <span class="material-symbols-outlined text-base">play_circle</span>
+                              </a>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- B. SPLIT WALKTHROUGH LAYOUT -->
+              @else if (sec.content.mode !== 'cinematic_centered') {
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-7xl mx-auto">
+                  <!-- Video Column -->
+                  <div [class]="sec.content.splitOrientation === 'video_right' ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7 lg:order-1'">
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-black border border-slate-800 aspect-video group">
+                      @if (isVideoDirectFile(sec.content.videoUrl)) {
+                        <video 
+                          [src]="sec.content.videoUrl" 
+                          [poster]="sec.content.posterUrl" 
+                          [autoplay]="sec.content.autoPlay" 
+                          [muted]="sec.content.muted !== false" 
+                          [loop]="sec.content.loop !== false" 
+                          [controls]="sec.content.showControls !== false" 
+                          playsinline 
+                          class="w-full h-full object-cover">
+                        </video>
+                      } @else {
+                        <iframe 
+                          [src]="formatEmbedUrl(sec.content.videoUrl, sec.content.autoPlay, sec.content.muted !== false, sec.content.loop !== false, sec.content.showControls !== false) | safeResourceUrl" 
+                          title="LMS Platform Video Tour" 
+                          class="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowfullscreen>
+                        </iframe>
+                      }
+
+                      @if (sec.content.durationText) {
+                        <div class="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold flex items-center gap-1 shadow-md">
+                          <span class="material-symbols-outlined text-xs text-pink-400">timer</span>
+                          <span>{{ sec.content.durationText }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Content Column -->
+                  <div [class]="sec.content.splitOrientation === 'video_right' ? 'lg:col-span-5 lg:order-1 space-y-4' : 'lg:col-span-5 lg:order-2 space-y-4'">
+                    @if (sec.content.badgeText) {
+                      <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">
+                        {{ sec.content.badgeText }}
+                      </span>
+                    }
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">{{ sec.content.videoTitle }}</h3>
+                    @if (sec.content.description) {
+                      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ sec.content.description }}</p>
+                    }
+
+                    @if (sec.content.bulletPoints?.length) {
+                      <div class="space-y-2.5 pt-1">
+                        @for (bullet of sec.content.bulletPoints; track $index) {
+                          <div class="flex items-start gap-2 text-xs text-slate-700">
+                            <span class="material-symbols-outlined text-sm text-emerald-600 mt-0.5 shrink-0">check_circle</span>
+                            <span>{{ bullet }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Metrics -->
+                    @if (sec.content.statsList?.length) {
+                      <div class="grid grid-cols-3 gap-2.5 pt-4 border-t border-slate-200">
+                        @for (st of sec.content.statsList; track $index) {
+                          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 text-center">
+                            <div class="text-sm font-black text-slate-900">{{ st.value }}</div>
+                            <div class="text-[10px] text-slate-500">{{ st.label }}</div>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- CTAs -->
+                    @if (sec.content.primaryCtaText) {
+                      <div class="pt-2">
+                        <a 
+                          [href]="sec.content.primaryCtaUrl || '#courses'"
+                          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold transition-all shadow-md">
+                          <span>{{ sec.content.primaryCtaText }}</span>
+                          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </a>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- C. CENTERED CINEMATIC STAGE PLAYER -->
+              @else {
+                <div class="max-w-4xl mx-auto space-y-6">
+                  <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-black border border-slate-800 aspect-video group">
+                    @if (isVideoDirectFile(sec.content.videoUrl)) {
+                      <video 
+                        [src]="sec.content.videoUrl" 
+                        [poster]="sec.content.posterUrl" 
+                        [autoplay]="sec.content.autoPlay" 
+                        [muted]="sec.content.muted !== false" 
+                        [loop]="sec.content.loop !== false" 
+                        [controls]="sec.content.showControls !== false" 
+                        playsinline 
+                        class="w-full h-full object-cover">
+                      </video>
+                    } @else {
+                      <iframe 
+                        [src]="formatEmbedUrl(sec.content.videoUrl, sec.content.autoPlay, sec.content.muted !== false, sec.content.loop !== false, sec.content.showControls !== false) | safeResourceUrl" 
+                        title="LMS Platform Video Tour" 
+                        class="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                      </iframe>
+                    }
+                    @if (sec.content.durationText) {
+                      <div class="absolute top-4 right-4 z-10 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+                        <span class="material-symbols-outlined text-sm text-pink-400">timer</span>
+                        <span>{{ sec.content.durationText }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  @if (sec.content.statsList?.length) {
+                    <div class="grid grid-cols-3 gap-3 max-w-xl mx-auto">
+                      @for (st of sec.content.statsList; track $index) {
+                        <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 text-center shadow-xs">
+                          <div class="text-base font-black text-slate-900">{{ st.value }}</div>
+                          <div class="text-xs text-slate-500">{{ st.label }}</div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            <!-- 4. COURSES & PROGRAMS SHOWCASE WIDGET -->
+            @if (sec.type === 'courses_grid') {
+              <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                  @if (sec.badge) {
+                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                  }
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                  <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.content.sectionTagline || sec.subtitle }}</p>
+                </div>
+
+                <!-- Category Filtering -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+                  @for (cat of sec.content.filterCategories; track cat) {
+                    <button 
+                      type="button" 
+                      (click)="selectedCategory.set(cat)"
+                      [class]="selectedCategory() === cat ? 'bg-pink-600 text-white font-bold shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                      class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer">
+                      {{ cat }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Active Search / Filter Status Banner -->
+              @if (courseSearchQuery() || (selectedCategory() && selectedCategory() !== 'All')) {
+                <div class="mb-6 flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                  <div class="flex items-center gap-2 text-xs text-slate-600">
+                    <span class="material-symbols-outlined text-sm text-pink-600">filter_alt</span>
+                    <span>
+                      Active Filters: 
+                      @if (courseSearchQuery()) {
+                        Search <strong class="text-slate-900">"{{ courseSearchQuery() }}"</strong>
+                      }
+                      @if (courseSearchQuery() && selectedCategory() !== 'All') {
+                        • 
+                      }
+                      @if (selectedCategory() !== 'All') {
+                        Category <strong class="text-slate-900">{{ selectedCategory() }}</strong>
+                      }
+                    </span>
+                    <span class="text-slate-400">({{ filteredCourses().length }} courses found)</span>
+                  </div>
+
+                  <button 
+                    type="button" 
+                    (click)="resetCourseFilters()"
+                    class="px-3 py-1 rounded-lg bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
+                    <span class="material-symbols-outlined text-xs">restart_alt</span>
+                    <span>Reset Filters</span>
+                  </button>
+                </div>
+              }
+
+              <!-- Empty State when no courses match filter / search -->
+              @if (filteredCourses().length === 0) {
+                <div class="py-16 px-6 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-300 max-w-2xl mx-auto my-4 space-y-4">
+                  <div class="w-16 h-16 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center mx-auto shadow-xs">
+                    <span class="material-symbols-outlined text-3xl">search_off</span>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-slate-900">No Courses Found</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+                      @if (courseSearchQuery()) {
+                        We couldn't find any courses matching "<strong>{{ courseSearchQuery() }}</strong>". Try searching for different keywords or browse all categories.
+                      } @else {
+                        There are currently no published courses available in the selected "<strong>{{ selectedCategory() }}</strong>" category.
+                      }
+                    </p>
+                  </div>
+                  <div class="pt-2 flex items-center justify-center gap-3">
+                    <button 
+                      type="button" 
+                      (click)="resetCourseFilters()" 
+                      class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      [style.backgroundColor]="primaryColor()">
+                      <span class="material-symbols-outlined text-sm">view_list</span>
+                      <span>Show All Courses</span>
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <!-- Courses Grid (Dynamic Columns: 2, 3, 4) -->
+                <div 
+                  class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  [class.lg:grid-cols-2]="sec.content.columns === 2"
+                  [class.lg:grid-cols-3]="!sec.content.columns || sec.content.columns === 3"
+                  [class.lg:grid-cols-4]="sec.content.columns === 4">
+                  @for (c of filteredCourses().slice(0, sec.content.displayCount || 6); track c.id) {
+                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
+                      <div class="relative h-44 overflow-hidden bg-slate-100">
+                        <img 
+                          [src]="getCourseImage(c)" 
+                          [alt]="c.title" 
+                          (error)="onImgError($event, c.category)"
+                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          referrerpolicy="no-referrer" />
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-950/80 text-white backdrop-blur-xs">
+                          {{ c.category }}
+                        </span>
+                        @if (sec.content.showLevelBadge !== false) {
+                          <span class="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs">
+                            {{ c.level }}
+                          </span>
+                        }
+                      </div>
+
+                      <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                          @if (sec.content.showRating !== false) {
+                            <div class="flex items-center gap-1 text-amber-500 text-xs mb-1.5 font-bold">
+                              <span class="material-symbols-outlined text-sm">star</span>
+                              <span>{{ c.rating || 4.9 }}</span>
+                              <span class="text-slate-400 font-normal">({{ c.enrolledCount || 120 }})</span>
+                            </div>
+                          }
+                          <h3 class="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
+                            {{ c.title }}
+                          </h3>
+                          <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ c.description }}</p>
+                        </div>
+
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                          @if (sec.content.showInstructor !== false) {
+                            <div class="flex items-center gap-2">
+                              <img [src]="c.instructorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80'" [alt]="c.instructorName" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer" />
+                              <span class="text-[11px] font-medium text-slate-600 truncate max-w-[110px]">{{ c.instructorName }}</span>
+                            </div>
+                          } @else {
+                            <span class="text-xs font-bold text-emerald-600">Accredited</span>
+                          }
+
+                          @if (sec.content.showEnrollButton !== false) {
+                            <button 
+                              type="button"
+                              (click)="handleCourseEnroll(c, sec.content)"
+                              class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                              [style.backgroundColor]="primaryColor()">
+                              <span>{{ sec.content.enrollButtonText || 'Enroll' }}</span>
+                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            <!-- 5. INSTRUCTORS DIRECTORY WIDGET -->
+            @if (sec.type === 'instructors_directory') {
+              <div class="text-center max-w-3xl mx-auto mb-12">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.subtitle }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @for (inst of sec.content.instructors?.slice(0, sec.content.displayCount || 8); track inst.id) {
+                  <div class="bg-white rounded-2xl border border-slate-200/90 p-5 text-center flex flex-col items-center shadow-xs hover:shadow-lg transition-all group">
+                    <img [src]="inst.avatarUrl" [alt]="inst.name" class="w-20 h-20 rounded-full object-cover border-2 border-pink-500/20 group-hover:border-pink-500 transition-colors mb-3" referrerpolicy="no-referrer" />
+                    <h4 class="text-sm font-bold text-slate-900">{{ inst.name }}</h4>
+                    <p class="text-[11px] text-pink-600 font-semibold">{{ inst.title }}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">{{ inst.department }}</p>
+                    <p class="text-xs text-slate-600 line-clamp-2 mt-2">{{ inst.bio }}</p>
+                    
+                    @if (inst.specialties?.length) {
+                      <div class="flex flex-wrap items-center justify-center gap-1 mt-2.5">
+                        @for (spec of inst.specialties; track spec) {
+                          <span class="px-2 py-0.5 rounded-md bg-slate-100 text-[9px] font-bold text-slate-600">{{ spec }}</span>
+                        }
+                      </div>
+                    }
+
+                    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 w-full justify-center text-[10px] font-bold text-slate-500">
+                      <span>⭐ {{ inst.rating }}</span>
+                      <span>•</span>
+                      <span>{{ inst.coursesCount }} Courses</span>
+                      <span>•</span>
+                      <span>{{ inst.studentsCount }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- 6. TESTIMONIALS WIDGET -->
+            @if (sec.type === 'testimonials') {
+              <div class="text-center max-w-3xl mx-auto mb-12">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.subtitle }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @for (t of sec.content.testimonials; track t.id) {
+                  <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition-all">
+                    <div>
+                      <div class="flex items-center gap-1 text-amber-500 text-xs mb-3">
+                        @for (i of [1,2,3,4,5]; track i) {
+                          <span class="material-symbols-outlined text-sm">star</span>
+                        }
+                      </div>
+                      <p class="text-xs sm:text-sm text-slate-700 italic leading-relaxed">
+                        "{{ t.comment }}"
+                      </p>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-4 mt-4 border-t border-slate-100">
+                      <img [src]="t.avatarUrl" [alt]="t.name" class="w-10 h-10 rounded-full object-cover" referrerpolicy="no-referrer" />
+                      <div>
+                        <div class="text-xs font-bold text-slate-900 flex items-center gap-1">
+                          <span>{{ t.name }}</span>
+                          @if (t.verified) {
+                            <span class="material-symbols-outlined text-xs text-blue-500" title="Verified Learner">verified</span>
+                          }
+                        </div>
+                        <div class="text-[10px] text-slate-500">{{ t.role }} • {{ t.organization }}</div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- 7. PARTNERS & ACCREDITATION LOGO TICKER -->
+            @if (sec.type === 'partners_ticker') {
+              @if (sec.content.title || sec.badge) {
+                <div class="text-center max-w-3xl mx-auto mb-6">
+                  @if (sec.badge) {
+                    <span class="text-[11px] font-extrabold text-pink-600 uppercase tracking-widest mb-1.5 inline-block">{{ sec.badge }}</span>
+                  }
+                  @if (sec.content.title) {
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider">{{ sec.content.title }}</h3>
+                  }
+                  @if (sec.content.subtitle) {
+                    <p class="text-xs text-slate-400 mt-1">{{ sec.content.subtitle }}</p>
+                  }
+                </div>
+              }
+
+              <!-- 1-Line Animated Sliding Ticker with Smooth Gradient Masks -->
+              <div 
+                class="partner-ticker-container relative overflow-hidden py-4 w-full"
+                [class.partner-ticker-mask]="true">
+                
+                <div 
+                  [class]="sec.content.direction === 'right' ? 'partner-ticker-track-right' : 'partner-ticker-track-left'"
+                  [style.--ticker-speed]="getTickerSpeedSeconds(sec.content.tickerSpeed)"
+                  [class.gap-9]="sec.content.itemGap === 'compact'"
+                  [class.gap-14]="!sec.content.itemGap || sec.content.itemGap === 'standard'"
+                  [class.gap-20]="sec.content.itemGap === 'spacious'"
+                  class="flex items-center py-2">
+                  
+                  <!-- Track Set 1 -->
+                  @for (p of sec.content.partners; track p.id + '-a') {
+                    <div 
+                      class="flex items-center gap-2.5 shrink-0 transition-all duration-300 select-none group/logo cursor-pointer"
+                      [class.opacity-60]="sec.content.displayStyle === 'monochrome'"
+                      [class.hover:opacity-100]="sec.content.displayStyle === 'monochrome'"
+                      [class.hover:scale-105]="true">
+                      
+                      <!-- Custom Image Logo -->
+                      @if (p.logoUrl) {
+                        <img 
+                          [src]="p.logoUrl" 
+                          [alt]="p.name" 
+                          class="h-7 sm:h-8 max-w-[140px] object-contain transition-all"
+                          [class.grayscale]="sec.content.grayscale !== false"
+                          [class.hover:grayscale-0]="sec.content.grayscale !== false"
+                          referrerpolicy="no-referrer" />
+                      }
+                      
+                      <!-- Vector Mark Presets (Exact match to reference style) -->
+                      @else {
+                        @if (p.svgType === 'radar' || (!p.svgType && $index % 8 === 0)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="3.5" fill="currentColor"/>
+                            <path d="M20 11.5a8.5 8.5 0 0 1 8.5 8.5 8.5 8.5 0 0 1-8.5 8.5 8.5 8.5 0 0 1-8.5-8.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                            <path d="M20 5.5a14.5 14.5 0 0 1 14.5 14.5 14.5 14.5 0 0 1-14.5 14.5 14.5 14.5 0 0 1-14.5-14.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'waves' || (!p.svgType && $index % 8 === 1)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="14.5" stroke="currentColor" stroke-width="2.6"/>
+                            <path d="M10 16c3-3.5 6.5-3.5 10 0s7 3.5 10 0" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                            <path d="M10 24c3-3.5 6.5-3.5 10 0s7 3.5 10 0" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'cube' || (!p.svgType && $index % 8 === 2)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="7" y="9" width="22" height="22" rx="3.5" stroke="currentColor" stroke-width="2.6"/>
+                            <circle cx="18" cy="20" r="4.5" fill="currentColor"/>
+                            <path d="M24 9h9v22h-9" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'split' || (!p.svgType && $index % 8 === 3)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 10a10 10 0 0 1 10 10 10 10 0 0 1-10 10V10z"/>
+                            <rect x="22" y="10" width="10" height="20" rx="2.5"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'nodes' || (!p.svgType && $index % 8 === 4)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="11" r="3.8"/>
+                            <circle cx="19" cy="11" r="3.8"/>
+                            <circle cx="29" cy="11" r="3.8"/>
+                            <circle cx="14" cy="20" r="3.8"/>
+                            <circle cx="24" cy="20" r="3.8"/>
+                            <circle cx="9" cy="29" r="3.8"/>
+                            <circle cx="19" cy="29" r="3.8"/>
+                            <circle cx="29" cy="29" r="3.8"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'shield' || (!p.svgType && $index % 8 === 5)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 5l13 5.5v11.5c0 8-6 14-13 16-7-2-13-8-13-16V10.5L20 5z" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+                            <path d="M15 20.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'spark' || (!p.svgType && $index % 8 === 6)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 4c0 8.8-7.2 16-16 16 8.8 0 16 7.2 16 16 0-8.8 7.2-16 16-16-8.8 0-16-7.2-16-16z"/>
+                          </svg>
+                        }
+                        @else {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.5 14c-3.6 0-6.5 2.7-6.5 6s2.9 6 6.5 6c4 0 6.8-5 7.5-6 .7-1 3.5-6 7.5-6 3.6 0 6.5 2.7 6.5 6s-2.9 6-6.5 6c-4 0-6.8-5-7.5-6-.7-1-3.5-6-7.5-6z" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                      }
+
+                      <!-- Logo Typography -->
+                      @if (sec.content.showLogoText !== false && p.name) {
+                        <div class="flex items-baseline gap-0.5">
+                          <span class="text-base sm:text-lg font-black tracking-tight text-slate-700 group-hover/logo:text-slate-950 transition-colors">
+                            {{ p.name }}
+                          </span>
+                          @if (p.name === 'logoipsum') {
+                            <span class="text-[9px] font-bold text-slate-400">.com</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Track Set 2 (Exact Duplicate for Infinite Loop) -->
+                  @for (p of sec.content.partners; track p.id + '-b') {
+                    <div 
+                      class="flex items-center gap-2.5 shrink-0 transition-all duration-300 select-none group/logo cursor-pointer"
+                      [class.opacity-60]="sec.content.displayStyle === 'monochrome'"
+                      [class.hover:opacity-100]="sec.content.displayStyle === 'monochrome'"
+                      [class.hover:scale-105]="true"
+                      aria-hidden="true">
+                      
+                      <!-- Custom Image Logo -->
+                      @if (p.logoUrl) {
+                        <img 
+                          [src]="p.logoUrl" 
+                          [alt]="p.name" 
+                          class="h-7 sm:h-8 max-w-[140px] object-contain transition-all"
+                          [class.grayscale]="sec.content.grayscale !== false"
+                          [class.hover:grayscale-0]="sec.content.grayscale !== false"
+                          referrerpolicy="no-referrer" />
+                      }
+                      
+                      <!-- Vector Mark Presets -->
+                      @else {
+                        @if (p.svgType === 'radar' || (!p.svgType && $index % 8 === 0)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="3.5" fill="currentColor"/>
+                            <path d="M20 11.5a8.5 8.5 0 0 1 8.5 8.5 8.5 8.5 0 0 1-8.5 8.5 8.5 8.5 0 0 1-8.5-8.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                            <path d="M20 5.5a14.5 14.5 0 0 1 14.5 14.5 14.5 14.5 0 0 1-14.5-14.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'waves' || (!p.svgType && $index % 8 === 1)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="14.5" stroke="currentColor" stroke-width="2.6"/>
+                            <path d="M10 16c3-3.5 6.5-3.5 10 0s7 3.5 10 0" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                            <path d="M10 24c3-3.5 6.5-3.5 10 0s7 3.5 10 0" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'cube' || (!p.svgType && $index % 8 === 2)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="7" y="9" width="22" height="22" rx="3.5" stroke="currentColor" stroke-width="2.6"/>
+                            <circle cx="18" cy="20" r="4.5" fill="currentColor"/>
+                            <path d="M24 9h9v22h-9" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'split' || (!p.svgType && $index % 8 === 3)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 10a10 10 0 0 1 10 10 10 10 0 0 1-10 10V10z"/>
+                            <rect x="22" y="10" width="10" height="20" rx="2.5"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'nodes' || (!p.svgType && $index % 8 === 4)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="11" r="3.8"/>
+                            <circle cx="19" cy="11" r="3.8"/>
+                            <circle cx="29" cy="11" r="3.8"/>
+                            <circle cx="14" cy="20" r="3.8"/>
+                            <circle cx="24" cy="20" r="3.8"/>
+                            <circle cx="9" cy="29" r="3.8"/>
+                            <circle cx="19" cy="29" r="3.8"/>
+                            <circle cx="29" cy="29" r="3.8"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'shield' || (!p.svgType && $index % 8 === 5)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 5l13 5.5v11.5c0 8-6 14-13 16-7-2-13-8-13-16V10.5L20 5z" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+                            <path d="M15 20.5l3.5 3.5 7-7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                        @else if (p.svgType === 'spark' || (!p.svgType && $index % 8 === 6)) {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 4c0 8.8-7.2 16-16 16 8.8 0 16 7.2 16 16 0-8.8 7.2-16 16-16-8.8 0-16-7.2-16-16z"/>
+                          </svg>
+                        }
+                        @else {
+                          <svg viewBox="0 0 40 40" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 text-slate-700 group-hover/logo:text-slate-950 transition-colors" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.5 14c-3.6 0-6.5 2.7-6.5 6s2.9 6 6.5 6c4 0 6.8-5 7.5-6 .7-1 3.5-6 7.5-6 3.6 0 6.5 2.7 6.5 6s-2.9 6-6.5 6c-4 0-6.8-5-7.5-6-.7-1-3.5-6-7.5-6z" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        }
+                      }
+
+                      <!-- Logo Typography -->
+                      @if (sec.content.showLogoText !== false && p.name) {
+                        <div class="flex items-baseline gap-0.5">
+                          <span class="text-base sm:text-lg font-black tracking-tight text-slate-700 group-hover/logo:text-slate-950 transition-colors">
+                            {{ p.name }}
+                          </span>
+                          @if (p.name === 'logoipsum') {
+                            <span class="text-[9px] font-bold text-slate-400">.com</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 8. LATEST NEWS & INSIGHTS WIDGET -->
+            @if (sec.type === 'latest_news') {
+              <div class="text-center max-w-3xl mx-auto mb-12">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.subtitle }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @for (n of sec.content.items?.slice(0, sec.content.displayCount || 6); track n.id) {
+                  <div 
+                    (click)="openNewsModal(n)"
+                    class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col group cursor-pointer">
+                    <div class="h-44 overflow-hidden bg-slate-100">
+                      <img [src]="n.imageUrl" [alt]="n.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 mb-2">
+                          <span class="font-bold text-pink-600 uppercase">{{ n.category }}</span>
+                          <span>{{ n.date }}</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors line-clamp-2">
+                          {{ n.title }}
+                        </h3>
+                        <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ n.excerpt }}</p>
+                      </div>
+                      <div class="flex items-center justify-between pt-4 mt-4 border-t border-slate-100 text-[11px]">
+                        <span class="text-slate-500 font-medium">By {{ n.author }}</span>
+                        <span class="text-pink-600 font-bold flex items-center gap-0.5">Read <span class="material-symbols-outlined text-xs">arrow_forward</span></span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- 9. ABOUT US & MISSION WIDGET -->
+            @if (sec.type === 'about_us') {
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+                <div class="lg:col-span-6 space-y-5">
+                  @if (sec.badge) {
+                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                  }
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.missionTitle }}</h2>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ sec.content.missionText }}</p>
+                  
+                  <div class="space-y-3 pt-2">
+                    @for (p of sec.content.pillars; track p.title) {
+                      <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-100 shadow-2xs">
+                        <span class="material-symbols-outlined text-xl text-pink-600 mt-0.5">{{ p.icon }}</span>
+                        <div>
+                          <h4 class="text-xs font-bold text-slate-900">{{ p.title }}</h4>
+                          <p class="text-[11px] text-slate-500 mt-0.5">{{ p.description }}</p>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="lg:col-span-6">
+                  <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
+                    <img [src]="sec.content.image1Url" alt="About Mission" class="w-full h-84 object-cover" referrerpolicy="no-referrer" />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- 10. CONTACT & INQUIRY FORM WIDGET -->
+            @if (sec.type === 'contact_form') {
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <div class="lg:col-span-5 space-y-4">
+                  @if (sec.badge) {
+                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                  }
+                  <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-950">{{ sec.content.heading }}</h2>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ sec.content.description }}</p>
+
+                  <div class="space-y-3 pt-3">
+                    <div class="flex items-center gap-3 text-xs text-slate-700">
+                      <span class="material-symbols-outlined text-base text-pink-600">mail</span>
+                      <span>{{ sec.content.email }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-700">
+                      <span class="material-symbols-outlined text-base text-pink-600">call</span>
+                      <span>{{ sec.content.phone }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-700">
+                      <span class="material-symbols-outlined text-base text-pink-600">location_on</span>
+                      <span>{{ sec.content.address }}</span>
+                    </div>
+                    @if (sec.content.workingHours) {
+                      <div class="flex items-center gap-3 text-xs text-slate-700">
+                        <span class="material-symbols-outlined text-base text-pink-600">schedule</span>
+                        <span>{{ sec.content.workingHours }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl">
+                  @if (contactSubmitted()) {
+                    <div class="p-6 text-center space-y-3">
+                      <span class="material-symbols-outlined text-4xl text-emerald-500">check_circle</span>
+                      <h4 class="text-lg font-bold text-slate-900">Inquiry Sent Successfully!</h4>
+                      <p class="text-xs text-slate-600">{{ sec.content.successMessage }}</p>
+                      <button type="button" (click)="contactSubmitted.set(false)" class="text-xs font-bold text-pink-600 hover:underline">Send another inquiry</button>
+                    </div>
+                  } @else {
+                    <form (ngSubmit)="submitContact()" class="space-y-4">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-[11px] font-bold text-slate-700 mb-1">Full Name *</label>
+                          <input type="text" [(ngModel)]="contactForm.name" name="name" required placeholder="Jane Doe" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-pink-500" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold text-slate-700 mb-1">Email Address *</label>
+                          <input type="email" [(ngModel)]="contactForm.email" name="email" required placeholder="jane@enterprise.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-pink-500" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Subject of Interest</label>
+                        <select [(ngModel)]="contactForm.subject" name="subject" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none">
+                          @for (opt of sec.content.subjectOptions; track opt) {
+                            <option [value]="opt">{{ opt }}</option>
+                          }
+                        </select>
+                      </div>
+
+                      <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Message / Requirements *</label>
+                        <textarea rows="3" [(ngModel)]="contactForm.message" name="message" required placeholder="Tell us about your team size, curriculum needs..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-pink-500"></textarea>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        [disabled]="contactSubmitting()"
+                        class="w-full py-3.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        [style.backgroundColor]="primaryColor()">
+                        <span>{{ contactSubmitting() ? 'Sending...' : 'Submit Inquiry' }}</span>
+                        <span class="material-symbols-outlined text-sm">send</span>
+                      </button>
+                    </form>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 11. FAQ ACCORDION WIDGET (WITH SEARCH & CATEGORIES) -->
+            @if (sec.type === 'faq_accordion') {
+              <div class="text-center max-w-3xl mx-auto mb-8">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.subtitle }}</p>
+              </div>
+
+              <!-- FAQ Search Input -->
+              <div class="max-w-xl mx-auto mb-6">
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">search</span>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="faqSearchQuery"
+                    placeholder="Search questions (e.g. certificates, SSO, pricing)..." 
+                    class="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-pink-500 shadow-xs" />
+                </div>
+              </div>
+
+              <div class="max-w-3xl mx-auto space-y-3">
+                @for (faq of sec.content.faqs; track faq.id) {
+                  @if (!faqSearchQuery() || faq.question.toLowerCase().includes(faqSearchQuery().toLowerCase()) || faq.answer.toLowerCase().includes(faqSearchQuery().toLowerCase())) {
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                      <button 
+                        type="button" 
+                        (click)="toggleFaq(faq.id)" 
+                        class="w-full p-4 text-left flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors cursor-pointer">
+                        <span class="text-xs sm:text-sm font-bold text-slate-900">{{ faq.question }}</span>
+                        <span class="material-symbols-outlined text-sm text-slate-400 transition-transform duration-200" [class.rotate-180]="faqOpenMap()[faq.id]">
+                          expand_more
+                        </span>
+                      </button>
+                      @if (faqOpenMap()[faq.id]) {
+                        <div class="px-4 pb-4 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-100">
+                          {{ faq.answer }}
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+
+            <!-- 12. FINAL CTA BANNER WIDGET -->
+            @if (sec.type === 'cta_banner') {
+              <div class="rounded-3xl p-8 sm:p-14 text-center text-white shadow-2xl relative overflow-hidden"
+                   [style.backgroundColor]="primaryColor()">
+                <div class="max-w-2xl mx-auto space-y-4 relative z-10">
+                  @if (sec.content.badgeText) {
+                    <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full bg-white/20 text-white">
+                      {{ sec.content.badgeText }}
+                    </span>
+                  }
+                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">{{ sec.content.title }}</h2>
+                  <p class="text-xs sm:text-sm text-white/90 leading-relaxed">{{ sec.content.subtitle }}</p>
+                  <a 
+                    routerLink="/login" 
+                    class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-slate-950 font-extrabold text-sm shadow-xl hover:bg-slate-100 transition-all cursor-pointer active:scale-95">
+                    <span>{{ sec.content.ctaText }}</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                  </a>
+                </div>
+              </div>
+            }
+
+          </div>
+        </section>
+      }
+    }
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- 4. FOOTER                                                                 -->
+  <!-- ========================================================================= -->
+  <footer class="bg-slate-950 text-slate-400 pt-16 pb-12 px-4 sm:px-8 lg:px-16 border-t border-slate-900">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 pb-12 border-b border-slate-800">
+      <div class="md:col-span-4 space-y-4">
+        <div class="flex items-center gap-2">
+          @if (lmsLogo()) {
+            <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[150px] object-contain brightness-200" referrerpolicy="no-referrer" />
+          }
+          <span class="text-base font-extrabold text-white">{{ pageConfig().lmsName }}</span>
+        </div>
+        <p class="text-xs leading-relaxed text-slate-400">{{ pageConfig().footer.brandSummary }}</p>
+      </div>
+
+      <!-- Footer Links Columns -->
+      @for (col of pageConfig().footer.columns; track col.title) {
+        <div class="md:col-span-2 space-y-3">
+          <h4 class="text-xs font-bold text-white uppercase tracking-wider">{{ col.title }}</h4>
+          <ul class="space-y-2 text-xs">
+            @for (link of col.links; track link.label) {
+              <li>
+                <a [href]="link.url" (click)="scrollToSection(link.url)" class="hover:text-white transition-colors cursor-pointer">{{ link.label }}</a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <!-- Newsletter Subscription -->
+      @if (pageConfig().footer.showNewsletter) {
+        <div class="md:col-span-4 space-y-3">
+          <h4 class="text-xs font-bold text-white uppercase tracking-wider">{{ pageConfig().footer.newsletterHeadline }}</h4>
+          <p class="text-xs text-slate-400">{{ pageConfig().footer.newsletterSubtext }}</p>
+          
+          @if (newsletterSubmitted()) {
+            <div class="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              <span>Thank you for subscribing!</span>
+            </div>
+          } @else {
+            <div class="flex items-center gap-2">
+              <input 
+                type="email" 
+                [(ngModel)]="newsletterEmail" 
+                placeholder="name@company.com" 
+                class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none w-full" />
+              <button 
+                type="button" 
+                (click)="submitNewsletter()"
+                class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-pink-600 hover:bg-pink-500 cursor-pointer">
+                Join
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="max-w-6xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 border-t border-slate-900">
+      <p>{{ pageConfig().footer.copyrightText }}</p>
+      @if (pageConfig().footer.showLegalLinks !== false) {
+        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          <button 
+            type="button"
+            (click)="handleFooterLegalLink(pageConfig().footer.privacyUrl || '#privacy')"
+            class="text-slate-400 hover:text-white transition-colors cursor-pointer">
+            {{ pageConfig().footer.privacyLabel || 'Privacy Policy' }}
+          </button>
+          <span class="text-slate-700">•</span>
+          <button 
+            type="button"
+            (click)="handleFooterLegalLink(pageConfig().footer.termsUrl || '#terms')"
+            class="text-slate-400 hover:text-white transition-colors cursor-pointer">
+            {{ pageConfig().footer.termsLabel || 'Terms of Service' }}
+          </button>
+          <span class="text-slate-700">•</span>
+          <button 
+            type="button"
+            (click)="handleFooterLegalLink(pageConfig().footer.cookiesUrl || '#cookies')"
+            class="text-slate-400 hover:text-white transition-colors cursor-pointer">
+            {{ pageConfig().footer.cookiesLabel || 'Cookie Preferences' }}
+          </button>
+        </div>
+      }
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- 5. INTERACTIVE MODALS                                                     -->
+  <!-- ========================================================================= -->
+  
+  <!-- Privacy Policy Legal Modal -->
+  @if (privacyModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between p-5 bg-slate-900 text-white border-b border-slate-800 flex-shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-pink-600/20 text-pink-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">policy</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">{{ pageConfig().footer.privacyLabel || 'Privacy Policy & Student Data Protection' }}</h3>
+              <p class="text-[11px] text-slate-400">FERPA & GDPR Compliant Learning Record Governance</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="privacyModalOpen.set(false)"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
+            <strong>Effective Date:</strong> January 1, 2026 • <strong>Applies To:</strong> All enrolled learners, faculty, and guest visitors of {{ pageConfig().lmsName }}.
+          </div>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">1. Information Collection & Usage</h4>
+          <p>
+            {{ pageConfig().lmsName }} collects essential account credentials, course enrollment telemetries, assessment scores, and completion timestamps exclusively to deliver personalized educational experiences, generate accredited certificates, and provide faculty insights.
+          </p>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">2. Student Data Privacy & FERPA Compliance</h4>
+          <p>
+            We strictly enforce granular data access protocols. Academic records, quiz submissions, and instructor feedback are confidential. We never monetize or sell personal learner data to third-party advertising networks.
+          </p>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">3. Cloud Security & Encryption</h4>
+          <p>
+            All data in transit is protected using TLS 1.3 cryptographic protocols, and data at rest is encrypted using industry-standard AES-256 standards with regular automated backups.
+          </p>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">4. Learner Rights & Data Export</h4>
+          <p>
+            You retain full rights to request a transcript export of your learning activity, update personal credentials, or request complete account anonymization at any time.
+          </p>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+          <span class="text-[11px] text-slate-500">Need specific compliance verification? Contact DPO</span>
+          <button 
+            type="button" 
+            (click)="privacyModalOpen.set(false)" 
+            class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-colors">
+            Acknowledge & Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Terms of Service Legal Modal -->
+  @if (termsModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between p-5 bg-slate-900 text-white border-b border-slate-800 flex-shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-pink-600/20 text-pink-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">gavel</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">{{ pageConfig().footer.termsLabel || 'Terms of Service & Academic Honor Code' }}</h3>
+              <p class="text-[11px] text-slate-400">Platform Usage Agreement & Intellectual Property Rights</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="termsModalOpen.set(false)"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
+            By accessing or enrolling in courses on <strong>{{ pageConfig().lmsName }}</strong>, you agree to uphold academic integrity and adhere to these binding terms.
+          </div>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">1. Course License & Intellectual Property</h4>
+          <p>
+            All video lectures, syllabus downloads, interactive code sandboxes, and instructional assets remain the sole intellectual property of {{ pageConfig().lmsName }} and its affiliated instructors. Enrollment grants a personal, revocable, non-transferable license.
+          </p>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">2. Academic Integrity & Assessment Rules</h4>
+          <p>
+            Learners must submit original work during exams, project submissions, and capstone evaluations. Plagiarism, unauthorized collaboration on graded milestones, or distribution of quiz solutions results in immediate credential forfeiture.
+          </p>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">3. Certificate Issuance & Verification</h4>
+          <p>
+            Official digital certificates are issued upon satisfying minimum course completion thresholds and passing grade requirements. Certificates include unique cryptographic verification hashes verifiable by hiring partners.
+          </p>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+          <span class="text-[11px] text-slate-500">Subject to academic governance standards</span>
+          <button 
+            type="button" 
+            (click)="termsModalOpen.set(false)" 
+            class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-colors">
+            Accept & Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Cookie Preferences Modal -->
+  @if (cookiesModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col">
+        <div class="flex items-center justify-between p-5 bg-slate-900 text-white border-b border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-pink-600/20 text-pink-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">cookie</span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">Cookie & Storage Preferences</h3>
+              <p class="text-[11px] text-slate-400">Manage session security & local preference storage</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="cookiesModalOpen.set(false)"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-600">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start justify-between gap-3">
+            <div>
+              <strong class="text-slate-900 block text-xs">Essential System Cookies</strong>
+              <p class="text-[11px] mt-0.5">Required for secure authentication, video playback state, and LMS tenant isolation. Cannot be disabled.</p>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px] uppercase">Required</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start justify-between gap-3">
+            <div>
+              <strong class="text-slate-900 block text-xs">Learning Analytics & Telemetry</strong>
+              <p class="text-[11px] mt-0.5">Helps instructors identify difficult lecture chapters and optimize quiz pacing.</p>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-pink-100 text-pink-800 font-bold text-[10px] uppercase">Active</span>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 flex-shrink-0">
+          <button 
+            type="button" 
+            (click)="cookiesModalOpen.set(false)" 
+            class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-colors">
+            Save Preferences
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 5. INTERACTIVE MODALS                                                     -->
+  <!-- ========================================================================= -->
+  
+  <!-- Video Tour Modal -->
+  @if (videoModalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-4xl bg-slate-950 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+        <div class="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
+          <div class="flex items-center gap-2 text-white font-bold text-sm">
+            <span class="material-symbols-outlined text-pink-500 text-lg">play_circle</span>
+            <span>Platform Experience Tour & Virtual Classroom</span>
+          </div>
+          <button 
+            type="button" 
+            (click)="closeVideoTour()"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+        <div class="aspect-video w-full bg-black">
+          <iframe 
+            [src]="videoModalUrl() | safeResourceUrl" 
+            title="Interactive Platform Tour"
+            class="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Course Quick Enrollment Modal -->
+  @if (enrollModalOpen() && selectedCourseForEnroll()) {
+    @let c = selectedCourseForEnroll();
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl">
+        <div class="relative h-44 overflow-hidden bg-slate-950">
+          <img [src]="getCourseImage(c)" [alt]="c.title" (error)="onImgError($event, c.category)" class="w-full h-full object-cover opacity-60" referrerpolicy="no-referrer" />
+          <button 
+            type="button" 
+            (click)="closeEnrollModal()"
+            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-950/80 hover:bg-pink-600 text-white flex items-center justify-center transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+          <div class="absolute bottom-3 left-4 text-white">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-pink-600 text-white">{{ c.category }}</span>
+            <h3 class="text-base font-bold text-white mt-1 line-clamp-1">{{ c.title }}</h3>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="flex items-center justify-between text-xs text-slate-600 pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-amber-500">star</span>
+              <span class="font-bold text-slate-900">{{ c.rating || 4.9 }}</span>
+              <span>({{ c.enrolledCount || 120 }} learners)</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold">{{ c.level || 'All Levels' }}</span>
+          </div>
+
+          <p class="text-xs text-slate-600 leading-relaxed">{{ c.description }}</p>
+
+          <div class="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 text-xs">
+            <div class="font-bold text-slate-900">What's Included:</div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+              <div class="flex items-center gap-1"><span class="material-symbols-outlined text-xs text-emerald-600">check</span> Complete Video Lectures</div>
+              <div class="flex items-center gap-1"><span class="material-symbols-outlined text-xs text-emerald-600">check</span> Interactive Quizzes</div>
+              <div class="flex items-center gap-1"><span class="material-symbols-outlined text-xs text-emerald-600">check</span> Accredited Certificate</div>
+              <div class="flex items-center gap-1"><span class="material-symbols-outlined text-xs text-emerald-600">check</span> Instructor Q&A</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button 
+              type="button" 
+              (click)="closeEnrollModal()"
+              class="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button 
+              type="button" 
+              (click)="confirmQuickEnroll(c)"
+              class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              [style.backgroundColor]="primaryColor()">
+              <span>Confirm Enrollment</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- News Reader Modal -->
+  @if (newsModalOpen() && selectedNewsItem()) {
+    @let n = selectedNewsItem()!;
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+      <div class="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="relative h-56 overflow-hidden bg-slate-950 flex-shrink-0">
+          <img [src]="n.imageUrl" [alt]="n.title" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+          <button 
+            type="button" 
+            (click)="closeNewsModal()"
+            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-950/80 hover:bg-pink-600 text-white flex items-center justify-center transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span class="px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ n.category }}</span>
+            <span>{{ n.date }} • {{ n.readTime }}</span>
+          </div>
+
+          <h3 class="text-xl font-bold text-slate-900 leading-snug">{{ n.title }}</h3>
+
+          <div class="flex items-center gap-2.5 py-2 border-y border-slate-100">
+            <img [src]="n.authorAvatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&h=100&q=80'" [alt]="n.author" class="w-7 h-7 rounded-full object-cover" referrerpolicy="no-referrer" />
+            <div class="text-xs">
+              <span class="font-bold text-slate-900">{{ n.author }}</span>
+              <span class="text-slate-400"> • Academic Research Fellow</span>
+            </div>
+          </div>
+
+          <div class="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3">
+            <p>{{ n.excerpt }}</p>
+            <p>{{ n.contentBody || 'Organizations leveraging modular LMS learning frameworks report a 42% acceleration in compliance certifications and significant reduction in skill onboarding overhead. With automated telemetry, administrators can track learner competencies and verify mastery in real-time.' }}</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+          <span class="text-xs text-slate-500">Share this insight with your team</span>
+          <button type="button" (click)="closeNewsModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer">
+            Close Article
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

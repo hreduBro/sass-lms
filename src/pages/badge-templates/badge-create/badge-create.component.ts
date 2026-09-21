@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -18,11 +18,9 @@ import {
 
 @Component({
   selector: 'app-badge-create',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, StepperComponent, CustomSelectComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './badge-create.component.html',
-  styleUrls: ['./badge-create.component.css'],
+  styleUrl: './badge-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BadgeCreateComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -26,11 +26,9 @@ export const DEFAULT_BADGE_DASHBOARD_WIDGETS: BadgeDashboardWidgetConfig[] = [
 
 @Component({
   selector: 'app-badge-dashboard',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './badge-dashboard.component.html',
-  styleUrls: ['./badge-dashboard.component.css'],
+  styleUrl: './badge-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BadgeDashboardComponent {

@@ -43,6 +43,7 @@ export class AppComponent implements OnInit {
   router = inject(Router);
   isSidebarOpen = signal(false);
   isFullScreenError = signal(false);
+  isFullScreenMode = signal(false);
 
   constructor() {
     // Default open on desktop (>= 1024px), closed on mobile
@@ -60,32 +61,47 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Reset scroll position and track full screen error views
+    // Reset scroll position and track full screen / builder / error views
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd || event instanceof Scroll)
     ).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         const path = (event.urlAfterRedirects || event.url || '').split('?')[0];
-        const isKnownError = 
+        const isFullScreen = 
+          path.startsWith('/landing-builder') ||
+          path.startsWith('/landing') ||
+          path.startsWith('/p/') ||
+          path === '/login' ||
+          path === '/401' || path === '/unauthorized' ||
           path === '/403' || path === '/forbidden' ||
           path === '/404' || path === '/not-found' ||
-          path === '/500' || path === '/server-error';
-        if (isKnownError) {
-          this.isFullScreenError.set(true);
-        }
+          path === '/500' || path === '/server-error' ||
+          path === '/maintenance' || path === '/503';
+        
+        this.isFullScreenMode.set(isFullScreen);
+        this.isFullScreenError.set(isFullScreen);
       }
       this.resetScrollPosition();
     });
   }
 
   onRouteActivated(component?: any) {
-    const isError = Boolean(
+    const isFullScreenComp = Boolean(
+      component?.isFullScreen ||
+      component?.isFullScreenMode ||
       component?.isErrorPage ||
+      component?.constructor?.name === 'LandingBuilderComponent' ||
+      component?.constructor?.name === 'LandingComponent' ||
+      component?.constructor?.name === 'LoginComponent' ||
       component?.constructor?.name === 'ForbiddenComponent' ||
       component?.constructor?.name === 'NotFoundComponent' ||
-      component?.constructor?.name === 'ServerErrorComponent'
+      component?.constructor?.name === 'ServerErrorComponent' ||
+      component?.constructor?.name === 'MaintenanceComponent'
     );
-    this.isFullScreenError.set(isError);
+    if (isFullScreenComp) {
+      this.isFullScreenMode.set(true);
+      this.isFullScreenError.set(true);
+    }
     this.resetScrollPosition();
   }
 

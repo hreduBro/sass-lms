@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-date-range-filter',
-  standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

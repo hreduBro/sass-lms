@@ -19,6 +19,13 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+      <a 
+        [routerLink]="['/landing-builder', lms.activeLmsId()]"
+        class="px-4 py-2.5 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-800 text-xs font-bold flex items-center gap-2 transition-all hover:bg-pink-100 shadow-xs cursor-pointer">
+        <span class="material-symbols-outlined text-sm text-pink-600">design_services</span>
+        <span>Landing Page Builder</span>
+      </a>
+
       @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'super_admin') {
         <a 
           routerLink="/login-branding"

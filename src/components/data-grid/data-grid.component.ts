@@ -6,7 +6,6 @@ import { CustomSelectComponent, SelectOption } from '../custom-select/custom-sel
 
 @Component({
   selector: 'app-data-grid',
-  standalone: true,
   imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './data-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -146,6 +146,15 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: '4-step LMS creation wizard', 
         roles: ['system_admin', 'super_admin', 'tenant_admin'],
         matchPatterns: ['/lms/create']
+      },
+      { 
+        label: 'Landing Page Builder', 
+        route: '/landing-builder', 
+        icon: 'design_services', 
+        badge: 'Studio', 
+        description: 'Design public LMS landing page in WordPress-like builder', 
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+        matchPatterns: ['/landing-builder', '/landing-builder/**']
       }
     ]
   },
@@ -601,6 +610,15 @@ export const APP_NAV_ITEMS: NavItem[] = [
     badge: 'Live',
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
+  },
+  {
+    label: 'Landing Page Builder',
+    route: '/landing-builder',
+    icon: 'web',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+    badge: 'WYSIWYG',
+    description: 'Design public-facing LMS landing page in full-screen visual builder',
+    matchPatterns: ['/landing-builder', '/landing-builder/**', '/landing', '/landing/**']
   },
   {
     label: 'LMS Theming & Layout',

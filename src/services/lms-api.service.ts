@@ -216,4 +216,55 @@ export class LmsApiService {
   getScormDownloadUrl(courseId: string): string {
     return `/api/export/scorm/${courseId}`;
   }
+
+  // ----------------------------------------------------
+  // Landing Page Builder API
+  // ----------------------------------------------------
+  getLandingPages(): Observable<any[]> {
+    return this.http.get<{ success: boolean; data: any[] }>('/api/landing-pages').pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  getLandingPage(lmsId: string): Observable<any | null> {
+    return this.http.get<{ success: boolean; data: any }>(`/api/landing-pages/${lmsId}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
+  updateLandingPage(lmsId: string, pageConfig: any): Observable<any | null> {
+    return this.http.put<{ success: boolean; message: string; data: any }>(`/api/landing-pages/${lmsId}`, pageConfig).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
+  publishLandingPage(lmsId: string): Observable<any | null> {
+    return this.http.post<{ success: boolean; message: string; data: any }>(`/api/landing-pages/${lmsId}/publish`, {}).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
+  resetLandingPage(lmsId: string): Observable<any | null> {
+    return this.http.post<{ success: boolean; message: string; data: any }>(`/api/landing-pages/${lmsId}/reset`, {}).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
+  submitLandingContact(lmsId: string, payload: { name: string; email: string; subject: string; message: string }): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`/api/landing-pages/${lmsId}/contact`, payload).pipe(
+      catchError((err) => of({ success: false, message: err?.error?.message || 'Failed to submit inquiry' }))
+    );
+  }
+
+  submitLandingNewsletter(lmsId: string, email: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`/api/landing-pages/${lmsId}/newsletter`, { email }).pipe(
+      catchError((err) => of({ success: false, message: err?.error?.message || 'Failed to subscribe newsletter' }))
+    );
+  }
 }
+

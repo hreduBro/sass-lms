@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-filter-section',
-  standalone: true,
   imports: [CommonModule],
   template: `
     <div class="space-y-2.5">

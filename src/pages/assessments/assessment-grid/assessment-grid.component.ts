@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -16,7 +16,6 @@ import { DataGridComponent } from '../../../components/data-grid';
 
 @Component({
   selector: 'app-assessment-grid',
-  standalone: true,
   imports: [
     CommonModule, 
     FormsModule, 
@@ -25,8 +24,13 @@ import { DataGridComponent } from '../../../components/data-grid';
     CustomAvatarComponent,
     DataGridComponent
   ],
+  host: {
+    '(document:click)': 'onDocumentInteraction()',
+    '(window:scroll)': 'onDocumentInteraction()',
+    '(window:resize)': 'onDocumentInteraction()'
+  },
   templateUrl: './assessment-grid.component.html',
-  styleUrls: ['./assessment-grid.component.css'],
+  styleUrl: './assessment-grid.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssessmentGridComponent {
@@ -364,9 +368,6 @@ export class AssessmentGridComponent {
     return this.activeMenuAssessment()?.assessmentId === asmId;
   }
 
-  @HostListener('document:click')
-  @HostListener('window:scroll')
-  @HostListener('window:resize')
   onDocumentInteraction(): void {
     if (this.activeMenuAssessment()) {
       this.closeActionMenu();

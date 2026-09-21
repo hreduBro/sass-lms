@@ -5,7 +5,6 @@ import { LmsDataService } from '../../../services/lms-data.service';
 
 @Component({
   selector: 'app-skill-dashboard',
-  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './skill-dashboard.component.html'
 })

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -17,7 +17,6 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
 
 @Component({
   selector: 'app-skill-grid',
-  standalone: true,
   imports: [
     CommonModule, 
     FormsModule, 
@@ -27,6 +26,11 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
     DataGridComponent,
     FilterSectionComponent
   ],
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    '(window:scroll)': 'onWindowChange()',
+    '(window:resize)': 'onWindowChange()'
+  },
   templateUrl: './skill-grid.component.html'
 })
 export class SkillGridComponent implements OnInit {
@@ -322,7 +326,6 @@ export class SkillGridComponent implements OnInit {
     this.closeActionMenu();
   }
 
-  @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('.skill-action-menu-dropdown') && !target.closest('.skill-action-menu-btn')) {
@@ -330,8 +333,6 @@ export class SkillGridComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll')
-  @HostListener('window:resize')
   onWindowChange() {
     if (this.activeMenuSkill()) {
       this.closeActionMenu();

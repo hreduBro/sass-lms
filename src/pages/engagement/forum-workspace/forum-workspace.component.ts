@@ -13,6 +13,7 @@ import {
 } from '../../../models/engagement.model';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
+import { SafeResourceUrlPipe } from '../../../pipes/safe-url.pipe';
 
 export interface ForumFilters {
   categories: string[];
@@ -26,7 +27,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
 
 @Component({
   selector: 'app-forum-workspace',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CustomAvatarComponent, CustomSelectComponent, SafeResourceUrlPipe],
   template: `
     <div class="space-y-6">
       
@@ -535,7 +536,7 @@ export const DEFAULT_FORUM_FILTERS: ForumFilters = {
                             <div class="min-w-0 flex-1">
                               <h5 class="text-xs font-bold text-text-primary truncate">{{ att.name }}</h5>
                               <audio controls class="w-full h-7 mt-1">
-                                <source [src]="att.ref" type="audio/mpeg">
+                                <source [src]="att.ref | safeResourceUrl" type="audio/mpeg">
                               </audio>
                             </div>
                           </div>

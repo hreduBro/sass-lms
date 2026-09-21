@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -11,7 +11,6 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
 
 @Component({
   selector: 'app-signatory-grid',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -21,7 +20,6 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
     DataGridComponent,
     FilterSectionComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './signatory-grid.component.html'
 })
 export class SignatoryGridComponent implements OnInit {

@@ -246,6 +246,55 @@ input[type="checkbox"].ak-Checkbox,
   accent-color: var(--brand-primary, #EC008C) !important;
 }
 
+/* ========================================================================= */
+/* INFINITE PARTNER & ACCREDITATION LOGO TICKER SLIDING ENGINE                */
+/* Seamless single-line continuous sliding marquee with smooth gradient mask  */
+/* ========================================================================= */
+@keyframes tickerSlideLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tickerSlideRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.partner-ticker-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+}
+
+.partner-ticker-track-left {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: tickerSlideLeft var(--ticker-speed, 28s) linear infinite;
+}
+
+.partner-ticker-track-right {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: tickerSlideRight var(--ticker-speed, 28s) linear infinite;
+}
+
+.partner-ticker-container:hover .partner-ticker-track-left,
+.partner-ticker-container:hover .partner-ticker-track-right,
+.partner-ticker-track-left:hover,
+.partner-ticker-track-right:hover {
+  animation-play-state: paused;
+}
+
+
 
 
 

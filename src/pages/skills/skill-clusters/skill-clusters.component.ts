@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,7 +11,6 @@ import { GridViewMode } from '../../../components/data-grid/data-grid.types';
 
 @Component({
   selector: 'app-skill-clusters',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -21,6 +20,11 @@ import { GridViewMode } from '../../../components/data-grid/data-grid.types';
     DataGridComponent,
     FilterSectionComponent
   ],
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    '(window:scroll)': 'onWindowChange()',
+    '(window:resize)': 'onWindowChange()'
+  },
   templateUrl: './skill-clusters.component.html'
 })
 export class SkillClustersComponent implements OnInit {
@@ -331,7 +335,6 @@ export class SkillClustersComponent implements OnInit {
     this.activeMenuCluster.set(null);
   }
 
-  @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('.cluster-action-menu-dropdown') && !target.closest('.cluster-action-menu-btn')) {
@@ -339,8 +342,6 @@ export class SkillClustersComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll')
-  @HostListener('window:resize')
   onWindowChange() {
     if (this.activeMenuCluster()) {
       this.closeMenu();

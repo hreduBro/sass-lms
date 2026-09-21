@@ -21,10 +21,9 @@ export type AssessmentWizardStep = 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'app-assessment-create',
-  standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, CustomSelectComponent, StepperComponent],
   templateUrl: './assessment-create.component.html',
-  styleUrls: ['./assessment-create.component.css'],
+  styleUrl: './assessment-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssessmentCreateComponent implements OnInit {

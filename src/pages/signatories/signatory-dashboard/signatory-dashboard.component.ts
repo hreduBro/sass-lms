@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
@@ -8,13 +8,11 @@ import { Kpi } from '../../../models/dashboard.model';
 
 @Component({
   selector: 'app-signatory-dashboard',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
     KpiCardComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './signatory-dashboard.component.html'
 })
 export class SignatoryDashboardComponent {

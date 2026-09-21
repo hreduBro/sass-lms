@@ -15,10 +15,9 @@ import { Kpi } from '../../../models/dashboard.model';
 
 @Component({
   selector: 'app-assessment-dashboard',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, KpiCardComponent],
   templateUrl: './assessment-dashboard.component.html',
-  styleUrls: ['./assessment-dashboard.component.css']
+  styleUrl: './assessment-dashboard.component.css'
 })
 export class AssessmentDashboardComponent implements OnInit {
   lmsService = inject(LmsDataService);

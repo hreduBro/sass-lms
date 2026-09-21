@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, output, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
@@ -8,6 +8,9 @@ import { NavigationLayoutMode, HeaderDensity, ContentWidthMode } from '../../mod
 @Component({
   selector: 'app-layout-switcher-modal',
   imports: [CommonModule, FormsModule],
+  host: {
+    '(document:keydown.escape)': 'onEscapePress()'
+  },
   template: `
     <div (click)="onBackdropClick($event)" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop">
       <div (click)="$event.stopPropagation()" class="bg-base-100 rounded-2xl border border-base-300 shadow-2xl w-full max-w-xl p-6 animate-modal-card max-h-[90vh] overflow-y-auto">
@@ -281,7 +284,6 @@ export class LayoutSwitcherModalComponent {
     this.close.emit();
   }
 
-  @HostListener('document:keydown.escape')
   onEscapePress() {
     this.close.emit();
   }
