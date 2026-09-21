@@ -2549,74 +2549,73 @@
         [class]="viewportMode() === 'desktop' 
           ? 'w-full max-w-full' 
           : viewportMode() === 'tablet' 
-            ? 'w-[768px] max-w-full rounded-2xl shadow-2xl border-8 border-slate-800 overflow-hidden' 
-            : 'w-[375px] max-w-full rounded-3xl shadow-2xl border-8 border-slate-800 overflow-hidden'"
+            ? 'w-[768px] max-w-full rounded-2xl shadow-2xl border-8 border-slate-800' 
+            : 'w-[375px] max-w-full rounded-3xl shadow-2xl border-8 border-slate-800'"
         class="bg-white text-slate-900 min-h-screen transition-all duration-300 relative flex flex-col font-sans"
         id="landing-rendered-canvas">
 
         <!-- ================================================================= -->
         <!-- CANVAS: TOP NAVBAR                                                -->
         <!-- ================================================================= -->
-        <!-- Announcement Strip -->
-        @if (pageConfig().navbar.showAnnouncementBar) {
-          <div class="py-2 px-4 text-center text-xs font-semibold text-white bg-gradient-to-r from-slate-900 via-pink-900 to-slate-900 flex items-center justify-center gap-2 select-text">
-            <span>{{ pageConfig().navbar.announcementText }}</span>
-            <span class="material-symbols-outlined text-xs">arrow_forward</span>
-          </div>
-        }
-
-        <!-- Header Bar -->
-        <header 
+        <div 
           [class.sticky]="pageConfig().navbar.sticky"
           [class.top-0]="pageConfig().navbar.sticky"
           [class.relative]="!pageConfig().navbar.sticky"
-          [class.z-30]="true"
-          [class.bg-white/90]="pageConfig().navbar.sticky"
-          [class.backdrop-blur-md]="pageConfig().navbar.sticky"
-          [class.bg-white]="!pageConfig().navbar.sticky"
-          [class.shadow-2xs]="pageConfig().navbar.sticky"
-          class="w-full px-4 sm:px-8 py-3.5 border-b border-slate-100 flex items-center justify-between transition-all">
-          
-          <!-- Logo & Title -->
-          <div class="flex items-center gap-3">
-            @if (lmsLogo()) {
-              <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[160px] object-contain" referrerpolicy="no-referrer" />
-            }
-            <span class="text-base font-extrabold text-slate-900 tracking-tight hidden sm:inline">
-              {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
-            </span>
-          </div>
+          class="w-full z-40 transition-all flex-shrink-0 bg-white">
 
-          <!-- Navigation Links -->
-          <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
-            @for (link of pageConfig().navbar.links; track link.id) {
-              <button 
-                type="button" 
-                (click)="navigateToSection(link.target)"
-                [class.text-pink-600]="isLinkActive(link)"
-                [class.font-extrabold]="isLinkActive(link)"
-                class="hover:text-pink-600 transition-colors flex items-center gap-1 cursor-pointer">
-                <span>{{ link.label }}</span>
-                @if (link.badge) {
-                  <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
-                }
-              </button>
-            }
-          </nav>
+          <!-- Announcement Strip -->
+          @if (pageConfig().navbar.showAnnouncementBar) {
+            <div class="py-2 px-4 text-center text-xs font-semibold text-white bg-gradient-to-r from-slate-900 via-pink-900 to-slate-900 flex items-center justify-center gap-2 select-text">
+              <span>{{ pageConfig().navbar.announcementText }}</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </div>
+          }
 
-          <!-- CTA Buttons -->
-          <div class="flex items-center gap-2">
-            @if (pageConfig().navbar.ctaButton.enabled) {
-              <a 
-                routerLink="/login"
-                class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
-                [style.backgroundColor]="primaryColor()">
-                <span class="material-symbols-outlined text-sm">login</span>
-                <span>{{ pageConfig().navbar.ctaButton.label }}</span>
-              </a>
-            }
-          </div>
-        </header>
+          <!-- Header Bar -->
+          <header 
+            class="w-full px-4 sm:px-8 py-3.5 border-b border-slate-100 flex items-center justify-between transition-all bg-white/95 backdrop-blur-md shadow-2xs">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3">
+              @if (lmsLogo()) {
+                <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[160px] object-contain" referrerpolicy="no-referrer" />
+              }
+              <span class="text-base font-extrabold text-slate-900 tracking-tight hidden sm:inline">
+                {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
+              </span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
+              @for (link of pageConfig().navbar.links; track link.id) {
+                <button 
+                  type="button" 
+                  (click)="navigateToSection(link.target)"
+                  [class.text-pink-600]="isLinkActive(link)"
+                  [class.font-extrabold]="isLinkActive(link)"
+                  class="hover:text-pink-600 transition-colors flex items-center gap-1 cursor-pointer">
+                  <span>{{ link.label }}</span>
+                  @if (link.badge) {
+                    <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
+                  }
+                </button>
+              }
+            </nav>
+
+            <!-- CTA Buttons -->
+            <div class="flex items-center gap-2">
+              @if (pageConfig().navbar.ctaButton.enabled) {
+                <a 
+                  routerLink="/login"
+                  class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                  [style.backgroundColor]="primaryColor()">
+                  <span class="material-symbols-outlined text-sm">login</span>
+                  <span>{{ pageConfig().navbar.ctaButton.label }}</span>
+                </a>
+              }
+            </div>
+          </header>
+        </div>
 
         <!-- ================================================================= -->
         <!-- CANVAS: RENDERED SECTIONS                                         -->

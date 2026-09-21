@@ -253,6 +253,10 @@ import {
   INITIAL_OFFLINE_TRAINING_EMBEDDINGS,
   INITIAL_OFFLINE_TRAINEE_RESULTS
 } from '../models/offline-training.model';
+import {
+  LandingPageConfig,
+  createDefaultLandingPage
+} from '../models/landing-page.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -10177,6 +10181,68 @@ export class LmsDataService {
     });
 
     this.showToast('Attendance has been recorded.', 'success', 2500, 'Attendance Logged');
+  }
+
+  // --- Landing Page Configuration Management ---
+  private landingPagesStore = signal<Record<string, LandingPageConfig>>({});
+
+  getLandingPageForLms(lmsId: string): LandingPageConfig {
+    const key = lmsId || 'default';
+    const store = this.landingPagesStore();
+    if (store[key]) {
+      return store[key];
+    }
+
+    try {
+      const stored = localStorage.getItem(`onelms_landing_config_${key}`);
+      if (stored) {
+        const parsed = JSON.parse(stored) as LandingPageConfig;
+        this.landingPagesStore.update(s => ({ ...s, [key]: parsed }));
+        return parsed;
+      }
+    } catch (e) {
+      // Ignore localStorage read errors
+    }
+
+    const tenant = this.tenants().find(t => t.id === key);
+    const lmsName = tenant?.name || 'OneLMS Enterprise';
+    const primaryColor = tenant?.branding?.primaryColor || '#0284c7';
+    const accentColor = tenant?.branding?.accentColor || '#38bdf8';
+
+    const defaultConfig = createDefaultLandingPage(lmsName, key, primaryColor, accentColor);
+    this.landingPagesStore.update(s => ({ ...s, [key]: defaultConfig }));
+    return defaultConfig;
+  }
+
+  saveLandingPage(config: LandingPageConfig): void {
+    const key = config.lmsId || 'default';
+    this.landingPagesStore.update(s => ({ ...s, [key]: config }));
+    try {
+      localStorage.setItem(`onelms_landing_config_${key}`, JSON.stringify(config));
+    } catch (e) {
+      console.warn('Could not persist landing page to localStorage', e);
+    }
+  }
+
+  publishLandingPageConfig(config: LandingPageConfig): void {
+    const updated: LandingPageConfig = {
+      ...config,
+      status: 'Published',
+      lastUpdatedAt: new Date().toISOString()
+    };
+    this.saveLandingPage(updated);
+  }
+
+  resetLandingPageForLms(lmsId: string): LandingPageConfig {
+    const key = lmsId || 'default';
+    const tenant = this.tenants().find(t => t.id === key);
+    const lmsName = tenant?.name || 'OneLMS Enterprise';
+    const primaryColor = tenant?.branding?.primaryColor || '#0284c7';
+    const accentColor = tenant?.branding?.accentColor || '#38bdf8';
+
+    const fresh = createDefaultLandingPage(lmsName, key, primaryColor, accentColor);
+    this.saveLandingPage(fresh);
+    return fresh;
   }
 }
 
