@@ -1,37 +1,36 @@
 <!-- LIVE CUSTOM CSS STYLE INJECTION -->
 @if (branding().customCss) {
-  <div [innerHTML]="sanitizedCustomCss()"></div>
+  <style [innerHTML]="branding().customCss"></style>
 }
 
 <div class="auth-background min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden select-none font-sans bg-slate-950 text-white"
   [style.--brand-primary]="branding().primaryColor"
   [style.--brand-primary-glow]="branding().primaryColor + '33'"
-  [style.--brand-primary-border-hover]="branding().primaryColor + '80'"
-  [style.backgroundColor]="branding().backgroundType === 'solid' ? (branding().backgroundOverlayColor || branding().primaryColor) : 'transparent'">
+  [style.--brand-primary-border-hover]="branding().primaryColor + '80'">
   
   <!-- 1. Background Photography / Gradient Layer -->
   @if (branding().backgroundType === 'image' && branding().backgroundImageUrl) {
     <div 
-      class="fixed inset-0 bg-cover bg-center transition-all duration-700 pointer-events-none z-0"
+      class="fixed inset-0 bg-cover bg-center transition-all duration-700"
       [style.backgroundImage]="'url(' + branding().backgroundImageUrl + ')'"
       [style.filter]="branding().backgroundBlurPx > 0 ? 'blur(' + branding().backgroundBlurPx + 'px)' : 'none'">
     </div>
-  } @else if (branding().backgroundType === 'gradient' || branding().backgroundType === 'mesh') {
+  } @else if (branding().backgroundType === 'gradient') {
     <div 
-      class="fixed inset-0 transition-all duration-700 pointer-events-none z-0"
-      [style.background]="branding().backgroundGradient || ('linear-gradient(135deg, ' + branding().primaryColor + ' 0%, #1e1b4b 100%)')">
+      class="fixed inset-0 transition-all duration-700"
+      [style.background]="'linear-gradient(135deg, ' + branding().primaryColor + ' 0%, #1e1b4b 100%)'">
     </div>
   }
 
-  <!-- 2. Dark / Color Overlay Layer -->
+  <!-- 2. Dark Overlay Layer -->
   <div 
-    class="fixed inset-0 transition-opacity duration-300 pointer-events-none z-0"
+    class="fixed inset-0 transition-opacity duration-300 pointer-events-none"
     [style.backgroundColor]="branding().backgroundOverlayColor || '#0f172a'"
     [style.opacity]="(branding().backgroundOverlayOpacity || 45) / 100">
   </div>
 
-  <!-- 3. Top System Announcement Banner (if enabled and not card embedded, and not split_modern_canvas which handles it internally) -->
-  @if (branding().layout !== 'split_modern_canvas' && branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded' && !bannerDismissed()) {
+  <!-- 3. Top System Announcement Banner (if enabled and not card embedded) -->
+  @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded') {
     @if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
       <div class="auth-announcement relative z-30 pt-3 sm:pt-4 px-2.5 sm:px-4 flex justify-center w-full">
         <div class="w-full max-w-[96%] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3.5 text-xs sm:text-sm"
@@ -83,402 +82,11 @@
     }
   }
 
-  <!-- 4. Main Authentication Container -->
-  <main class="relative z-20 flex-1 flex items-center justify-center p-3 sm:p-6 md:p-8 w-full max-w-7xl mx-auto">
+  <!-- 5. Main Hero + Login Box Area -->
+  <main class="relative z-20 flex-1 flex items-center justify-center p-4 sm:p-8 md:p-12 w-full max-w-7xl mx-auto">
     
-    <!-- ================================================================= -->
-    <!-- LAYOUT 1: MODERN HALF-CANVAS SPLIT (Truet / Fluid Silk Aurora)    -->
-    <!-- ================================================================= -->
-    @if (branding().layout === 'split_modern_canvas') {
-      <div class="w-full max-w-6xl my-auto rounded-2xl overflow-hidden shadow-2xl border border-white/20 relative bg-white text-slate-900">
-        
-        <!-- TOP BAR BANNER (Modern Split) -->
-        @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'top_bar' && !bannerDismissed()) {
-          <div 
-            class="relative z-30 w-full px-4 py-2.5 text-xs font-semibold flex items-center justify-between gap-2 text-center shadow-xs backdrop-blur-md shrink-0"
-            [class.bg-blue-900/90]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-            [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-            [class.text-blue-100]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-            [class.bg-amber-900/90]="branding().announcementBanner?.type === 'warning'"
-            [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
-            [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
-            [class.bg-rose-900/90]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-            [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-            [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-            [class.bg-emerald-900/90]="branding().announcementBanner?.type === 'success'"
-            [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
-            [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
-            <div class="flex items-center gap-2 mx-auto">
-              <span class="material-symbols-outlined text-base">campaign</span>
-              <span>{{ branding().announcementBanner?.text }}</span>
-              @if (branding().announcementBanner?.actionText) {
-                <span class="font-bold underline underline-offset-2 ml-2 cursor-pointer hover:opacity-80">
-                  {{ branding().announcementBanner?.actionText }}
-                </span>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- FLOATING PILL BANNER (Modern Split) -->
-        @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) && !bannerDismissed()) {
-          <div class="absolute top-3 sm:top-4 inset-x-0 z-30 flex justify-center pointer-events-auto px-2.5 sm:px-4 w-full">
-            <div class="w-full max-w-[94%] sm:max-w-xl md:max-w-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full backdrop-blur-xl border shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-3 text-[11px] sm:text-xs"
-                 [class.bg-blue-950/85]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
-                 [class.border-blue-500/40]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
-                 [class.text-blue-100]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
-                 [class.bg-amber-950/85]="branding().announcementBanner?.type === 'warning'"
-                 [class.border-amber-500/40]="branding().announcementBanner?.type === 'warning'"
-                 [class.text-amber-100]="branding().announcementBanner?.type === 'warning'"
-                 [class.bg-rose-950/85]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.border-rose-500/40]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.text-rose-100]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.bg-emerald-950/85]="branding().announcementBanner?.type === 'success'"
-                 [class.border-emerald-500/40]="branding().announcementBanner?.type === 'success'"
-                 [class.text-emerald-100]="branding().announcementBanner?.type === 'success'">
-              <span class="material-symbols-outlined text-sm sm:text-base shrink-0"
-                    [class.text-blue-400]="branding().announcementBanner?.type === 'info' || !branding().announcementBanner?.type"
-                    [class.text-amber-400]="branding().announcementBanner?.type === 'warning'"
-                    [class.text-rose-400]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                    [class.text-emerald-400]="branding().announcementBanner?.type === 'success'">
-                {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'campaign'))) }}
-              </span>
-              <span class="font-medium tracking-tight min-w-0 flex-1 leading-snug sm:leading-tight line-clamp-2 sm:line-clamp-1 break-words">
-                {{ branding().announcementBanner?.text }}
-              </span>
-              @if (branding().announcementBanner?.actionText) {
-                <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px] sm:text-xs whitespace-nowrap">
-                  {{ branding().announcementBanner?.actionText }}
-                </span>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- COLUMNS WRAPPER -->
-        <div class="flex flex-col lg:flex-row w-full min-h-[640px] relative z-10"
-             [class.lg:flex-row-reverse]="branding().splitPosition === 'left'">
-          
-          <!-- FORM COLUMN -->
-          <div class="w-full lg:w-[48%] xl:w-[45%] p-6 sm:p-10 flex flex-col justify-between">
-            <div>
-              <!-- Brand Logo & Header -->
-              <div class="flex items-center gap-3 mb-6">
-                @if (branding().logoUrlLight) {
-                  <img 
-                    [src]="branding().logoUrlLight" 
-                    alt="Logo" 
-                    [style.height.px]="branding().logoHeightPx ? (branding().logoHeightPx * 0.8) : 40" 
-                    class="auth-logo w-auto object-contain drop-shadow-xs" 
-                    referrerpolicy="no-referrer" />
-                }
-                <div class="min-w-0">
-                  <div class="text-base font-black tracking-tight text-slate-900 uppercase">
-                    {{ lms.activeTenant().name }}
-                  </div>
-                  @if (branding().tagline) {
-                    <p class="text-[11px] leading-tight text-slate-500 truncate mt-0.5">
-                      {{ branding().tagline }}
-                    </p>
-                  }
-                </div>
-              </div>
-
-              <!-- CARD EMBEDDED BANNER -->
-              @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
-                <div class="w-full mb-4 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
-                     [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                     [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                     [class.text-blue-600]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                     [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
-                     [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
-                     [class.text-amber-600]="branding().announcementBanner?.type === 'warning'"
-                     [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                     [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                     [class.text-rose-600]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                     [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
-                     [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
-                     [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
-                  <span class="material-symbols-outlined text-base shrink-0">
-                    {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
-                  </span>
-                  <span class="font-medium text-[11px] leading-tight flex-1 text-slate-800">
-                    {{ branding().announcementBanner?.text }}
-                  </span>
-                  @if (branding().announcementBanner?.actionText) {
-                    <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
-                      {{ branding().announcementBanner?.actionText }}
-                    </span>
-                  }
-                </div>
-              }
-
-              <!-- SSO Buttons -->
-              <div class="space-y-2 mb-4">
-                @if (branding().enableSsoGoogle) {
-                  <button 
-                    type="button" 
-                    (click)="onSsoSignIn('Google Workspace')"
-                    class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                      <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
-                      <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
-                      <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12 0 14.8s.7 5.1 1.9 7.5l3.7-2.9z"/>
-                      <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
-                    </svg>
-                    <span>Sign in with Google Workspace</span>
-                  </button>
-                }
-
-                @if (branding().enableSsoMicrosoft) {
-                  <button 
-                    type="button" 
-                    (click)="onSsoSignIn('Microsoft Entra ID')"
-                    class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 21 21">
-                      <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                      <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-                      <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-                      <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-                    </svg>
-                    <span>Sign in with Microsoft Entra ID</span>
-                  </button>
-                }
-
-                @if (branding().enableSsoSaml) {
-                  <button 
-                    type="button" 
-                    (click)="onSsoSignIn('SAML 2.0 / Okta')"
-                    class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-base text-tenant-600">domain_verification</span>
-                    <span>Enterprise SSO (SAML 2.0 / Okta)</span>
-                  </button>
-                }
-              </div>
-
-              <!-- Divider -->
-              @if (branding().enableEmailPassword && (branding().enableSsoGoogle || branding().enableSsoMicrosoft || branding().enableSsoSaml)) {
-                <div class="relative flex py-2 items-center mb-4">
-                  <div class="flex-grow border-t border-slate-200"></div>
-                  <span class="flex-shrink mx-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">or sign in with password</span>
-                  <div class="flex-grow border-t border-slate-200"></div>
-                </div>
-              }
-
-              <!-- Email/Password Form -->
-              @if (branding().enableEmailPassword) {
-                <form (ngSubmit)="onSignIn()" class="space-y-3.5">
-                  <div class="space-y-1">
-                    <label class="block text-xs font-semibold text-slate-700">Work Email Address</label>
-                    <div class="relative">
-                      <input 
-                        type="email" 
-                        [ngModel]="email()" 
-                        (ngModelChange)="email.set($event)"
-                        name="email"
-                        required
-                        placeholder="you@company.com" 
-                        class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
-                      <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 text-base pointer-events-none">mail</span>
-                    </div>
-                  </div>
-
-                  <div class="space-y-1">
-                    <div class="flex items-center justify-between">
-                      <label class="block text-xs font-semibold text-slate-700">Password</label>
-                      @if (branding().enableForgotPassword) {
-                        <a [href]="branding().forgotPasswordUrl || 'javascript:void(0)'" class="text-[11px] font-semibold text-tenant-600 hover:underline">Forgot password?</a>
-                      }
-                    </div>
-                    <div class="relative">
-                      <input 
-                        [type]="showPassword() ? 'text' : 'password'" 
-                        [ngModel]="password()" 
-                        (ngModelChange)="password.set($event)"
-                        name="password"
-                        required
-                        class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
-                      <button 
-                        type="button" 
-                        (click)="togglePasswordVisibility()" 
-                        class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                        <span class="material-symbols-outlined text-base">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  @if (branding().enableRememberMe) {
-                    <div class="flex items-center justify-between pt-0.5">
-                      <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          [ngModel]="rememberMe()" 
-                          (ngModelChange)="rememberMe.set($event)"
-                          name="rememberMe"
-                          [style.accentColor]="branding().primaryColor"
-                          class="rounded border-slate-300 auth-checkbox cursor-pointer" />
-                        <span>Keep me signed in</span>
-                      </label>
-                    </div>
-                  }
-
-                  <button 
-                    type="submit"
-                    [disabled]="isSubmitting()"
-                    [style.backgroundColor]="branding().primaryColor"
-                    class="auth-primary-btn w-full py-3 px-4 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 mt-2">
-                    @if (isSubmitting()) {
-                      <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      <span>Verifying Credentials...</span>
-                    } @else {
-                      <span>Sign In</span>
-                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    }
-                  </button>
-                </form>
-              }
-
-              <!-- Demo Quick Fills -->
-              <div class="mt-4 pt-3 border-t border-slate-100">
-                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-xs text-tenant-600">group</span>
-                  <span>Quick Demo Roles:</span>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                  @for (acc of demoAccounts; track acc.role) {
-                    <button 
-                      type="button" 
-                      (click)="fillDemo(acc)"
-                      class="px-2 py-1 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer">
-                      {{ acc.label }}
-                    </button>
-                  }
-                </div>
-              </div>
-
-              @if (branding().enableSelfRegistration) {
-                <div class="mt-4 text-center text-xs text-slate-500 pt-3 border-t border-slate-100">
-                  <span>Don't have an account? </span>
-                  <a href="javascript:void(0)" class="font-bold text-tenant-600 hover:underline">Self-register with Work ID</a>
-                </div>
-              }
-            </div>
-
-            <!-- Integrated Bottom Footer for Modern Split -->
-            <div class="pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] border-t border-slate-200 text-slate-500">
-              <div class="truncate">{{ branding().copyrightText }}</div>
-              <div class="flex items-center gap-1.5 font-medium shrink-0">
-                <span class="opacity-75">Powered By</span>
-                <app-sso-logo theme="light" width="88" height="18" customClass="h-4 w-auto inline-block" />
-              </div>
-            </div>
-          </div>
-
-          <!-- HERO CANVAS COLUMN -->
-          <div class="w-full lg:w-[52%] xl:w-[55%] p-8 sm:p-10 lg:p-12 relative overflow-hidden flex flex-col justify-between text-white shadow-2xl transition-all"
-               [class.rounded-bl-[64px]]="branding().splitPosition !== 'left'"
-               [class.lg:rounded-bl-[96px]]="branding().splitPosition !== 'left'"
-               [class.rounded-br-[64px]]="branding().splitPosition === 'left'"
-               [class.lg:rounded-br-[96px]]="branding().splitPosition === 'left'"
-               [style.backgroundColor]="branding().backgroundType === 'solid' ? (branding().backgroundOverlayColor || branding().primaryColor) : '#0f172a'">
-            
-            @if (branding().backgroundType === 'image' && branding().backgroundImageUrl) {
-              <div class="absolute inset-0 bg-cover bg-center transition-all duration-500 z-0" [style.backgroundImage]="'url(' + branding().backgroundImageUrl + ')'"></div>
-            } @else if (branding().backgroundType === 'gradient' || branding().backgroundType === 'mesh') {
-              <div class="absolute inset-0 transition-all duration-500 z-0" [style.background]="branding().backgroundGradient || ('linear-gradient(135deg, ' + branding().primaryColor + ' 0%, #1e1b4b 100%)')"></div>
-            }
-            
-            <div class="absolute -top-20 -right-20 w-80 h-80 bg-pink-500/25 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/30 rounded-full blur-3xl pointer-events-none"></div>
-
-            @if (branding().useCustomContentPanel && branding().customHtml) {
-              <!-- Render Custom Content HTML -->
-              <div class="relative z-10 w-full h-full flex-1 flex flex-col justify-between" [innerHTML]="sanitizedCustomHtml()"></div>
-            } @else if (branding().useCustomContentPanel && !branding().customHtml) {
-              <!-- Empty State -->
-              <div class="flex-1 w-full h-full min-h-[440px] flex flex-col items-center justify-center relative z-10 select-none">
-                <div class="flex flex-col items-center justify-center gap-3 text-slate-400">
-                  <div class="text-sm font-mono tracking-tighter opacity-70 flex items-center justify-center">&lt;/&gt;</div>
-                  <div class="text-sm font-medium text-slate-300">Custom Content Panel Active</div>
-                </div>
-              </div>
-            } @else {
-              <div class="relative z-10 space-y-4 max-w-lg">
-                <div class="flex items-center gap-3">
-                  @if (branding().logoUrlLight) {
-                    <img [src]="branding().logoUrlLight" alt="Logo" class="h-9 w-auto object-contain brightness-0 invert drop-shadow" referrerpolicy="no-referrer" />
-                  }
-                  <div class="text-2xl font-black tracking-tight drop-shadow-sm">
-                    {{ lms.activeTenant().name }}
-                  </div>
-                </div>
-
-                <div class="space-y-2">
-                  <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white/95">
-                    {{ branding().headline }}
-                  </h2>
-                  <p class="text-xs text-white/80 leading-relaxed line-clamp-3">
-                    {{ branding().subheadline }}
-                  </p>
-                </div>
-
-                <!-- Feature Bullets -->
-                <div class="space-y-2.5 pt-2">
-                  <div class="text-[11px] font-bold uppercase tracking-wider text-white/90">
-                    Automate enablement for efficiency and maximize impact:
-                  </div>
-                  <div class="space-y-2">
-                    <div class="flex items-start gap-2.5 text-xs text-white/85">
-                      <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                      <span>Seamlessly centralize and deliver essential content to every team member, in any tool</span>
-                    </div>
-                    <div class="flex items-start gap-2.5 text-xs text-white/85">
-                      <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                      <span>Syncs effortlessly with Google Drive and SharePoint, eliminating redundant efforts</span>
-                    </div>
-                    <div class="flex items-start gap-2.5 text-xs text-white/85">
-                      <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                      <span>Tracks every content interaction, offering real-time insights for continuous optimization</span>
-                    </div>
-                    <div class="flex items-start gap-2.5 text-xs text-white/85">
-                      <span class="w-1.5 h-1.5 rounded-xs bg-white/90 mt-1.5 shrink-0"></span>
-                      <span>Automates content governance to ensure accuracy, consistency, and compliance</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Showcase Glass Box -->
-              <div class="relative z-10 pt-4 max-w-md">
-                <div class="p-4 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg text-center hover:bg-white/15 transition-all group cursor-pointer">
-                  <div class="text-[11px] text-white/80 font-medium">
-                    Learn more about portal features on
-                  </div>
-                  <div class="text-lg font-black tracking-tight text-white mt-0.5 group-hover:underline flex items-center justify-center gap-1">
-                    <span>portal.brac.net</span>
-                    <span class="material-symbols-outlined text-sm">arrow_outward</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Hero Footer Links -->
-              <div class="relative z-10 pt-4 flex items-center gap-4 text-[11px] text-white/70">
-                <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:text-white transition-colors">Privacy</a>
-                <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:text-white transition-colors">Terms of Service</a>
-                <a [href]="branding().helpCenterUrl || 'javascript:void(0)'" target="_blank" class="hover:text-white transition-colors">Help Center</a>
-              </div>
-            }
-          </div>
-
-        </div>
-
-      </div>
-    }
-
-    <!-- ================================================================= -->
-    <!-- LAYOUT 2: CLASSIC SPLIT SCREEN (split_right / split_left)         -->
-    <!-- ================================================================= -->
-    @else if (branding().layout === 'split_right' || branding().layout === 'split_left') {
+    <!-- Split Screen (Hero Left/Right, Form Left/Right) -->
+    @if (branding().layout === 'split_right' || branding().layout === 'split_left' || branding().layout === 'split_modern_canvas') {
       <div 
         class="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center"
         [class.lg:flex-row-reverse]="branding().layout === 'split_left' || branding().splitPosition === 'left'">
@@ -489,7 +97,7 @@
           [class.lg:order-2]="branding().layout === 'split_left' || branding().splitPosition === 'left'">
           
           @if (branding().useCustomContentPanel && branding().customHtml) {
-            <div [innerHTML]="sanitizedCustomHtml()" class="w-full h-full"></div>
+            <div [innerHTML]="branding().customHtml" class="w-full h-full"></div>
           } @else if (branding().useCustomContentPanel && !branding().customHtml) {
             <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none text-white/50">
               <div class="text-sm font-mono tracking-tighter">&lt;/&gt;</div>
@@ -563,8 +171,9 @@
           <div 
             class="auth-card w-full max-w-md p-8 sm:p-9 transition-all bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-200">
             
-            <!-- Card Header with Brand Logo -->
+            <!-- Card Header with Brand Logo & Adjusted Content -->
             <div class="text-center mb-5 pb-3 border-b border-slate-100">
+              <!-- Brand Logo -->
               @if (branding().logoUrlLight) {
                 <div class="flex justify-center mb-2">
                   <img 
@@ -576,12 +185,14 @@
                 </div>
               }
 
+              <!-- Brand Organization & Title -->
               <div class="text-center mb-1">
                 <span class="text-sm font-black tracking-tight text-slate-900 uppercase">
                   {{ lms.activeTenant().name }}
                 </span>
               </div>
 
+              <!-- Tagline -->
               @if (branding().tagline) {
                 <p class="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
                   {{ branding().tagline }}
@@ -613,7 +224,11 @@
                    [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
                    [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
                    [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
-                <span class="material-symbols-outlined text-base shrink-0">
+                <span class="material-symbols-outlined text-base shrink-0"
+                      [class.text-blue-600]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
+                      [class.text-amber-600]="branding().announcementBanner?.type === 'warning'"
+                      [class.text-rose-600]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
+                      [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
                   {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
                 </span>
                 <span class="font-medium text-[11px] leading-tight flex-1 text-slate-800">
@@ -629,11 +244,12 @@
 
             <!-- SSO Provider Buttons -->
             <div class="space-y-2.5 mb-5">
+              
               @if (branding().enableSsoGoogle) {
                 <button 
                   type="button" 
                   (click)="onSsoSignIn('Google Workspace')"
-                  class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                  class="auth-sso-btn auth-secondary-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
                   <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
                     <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
@@ -648,74 +264,78 @@
                 <button 
                   type="button" 
                   (click)="onSsoSignIn('Microsoft Entra ID')"
-                  class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                  class="auth-sso-btn auth-secondary-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
                   <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 21 21">
                     <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
                     <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
                     <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
                     <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
                   </svg>
-                  <span>Sign in with Microsoft Entra ID</span>
+                  <span>Sign in with Microsoft 365</span>
                 </button>
               }
 
-              @if (branding().enableSsoSaml) {
+              @if (branding().enableSsoOkta) {
                 <button 
                   type="button" 
-                  (click)="onSsoSignIn('SAML 2.0 / Okta')"
-                  class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                  <span class="material-symbols-outlined text-base text-tenant-600">domain_verification</span>
-                  <span>Enterprise SSO (SAML 2.0 / Okta)</span>
+                  (click)="onSsoSignIn('Okta Identity')"
+                  class="auth-sso-btn auth-secondary-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
+                  <span class="w-4 h-4 rounded-full border-2 border-sky-600 flex items-center justify-center text-[9px] font-black text-sky-600">O</span>
+                  <span>Sign in with Okta SSO</span>
                 </button>
               }
+
             </div>
 
             <!-- Divider -->
-            @if (branding().enableEmailPassword && (branding().enableSsoGoogle || branding().enableSsoMicrosoft || branding().enableSsoSaml)) {
-              <div class="relative flex py-2 items-center mb-5">
+            @if (branding().enablePasswordLogin && (branding().enableSsoGoogle || branding().enableSsoMicrosoft || branding().enableSsoOkta)) {
+              <div class="relative flex py-2 items-center mb-4">
                 <div class="flex-grow border-t border-slate-200"></div>
-                <span class="flex-shrink mx-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">or continue with work email</span>
+                <span class="flex-shrink mx-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">or sign in with password</span>
                 <div class="flex-grow border-t border-slate-200"></div>
               </div>
             }
 
-            <!-- Email/Password Form -->
-            @if (branding().enableEmailPassword) {
-              <form (ngSubmit)="onSignIn()" class="space-y-4">
-                <div class="space-y-1">
-                  <label class="block text-xs font-semibold text-slate-700">Work Email Address</label>
+            <!-- Form Fields -->
+            @if (branding().enablePasswordLogin) {
+              <form (submit)="onSignIn(); $event.preventDefault()" class="space-y-4">
+                
+                <div>
+                  <label class="auth-label block text-xs font-bold mb-1 text-slate-700">Work Email</label>
                   <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">mail</span>
                     <input 
                       type="email" 
                       [ngModel]="email()" 
                       (ngModelChange)="email.set($event)"
                       name="email"
                       required
-                      placeholder="you@company.com" 
-                      class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
-                    <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 text-base pointer-events-none">mail</span>
+                      placeholder="name@organization.com"
+                      class="auth-input ak-TextField w-full pl-9 pr-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none font-medium transition-all" />
                   </div>
                 </div>
 
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between">
-                    <label class="block text-xs font-semibold text-slate-700">Password</label>
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="auth-label block text-xs font-bold text-slate-700">Password</label>
                     @if (branding().enableForgotPassword) {
-                      <a [href]="branding().forgotPasswordUrl || 'javascript:void(0)'" class="text-[11px] font-semibold text-tenant-600 hover:underline">Forgot password?</a>
+                      <a href="javascript:void(0)" class="text-xs font-bold text-tenant-600 hover:underline">Forgot password?</a>
                     }
                   </div>
                   <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">lock</span>
                     <input 
                       [type]="showPassword() ? 'text' : 'password'" 
                       [ngModel]="password()" 
                       (ngModelChange)="password.set($event)"
                       name="password"
                       required
-                      class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
+                      placeholder="••••••••••••"
+                      class="auth-input ak-TextField w-full pl-9 pr-10 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none font-medium transition-all" />
                     <button 
                       type="button" 
                       (click)="togglePasswordVisibility()" 
-                      class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
                       <span class="material-symbols-outlined text-base">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
                     </button>
                   </div>
@@ -749,18 +369,21 @@
                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
                   }
                 </button>
+
               </form>
             }
 
             @if (branding().enableSelfRegistration) {
               <div class="mt-5 text-center text-xs text-slate-500 pt-3 border-t border-slate-200">
                 <span>Don't have an account? </span>
-                <a href="javascript:void(0)" class="font-bold text-tenant-600 hover:underline">Self-register with Work ID</a>
+                <a href="javascript:void(0)" class="font-bold text-tenant-600 hover:underline">
+                  Self-register with Work ID
+                </a>
               </div>
             }
 
             <!-- Card Legal Footer -->
-            <div class="mt-5 pt-3 border-t border-slate-200 text-[11px] text-center flex items-center justify-center gap-3 opacity-60 text-slate-600">
+            <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] text-center flex items-center justify-center gap-3 opacity-60 text-slate-600 dark:text-slate-400">
               <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
               <span>·</span>
               <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
@@ -773,279 +396,37 @@
       </div>
     }
 
-    <!-- ================================================================= -->
-    <!-- LAYOUT 3: CENTERED SINGLE CARD (centered_card)                    -->
-    <!-- ================================================================= -->
-    @else if (branding().layout === 'centered_card') {
-      <div class="w-full max-w-md mx-auto my-auto flex flex-col items-center">
-        
-        <div 
-          class="auth-card w-full p-8 sm:p-9 transition-all bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-200"
-          [class.backdrop-blur-xl]="branding().cardStyle === 'glassmorphism'"
-          [class.bg-white/95]="branding().cardStyle === 'glassmorphism'"
-          [class.rounded-2xl]="branding().cardBorderRadius === '2xl'"
-          [class.rounded-3xl]="branding().cardBorderRadius === '3xl'"
-          [class.rounded-xl]="branding().cardBorderRadius === 'xl'">
-          
-          <!-- Card Header with Brand Logo -->
-          <div class="text-center mb-5 pb-3 border-b border-slate-100">
-            @if (branding().logoUrlLight) {
-              <div class="flex justify-center mb-2">
-                <img 
-                  [src]="branding().logoUrlLight" 
-                  alt="Logo" 
-                  [style.height.px]="branding().logoHeightPx ? (branding().logoHeightPx * 0.8) : 40" 
-                  class="auth-logo w-auto object-contain drop-shadow-xs" 
-                  referrerpolicy="no-referrer" />
-              </div>
-            }
-
-            <div class="text-center mb-1">
-              <span class="text-sm font-black tracking-tight text-slate-900 uppercase">
-                {{ lms.activeTenant().name }}
-              </span>
-            </div>
-
-            @if (branding().tagline) {
-              <p class="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
-                {{ branding().tagline }}
-              </p>
-            }
-          </div>
-
-          <div class="text-center mb-6 space-y-1.5">
-            <h2 class="auth-headline text-2xl font-black text-slate-900 tracking-tight">
-              Sign In to Account
-            </h2>
-            <p class="auth-subheadline text-xs text-slate-500">
-              Enter your organizational credentials to continue
-            </p>
-          </div>
-
-          <!-- Card Embedded Announcement Style -->
-          @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style === 'card_embedded') {
-            <div class="auth-announcement w-full mb-4 p-3 rounded-xl border flex items-center gap-2.5 text-xs transition-all shadow-xs"
-                 [class.bg-blue-500/10]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                 [class.border-blue-500/30]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                 [class.text-blue-600]="!branding().announcementBanner?.type || branding().announcementBanner?.type === 'info'"
-                 [class.bg-amber-500/10]="branding().announcementBanner?.type === 'warning'"
-                 [class.border-amber-500/30]="branding().announcementBanner?.type === 'warning'"
-                 [class.text-amber-600]="branding().announcementBanner?.type === 'warning'"
-                 [class.bg-rose-500/10]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.border-rose-500/30]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.text-rose-600]="branding().announcementBanner?.type === 'alert' || branding().announcementBanner?.type === 'security'"
-                 [class.bg-emerald-500/10]="branding().announcementBanner?.type === 'success'"
-                 [class.border-emerald-500/30]="branding().announcementBanner?.type === 'success'"
-                 [class.text-emerald-600]="branding().announcementBanner?.type === 'success'">
-              <span class="material-symbols-outlined text-base shrink-0">
-                {{ branding().announcementBanner?.type === 'warning' ? 'warning' : (branding().announcementBanner?.type === 'alert' ? 'emergency' : (branding().announcementBanner?.type === 'security' ? 'gshield' : (branding().announcementBanner?.type === 'success' ? 'check_circle' : 'info'))) }}
-              </span>
-              <span class="font-medium text-[11px] leading-tight flex-1 text-slate-800">
-                {{ branding().announcementBanner?.text }}
-              </span>
-              @if (branding().announcementBanner?.actionText) {
-                <span class="font-bold underline underline-offset-2 shrink-0 cursor-pointer hover:opacity-80 text-[11px]">
-                  {{ branding().announcementBanner?.actionText }}
-                </span>
-              }
-            </div>
-          }
-
-          <!-- SSO Buttons -->
-          <div class="space-y-2.5 mb-5">
-            @if (branding().enableSsoGoogle) {
-              <button 
-                type="button" 
-                (click)="onSsoSignIn('Google Workspace')"
-                class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
-                  <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12 0 14.8s.7 5.1 1.9 7.5l3.7-2.9z"/>
-                  <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
-                </svg>
-                <span>Sign in with Google Workspace</span>
-              </button>
-            }
-
-            @if (branding().enableSsoMicrosoft) {
-              <button 
-                type="button" 
-                (click)="onSsoSignIn('Microsoft Entra ID')"
-                class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 21 21">
-                  <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                  <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-                  <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-                  <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-                </svg>
-                <span>Sign in with Microsoft Entra ID</span>
-              </button>
-            }
-
-            @if (branding().enableSsoSaml) {
-              <button 
-                type="button" 
-                (click)="onSsoSignIn('SAML 2.0 / Okta')"
-                class="auth-sso-btn w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-2xs hover:shadow-xs transition-all cursor-pointer">
-                <span class="material-symbols-outlined text-base text-tenant-600">domain_verification</span>
-                <span>Enterprise SSO (SAML 2.0 / Okta)</span>
-              </button>
-            }
-          </div>
-
-          <!-- Divider -->
-          @if (branding().enableEmailPassword && (branding().enableSsoGoogle || branding().enableSsoMicrosoft || branding().enableSsoSaml)) {
-            <div class="relative flex py-2 items-center mb-5">
-              <div class="flex-grow border-t border-slate-200"></div>
-              <span class="flex-shrink mx-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">or sign in with password</span>
-              <div class="flex-grow border-t border-slate-200"></div>
-            </div>
-          }
-
-          <!-- Email/Password Form -->
-          @if (branding().enableEmailPassword) {
-            <form (ngSubmit)="onSignIn()" class="space-y-4">
-              <div class="space-y-1">
-                <label class="block text-xs font-semibold text-slate-700">Work Email Address</label>
-                <div class="relative">
-                  <input 
-                    type="email" 
-                    [ngModel]="email()" 
-                    (ngModelChange)="email.set($event)"
-                    name="email"
-                    required
-                    placeholder="you@company.com" 
-                    class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
-                  <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 text-base pointer-events-none">mail</span>
-                </div>
-              </div>
-
-              <div class="space-y-1">
-                <div class="flex items-center justify-between">
-                  <label class="block text-xs font-semibold text-slate-700">Password</label>
-                  @if (branding().enableForgotPassword) {
-                    <a [href]="branding().forgotPasswordUrl || 'javascript:void(0)'" class="text-[11px] font-semibold text-tenant-600 hover:underline">Forgot password?</a>
-                  }
-                </div>
-                <div class="relative">
-                  <input 
-                    [type]="showPassword() ? 'text' : 'password'" 
-                    [ngModel]="password()" 
-                    (ngModelChange)="password.set($event)"
-                    name="password"
-                    required
-                    class="auth-input w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 text-xs bg-white text-slate-900 transition-all" />
-                  <button 
-                    type="button" 
-                    (click)="togglePasswordVisibility()" 
-                    class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                    <span class="material-symbols-outlined text-base">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-                  </button>
-                </div>
-              </div>
-
-              @if (branding().enableRememberMe) {
-                <div class="flex items-center justify-between pt-0.5">
-                  <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      [ngModel]="rememberMe()" 
-                      (ngModelChange)="rememberMe.set($event)"
-                      name="rememberMe"
-                      [style.accentColor]="branding().primaryColor"
-                      class="rounded border-slate-300 auth-checkbox cursor-pointer" />
-                    <span>Keep me signed in</span>
-                  </label>
-                </div>
-              }
-
-              <button 
-                type="submit"
-                [disabled]="isSubmitting()"
-                [style.backgroundColor]="branding().primaryColor"
-                class="auth-primary-btn w-full py-3 px-4 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 mt-2">
-                @if (isSubmitting()) {
-                  <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Verifying Credentials...</span>
-                } @else {
-                  <span>Sign In</span>
-                  <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                }
-              </button>
-            </form>
-          }
-
-          <!-- Demo Quick Fills -->
-          <div class="mt-4 pt-3 border-t border-slate-100">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-xs text-tenant-600">group</span>
-              <span>Quick Demo Roles:</span>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              @for (acc of demoAccounts; track acc.role) {
-                <button 
-                  type="button" 
-                  (click)="fillDemo(acc)"
-                  class="px-2 py-1 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer">
-                  {{ acc.label }}
-                </button>
-              }
-            </div>
-          </div>
-
-          @if (branding().enableSelfRegistration) {
-            <div class="mt-4 text-center text-xs text-slate-500 pt-3 border-t border-slate-100">
-              <span>Don't have an account? </span>
-              <a href="javascript:void(0)" class="font-bold text-tenant-600 hover:underline">Self-register with Work ID</a>
-            </div>
-          }
-
-          <!-- Card Legal Footer -->
-          <div class="mt-5 pt-3 border-t border-slate-200 text-[11px] text-center flex items-center justify-center gap-3 opacity-60 text-slate-600">
-            <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:underline">Terms of Service</a>
-            <span>·</span>
-            <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:underline">Privacy Policy</a>
-          </div>
-
-        </div>
-
-      </div>
-    }
-
   </main>
 
-  <!-- 5. Bottom Legal & Security Footer (for split_right, split_left, and centered_card) -->
-  @if (branding().layout !== 'split_modern_canvas') {
-    <footer class="relative z-20 w-full px-6 sm:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/80 text-xs border-t border-white/10 backdrop-blur-xs">
-      <div class="flex items-center gap-2.5">
-        <span>{{ branding().copyrightText }}</span>
-        <span class="opacity-40">·</span>
-        <div class="inline-flex items-center gap-1.5 font-semibold text-white/95">
-          <span>Powered By</span>
-          <app-sso-logo theme="dark" width="95" height="19" customClass="h-4 w-auto inline-block" />
-        </div>
+  <!-- 6. Bottom Legal & Security Footer -->
+  <footer class="relative z-20 w-full px-6 sm:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/80 text-xs border-t border-white/10 backdrop-blur-xs">
+    <div class="flex items-center gap-2.5">
+      <span>{{ branding().copyrightText }}</span>
+      <span class="opacity-40">·</span>
+      <div class="inline-flex items-center gap-1.5 font-semibold text-white/95">
+        <span>Powered By</span>
+        <app-sso-logo theme="dark" width="95" height="19" customClass="h-4 w-auto inline-block" />
       </div>
+    </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
-        @if (branding().securityBadges?.showSslBadge) {
-          <span class="flex items-center gap-1 text-white/90">
-            <span class="material-symbols-outlined text-sm text-emerald-400">lock</span>
-            <span>SSL Encrypted</span>
-          </span>
-        }
+    <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
+      @if (branding().securityBadges.showSslBadge) {
+        <span class="flex items-center gap-1 text-white/90">
+          <span class="material-symbols-outlined text-sm text-emerald-400">lock</span>
+          <span>SSL Encrypted</span>
+        </span>
+      }
 
-        @if (branding().securityBadges?.showSoc2Badge) {
-          <span class="flex items-center gap-1 text-white/90">
-            <span class="material-symbols-outlined text-sm text-sky-400">verified_user</span>
-            <span>SOC-2 Type II Certified</span>
-          </span>
-        }
+      @if (branding().securityBadges.showSoc2Badge) {
+        <span class="flex items-center gap-1 text-white/90">
+          <span class="material-symbols-outlined text-sm text-sky-400">verified_user</span>
+          <span>SOC-2 Type II Certified</span>
+        </span>
+      }
 
-        <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:text-white underline">Privacy Policy</a>
-        <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:text-white underline">Terms of Service</a>
-      </div>
-    </footer>
-  }
+      <a [href]="branding().privacyPolicyUrl" target="_blank" class="hover:text-white underline">Privacy Policy</a>
+      <a [href]="branding().termsOfServiceUrl" target="_blank" class="hover:text-white underline">Terms of Service</a>
+    </div>
+  </footer>
 
 </div>

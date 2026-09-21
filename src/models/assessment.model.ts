@@ -1,31 +1,4 @@
-export type AssessmentType = 
-  | 'pre-test' 
-  | 'post-test' 
-  | 'exam' 
-  | 'quiz' 
-  | 'assignment' 
-  | 'survey' 
-  | 'diagnostic'
-  | 'formative'
-  | 'summative';
-
-export type AssessmentQuestionDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
-
-export type RandomizationMode = 'none' | 'shuffle' | 'pool_plain' | 'pool_by_difficulty';
-
-export interface DifficultyPoolRule {
-  difficulty: AssessmentQuestionDifficulty;
-  count: number; // Number of questions to draw from this difficulty pool
-}
-
-export interface AssessmentRandomizationPolicy {
-  enabled: boolean;
-  mode: RandomizationMode; // 'none' | 'shuffle' (shuffle order) | 'pool_plain' (draw N from total) | 'pool_by_difficulty' (draw balanced quotas by difficulty)
-  poolSize?: number; // Total questions delivered when mode is 'pool_plain'
-  shuffleOptions?: boolean; // Randomize choice options within questions
-  difficultyRules?: DifficultyPoolRule[]; // Rules for 'pool_by_difficulty' e.g. 2 Beginner, 3 Intermediate, 1 Advanced, 0 Expert
-}
-
+export type AssessmentType = 'exam' | 'quiz' | 'assignment' | 'survey' | 'diagnostic';
 export type AssessmentScoringMode = 'scored' | 'unscored';
 export type AssessmentStatus = 'draft' | 'published' | 'inactive' | 'archived';
 export type AssessmentVersionState = 'draft' | 'published-current' | 'published-superseded' | 'archived';
@@ -73,9 +46,6 @@ export interface AssessmentQuestion {
   prompt?: string;
   required: boolean;
   points: number;
-  difficulty?: AssessmentQuestionDifficulty;
-  category?: string;
-  tags?: string[];
   options?: AssessmentQuestionOption[];
   matchingPairs?: MatchingPair[];
   correctSequence?: string[]; // Item IDs or texts in correct order for ordering
@@ -116,7 +86,6 @@ export interface AssessmentScoringPolicy {
     showCorrect: boolean;
     showFeedback: boolean;
   };
-  randomization?: AssessmentRandomizationPolicy;
 }
 
 export interface AssessmentVersion {
@@ -442,7 +411,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Under the Smart Campaign Client Protection Standards, what is the maximum permissible annual effective interest rate disclosure format?',
             required: true,
             points: 2,
-            difficulty: 'beginner',
             order: 1,
             manualGraded: false,
             options: [
@@ -459,7 +427,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Which of the following actions violate client safeguarding protocols during Village Organization weekly collections? (Select all that apply)',
             required: true,
             points: 3,
-            difficulty: 'intermediate',
             order: 2,
             manualGraded: false,
             scoringRule: { multiSelect: 'allOrNothing' },
@@ -477,7 +444,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Is it mandatory for branch personnel to obtain supervisor override clearance prior to manual sync override in low-network offline mode?',
             required: true,
             points: 2,
-            difficulty: 'intermediate',
             order: 3,
             manualGraded: false,
             options: [
@@ -492,7 +458,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Match each operational incident with its corresponding response protocol.',
             required: true,
             points: 4,
-            difficulty: 'advanced',
             order: 4,
             manualGraded: false,
             matchingPairs: [
@@ -508,7 +473,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Provide a detailed case analysis of handling a borrower grievance regarding loan processing transparency in a rural village organization.',
             required: true,
             points: 4,
-            difficulty: 'expert',
             order: 5,
             manualGraded: true,
             placeholder: 'Explain de-escalation steps, record checks, and resolution documentation...'
@@ -563,7 +527,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'In the Ultra-Poor Graduation targeting funnel, which step follows Community Wealth Ranking?',
             required: true,
             points: 5,
-            difficulty: 'beginner',
             order: 1,
             manualGraded: false,
             options: [
@@ -578,7 +541,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Which of the following are mandatory inclusion criteria for Ultra-Poor Asset Grant eligibility? (Select all that apply)',
             required: true,
             points: 5,
-            difficulty: 'advanced',
             order: 2,
             manualGraded: false,
             scoringRule: { multiSelect: 'allOrNothing' },
@@ -639,7 +601,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Upload your branch climate vulnerability map and emergency liquidity reserve allocation sheet (.pdf or .docx).',
             required: true,
             points: 10,
-            difficulty: 'advanced',
             order: 1,
             manualGraded: true,
             placeholder: 'Select or drag & drop portfolio audit file...'
@@ -650,7 +611,6 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             text: 'Provide an executive summary of your branch de-escalation plan during a major flood emergency.',
             required: true,
             points: 10,
-            difficulty: 'expert',
             order: 2,
             manualGraded: true,
             placeholder: 'Detail emergency communications, safe cash transport, and client relief coordination...'

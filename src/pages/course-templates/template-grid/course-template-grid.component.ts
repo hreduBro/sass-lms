@@ -456,10 +456,10 @@ export class CourseTemplateGridComponent {
     }
   }
 
-  // Inspection - Redirect to dedicated Preview page instead of modal
+  // Inspection Modal
   openInspect(template: CourseTemplate) {
     this.closeActionMenu();
-    this.router.navigate(['/courses/templates/preview', template.id]);
+    this.inspectTemplate.set(template);
   }
 
   closeInspect() {

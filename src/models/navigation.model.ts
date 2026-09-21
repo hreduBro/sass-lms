@@ -68,44 +68,44 @@ export const APP_NAV_ITEMS: NavItem[] = [
       }
     ]
   },
-  // {
-  //   label: 'Login Branding',
-  //   route: '/login-branding',
-  //   icon: 'branding_watermark',
-  //   roles: ['system_admin', 'super_admin'],
-  //   badge: 'Admin',
-  //   description: 'Custom portal login branding, SSO styling, and theme customizer',
-  //   matchPatterns: ['/login-branding', '/login-branding/**'],
-  //   children: [
-  //     {
-  //       label: 'Branding Preview',
-  //       route: '/login-branding',
-  //       icon: 'preview',
-  //       badge: 'Live',
-  //       description: 'Interactive multi-device preview of portal login page',
-  //       roles: ['system_admin', 'super_admin'],
-  //       matchPatterns: ['/login-branding']
-  //     },
-  //     {
-  //       label: 'Edit Branding',
-  //       route: '/login-branding/edit',
-  //       icon: 'tune',
-  //       badge: 'Studio',
-  //       description: 'Configure logos, layouts, backgrounds, SSO and legal copy',
-  //       roles: ['system_admin', 'super_admin'],
-  //       matchPatterns: ['/login-branding/edit']
-  //     },
-  //     {
-  //       label: 'Live Login Portal',
-  //       route: '/login',
-  //       icon: 'login',
-  //       badge: 'Portal',
-  //       description: 'View full standalone live authentication portal',
-  //       roles: ['system_admin', 'super_admin'],
-  //       matchPatterns: ['/login']
-  //     }
-  //   ]
-  // },
+  {
+    label: 'Login Branding',
+    route: '/login-branding',
+    icon: 'branding_watermark',
+    roles: ['system_admin', 'super_admin'],
+    badge: 'Admin',
+    description: 'Custom portal login branding, SSO styling, and theme customizer',
+    matchPatterns: ['/login-branding', '/login-branding/**'],
+    children: [
+      {
+        label: 'Branding Preview',
+        route: '/login-branding',
+        icon: 'preview',
+        badge: 'Live',
+        description: 'Interactive multi-device preview of portal login page',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login-branding']
+      },
+      {
+        label: 'Edit Branding',
+        route: '/login-branding/edit',
+        icon: 'tune',
+        badge: 'Studio',
+        description: 'Configure logos, layouts, backgrounds, SSO and legal copy',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login-branding/edit']
+      },
+      {
+        label: 'Live Login Portal',
+        route: '/login',
+        icon: 'login',
+        badge: 'Portal',
+        description: 'View full standalone live authentication portal',
+        roles: ['system_admin', 'super_admin'],
+        matchPatterns: ['/login']
+      }
+    ]
+  },
   {
     label: 'Org Dashboard',
     route: '/organization/dashboard',
@@ -219,85 +219,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
-    label: 'Offline Trainings',
-    route: '/offline-trainings',
-    icon: 'groups_3',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'In-Person',
-    description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
-    matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
-    children: [
-      {
-        label: 'Training Catalog',
-        route: '/offline-trainings',
-        icon: 'grid_view',
-        description: 'Browse, filter & search offline trainings',
-        matchPatterns: ['/offline-trainings', '/offline-trainings/view/**']
-      },
-      {
-        label: 'Training Dashboard',
-        route: '/offline-trainings/dashboard',
-        icon: 'space_dashboard',
-        badge: 'Telemetry',
-        description: 'Classroom statistics, venue distribution & capacity metrics',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/offline-trainings/dashboard']
-      },
-      {
-        label: 'Create Training',
-        route: '/offline-trainings/create',
-        icon: 'add_circle',
-        badge: 'Builder',
-        description: '5-step in-person offline training creation wizard',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/offline-trainings/create', '/offline-trainings/edit/**']
-      },
-      {
-        label: 'Trainee Results',
-        route: '/offline-trainings/results',
-        icon: 'fact_check',
-        badge: 'Gradebook',
-        description: 'Attendance log, manual mark entry & cohort pass status',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/offline-trainings/results']
-      }
-    ]
-  },
-  {
-    label: 'Venues & Facilities',
-    route: '/venues',
-    icon: 'location_city',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Physical',
-    description: 'Manage physical learning centers, rooms, seating layouts & capacity guidance',
-    matchPatterns: ['/venues', '/venues/**'],
-    children: [
-      {
-        label: 'Venue Directory',
-        route: '/venues',
-        icon: 'domain',
-        description: 'Browse, filter & manage physical venues & rooms',
-        matchPatterns: ['/venues', '/venues/view/**']
-      },
-      {
-        label: 'Venue Dashboard',
-        route: '/venues/dashboard',
-        icon: 'space_dashboard',
-        badge: 'Metrics',
-        description: 'Venue telemetry, room utilization & capacity benchmarks',
-        matchPatterns: ['/venues/dashboard']
-      },
-      {
-        label: 'Create Venue',
-        route: '/venues/create',
-        icon: 'add_location_alt',
-        badge: 'New',
-        description: 'Register physical venue with geo-coords & room configurations',
-        matchPatterns: ['/venues/create', '/venues/edit/**']
-      }
-    ]
-  },
-  {
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
@@ -399,50 +320,8 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/users',
     icon: 'groups',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Pools',
-    description: 'Personnel directory, author pool & instructor assignments',
-    matchPatterns: ['/users/**', '/authors/**', '/instructors/**', '/authors', '/instructors'],
-    children: [
-      {
-        label: 'All Users',
-        route: '/users',
-        icon: 'manage_accounts',
-        description: 'System user accounts, roles & permissions',
-        matchPatterns: ['/users']
-      },
-      {
-        label: 'Authors Pool',
-        route: '/authors',
-        icon: 'history_edu',
-        badge: 'Credits',
-        description: 'Organization-scoped author pool & media credits',
-        matchPatterns: ['/authors', '/authors/view/**', '/authors/details/**']
-      },
-      {
-        label: 'Instructors Pool',
-        route: '/instructors',
-        icon: 'co_present',
-        badge: 'Faculty',
-        description: 'Faculty pool & course layer assignments',
-        matchPatterns: ['/instructors', '/instructors/view/**', '/instructors/details/**']
-      },
-      {
-        label: 'Create Author',
-        route: '/authors/create',
-        icon: 'person_add',
-        badge: 'New',
-        description: 'Onboard new content author with duplicate check',
-        matchPatterns: ['/authors/create', '/authors/edit/**']
-      },
-      {
-        label: 'Create Instructor',
-        route: '/instructors/create',
-        icon: 'school',
-        badge: 'New',
-        description: 'Onboard new course delivery instructor',
-        matchPatterns: ['/instructors/create', '/instructors/edit/**']
-      }
-    ]
+    description: 'Personnel directory & permissions',
+    matchPatterns: ['/users/**']
   },
   {
     label: 'Compliance & Analytics',
@@ -555,32 +434,20 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
-    label: 'Badges & Credentials',
+    label: 'Badge Templates',
     route: '/certificates/badges',
     icon: 'military_tech',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'OpenBadges',
-    description: 'Trainee earned badges with LMS provenance and template repository',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Badges',
+    description: 'Design, manage, and track OpenBadges digital credentials',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
       {
-        label: 'Earned Badges (LMS Origins)',
-        route: '/certificates/badges',
-        queryParams: { tab: 'earned' },
-        icon: 'verified',
-        badge: 'Trainee',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-        description: 'Verifiable credentials categorized by originating enterprise LMS portal',
-        matchPatterns: ['/certificates/badges?tab=earned', '/certificates/badges/earned', '/badges/earned']
-      },
-      {
         label: 'Badge Repository',
         route: '/certificates/badges',
-        queryParams: { tab: 'templates' },
         icon: 'grid_view',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Browse, filter & manage digital badge templates',
-        matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
+        matchPatterns: ['/certificates/badges', '/badges', '/certificates/badges/view/**']
       },
       {
         label: 'Badge Dashboard',
@@ -690,61 +557,18 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   const cleanUrl = currentUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
   const cleanChildRoute = childRoute.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
 
-  // Handle items with specific tab query parameters (e.g., Competency Clusters, Earned Badges)
+  // Handle items with specific tab query parameters (e.g., Competency Clusters)
   if (childQueryParams && childQueryParams['tab']) {
     const tabVal = childQueryParams['tab'];
     if (currentUrl.includes(`tab=${tabVal}`) || currentUrl.includes(`${childRoute}/${tabVal}`)) {
       return true;
     }
-    // Default tab when no query parameter is in URL
-    if (childRoute === '/certificates/badges' && tabVal === 'earned' && cleanUrl === '/certificates/badges' && !currentUrl.includes('tab=')) {
-      return true;
-    }
-    return false;
   }
 
   // If this child has no queryParams.tab, check if another tab query param is present in current URL
   if (childRoute === '/skills' && (!childQueryParams || !childQueryParams['tab'])) {
     if (currentUrl.includes('tab=clusters') || currentUrl.includes('tab=mappings') || currentUrl.includes('/skills/clusters') || currentUrl.includes('/skills/mappings')) {
       return false;
-    }
-  }
-
-  if (childRoute === '/certificates/badges' && (!childQueryParams || !childQueryParams['tab'])) {
-    if (currentUrl.includes('tab=earned') || currentUrl.includes('tab=templates')) {
-      return false;
-    }
-  }
-
-  // Disambiguation for Authors Pool vs Create / Edit Author
-  if (cleanChildRoute === '/authors') {
-    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
-      return false;
-    }
-    if (cleanUrl === '/authors' || cleanUrl.startsWith('/authors/')) {
-      return true;
-    }
-  }
-
-  if (cleanChildRoute === '/authors/create') {
-    if (cleanUrl === '/authors/create' || cleanUrl.startsWith('/authors/create/') || cleanUrl.startsWith('/authors/edit')) {
-      return true;
-    }
-  }
-
-  // Disambiguation for Instructors Pool vs Create / Edit Instructor
-  if (cleanChildRoute === '/instructors') {
-    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
-      return false;
-    }
-    if (cleanUrl === '/instructors' || cleanUrl.startsWith('/instructors/')) {
-      return true;
-    }
-  }
-
-  if (cleanChildRoute === '/instructors/create') {
-    if (cleanUrl === '/instructors/create' || cleanUrl.startsWith('/instructors/create/') || cleanUrl.startsWith('/instructors/edit')) {
-      return true;
     }
   }
 

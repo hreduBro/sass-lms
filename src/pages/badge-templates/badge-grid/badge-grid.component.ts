@@ -1,7 +1,7 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
@@ -15,8 +15,7 @@ import {
   BadgeBaseShape,
   BadgeMapping,
   BadgeTargetType,
-  BADGE_PLACEHOLDER_TOKENS,
-  EarnedBadge
+  BADGE_PLACEHOLDER_TOKENS
 } from '../../../models/badge-template.model';
 
 export interface BadgeFilterState {
@@ -31,7 +30,6 @@ export interface BadgeFilterState {
 
 @Component({
   selector: 'app-badge-grid',
-  standalone: true,
   imports: [
     CommonModule, 
     FormsModule, 
@@ -40,9 +38,8 @@ export interface BadgeFilterState {
     DataGridComponent,
     FilterSectionComponent
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './badge-grid.component.html',
-  styleUrls: ['./badge-grid.component.css'],
+  styleUrl: './badge-grid.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:click)': 'onDocumentClick($event)',
@@ -50,126 +47,9 @@ export interface BadgeFilterState {
     '(window:resize)': 'onWindowChange()'
   }
 })
-export class BadgeGridComponent implements OnInit {
+export class BadgeGridComponent {
   dataService = inject(LmsDataService);
   router = inject(Router);
-  route = inject(ActivatedRoute);
-
-  // Main Tab: 'earned' (Trainee Badges by LMS Origin) | 'templates' (Catalog/Repository)
-  activeMainTab = signal<'earned' | 'templates'>('earned');
-
-  // Trainee Earned Badges & LMS Provenance State
-  selectedLmsFilter = signal<string>('all');
-  earnedSearchQuery = signal<string>('');
-  earnedCategoryFilter = signal<string>('all');
-  inspectingBadge = signal<EarnedBadge | null>(null);
-
-  earnedCategoryOptions: SelectOption[] = [
-    { value: 'all', label: 'All Categories', icon: 'category' },
-    { value: 'Certification', label: 'Certification', icon: 'verified' },
-    { value: 'Skill', label: 'Skill', icon: 'psychology' },
-    { value: 'Achievement', label: 'Achievement', icon: 'emoji_events' },
-    { value: 'Milestone', label: 'Milestone', icon: 'flag' }
-  ];
-
-  traineeBadgesList = computed<EarnedBadge[]>(() => {
-    return this.dataService.activeUserEarnedBadges();
-  });
-
-  distinctLmsList = computed<{ id: string; name: string; domain?: string; count: number }[]>(() => {
-    const all = this.traineeBadgesList();
-    const lmsMap = new Map<string, { id: string; name: string; domain?: string; count: number }>();
-    
-    for (const b of all) {
-      const existing = lmsMap.get(b.lmsId);
-      if (existing) {
-        existing.count++;
-      } else {
-        lmsMap.set(b.lmsId, {
-          id: b.lmsId,
-          name: b.lmsName,
-          domain: b.lmsDomain,
-          count: 1
-        });
-      }
-    }
-
-    return [
-      { id: 'all', name: 'All LMS Portals', count: all.length },
-      ...Array.from(lmsMap.values())
-    ];
-  });
-
-  filteredEarnedBadges = computed<EarnedBadge[]>(() => {
-    let list = this.traineeBadgesList();
-    const lmsFilter = this.selectedLmsFilter();
-    const q = this.earnedSearchQuery().trim().toLowerCase();
-    const cat = this.earnedCategoryFilter();
-
-    if (lmsFilter !== 'all') {
-      list = list.filter(b => b.lmsId === lmsFilter);
-    }
-
-    if (cat !== 'all') {
-      list = list.filter(b => b.category === cat);
-    }
-
-    if (q) {
-      list = list.filter(b => 
-        b.name.toLowerCase().includes(q) ||
-        b.description.toLowerCase().includes(q) ||
-        b.lmsName.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q) ||
-        (b.courseName && b.courseName.toLowerCase().includes(q)) ||
-        (b.phaseName && b.phaseName.toLowerCase().includes(q)) ||
-        (b.skillTags && b.skillTags.some(t => t.toLowerCase().includes(q))) ||
-        b.serialNumber.toLowerCase().includes(q)
-      );
-    }
-
-    return list;
-  });
-
-  ngOnInit() {
-    const currentUrl = this.router.url;
-    if (currentUrl.includes('/earned')) {
-      this.activeMainTab.set('earned');
-    } else if (currentUrl.includes('/repository') || currentUrl.includes('tab=templates')) {
-      this.activeMainTab.set('templates');
-    }
-
-    this.route.queryParams.subscribe(params => {
-      if (params['tab'] === 'templates') {
-        this.activeMainTab.set('templates');
-      } else if (params['tab'] === 'earned') {
-        this.activeMainTab.set('earned');
-      }
-    });
-  }
-
-  setMainTab(tab: 'earned' | 'templates') {
-    this.activeMainTab.set(tab);
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { tab },
-      queryParamsHandling: 'merge'
-    });
-  }
-
-  openInspectBadge(badge: EarnedBadge) {
-    this.inspectingBadge.set(badge);
-  }
-
-  closeInspectBadge() {
-    this.inspectingBadge.set(null);
-  }
-
-  copyBadgeSerial(badge: EarnedBadge) {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(badge.serialNumber);
-    }
-    this.dataService.showToast(`Copied Serial ID: ${badge.serialNumber}`, 'success', 3000, 'Serial Copied');
-  }
 
   // Actions Menu State (Positioned outside scroll boundaries, matching skill repository grid)
   activeMenuBadge = signal<BadgeTemplate | null>(null);

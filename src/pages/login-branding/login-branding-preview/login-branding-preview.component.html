@@ -199,7 +199,7 @@
       <!-- ACTUAL LOGIN SCREEN RENDERER                                          -->
       <!-- ===================================================================== -->
       @if (branding().customCss) {
-        <div [innerHTML]="sanitizedCustomCss()"></div>
+        <style [innerHTML]="branding().customCss"></style>
       }
 
       <div 
@@ -211,7 +211,7 @@
         [style.--brand-primary]="branding().primaryColor"
         [style.--brand-primary-glow]="branding().primaryColor + '33'"
         [style.--brand-primary-border-hover]="branding().primaryColor + '80'"
-        [style.backgroundColor]="branding().backgroundType === 'solid' ? (branding().backgroundOverlayColor || branding().primaryColor) : 'transparent'">
+        [style.backgroundColor]="branding().backgroundType === 'solid' ? branding().primaryColor : 'transparent'">
         
         <!-- 1. Background Image or Gradient Layer -->
         @if (branding().backgroundType === 'image' && branding().backgroundImageUrl) {
@@ -610,7 +610,7 @@
 
                 @if (branding().useCustomContentPanel && branding().customHtml) {
                   <!-- Render Custom Content HTML -->
-                  <div class="relative z-10 w-full h-full flex-1 flex flex-col justify-between" [innerHTML]="sanitizedCustomHtml()"></div>
+                  <div class="relative z-10 w-full h-full flex-1 flex flex-col justify-between" [innerHTML]="branding().customHtml"></div>
                 } @else if (branding().useCustomContentPanel && !branding().customHtml) {
                   <!-- Render Empty State (Image 1 replica) -->
                   <div class="flex-1 w-full h-full min-h-[440px] flex flex-col items-center justify-center relative z-10 select-none">
@@ -717,7 +717,7 @@
                 [class.text-slate-900]="previewTheme() === 'light'">
                 
                 @if (branding().useCustomContentPanel && branding().customHtml) {
-                  <div [innerHTML]="sanitizedCustomHtml()" class="w-full h-full"></div>
+                  <div [innerHTML]="branding().customHtml" class="w-full h-full"></div>
                 } @else if (branding().useCustomContentPanel && !branding().customHtml) {
                   <div class="flex-1 w-full min-h-[360px] flex flex-col items-center justify-center select-none"
                        [class.text-white/50]="previewTheme() === 'dark'"

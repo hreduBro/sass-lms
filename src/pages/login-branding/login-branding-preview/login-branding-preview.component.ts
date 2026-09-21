@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
@@ -19,7 +18,6 @@ type ViewportMode = 'desktop' | 'laptop' | 'tablet' | 'mobile';
 export class LoginBrandingPreviewComponent {
   lms = inject(LmsDataService);
   router = inject(Router);
-  sanitizer = inject(DomSanitizer);
 
   // Viewport simulation state
   viewport = signal<ViewportMode>('desktop');
@@ -50,16 +48,6 @@ export class LoginBrandingPreviewComponent {
       cfg.copyrightText = cfg.copyrightText.replace(/\s*&\s*BRAC\s*IT\s*Services/gi, '').replace(/\s*&\s*Brac\s*IT\s*Services/gi, '').trim();
     }
     return cfg;
-  });
-
-  sanitizedCustomCss = computed<SafeHtml>(() => {
-    const css = this.branding().customCss || '';
-    return this.sanitizer.bypassSecurityTrustHtml(`<style id="authkit-preview-custom-css">\n${css}\n</style>`);
-  });
-
-  sanitizedCustomHtml = computed<SafeHtml>(() => {
-    const html = this.branding().customHtml || '';
-    return this.sanitizer.bypassSecurityTrustHtml(html);
   });
 
   // Available tenants for quick-previewing

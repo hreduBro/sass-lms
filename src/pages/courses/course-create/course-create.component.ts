@@ -214,47 +214,6 @@ export class CourseCreateComponent implements OnInit {
     return this.layerLabelPresets.filter(p => p.count === this.selectedLayerCount());
   });
 
-  activePreset = computed<LayerLabelPreset>(() => {
-    const currentCount = this.selectedLayerCount();
-    const l1 = this.layer1Label() || 'Chapter';
-    const l2 = this.layer2Label() || 'Topic';
-    const l3 = this.layer3Label() || 'Lesson';
-
-    const found = this.layerLabelPresets.find(p => 
-      p.count === currentCount &&
-      p.labels[0] === l1 &&
-      (p.count < 2 || p.labels[1] === l2) &&
-      (p.count < 3 || p.labels[2] === l3)
-    );
-    if (found) return found;
-
-    const labels = [l1];
-    if (currentCount >= 2) labels.push(l2);
-    if (currentCount >= 3) labels.push(l3);
-
-    return {
-      name: `Custom ${currentCount}-Tier (${labels.join(' / ')})`,
-      count: currentCount,
-      labels,
-      icon: currentCount === 3 ? 'account_tree' : (currentCount === 2 ? 'view_agenda' : 'inventory_2'),
-      description: `Custom configured ${currentCount}-tier hierarchy for specialized course delivery`,
-      badge: `Custom ${currentCount}-Tier`,
-      previewImage: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
-      previewTheme: {
-        accentColor: 'tenant',
-        bgGradient: 'from-slate-900 via-slate-900/95 to-slate-950',
-        sampleRoot: `${l1} 1: Foundational Framework`,
-        sampleMid: currentCount >= 2 ? `${l2} 1.1: Core Concepts` : undefined,
-        sampleLeaf: currentCount === 3 ? `${l3} 1.1.1: Applied Practice` : undefined,
-        sampleContent: [
-          { title: 'Overview & Orientation Video', type: 'video', duration: '15 min' },
-          { title: 'Interactive Practice Lab', type: 'lab', duration: '20 min', isSubscription: true },
-          { title: 'Knowledge Verification Quiz', type: 'quiz', duration: '15 min' }
-        ]
-      }
-    };
-  });
-
   isPresetActive(preset: LayerLabelPreset): boolean {
     if (this.selectedLayerCount() !== preset.count) return false;
     if (this.layer1Label() !== (preset.labels[0] || '')) return false;
@@ -461,7 +420,6 @@ export class CourseCreateComponent implements OnInit {
   reviewsConfig = signal<CourseReviewsConfig>({
     contentReviewsEnabled: true,
     instructorReviewsEnabled: true,
-    authorReviewsEnabled: true,
     scale: '5-star-likert'
   });
 
@@ -469,19 +427,6 @@ export class CourseCreateComponent implements OnInit {
   showContentModal = signal<boolean>(false);
   activeTargetNodeId = signal<string | null>(null);
   activeEditContentId = signal<string | null>(null);
-
-  // Subscription / Monetization model options
-  subscriptionAccessOptions: SelectOption[] = [
-    { value: 'standard_enrolled', label: 'Standard Course Enrollment', sublabel: 'Included for all enrolled learners in this course', icon: 'lock_open' },
-    { value: 'subscription_only', label: 'Subscription / Premium Pass Only', sublabel: 'Gated for active subscribers with premium membership', icon: 'workspace_premium' },
-    { value: 'free_preview', label: 'Free Public Preview', sublabel: 'Available to prospective learners before enrolling', icon: 'visibility' }
-  ];
-
-  subscriptionTierOptions: SelectOption[] = [
-    { value: 'all_plans', label: 'All Active Subscriptions', sublabel: 'Starter, Pro, and Enterprise membership tiers', icon: 'card_membership' },
-    { value: 'pro_plus', label: 'Pro & Enterprise Tier Only', sublabel: 'Requires Pro Tier or higher subscription', icon: 'star' },
-    { value: 'enterprise', label: 'Enterprise Executive Pass', sublabel: 'Exclusive to enterprise organization licenses', icon: 'diamond' }
-  ];
 
   contentForm: FormGroup = this.fb.group({
     title: ['', Validators.required],
@@ -493,10 +438,7 @@ export class CourseCreateComponent implements OnInit {
     passingScorePct: [80],
     instructions: [''],
     mediaUrl: [''],
-    instructorId: ['__topic__'],
-    isSubscriptionRequired: [false],
-    subscriptionTier: ['all_plans'],
-    accessModel: ['standard_enrolled']
+    instructorId: ['__topic__']
   });
 
   contentModalInstructorOptions = computed<SelectOption[]>(() => {
@@ -1582,10 +1524,7 @@ export class CourseCreateComponent implements OnInit {
       passingScorePct: 80,
       instructions: '',
       mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      instructorId: topicInst ? '__topic__' : '',
-      isSubscriptionRequired: false,
-      subscriptionTier: 'all_plans',
-      accessModel: 'standard_enrolled'
+      instructorId: topicInst ? '__topic__' : ''
     });
     this.showContentModal.set(true);
   }
@@ -1598,8 +1537,6 @@ export class CourseCreateComponent implements OnInit {
       ? item.instructorTags[0].id
       : (parentNode && this.getNodeInstructor(parentNode) ? '__topic__' : '');
 
-    const isSub = item.isSubscriptionRequired || item.accessModel === 'subscription_only';
-
     this.contentForm.patchValue({
       title: item.title,
       family: item.family,
@@ -1610,26 +1547,9 @@ export class CourseCreateComponent implements OnInit {
       passingScorePct: item.assessment?.passingScorePercent || 80,
       instructions: item.assessment?.instructions || '',
       mediaUrl: item.learning?.mediaUrl || '',
-      instructorId: instId,
-      isSubscriptionRequired: isSub,
-      subscriptionTier: item.subscriptionTier || 'all_plans',
-      accessModel: item.accessModel || (isSub ? 'subscription_only' : 'standard_enrolled')
+      instructorId: instId
     });
     this.showContentModal.set(true);
-  }
-
-  toggleContentSubscription(nodeId: string, item: CourseContentItem) {
-    item.isSubscriptionRequired = !item.isSubscriptionRequired;
-    item.accessModel = item.isSubscriptionRequired ? 'subscription_only' : 'standard_enrolled';
-    this.structureNodes.set([...this.structureNodes()]);
-    this.lmsService.showToast(
-      item.isSubscriptionRequired 
-        ? `"${item.title}" is now marked as Subscription-Gated.` 
-        : `"${item.title}" is now included with Standard Enrollment.`,
-      'info',
-      2500,
-      'Subscription Model'
-    );
   }
 
   saveContentItem() {
@@ -1651,17 +1571,12 @@ export class CourseCreateComponent implements OnInit {
       if (foundInst) itemInstructors = [foundInst];
     }
 
-    const isSub = val.accessModel === 'subscription_only' || !!val.isSubscriptionRequired;
-
     const contentItem: CourseContentItem = {
       contentId: this.activeEditContentId() || `cnt-${Date.now()}`,
       title: val.title.trim(),
       family: val.family,
       order: 1,
       instructorTags: itemInstructors,
-      isSubscriptionRequired: isSub,
-      subscriptionTier: val.subscriptionTier || 'all_plans',
-      accessModel: val.accessModel || (isSub ? 'subscription_only' : 'standard_enrolled'),
       learning: val.family === 'learning' ? {
         subtype: val.learningSubtype,
         durationMinutes: val.durationMinutes,
@@ -1806,191 +1721,22 @@ export class CourseCreateComponent implements OnInit {
     return list.filter(entry => entry.item.family === filter);
   }
 
-  // Global Author pool options for content tagging
-  authorPoolOptions = computed<SelectOption[]>(() => {
-    return this.lmsService.activeAuthors().map(a => ({
-      value: a.id,
-      label: `${a.name} (${a.specialization})`,
-      sublabel: `${a.email}${a.isInstructor ? ' • Dual-Role Instructor' : ''}`,
-      icon: 'edit_note'
-    }));
-  });
-
-  // Author Role / Kind Options for custom select
-  authorKindOptions: SelectOption[] = [
-    { value: 'authorOnly', label: 'Author', icon: 'edit_note' },
-    { value: 'instructor', label: 'Instructor', icon: 'school' },
-    { value: 'both', label: 'Author + Instructor', icon: 'badge' }
-  ];
-
-  // Quick Inline Author / Instructor Creation Modal State
-  showQuickAuthorModal = signal<boolean>(false);
-  quickAuthorTargetItem = signal<CourseContentItem | null>(null);
-  quickPersonnelRole = signal<'author' | 'instructor' | 'both'>('author');
-
-  quickRoleOptions: SelectOption[] = [
-    { value: 'author', label: 'Content Author', sublabel: 'Curriculum & lesson instructional author', icon: 'edit_note' },
-    { value: 'instructor', label: 'Faculty Instructor', sublabel: 'Faculty member delivering course layers', icon: 'school' },
-    { value: 'both', label: 'Dual-Role (Author + Instructor)', sublabel: 'Course author with faculty teaching privileges', icon: 'badge' }
-  ];
-
-  quickAuthorForm = {
-    name: '',
-    email: '',
-    contactNumber: '',
-    specialization: 'Video Scripting & Pedagogical Content',
-    bio: ''
-  };
-
-  openQuickAuthorModal(item?: CourseContentItem) {
-    if (item) this.quickAuthorTargetItem.set(item);
-    this.quickPersonnelRole.set('author');
-    this.quickAuthorForm = {
-      name: '',
-      email: '',
-      contactNumber: '',
-      specialization: 'Video Scripting & Pedagogical Content',
-      bio: ''
-    };
-    this.showQuickAuthorModal.set(true);
-  }
-
-  closeQuickAuthorModal() {
-    this.showQuickAuthorModal.set(false);
-    this.quickAuthorTargetItem.set(null);
-  }
-
-  onSelectAuthorForContent(item: CourseContentItem, authorId: string | string[]) {
-    const id = Array.isArray(authorId) ? authorId[0] : authorId;
-    if (id) {
-      this.addAuthorToContentItem(item, id);
-    }
-  }
-
-  saveQuickAuthor() {
-    if (!this.quickAuthorForm.name.trim() || !this.quickAuthorForm.email.trim()) {
-      this.lmsService.showToast('Please provide full name and email address.', 'error', 3000, 'Required Fields');
-      return;
-    }
-
-    const role = this.quickPersonnelRole();
-    const cleanName = this.quickAuthorForm.name.trim();
-    const cleanEmail = this.quickAuthorForm.email.trim();
-    const contact = this.quickAuthorForm.contactNumber.trim() || undefined;
-    const spec = this.quickAuthorForm.specialization.trim() || 'General Learning Content';
-    const bio = this.quickAuthorForm.bio.trim() || undefined;
-
-    let createdId = '';
-
-    if (role === 'author') {
-      const res = this.lmsService.addAuthor({
-        name: cleanName,
-        email: cleanEmail,
-        contactNumber: contact,
-        specialization: spec,
-        bio: bio,
-        status: 'Active',
-        isQuickAdd: true
+  addAuthorToContentItem(item: CourseContentItem, instructorId: string) {
+    if (!instructorId) return;
+    const inst = this.lmsService.instructorsRepo().find(i => i.id === instructorId);
+    if (!inst) return;
+    if (!item.authors) item.authors = [];
+    if (!item.authors.some(a => a.personId === inst.id)) {
+      item.authors.push({
+        personId: inst.id,
+        name: inst.name,
+        email: inst.email,
+        avatar: inst.avatar,
+        kind: 'authorOnly',
+        source: 'instructor_mgmt'
       });
-      if (!res.success) return;
-      createdId = res.author.id;
-    } else if (role === 'instructor') {
-      const res = this.lmsService.addInstructor({
-        name: cleanName,
-        email: cleanEmail,
-        contactNumber: contact,
-        specialization: spec,
-        bio: bio,
-        department: 'Academic & Faculty Division',
-        title: 'Faculty Instructor',
-        status: 'Active',
-        isQuickAdd: true
-      });
-      if (!res.success) return;
-      createdId = res.instructor.id;
-    } else {
-      // Both Author and Instructor
-      const authRes = this.lmsService.addAuthor({
-        name: cleanName,
-        email: cleanEmail,
-        contactNumber: contact,
-        specialization: spec,
-        bio: bio,
-        status: 'Active',
-        isQuickAdd: true
-      });
-      const instRes = this.lmsService.addInstructor({
-        name: cleanName,
-        email: cleanEmail,
-        contactNumber: contact,
-        specialization: spec,
-        bio: bio,
-        department: 'Academic & Faculty Division',
-        title: 'Faculty Instructor & Author',
-        status: 'Active',
-        isQuickAdd: true
-      });
-      createdId = authRes.author?.id || instRes.instructor?.id || '';
-    }
-
-    const targetItem = this.quickAuthorTargetItem();
-    if (targetItem && createdId) {
-      this.addAuthorToContentItem(targetItem, createdId);
-    }
-
-    this.lmsService.showToast(
-      `Quick-added "${cleanName}". Tagged to item and marked with "Incomplete profile" badge in All Users.`,
-      'info',
-      4500,
-      'Quick Personnel Added'
-    );
-
-    this.closeQuickAuthorModal();
-  }
-
-  addAuthorToContentItem(item: CourseContentItem, authorOrInstructorId: string) {
-    if (!authorOrInstructorId) return;
-
-    // Check in Author pool first
-    const author = this.lmsService.authors().find(a => a.id === authorOrInstructorId || a.personId === authorOrInstructorId);
-    if (author) {
-      if (!item.authors) item.authors = [];
-      const alreadyTagged = item.authors.some(a => 
-        (a.personId && (a.personId === author.id || a.personId === author.personId)) ||
-        (a.email && a.email.toLowerCase() === author.email.toLowerCase())
-      );
-
-      if (!alreadyTagged) {
-        item.authors.push({
-          personId: author.personId || author.id,
-          name: author.name,
-          email: author.email,
-          avatar: author.avatar,
-          kind: author.isInstructor ? 'both' : 'authorOnly',
-          source: 'author_pool'
-        });
-        this.structureNodes.set([...this.structureNodes()]);
-        this.lmsService.showToast(`Added Author "${author.name}" to "${item.title}".`, 'success', 2500);
-      }
-      return;
-    }
-
-    // Check in Instructor pool
-    const inst = this.lmsService.instructorsRepo().find(i => i.id === authorOrInstructorId);
-    if (inst) {
-      if (!item.authors) item.authors = [];
-      if (!item.authors.some(a => a.personId === inst.id || a.email.toLowerCase() === inst.email.toLowerCase())) {
-        item.authors.push({
-          personId: inst.id,
-          name: inst.name,
-          email: inst.email,
-          avatar: inst.avatar,
-          kind: 'authorOnly',
-          source: 'instructor_mgmt'
-        });
-        this.structureNodes.set([...this.structureNodes()]);
-        this.lmsService.showToast(`Added ${inst.name} as contributor to "${item.title}".`, 'success', 2500);
-      }
+      this.structureNodes.set([...this.structureNodes()]);
+      this.lmsService.showToast(`Added ${inst.name} as contributor to "${item.title}".`, 'success', 2500);
     }
   }
 

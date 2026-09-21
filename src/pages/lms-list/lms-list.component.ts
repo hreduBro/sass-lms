@@ -11,7 +11,6 @@ import {
   LmsGridFilters, 
   LmsDetailsPermissions 
 } from '../../models/lms-instance.model';
-import { isOrgDataSharingAllowed } from '../../models/organization.model';
 import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
 import { DataGridComponent, FilterSectionComponent, DateRangeFilterComponent } from '../../components/data-grid';
 
@@ -635,26 +634,6 @@ export class LmsListComponent {
       default:
         return 'bg-slate-400';
     }
-  }
-
-  isOrgDataSharingEnabled(instance?: LmsInstance | null): boolean {
-    const org = instance ? this.lms.tenants().find(t => t.id === instance.organizationId) : this.lms.activeTenant();
-    const mode = org?.resourceAllocation?.dataSharingMode;
-    if (org?.id === 'tenant-stanford' || org?.id === 'tenant-finedge') return false;
-    return isOrgDataSharingAllowed(mode);
-  }
-
-  isLmsSharingActive(instance?: LmsInstance | null): boolean {
-    if (!instance) return false;
-    if (!this.isOrgDataSharingEnabled(instance)) return false;
-    return instance.resources.dataSharing?.enabled ?? true;
-  }
-
-  getSharingBadgeLabel(instance: LmsInstance): string {
-    if (!this.isOrgDataSharingEnabled(instance)) {
-      return 'Org Locked (Segregated)';
-    }
-    return this.isLmsSharingActive(instance) ? 'Shared' : 'Private (Opt-out)';
   }
 
   private parseDateInput(str: string): Date | null {

@@ -1,5 +1,3 @@
-import { DataSharingMode } from './organization.model';
-
 export type UserRole = 'system_admin' | 'lms_admin' | 'super_admin' | 'tenant_admin' | 'instructor' | 'learner';
 export type TenantPlan = 'Starter' | 'Pro' | 'Enterprise';
 export type TenantStatus = 'Active' | 'Trial' | 'Suspended' | 'In-Progress';
@@ -61,7 +59,7 @@ export interface Tenant {
     databaseSizeGb: number;
     fileStorageGb: number;
     usageAlertThresholdPct: number;
-    dataSharingMode: DataSharingMode;
+    dataSharingMode: 'Yes – Shared' | 'No – Segregated' | 'Custom';
     customBatches?: { id: string; name: string; lmsInstanceIds: string[] }[];
   };
   branding: TenantBranding;
@@ -102,10 +100,6 @@ export interface User {
   lastActive: string;
   status: 'Active' | 'Invited' | 'Suspended';
   complianceStatus: 'Compliant' | 'At Risk' | 'Overdue';
-  isProfileComplete?: boolean;
-  incompleteReason?: string;
-  authorId?: string;
-  instructorId?: string;
 }
 
 export interface QuizQuestion {

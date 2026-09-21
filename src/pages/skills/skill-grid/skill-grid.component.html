@@ -374,28 +374,10 @@
                 Skill Name <span class="text-rose-500">*</span>
               </label>
               <input
-                id="skill-name-input"
                 type="text"
                 formControlName="name"
                 placeholder="e.g., SQL Querying & Data Extraction"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:bg-base-100 transition-all"
-                [class.border-rose-500]="(skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.invalid"
-                [class.focus:border-rose-500]="(skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.invalid"
-                [class.border-base-300]="!((skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.invalid)"
-                [class.dark:border-slate-700]="!((skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.invalid)"
-                [class.focus:border-tenant-500]="!((skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.invalid)">
-              
-              @if ((skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.hasError('notUnique')) {
-                <p id="skill-name-error-unique" class="mt-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1 animate-in fade-in duration-150">
-                  <span class="material-symbols-outlined text-sm">error</span>
-                  <span>Skill name must be unique.</span>
-                </p>
-              } @else if ((skillForm.get('name')?.touched || formSubmitted()) && skillForm.get('name')?.hasError('required')) {
-                <p id="skill-name-error-required" class="mt-1.5 text-[11px] font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1 animate-in fade-in duration-150">
-                  <span class="material-symbols-outlined text-sm">error</span>
-                  <span>Skill name is required.</span>
-                </p>
-              }
+                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200/70 border border-base-300 dark:border-slate-700 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-base-100 transition-all">
             </div>
 
             <!-- Category -->

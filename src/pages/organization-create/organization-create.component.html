@@ -588,70 +588,35 @@
             }
           </div>
 
-          <!-- Data Sharing Mode (Governance Toggle Cards) (§4.2.1) -->
-          <div class="col-span-full space-y-3 pt-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-xs font-bold text-text-primary">
-                  Data Sharing Mode (Organization Governance Control) <span class="text-rose-500">*</span>
-                </label>
-                <p class="text-[11px] text-text-secondary mt-0.5">
-                  Acts as the master governance policy. LMS Admins can configure inter-instance sharing only when enabled here.
-                </p>
-              </div>
-              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
-                    [ngClass]="resourcesForm.get('dataSharingMode')?.value === 'Yes' 
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' 
-                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800'">
-                {{ resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'Governance: Sharing Permitted' : 'Governance: Strict Isolation' }}
-              </span>
-            </div>
+          <!-- Data Sharing Mode (Radio / Card Selector) (§4.2.1) -->
+          <div class="col-span-full space-y-2 pt-2">
+            <label class="block text-xs font-semibold text-text-primary">
+              Data Sharing Mode <span class="text-rose-500">*</span>
+            </label>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               @for (opt of dataSharingOptions; track opt.value) {
                 <label 
-                  class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-4"
+                  class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-2"
                   [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value 
-                    ? (opt.value === 'Yes' ? 'border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/30 shadow-xs' : 'border-amber-500 bg-amber-50/20 dark:bg-amber-950/30 shadow-xs')
+                    ? 'border-tenant-500 bg-tenant-50/10 dark:bg-tenant-900/20 shadow-xs' 
                     : 'border-base-300 bg-base-200/50 hover:bg-base-200'">
-                  
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-3">
-                      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                           [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value
-                             ? (opt.value === 'Yes' ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300')
-                             : 'bg-base-300/60 text-text-secondary'">
-                        <span class="material-symbols-outlined text-xl">{{ opt.icon }}</span>
-                      </div>
-                      <div class="space-y-1">
-                        <span class="text-xs font-bold text-text-primary block leading-snug">{{ opt.label }}</span>
-                        <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full inline-block" [class]="opt.badgeClass">
-                          {{ opt.governanceStatus }}
-                        </span>
-                      </div>
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-lg" [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value ? 'text-tenant-600' : 'text-text-secondary'">
+                        {{ opt.icon }}
+                      </span>
+                      <span class="text-xs font-bold text-text-primary">{{ opt.label }}</span>
                     </div>
-
                     <input 
                       type="radio" 
                       formControlName="dataSharingMode" 
                       [value]="opt.value" 
-                      class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-base-300 mt-1 cursor-pointer shrink-0" />
+                      class="radio radio-xs radio-primary" />
                   </div>
-
-                  <p class="text-[11px] text-text-secondary leading-relaxed">{{ opt.sublabel }}</p>
+                  <p class="text-[11px] text-text-secondary leading-snug">{{ opt.sublabel }}</p>
                 </label>
               }
-            </div>
-
-            <!-- Governance Policy Callout Banner -->
-            <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex items-start gap-3 text-xs">
-              <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-lg shrink-0 mt-0.5">policy</span>
-              <div class="space-y-0.5 text-indigo-950 dark:text-indigo-200">
-                <span class="font-bold text-[11px] block">Governance Policy Rule</span>
-                <p class="text-[11px] text-indigo-900/90 dark:text-indigo-300 leading-relaxed">
-                  When set to <strong>Yes</strong>, LMS Administrators are delegated the ability to configure granular data sharing (course catalog, faculty pools, question repositories, and transcripts) for their individual LMS instances. When set to <strong>No</strong>, all LMS instances are strictly segregated regardless of LMS-level preferences.
-                </p>
-              </div>
             </div>
 
             @if (isFieldInvalid(resourcesForm, 'dataSharingMode')) {
@@ -1110,11 +1075,8 @@
               </div>
 
               <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
-                <div class="text-[10px] text-text-secondary uppercase">Data Sharing Governance</div>
-                <div class="font-bold text-xs mt-1 truncate"
-                     [ngClass]="resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">
-                  {{ resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'Yes (LMS Configurable)' : 'No (Strict Segregation)' }}
-                </div>
+                <div class="text-[10px] text-text-secondary uppercase">Data Sharing</div>
+                <div class="font-bold text-xs text-tenant-600 mt-1 truncate">{{ resourcesForm.get('dataSharingMode')?.value }}</div>
               </div>
             </div>
 

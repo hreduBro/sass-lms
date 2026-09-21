@@ -100,10 +100,8 @@ import {
   BadgePermissions,
   BadgeMapping,
   BadgeTargetType,
-  EarnedBadge,
   INITIAL_BADGE_TEMPLATES,
-  INITIAL_BADGE_MAPPINGS,
-  INITIAL_EARNED_BADGES
+  INITIAL_BADGE_MAPPINGS
 } from '../models/badge-template.model';
 import {
   Assessment,
@@ -179,11 +177,7 @@ import {
   TranscriptReleaseState,
   TranscriptExportJob,
   TranscriptConfig,
-  TranscriptTemplate,
-  TranscriptPlaceholderTokenDef,
-  TRANSCRIPT_PLACEHOLDER_TOKENS,
-  INITIAL_TRANSCRIPTS,
-  INITIAL_TRANSCRIPT_TEMPLATES
+  INITIAL_TRANSCRIPTS
 } from '../models/transcript.model';
 import {
   Skill,
@@ -210,53 +204,16 @@ import {
   INITIAL_SIGNATORY_CHANGE_LOGS
 } from '../models/signatory.model';
 import {
-  AuthorProfile,
-  AuthorshipRecord,
-  AuthorCreateForm,
-  DeactivationBlockResolution,
-  INITIAL_AUTHORS_REPO,
-  INITIAL_AUTHORSHIP_RECORDS
-} from '../models/author.model';
-import {
-  InstructorProfile,
-  InstructorAssignmentRecord,
-  InstructorCreateForm,
-  InstructorDeactivationResolution,
-  INITIAL_INSTRUCTORS_REPO,
-  INITIAL_INSTRUCTOR_ASSIGNMENTS
-} from '../models/instructor.model';
-import {
   LoginBrandingConfig,
   DEFAULT_LOGIN_BRANDING
 } from '../models/login-branding.model';
 import {
-  Venue,
-  Room,
-  VenueStatus,
-  RoomStatus,
-  VenuePermissions,
-  DEFAULT_VENUE_PERMISSIONS,
-  INITIAL_VENUES,
-  calculateVenueTotalCapacity,
-  getActiveRoomsCount
-} from '../models/venue.model';
-import {
-  OfflineTraining,
-  OfflineTrainingEmbedding,
-  OfflineTraineeResult,
-  OfflineTrainingStatus,
-  AssessmentMode,
-  AttendanceStatus,
-  OfflineTrainingPermissions,
-  DEFAULT_OFFLINE_TRAINING_PERMISSIONS,
-  INITIAL_OFFLINE_TRAININGS,
-  INITIAL_OFFLINE_TRAINING_EMBEDDINGS,
-  INITIAL_OFFLINE_TRAINEE_RESULTS
-} from '../models/offline-training.model';
-import {
   LandingPageConfig,
+  LandingSection,
+  LandingSectionType,
   createDefaultLandingPage
 } from '../models/landing-page.model';
+
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -1382,46 +1339,6 @@ const INITIAL_USERS: User[] = [
     lastActive: '1 hour ago',
     status: 'Active',
     complianceStatus: 'Compliant'
-  },
-  {
-    id: 'usr-brac-quick-1',
-    tenantId: 'tenant-brac',
-    name: 'Tariq Al-Amin',
-    email: 'tariq.alamin@brac.net',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
-    role: 'instructor',
-    department: 'Digital Financial Literacy',
-    enrolledCourses: [],
-    completedCourses: [],
-    earnedCertificates: [],
-    points: 120,
-    badges: [],
-    lastActive: '10 mins ago',
-    status: 'Active',
-    complianceStatus: 'At Risk',
-    isProfileComplete: false,
-    incompleteReason: 'Quick-added from Course Creator: Missing bio and faculty credentials',
-    instructorId: 'inst-003'
-  },
-  {
-    id: 'usr-brac-quick-2',
-    tenantId: 'tenant-brac',
-    name: 'Shamima Akter',
-    email: 'shamima.akter@brac.net',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
-    role: 'learner',
-    department: 'Education & Youth Skills (BEP)',
-    enrolledCourses: [],
-    completedCourses: [],
-    earnedCertificates: [],
-    points: 50,
-    badges: [],
-    lastActive: '1 day ago',
-    status: 'Active',
-    complianceStatus: 'Compliant',
-    isProfileComplete: false,
-    incompleteReason: 'Quick-added from Course Creator: Missing bio and content specialization',
-    authorId: 'auth-004'
   },
   // Lumina Spatial Labs (Glassmorphism LMS Users)
   {
@@ -2638,73 +2555,9 @@ export class LmsDataService {
   // Badge Templates Store
   badgeTemplates = signal<BadgeTemplate[]>(INITIAL_BADGE_TEMPLATES);
   badgeMappings = signal<BadgeMapping[]>(INITIAL_BADGE_MAPPINGS);
-  traineeBadges = signal<EarnedBadge[]>(INITIAL_EARNED_BADGES);
-
-  activeUserEarnedBadges = computed<EarnedBadge[]>(() => {
-    const user = this.currentUser();
-    const all = this.traineeBadges();
-    if (!user) return all;
-    // Match by user ID or email or fallback to all seeded badges for the active demo profile
-    const userBadges = all.filter(b => b.userId === user.id || b.userEmail === user.email);
-    return userBadges.length > 0 ? userBadges : all;
-  });
-
-  activeUserBadgeLmsList = computed<{ id: string; name: string; domain?: string; count: number }[]>(() => {
-    const badges = this.activeUserEarnedBadges();
-    const lmsMap = new Map<string, { id: string; name: string; domain?: string; count: number }>();
-    
-    for (const b of badges) {
-      const existing = lmsMap.get(b.lmsId);
-      if (existing) {
-        existing.count++;
-      } else {
-        lmsMap.set(b.lmsId, {
-          id: b.lmsId,
-          name: b.lmsName,
-          domain: b.lmsDomain,
-          count: 1
-        });
-      }
-    }
-    return Array.from(lmsMap.values());
-  });
 
   // Login Branding Store (System Admin Scope)
   loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
-
-  // Author Profile Store (Organization-Scoped Author Pool)
-  authors = signal<AuthorProfile[]>(INITIAL_AUTHORS_REPO);
-  authorshipRecords = signal<AuthorshipRecord[]>(INITIAL_AUTHORSHIP_RECORDS);
-
-  activeAuthors = computed<AuthorProfile[]>(() => {
-    return this.authors().filter(a => a.status === 'Active');
-  });
-
-  // Instructor Profile Store (Organization-Scoped Instructor Pool)
-  instructors = signal<InstructorProfile[]>(INITIAL_INSTRUCTORS_REPO);
-  instructorAssignments = signal<InstructorAssignmentRecord[]>(INITIAL_INSTRUCTOR_ASSIGNMENTS);
-
-  activeInstructors = computed<InstructorProfile[]>(() => {
-    return this.instructors().filter(i => i.status === 'Active');
-  });
-
-  // Venue Management Store (BRD §4.11)
-  venues = signal<Venue[]>(INITIAL_VENUES);
-  venuePermissions = signal<VenuePermissions>(DEFAULT_VENUE_PERMISSIONS);
-
-  activeVenues = computed<Venue[]>(() => {
-    return this.venues().filter(v => v.status === 'active');
-  });
-
-  // Offline Training Store (Component Embedding & Override Chain)
-  offlineTrainings = signal<OfflineTraining[]>(INITIAL_OFFLINE_TRAININGS.map(t => ({ ...t, trainingId: t.trainingId || t.id })));
-  offlineTrainingPermissions = signal<OfflineTrainingPermissions>(DEFAULT_OFFLINE_TRAINING_PERMISSIONS);
-  offlineTrainingEmbeddings = signal<OfflineTrainingEmbedding[]>(INITIAL_OFFLINE_TRAINING_EMBEDDINGS);
-  offlineTraineeResults = signal<OfflineTraineeResult[]>(INITIAL_OFFLINE_TRAINEE_RESULTS.map(r => ({ ...r, resultId: r.resultId || `${r.traineeId}-${r.embeddingId}` })));
-
-  publishedOfflineTrainings = computed<OfflineTraining[]>(() => {
-    return this.offlineTrainings().filter(t => t.status === 'published');
-  });
 
   badgePermissions = computed<BadgePermissions>(() => {
     const role = this.activeRole();
@@ -3170,10 +3023,6 @@ export class LmsDataService {
   courseEntities = signal<CourseEntity[]>(INITIAL_COURSES_ENTITIES);
   instructorsRepo = signal<InstructorRef[]>(MOCK_INSTRUCTORS_REPO);
   creatorsRepo = signal<CreatorRef[]>(MOCK_CREATORS_REPO);
-
-  // Transcript Drag-and-Drop Templates State
-  transcriptTemplates = signal<TranscriptTemplate[]>(INITIAL_TRANSCRIPT_TEMPLATES);
-  activeTranscriptTemplateId = signal<string>('tpl-transcript-default');
 
   // Course Permissions capability object (§4.4)
   coursePermissions = computed<CoursePermissions>(() => {
@@ -8224,100 +8073,6 @@ export class LmsDataService {
     URL.revokeObjectURL(url);
   }
 
-  // -------------------------------------------------------------
-  // TRANSCRIPT DRAG-AND-DROP TEMPLATE STUDIO & REGISTRY
-  // -------------------------------------------------------------
-
-  getTranscriptTemplates(): TranscriptTemplate[] {
-    return this.transcriptTemplates();
-  }
-
-  getTranscriptTemplateById(id: string): TranscriptTemplate | undefined {
-    return this.transcriptTemplates().find(t => t.id === id);
-  }
-
-  saveTranscriptTemplate(template: TranscriptTemplate): TranscriptTemplate {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const user = this.activeUser();
-
-    const existing = this.transcriptTemplates().find(t => t.id === template.id);
-
-    if (existing) {
-      const updated: TranscriptTemplate = {
-        ...template,
-        updatedAt: formatted
-      };
-
-      this.transcriptTemplates.update(list => list.map(t => t.id === template.id ? updated : t));
-      this.showToast(`Transcript template "${updated.name}" successfully updated.`, 'success', 3500, 'Template Updated');
-      this.logAction('Transcript Template Saved', `Updated template ${updated.name} (ID: ${updated.id})`, 'info');
-      return updated;
-    } else {
-      const newTemplate: TranscriptTemplate = {
-        ...template,
-        id: template.id || `tpl-transcript-${Date.now()}`,
-        createdBy: user.name,
-        createdAt: formatted,
-        updatedAt: formatted,
-        usageCount: 0
-      };
-
-      this.transcriptTemplates.update(list => [newTemplate, ...list]);
-      this.showToast(`New transcript template "${newTemplate.name}" created.`, 'success', 3500, 'Template Created');
-      this.logAction('Transcript Template Created', `Created drag-and-drop template ${newTemplate.name}`, 'success');
-      return newTemplate;
-    }
-  }
-
-  deleteTranscriptTemplate(id: string): boolean {
-    const target = this.transcriptTemplates().find(t => t.id === id);
-    if (!target) return false;
-
-    if (target.isDefault) {
-      this.showToast('Cannot delete the default active transcript template.', 'error', 3500, 'Action Blocked');
-      return false;
-    }
-
-    this.transcriptTemplates.update(list => list.filter(t => t.id !== id));
-    this.showToast(`Transcript template "${target.name}" removed.`, 'info', 3000, 'Template Deleted');
-    this.logAction('Transcript Template Deleted', `Deleted template ${target.name} (ID: ${id})`, 'warning');
-    return true;
-  }
-
-  duplicateTranscriptTemplate(id: string): TranscriptTemplate | null {
-    const target = this.transcriptTemplates().find(t => t.id === id);
-    if (!target) return null;
-
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const user = this.activeUser();
-
-    const clone: TranscriptTemplate = {
-      ...JSON.parse(JSON.stringify(target)),
-      id: `tpl-transcript-${Date.now()}`,
-      name: `${target.name} (Copy)`,
-      isDefault: false,
-      createdBy: user.name,
-      createdAt: formatted,
-      updatedAt: formatted,
-      usageCount: 0
-    };
-
-    this.transcriptTemplates.update(list => [clone, ...list]);
-    this.showToast(`Duplicated template "${target.name}" as a new draft.`, 'success', 3500, 'Template Duplicated');
-    return clone;
-  }
-
-  setDefaultTranscriptTemplate(id: string): void {
-    this.transcriptTemplates.update(list => list.map(t => ({
-      ...t,
-      isDefault: t.id === id
-    })));
-    this.activeTranscriptTemplateId.set(id);
-    this.showToast('Default transcript template updated.', 'success', 3000, 'Default Set');
-  }
-
   // --------------------------------------------------------------------------
   // SKILL MAPPING MODULE METHODS (BRD §4.10)
   // --------------------------------------------------------------------------
@@ -8370,20 +8125,13 @@ export class LmsDataService {
       this.showToast(`Skill "${skillData.name}" has been saved successfully. Changes propagated to all mapped learning elements.`, 'success', 3500, 'Skill Updated');
       return updatedSkill!;
     } else {
-      // Create new skill - guard uniqueness
-      const trimmedName = (skillData.name || '').trim();
-      const existing = this.skills().find(s => s.name.trim().toLowerCase() === trimmedName.toLowerCase());
-      if (existing) {
-        this.showToast('Skill name must be unique.', 'error', 4000, 'Duplicate Skill Name');
-        return existing;
-      }
-
+      // Create new skill
       const newId = `skl-${Date.now()}`;
       const codeIndex = String(this.skills().length + 1).padStart(4, '0');
       const newSkill: Skill = {
         skillId: newId,
         skillCode: skillData.skillCode || `SKL-${codeIndex}`,
-        name: trimmedName || 'New Skill',
+        name: skillData.name || 'New Skill',
         description: skillData.description || '',
         category: skillData.category || 'Technical',
         clusterId: skillData.clusterId,
@@ -8933,35 +8681,6 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // TRAINEE BADGES & LMS PROVENANCE
-  // =========================================================================
-  getTraineeBadgesForUser(userId: string): EarnedBadge[] {
-    return this.traineeBadges().filter(b => b.userId === userId);
-  }
-
-  getTraineeBadgesForLms(lmsId: string, userId?: string): EarnedBadge[] {
-    const list = userId ? this.getTraineeBadgesForUser(userId) : this.activeUserEarnedBadges();
-    return list.filter(b => b.lmsId === lmsId);
-  }
-
-  awardBadgeToTrainee(newBadge: Omit<EarnedBadge, 'id' | 'serialNumber' | 'verified' | 'status'> & { id?: string; serialNumber?: string }): EarnedBadge {
-    const id = newBadge.id || `EB-${Date.now().toString().slice(-6)}`;
-    const serial = newBadge.serialNumber || `BDG-${(newBadge.lmsId || 'SYS').replace(/[^a-zA-Z0-9]/g, '')}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    
-    const completeBadge: EarnedBadge = {
-      ...newBadge,
-      id,
-      serialNumber: serial,
-      status: 'active',
-      verified: true
-    };
-
-    this.traineeBadges.update(list => [completeBadge, ...list]);
-    this.showToast(`Awarded "${completeBadge.name}" from ${completeBadge.lmsName}!`, 'success', 3500, 'Badge Awarded');
-    return completeBadge;
-  }
-
-  // =========================================================================
   // LOGIN BRANDING MANAGEMENT (System Admin Scope)
   // =========================================================================
   updateLoginBranding(changes: Partial<LoginBrandingConfig>): void {
@@ -9006,1242 +8725,104 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // AUTHOR PROFILE MANAGEMENT (Organization-Scoped Author Pool)
+  // LANDING PAGE BUILDER STATE & ACTIONS (Multi-Tenant LMS Scope)
   // =========================================================================
+  landingPages = signal<Record<string, LandingPageConfig>>({});
 
-  getAuthorById(authorId: string): AuthorProfile | undefined {
-    return this.authors().find(a => a.id === authorId || a.personId === authorId);
-  }
+  activeLandingPage = computed<LandingPageConfig>(() => {
+    const curLms = this.activeLms();
+    const curTenant = this.activeTenant();
+    const lmsId = curLms?.id || curTenant?.id || 'default';
+    const store = this.landingPages();
 
-  getAuthorByEmail(email: string): AuthorProfile | undefined {
-    if (!email) return undefined;
-    const clean = email.trim().toLowerCase();
-    return this.authors().find(a => a.email.trim().toLowerCase() === clean);
-  }
-
-  getAuthorshipHistory(authorId: string): AuthorshipRecord[] {
-    const targetAuthor = this.getAuthorById(authorId);
-    if (!targetAuthor) return [];
-    return this.authorshipRecords().filter(r => r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase());
-  }
-
-  findExistingPerson(email: string): { found: boolean; name?: string; email?: string; avatar?: string; isInstructor?: boolean; instructorId?: string; isUser?: boolean; isAuthor?: boolean; authorId?: string } {
-    if (!email) return { found: false };
-    const clean = email.trim().toLowerCase();
-
-    // Check existing authors
-    const existingAuthor = this.authors().find(a => a.email.trim().toLowerCase() === clean);
-    if (existingAuthor) {
-      return {
-        found: true,
-        name: existingAuthor.name,
-        email: existingAuthor.email,
-        avatar: existingAuthor.avatar,
-        isInstructor: existingAuthor.isInstructor,
-        instructorId: existingAuthor.instructorId,
-        isAuthor: true,
-        authorId: existingAuthor.id
-      };
+    if (store[lmsId]) {
+      return store[lmsId];
     }
 
-    // Check existing instructors
-    const existingInstructor = this.instructors().find(i => i.email.trim().toLowerCase() === clean);
-    if (existingInstructor) {
-      return {
-        found: true,
-        name: existingInstructor.name,
-        email: existingInstructor.email,
-        avatar: existingInstructor.avatar,
-        isInstructor: true,
-        instructorId: existingInstructor.id,
-        isAuthor: existingInstructor.isAuthor,
-        authorId: existingInstructor.authorId
-      };
-    }
-
-    // Check users
-    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === clean);
-    if (existingUser) {
-      return {
-        found: true,
-        name: existingUser.name,
-        email: existingUser.email,
-        avatar: existingUser.avatar,
-        isInstructor: existingUser.role === 'instructor',
-        isAuthor: false
-      };
-    }
-
-    return { found: false };
-  }
-
-  addAuthor(formData: AuthorCreateForm): { success: boolean; author: AuthorProfile; isExistingPersonLinked: boolean } {
-    const cleanEmail = formData.email.trim();
-    const cleanName = formData.name.trim();
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-    // Duplicate guard check
-    const existingAuthor = this.getAuthorByEmail(cleanEmail);
-    if (existingAuthor) {
-      this.showToast(`An Author profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Author');
-      return { success: false, author: existingAuthor, isExistingPersonLinked: false };
-    }
-
-    // Check if Person exists as Instructor or User
-    const existingPerson = this.findExistingPerson(cleanEmail);
-    const isExistingLinked = existingPerson.found;
-    const authorId = `auth-${Date.now().toString().slice(-6)}`;
-    const personId = isExistingLinked ? (existingPerson.instructorId ? `person-${existingPerson.instructorId}` : `person-${Date.now()}`) : `person-${authorId}`;
-
-    const isComplete = !formData.isQuickAdd && Boolean(formData.bio && formData.contactNumber && formData.specialization);
-
-    const newAuthor: AuthorProfile = {
-      id: authorId,
-      personId,
-      name: cleanName,
-      email: cleanEmail,
-      contactNumber: formData.contactNumber?.trim() || undefined,
-      bio: formData.bio?.trim() || undefined,
-      specialization: formData.specialization?.trim() || 'General Learning Content',
-      avatar: formData.avatar || existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
-      status: formData.status || 'Active',
-      isInstructor: existingPerson.isInstructor || false,
-      instructorId: existingPerson.instructorId,
-      organizationId: this.activeTenantId() || 'tenant-brac',
-      createdAt: formattedDate,
-      authoredItemsCount: 0,
-      isProfileComplete: isComplete,
-      incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing bio, contact details, or specialization credentials',
-      attachments: formData.attachments || []
-    };
-
-    this.authors.update(list => [newAuthor, ...list]);
-
-    // Ensure synchronized with platform users directory
-    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === cleanEmail.toLowerCase());
-    if (existingUser) {
-      this.users.update(list => list.map(u => {
-        if (u.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
-          return {
-            ...u,
-            name: cleanName,
-            authorId,
-            phone: formData.contactNumber || u.phone,
-            bio: formData.bio || u.bio,
-            isProfileComplete: isComplete,
-            incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing bio, contact details, or specialization credentials'
-          };
-        }
-        return u;
-      }));
-    } else {
-      const newUser: User = {
-        id: `usr-${Date.now().toString().slice(-6)}`,
-        tenantId: this.activeTenantId() || 'tenant-brac',
-        name: cleanName,
-        email: cleanEmail,
-        avatar: newAuthor.avatar,
-        role: newAuthor.isInstructor ? 'instructor' : 'learner',
-        department: 'Content Creation & Instructional Design',
-        enrolledCourses: [],
-        completedCourses: [],
-        earnedCertificates: [],
-        points: 0,
-        badges: [],
-        lastActive: 'Just now',
-        status: 'Active',
-        complianceStatus: 'Compliant',
-        phone: formData.contactNumber,
-        bio: formData.bio,
-        authorId,
-        isProfileComplete: isComplete,
-        incompleteReason: isComplete ? undefined : 'Quick-added from Course Creator: Missing bio, contact details, or specialization credentials'
-      };
-      this.users.update(list => [newUser, ...list]);
-    }
-
-    // If linked to an instructor, also mark that instructor as isAuthor: true
-    if (existingPerson.instructorId) {
-      this.instructors.update(list => list.map(inst => {
-        if (inst.id === existingPerson.instructorId || inst.email.toLowerCase() === cleanEmail.toLowerCase()) {
-          return { ...inst, isAuthor: true, authorId };
-        }
-        return inst;
-      }));
-    }
-
-    if (isExistingLinked) {
-      this.showToast(`Author role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
-      this.logAction('Author Role Added', `Added Author role to existing person ${cleanName} (${cleanEmail})`, 'info');
-    } else {
-      this.showToast(`${cleanName} has been added as an Author.`, 'success', 3500, 'Author Created');
-      this.logAction('Author Created', `Created new Author profile for ${cleanName} (${cleanEmail})`, 'success');
-    }
-
-    return { success: true, author: newAuthor, isExistingPersonLinked: isExistingLinked };
-  }
-
-  updateAuthor(authorId: string, updates: Partial<AuthorProfile>): boolean {
-    const existing = this.getAuthorById(authorId);
-    if (!existing) {
-      this.showToast('Author profile not found.', 'error', 3000, 'Update Failed');
-      return false;
-    }
-
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-    this.authors.update(list => list.map(a => {
-      if (a.id === authorId || a.personId === authorId) {
-        return {
-          ...a,
-          ...updates,
-          isProfileComplete: true,
-          incompleteReason: undefined,
-          updatedAt: formattedDate
-        };
-      }
-      return a;
-    }));
-
-    // Synchronize users directory and mark profile as complete
-    this.users.update(list => list.map(u => {
-      if (u.email.trim().toLowerCase() === existing.email.toLowerCase() || u.authorId === authorId) {
-        return {
-          ...u,
-          name: updates.name || u.name,
-          phone: updates.contactNumber || u.phone,
-          bio: updates.bio || u.bio,
-          isProfileComplete: true,
-          incompleteReason: undefined
-        };
-      }
-      return u;
-    }));
-
-    // Also update authorship records name if name changed
-    if (updates.name) {
-      this.authorshipRecords.update(recs => recs.map(r => {
-        if (r.authorId === authorId || r.authorEmail.toLowerCase() === existing.email.toLowerCase()) {
-          return { ...r, authorName: updates.name! };
-        }
-        return r;
-      }));
-    }
-
-    this.showToast(`Author profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
-    return true;
-  }
-
-  checkAuthorDeactivationBlocked(authorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: AuthorshipRecord[] } {
-    const targetAuthor = this.getAuthorById(authorId);
-    if (!targetAuthor) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
-
-    const records = this.authorshipRecords().filter(r => 
-      (r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase()) &&
-      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
+    // Auto-inherit branding attributes from active LMS and Tenant
+    const defaultPage = createDefaultLandingPage(
+      lmsId,
+      curTenant?.id || 'tenant-1',
+      curLms?.basicInfo?.lmsName || curTenant?.name || 'BRAC Learning Management Portal',
+      curLms?.branding?.tagline || curTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      curLms?.branding?.logoUrl || curLms?.basicInfo?.logo?.url || curTenant?.branding?.logoUrl || '',
+      curLms?.branding?.primaryColor || curTenant?.branding?.primaryColor || '#EC008C',
+      curLms?.branding?.accentColor || curTenant?.branding?.accentColor || '#005b94'
     );
 
-    return {
-      isBlocked: records.length > 0,
-      activeCreditsCount: records.length,
-      activeRecords: records
-    };
-  }
-
-  resolveAuthorCredit(resolution: DeactivationBlockResolution): void {
-    const { contentItemId, courseId, action, replacementAuthorId } = resolution;
-    
-    if (action === 'remove') {
-      this.authorshipRecords.update(list => list.filter(r => !(r.contentItemId === contentItemId && r.courseId === courseId)));
-      this.showToast('Authorship credit removed from content item.', 'info', 2500, 'Credit Removed');
-    } else if (action === 'reassign' && replacementAuthorId) {
-      const replacement = this.getAuthorById(replacementAuthorId);
-      if (!replacement) return;
-
-      this.authorshipRecords.update(list => list.map(r => {
-        if (r.contentItemId === contentItemId && r.courseId === courseId) {
-          return {
-            ...r,
-            authorId: replacement.id,
-            authorName: replacement.name,
-            authorEmail: replacement.email
-          };
-        }
-        return r;
-      }));
-      this.showToast(`Authorship credit reassigned to ${replacement.name}.`, 'success', 2500, 'Credit Reassigned');
-    }
-
-    // Refresh authored items counts
-    this.refreshAuthorsCounts();
-  }
-
-  addAuthorshipCredit(credit: Omit<AuthorshipRecord, 'id'>): void {
-    const newRecord: AuthorshipRecord = {
-      id: `rec-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-      ...credit
-    };
-    this.authorshipRecords.update(list => [newRecord, ...list]);
-    this.refreshAuthorsCounts();
-  }
-
-  private refreshAuthorsCounts(): void {
-    const records = this.authorshipRecords();
-    this.authors.update(authorsList => authorsList.map(auth => {
-      const count = records.filter(r => r.authorId === auth.id || r.authorEmail.toLowerCase() === auth.email.toLowerCase()).length;
-      return { ...auth, authoredItemsCount: count };
-    }));
-  }
-
-  deactivateAuthor(authorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: AuthorshipRecord[] } {
-    const author = this.getAuthorById(authorId);
-    if (!author) {
-      return { success: false, message: 'Author not found.' };
-    }
-
-    const check = this.checkAuthorDeactivationBlocked(authorId);
-    if (check.isBlocked && !force) {
-      return {
-        success: false,
-        message: `${author.name} is credited on ${check.activeCreditsCount} content item(s) in active course(s). Reassign or remove these credits before deactivating.`,
-        blockedRecords: check.activeRecords
-      };
-    }
-
-    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Inactive' } : a));
-    this.showToast(`${author.name} has been deactivated.`, 'info', 3000, 'Author Deactivated');
-    this.logAction('Author Deactivated', `Deactivated Author profile for ${author.name}`, 'warning');
-    return { success: true, message: `${author.name} has been deactivated.` };
-  }
-
-  activateAuthor(authorId: string): void {
-    const author = this.getAuthorById(authorId);
-    if (!author) return;
-
-    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, status: 'Active' } : a));
-    this.showToast(`${author.name} has been activated.`, 'success', 3000, 'Author Activated');
-    this.logAction('Author Activated', `Activated Author profile for ${author.name}`, 'info');
-  }
-
-  // =========================================================================
-  // INSTRUCTOR PROFILE MANAGEMENT (Organization-Scoped Instructor Pool)
-  // =========================================================================
-
-  getInstructorById(instructorId: string): InstructorProfile | undefined {
-    return this.instructors().find(i => i.id === instructorId || i.personId === instructorId);
-  }
-
-  getInstructorByEmail(email: string): InstructorProfile | undefined {
-    if (!email) return undefined;
-    const clean = email.trim().toLowerCase();
-    return this.instructors().find(i => i.email.trim().toLowerCase() === clean);
-  }
-
-  getInstructorAssignments(instructorId: string): InstructorAssignmentRecord[] {
-    const target = this.getInstructorById(instructorId);
-    if (!target) return [];
-    return this.instructorAssignments().filter(a => a.instructorId === target.id || a.instructorEmail.toLowerCase() === target.email.toLowerCase());
-  }
-
-  addInstructor(formData: InstructorCreateForm): { success: boolean; instructor: InstructorProfile; isExistingPersonLinked: boolean } {
-    const cleanEmail = formData.email.trim();
-    const cleanName = formData.name.trim();
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-    // Duplicate guard check
-    const existingInst = this.getInstructorByEmail(cleanEmail);
-    if (existingInst) {
-      this.showToast(`An Instructor profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Instructor');
-      return { success: false, instructor: existingInst, isExistingPersonLinked: false };
-    }
-
-    // Check if Person exists as Author or User
-    const existingPerson = this.findExistingPerson(cleanEmail);
-    const isExistingLinked = existingPerson.found;
-    const instructorId = `inst-${Date.now().toString().slice(-6)}`;
-    const personId = isExistingLinked ? (existingPerson.authorId ? `person-${existingPerson.authorId}` : `person-${Date.now()}`) : `person-${instructorId}`;
-
-    const specs: string[] = typeof formData.specialization === 'string'
-      ? formData.specialization.split(',').map(s => s.trim()).filter(Boolean)
-      : (formData.specialization || ['General Pedagogy']);
-
-    const isComplete = !formData.isQuickAdd && Boolean(formData.bio && formData.contactNumber && formData.title && formData.department && specs.length > 0);
-
-    const newInstructor: InstructorProfile = {
-      id: instructorId,
-      personId,
-      name: cleanName,
-      email: cleanEmail,
-      contactNumber: formData.contactNumber?.trim() || undefined,
-      bio: formData.bio?.trim() || undefined,
-      specialization: specs.length > 0 ? specs : ['General Pedagogy'],
-      avatar: formData.avatar || existingPerson.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=200&q=80`,
-      status: formData.status || 'Active',
-      isAuthor: existingPerson.isAuthor || false,
-      authorId: existingPerson.authorId,
-      department: formData.department?.trim() || 'Academic & Faculty Division',
-      title: formData.title?.trim() || 'Senior Faculty Instructor',
-      organizationId: this.activeTenantId() || 'tenant-brac',
-      createdAt: formattedDate,
-      assignmentsCount: 0,
-      rating: 5.0,
-      isProfileComplete: isComplete,
-      incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing faculty bio, academic credentials, or contact details',
-      attachments: formData.attachments || []
-    };
-
-    this.instructors.update(list => [newInstructor, ...list]);
-
-    // Ensure synchronized with platform users directory
-    const existingUser = this.users().find(u => u.email.trim().toLowerCase() === cleanEmail.toLowerCase());
-    if (existingUser) {
-      this.users.update(list => list.map(u => {
-        if (u.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
-          return {
-            ...u,
-            name: cleanName,
-            role: 'instructor',
-            instructorId,
-            phone: formData.contactNumber || u.phone,
-            bio: formData.bio || u.bio,
-            department: formData.department?.trim() || u.department,
-            title: formData.title?.trim() || u.title,
-            isProfileComplete: isComplete,
-            incompleteReason: isComplete ? undefined : 'Incomplete profile: Missing faculty bio, academic credentials, or contact details'
-          };
-        }
-        return u;
-      }));
-    } else {
-      const newUser: User = {
-        id: `usr-${Date.now().toString().slice(-6)}`,
-        tenantId: this.activeTenantId() || 'tenant-brac',
-        name: cleanName,
-        email: cleanEmail,
-        avatar: newInstructor.avatar,
-        role: 'instructor',
-        department: formData.department?.trim() || 'Academic & Faculty Division',
-        title: formData.title?.trim() || 'Faculty Instructor',
-        enrolledCourses: [],
-        completedCourses: [],
-        earnedCertificates: [],
-        points: 0,
-        badges: [],
-        lastActive: 'Just now',
-        status: 'Active',
-        complianceStatus: 'Compliant',
-        phone: formData.contactNumber,
-        bio: formData.bio,
-        instructorId,
-        isProfileComplete: isComplete,
-        incompleteReason: isComplete ? undefined : 'Quick-added from Course Creator: Missing faculty bio, academic credentials, or contact details'
-      };
-      this.users.update(list => [newUser, ...list]);
-    }
-
-    // If linked to an author, also mark that author as isInstructor: true
-    if (existingPerson.authorId) {
-      this.authors.update(list => list.map(auth => {
-        if (auth.id === existingPerson.authorId || auth.email.toLowerCase() === cleanEmail.toLowerCase()) {
-          return { ...auth, isInstructor: true, instructorId };
-        }
-        return auth;
-      }));
-    }
-
-    if (isExistingLinked) {
-      this.showToast(`Instructor role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
-      this.logAction('Instructor Role Added', `Added Instructor role to existing person ${cleanName} (${cleanEmail})`, 'info');
-    } else {
-      this.showToast(`${cleanName} has been added as an Instructor.`, 'success', 3500, 'Instructor Created');
-      this.logAction('Instructor Created', `Created new Instructor profile for ${cleanName} (${cleanEmail})`, 'success');
-    }
-
-    return { success: true, instructor: newInstructor, isExistingPersonLinked: isExistingLinked };
-  }
-
-  updateInstructor(instructorId: string, updates: Partial<InstructorProfile>): boolean {
-    const existing = this.getInstructorById(instructorId);
-    if (!existing) {
-      this.showToast('Instructor profile not found.', 'error', 3000, 'Update Failed');
-      return false;
-    }
-
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-    this.instructors.update(list => list.map(i => {
-      if (i.id === instructorId || i.personId === instructorId) {
-        return {
-          ...i,
-          ...updates,
-          isProfileComplete: true,
-          incompleteReason: undefined,
-          updatedAt: formattedDate
-        };
-      }
-      return i;
-    }));
-
-    // Synchronize users directory and mark profile as complete
-    this.users.update(list => list.map(u => {
-      if (u.email.trim().toLowerCase() === existing.email.toLowerCase() || u.instructorId === instructorId) {
-        return {
-          ...u,
-          name: updates.name || u.name,
-          phone: updates.contactNumber || u.phone,
-          bio: updates.bio || u.bio,
-          department: updates.department || u.department,
-          title: updates.title || u.title,
-          isProfileComplete: true,
-          incompleteReason: undefined
-        };
-      }
-      return u;
-    }));
-
-    // Also update assignment records if name changed
-    if (updates.name) {
-      this.instructorAssignments.update(recs => recs.map(r => {
-        if (r.instructorId === instructorId || r.instructorEmail.toLowerCase() === existing.email.toLowerCase()) {
-          return { ...r, instructorName: updates.name! };
-        }
-        return r;
-      }));
-    }
-
-    this.showToast(`Instructor profile for ${updates.name || existing.name} updated successfully.`, 'success', 3000, 'Profile Updated');
-    return true;
-  }
-
-  checkInstructorDeactivationBlocked(instructorId: string): { isBlocked: boolean; activeCreditsCount: number; activeRecords: InstructorAssignmentRecord[] } {
-    const target = this.getInstructorById(instructorId);
-    if (!target) return { isBlocked: false, activeCreditsCount: 0, activeRecords: [] };
-
-    const records = this.instructorAssignments().filter(r => 
-      (r.instructorId === target.id || r.instructorEmail.toLowerCase() === target.email.toLowerCase()) &&
-      (r.courseStatus === 'Published' || r.courseStatus.toLowerCase() === 'published')
-    );
-
-    return {
-      isBlocked: records.length > 0,
-      activeCreditsCount: records.length,
-      activeRecords: records
-    };
-  }
-
-  resolveInstructorAssignment(resolution: InstructorDeactivationResolution): void {
-    const { assignmentId, action, replacementInstructorId } = resolution;
-
-    if (action === 'remove') {
-      this.instructorAssignments.update(list => list.filter(a => a.id !== assignmentId));
-      this.showToast('Instructor assignment removed from course layer.', 'info', 2500, 'Assignment Removed');
-    } else if (action === 'reassign' && replacementInstructorId) {
-      const replacement = this.getInstructorById(replacementInstructorId);
-      if (!replacement) return;
-
-      this.instructorAssignments.update(list => list.map(a => {
-        if (a.id === assignmentId) {
-          return {
-            ...a,
-            instructorId: replacement.id,
-            instructorName: replacement.name,
-            instructorEmail: replacement.email
-          };
-        }
-        return a;
-      }));
-      this.showToast(`Assignment reassigned to ${replacement.name}.`, 'success', 2500, 'Assignment Reassigned');
-    }
-
-    this.refreshInstructorsCounts();
-  }
-
-  addInstructorAssignment(assignment: Omit<InstructorAssignmentRecord, 'id'>): void {
-    const newRecord: InstructorAssignmentRecord = {
-      id: `inst-asg-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-      ...assignment
-    };
-    this.instructorAssignments.update(list => [newRecord, ...list]);
-    this.refreshInstructorsCounts();
-  }
-
-  private refreshInstructorsCounts(): void {
-    const records = this.instructorAssignments();
-    this.instructors.update(instList => instList.map(inst => {
-      const count = records.filter(r => r.instructorId === inst.id || r.instructorEmail.toLowerCase() === inst.email.toLowerCase()).length;
-      return { ...inst, assignmentsCount: count };
-    }));
-  }
-
-  deactivateInstructor(instructorId: string, force?: boolean): { success: boolean; message: string; blockedRecords?: InstructorAssignmentRecord[] } {
-    const instructor = this.getInstructorById(instructorId);
-    if (!instructor) {
-      return { success: false, message: 'Instructor not found.' };
-    }
-
-    const check = this.checkInstructorDeactivationBlocked(instructorId);
-    if (check.isBlocked && !force) {
-      return {
-        success: false,
-        message: `${instructor.name} is currently tagged to ${check.activeCreditsCount} active course layer(s). Reassign or remove these before deactivating.`,
-        blockedRecords: check.activeRecords
-      };
-    }
-
-    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Inactive' } : i));
-    this.showToast(`${instructor.name} has been deactivated.`, 'info', 3000, 'Instructor Deactivated');
-    this.logAction('Instructor Deactivated', `Deactivated Instructor profile for ${instructor.name}`, 'warning');
-    return { success: true, message: `${instructor.name} has been deactivated.` };
-  }
-
-  activateInstructor(instructorId: string): void {
-    const instructor = this.getInstructorById(instructorId);
-    if (!instructor) return;
-
-    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, status: 'Active' } : i));
-    this.showToast(`${instructor.name} has been activated.`, 'success', 3000, 'Instructor Activated');
-    this.logAction('Instructor Activated', `Activated Instructor profile for ${instructor.name}`, 'info');
-  }
-
-  // =========================================================================
-  // VENUE & ROOM MANAGEMENT (BRD §4.11)
-  // =========================================================================
-  getVenueById(venueId: string): Venue | undefined {
-    return this.venues().find(v => v.venueId === venueId);
-  }
-
-  getRoomById(venueId: string, roomId: string): Room | undefined {
-    const venue = this.getVenueById(venueId);
-    if (!venue) return undefined;
-    return venue.rooms.find(r => r.roomId === roomId);
-  }
-
-  createVenue(data: Partial<Venue>): Venue {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const code = data.code?.trim().toUpperCase() || `VEN-${Date.now().toString().slice(-4)}`;
-    
-    const newVenue: Venue = {
-      venueId: `venue-${Date.now()}`,
-      code,
-      name: data.name?.trim() || 'New Physical Venue',
-      type: 'physical',
-      address: data.address || { line1: '', city: 'Dhaka', postcode: '', country: 'Bangladesh', formatted: '' },
-      geo: data.geo || { lat: null, lng: null },
-      facilities: data.facilities || { internet: true, parking: true, accessibility: true, otherTags: [] },
-      organizationId: data.organizationId || 'org-01',
-      organizationName: data.organizationName || 'Grameenphone Corporate Academy',
-      lmsId: data.lmsId || 'lms-01',
-      lmsName: data.lmsName || 'Enterprise Leadership Portal',
-      status: data.status || 'active',
-      rooms: data.rooms || [],
-      usedInClassesCount: 0,
-      contactPerson: data.contactPerson,
-      createdBy: this.activeRole(),
-      createdAt: formatted,
-      updatedAt: formatted
-    };
-
-    this.venues.update(list => [newVenue, ...list]);
-    this.showToast('Venue has been saved successfully.', 'success', 3000, 'Venue Created');
-    this.logAction('Venue Created', `Created physical venue ${newVenue.name} (${newVenue.code})`, 'info');
-    return newVenue;
-  }
-
-  updateVenue(venueId: string, data: Partial<Venue>): void {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        return {
-          ...v,
-          ...data,
-          updatedAt: formatted
-        };
-      }
-      return v;
-    }));
-    this.showToast('Venue has been updated successfully.', 'success', 3000, 'Venue Updated');
-    this.logAction('Venue Updated', `Updated venue record ID ${venueId}`, 'info');
-  }
-
-  deactivateVenue(venueId: string): { success: boolean; message: string } {
-    const venue = this.getVenueById(venueId);
-    if (!venue) return { success: false, message: 'Venue not found.' };
-
-    this.venues.update(list => list.map(v => v.venueId === venueId ? { ...v, status: 'inactive' } : v));
-    this.showToast(`${venue.name} has been deactivated`, 'error', 3500, 'Venue Deactivated');
-    this.logAction('Venue Deactivated', `Deactivated venue ${venue.name}. Rooms are excluded from new class tagging; historical references retained.`, 'warning');
-    return { success: true, message: `${venue.name} has been deactivated` };
-  }
-
-  reactivateVenue(venueId: string): { success: boolean; message: string } {
-    const venue = this.getVenueById(venueId);
-    if (!venue) return { success: false, message: 'Venue not found.' };
-
-    this.venues.update(list => list.map(v => v.venueId === venueId ? { ...v, status: 'active' } : v));
-    this.showToast(`${venue.name} has been reactivated`, 'success', 3500, 'Venue Reactivated');
-    this.logAction('Venue Reactivated', `Reactivated venue ${venue.name}`, 'info');
-    return { success: true, message: `${venue.name} has been reactivated` };
-  }
-
-  deleteVenue(venueId: string): { success: boolean; message: string } {
-    const venue = this.getVenueById(venueId);
-    if (!venue) return { success: false, message: 'Venue not found.' };
-
-    if (venue.usedInClassesCount && venue.usedInClassesCount > 0) {
-      const msg = `Cannot delete "${venue.name}" because it is referenced in ${venue.usedInClassesCount} historical classes. Please deactivate it instead to preserve audit logs.`;
-      this.showToast(msg, 'error', 4500, 'Deletion Blocked');
-      return { success: false, message: msg };
-    }
-
-    this.venues.update(list => list.filter(v => v.venueId !== venueId));
-    this.showToast(`Venue "${venue.name}" deleted.`, 'info', 3000, 'Venue Deleted');
-    return { success: true, message: 'Venue deleted.' };
-  }
-
-  addRoom(venueId: string, roomData: Partial<Room>): Room {
-    const venue = this.getVenueById(venueId);
-    if (!venue) throw new Error('Venue not found');
-
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    const newRoom: Room = {
-      roomId: `room-${Date.now()}`,
-      venueId,
-      venueName: venue.name,
-      name: roomData.name?.trim() || 'Room New',
-      capacity: Number(roomData.capacity) || 30,
-      equipment: roomData.equipment || { projector: true, soundSystem: true, microphone: true, displayScreen: true, otherTags: [] },
-      seatingLayouts: roomData.seatingLayouts && roomData.seatingLayouts.length > 0 ? roomData.seatingLayouts : ['theatre', 'classroom'],
-      status: roomData.status || 'active',
-      usedInClassesCount: 0,
-      floorLevel: roomData.floorLevel,
-      notes: roomData.notes,
-      createdAt: formatted,
-      updatedAt: formatted
-    };
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        return {
-          ...v,
-          rooms: [...v.rooms, newRoom],
-          updatedAt: formatted
-        };
-      }
-      return v;
-    }));
-
-    this.showToast('Room has been added.', 'success', 3000, 'Room Registered');
-    this.logAction('Room Added', `Added room ${newRoom.name} (Cap: ${newRoom.capacity}) to venue ${venue.name}`, 'info');
-    return newRoom;
-  }
-
-  updateRoom(venueId: string, roomId: string, roomData: Partial<Room>): void {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        const updatedRooms = v.rooms.map(r => {
-          if (r.roomId === roomId) {
-            return {
-              ...r,
-              ...roomData,
-              updatedAt: formatted
-            };
-          }
-          return r;
-        });
-        return { ...v, rooms: updatedRooms, updatedAt: formatted };
-      }
-      return v;
-    }));
-
-    this.showToast('Room updated successfully.', 'success', 2500, 'Room Updated');
-  }
-
-  deactivateRoom(venueId: string, roomId: string): { success: boolean; message: string } {
-    const room = this.getRoomById(venueId, roomId);
-    if (!room) return { success: false, message: 'Room not found.' };
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        return {
-          ...v,
-          rooms: v.rooms.map(r => r.roomId === roomId ? { ...r, status: 'inactive' } : r)
-        };
-      }
-      return v;
-    }));
-
-    this.showToast(`Room "${room.name}" has been deactivated.`, 'error', 3000, 'Room Deactivated');
-    return { success: true, message: `Room "${room.name}" deactivated.` };
-  }
-
-  reactivateRoom(venueId: string, roomId: string): { success: boolean; message: string } {
-    const room = this.getRoomById(venueId, roomId);
-    if (!room) return { success: false, message: 'Room not found.' };
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        return {
-          ...v,
-          rooms: v.rooms.map(r => r.roomId === roomId ? { ...r, status: 'active' } : r)
-        };
-      }
-      return v;
-    }));
-
-    this.showToast(`Room "${room.name}" has been reactivated.`, 'success', 3000, 'Room Reactivated');
-    return { success: true, message: `Room "${room.name}" reactivated.` };
-  }
-
-  deleteRoom(venueId: string, roomId: string): { success: boolean; message: string } {
-    const room = this.getRoomById(venueId, roomId);
-    if (!room) return { success: false, message: 'Room not found.' };
-
-    if (room.usedInClassesCount && room.usedInClassesCount > 0) {
-      const msg = `Cannot delete room "${room.name}" because it is referenced in ${room.usedInClassesCount} delivery classes. Deactivate instead to preserve reporting integrity.`;
-      this.showToast(msg, 'error', 4500, 'Room Deletion Blocked');
-      return { success: false, message: msg };
-    }
-
-    this.venues.update(list => list.map(v => {
-      if (v.venueId === venueId) {
-        return { ...v, rooms: v.rooms.filter(r => r.roomId !== roomId) };
-      }
-      return v;
-    }));
-
-    this.showToast(`Room "${room.name}" deleted.`, 'info', 2500, 'Room Deleted');
-    return { success: true, message: 'Room deleted.' };
-  }
-
-  checkCapacityGuidance(roomId: string, plannedBatchSize: number): { isOverCapacity: boolean; capacity: number; difference: number; message: string } {
-    let targetRoom: Room | undefined;
-    for (const v of this.venues()) {
-      const found = v.rooms.find(r => r.roomId === roomId);
-      if (found) {
-        targetRoom = found;
-        break;
-      }
-    }
-
-    if (!targetRoom) {
-      return { isOverCapacity: false, capacity: 0, difference: 0, message: '' };
-    }
-
-    const capacity = targetRoom.capacity;
-    const diff = plannedBatchSize - capacity;
-    const isOver = diff > 0;
-
-    const message = isOver
-      ? `This room holds ${capacity} trainees. The selected batch has ${plannedBatchSize} (${diff} trainee(s) over room capacity).`
-      : `This room holds ${capacity} trainees. The selected batch has ${plannedBatchSize} (within maximum capacity limit).`;
-
-    return {
-      isOverCapacity: isOver,
-      capacity,
-      difference: diff,
-      message
-    };
-  }
-
-  // =========================================================================
-  // OFFLINE TRAINING & EMBEDDING MANAGEMENT (Spec 2)
-  // =========================================================================
-  getOfflineTrainingById(id: string): OfflineTraining | undefined {
-    if (!id) return undefined;
-    return this.offlineTrainings().find(t => t.id === id || t.code === id || (t as any).trainingId === id);
-  }
-
-  createOfflineTraining(data: Partial<OfflineTraining>): OfflineTraining {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const code = data.code?.trim().toUpperCase() || `OFL-${Date.now().toString().slice(-4)}`;
-
-    const venue = this.getVenueById(data.venueId || '');
-    const room = venue ? venue.rooms.find(r => r.roomId === data.roomId) : undefined;
-    const trainer = this.getInstructorById(data.defaultTrainerId || '');
-
-    const newTraining: OfflineTraining = {
-      id: `off-${Date.now()}`,
-      code,
-      title: data.title?.trim() || 'New In-Person Offline Training',
-      description: data.description?.trim() || '',
-      categoryTags: data.categoryTags || ['Technical', 'Hands-On'],
-      sessionMeta: data.sessionMeta,
-      venueId: data.venueId || (venue ? venue.venueId : ''),
-      venueName: venue ? venue.name : data.venueName,
-      roomId: data.roomId || (room ? room.roomId : ''),
-      roomName: room ? room.name : data.roomName,
-      roomCapacityAtTagging: room ? room.capacity : (data.roomCapacityAtTagging || 30),
-      defaultTrainerId: data.defaultTrainerId || (trainer ? trainer.id : ''),
-      defaultTrainerName: trainer ? trainer.name : data.defaultTrainerName,
-      defaultTrainerEmail: trainer ? trainer.email : data.defaultTrainerEmail,
-      defaultTrainerAvatar: trainer ? trainer.avatar : data.defaultTrainerAvatar,
-      coTrainerIds: data.coTrainerIds || [],
-      content: data.content || [],
-      assessments: data.assessments || [],
-      attendance: data.attendance || { required: true, requiredForCompletion: true },
-      outputs: data.outputs || { certificateTemplateId: null, badgeTemplateId: null, transcriptEnabled: true },
-      completionRule: data.completionRule || 'attended_and_passed',
-      skillIds: data.skillIds || [],
-      status: data.status || 'draft',
-      version: 1,
-      usedInCount: 0,
-      createdBy: this.activeRole(),
-      createdAt: formatted,
-      updatedAt: formatted
-    };
-
-    this.offlineTrainings.update(list => [newTraining, ...list]);
-    this.showToast('Offline training created successfully.', 'success', 3000, 'Training Saved');
-    this.logAction('Offline Training Created', `Created offline training "${newTraining.title}" (${newTraining.code})`, 'info');
-    return newTraining;
-  }
-
-  updateOfflineTraining(id: string, data: Partial<OfflineTraining>): void {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    let venueName = data.venueName;
-    let roomName = data.roomName;
-    let roomCap = data.roomCapacityAtTagging;
-
-    if (data.venueId && data.roomId) {
-      const venue = this.getVenueById(data.venueId);
-      const room = venue?.rooms.find(r => r.roomId === data.roomId);
-      if (venue) venueName = venue.name;
-      if (room) {
-        roomName = room.name;
-        roomCap = room.capacity;
-      }
-    }
-
-    let trainerName = data.defaultTrainerName;
-    let trainerEmail = data.defaultTrainerEmail;
-    let trainerAvatar = data.defaultTrainerAvatar;
-    if (data.defaultTrainerId) {
-      const inst = this.getInstructorById(data.defaultTrainerId);
-      if (inst) {
-        trainerName = inst.name;
-        trainerEmail = inst.email;
-        trainerAvatar = inst.avatar;
-      }
-    }
-
-    this.offlineTrainings.update(list => list.map(t => {
-      if (t.id === id) {
-        return {
-          ...t,
-          ...data,
-          venueName: venueName || t.venueName,
-          roomName: roomName || t.roomName,
-          roomCapacityAtTagging: roomCap || t.roomCapacityAtTagging,
-          defaultTrainerName: trainerName || t.defaultTrainerName,
-          defaultTrainerEmail: trainerEmail || t.defaultTrainerEmail,
-          defaultTrainerAvatar: trainerAvatar || t.defaultTrainerAvatar,
-          updatedAt: formatted
-        };
-      }
-      return t;
-    }));
-
-    this.showToast('Offline training updated successfully.', 'success', 2500, 'Training Updated');
-  }
-
-  publishOfflineTraining(id: string): { success: boolean; message: string } {
-    const training = this.getOfflineTrainingById(id);
-    if (!training) return { success: false, message: 'Offline training not found.' };
-
-    if (!training.venueId || !training.roomId) {
-      const msg = 'Publishing blocked: A physical Venue and Room are required for an in-person offline training.';
-      this.showToast(msg, 'error', 4000, 'Missing Venue');
-      return { success: false, message: msg };
-    }
-
-    // Check if manual assessment exists without a trainer assigned
-    const hasManual = training.assessments.some(a => a.mode === 'manual');
-    if (hasManual && !training.defaultTrainerId) {
-      const msg = 'Publishing blocked: Manual mark entry rubric requires a default instructor assigned.';
-      this.showToast(msg, 'error', 4000, 'Missing Trainer');
-      return { success: false, message: msg };
-    }
-
-    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'published' } : t));
-    this.showToast('Offline training has been published successfully.', 'success', 3500, 'Published');
-    this.logAction('Offline Training Published', `Published offline training ${training.title}`, 'info');
-    return { success: true, message: 'Offline training has been published successfully.' };
-  }
-
-  deactivateOfflineTraining(id: string): { success: boolean; message: string } {
-    const training = this.getOfflineTrainingById(id);
-    if (!training) return { success: false, message: 'Offline training not found.' };
-
-    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'inactive' } : t));
-    this.showToast(`"${training.title}" has been deactivated.`, 'error', 3500, 'Training Deactivated');
-    this.logAction('Offline Training Deactivated', `Deactivated ${training.title}. Not embeddable in new learning; existing embeddings retained.`, 'warning');
-    return { success: true, message: `Offline training "${training.title}" deactivated.` };
-  }
-
-  reactivateOfflineTraining(id: string): { success: boolean; message: string } {
-    const training = this.getOfflineTrainingById(id);
-    if (!training) return { success: false, message: 'Offline training not found.' };
-
-    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.code === id) ? { ...t, status: 'published' } : t));
-    this.showToast(`"${training.title}" has been reactivated.`, 'success', 3000, 'Training Reactivated');
-    return { success: true, message: `Offline training reactivated.` };
-  }
-
-  duplicateOfflineTraining(id: string): OfflineTraining {
-    const source = this.getOfflineTrainingById(id);
-    if (!source) throw new Error('Source training not found');
-
-    return this.createOfflineTraining({
-      ...source,
-      code: `${source.code}-COPY`,
-      title: `${source.title} (Copy)`,
-      status: 'draft'
-    });
-  }
-
-  deleteOfflineTraining(id: string): { success: boolean; message: string } {
-    const training = this.getOfflineTrainingById(id);
-    if (!training) return { success: false, message: 'Offline training not found.' };
-
-    if (training.usedInCount && training.usedInCount > 0) {
-      const msg = `Cannot delete "${training.title}" because it is embedded in ${training.usedInCount} active course/phase/plan(s). Deactivate it instead.`;
-      this.showToast(msg, 'error', 4500, 'Deletion Blocked');
-      return { success: false, message: msg };
-    }
-
-    this.offlineTrainings.update(list => list.filter(t => t.id !== id && t.code !== id));
-    this.showToast('Offline training deleted.', 'info', 2500, 'Training Deleted');
-    return { success: true, message: 'Offline training deleted.' };
-  }
-
-  embedOfflineTraining(embeddingData: Omit<OfflineTrainingEmbedding, 'embeddingId' | 'embeddedAt'>): OfflineTrainingEmbedding {
-    const training = this.getOfflineTrainingById(embeddingData.offlineTrainingId);
-    if (!training) throw new Error('Offline training not found');
-
-    const trainer = this.getInstructorById(embeddingData.effectiveTrainerId) || 
-                    this.getInstructorById(training.defaultTrainerId);
-
-    const isOverridden = embeddingData.effectiveTrainerId !== training.defaultTrainerId;
-
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    const newEmbedding: OfflineTrainingEmbedding = {
-      embeddingId: `embed-${Date.now()}`,
-      offlineTrainingId: training.id,
-      offlineTrainingVersion: training.version,
-      hostType: embeddingData.hostType,
-      hostId: embeddingData.hostId,
-      hostTitle: embeddingData.hostTitle,
-      effectiveTrainerId: trainer ? trainer.id : training.defaultTrainerId,
-      effectiveTrainerName: trainer ? trainer.name : (training.defaultTrainerName || 'Assigned Trainer'),
-      effectiveTrainerEmail: trainer ? trainer.email : training.defaultTrainerEmail,
-      effectiveTrainerAvatar: trainer ? trainer.avatar : training.defaultTrainerAvatar,
-      trainerOverridden: isOverridden,
-      customSessionDate: embeddingData.customSessionDate,
-      customSessionTime: embeddingData.customSessionTime,
-      embeddedBy: this.activeRole(),
-      embeddedAt: formatted
-    };
-
-    this.offlineTrainingEmbeddings.update(list => [newEmbedding, ...list]);
-    this.offlineTrainings.update(list => list.map(t => t.id === training.id ? { ...t, usedInCount: (t.usedInCount || 0) + 1 } : t));
-
-    this.showToast(`Offline training embedded into ${embeddingData.hostType}.`, 'success', 2500, 'Component Embedded');
-    return newEmbedding;
-  }
-
-  overrideEmbeddingTrainer(embeddingId: string, newTrainerId: string): void {
-    const newTrainer = this.getInstructorById(newTrainerId);
-    if (!newTrainer) {
-      this.showToast('Selected instructor not found.', 'error', 3000);
-      return;
-    }
-
-    this.offlineTrainingEmbeddings.update(list => list.map(emb => {
-      if (emb.embeddingId === embeddingId) {
-        return {
-          ...emb,
-          effectiveTrainerId: newTrainer.id,
-          effectiveTrainerName: newTrainer.name,
-          effectiveTrainerEmail: newTrainer.email,
-          effectiveTrainerAvatar: newTrainer.avatar,
-          trainerOverridden: true
-        };
-      }
-      return emb;
-    }));
-
-    this.showToast(`Trainer updated for this embedding to ${newTrainer.name}.`, 'success', 3000, 'Trainer Overridden');
-  }
-
-  saveOfflineManualMarks(embeddingId: string, traineeId: string, assessmentRef: string, mark: number, maxMark: number, remark?: string): void {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    this.offlineTraineeResults.update(results => {
-      const existing = results.find(r => r.embeddingId === embeddingId && r.traineeId === traineeId);
-      if (existing) {
-        const marks = existing.manualMarks.filter(m => m.assessmentRef !== assessmentRef);
-        marks.push({
-          assessmentRef,
-          mark,
-          maxMark,
-          remark,
-          enteredBy: this.activeRole(),
-          enteredAt: formatted
-        });
-
-        const overallPct = Math.round((marks.reduce((sum, m) => sum + (m.mark / m.maxMark * 100), 0)) / marks.length);
-        const passed = overallPct >= 60 && existing.attendance.status === 'present';
-
-        return results.map(r => r.embeddingId === embeddingId && r.traineeId === traineeId ? {
-          ...r,
-          manualMarks: marks,
-          overallScore: overallPct,
-          passed,
-          completed: passed,
-          updatedAt: formatted
-        } : r);
-      } else {
-        // Create new trainee result entry
-        const user = this.users().find(u => u.id === traineeId);
-        const newResult: OfflineTraineeResult = {
-          traineeId,
-          traineeName: user ? user.name : 'Enrolled Trainee',
-          traineeEmail: user ? user.email : 'trainee@onelms.com',
-          traineeAvatar: user ? user.avatar : undefined,
-          embeddingId,
-          offlineTrainingId: '',
-          manualMarks: [{
-            assessmentRef,
-            mark,
-            maxMark,
-            remark,
-            enteredBy: this.activeRole(),
-            enteredAt: formatted
-          }],
-          attendance: { status: 'present', markedBy: this.activeRole(), markedAt: formatted },
-          overallScore: Math.round((mark / maxMark) * 100),
-          completed: (mark / maxMark) >= 0.6,
-          passed: (mark / maxMark) >= 0.6,
-          updatedAt: formatted
-        };
-        return [...results, newResult];
-      }
-    });
-
-    this.showToast('Marks have been saved.', 'success', 2500, 'Gradebook Updated');
-  }
-
-  saveOfflineAttendance(embeddingId: string, traineeId: string, status: AttendanceStatus, remarks?: string): void {
-    const now = new Date();
-    const formatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-    this.offlineTraineeResults.update(results => {
-      const existing = results.find(r => r.embeddingId === embeddingId && r.traineeId === traineeId);
-      if (existing) {
-        return results.map(r => r.embeddingId === embeddingId && r.traineeId === traineeId ? {
-          ...r,
-          attendance: { status, markedBy: this.activeRole(), markedAt: formatted, remarks },
-          updatedAt: formatted
-        } : r);
-      } else {
-        const user = this.users().find(u => u.id === traineeId);
-        const newResult: OfflineTraineeResult = {
-          traineeId,
-          traineeName: user ? user.name : 'Enrolled Trainee',
-          traineeEmail: user ? user.email : 'trainee@onelms.com',
-          traineeAvatar: user ? user.avatar : undefined,
-          embeddingId,
-          offlineTrainingId: '',
-          manualMarks: [],
-          attendance: { status, markedBy: this.activeRole(), markedAt: formatted, remarks },
-          completed: status === 'present',
-          passed: status === 'present',
-          updatedAt: formatted
-        };
-        return [...results, newResult];
-      }
-    });
-
-    this.showToast('Attendance has been recorded.', 'success', 2500, 'Attendance Logged');
-  }
-
-  // --- Landing Page Configuration Management ---
-  private landingPagesStore = signal<Record<string, LandingPageConfig>>({});
+    return defaultPage;
+  });
 
   getLandingPageForLms(lmsId: string): LandingPageConfig {
-    const key = lmsId || 'default';
-    const store = this.landingPagesStore();
-    if (store[key]) {
-      return store[key];
+    const store = this.landingPages();
+    if (store[lmsId]) {
+      return store[lmsId];
     }
 
-    try {
-      const stored = localStorage.getItem(`onelms_landing_config_${key}`);
-      if (stored) {
-        const parsed = JSON.parse(stored) as LandingPageConfig;
-        this.landingPagesStore.update(s => ({ ...s, [key]: parsed }));
-        return parsed;
-      }
-    } catch (e) {
-      // Ignore localStorage read errors
-    }
+    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
+    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
 
-    const tenant = this.tenants().find(t => t.id === key);
-    const lmsName = tenant?.name || 'OneLMS Enterprise';
-    const primaryColor = tenant?.branding?.primaryColor || '#0284c7';
-    const accentColor = tenant?.branding?.accentColor || '#38bdf8';
+    const created = createDefaultLandingPage(
+      lmsId,
+      targetTenant?.id || 'tenant-1',
+      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
+      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
+      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
+      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+    );
 
-    const defaultConfig = createDefaultLandingPage(lmsName, key, primaryColor, accentColor);
-    this.landingPagesStore.update(s => ({ ...s, [key]: defaultConfig }));
-    return defaultConfig;
+    this.landingPages.update(s => ({ ...s, [lmsId]: created }));
+    return created;
   }
 
   saveLandingPage(config: LandingPageConfig): void {
-    const key = config.lmsId || 'default';
-    this.landingPagesStore.update(s => ({ ...s, [key]: config }));
-    try {
-      localStorage.setItem(`onelms_landing_config_${key}`, JSON.stringify(config));
-    } catch (e) {
-      console.warn('Could not persist landing page to localStorage', e);
-    }
+    if (!config || !config.lmsId) return;
+    const author = this.activeUser()?.name || 'System Admin';
+    const updated: LandingPageConfig = {
+      ...config,
+      lastUpdatedBy: author,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    this.landingPages.update(s => ({ ...s, [config.lmsId]: updated }));
+    this.logAction('Landing Page Draft Saved', `Saved Landing Page configuration draft for ${config.lmsName}`, 'info');
+    this.showToast(`Landing page draft saved for ${config.lmsName}`, 'success', 2500, 'Draft Saved');
   }
 
   publishLandingPageConfig(config: LandingPageConfig): void {
-    const updated: LandingPageConfig = {
+    if (!config || !config.lmsId) return;
+    const newVer = Math.round(((config.version || 1) + 0.1) * 10) / 10;
+    const author = this.activeUser()?.name || 'System Admin';
+    const published: LandingPageConfig = {
       ...config,
       status: 'Published',
-      lastUpdatedAt: new Date().toISOString()
+      version: newVer,
+      lastUpdatedBy: author,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
-    this.saveLandingPage(updated);
+
+    this.landingPages.update(s => ({ ...s, [config.lmsId]: published }));
+    this.logAction('Landing Page Published Live', `Published Landing Page v${newVer} for ${config.lmsName}`, 'success');
+    this.showToast(`Landing page for ${config.lmsName} is now live! (v${newVer})`, 'success', 4000, 'Page Published');
   }
 
   resetLandingPageForLms(lmsId: string): LandingPageConfig {
-    const key = lmsId || 'default';
-    const tenant = this.tenants().find(t => t.id === key);
-    const lmsName = tenant?.name || 'OneLMS Enterprise';
-    const primaryColor = tenant?.branding?.primaryColor || '#0284c7';
-    const accentColor = tenant?.branding?.accentColor || '#38bdf8';
+    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
+    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
 
-    const fresh = createDefaultLandingPage(lmsName, key, primaryColor, accentColor);
-    this.saveLandingPage(fresh);
+    const fresh = createDefaultLandingPage(
+      lmsId,
+      targetTenant?.id || 'tenant-1',
+      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
+      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
+      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
+      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+    );
+
+    this.landingPages.update(s => ({ ...s, [lmsId]: fresh }));
+    this.showToast(`Landing page reset to LMS branding preset for ${fresh.lmsName}`, 'info', 3000, 'Reset Complete');
     return fresh;
   }
 }

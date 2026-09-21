@@ -24,17 +24,17 @@ import { CommonModule } from '@angular/common';
           
           <!-- Modal Header (Default or Custom Slot) -->
           @if (title() || hasHeaderSlot) {
-            <div class="px-6 sm:px-7 py-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between bg-base-100 dark:bg-base-200 shrink-0">
-              <div class="flex items-center gap-3.5 min-w-0 pr-2">
+            <div class="px-6 py-4.5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between bg-base-200/50 dark:bg-base-300/30">
+              <div class="flex items-center gap-3">
                 @if (icon()) {
-                  <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 border border-tenant-200/60 dark:border-tenant-800/60 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 dark:bg-tenant-400/20 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
                     <span class="material-symbols-outlined text-xl">{{ icon() }}</span>
                   </div>
                 }
-                <div class="min-w-0">
-                  <h3 class="text-base sm:text-lg font-bold text-text-primary tracking-tight leading-snug truncate">{{ title() }}</h3>
+                <div>
+                  <h3 class="text-base font-bold text-text-primary">{{ title() }}</h3>
                   @if (subtitle()) {
-                    <p class="text-xs text-text-secondary mt-0.5 leading-normal truncate">{{ subtitle() }}</p>
+                    <p class="text-xs text-text-secondary mt-0.5">{{ subtitle() }}</p>
                   }
                 </div>
               </div>
@@ -43,10 +43,9 @@ import { CommonModule } from '@angular/common';
                 <button 
                   type="button" 
                   (click)="close.emit()" 
-                  class="w-9 h-9 rounded-xl flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 -mr-1"
-                  title="Close dialog"
-                  aria-label="Close dialog">
-                  <span class="material-symbols-outlined text-xl">close</span>
+                  class="w-8 h-8 rounded-xl flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-base-300/50 transition-colors cursor-pointer"
+                  title="Close dialog">
+                  <span class="material-symbols-outlined text-lg">close</span>
                 </button>
               }
             </div>
@@ -56,7 +55,7 @@ import { CommonModule } from '@angular/common';
           <ng-content select="[modal-header]"></ng-content>
 
           <!-- Modal Body Content -->
-          <div class="p-6 sm:p-7 overflow-y-auto flex-1 sleek-scrollbar">
+          <div class="p-6 overflow-y-auto flex-1 sleek-scrollbar">
             <ng-content></ng-content>
           </div>
 
