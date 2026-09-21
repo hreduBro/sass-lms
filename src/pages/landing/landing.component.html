@@ -1,111 +1,113 @@
 <div class="min-h-screen bg-white text-slate-900 font-sans select-text flex flex-col" id="public-landing-root">
   
   <!-- ========================================================================= -->
-  <!-- 1. STICKY / FIXED TOPBAR (ANNOUNCEMENT STRIP + NAVIGATION HEADER)         -->
+  <!-- 1. ANNOUNCEMENT STRIP (IF ENABLED)                                        -->
   <!-- ========================================================================= -->
-  <div 
+  @if (pageConfig().navbar.showAnnouncementBar) {
+    <div class="py-2.5 px-4 text-center text-xs font-semibold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800 flex items-center justify-center gap-2 select-text shadow-xs z-50">
+      <span>{{ pageConfig().navbar.announcementText }}</span>
+      @if (pageConfig().navbar.announcementLink) {
+        <a [href]="pageConfig().navbar.announcementLink" class="underline underline-offset-2 hover:text-pink-400 flex items-center gap-0.5">
+          <span>Learn more</span>
+          <span class="material-symbols-outlined text-xs">arrow_forward</span>
+        </a>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY GLASS HEADER & NAVIGATION                                       -->
+  <!-- ========================================================================= -->
+  <header 
     [class.sticky]="pageConfig().navbar.sticky"
     [class.top-0]="pageConfig().navbar.sticky"
     [class.relative]="!pageConfig().navbar.sticky"
-    class="w-full z-40 transition-all flex-shrink-0 bg-white">
+    [class.z-40]="true"
+    [class.bg-white/90]="pageConfig().navbar.sticky"
+    [class.backdrop-blur-xl]="pageConfig().navbar.sticky"
+    [class.bg-white]="!pageConfig().navbar.sticky"
+    [class.shadow-xs]="pageConfig().navbar.sticky"
+    class="w-full px-4 sm:px-8 lg:px-12 py-3.5 border-b border-slate-200/60 flex items-center justify-between transition-all">
+    
+    <!-- Logo & Title -->
+    <a routerLink="/" class="flex items-center gap-3 group">
+      @if (lmsLogo()) {
+        <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[170px] object-contain group-hover:opacity-90 transition-opacity" referrerpolicy="no-referrer" />
+      }
+      <span class="text-base font-black text-slate-900 tracking-tight hidden sm:inline">
+        {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
+      </span>
+    </a>
 
-    <!-- Announcement Strip (If Enabled) -->
-    @if (pageConfig().navbar.showAnnouncementBar) {
-      <div class="py-2.5 px-4 text-center text-xs font-semibold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800 flex items-center justify-center gap-2 select-text shadow-xs z-50">
-        <span>{{ pageConfig().navbar.announcementText }}</span>
-        @if (pageConfig().navbar.announcementLink) {
-          <a [href]="pageConfig().navbar.announcementLink" class="underline underline-offset-2 hover:text-pink-400 flex items-center gap-0.5">
-            <span>Learn more</span>
-            <span class="material-symbols-outlined text-xs">arrow_forward</span>
-          </a>
-        }
-      </div>
-    }
+    <!-- Navigation Links -->
+    <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-bold text-slate-700">
+      @for (link of pageConfig().navbar.links; track link.id) {
+        <a 
+          [href]="link.target" 
+          (click)="scrollToSection(link.target); $event.preventDefault()"
+          [class.text-pink-600]="isLinkActive(link)"
+          [class.font-extrabold]="isLinkActive(link)"
+          class="relative py-1 hover:text-pink-600 transition-colors flex items-center gap-1 cursor-pointer">
+          <span>{{ link.label }}</span>
+          @if (link.badge) {
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
+          }
+          @if (isLinkActive(link)) {
+            <span class="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-pink-600"></span>
+          }
+        </a>
+      }
+    </nav>
 
-    <!-- Glass Header & Navigation -->
-    <header 
-      class="w-full px-4 sm:px-8 lg:px-12 py-3.5 border-b border-slate-200/60 bg-white/95 backdrop-blur-xl flex items-center justify-between transition-all shadow-xs">
-      
-      <!-- Logo & Title -->
-      <a routerLink="/" class="flex items-center gap-3 group">
-        @if (lmsLogo()) {
-          <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[170px] object-contain group-hover:opacity-90 transition-opacity" referrerpolicy="no-referrer" />
-        }
-        <span class="text-base font-black text-slate-900 tracking-tight hidden sm:inline">
-          {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
-        </span>
-      </a>
+    <!-- Header Actions -->
+    <div class="flex items-center gap-3">
+      <!-- Admin Edit Link (if admin user is previewing) -->
+      @if (lms.activeUser()?.role === 'system_admin' || lms.activeUser()?.role === 'lms_admin') {
+        <a 
+          [routerLink]="['/landing-builder', activeLmsId()]"
+          class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-xs text-pink-600">design_services</span>
+          <span class="hidden sm:inline">Page Builder</span>
+        </a>
+      }
 
-      <!-- Navigation Links -->
-      <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-bold text-slate-700">
-        @for (link of pageConfig().navbar.links; track link.id) {
-          <a 
-            [href]="link.target" 
-            (click)="scrollToSection(link.target); $event.preventDefault()"
-            [class.text-pink-600]="isLinkActive(link)"
-            [class.font-extrabold]="isLinkActive(link)"
-            class="relative py-1 hover:text-pink-600 transition-colors flex items-center gap-1 cursor-pointer">
-            <span>{{ link.label }}</span>
-            @if (link.badge) {
-              <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
-            }
-            @if (isLinkActive(link)) {
-              <span class="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-pink-600"></span>
-            }
-          </a>
-        }
-      </nav>
+      @if (pageConfig().navbar.ctaButton.enabled) {
+        <a 
+          routerLink="/login"
+          class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+          [style.backgroundColor]="primaryColor()">
+          <span class="material-symbols-outlined text-sm">login</span>
+          <span>{{ pageConfig().navbar.ctaButton.label }}</span>
+        </a>
+      }
 
-      <!-- Header Actions -->
-      <div class="flex items-center gap-3">
-        <!-- Admin Edit Link (if admin user is previewing) -->
-        @if (lms.activeUser()?.role === 'system_admin' || lms.activeUser()?.role === 'lms_admin') {
-          <a 
-            [routerLink]="['/landing-builder', activeLmsId()]"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-xs text-pink-600">design_services</span>
-            <span class="hidden sm:inline">Page Builder</span>
-          </a>
-        }
+      <!-- Mobile Hamburger Button -->
+      <button 
+        type="button" 
+        (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+        class="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
+        aria-label="Toggle Navigation Menu">
+        <span class="material-symbols-outlined text-xl">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
+      </button>
+    </div>
+  </header>
 
-        @if (pageConfig().navbar.ctaButton.enabled) {
-          <a 
-            routerLink="/login"
-            class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-            [style.backgroundColor]="primaryColor()">
-            <span class="material-symbols-outlined text-sm">login</span>
-            <span>{{ pageConfig().navbar.ctaButton.label }}</span>
-          </a>
-        }
-
-        <!-- Mobile Hamburger Button -->
-        <button 
-          type="button" 
-          (click)="mobileMenuOpen.set(!mobileMenuOpen())"
-          class="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
-          aria-label="Toggle Navigation Menu">
-          <span class="material-symbols-outlined text-xl">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Mobile Dropdown Navigation Menu -->
-    @if (mobileMenuOpen()) {
-      <div class="md:hidden bg-white border-b border-slate-200 px-6 py-4 shadow-lg flex flex-col gap-3 animate-fadeIn">
-        @for (link of pageConfig().navbar.links; track link.id) {
-          <a 
-            [href]="link.target" 
-            (click)="scrollToSection(link.target); $event.preventDefault()"
-            class="py-2 text-sm font-bold text-slate-800 hover:text-pink-600 flex items-center justify-between border-b border-slate-100">
-            <span>{{ link.label }}</span>
-            @if (link.badge) {
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
-            }
-          </a>
-        }
-      </div>
-    }
-  </div>
+  <!-- Mobile Dropdown Navigation Menu -->
+  @if (mobileMenuOpen()) {
+    <div class="md:hidden sticky top-[61px] z-30 bg-white border-b border-slate-200 px-6 py-4 shadow-lg flex flex-col gap-3 animate-fadeIn">
+      @for (link of pageConfig().navbar.links; track link.id) {
+        <a 
+          [href]="link.target" 
+          (click)="scrollToSection(link.target); $event.preventDefault()"
+          class="py-2 text-sm font-bold text-slate-800 hover:text-pink-600 flex items-center justify-between border-b border-slate-100">
+          <span>{{ link.label }}</span>
+          @if (link.badge) {
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-bold uppercase">{{ link.badge }}</span>
+          }
+        </a>
+      }
+    </div>
+  }
 
   <!-- ========================================================================= -->
   <!-- 3. MAIN CONTENT: RENDERED LANDING SECTIONS                                -->
