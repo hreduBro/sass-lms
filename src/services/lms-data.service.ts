@@ -5337,6 +5337,16 @@ export class LmsDataService {
     return this.plans().find(p => p.id === planId);
   }
 
+  // Save or update Plan (v2.3)
+  savePlan(plan: Plan): void {
+    const existing = this.plans().find(p => p.id === plan.id);
+    if (existing) {
+      this.plans.update(list => list.map(p => p.id === plan.id ? plan : p));
+    } else {
+      this.plans.update(list => [plan, ...list]);
+    }
+  }
+
   // Get phases for a specific plan
   getPlanPhases(planId: string): Phase[] {
     const plan = this.getPlan(planId);
