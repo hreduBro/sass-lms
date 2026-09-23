@@ -23,6 +23,12 @@ interface ParsedRow {
 @Component({
   selector: 'app-bulk-upload-modal',
   imports: [CommonModule, FormsModule],
+  styles: [`
+    .modal-header {
+      padding: 1.25rem 1.5rem !important;
+      flex-shrink: 0 !important;
+    }
+  `],
   template: `
     @if (isOpen()) {
       <div 
@@ -37,19 +43,19 @@ interface ParsedRow {
           aria-label="Bulk Upload Trainees">
           
           <!-- Header -->
-          <div class="px-6 py-4.5 border-b border-base-300 flex items-center justify-between bg-base-100">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
-                <span class="material-symbols-outlined text-xl">upload_file</span>
+          <div class="modal-header px-6 py-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between gap-4 bg-base-100 dark:bg-slate-900 shrink-0">
+            <div class="flex items-center gap-3.5 min-w-0 flex-1">
+              <div class="w-11 h-11 rounded-2xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-2xl">upload_file</span>
               </div>
-              <div>
-                <div class="flex items-center gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-0.5">
                   <span class="text-xs font-bold text-tenant-600 uppercase tracking-wider">Bulk Onboarding</span>
-                  <span class="text-xs font-medium text-text-secondary">
-                    Target Scope: <strong class="text-text-primary">{{ getScopeDisplayName(targetScope()) }}</strong>
+                  <span class="text-xs font-medium text-text-secondary truncate">
+                    Target Scope: <strong class="text-text-primary font-semibold">{{ getScopeDisplayName(targetScope()) }}</strong>
                   </span>
                 </div>
-                <h2 class="text-base font-bold text-text-primary">
+                <h2 class="text-base sm:text-lg font-bold text-text-primary leading-tight truncate">
                   Upload Trainee Roster (.CSV)
                 </h2>
               </div>
@@ -58,8 +64,10 @@ interface ParsedRow {
             <button 
               type="button" 
               (click)="onClose()"
-              class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-base">close</span>
+              class="w-9 h-9 rounded-xl bg-base-200 hover:bg-base-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              aria-label="Close Modal"
+              title="Close Modal">
+              <span class="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
 

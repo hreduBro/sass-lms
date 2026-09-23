@@ -255,6 +255,26 @@ export class PlanCreateComponent implements OnInit {
     return this.components().filter(c => c.type === 'Phase');
   });
 
+  phaseFilterOptions = computed<SelectOption[]>(() => {
+    const totalPhases = this.phases().length;
+    const base: SelectOption[] = [
+      {
+        value: 'all',
+        label: `All Phases (${totalPhases})`,
+        icon: 'view_agenda'
+      }
+    ];
+
+    const phaseOptions = this.phases().map((ph, idx) => ({
+      value: ph.id,
+      label: ph.name || `Phase ${idx + 1}`,
+      sublabel: ph.startDate && ph.endDate ? `${ph.startDate} – ${ph.endDate}` : undefined,
+      icon: 'timeline'
+    }));
+
+    return [...base, ...phaseOptions];
+  });
+
   // Plan duration in days
   computedPlanDuration = computed<number>(() => {
     const s = this.basicForm.get('startDate')?.value;
@@ -444,7 +464,64 @@ export class PlanCreateComponent implements OnInit {
       `STEP ${step} OF 3`
     );
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.scrollToTop();
+  }
+
+  scrollToTop() {
+    if (typeof window === 'undefined') return;
+    const scrollFn = () => {
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: 'instant' });
+        mainEl.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      const topEl = document.getElementById('plan-wizard-top');
+      if (topEl) {
+        topEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }
+    };
+    scrollFn();
+    setTimeout(scrollFn, 30);
+    setTimeout(scrollFn, 120);
+  }
+
+  resetCurrentStep() {
+    this.modalService.confirm({
+      title: 'Reset Current Step?',
+      message: 'Are you sure you want to reset all data in this step? Any unsaved modifications in this step will be restored.',
+      confirmText: 'Yes, Reset',
+      cancelText: 'Keep Editing',
+      onConfirm: () => {
+        if (this.currentStep() === 1) {
+          this.basicForm.reset({
+            name: '',
+            description: '',
+            startDate: '01/01/2026',
+            endDate: '31/12/2026',
+            durationType: 'Yearly',
+            enrollmentType: 'Closed',
+            recurringPlan: true,
+            budgetYear: 'FY 2026',
+            budgetAmount: 4500000,
+            currency: 'BDT',
+            defaultProgressionMode: 'Sequential',
+            ownerUserId: 'usr-admin-01'
+          });
+        } else if (this.currentStep() === 2) {
+          const example = createWorkedExamplePlan(
+            this.activeLms()?.id || 'lms-microfinance-brac',
+            this.activeTenant()?.id || 'tenant-brac'
+          );
+          this.components.set(example.components);
+        } else if (this.currentStep() === 3) {
+          this.onboardedUsers.set([]);
+        }
+        this.lmsData.showToast('Current step has been reset.', 'info');
+      }
+    });
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
@@ -479,8 +556,8 @@ export class PlanCreateComponent implements OnInit {
   }
 
   // Phase Filtering & Management
-  setPhaseFilter(filter: string) {
-    this.activePhaseFilter.set(filter);
+  setPhaseFilter(filter: any) {
+    this.activePhaseFilter.set(filter || 'all');
   }
 
   togglePhaseCollapse(phaseId: string) {
@@ -559,6 +636,9 @@ export class PlanCreateComponent implements OnInit {
       onConfirm: () => {
         const updated = this.components().filter(c => c.id !== compId);
         this.components.set(updated);
+        if (this.activePhaseFilter() === compId) {
+          this.activePhaseFilter.set('all');
+        }
         this.lmsData.showToast('Component removed from curriculum.', 'info');
       }
     });

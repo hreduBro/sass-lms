@@ -175,38 +175,6 @@ html.theme-glassmorphism.dark tbody [class*="sticky left-0"] {
   box-sizing: border-box;
 }
 
-/* ========================================================================= */
-/* BULLETPROOF COMPONENT DRAWER PANEL SYSTEM                                 */
-/* Ensures drawer backdrop dims page while drawer aside panel is 100% solid  */
-/* and opaque across light, dark, and glassmorphism themes                   */
-/* ========================================================================= */
-app-component-drawer aside,
-app-component-drawer form,
-app-component-drawer .drawer-header,
-app-component-drawer .drawer-footer,
-.component-drawer-panel {
-  background-color: #ffffff !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-}
-
-html.dark app-component-drawer aside,
-html.dark app-component-drawer form,
-html.dark app-component-drawer .drawer-header,
-html.dark app-component-drawer .drawer-footer,
-html.dark .component-drawer-panel,
-html.theme-glassmorphism.dark app-component-drawer aside,
-html.theme-glassmorphism.dark app-component-drawer form {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
-  opacity: 1 !important;
-}
-
-html.theme-glassmorphism app-component-drawer aside,
-html.theme-glassmorphism app-component-drawer form {
-  background-color: #ffffff !important;
-  opacity: 1 !important;
-}
 
 .la-ball-clip-rotate {
   display: block;

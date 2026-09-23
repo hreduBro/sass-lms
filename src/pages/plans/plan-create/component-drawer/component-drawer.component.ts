@@ -23,94 +23,134 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
     :host {
       display: contents;
     }
-    .drawer-panel,
-    .drawer-header,
-    .drawer-footer,
-    .drawer-form {
-      background-color: #ffffff !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
+    .drawer-backdrop {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 999998 !important;
+      margin: 0 !important;
     }
-    :host-context(html.dark) .drawer-panel,
-    :host-context(html.dark) .drawer-header,
-    :host-context(html.dark) .drawer-footer,
-    :host-context(html.dark) .drawer-form,
-    :host-context(.dark) .drawer-panel,
-    :host-context(.dark) .drawer-header,
-    :host-context(.dark) .drawer-footer,
-    :host-context(.dark) .drawer-form {
-      background-color: #0f172a !important;
-      color: #f8fafc !important;
+    .drawer-aside {
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      z-index: 999999 !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+    }
+    .drawer-header {
+      padding: 1.25rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      z-index: 30 !important;
+    }
+    .drawer-form {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      overflow: hidden !important;
+    }
+    .drawer-body {
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+    .drawer-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .drawer-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .drawer-body::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    .drawer-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.7);
+    }
+    .drawer-footer {
+      padding: 1rem 1.5rem !important;
+      flex-shrink: 0 !important;
+      margin-top: auto !important;
+      z-index: 30 !important;
     }
   `],
   template: `
     <!-- Slide-over Drawer Container -->
     @if (isOpen()) {
+      <!-- Full Backdrop Overlay -->
       <div 
-        class="fixed inset-0 z-[999999] flex justify-end" 
+        class="drawer-backdrop fixed inset-0 bg-black/60 backdrop-blur-xs z-[999998] transition-opacity cursor-pointer" 
+        (click)="onClose()"
+        aria-hidden="true">
+      </div>
+
+      <!-- Slide-over Drawer Panel: Attached strictly to top-0 right-0 bottom-0 -->
+      <aside 
+        class="drawer-aside fixed top-0 right-0 bottom-0 z-[999999] w-full max-w-2xl bg-base-100 dark:bg-slate-900 text-text-primary shadow-2xl border-l border-base-300 dark:border-slate-800 flex flex-col h-screen max-h-screen animate-in slide-in-from-right duration-200 overflow-hidden"
+        (click)="$event.stopPropagation()"
         role="dialog" 
         aria-modal="true"
-        [attr.aria-label]="isEditing() ? 'Edit Component' : 'Add Component'">
-        
-        <!-- Backdrop: Only darkens screen behind drawer, click outside closes -->
-        <div 
-          class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 cursor-pointer"
-          (click)="onClose()">
-        </div>
-
-        <!-- Slide-over Drawer Panel: Sits on TOP of backdrop (relative z-10), completely interactive -->
-        <aside 
-          class="component-drawer-panel drawer-panel relative z-10 w-full max-w-2xl bg-white dark:bg-slate-900 text-text-primary shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col h-full animate-in slide-in-from-right duration-200 overflow-hidden"
-          style="background-color: #ffffff !important; opacity: 1 !important;"
-          (click)="$event.stopPropagation()">
-            
-            <!-- Drawer Header -->
-            <div 
-              class="drawer-header px-6 py-4.5 border-b border-base-300 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-30"
-              style="background-color: inherit !important;">
-              <div class="flex items-center gap-3">
-                <div 
-                  class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm"
-                  [class]="getTypeBadgeColor(selectedType())">
-                  <span class="material-symbols-outlined text-xl">{{ getTypeIcon(selectedType()) }}</span>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
-                      [class]="getTypePillClass(selectedType())">
-                      {{ selectedType() }}
-                    </span>
-                    @if (targetPhaseId()) {
-                      <span class="text-[11px] font-semibold text-text-secondary">
-                        in Phase: <strong class="text-text-primary">{{ getPhaseName(targetPhaseId()) }}</strong>
-                      </span>
-                    } @else {
-                      <span class="text-[11px] font-semibold text-text-secondary">
-                        Plan Level
-                      </span>
-                    }
-                  </div>
-                  <h2 class="text-base font-bold text-text-primary mt-0.5">
-                    {{ isEditing() ? 'Configure Component Parameters' : 'Add New Curriculum Component' }}
-                  </h2>
-                </div>
+        [attr.aria-label]="isEditing() ? 'Configure Component Parameters' : 'Add New Curriculum Component'">
+          
+          <!-- Fixed Drawer Header -->
+          <div 
+            class="drawer-header px-6 py-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between gap-4 bg-base-100 dark:bg-slate-900 shrink-0 z-20">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div 
+                class="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0"
+                [class]="getTypeBadgeColor(selectedType())">
+                <span class="material-symbols-outlined text-2xl">{{ getTypeIcon(selectedType()) }}</span>
               </div>
-
-              <button 
-                type="button" 
-                (click)="onClose()"
-                class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
-                aria-label="Close Drawer">
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md shadow-2xs"
+                    [class]="getTypePillClass(selectedType())">
+                    {{ selectedType() }}
+                  </span>
+                  @if (targetPhaseId()) {
+                    <span class="text-xs font-semibold text-text-secondary truncate">
+                      in Phase: <strong class="text-text-primary font-bold">{{ getPhaseName(targetPhaseId()) }}</strong>
+                    </span>
+                  } @else {
+                    <span class="text-xs font-semibold text-text-secondary">
+                      Plan Level
+                    </span>
+                  }
+                </div>
+                <h2 class="text-base sm:text-lg font-bold text-text-primary leading-tight truncate">
+                  {{ isEditing() ? 'Configure Component Parameters' : 'Add New Curriculum Component' }}
+                </h2>
+              </div>
             </div>
 
-            <!-- Drawer Content Form -->
-            <form 
-              [formGroup]="form" 
-              (ngSubmit)="onSubmit()" 
-              class="drawer-form flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-slate-900"
-              style="background-color: inherit !important;">
+            <button 
+              type="button" 
+              (click)="onClose()"
+              class="w-9 h-9 rounded-xl bg-base-200 hover:bg-base-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              aria-label="Close Drawer"
+              title="Close Drawer">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          <!-- Drawer Form Wrapper (flex-1 flex flex-col min-h-0 overflow-hidden) -->
+          <form 
+            [formGroup]="form" 
+            (ngSubmit)="onSubmit()" 
+            class="drawer-form flex-1 flex flex-col min-h-0 overflow-hidden">
+            
+            <!-- Scrollable Content Body (ONLY this scrolls) -->
+            <div class="drawer-body flex-1 overflow-y-auto p-6 space-y-6 min-h-0 bg-base-100 dark:bg-slate-900">
           
           <!-- Component Type Selector Pills (Disabled when editing) -->
           @if (!isEditing()) {
@@ -501,7 +541,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
             }
 
             @if (selectedType() === 'Phase') {
-              <div class="space-y-4 p-4.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
+              <div class="space-y-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-semibold text-xs">
                   <span class="material-symbols-outlined text-base text-slate-600 dark:text-slate-400">timeline</span>
                   <span>Curriculum Phase Milestones & Track Boundaries</span>
@@ -517,15 +557,15 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
             }
 
           </div>
+          </div>
 
-          <!-- Drawer Footer with Save & Cancel -->
+          <!-- Drawer Footer with Save & Cancel: Fixed at the bottom, outside scroll area -->
           <div 
-            class="drawer-footer sticky bottom-0 pt-4 pb-4 px-6 bg-white dark:bg-slate-900 border-t border-base-300 flex items-center justify-end gap-3 z-30 shadow-md"
-            style="background-color: inherit !important;">
+            class="drawer-footer px-6 py-4 bg-base-100 dark:bg-slate-900 border-t border-base-300 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0 shadow-lg z-20">
             <button 
               type="button" 
               (click)="onClose()"
-              class="px-4 py-2.5 rounded-xl border border-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer">
+              class="px-4 py-2.5 rounded-xl border border-base-300 dark:border-slate-700 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 dark:hover:bg-slate-800 transition-colors cursor-pointer">
               Cancel
             </button>
             <button 
@@ -540,8 +580,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
         </form>
 
       </aside>
-    </div>
-  }
+    }
   `
 })
 export class ComponentDrawerComponent {

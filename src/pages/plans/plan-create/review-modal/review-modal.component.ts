@@ -11,6 +11,15 @@ import {
 @Component({
   selector: 'app-review-modal',
   imports: [CommonModule],
+  styles: [`
+    .modal-header {
+      padding: 1.25rem 1.5rem !important;
+      flex-shrink: 0 !important;
+    }
+    .status-banner {
+      padding: 1.25rem !important;
+    }
+  `],
   template: `
     @if (isOpen()) {
       <div 
@@ -25,20 +34,20 @@ import {
           aria-label="Review & Plan Validation">
           
           <!-- Header -->
-          <div class="px-6 py-4.5 border-b border-base-300 flex items-center justify-between bg-base-100">
-            <div class="flex items-center gap-3">
+          <div class="modal-header px-6 py-5 border-b border-base-300 dark:border-slate-800 flex items-center justify-between gap-4 bg-base-100 dark:bg-slate-900 shrink-0">
+            <div class="flex items-center gap-3.5 min-w-0 flex-1">
               <div 
-                class="w-10 h-10 rounded-2xl flex items-center justify-center"
+                class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
                 [class]="report().isValidForPublish ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'">
-                <span class="material-symbols-outlined text-xl">
+                <span class="material-symbols-outlined text-2xl">
                   {{ report().isValidForPublish ? 'verified' : 'gpp_bad' }}
                 </span>
               </div>
-              <div>
-                <h2 class="text-base font-bold text-text-primary">
+              <div class="min-w-0 flex-1">
+                <h2 class="text-base sm:text-lg font-bold text-text-primary leading-tight truncate">
                   Review & Publish Readiness Audit
                 </h2>
-                <p class="text-xs text-text-secondary">
+                <p class="text-xs text-text-secondary mt-0.5 truncate">
                   v2.3 Automated validation across components, phases, dates, prerequisites & trainees
                 </p>
               </div>
@@ -47,8 +56,10 @@ import {
             <button 
               type="button" 
               (click)="onClose()"
-              class="w-8 h-8 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-base">close</span>
+              class="w-9 h-9 rounded-xl bg-base-200 hover:bg-base-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              aria-label="Close Modal"
+              title="Close Modal">
+              <span class="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
 
@@ -57,7 +68,7 @@ import {
 
             <!-- High-Level Status Banner -->
             <div 
-              class="p-4.5 rounded-2xl border flex items-center gap-4"
+              class="status-banner p-5 rounded-2xl border flex items-center gap-4"
               [class]="report().isValidForPublish 
                 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-900 dark:text-emerald-300' 
                 : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-300'">
