@@ -31,7 +31,7 @@
         </div>
 
         <p class="text-xs sm:text-sm text-text-secondary mt-1">
-          {{ t.category }} • {{ t.durationHours }} Hours ({{ t.durationDays }} Days) • <span class="uppercase">{{ t.deliveryMode.replace('_', ' ') }}</span>
+          {{ getCategoryDisplay(t) }} • {{ getDurationHours(t) }} Hours ({{ getDurationDays(t) }} Days) • <span class="uppercase">{{ getDeliveryModeDisplay(t) }}</span>
         </p>
       </div>
 
@@ -42,7 +42,7 @@
           <span>Embed to Course</span>
         </button>
 
-        <a [routerLink]="['/offline-trainings/edit', t.trainingId]"
+        <a [routerLink]="['/offline-trainings/edit', t.trainingId || t.id]"
            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
           <span class="material-symbols-outlined text-base text-tenant-600">edit</span>
           <span>Edit</span>
@@ -96,7 +96,7 @@
               [class]="activeTab() === 'materials' 
                        ? 'pb-3 text-sm font-bold text-tenant-600 dark:text-tenant-400 border-b-2 border-tenant-600 dark:border-tenant-400 cursor-pointer' 
                        : 'pb-3 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer'">
-        Handouts & Files ({{ t.reusableMaterials?.length || 0 }})
+        Handouts & Files ({{ getMaterialsList(t).length }})
       </button>
     </div>
 
@@ -116,7 +116,7 @@
               <span>Workshop Syllabus & Scope</span>
             </h3>
             <p class="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-              {{ t.description }}
+              {{ t.description || 'No detailed syllabus entered.' }}
             </p>
           </div>
 
@@ -128,32 +128,41 @@
                 <span>Evaluation & Assessment Architecture</span>
               </h3>
               <span class="px-2.5 py-1 text-xs font-mono font-bold uppercase rounded-lg bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/40">
-                {{ t.assessmentMode.replace('_', ' ') }}
+                {{ getAssessmentModeDisplay(t) }}
               </span>
             </div>
 
-            @if (t.assessmentMode === 'manual_marks' && t.manualMarksConfig) {
+            @if (t.assessmentMode === 'manual_marks' || !t.assessmentMode || t.assessmentMode === 'manual') {
               <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-3">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-bold text-text-primary">{{ t.manualMarksConfig.rubricTitle }}</span>
+                <div class="flex items-center justify-between text-xs flex-wrap gap-2">
+                  <span class="font-bold text-text-primary">
+                    {{ t.manualMarksConfig?.rubricTitle || (t.assessments && t.assessments.length ? t.assessments[0].label : 'Practical Skill Demonstration Rubric') }}
+                  </span>
                   <span class="font-mono text-text-secondary">
-                    Max: <strong class="text-text-primary">{{ t.manualMarksConfig.maxMarks }}</strong> pts | Pass: <strong class="text-emerald-600">{{ t.manualMarksConfig.passMarks }}</strong> pts
+                    Max: <strong class="text-text-primary">{{ t.manualMarksConfig?.maxMarks || (t.assessments && t.assessments.length ? t.assessments[0].maxMarks : 100) }}</strong> pts | Pass: <strong class="text-emerald-600">{{ t.manualMarksConfig?.passMarks || (t.assessments && t.assessments.length ? t.assessments[0].passingScore : 60) }}</strong> pts
                   </span>
                 </div>
                 <div class="space-y-2 pt-2 border-t border-base-300">
-                  @for (crit of t.manualMarksConfig.criteria; track crit.criteriaId) {
+                  @if (t.manualMarksConfig?.criteria && t.manualMarksConfig.criteria.length > 0) {
+                    @for (crit of t.manualMarksConfig.criteria; track crit.criteriaId || crit.label) {
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="text-text-secondary">{{ crit.label }}</span>
+                        <span class="font-mono font-semibold text-text-primary">{{ crit.maxMarks }} pts ({{ crit.weightage }}%)</span>
+                      </div>
+                    }
+                  } @else {
                     <div class="flex items-center justify-between text-xs">
-                      <span class="text-text-secondary">{{ crit.label }}</span>
-                      <span class="font-mono font-semibold text-text-primary">{{ crit.maxMarks }} pts ({{ crit.weightage }}%)</span>
+                      <span class="text-text-secondary">Direct Practical Rubric Evaluation</span>
+                      <span class="font-mono font-semibold text-text-primary">100 pts (100%)</span>
                     </div>
                   }
                 </div>
               </div>
-            } @else if (t.assessmentMode === 'reference_assessment') {
+            } @else if (t.assessmentMode === 'reference_assessment' || t.assessmentMode === 'reference') {
               <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-2 text-xs">
                 <div class="font-bold text-text-primary">Referenced Assessment Module</div>
-                <div class="text-text-secondary">Title: <strong class="text-text-primary">{{ t.referenceAssessmentTitle || 'Online Final Exam' }}</strong></div>
-                <div class="text-text-secondary">Reference ID: <strong class="font-mono text-tenant-600">{{ t.referenceAssessmentId || 'N/A' }}</strong></div>
+                <div class="text-text-secondary">Title: <strong class="text-text-primary">{{ t.referenceAssessmentTitle || 'Online Assessment Module' }}</strong></div>
+                <div class="text-text-secondary">Reference ID: <strong class="font-mono text-tenant-600">{{ t.referenceAssessmentId || 'ASM-REF-01' }}</strong></div>
               </div>
             } @else {
               <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 text-xs text-text-secondary">
@@ -178,7 +187,7 @@
               <div class="text-text-secondary">Room: <strong class="text-text-primary">{{ t.roomName || 'Main Hall' }}</strong></div>
               <div class="flex items-center justify-between text-text-secondary pt-2 border-t border-base-300">
                 <span>Maximum Seats:</span>
-                <strong class="text-tenant-600 dark:text-tenant-400 font-mono font-bold">{{ t.maxCapacity }} Seats</strong>
+                <strong class="text-tenant-600 dark:text-tenant-400 font-mono font-bold">{{ getCapacityDisplay(t) }} Seats</strong>
               </div>
             </div>
           </div>
@@ -190,18 +199,25 @@
               <span>Faculty & Instructors</span>
             </h3>
             <div class="text-xs space-y-2">
-              <div class="font-bold text-sm text-text-primary">{{ t.primaryTrainerName }}</div>
-              <div class="text-text-secondary">Primary Workshop Facilitator</div>
-              @if (t.primaryTrainerEmail) {
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 font-bold text-xs flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
+                  {{ getTrainerInitial(t) }}
+                </div>
+                <div>
+                  <div class="font-bold text-sm text-text-primary">{{ getTrainerDisplayName(t) }}</div>
+                  <div class="text-[11px] text-text-secondary">Primary Workshop Facilitator</div>
+                </div>
+              </div>
+              @if (t.primaryTrainerEmail || t.defaultTrainerEmail) {
                 <div class="text-text-secondary flex items-center gap-1.5 pt-1">
                   <span class="material-symbols-outlined text-xs text-tenant-500">mail</span>
-                  <span>{{ t.primaryTrainerEmail }}</span>
+                  <span>{{ t.primaryTrainerEmail || t.defaultTrainerEmail }}</span>
                 </div>
               }
               @if (t.coTrainers && t.coTrainers.length > 0) {
                 <div class="pt-2 border-t border-base-300 space-y-1">
                   <span class="font-semibold text-text-primary">Co-Facilitators:</span>
-                  @for (co of t.coTrainers; track co.trainerId) {
+                  @for (co of t.coTrainers; track co.trainerId || co.trainerName) {
                     <div class="text-text-secondary">• {{ co.trainerName }} ({{ co.role || 'Support' }})</div>
                   }
                 </div>
@@ -218,11 +234,11 @@
             <div class="text-xs space-y-2 text-text-secondary">
               <div class="flex items-center justify-between">
                 <span>Min Presence Required:</span>
-                <strong class="text-emerald-600 font-bold font-mono">{{ t.attendanceConfig.minAttendancePercentage }}%</strong>
+                <strong class="text-emerald-600 font-bold font-mono">{{ getMinAttendance(t) }}%</strong>
               </div>
               <div class="flex items-center justify-between">
                 <span>Tracking Strategy:</span>
-                <span class="capitalize text-text-primary">{{ t.attendanceConfig.mode.replace('_', ' ') }}</span>
+                <span class="capitalize text-text-primary">{{ getAttendanceModeDisplay(t) }}</span>
               </div>
             </div>
           </div>
@@ -327,25 +343,48 @@
     @if (activeTab() === 'materials') {
       <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm space-y-4">
         <h3 class="font-bold text-base text-text-primary pb-3 border-b border-base-300">Workshop Handouts & Materials</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          @for (m of t.reusableMaterials; track m.attachmentId) {
-            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3 truncate">
-                <span class="material-symbols-outlined text-2xl text-tenant-600">picture_as_pdf</span>
-                <div class="truncate">
-                  <span class="font-bold text-xs text-text-primary block truncate">{{ m.title }}</span>
-                  <span class="text-[11px] text-text-secondary">{{ m.fileType | uppercase }} • {{ m.isRequiredPreRead ? 'Required Pre-read' : 'Classroom Handout' }}</span>
+        @if (getMaterialsList(t).length === 0) {
+          <div class="text-center py-10 text-text-secondary text-sm">
+            No downloadable materials or reference readings attached to this training.
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @for (m of getMaterialsList(t); track m.attachmentId || m.title) {
+              <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 truncate">
+                  <span class="material-symbols-outlined text-2xl text-tenant-600">
+                    {{ m.fileType === 'pdf' || m.fileType === 'document' ? 'picture_as_pdf' : (m.fileType === 'slides' ? 'slideshow' : 'description') }}
+                  </span>
+                  <div class="truncate">
+                    <span class="font-bold text-xs text-text-primary block truncate">{{ m.title }}</span>
+                    <span class="text-[11px] text-text-secondary">{{ m.fileType | uppercase }} • {{ m.isRequiredPreRead ? 'Required Pre-read' : 'Classroom Handout' }}</span>
+                  </div>
                 </div>
+                <button class="px-3 py-1.5 text-xs font-semibold text-tenant-700 dark:text-tenant-300 bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40 rounded-xl hover:bg-tenant-100 transition-colors cursor-pointer shrink-0">
+                  Download
+                </button>
               </div>
-              <button class="px-3 py-1.5 text-xs font-semibold text-tenant-700 dark:text-tenant-300 bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40 rounded-xl hover:bg-tenant-100 transition-colors cursor-pointer shrink-0">
-                Download
-              </button>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        }
       </div>
     }
 
+  </div>
+} @else {
+  <!-- Fallback if training ID not found -->
+  <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-sm max-w-2xl mx-auto mt-8">
+    <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto mb-4">
+      <span class="material-symbols-outlined text-3xl">error_outline</span>
+    </div>
+    <h3 class="text-lg font-bold text-text-primary">Offline Training Not Found</h3>
+    <p class="text-xs sm:text-sm text-text-secondary mt-1 mb-6">
+      The requested training module "{{ trainingId() }}" could not be located in the catalog.
+    </p>
+    <a routerLink="/offline-trainings" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      <span>Back to Training Catalog</span>
+    </a>
   </div>
 }
 

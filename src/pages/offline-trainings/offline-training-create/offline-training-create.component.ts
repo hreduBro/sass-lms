@@ -31,36 +31,183 @@ export class OfflineTrainingCreateComponent implements OnInit {
 
   // 5 Steps Wizard
   steps: StepperStep[] = [
-    { id: 1, shortTitle: '1. Basics', title: 'Basic Details & Scope', icon: 'info' },
-    { id: 2, shortTitle: '2. Venue', title: 'Venue & Room Allocation', icon: 'location_city' },
-    { id: 3, shortTitle: '3. Trainers', title: 'Faculty & Trainers', icon: 'school' },
-    { id: 4, shortTitle: '4. Evaluation', title: 'Assessment Architecture', icon: 'fact_check' },
-    { id: 5, shortTitle: '5. Compliance', title: 'Attendance & Certs', icon: 'verified' }
+    { id: 1, shortTitle: 'Basics', title: 'Basic Details & Scope', icon: 'info' },
+    { id: 2, shortTitle: 'Venue', title: 'Venue', icon: 'location_city' },
+    { id: 3, shortTitle: 'Trainers', title: 'Trainers', icon: 'school' },
+    { id: 4, shortTitle: 'Evaluation', title: 'Evaluation', icon: 'fact_check' },
+    { id: 5, shortTitle: 'Compliance', title: 'Compliance', icon: 'verified' }
   ];
   currentStep = signal<number>(1);
   completedSteps = signal<number[]>([]);
+  showWelcomeBanner = signal<boolean>(true);
+  successAlert = signal<string | null>(null);
+  formErrorAlert = signal<string | null>(null);
+  private successTimer: any = null;
 
-  goToStep(stepId: number): void {
-    if (stepId >= 1 && stepId <= 5) {
-      this.currentStep.set(stepId);
+  getCurrentStepTitle(): string {
+    const step = this.steps.find(s => s.id === this.currentStep());
+    return step?.title || step?.shortTitle || 'Basic Details & Scope';
+  }
+
+  isFieldInvalid(name: string): boolean {
+    const ctrl = this.trainingForm?.get(name);
+    return !!(ctrl && ctrl.invalid && (ctrl.dirty || ctrl.touched));
+  }
+
+  validateStep(step: number): { valid: boolean; message?: string } {
+    if (!this.trainingForm) return { valid: true };
+
+    if (step === 1) {
+      const step1Fields = ['code', 'title', 'description', 'category', 'durationHours', 'durationDays'];
+      step1Fields.forEach(f => this.trainingForm.get(f)?.markAsTouched());
+
+      const codeCtrl = this.trainingForm.get('code');
+      const titleCtrl = this.trainingForm.get('title');
+      const descCtrl = this.trainingForm.get('description');
+      const catCtrl = this.trainingForm.get('category');
+      const hoursCtrl = this.trainingForm.get('durationHours');
+      const daysCtrl = this.trainingForm.get('durationDays');
+
+      if (codeCtrl?.invalid) {
+        return { valid: false, message: 'Training Code is required (alphanumeric, up to 30 characters).' };
+      }
+      if (titleCtrl?.invalid) {
+        return { valid: false, message: 'Workshop Title is required (up to 150 characters).' };
+      }
+      if (descCtrl?.invalid) {
+        return { valid: false, message: 'Comprehensive Description is required.' };
+      }
+      if (catCtrl?.invalid) {
+        return { valid: false, message: 'Curriculum Category is required.' };
+      }
+      if (hoursCtrl?.invalid) {
+        return { valid: false, message: 'Delivery Duration (Hours) is required and must be between 1 and 200.' };
+      }
+      if (daysCtrl?.invalid) {
+        return { valid: false, message: 'Estimated Days must be at least 1 day.' };
+      }
+    } else if (step === 2) {
+      const step2Fields = ['venueId', 'roomId', 'maxCapacity'];
+      step2Fields.forEach(f => this.trainingForm.get(f)?.markAsTouched());
+
+      const venueCtrl = this.trainingForm.get('venueId');
+      const roomCtrl = this.trainingForm.get('roomId');
+      const capCtrl = this.trainingForm.get('maxCapacity');
+
+      if (!venueCtrl?.value) {
+        return { valid: false, message: 'Please select a designated training venue.' };
+      }
+      if (!roomCtrl?.value) {
+        return { valid: false, message: 'Please select a classroom / hall inside the venue.' };
+      }
+      if (capCtrl?.invalid || Number(capCtrl?.value) < 1) {
+        return { valid: false, message: 'Configured Enrollment Capacity must be at least 1 seat.' };
+      }
+    } else if (step === 3) {
+      const step3Fields = ['primaryTrainerId', 'primaryTrainerName'];
+      step3Fields.forEach(f => this.trainingForm.get(f)?.markAsTouched());
+
+      const trainerIdCtrl = this.trainingForm.get('primaryTrainerId');
+      const trainerNameCtrl = this.trainingForm.get('primaryTrainerName');
+
+      if (trainerIdCtrl?.invalid) {
+        return { valid: false, message: 'Primary Trainer ID is required.' };
+      }
+      if (trainerNameCtrl?.invalid) {
+        return { valid: false, message: 'Instructor Full Name is required.' };
+      }
+    } else if (step === 4) {
+      const mode = this.trainingForm.get('assessmentMode')?.value;
+      if (mode === 'manual_marks') {
+        this.trainingForm.get('manualMaxMarks')?.markAsTouched();
+        this.trainingForm.get('manualPassMarks')?.markAsTouched();
+
+        const maxMarks = Number(this.trainingForm.get('manualMaxMarks')?.value);
+        const passMarks = Number(this.trainingForm.get('manualPassMarks')?.value);
+
+        if (!maxMarks || maxMarks < 1) {
+          return { valid: false, message: 'Max Total Score must be at least 1 mark.' };
+        }
+        if (!passMarks || passMarks < 1) {
+          return { valid: false, message: 'Required Pass Marks must be at least 1 mark.' };
+        }
+        if (passMarks > maxMarks) {
+          return { valid: false, message: 'Pass Marks cannot exceed the Max Total Score.' };
+        }
+      }
+    } else if (step === 5) {
+      const step5Fields = ['minAttendancePercentage', 'attendanceMode'];
+      step5Fields.forEach(f => this.trainingForm.get(f)?.markAsTouched());
+
+      const attPct = Number(this.trainingForm.get('minAttendancePercentage')?.value);
+      const attMode = this.trainingForm.get('attendanceMode')?.value;
+
+      if (isNaN(attPct) || attPct < 0 || attPct > 100) {
+        return { valid: false, message: 'Minimum Attendance Threshold must be between 0% and 100%.' };
+      }
+      if (!attMode) {
+        return { valid: false, message: 'Please select an Attendance Tracking Mode.' };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  private triggerSuccessAlert(message: string): void {
+    this.successAlert.set(message);
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+    }
+    this.successTimer = setTimeout(() => {
+      if (this.successAlert() === message) {
+        this.successAlert.set(null);
+      }
+    }, 5000);
+  }
+
+  goToStep(targetStep: number): void {
+    if (targetStep < 1 || targetStep > 5) return;
+    const current = this.currentStep();
+
+    if (targetStep > current) {
+      // Validate all steps from current to targetStep - 1
+      for (let s = current; s < targetStep; s++) {
+        const validation = this.validateStep(s);
+        if (!validation.valid) {
+          this.currentStep.set(s);
+          this.formErrorAlert.set(validation.message || 'Please fill in all mandatory fields before proceeding.');
+          this.successAlert.set(null);
+          this.lmsData.showToast(validation.message || 'Validation error encountered.', 'error', 4500, 'Step Validation');
+          this.scrollToFirstError();
+          return;
+        }
+        if (!this.completedSteps().includes(s)) {
+          this.completedSteps.update(c => [...c, s]);
+        }
+      }
+
+      const prevStepObj = this.steps.find(s => s.id === current);
+      const targetStepObj = this.steps.find(s => s.id === targetStep);
+      const successMsg = `Stage ${current} (${prevStepObj?.shortTitle || 'Step ' + current}) saved successfully! Proceeding to Stage ${targetStep}: ${targetStepObj?.shortTitle || 'Step ' + targetStep}.`;
+
+      this.currentStep.set(targetStep);
+      this.formErrorAlert.set(null);
+      this.triggerSuccessAlert(successMsg);
+      this.lmsData.showToast(successMsg, 'success', 4000, 'Stage Completed');
+      this.scrollTop();
+    } else if (targetStep < current) {
+      this.currentStep.set(targetStep);
+      this.formErrorAlert.set(null);
+      this.scrollTop();
     }
   }
 
   nextStep(): void {
-    const cur = this.currentStep();
-    if (!this.completedSteps().includes(cur)) {
-      this.completedSteps.update(c => [...c, cur]);
-    }
-    if (cur < 5) {
-      this.currentStep.set(cur + 1);
-    }
+    this.goToStep(this.currentStep() + 1);
   }
 
   prevStep(): void {
-    const cur = this.currentStep();
-    if (cur > 1) {
-      this.currentStep.set(cur - 1);
-    }
+    this.goToStep(this.currentStep() - 1);
   }
 
   // Available Venues and Rooms
@@ -240,8 +387,26 @@ export class OfflineTrainingCreateComponent implements OnInit {
   }
 
   saveTraining(): void {
+    // Validate all 5 steps before saving
+    for (let s = 1; s <= 5; s++) {
+      const res = this.validateStep(s);
+      if (!res.valid) {
+        this.currentStep.set(s);
+        this.formErrorAlert.set(res.message || 'Please complete all required fields.');
+        this.successAlert.set(null);
+        this.lmsData.showToast(res.message || 'Please complete all required fields.', 'error', 5000, 'Validation Error');
+        this.scrollToFirstError();
+        return;
+      }
+      if (!this.completedSteps().includes(s)) {
+        this.completedSteps.update(c => [...c, s]);
+      }
+    }
+
     if (this.trainingForm.invalid) {
       this.trainingForm.markAllAsTouched();
+      this.formErrorAlert.set('Some fields contain invalid data. Please review the highlighted fields.');
+      this.scrollToFirstError();
       return;
     }
 
@@ -305,9 +470,11 @@ export class OfflineTrainingCreateComponent implements OnInit {
 
     if (this.isEditMode() && this.trainingId()) {
       this.lmsData.updateOfflineTraining(this.trainingId()!, payload);
+      this.lmsData.showToast(`Training "${payload.title}" updated successfully!`, 'success', 4000, 'Training Updated');
       this.router.navigate(['/offline-trainings/view', this.trainingId()]);
     } else {
       const created = this.lmsData.createOfflineTraining(payload);
+      this.lmsData.showToast(`Offline Training "${created.title}" published successfully!`, 'success', 4500, 'Training Published');
       this.router.navigate(['/offline-trainings/view', created.trainingId]);
     }
   }
@@ -318,5 +485,28 @@ export class OfflineTrainingCreateComponent implements OnInit {
     } else {
       this.router.navigate(['/offline-trainings']);
     }
+  }
+
+  private scrollTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private scrollToFirstError(): void {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.ng-invalid, select.ng-invalid, textarea.ng-invalid, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

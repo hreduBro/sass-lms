@@ -2698,8 +2698,47 @@ export class LmsDataService {
     return this.venues().filter(v => v.status === 'active');
   });
 
-  // Offline Training Store (Component Embedding & Override Chain)
-  offlineTrainings = signal<OfflineTraining[]>(INITIAL_OFFLINE_TRAININGS.map(t => ({ ...t, trainingId: t.trainingId || t.id })));
+  offlineTrainings = signal<OfflineTraining[]>(INITIAL_OFFLINE_TRAININGS.map(t => ({
+    ...t,
+    trainingId: t.trainingId || t.id,
+    category: t.category || (t.categoryTags && t.categoryTags.length > 0 ? t.categoryTags[0] : 'In-Person Workshop'),
+    deliveryMode: t.deliveryMode || 'in_person',
+    durationHours: t.durationHours || (t.sessionMeta?.durationMinutes ? Math.round(t.sessionMeta.durationMinutes / 60) : 4),
+    durationDays: t.durationDays || 1,
+    maxCapacity: t.maxCapacity || t.roomCapacityAtTagging || 30,
+    primaryTrainerId: t.primaryTrainerId || t.defaultTrainerId || 'inst-01',
+    primaryTrainerName: t.primaryTrainerName || t.defaultTrainerName || 'Senior Faculty Trainer',
+    primaryTrainerEmail: t.primaryTrainerEmail || t.defaultTrainerEmail || 'faculty@learningcenter.brac.net',
+    assessmentMode: t.assessmentMode || (t.assessments && t.assessments.length > 0 ? (t.assessments[0].mode === 'manual' ? 'manual_marks' : (t.assessments[0].mode === 'inline' ? 'inline_assessment' : 'reference_assessment')) : 'manual_marks'),
+    status: t.status || 'published',
+    attendanceConfig: t.attendanceConfig || {
+      minAttendancePercentage: t.attendance?.minimumAttendancePercentage ?? 80,
+      mode: t.attendance?.mode || 'physical_rollcall'
+    },
+    reusableMaterials: t.reusableMaterials || (t.content ? t.content.map(c => ({
+      attachmentId: c.contentId,
+      title: c.title,
+      fileType: c.subtype || 'pdf',
+      isRequiredPreRead: c.isRequired || false,
+      url: c.urlOrRef
+    })) : []),
+    manualMarksConfig: t.manualMarksConfig || (t.assessments && t.assessments.length ? {
+      rubricTitle: t.assessments[0].label || 'Practical Skill Demonstration Rubric',
+      maxMarks: t.assessments[0].maxMarks || 100,
+      passMarks: t.assessments[0].passingScore || 60,
+      criteria: [
+        { criteriaId: 'c1', label: 'Technical Execution & Protocol Accuracy', maxMarks: 50, weightage: 50 },
+        { criteriaId: 'c2', label: 'Safety, Team Coordination & Viva Presentation', maxMarks: 50, weightage: 50 }
+      ]
+    } : {
+      rubricTitle: 'Practical Skill Rubric',
+      maxMarks: 100,
+      passMarks: 60,
+      criteria: [
+        { criteriaId: 'c1', label: 'Core Competency Demonstration', maxMarks: 100, weightage: 100 }
+      ]
+    })
+  })));
   offlineTrainingPermissions = signal<OfflineTrainingPermissions>(DEFAULT_OFFLINE_TRAINING_PERMISSIONS);
   offlineTrainingEmbeddings = signal<OfflineTrainingEmbedding[]>(INITIAL_OFFLINE_TRAINING_EMBEDDINGS);
   offlineTraineeResults = signal<OfflineTraineeResult[]>(INITIAL_OFFLINE_TRAINEE_RESULTS.map(r => ({ ...r, resultId: r.resultId || `${r.traineeId}-${r.embeddingId}` })));
@@ -9870,7 +9909,8 @@ export class LmsDataService {
   // OFFLINE TRAINING & EMBEDDING MANAGEMENT (Spec 2)
   // =========================================================================
   getOfflineTrainingById(id: string): OfflineTraining | undefined {
-    return this.offlineTrainings().find(t => t.id === id);
+    if (!id) return undefined;
+    return this.offlineTrainings().find(t => t.id === id || t.trainingId === id || t.code?.toUpperCase() === id.toUpperCase());
   }
 
   createOfflineTraining(data: Partial<OfflineTraining>): OfflineTraining {
@@ -9987,7 +10027,7 @@ export class LmsDataService {
       return { success: false, message: msg };
     }
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.trainingId === id || t.code?.toUpperCase() === id.toUpperCase()) ? { ...t, status: 'published' } : t));
     this.showToast('Offline training has been published successfully.', 'success', 3500, 'Published');
     this.logAction('Offline Training Published', `Published offline training ${training.title}`, 'info');
     return { success: true, message: 'Offline training has been published successfully.' };
@@ -9997,7 +10037,7 @@ export class LmsDataService {
     const training = this.getOfflineTrainingById(id);
     if (!training) return { success: false, message: 'Offline training not found.' };
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'inactive' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.trainingId === id || t.code?.toUpperCase() === id.toUpperCase()) ? { ...t, status: 'inactive' } : t));
     this.showToast(`"${training.title}" has been deactivated.`, 'error', 3500, 'Training Deactivated');
     this.logAction('Offline Training Deactivated', `Deactivated ${training.title}. Not embeddable in new learning; existing embeddings retained.`, 'warning');
     return { success: true, message: `Offline training "${training.title}" deactivated.` };
@@ -10007,7 +10047,7 @@ export class LmsDataService {
     const training = this.getOfflineTrainingById(id);
     if (!training) return { success: false, message: 'Offline training not found.' };
 
-    this.offlineTrainings.update(list => list.map(t => t.id === id ? { ...t, status: 'published' } : t));
+    this.offlineTrainings.update(list => list.map(t => (t.id === id || t.trainingId === id || t.code?.toUpperCase() === id.toUpperCase()) ? { ...t, status: 'published' } : t));
     this.showToast(`"${training.title}" has been reactivated.`, 'success', 3000, 'Training Reactivated');
     return { success: true, message: `Offline training reactivated.` };
   }
@@ -10034,7 +10074,7 @@ export class LmsDataService {
       return { success: false, message: msg };
     }
 
-    this.offlineTrainings.update(list => list.filter(t => t.id !== id));
+    this.offlineTrainings.update(list => list.filter(t => t.id !== id && t.trainingId !== id && t.code?.toUpperCase() !== id.toUpperCase()));
     this.showToast('Offline training deleted.', 'info', 2500, 'Training Deleted');
     return { success: true, message: 'Offline training deleted.' };
   }

@@ -219,10 +219,14 @@ export const DEFAULT_OFFLINE_TRAINING_PERMISSIONS: OfflineTrainingPermissions = 
 export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
   {
     id: 'off-001',
+    trainingId: 'off-001',
     code: 'OFL-FIRST-AID-2026',
     title: 'Advanced Tactical First-Aid & Emergency Response Workshop',
     description: 'In-person simulation workshop covering triage protocol, CPR certification, automated external defibrillator (AED) operation, and practical field trauma management.',
     categoryTags: ['Emergency Response', 'Occupational Safety', 'Field Operations', 'Healthcare'],
+    category: 'Emergency Response',
+    durationHours: 4,
+    durationDays: 1,
     sessionMeta: {
       sessionDate: '28/03/2026',
       startTime: '09:00 AM',
@@ -234,10 +238,15 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
     roomId: 'room-101',
     roomName: 'Hall A (Grand Auditorium)',
     roomCapacityAtTagging: 65,
+    maxCapacity: 65,
     defaultTrainerId: 'inst-01',
     defaultTrainerName: 'Dr. Tanvir Hossain',
     defaultTrainerEmail: 'tanvir.hossain@grameenphone.com',
     defaultTrainerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    primaryTrainerId: 'inst-01',
+    primaryTrainerName: 'Dr. Tanvir Hossain',
+    primaryTrainerEmail: 'tanvir.hossain@grameenphone.com',
+    assessmentMode: 'reference_assessment',
     content: [
       {
         contentId: 'c-01',
@@ -278,11 +287,15 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
         passingScore: 70,
         weightagePercent: 60
       }
-    ],
+    deliveryMode: 'in_person',
     attendance: {
       required: true,
       requiredForCompletion: true,
       minimumAttendancePercentage: 100
+    },
+    attendanceConfig: {
+      minAttendancePercentage: 100,
+      mode: 'physical_rollcall'
     },
     outputs: {
       certificateTemplateId: 'cert-001',
@@ -302,10 +315,14 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
   },
   {
     id: 'off-002',
+    trainingId: 'off-002',
     code: 'OFL-DATA-LAB-2026',
     title: 'Executive Cloud Architecture & SQL Performance Masterclass',
     description: 'Hands-on laboratory training exploring Postgres query tuning, database indexing strategies, scale-to-zero serverless deployment, and high-availability clustering.',
     categoryTags: ['Cloud Architecture', 'Database Tuning', 'DevOps', 'Software Engineering'],
+    category: 'Cloud Architecture',
+    durationHours: 3,
+    durationDays: 1,
     sessionMeta: {
       sessionDate: '05/04/2026',
       startTime: '10:00 AM',
@@ -317,10 +334,15 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
     roomId: 'room-202',
     roomName: 'Karnaphuli Skills Lab',
     roomCapacityAtTagging: 25,
+    maxCapacity: 25,
     defaultTrainerId: 'inst-02',
     defaultTrainerName: 'Engr. Sarah Rahman',
     defaultTrainerEmail: 'sarah.rahman@grameenphone.com',
     defaultTrainerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    primaryTrainerId: 'inst-02',
+    primaryTrainerName: 'Engr. Sarah Rahman',
+    primaryTrainerEmail: 'sarah.rahman@grameenphone.com',
+    assessmentMode: 'manual_marks',
     content: [
       {
         contentId: 'c-03',
@@ -367,10 +389,14 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
   },
   {
     id: 'off-003',
+    trainingId: 'off-003',
     code: 'OFL-NEGOTIATION-2026',
     title: 'High-Stakes Strategic Negotiation & Dispute Resolution Clinic',
     description: 'Intensive peer-to-peer roleplay session evaluating executive negotiation psychology, term-sheet compromise tactics, and live arbitrations.',
     categoryTags: ['Leadership', 'Negotiation', 'Executive Soft Skills', 'Conflict Resolution'],
+    category: 'Enterprise Leadership',
+    durationHours: 3.5,
+    durationDays: 1,
     sessionMeta: {
       sessionDate: '15/04/2026',
       startTime: '01:30 PM',
@@ -382,10 +408,15 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
     roomId: 'room-103',
     roomName: 'Room 202 (Executive Boardroom)',
     roomCapacityAtTagging: 20,
+    maxCapacity: 20,
     defaultTrainerId: 'inst-03',
     defaultTrainerName: 'Prof. Anisul Haque',
     defaultTrainerEmail: 'anisul.haque@grameenphone.com',
     defaultTrainerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    primaryTrainerId: 'inst-03',
+    primaryTrainerName: 'Prof. Anisul Haque',
+    primaryTrainerEmail: 'anisul.haque@grameenphone.com',
+    assessmentMode: 'manual_marks',
     content: [
       {
         contentId: 'c-04',
@@ -409,9 +440,15 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
         weightagePercent: 100
       }
     ],
+    deliveryMode: 'in_person',
     attendance: {
       required: true,
-      requiredForCompletion: true
+      requiredForCompletion: true,
+      minimumAttendancePercentage: 80
+    },
+    attendanceConfig: {
+      minAttendancePercentage: 80,
+      mode: 'physical_rollcall'
     },
     outputs: {
       certificateTemplateId: 'cert-001',

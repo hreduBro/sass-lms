@@ -141,11 +141,14 @@
     (searchChange)="onSearchChange($event)"
     searchPlaceholder="Search by template name, code, author, or category..."
     [isFilterOpen]="isFilterPanelOpen()"
-    (filterToggle)="isFilterPanelOpen.set($event)"
+    (filterToggle)="onFilterToggle($event)"
     [activeFilterCount]="activeFilterCount()"
     [hasActiveFilters]="hasActiveFilters()"
     [showReset]="isResetVisible()"
     (resetGrid)="resetGrid()"
+    (clearFilters)="clearFilters()"
+    (cancelFilters)="cancelFilters()"
+    (applyFilters)="applyFilters()"
     [viewMode]="viewMode()"
     (viewModeChange)="viewMode.set($event)"
     [showViewSwitcher]="true"
@@ -171,10 +174,10 @@
         <app-filter-section title="1. Status">
           <app-custom-select
             [options]="statusSelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedStatus()"
-            (ngModelChange)="selectedStatus.set($event)">
+            [clearable]="true"
+            [ngModel]="draftStatus()"
+            (ngModelChange)="draftStatus.set($event)"
+            placeholder="All Statuses">
           </app-custom-select>
         </app-filter-section>
 
@@ -182,10 +185,10 @@
         <app-filter-section title="2. Category / Domain">
           <app-custom-select
             [options]="categorySelectOptions()"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedCategory()"
-            (ngModelChange)="selectedCategory.set($event)">
+            [clearable]="true"
+            [ngModel]="draftCategory()"
+            (ngModelChange)="draftCategory.set($event)"
+            placeholder="All Categories">
           </app-custom-select>
         </app-filter-section>
 
@@ -193,10 +196,10 @@
         <app-filter-section title="3. Sharing Scope">
           <app-custom-select
             [options]="scopeSelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="selectedScope()"
-            (ngModelChange)="selectedScope.set($event)">
+            [clearable]="true"
+            [ngModel]="draftScope()"
+            (ngModelChange)="draftScope.set($event)"
+            placeholder="All Scopes">
           </app-custom-select>
         </app-filter-section>
 
@@ -204,10 +207,10 @@
         <app-filter-section title="4. Sort Order">
           <app-custom-select
             [options]="sortSelectOptions"
-            [clearable]="false"
-            [searchable]="false"
-            [ngModel]="sortBy()"
-            (ngModelChange)="sortBy.set($event)">
+            [clearable]="true"
+            [ngModel]="draftSortBy()"
+            (ngModelChange)="draftSortBy.set($event)"
+            placeholder="Recently Updated">
           </app-custom-select>
         </app-filter-section>
       </div>

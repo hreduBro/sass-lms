@@ -59,6 +59,13 @@ select:focus-visible {
   box-shadow: 0 0 0 2px rgba(236, 0, 140, 0.15) !important;
 }
 
+/* Angular Form Validation Error Outlines */
+input.ng-invalid.ng-touched:not([type="checkbox"]):not([type="radio"]),
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border-color: #f43f5e !important;
+}
+
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined' !important;
   font-weight: normal;

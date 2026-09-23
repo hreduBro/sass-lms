@@ -42,12 +42,14 @@ export class VenueGridComponent implements OnInit {
 
   // Search & Filters
   searchQuery = signal<string>('');
-  selectedStatus = signal<string>('all'); // all | active | inactive
+  selectedStatusActive = signal<boolean>(false);
+  selectedStatusInactive = signal<boolean>(false);
   selectedCity = signal<string>('all');
   selectedFacility = signal<string>('all'); // all | internet | parking | accessibility
   sortBy = signal<string>('newest'); // newest | oldest | name_asc | name_desc | capacity_desc | rooms_desc
 
-  draftStatus = signal<string>('all');
+  draftStatusActive = signal<boolean>(false);
+  draftStatusInactive = signal<boolean>(false);
   draftCity = signal<string>('all');
   draftFacility = signal<string>('all');
 
@@ -103,7 +105,7 @@ export class VenueGridComponent implements OnInit {
   });
 
   facilityOptions: SelectOption[] = [
-    { value: 'all', label: 'All Facilities', icon: 'tune' },
+    { value: 'all', label: 'All Facilities', icon: 'tag' },
     { value: 'internet', label: 'High-Speed Wi-Fi', icon: 'wifi' },
     { value: 'parking', label: 'Dedicated Parking', icon: 'local_parking' },
     { value: 'accessibility', label: 'Wheelchair Accessible', icon: 'accessible' }
@@ -113,7 +115,8 @@ export class VenueGridComponent implements OnInit {
   filteredVenues = computed(() => {
     let list = this.lmsData.venues();
     const q = this.searchQuery().toLowerCase().trim();
-    const status = this.selectedStatus();
+    const statusActive = this.selectedStatusActive();
+    const statusInactive = this.selectedStatusInactive();
     const city = this.selectedCity();
     const facility = this.selectedFacility();
     const sort = this.sortBy();
@@ -128,8 +131,10 @@ export class VenueGridComponent implements OnInit {
       );
     }
 
-    if (status !== 'all') {
-      list = list.filter(v => v.status === status);
+    if (statusActive && !statusInactive) {
+      list = list.filter(v => v.status === 'active');
+    } else if (statusInactive && !statusActive) {
+      list = list.filter(v => v.status === 'inactive');
     }
 
     if (city !== 'all') {
@@ -165,7 +170,13 @@ export class VenueGridComponent implements OnInit {
     // Check query params if deactivating or opening specific modal
     this.route.queryParams.subscribe(params => {
       if (params['filter']) {
-        this.selectedStatus.set(params['filter']);
+        if (params['filter'] === 'active') {
+          this.selectedStatusActive.set(true);
+          this.selectedStatusInactive.set(false);
+        } else if (params['filter'] === 'inactive') {
+          this.selectedStatusInactive.set(true);
+          this.selectedStatusActive.set(false);
+        }
       }
     });
   }
@@ -338,7 +349,7 @@ export class VenueGridComponent implements OnInit {
 
   activeFilterCount = computed(() => {
     let count = 0;
-    if (this.selectedStatus() !== 'all') count++;
+    if (this.selectedStatusActive() || this.selectedStatusInactive()) count++;
     if (this.selectedCity() !== 'all') count++;
     if (this.selectedFacility() !== 'all') count++;
     return count;
@@ -349,14 +360,16 @@ export class VenueGridComponent implements OnInit {
   onFilterToggle(isOpen: boolean): void {
     this.isFilterPanelOpen.set(isOpen);
     if (isOpen) {
-      this.draftStatus.set(this.selectedStatus());
+      this.draftStatusActive.set(this.selectedStatusActive());
+      this.draftStatusInactive.set(this.selectedStatusInactive());
       this.draftCity.set(this.selectedCity());
       this.draftFacility.set(this.selectedFacility());
     }
   }
 
   applyFilters(): void {
-    this.selectedStatus.set(this.draftStatus());
+    this.selectedStatusActive.set(this.draftStatusActive());
+    this.selectedStatusInactive.set(this.draftStatusInactive());
     this.selectedCity.set(this.draftCity());
     this.selectedFacility.set(this.draftFacility());
     this.isFilterPanelOpen.set(false);
@@ -364,10 +377,12 @@ export class VenueGridComponent implements OnInit {
 
   clearFilters(): void {
     this.searchQuery.set('');
-    this.selectedStatus.set('all');
+    this.draftStatusActive.set(false);
+    this.draftStatusInactive.set(false);
+    this.selectedStatusActive.set(false);
+    this.selectedStatusInactive.set(false);
     this.selectedCity.set('all');
     this.selectedFacility.set('all');
-    this.draftStatus.set('all');
     this.draftCity.set('all');
     this.draftFacility.set('all');
     this.sortBy.set('newest');

@@ -45,37 +45,79 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 2. 2-COLUMN WIZARD LAYOUT: STEPPER ON LEFT, FORM ON RIGHT                -->
+  <!-- 2. HORIZONTAL CUSTOM STEPPER CARD & STATUS BAR                            -->
   <!-- ========================================================================= -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-    
-    <!-- Left Column: Vertical Stepper Navigation -->
-    <div class="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6">
-      <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
-        <app-stepper
-          [steps]="steps"
-          [currentStep]="currentStep()"
-          [completedSteps]="completedSteps()"
-          orientation="vertical"
-          (stepChange)="goToStep($event)">
-        </app-stepper>
+  <div class="rounded-3xl bg-base-100 border border-base-300 shadow-sm p-4 sm:p-5 space-y-4">
+    <app-stepper
+      [steps]="steps"
+      [currentStep]="currentStep()"
+      [completedSteps]="completedSteps()"
+      orientation="horizontal"
+      (stepChange)="goToStep($event)">
+    </app-stepper>
 
-        <div class="pt-4 border-t border-base-300 text-xs text-text-secondary">
-          <div class="flex items-center justify-between">
-            <span>Configured Rooms:</span>
-            <strong class="text-text-primary">{{ roomsArray.length }}</strong>
-          </div>
-          <div class="flex items-center justify-between mt-1">
-            <span>Gross Seating:</span>
-            <strong class="text-tenant-600 dark:text-tenant-400 font-mono">{{ calculateTotalCapacity() }} seats</strong>
-          </div>
+    <div class="flex items-center justify-between text-xs text-text-secondary pt-3 border-t border-base-200 dark:border-slate-800 flex-wrap gap-3">
+      <div class="flex items-center gap-4 sm:gap-6 flex-wrap">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm text-tenant-500">meeting_room</span>
+          <span>Configured Rooms: <strong class="text-text-primary">{{ roomsArray.length }}</strong></span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm text-tenant-500">groups</span>
+          <span>Total Seating: <strong class="text-tenant-600 dark:text-tenant-400 font-bold font-mono">{{ calculateTotalCapacity() }} seats</strong></span>
         </div>
       </div>
+      <div class="text-xs text-text-secondary">
+        Stage {{ currentStep() }} of 4: <strong class="text-text-primary">{{ getCurrentStepTitle() }}</strong>
+      </div>
     </div>
+  </div>
 
-    <!-- Right Column: Form Container -->
-    <div class="lg:col-span-8 xl:col-span-9 space-y-6">
-      <form [formGroup]="venueForm" (ngSubmit)="saveVenue()" class="space-y-6">
+  <!-- ========================================================================= -->
+  <!-- 3. GUIDED SETUP WELCOME BANNER                                            -->
+  <!-- ========================================================================= -->
+  @if (showWelcomeBanner()) {
+    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-xl">domain_add</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-sm font-bold text-text-primary">Welcome to Facility Registration</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/60 uppercase tracking-wide">
+              Guided Setup
+            </span>
+          </div>
+          <p class="text-xs text-text-secondary mt-0.5">
+            Configure your physical training venue step-by-step using this horizontal wizard. Define room layouts, seating quotas, accessibility options, and direct emergency or administration contacts.
+          </p>
+        </div>
+      </div>
+      <button type="button" (click)="showWelcomeBanner.set(false)" class="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-base-200 transition-colors cursor-pointer shrink-0" title="Dismiss banner">
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- SUCCESS ALERT BANNER -->
+  @if (successAlert()) {
+    <div id="form-success-banner" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center justify-between gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">check_circle</span>
+        <span>{{ successAlert() }}</span>
+      </div>
+      <button type="button" (click)="successAlert.set(null)" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 p-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors cursor-pointer" title="Dismiss alert">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+  }
+
+
+  <!-- ========================================================================= -->
+  <!-- 4. FULL-WIDTH FORM STEPS                                                  -->
+  <!-- ========================================================================= -->
+  <form [formGroup]="venueForm" (ngSubmit)="saveVenue()" class="space-y-6">
 
         <!-- STEP 1: BASIC INFO & ADDRESS -->
         @if (currentStep() === 1) {
@@ -94,16 +136,31 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">Venue Unique Code *</label>
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Venue Unique Code <span class="text-rose-500">*</span>
+                </label>
                 <input type="text" formControlName="code" placeholder="e.g. VEN-DHK-01"
-                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
-                <p class="text-[11px] text-text-secondary mt-1">Unique alphanumeric facility identifier</p>
+                       [class.border-rose-500]="isFieldInvalid('code')"
+                       [class.bg-rose-50/20]="isFieldInvalid('code')"
+                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary transition-colors" />
+                @if (isFieldInvalid('code')) {
+                  <p class="text-[11px] text-rose-500 mt-1">Unique alphanumeric facility code is required.</p>
+                } @else {
+                  <p class="text-[11px] text-text-secondary mt-1">Unique alphanumeric facility identifier</p>
+                }
               </div>
 
               <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-text-primary mb-1">Venue Name *</label>
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Venue Name <span class="text-rose-500">*</span>
+                </label>
                 <input type="text" formControlName="name" placeholder="e.g. Dhaka Executive Learning Center"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary" />
+                       [class.border-rose-500]="isFieldInvalid('name')"
+                       [class.bg-rose-50/20]="isFieldInvalid('name')"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary transition-colors" />
+                @if (isFieldInvalid('name')) {
+                  <p class="text-[11px] text-rose-500 mt-1">Venue Name is required (up to 120 characters).</p>
+                }
               </div>
             </div>
 
@@ -112,16 +169,30 @@
               
               <div class="space-y-3">
                 <div>
-                  <label class="block text-xs font-semibold text-text-primary mb-1">Street Address Line 1 *</label>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Street Address Line 1 <span class="text-rose-500">*</span>
+                  </label>
                   <input type="text" formControlName="addressLine1" placeholder="e.g. 75 Mohakhali C/A, Level 4"
-                         class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                         [class.border-rose-500]="isFieldInvalid('addressLine1')"
+                         [class.bg-rose-50/20]="isFieldInvalid('addressLine1')"
+                         class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                  @if (isFieldInvalid('addressLine1')) {
+                    <p class="text-[11px] text-rose-500 mt-1">Street address line is required.</p>
+                  }
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label class="block text-xs font-semibold text-text-primary mb-1">City *</label>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      City <span class="text-rose-500">*</span>
+                    </label>
                     <input type="text" formControlName="city" placeholder="e.g. Dhaka"
-                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                           [class.border-rose-500]="isFieldInvalid('city')"
+                           [class.bg-rose-50/20]="isFieldInvalid('city')"
+                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                    @if (isFieldInvalid('city')) {
+                      <p class="text-[11px] text-rose-500 mt-1">City is required.</p>
+                    }
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-text-primary mb-1">Postal Code</label>
@@ -129,9 +200,16 @@
                            class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
                   </div>
                   <div>
-                    <label class="block text-xs font-semibold text-text-primary mb-1">Country *</label>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Country <span class="text-rose-500">*</span>
+                    </label>
                     <input type="text" formControlName="country" placeholder="e.g. Bangladesh"
-                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                           [class.border-rose-500]="isFieldInvalid('country')"
+                           [class.bg-rose-50/20]="isFieldInvalid('country')"
+                           class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                    @if (isFieldInvalid('country')) {
+                      <p class="text-[11px] text-rose-500 mt-1">Country is required.</p>
+                    }
                   </div>
                 </div>
 
@@ -205,15 +283,29 @@
 
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="sm:col-span-2">
-                      <label class="block text-xs font-semibold text-text-primary mb-1">Room Name / Label *</label>
+                      <label class="block text-xs font-semibold text-text-primary mb-1">
+                        Room Name / Label <span class="text-rose-500">*</span>
+                      </label>
                       <input type="text" formControlName="name" placeholder="e.g. Executive Seminar Hall 1"
-                             class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                             [class.border-rose-500]="isRoomFieldInvalid($index, 'name')"
+                             [class.bg-rose-50/20]="isRoomFieldInvalid($index, 'name')"
+                             class="w-full px-3 py-2 text-sm bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                      @if (isRoomFieldInvalid($index, 'name')) {
+                        <p class="text-[11px] text-rose-500 mt-1">Room name is required.</p>
+                      }
                     </div>
 
                     <div>
-                      <label class="block text-xs font-semibold text-text-primary mb-1">Capacity (Max Seats) *</label>
+                      <label class="block text-xs font-semibold text-text-primary mb-1">
+                        Capacity (Max Seats) <span class="text-rose-500">*</span>
+                      </label>
                       <input type="number" formControlName="capacity" placeholder="40"
-                             class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                             [class.border-rose-500]="isRoomFieldInvalid($index, 'capacity')"
+                             [class.bg-rose-50/20]="isRoomFieldInvalid($index, 'capacity')"
+                             class="w-full px-3 py-2 text-sm font-mono bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                      @if (isRoomFieldInvalid($index, 'capacity')) {
+                        <p class="text-[11px] text-rose-500 mt-1">Capacity must be at least 1.</p>
+                      }
                     </div>
                   </div>
 
@@ -382,9 +474,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">Contact Officer Name *</label>
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Contact Officer Name <span class="text-rose-500">*</span>
+                </label>
                 <input type="text" formControlName="contactName" placeholder="e.g. Lt. Col. Farhad Reza (Retd.)"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                       [class.border-rose-500]="isFieldInvalid('contactName')"
+                       [class.bg-rose-50/20]="isFieldInvalid('contactName')"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                @if (isFieldInvalid('contactName')) {
+                  <p class="text-[11px] text-rose-500 mt-1">Contact Officer Name is required.</p>
+                }
               </div>
 
               <div>
@@ -394,15 +493,29 @@
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">Direct Telephone / Mobile *</label>
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Direct Telephone / Mobile <span class="text-rose-500">*</span>
+                </label>
                 <input type="text" formControlName="contactPhone" placeholder="e.g. +880 1711-445566"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                       [class.border-rose-500]="isFieldInvalid('contactPhone')"
+                       [class.bg-rose-50/20]="isFieldInvalid('contactPhone')"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                @if (isFieldInvalid('contactPhone')) {
+                  <p class="text-[11px] text-rose-500 mt-1">Contact phone number is required.</p>
+                }
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">Official Email Address *</label>
+                <label class="block text-xs font-semibold text-text-primary mb-1">
+                  Official Email Address <span class="text-rose-500">*</span>
+                </label>
                 <input type="email" formControlName="contactEmail" placeholder="e.g. facilities@brac.net"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                       [class.border-rose-500]="isFieldInvalid('contactEmail')"
+                       [class.bg-rose-50/20]="isFieldInvalid('contactEmail')"
+                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                @if (isFieldInvalid('contactEmail')) {
+                  <p class="text-[11px] text-rose-500 mt-1">A valid contact email is required.</p>
+                }
               </div>
             </div>
 
@@ -424,8 +537,5 @@
         }
 
       </form>
-    </div>
-
-  </div>
 
 </div>

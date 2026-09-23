@@ -39,6 +39,15 @@ export class CoursesComponent {
   selectedGradingMode = signal<string>('All'); // All, manual, auto
   selectedOwnerId = signal<string>('All');
 
+  // Draft filter state for drawer
+  draftStatus = signal<string>('All');
+  draftCategory = signal<string>('All');
+  draftLayerCount = signal<string>('All');
+  draftFamily = signal<string>('All');
+  draftGradingMode = signal<string>('All');
+  draftSortBy = signal<string>('latest');
+  draftOwnerId = signal<string>('All');
+
   // Filter Drawer toggle
   showFilterDrawer = signal<boolean>(false);
 
@@ -266,6 +275,47 @@ export class CoursesComponent {
     this.currentPage.set(1);
   }
 
+  onFilterToggle(isOpen: boolean) {
+    this.showFilterDrawer.set(isOpen);
+    if (isOpen) {
+      this.draftStatus.set(this.selectedStatus());
+      this.draftCategory.set(this.selectedCategory());
+      this.draftLayerCount.set(this.selectedLayerCount());
+      this.draftFamily.set(this.selectedFamily());
+      this.draftGradingMode.set(this.selectedGradingMode());
+      this.draftSortBy.set(this.sortBy());
+      this.draftOwnerId.set(this.selectedOwnerId());
+    }
+  }
+
+  applyFilters() {
+    this.selectedStatus.set(this.draftStatus());
+    this.selectedCategory.set(this.draftCategory());
+    this.selectedLayerCount.set(this.draftLayerCount());
+    this.selectedFamily.set(this.draftFamily());
+    this.selectedGradingMode.set(this.draftGradingMode());
+    this.sortBy.set(this.draftSortBy());
+    this.selectedOwnerId.set(this.draftOwnerId());
+    this.currentPage.set(1);
+    this.showFilterDrawer.set(false);
+  }
+
+  cancelFilters() {
+    this.showFilterDrawer.set(false);
+  }
+
+  clearFilters() {
+    this.draftStatus.set('All');
+    this.draftCategory.set('All');
+    this.draftLayerCount.set('All');
+    this.draftFamily.set('All');
+    this.draftGradingMode.set('All');
+    this.draftSortBy.set('latest');
+    this.draftOwnerId.set('All');
+    this.resetAllFilters();
+    this.showFilterDrawer.set(false);
+  }
+
   resetAllFilters() {
     this.searchQuery.set('');
     this.selectedStatus.set('All');
@@ -274,6 +324,14 @@ export class CoursesComponent {
     this.selectedFamily.set('All');
     this.selectedGradingMode.set('All');
     this.selectedOwnerId.set('All');
+    this.sortBy.set('latest');
+    this.draftStatus.set('All');
+    this.draftCategory.set('All');
+    this.draftLayerCount.set('All');
+    this.draftFamily.set('All');
+    this.draftGradingMode.set('All');
+    this.draftSortBy.set('latest');
+    this.draftOwnerId.set('All');
     this.currentPage.set(1);
   }
 

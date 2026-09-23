@@ -58,6 +58,11 @@ export class CourseTemplateGridComponent {
   sortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'used_desc'>('updated_desc');
   selectedCategoryQuick = signal<string>('All');
 
+  draftStatus = signal<string>('all');
+  draftCategory = signal<string>('all');
+  draftScope = signal<string>('all');
+  draftSortBy = signal<'updated_desc' | 'updated_asc' | 'name_asc' | 'used_desc'>('updated_desc');
+
   // Filter Panel Drawer State
   isFilterPanelOpen = signal<boolean>(false);
 
@@ -77,11 +82,11 @@ export class CourseTemplateGridComponent {
 
   categorySelectOptions = computed<SelectOption[]>(() => {
     return [
-      { value: 'all', label: 'All Categories', icon: 'category' },
+      { value: 'all', label: 'All Categories', icon: 'schema' },
       ...this.categories.map(c => ({
         value: c,
         label: c,
-        icon: 'auto_stories'
+        icon: 'folder'
       }))
     ];
   });
@@ -390,11 +395,43 @@ export class CourseTemplateGridComponent {
   }
 
   // Filter Drawer Actions
-  toggleFilterPanel() {
-    if (!this.isFilterPanelOpen()) {
-      this.draftFilters.set({ ...this.appliedFilters() });
+  onFilterToggle(isOpen: boolean) {
+    this.isFilterPanelOpen.set(isOpen);
+    if (isOpen) {
+      this.draftStatus.set(this.selectedStatus());
+      this.draftCategory.set(this.selectedCategory());
+      this.draftScope.set(this.selectedScope());
+      this.draftSortBy.set(this.sortBy());
     }
-    this.isFilterPanelOpen.update(v => !v);
+  }
+
+  applyFilters() {
+    this.selectedStatus.set(this.draftStatus());
+    this.selectedCategory.set(this.draftCategory());
+    this.selectedScope.set(this.draftScope());
+    this.sortBy.set(this.draftSortBy());
+    this.currentPage.set(1);
+    this.isFilterPanelOpen.set(false);
+  }
+
+  cancelFilters() {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  clearFilters() {
+    this.draftStatus.set('all');
+    this.draftCategory.set('all');
+    this.draftScope.set('all');
+    this.draftSortBy.set('updated_desc');
+    this.selectedStatus.set('all');
+    this.selectedCategory.set('all');
+    this.selectedScope.set('all');
+    this.sortBy.set('updated_desc');
+    this.currentPage.set(1);
+  }
+
+  toggleFilterPanel() {
+    this.onFilterToggle(!this.isFilterPanelOpen());
   }
 
   closeFilterPanel() {
@@ -403,10 +440,7 @@ export class CourseTemplateGridComponent {
 
   resetGrid() {
     this.searchQuery.set('');
-    this.selectedStatus.set('all');
-    this.selectedCategory.set('all');
-    this.selectedScope.set('all');
-    this.sortBy.set('updated_desc');
+    this.clearFilters();
     this.selectedCategoryQuick.set('All');
     this.displayedCount.set(12);
   }

@@ -96,324 +96,332 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. TOOLBAR: SEARCH & CUSTOM SELECTORS                                     -->
+  <!-- 3. DATA GRID CONTAINER                                                    -->
   <!-- ========================================================================= -->
-  <div class="p-4 bg-base-100 rounded-2xl border border-base-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-    
-    <div class="relative flex-1 max-w-md">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-lg">search</span>
-      <input type="text"
-             [value]="searchQuery()"
-             (input)="searchQuery.set($any($event.target).value)"
-             placeholder="Search by title, code, venue, trainer, or tags..."
-             class="w-full pl-9 pr-8 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:outline-none focus:border-tenant-500 text-text-primary placeholder:text-text-secondary" />
-      @if (searchQuery()) {
-        <button (click)="searchQuery.set('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
-          <span class="material-symbols-outlined text-sm">close</span>
-        </button>
-      }
+  <app-data-grid
+    [searchQuery]="searchQuery()"
+    (searchChange)="onSearchChange($event)"
+    searchPlaceholder="Search offline trainings by title, code, venue, or trainer..."
+    [isFilterOpen]="isFilterPanelOpen()"
+    (filterToggle)="onFilterToggle($event)"
+    [activeFilterCount]="activeFilterCount()"
+    [hasActiveFilters]="hasActiveFilters()"
+    [showReset]="hasActiveFilters()"
+    (resetGrid)="clearFilters()"
+    [viewMode]="viewMode()"
+    (viewModeChange)="viewMode.set($event)"
+    [showViewSwitcher]="true"
+    [itemCountText]="'Showing ' + filteredTrainings().length + ' of ' + lmsData.offlineTrainings().length + ' Workshops'"
+    filterPanelTitle="FILTER OFFLINE TRAININGS"
+    filterPanelSubtitle="Combine criteria with AND • Multiple values in same category with OR"
+    clearFilterLabel="↺ Clear All Selections"
+    cancelFilterLabel="Cancel"
+    applyFilterLabel="Apply Filter"
+    [activeChips]="activeChips()"
+    (removeChip)="onRemoveChip($event)"
+    (clearAllChips)="clearFilters()"
+    [emptyStateType]="emptyStateType()"
+    emptyTitle="No Offline Trainings configured"
+    emptyMessage="Register your first in-person workshop or classroom session to schedule facility rooms."
+    emptyIcon="school"
+    emptyActionText="Create Offline Training"
+    (emptyAction)="navigateToCreate()"
+    (clearFilters)="clearFilters()"
+    (cancelFilters)="cancelFilters()"
+    (applyFilters)="applyFilters()"
+    [showPagination]="false">
+
+    <!-- Filter Drawer Slot (Matching Image 1) -->
+    <div filter-panel class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start pt-1">
+      <!-- 1. Status -->
+      <div>
+        <label class="block text-xs font-bold text-text-primary mb-1.5">1. Status</label>
+        <app-custom-select
+          [options]="statusOptions"
+          [ngModel]="draftStatus()"
+          (ngModelChange)="draftStatus.set($event || 'all')"
+          placeholder="All Statuses"
+          [clearable]="true">
+        </app-custom-select>
+      </div>
+
+      <!-- 2. Venue -->
+      <div>
+        <label class="block text-xs font-bold text-text-primary mb-1.5">2. Venue</label>
+        <app-custom-select
+          [options]="venueOptions()"
+          [ngModel]="draftVenue()"
+          (ngModelChange)="draftVenue.set($event || 'all')"
+          placeholder="All Venues"
+          [clearable]="true">
+        </app-custom-select>
+      </div>
+
+      <!-- 3. Assessment Type -->
+      <div>
+        <label class="block text-xs font-bold text-text-primary mb-1.5">3. Assessment Type</label>
+        <app-custom-select
+          [options]="assessmentModeOptions"
+          [ngModel]="draftAssessmentMode()"
+          (ngModelChange)="draftAssessmentMode.set($event || 'all')"
+          placeholder="All Assessment Types"
+          [clearable]="true">
+        </app-custom-select>
+      </div>
+
+      <!-- 4. Sort By -->
+      <div>
+        <label class="block text-xs font-bold text-text-primary mb-1.5">4. Sort By</label>
+        <app-custom-select
+          [options]="sortOptions"
+          [ngModel]="draftSortBy()"
+          (ngModelChange)="draftSortBy.set($event || 'newest')"
+          placeholder="Newest First"
+          [clearable]="true">
+        </app-custom-select>
+      </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2">
-      <!-- Status Filter -->
-      <div class="w-36 sm:w-40">
-        <app-custom-select [options]="statusOptions" 
-                           [ngModel]="selectedStatus()" 
-                           (ngModelChange)="selectedStatus.set($event)">
-        </app-custom-select>
-      </div>
+    <!-- 4. GRID VIEW -->
+    @if (viewMode() === 'grid' && filteredTrainings().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+        @for (item of filteredTrainings(); track item.trainingId || item.id) {
+          <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
+            
+            <div class="p-5">
+              <!-- Top Status & Actions Menu -->
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
+                    {{ item.code }}
+                  </span>
+                  <span [class]="item.status === 'published' 
+                                 ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                                 : (item.status === 'draft' 
+                                    ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
+                                    : 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
+                    {{ item.status | uppercase }}
+                  </span>
+                </div>
 
-      <!-- Venue Filter -->
-      <div class="w-40 sm:w-44">
-        <app-custom-select [options]="venueOptions()" 
-                           [ngModel]="selectedVenue()" 
-                           (ngModelChange)="selectedVenue.set($event)">
-        </app-custom-select>
-      </div>
+                <!-- 3-Dots Dropdown -->
+                <div class="relative">
+                  <button (click)="toggleActionMenu(item.trainingId, $event)" 
+                          class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">more_vert</span>
+                  </button>
 
-      <!-- Assessment Mode Filter -->
-      <div class="w-44 sm:w-48">
-        <app-custom-select [options]="assessmentModeOptions" 
-                           [ngModel]="selectedAssessmentMode()" 
-                           (ngModelChange)="selectedAssessmentMode.set($event)">
-        </app-custom-select>
-      </div>
+                  @if (openActionMenuId() === item.trainingId) {
+                    <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
+                      <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
+                        <span>View Training Details</span>
+                      </button>
+                      @if (permissions().canEditOfflineTraining) {
+                        <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
+                          <span>Edit Module</span>
+                        </button>
+                      }
+                      @if (permissions().canEmbedOfflineTraining) {
+                        <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">hub</span>
+                          <span>Embed to Course/Plan</span>
+                        </button>
+                      }
+                      <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
+                        <span>Duplicate Module</span>
+                      </button>
+                      <div class="my-1 border-t border-base-300"></div>
+                      @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
+                        <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">verified</span>
+                          <span>Publish Module</span>
+                        </button>
+                      }
+                      @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
+                        <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">power_settings_new</span>
+                          <span>Deactivate</span>
+                        </button>
+                      } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
+                        <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">check_circle</span>
+                          <span>Reactivate</span>
+                        </button>
+                      }
+                      @if (permissions().canDeleteOfflineTraining) {
+                        <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm">delete</span>
+                          <span>Delete</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
 
-      <!-- Sort Filter -->
-      <div class="w-40 sm:w-44">
-        <app-custom-select [options]="sortOptions" 
-                           [ngModel]="sortBy()" 
-                           (ngModelChange)="sortBy.set($event)">
-        </app-custom-select>
-      </div>
+              <!-- Title & Description -->
+              <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-tenant-600 transition-colors">
+                <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
+                  {{ item.title }}
+                </h3>
+              </a>
+              <p class="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
+                {{ item.description }}
+              </p>
 
-      <!-- View Toggle -->
-      <div class="flex items-center p-1 bg-base-200 rounded-xl border border-base-300 ml-1">
-        <button (click)="viewMode.set('grid')"
-                [class.bg-base-100]="viewMode() === 'grid'"
-                [class.shadow-xs]="viewMode() === 'grid'"
-                [class.text-tenant-600]="viewMode() === 'grid'"
-                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                title="Grid View">
-          <span class="material-symbols-outlined text-base">grid_view</span>
-        </button>
-        <button (click)="viewMode.set('table')"
-                [class.bg-base-100]="viewMode() === 'table'"
-                [class.shadow-xs]="viewMode() === 'table'"
-                [class.text-tenant-600]="viewMode() === 'table'"
-                class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                title="Table View">
-          <span class="material-symbols-outlined text-base">view_list</span>
-        </button>
-      </div>
-    </div>
-  </div>
+              <!-- Venue & Room Badge -->
+              <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300 mb-3 space-y-1">
+                <div class="text-xs font-semibold text-text-primary flex items-center gap-1.5 truncate">
+                  <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">location_on</span>
+                  <span>{{ item.venueName || 'Unassigned Venue' }}</span>
+                </div>
+                <div class="text-[11px] text-text-secondary flex items-center justify-between pl-5">
+                  <span>Room: <strong class="text-text-primary">{{ item.roomName || 'TBD' }}</strong></span>
+                  <span class="font-mono text-tenant-600 dark:text-tenant-400">Cap: {{ getCapacityDisplay(item) }} seats</span>
+                </div>
+              </div>
 
-  <!-- ========================================================================= -->
-  <!-- 4. EMPTY STATE                                                            -->
-  <!-- ========================================================================= -->
-  @if (filteredTrainings().length === 0) {
-    <div class="p-12 text-center bg-base-100 rounded-3xl border border-base-300 shadow-sm">
-      <div class="w-16 h-16 mx-auto rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center mb-4">
-        <span class="material-symbols-outlined text-3xl">school</span>
-      </div>
-      <h3 class="text-lg font-bold text-text-primary">No Offline Trainings Found</h3>
-      <p class="text-xs sm:text-sm text-text-secondary max-w-md mx-auto mt-1 mb-6">
-        No offline trainings matched your search query or filter options. You can reset filters or register a new workshop module.
-      </p>
-      <div class="flex items-center justify-center gap-3">
-        <button (click)="clearFilters()" class="px-4 py-2 text-xs font-semibold bg-base-200 hover:bg-base-300 text-text-primary rounded-xl border border-base-300 transition-colors cursor-pointer">
-          Reset Filters
-        </button>
-        @if (permissions().canCreateOfflineTraining) {
-          <button (click)="navigateToCreate()" class="px-4 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 active:scale-95 rounded-xl shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-            Create Offline Training
-          </button>
+              <!-- Trainer & Duration Row -->
+              <div class="flex items-center justify-between text-xs text-text-primary pt-1">
+                <div class="flex items-center gap-2 truncate">
+                  <div class="w-6 h-6 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
+                    {{ getTrainerInitial(item) }}
+                  </div>
+                  <span class="truncate font-medium">{{ getTrainerDisplayName(item) }}</span>
+                </div>
+                <span class="text-[11px] font-mono font-semibold text-text-secondary shrink-0 bg-base-200 border border-base-300 px-2 py-0.5 rounded-md">
+                  {{ getDurationDisplay(item) }}
+                </span>
+              </div>
+
+              <!-- Assessment Mode Tag -->
+              <div class="mt-3 pt-2.5 border-t border-base-300 flex items-center justify-between text-[11px]">
+                <span class="text-text-secondary">Assessment:</span>
+                <span class="font-semibold text-tenant-600 dark:text-tenant-400">
+                  {{ getAssessmentModeLabel(item.assessmentMode) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="px-5 py-3 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
+              <span class="text-[11px] text-text-secondary">
+                {{ item.embeddingCount || 0 }} Course Embedding(s)
+              </span>
+              <div class="flex items-center gap-2">
+                <button (click)="openEmbedModal(item)"
+                        class="px-2.5 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 border border-tenant-200 dark:border-tenant-800/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">hub</span> Embed
+                </button>
+                <button (click)="navigateToView(item.trainingId)"
+                        class="px-3 py-1 text-xs font-semibold text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+                  <span>View</span>
+                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
         }
       </div>
-    </div>
-  }
+    }
 
-  <!-- ========================================================================= -->
-  <!-- 5. GRID VIEW                                                              -->
-  <!-- ========================================================================= -->
-  @if (viewMode() === 'grid' && filteredTrainings().length > 0) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (item of filteredTrainings(); track item.trainingId) {
-        <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
-          
-          <div class="p-5">
-            <!-- Top Status & Actions Menu -->
-            <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
-                  {{ item.code }}
-                </span>
-                <span [class]="item.status === 'published' 
-                               ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                               : (item.status === 'draft' 
-                                  ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
-                                  : 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
-                  {{ item.status | uppercase }}
-                </span>
-              </div>
-
-              <!-- 3-Dots Dropdown -->
-              <div class="relative">
-                <button (click)="toggleActionMenu(item.trainingId, $event)" 
-                        class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-lg">more_vert</span>
-                </button>
-
-                @if (openActionMenuId() === item.trainingId) {
-                  <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
-                    <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                      <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
-                      <span>View Training Details</span>
-                    </button>
-                    @if (permissions().canEditOfflineTraining) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
-                        <span>Edit Module</span>
-                      </button>
-                    }
-                    @if (permissions().canEmbedOfflineTraining) {
-                      <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">hub</span>
-                        <span>Embed to Course/Plan</span>
-                      </button>
-                    }
-                    <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                      <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
-                      <span>Duplicate Module</span>
-                    </button>
-                    <div class="my-1 border-t border-base-300"></div>
-                    @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
-                      <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">verified</span>
-                        <span>Publish Module</span>
-                      </button>
-                    }
-                    @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
-                      <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">power_settings_new</span>
-                        <span>Deactivate</span>
-                      </button>
-                    } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
-                      <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">check_circle</span>
-                        <span>Reactivate</span>
-                      </button>
-                    }
-                    @if (permissions().canDeleteOfflineTraining) {
-                      <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                        <span>Delete</span>
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Title & Description -->
-            <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-tenant-600 transition-colors">
-              <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
-                {{ item.title }}
-              </h3>
-            </a>
-            <p class="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
-              {{ item.description }}
-            </p>
-
-            <!-- Venue & Room Badge -->
-            <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300 mb-3 space-y-1">
-              <div class="text-xs font-semibold text-text-primary flex items-center gap-1.5 truncate">
-                <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">location_on</span>
-                <span>{{ item.venueName || 'Unassigned Venue' }}</span>
-              </div>
-              <div class="text-[11px] text-text-secondary flex items-center justify-between pl-5">
-                <span>Room: <strong class="text-text-primary">{{ item.roomName || 'TBD' }}</strong></span>
-                <span class="font-mono text-tenant-600 dark:text-tenant-400">Cap: {{ item.maxCapacity || '--' }} seats</span>
-              </div>
-            </div>
-
-            <!-- Trainer & Duration Row -->
-            <div class="flex items-center justify-between text-xs text-text-primary pt-1">
-              <div class="flex items-center gap-2 truncate">
-                <div class="w-6 h-6 rounded-full bg-tenant-50 text-tenant-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
-                  {{ item.primaryTrainerName ? item.primaryTrainerName[0] : 'T' }}
-                </div>
-                <span class="truncate font-medium">{{ item.primaryTrainerName || 'Trainer Pool' }}</span>
-              </div>
-              <span class="text-[11px] font-mono font-semibold text-text-secondary shrink-0 bg-base-200 border border-base-300 px-2 py-0.5 rounded-md">
-                {{ item.durationHours }} Hours
-              </span>
-            </div>
-
-            <!-- Assessment Mode Tag -->
-            <div class="mt-3 pt-2.5 border-t border-base-300 flex items-center justify-between text-[11px]">
-              <span class="text-text-secondary">Assessment:</span>
-              <span [class]="item.assessmentMode === 'manual_marks' 
-                             ? 'font-semibold text-purple-600 dark:text-purple-400' 
-                             : (item.assessmentMode === 'inline_assessment' 
-                                ? 'font-semibold text-sky-600 dark:text-sky-400' 
-                                : 'font-semibold text-tenant-600 dark:text-tenant-400')">
-                {{ item.assessmentMode === 'manual_marks' ? 'Mode C (Manual Marks)' : (item.assessmentMode === 'inline_assessment' ? 'Mode B (Inline Exam)' : (item.assessmentMode === 'reference_assessment' ? 'Mode A (Ref Module)' : 'None')) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Bottom Footer -->
-          <div class="px-5 py-3 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
-            <span class="text-[11px] text-text-secondary">
-              {{ item.embeddingCount || 0 }} Course Embedding(s)
-            </span>
-            <div class="flex items-center gap-2">
-              <button (click)="openEmbedModal(item)"
-                      class="px-2.5 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 border border-tenant-200 dark:border-tenant-800/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-xs">hub</span> Embed
-              </button>
-              <button (click)="navigateToView(item.trainingId)"
-                      class="px-3 py-1 text-xs font-semibold text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                <span>View</span>
-                <span class="material-symbols-outlined text-xs">arrow_forward</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      }
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- 6. TABLE VIEW                                                             -->
-  <!-- ========================================================================= -->
-  @if (viewMode() === 'table' && filteredTrainings().length > 0) {
-    <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-text-primary">
-          <thead class="bg-base-200/70 text-xs uppercase font-bold text-text-secondary border-b border-base-300">
-            <tr>
-              <th class="px-5 py-3.5">Training Title & Code</th>
-              <th class="px-4 py-3.5">Venue & Room</th>
-              <th class="px-4 py-3.5">Primary Trainer</th>
-              <th class="px-4 py-3.5">Duration</th>
-              <th class="px-4 py-3.5">Assessment Mode</th>
-              <th class="px-4 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-base-300">
-            @for (item of filteredTrainings(); track item.trainingId) {
-              <tr class="hover:bg-base-200/40 transition-colors">
-                <td class="px-5 py-4">
-                  <div class="font-bold text-text-primary">{{ item.title }}</div>
-                  <div class="text-[11px] font-mono text-text-secondary">{{ item.code }} • {{ item.category }}</div>
-                </td>
-                <td class="px-4 py-4 text-xs">
-                  <div class="font-semibold text-text-primary">{{ item.venueName || 'TBD' }}</div>
-                  <div class="text-[11px] text-text-secondary">{{ item.roomName || 'Room TBD' }} (Cap: {{ item.maxCapacity || '--' }})</div>
-                </td>
-                <td class="px-4 py-4 text-xs">
-                  <div class="font-medium text-text-primary">{{ item.primaryTrainerName }}</div>
-                </td>
-                <td class="px-4 py-4 text-xs font-mono">
-                  {{ item.durationHours }} Hours
-                </td>
-                <td class="px-4 py-4 text-xs">
-                  <span class="capitalize">{{ item.assessmentMode.replace('_', ' ') }}</span>
-                </td>
-                <td class="px-4 py-4">
-                  <span [class]="item.status === 'published' ? 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200' : 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200'">
-                    {{ item.status }}
-                  </span>
-                </td>
-                <td class="px-5 py-4 text-right sticky right-0 bg-base-100/90 backdrop-blur-xs">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="View Details">
-                      <span class="material-symbols-outlined text-base">visibility</span>
-                    </button>
-                    @if (permissions().canEmbedOfflineTraining) {
-                      <button (click)="openEmbedModal(item)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Embed Workshop">
-                        <span class="material-symbols-outlined text-base">hub</span>
-                      </button>
-                    }
-                    @if (permissions().canEditOfflineTraining) {
-                      <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Edit Workshop">
-                        <span class="material-symbols-outlined text-base">edit</span>
-                      </button>
-                    }
-                  </div>
-                </td>
+    <!-- 5. TABLE VIEW -->
+    @if (viewMode() === 'table' && filteredTrainings().length > 0) {
+      <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm overflow-hidden pt-1">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-text-primary">
+            <thead class="bg-base-200/70 text-xs uppercase font-bold text-text-secondary border-b border-base-300">
+              <tr>
+                <th class="px-5 py-3.5">Training Title & Code</th>
+                <th class="px-4 py-3.5">Venue & Room</th>
+                <th class="px-4 py-3.5">Primary Trainer</th>
+                <th class="px-4 py-3.5">Duration</th>
+                <th class="px-4 py-3.5">Assessment Mode</th>
+                <th class="px-4 py-3.5">Status</th>
+                <th class="px-5 py-3.5 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody class="divide-y divide-base-300">
+              @for (item of filteredTrainings(); track item.trainingId || item.id) {
+                <tr class="hover:bg-base-200/40 transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="font-bold text-text-primary">{{ item.title }}</div>
+                    <div class="text-[11px] font-mono text-text-secondary mt-0.5">
+                      {{ item.code }} • {{ getCategoryDisplay(item) }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 text-xs">
+                    <div class="font-semibold text-text-primary flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs text-tenant-600">location_on</span>
+                      <span>{{ item.venueName || 'Unassigned Venue' }}</span>
+                    </div>
+                    <div class="text-[11px] text-text-secondary mt-0.5 pl-4">
+                      {{ item.roomName || 'Room TBD' }} (Cap: {{ getCapacityDisplay(item) }})
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 text-xs">
+                    <div class="flex items-center gap-2">
+                      <div class="w-6 h-6 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
+                        {{ getTrainerInitial(item) }}
+                      </div>
+                      <span class="font-medium text-text-primary">{{ getTrainerDisplayName(item) }}</span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 text-xs font-mono font-medium text-text-primary">
+                    {{ getDurationDisplay(item) }}
+                  </td>
+                  <td class="px-4 py-4 text-xs">
+                    <span class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-base-200 text-text-primary border border-base-300">
+                      {{ getAssessmentModeLabel(item.assessmentMode) }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-4">
+                    @if (item.status === 'published') {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Published
+                      </span>
+                    } @else if (item.status === 'draft') {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        Draft
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        Inactive
+                      </span>
+                    }
+                  </td>
+                  <td class="px-5 py-4 text-right sticky right-0 bg-base-100/90 backdrop-blur-xs">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="View Details">
+                        <span class="material-symbols-outlined text-base">visibility</span>
+                      </button>
+                      @if (permissions().canEmbedOfflineTraining) {
+                        <button (click)="openEmbedModal(item)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Embed Workshop">
+                          <span class="material-symbols-outlined text-base">hub</span>
+                        </button>
+                      }
+                      @if (permissions().canEditOfflineTraining) {
+                        <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Edit Workshop">
+                          <span class="material-symbols-outlined text-base">edit</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  }
+    }
+  </app-data-grid>
 
   <!-- ========================================================================= -->
   <!-- 7. EMBED WORKSHOP MODAL                                                   -->

@@ -127,22 +127,30 @@
 
     <!-- Filter Drawer Slot -->
     <div filter-panel class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-1">
-      <!-- 1. Status Multi-options -->
+      <!-- 1. Facility Status Checkboxes -->
       <div class="lg:col-span-4">
         <app-filter-section title="1. Facility Status">
-          <div class="space-y-2">
-            @for (st of statusOptions; track st.value) {
-              <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer p-1.5 rounded-lg hover:bg-base-200 transition-colors">
-                <input 
-                  type="radio" 
-                  name="filterVenueStatus" 
-                  [value]="st.value" 
-                  [checked]="draftStatus() === st.value" 
-                  (change)="draftStatus.set(st.value)" 
-                  class="rounded-full text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
-                <span class="font-medium">{{ st.label }}</span>
-              </label>
-            }
+          <div class="flex items-center gap-6 py-2">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                [checked]="draftStatusActive()" 
+                (change)="draftStatusActive.set(!draftStatusActive())" 
+                class="w-4 h-4 rounded border-base-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+              </span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                [checked]="draftStatusInactive()" 
+                (change)="draftStatusInactive.set(!draftStatusInactive())" 
+                class="w-4 h-4 rounded border-base-300 text-tenant-600 focus:ring-tenant-500 cursor-pointer" />
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Inactive
+              </span>
+            </label>
           </div>
         </app-filter-section>
       </div>
@@ -153,7 +161,10 @@
           <app-custom-select
             [options]="cityOptions()"
             [ngModel]="draftCity()"
-            (ngModelChange)="draftCity.set($event)">
+            (ngModelChange)="draftCity.set($event)"
+            [leadingIcon]="'location_on'"
+            [clearable]="true"
+            placeholder="All Cities">
           </app-custom-select>
         </app-filter-section>
       </div>
@@ -164,7 +175,10 @@
           <app-custom-select
             [options]="facilityOptions"
             [ngModel]="draftFacility()"
-            (ngModelChange)="draftFacility.set($event)">
+            (ngModelChange)="draftFacility.set($event)"
+            [leadingIcon]="'tag'"
+            [clearable]="true"
+            placeholder="All Facilities">
           </app-custom-select>
         </app-filter-section>
       </div>
@@ -172,10 +186,18 @@
 
     <!-- Active Filter Chips Slot -->
     <div filter-chips class="contents">
-      @if (selectedStatus() !== 'all') {
+      @if (selectedStatusActive()) {
         <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
-          <span>Status: <strong class="capitalize">{{ selectedStatus() }}</strong></span>
-          <button type="button" (click)="selectedStatus.set('all')" class="hover:text-rose-500 cursor-pointer">
+          <span>Status: <strong class="text-emerald-600 dark:text-emerald-400">Active</strong></span>
+          <button type="button" (click)="selectedStatusActive.set(false)" class="hover:text-rose-500 cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">close</span>
+          </button>
+        </span>
+      }
+      @if (selectedStatusInactive()) {
+        <span class="px-2.5 py-1 rounded-lg bg-base-200 text-text-primary border border-base-300 inline-flex items-center gap-1.5 text-xs font-medium">
+          <span>Status: <strong class="text-rose-600 dark:text-rose-400">Inactive</strong></span>
+          <button type="button" (click)="selectedStatusInactive.set(false)" class="hover:text-rose-500 cursor-pointer">
             <span class="material-symbols-outlined text-[13px]">close</span>
           </button>
         </span>

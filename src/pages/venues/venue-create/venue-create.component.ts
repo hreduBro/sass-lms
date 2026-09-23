@@ -29,35 +29,160 @@ export class VenueCreateComponent implements OnInit {
   venueId = signal<string | null>(null);
 
   steps: StepperStep[] = [
-    { id: 1, shortTitle: '1. Basic Info', title: 'Basic Info & Location', icon: 'pin_drop' },
-    { id: 2, shortTitle: '2. Rooms', title: 'Rooms & Seating Layout', icon: 'meeting_room' },
-    { id: 3, shortTitle: '3. Amenities', title: 'Amenities & Facilities', icon: 'tune' },
-    { id: 4, shortTitle: '4. Manager', title: 'Facility Manager', icon: 'badge' }
+    { id: 1, shortTitle: 'Basic Info', title: 'Basic Info & Location', icon: 'pin_drop' },
+    { id: 2, shortTitle: 'Rooms', title: 'Rooms & Seating Layout', icon: 'meeting_room' },
+    { id: 3, shortTitle: 'Amenities', title: 'Amenities & Facilities', icon: 'tune' },
+    { id: 4, shortTitle: 'Manager', title: 'Facility Manager', icon: 'badge' }
   ];
   currentStep = signal<number>(1);
   completedSteps = signal<number[]>([]);
+  showWelcomeBanner = signal<boolean>(true);
+  successAlert = signal<string | null>(null);
+  formErrorAlert = signal<string | null>(null);
+  private successTimer: any = null;
 
-  goToStep(stepId: number): void {
-    if (stepId >= 1 && stepId <= 4) {
-      this.currentStep.set(stepId);
+  getCurrentStepTitle(): string {
+    const step = this.steps.find(s => s.id === this.currentStep());
+    return step?.title || step?.shortTitle || 'Basic Info & Location';
+  }
+
+  isFieldInvalid(name: string): boolean {
+    const ctrl = this.venueForm?.get(name);
+    return !!(ctrl && ctrl.invalid && (ctrl.dirty || ctrl.touched));
+  }
+
+  isRoomFieldInvalid(index: number, name: string): boolean {
+    const room = this.roomsArray?.at(index);
+    const ctrl = room?.get(name);
+    return !!(ctrl && ctrl.invalid && (ctrl.dirty || ctrl.touched));
+  }
+
+  validateStep(step: number): { valid: boolean; message?: string } {
+    if (!this.venueForm) return { valid: true };
+
+    if (step === 1) {
+      const step1Fields = ['code', 'name', 'addressLine1', 'city', 'country'];
+      step1Fields.forEach(f => this.venueForm.get(f)?.markAsTouched());
+
+      const codeCtrl = this.venueForm.get('code');
+      const nameCtrl = this.venueForm.get('name');
+      const addrCtrl = this.venueForm.get('addressLine1');
+      const cityCtrl = this.venueForm.get('city');
+      const countryCtrl = this.venueForm.get('country');
+
+      if (codeCtrl?.invalid) {
+        return { valid: false, message: 'Venue Unique Code is required (alphanumeric, up to 30 characters).' };
+      }
+      if (nameCtrl?.invalid) {
+        return { valid: false, message: 'Venue Name is required (up to 120 characters).' };
+      }
+      if (addrCtrl?.invalid) {
+        return { valid: false, message: 'Street Address Line 1 is required.' };
+      }
+      if (cityCtrl?.invalid) {
+        return { valid: false, message: 'City is required.' };
+      }
+      if (countryCtrl?.invalid) {
+        return { valid: false, message: 'Country is required.' };
+      }
+    } else if (step === 2) {
+      if (this.roomsArray.length === 0) {
+        return { valid: false, message: 'At least one training room / hall must be configured.' };
+      }
+
+      for (let i = 0; i < this.roomsArray.length; i++) {
+        const roomGroup = this.roomsArray.at(i);
+        roomGroup.get('name')?.markAsTouched();
+        roomGroup.get('capacity')?.markAsTouched();
+
+        const nameVal = roomGroup.get('name')?.value;
+        const capVal = Number(roomGroup.get('capacity')?.value);
+
+        if (!nameVal || !nameVal.toString().trim()) {
+          return { valid: false, message: `Room #${i + 1} Name / Label is required.` };
+        }
+        if (isNaN(capVal) || capVal < 1) {
+          return { valid: false, message: `Room #${i + 1} Capacity must be at least 1 seat.` };
+        }
+      }
+    } else if (step === 3) {
+      return { valid: true };
+    } else if (step === 4) {
+      const step4Fields = ['contactName', 'contactPhone', 'contactEmail'];
+      step4Fields.forEach(f => this.venueForm.get(f)?.markAsTouched());
+
+      const contactNameCtrl = this.venueForm.get('contactName');
+      const contactPhoneCtrl = this.venueForm.get('contactPhone');
+      const contactEmailCtrl = this.venueForm.get('contactEmail');
+
+      if (contactNameCtrl?.invalid) {
+        return { valid: false, message: 'Contact Officer Name is required.' };
+      }
+      if (contactPhoneCtrl?.invalid) {
+        return { valid: false, message: 'Direct Telephone / Mobile is required.' };
+      }
+      if (contactEmailCtrl?.invalid) {
+        return { valid: false, message: 'A valid official contact email address is required.' };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  private triggerSuccessAlert(message: string): void {
+    this.successAlert.set(message);
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+    }
+    this.successTimer = setTimeout(() => {
+      if (this.successAlert() === message) {
+        this.successAlert.set(null);
+      }
+    }, 5000);
+  }
+
+  goToStep(targetStep: number): void {
+    if (targetStep < 1 || targetStep > 4) return;
+    const current = this.currentStep();
+
+    if (targetStep > current) {
+      for (let s = current; s < targetStep; s++) {
+        const validation = this.validateStep(s);
+        if (!validation.valid) {
+          this.currentStep.set(s);
+          this.formErrorAlert.set(validation.message || 'Please fill in all mandatory fields before proceeding.');
+          this.successAlert.set(null);
+          this.lmsData.showToast(validation.message || 'Validation error encountered.', 'error', 4500, 'Step Validation');
+          this.scrollToFirstError();
+          return;
+        }
+        if (!this.completedSteps().includes(s)) {
+          this.completedSteps.update(c => [...c, s]);
+        }
+      }
+
+      const prevStepObj = this.steps.find(s => s.id === current);
+      const targetStepObj = this.steps.find(s => s.id === targetStep);
+      const successMsg = `Stage ${current} (${prevStepObj?.shortTitle || 'Step ' + current}) saved successfully! Proceeding to Stage ${targetStep}: ${targetStepObj?.shortTitle || 'Step ' + targetStep}.`;
+
+      this.currentStep.set(targetStep);
+      this.formErrorAlert.set(null);
+      this.triggerSuccessAlert(successMsg);
+      this.lmsData.showToast(successMsg, 'success', 4000, 'Stage Completed');
+      this.scrollTop();
+    } else if (targetStep < current) {
+      this.currentStep.set(targetStep);
+      this.formErrorAlert.set(null);
+      this.scrollTop();
     }
   }
 
   nextStep(): void {
-    const cur = this.currentStep();
-    if (!this.completedSteps().includes(cur)) {
-      this.completedSteps.update(c => [...c, cur]);
-    }
-    if (cur < 4) {
-      this.currentStep.set(cur + 1);
-    }
+    this.goToStep(this.currentStep() + 1);
   }
 
   prevStep(): void {
-    const cur = this.currentStep();
-    if (cur > 1) {
-      this.currentStep.set(cur - 1);
-    }
+    this.goToStep(this.currentStep() - 1);
   }
 
   facilitiesOtherInput = signal<string>('');
@@ -88,9 +213,9 @@ export class VenueCreateComponent implements OnInit {
       internet: [true],
       parking: [true],
       accessibility: [true],
-      contactName: ['Lt. Col. Farhad Reza (Retd.)'],
-      contactPhone: ['+880 1711-445566'],
-      contactEmail: ['farhad.reza@learningcenter.brac.net'],
+      contactName: ['Lt. Col. Farhad Reza (Retd.)', Validators.required],
+      contactPhone: ['+880 1711-445566', Validators.required],
+      contactEmail: ['farhad.reza@learningcenter.brac.net', [Validators.required, Validators.email]],
       contactRole: ['Senior Facilities Director'],
       rooms: this.fb.array([])
     });
@@ -200,8 +325,26 @@ export class VenueCreateComponent implements OnInit {
   }
 
   saveVenue(): void {
+    // Validate all 4 steps before saving
+    for (let s = 1; s <= 4; s++) {
+      const res = this.validateStep(s);
+      if (!res.valid) {
+        this.currentStep.set(s);
+        this.formErrorAlert.set(res.message || 'Please complete all required fields.');
+        this.successAlert.set(null);
+        this.lmsData.showToast(res.message || 'Please complete all required fields.', 'error', 5000, 'Validation Error');
+        this.scrollToFirstError();
+        return;
+      }
+      if (!this.completedSteps().includes(s)) {
+        this.completedSteps.update(c => [...c, s]);
+      }
+    }
+
     if (this.venueForm.invalid) {
       this.venueForm.markAllAsTouched();
+      this.formErrorAlert.set('Some fields contain invalid data. Please review the highlighted fields.');
+      this.scrollToFirstError();
       return;
     }
 
@@ -266,9 +409,11 @@ export class VenueCreateComponent implements OnInit {
 
     if (this.isEditMode() && this.venueId()) {
       this.lmsData.updateVenue(this.venueId()!, venuePayload);
+      this.lmsData.showToast(`Venue "${venuePayload.name}" updated successfully!`, 'success', 4000, 'Venue Updated');
       this.router.navigate(['/venues/view', this.venueId()]);
     } else {
       const created = this.lmsData.createVenue(venuePayload);
+      this.lmsData.showToast(`Venue "${created.name}" registered successfully!`, 'success', 4500, 'Venue Registered');
       this.router.navigate(['/venues/view', created.venueId]);
     }
   }
@@ -279,5 +424,28 @@ export class VenueCreateComponent implements OnInit {
     } else {
       this.router.navigate(['/venues']);
     }
+  }
+
+  private scrollTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private scrollToFirstError(): void {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const errorEl = document.querySelector(
+        'input.ng-invalid, select.ng-invalid, textarea.ng-invalid, .border-rose-500, .border-red-500, [aria-invalid="true"], [data-error="true"], .text-rose-500:not(:empty), #form-error-banner'
+      );
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if ((errorEl as HTMLElement).focus && typeof (errorEl as HTMLElement).focus === 'function') {
+          (errorEl as HTMLElement).focus();
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   }
 }

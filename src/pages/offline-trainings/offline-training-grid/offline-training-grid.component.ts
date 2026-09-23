@@ -6,6 +6,8 @@ import { LmsDataService } from '../../../services/lms-data.service';
 import { OfflineTraining, OfflineTrainingStatus, OfflineAssessmentMode } from '../../../models/offline-training.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
+import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { GridViewMode, GridEmptyStateType, GridActiveChip } from '../../../components/data-grid/data-grid.types';
 
 @Component({
   selector: 'app-offline-training-grid',
@@ -16,7 +18,8 @@ import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-o
     ReactiveFormsModule,
     RouterModule,
     CustomSelectComponent,
-    ModalOverlayComponent
+    ModalOverlayComponent,
+    DataGridComponent
   ],
   templateUrl: './offline-training-grid.component.html'
 })
@@ -30,7 +33,10 @@ export class OfflineTrainingGridComponent implements OnInit {
   permissions = this.lmsData.offlineTrainingPermissions;
 
   // View Mode: Grid vs Table
-  viewMode = signal<'grid' | 'table'>('grid');
+  viewMode = signal<GridViewMode>('table');
+
+  // Filter Drawer Open State
+  isFilterPanelOpen = signal<boolean>(false);
 
   // Search & Filters
   searchQuery = signal<string>('');
@@ -38,6 +44,11 @@ export class OfflineTrainingGridComponent implements OnInit {
   selectedVenue = signal<string>('all');
   selectedAssessmentMode = signal<string>('all');
   sortBy = signal<string>('newest'); // newest | oldest | title_asc | title_desc | duration_desc | capacity_desc
+
+  draftStatus = signal<string>('all');
+  draftVenue = signal<string>('all');
+  draftAssessmentMode = signal<string>('all');
+  draftSortBy = signal<string>('newest');
 
   // 3-dot action dropdown
   openActionMenuId = signal<string | null>(null);
@@ -65,26 +76,17 @@ export class OfflineTrainingGridComponent implements OnInit {
   });
 
   statusOptions: SelectOption[] = [
-    { value: 'all', label: 'Status: All', icon: 'filter_list' },
+    { value: 'all', label: 'All Statuses', icon: 'check_circle' },
     { value: 'published', label: 'Published', icon: 'verified', badge: 'Published', badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
     { value: 'draft', label: 'Draft', icon: 'edit_note', badge: 'Draft', badgeClass: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' },
     { value: 'inactive', label: 'Inactive', icon: 'cancel', badge: 'Inactive', badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' }
   ];
 
-  sortOptions: SelectOption[] = [
-    { value: 'newest', label: 'Newest First', icon: 'schedule' },
-    { value: 'oldest', label: 'Oldest First', icon: 'history' },
-    { value: 'title_asc', label: 'Title (A-Z)', icon: 'sort_by_alpha' },
-    { value: 'title_desc', label: 'Title (Z-A)', icon: 'sort_by_alpha' },
-    { value: 'duration_desc', label: 'Longest Duration', icon: 'timelapse' },
-    { value: 'capacity_desc', label: 'Max Seating Capacity', icon: 'groups' }
-  ];
-
   venueOptions = computed<SelectOption[]>(() => {
     const venues = this.lmsData.venues();
     return [
-      { value: 'all', label: 'All Venues', icon: 'location_city' },
-      ...venues.map(v => ({ value: v.venueId, label: v.name, icon: 'domain' }))
+      { value: 'all', label: 'All Venues', icon: 'domain' },
+      ...venues.map(v => ({ value: v.venueId, label: v.name, icon: 'location_city' }))
     ];
   });
 
@@ -94,6 +96,15 @@ export class OfflineTrainingGridComponent implements OnInit {
     { value: 'inline_assessment', label: 'Inline Assessment (Mode B)', icon: 'quiz' },
     { value: 'manual_marks', label: 'Manual Instructor Marks (Mode C)', icon: 'rate_review' },
     { value: 'none', label: 'No Assessment', icon: 'remove_circle_outline' }
+  ];
+
+  sortOptions: SelectOption[] = [
+    { value: 'newest', label: 'Newest First', icon: 'sort' },
+    { value: 'oldest', label: 'Oldest First', icon: 'history' },
+    { value: 'title_asc', label: 'Title (A-Z)', icon: 'sort_by_alpha' },
+    { value: 'title_desc', label: 'Title (Z-A)', icon: 'sort_by_alpha' },
+    { value: 'duration_desc', label: 'Longest Duration', icon: 'timelapse' },
+    { value: 'capacity_desc', label: 'Max Seating Capacity', icon: 'groups' }
   ];
 
   // Filtered trainings
@@ -107,12 +118,13 @@ export class OfflineTrainingGridComponent implements OnInit {
 
     if (q) {
       list = list.filter(t => 
-        t.title.toLowerCase().includes(q) ||
-        t.code.toLowerCase().includes(q) ||
-        t.category.toLowerCase().includes(q) ||
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.code && t.code.toLowerCase().includes(q)) ||
+        (t.category && t.category.toLowerCase().includes(q)) ||
         (t.venueName && t.venueName.toLowerCase().includes(q)) ||
         (t.roomName && t.roomName.toLowerCase().includes(q)) ||
-        (t.primaryTrainerName && t.primaryTrainerName.toLowerCase().includes(q))
+        (t.primaryTrainerName && t.primaryTrainerName.toLowerCase().includes(q)) ||
+        (t.defaultTrainerName && t.defaultTrainerName.toLowerCase().includes(q))
       );
     }
 
@@ -125,19 +137,136 @@ export class OfflineTrainingGridComponent implements OnInit {
     }
 
     if (assessMode !== 'all') {
-      list = list.filter(t => t.assessmentMode === assessMode);
+      list = list.filter(t => t.assessmentMode === assessMode || (assessMode === 'manual_marks' && (!t.assessmentMode || t.assessmentMode === 'manual')));
     }
 
     return [...list].sort((a, b) => {
-      if (sort === 'newest') return b.trainingId.localeCompare(a.trainingId);
-      if (sort === 'oldest') return a.trainingId.localeCompare(b.trainingId);
-      if (sort === 'title_asc') return a.title.localeCompare(b.title);
-      if (sort === 'title_desc') return b.title.localeCompare(a.title);
-      if (sort === 'duration_desc') return b.durationHours - a.durationHours;
+      const aId = a.trainingId || a.id || '';
+      const bId = b.trainingId || b.id || '';
+      if (sort === 'newest') return bId.localeCompare(aId);
+      if (sort === 'oldest') return aId.localeCompare(bId);
+      if (sort === 'title_asc') return (a.title || '').localeCompare(b.title || '');
+      if (sort === 'title_desc') return (b.title || '').localeCompare(a.title || '');
+      if (sort === 'duration_desc') return (b.durationHours || 0) - (a.durationHours || 0);
       if (sort === 'capacity_desc') return (b.maxCapacity || 0) - (a.maxCapacity || 0);
       return 0;
     });
   });
+
+  activeFilterCount = computed<number>(() => {
+    let count = 0;
+    if (this.selectedStatus() && this.selectedStatus() !== 'all') count++;
+    if (this.selectedVenue() && this.selectedVenue() !== 'all') count++;
+    if (this.selectedAssessmentMode() && this.selectedAssessmentMode() !== 'all') count++;
+    return count;
+  });
+
+  hasActiveFilters = computed<boolean>(() => {
+    return this.searchQuery().trim() !== '' || this.activeFilterCount() > 0;
+  });
+
+  activeChips = computed<GridActiveChip[]>(() => {
+    const chips: GridActiveChip[] = [];
+    if (this.selectedStatus() && this.selectedStatus() !== 'all') {
+      const opt = this.statusOptions.find(o => o.value === this.selectedStatus());
+      chips.push({ id: 'status', label: 'Status', value: opt ? opt.label : this.selectedStatus() });
+    }
+    if (this.selectedVenue() && this.selectedVenue() !== 'all') {
+      const opt = this.venueOptions().find(o => o.value === this.selectedVenue());
+      chips.push({ id: 'venue', label: 'Venue', value: opt ? opt.label : this.selectedVenue() });
+    }
+    if (this.selectedAssessmentMode() && this.selectedAssessmentMode() !== 'all') {
+      const opt = this.assessmentModeOptions.find(o => o.value === this.selectedAssessmentMode());
+      chips.push({ id: 'assessment', label: 'Assessment', value: opt ? opt.label : this.selectedAssessmentMode() });
+    }
+    return chips;
+  });
+
+  emptyStateType = computed<GridEmptyStateType>(() => {
+    if (this.filteredTrainings().length > 0) return 'none';
+    if (this.searchQuery().trim()) return 'search_miss';
+    if (this.activeFilterCount() > 0) return 'filter_miss';
+    return 'true_empty';
+  });
+
+  onSearchChange(val: string): void {
+    this.searchQuery.set(val || '');
+  }
+
+  onRemoveChip(chip: GridActiveChip): void {
+    if (chip.id === 'status') this.selectedStatus.set('all');
+    if (chip.id === 'venue') this.selectedVenue.set('all');
+    if (chip.id === 'assessment') this.selectedAssessmentMode.set('all');
+  }
+
+  onFilterToggle(isOpen: boolean): void {
+    this.isFilterPanelOpen.set(isOpen);
+    if (isOpen) {
+      this.draftStatus.set(this.selectedStatus());
+      this.draftVenue.set(this.selectedVenue());
+      this.draftAssessmentMode.set(this.selectedAssessmentMode());
+      this.draftSortBy.set(this.sortBy());
+    }
+  }
+
+  applyFilters(): void {
+    this.selectedStatus.set(this.draftStatus() || 'all');
+    this.selectedVenue.set(this.draftVenue() || 'all');
+    this.selectedAssessmentMode.set(this.draftAssessmentMode() || 'all');
+    this.sortBy.set(this.draftSortBy() || 'newest');
+    this.isFilterPanelOpen.set(false);
+  }
+
+  cancelFilters(): void {
+    this.isFilterPanelOpen.set(false);
+  }
+
+  clearFilters(): void {
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.selectedVenue.set('all');
+    this.selectedAssessmentMode.set('all');
+    this.draftStatus.set('all');
+    this.draftVenue.set('all');
+    this.draftAssessmentMode.set('all');
+    this.draftSortBy.set('newest');
+    this.sortBy.set('newest');
+    this.isFilterPanelOpen.set(false);
+  }
+
+  navigateToCreate(): void {
+    this.router.navigate(['/offline-trainings/create']);
+  }
+
+  getTrainerDisplayName(item: OfflineTraining): string {
+    return item.primaryTrainerName || item.defaultTrainerName || 'Senior Faculty Trainer';
+  }
+
+  getTrainerInitial(item: OfflineTraining): string {
+    const name = this.getTrainerDisplayName(item);
+    return name ? name.charAt(0).toUpperCase() : 'T';
+  }
+
+  getDurationDisplay(item: OfflineTraining): string {
+    const hours = item.durationHours || (item.sessionMeta?.durationMinutes ? Math.round(item.sessionMeta.durationMinutes / 60) : 4);
+    return `${hours} Hours`;
+  }
+
+  getAssessmentModeLabel(mode: string | undefined): string {
+    if (!mode) return 'Mode C (Manual Marks)';
+    if (mode === 'manual_marks' || mode === 'manual') return 'Mode C (Manual Marks)';
+    if (mode === 'inline_assessment' || mode === 'inline') return 'Mode B (Inline Exam)';
+    if (mode === 'reference_assessment' || mode === 'reference') return 'Mode A (Ref Module)';
+    return mode.replace(/_/g, ' ');
+  }
+
+  getCapacityDisplay(item: OfflineTraining): string | number {
+    return item.maxCapacity || item.roomCapacityAtTagging || 20;
+  }
+
+  getCategoryDisplay(item: OfflineTraining): string {
+    return item.category || (item.categoryTags && item.categoryTags.length ? item.categoryTags[0] : 'In-Person Workshop');
+  }
 
   // Telemetry counts
   totalCount = computed(() => this.lmsData.offlineTrainings().length);
@@ -171,10 +300,6 @@ export class OfflineTrainingGridComponent implements OnInit {
 
   closeActionMenu(): void {
     this.openActionMenuId.set(null);
-  }
-
-  navigateToCreate(): void {
-    this.router.navigate(['/offline-trainings/create']);
   }
 
   navigateToView(id: string): void {
@@ -317,13 +442,5 @@ export class OfflineTrainingGridComponent implements OnInit {
       confirmBtnLabel: 'Yes, Proceed',
       training: null
     });
-  }
-
-  clearFilters(): void {
-    this.searchQuery.set('');
-    this.selectedStatus.set('all');
-    this.selectedVenue.set('all');
-    this.selectedAssessmentMode.set('all');
-    this.sortBy.set('newest');
   }
 }

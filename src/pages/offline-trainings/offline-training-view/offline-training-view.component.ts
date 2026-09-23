@@ -32,13 +32,90 @@ export class OfflineTrainingViewComponent implements OnInit {
 
   // Embeddings for this training
   embeddings = computed<OfflineTrainingEmbedding[]>(() => {
-    return this.lmsData.offlineTrainingEmbeddings().filter(e => e.offlineTrainingId === this.trainingId());
+    const t = this.training();
+    const id = this.trainingId();
+    return this.lmsData.offlineTrainingEmbeddings().filter(e => 
+      e.offlineTrainingId === id || (t && (e.offlineTrainingId === t.trainingId || e.offlineTrainingId === t.id))
+    );
   });
 
   // Results for this training
   traineeResults = computed<OfflineTraineeResult[]>(() => {
-    return this.lmsData.offlineTraineeResults().filter(r => r.offlineTrainingId === this.trainingId());
+    const t = this.training();
+    const id = this.trainingId();
+    return this.lmsData.offlineTraineeResults().filter(r => 
+      r.offlineTrainingId === id || (t && (r.offlineTrainingId === t.trainingId || r.offlineTrainingId === t.id))
+    );
   });
+
+  // Helper methods for error-free template rendering
+  getCategoryDisplay(t: OfflineTraining | undefined): string {
+    if (!t) return 'Physical Workshop';
+    return t.category || (t.categoryTags && t.categoryTags.length ? t.categoryTags[0] : 'In-Person Workshop');
+  }
+
+  getDurationHours(t: OfflineTraining | undefined): number {
+    if (!t) return 4;
+    return t.durationHours || (t.sessionMeta?.durationMinutes ? Math.round(t.sessionMeta.durationMinutes / 60) : 4);
+  }
+
+  getDurationDays(t: OfflineTraining | undefined): number {
+    return t?.durationDays || 1;
+  }
+
+  getDeliveryModeDisplay(t: OfflineTraining | undefined): string {
+    if (!t || !t.deliveryMode) return 'IN-PERSON CLASSROOM';
+    return t.deliveryMode.replace(/_/g, ' ').toUpperCase();
+  }
+
+  getAssessmentModeDisplay(t: OfflineTraining | undefined): string {
+    if (!t) return 'Mode C (Manual Marks)';
+    const mode = t.assessmentMode || (t.assessments && t.assessments.length ? t.assessments[0].mode : 'manual_marks');
+    if (mode === 'manual_marks' || mode === 'manual') return 'Mode C (Manual Marks)';
+    if (mode === 'inline_assessment' || mode === 'inline') return 'Mode B (Inline Exam)';
+    if (mode === 'reference_assessment' || mode === 'reference') return 'Mode A (Ref Module)';
+    return String(mode).replace(/_/g, ' ');
+  }
+
+  getMinAttendance(t: OfflineTraining | undefined): number {
+    if (!t) return 80;
+    return t.attendanceConfig?.minAttendancePercentage ?? t.attendance?.minimumAttendancePercentage ?? 80;
+  }
+
+  getAttendanceModeDisplay(t: OfflineTraining | undefined): string {
+    if (!t) return 'Physical Rollcall';
+    const mode = t.attendanceConfig?.mode || t.attendance?.mode || 'physical_rollcall';
+    return String(mode).replace(/_/g, ' ');
+  }
+
+  getCapacityDisplay(t: OfflineTraining | undefined): number {
+    return t?.maxCapacity || t?.roomCapacityAtTagging || 25;
+  }
+
+  getMaterialsList(t: OfflineTraining | undefined): any[] {
+    if (!t) return [];
+    if (t.reusableMaterials && t.reusableMaterials.length > 0) return t.reusableMaterials;
+    if (t.content && t.content.length > 0) {
+      return t.content.map(c => ({
+        attachmentId: c.contentId,
+        title: c.title,
+        fileType: c.subtype || 'pdf',
+        isRequiredPreRead: c.isRequired || false,
+        url: c.urlOrRef
+      }));
+    }
+    return [];
+  }
+
+  getTrainerDisplayName(t: OfflineTraining | undefined): string {
+    if (!t) return 'Senior Faculty Trainer';
+    return t.primaryTrainerName || t.defaultTrainerName || 'Senior Faculty Trainer';
+  }
+
+  getTrainerInitial(t: OfflineTraining | undefined): string {
+    const name = this.getTrainerDisplayName(t);
+    return name ? name.charAt(0).toUpperCase() : 'T';
+  }
 
   // Embed Modal
   isEmbedModalOpen = signal<boolean>(false);
@@ -167,12 +244,13 @@ export class OfflineTrainingViewComponent implements OnInit {
     const t = this.training();
     if (!t) return;
 
+    const targetId = t.trainingId || t.id;
     if (d.action === 'publish') {
-      this.lmsData.publishOfflineTraining(t.trainingId);
+      this.lmsData.publishOfflineTraining(targetId);
     } else if (d.action === 'deactivate') {
-      this.lmsData.deactivateOfflineTraining(t.trainingId);
+      this.lmsData.deactivateOfflineTraining(targetId);
     } else if (d.action === 'reactivate') {
-      this.lmsData.reactivateOfflineTraining(t.trainingId);
+      this.lmsData.reactivateOfflineTraining(targetId);
     }
 
     this.closeConfirm();
