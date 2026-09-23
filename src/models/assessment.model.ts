@@ -15,6 +15,23 @@ export type AssessmentQuestionType =
   | 'fileUpload'
   | 'essay';
 
+export type AssessmentQuestionDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+export type RandomizationMode = 'none' | 'shuffle' | 'pool_plain' | 'pool_by_difficulty';
+
+export interface DifficultyPoolRule {
+  difficulty: AssessmentQuestionDifficulty;
+  count: number;
+}
+
+export interface AssessmentRandomizationPolicy {
+  enabled: boolean;
+  mode: RandomizationMode;
+  poolSize?: number;
+  shuffleOptions?: boolean;
+  difficultyRules?: DifficultyPoolRule[];
+}
+
 export type MultiSelectCreditRule = 'allOrNothing' | 'partial';
 export type ScoreRetentionRule = 'highest' | 'latest' | 'average' | 'first';
 export type ResultDisplayTrigger = 'afterSubmit' | 'afterGrading' | 'afterWindowClose' | 'never';
@@ -46,6 +63,9 @@ export interface AssessmentQuestion {
   prompt?: string;
   required: boolean;
   points: number;
+  difficulty?: AssessmentQuestionDifficulty;
+  category?: string;
+  tags?: string[];
   options?: AssessmentQuestionOption[];
   matchingPairs?: MatchingPair[];
   correctSequence?: string[]; // Item IDs or texts in correct order for ordering
@@ -86,6 +106,7 @@ export interface AssessmentScoringPolicy {
     showCorrect: boolean;
     showFeedback: boolean;
   };
+  randomization?: AssessmentRandomizationPolicy;
 }
 
 export interface AssessmentVersion {
@@ -114,6 +135,7 @@ export interface Assessment {
   description?: string;
   type: AssessmentType;
   categoryTags: string[];
+  tags?: string[];
   scoringMode: AssessmentScoringMode;
   currentVersionId: string;
   status: AssessmentStatus;
@@ -126,6 +148,15 @@ export interface Assessment {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  // Assessment Alignment & Tagging (BRD §5.2)
+  isIndependent?: boolean;
+  originType?: 'independent' | 'plan' | 'course' | 'content';
+  taggedPlanId?: string;
+  taggedPlanTitle?: string;
+  taggedCourseId?: string;
+  taggedCourseTitle?: string;
+  taggedContentId?: string;
+  taggedContentTitle?: string;
 }
 
 export interface AssessmentAttemptAnswer {
@@ -303,6 +334,12 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
       { type: 'plan', id: 'plan-brac-01', title: '2026 Microfinance Branch Transformation & Ethics Plan' },
       { type: 'standalone', id: 'standalone-batch-01', title: 'Q3 Direct Field Officer Certification Cohort' }
     ],
+    isIndependent: false,
+    originType: 'course',
+    taggedCourseId: 'course-brac-101',
+    taggedCourseTitle: 'BRAC Microfinance Operations & Client Protection Principles (2026)',
+    taggedPlanId: 'plan-brac-01',
+    taggedPlanTitle: '2026 Microfinance Branch Transformation & Ethics Plan',
     createdBy: 'Farhana Ahmed',
     createdAt: '10/01/2026',
     updatedAt: '18/02/2026',
@@ -498,6 +535,10 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
     usedInReferences: [
       { type: 'plan', id: 'plan-brac-02', title: 'Ultra-Poor Graduation & Sustainable Livelihoods Program' }
     ],
+    isIndependent: false,
+    originType: 'plan',
+    taggedPlanId: 'plan-brac-02',
+    taggedPlanTitle: 'Ultra-Poor Graduation & Sustainable Livelihoods Program',
     createdBy: 'Dr. Imran Matin',
     createdAt: '20/01/2026',
     updatedAt: '20/01/2026',
@@ -572,6 +613,12 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
     usedInReferences: [
       { type: 'course', id: 'course-brac-102', title: 'Branch Risk Leadership & Climate Adaptation' }
     ],
+    isIndependent: false,
+    originType: 'course',
+    taggedCourseId: 'course-brac-102',
+    taggedCourseTitle: 'Branch Risk Leadership & Climate Adaptation',
+    taggedContentId: 'c102-assign-01',
+    taggedContentTitle: 'Unit 4: Branch Risk Mitigation Portfolio Assignment',
     createdBy: 'Tanvir Hossain',
     createdAt: '05/02/2026',
     updatedAt: '05/02/2026',
@@ -631,6 +678,8 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
     status: 'draft',
     sharingLevel: 'private',
     usedInCount: 0,
+    isIndependent: true,
+    originType: 'independent',
     createdBy: 'Farhana Ahmed',
     createdAt: '25/02/2026',
     updatedAt: '25/02/2026',
@@ -674,6 +723,82 @@ export const INITIAL_ASSESSMENTS: Assessment[] = [
             order: 2,
             manualGraded: false,
             placeholder: 'Share your hardware and interface suggestions...'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    assessmentId: 'asm-brac-05',
+    code: 'INDEP-DIAG-2026',
+    title: 'Core Numerical Literacy & Field Compliance Diagnostic Baseline',
+    description: 'Independent diagnostic assessment used across multiple plans and courses to evaluate basic arithmetic, interest calculations, and compliance readiness.',
+    type: 'diagnostic',
+    categoryTags: ['General Aptitude', 'Field Operations', 'Universal Diagnostic'],
+    scoringMode: 'scored',
+    currentVersionId: 'asm-ver-05-v1',
+    status: 'published',
+    responsibleInstructorId: 'usr-brac-admin',
+    responsibleInstructorName: 'Farhana Ahmed',
+    sharingLevel: 'lms',
+    usedInCount: 4,
+    isIndependent: true,
+    originType: 'independent',
+    tags: ['Universal Baseline', 'Cross-Plan Eligible', 'Independent'],
+    createdBy: 'Farhana Ahmed',
+    createdAt: '01/02/2026',
+    updatedAt: '15/02/2026',
+    versions: [
+      {
+        versionId: 'asm-ver-05-v1',
+        assessmentId: 'asm-brac-05',
+        versionLabel: 'v1',
+        state: 'published-current',
+        publishedAt: '01/02/2026 10:00:00',
+        publishedBy: 'Farhana Ahmed',
+        changeSummary: 'Universal baseline assessment published for cross-plan reuse.',
+        responseCount: 36,
+        scoringPolicy: {
+          totalMarks: 20,
+          passMarkPercent: 65,
+          negativeMarking: { enabled: false, penalty: 0 },
+          attempts: { allowed: 2, keep: 'highest' },
+          timeLimitMinutes: 40,
+          availability: { opensAt: null, closesAt: null },
+          resultDisplay: { showScore: 'afterSubmit', showCorrect: true, showFeedback: true }
+        },
+        questions: [
+          {
+            questionId: 'ind1',
+            type: 'singleSelect',
+            text: 'If a borrower takes a loan of BDT 50,000 at a 10% flat annual service charge over 50 weekly installments, what is the weekly principal plus interest installment?',
+            required: true,
+            points: 5,
+            difficulty: 'intermediate',
+            order: 1,
+            manualGraded: false,
+            options: [
+              { optionId: 'io1', text: 'BDT 1,100 per week', correct: true },
+              { optionId: 'io2', text: 'BDT 1,000 per week', correct: false },
+              { optionId: 'io3', text: 'BDT 1,250 per week', correct: false },
+              { optionId: 'io4', text: 'BDT 950 per week', correct: false }
+            ],
+            explanation: 'Total repayment = 50,000 + 5,000 = 55,000. Divided by 50 weeks = 1,100 BDT/week.'
+          },
+          {
+            questionId: 'ind2',
+            type: 'trueFalse',
+            text: 'Independent assessments can be linked to multiple training plans, courses, or content units dynamically.',
+            required: true,
+            points: 5,
+            difficulty: 'beginner',
+            order: 2,
+            manualGraded: false,
+            options: [
+              { optionId: 'tf1', text: 'True', correct: true },
+              { optionId: 'tf2', text: 'False', correct: false }
+            ],
+            explanation: 'Independent assessments serve as universal question banks and tests that can be referenced or pulled anywhere in the LMS.'
           }
         ]
       }

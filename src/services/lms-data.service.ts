@@ -230,6 +230,12 @@ import {
   DEFAULT_LOGIN_BRANDING
 } from '../models/login-branding.model';
 import {
+  LandingPageConfig,
+  LandingSection,
+  LandingSectionType,
+  createDefaultLandingPage
+} from '../models/landing-page.model';
+import {
   Venue,
   Room,
   VenueStatus,
@@ -5479,6 +5485,15 @@ export class LmsDataService {
     return this.plans().filter(p => p.lmsId === currentLmsId);
   });
 
+  savePlan(plan: Plan): void {
+    const existing = this.plans().find(p => p.id === plan.id);
+    if (existing) {
+      this.plans.update(list => list.map(p => p.id === plan.id ? plan : p));
+    } else {
+      this.plans.update(list => [plan, ...list]);
+    }
+  }
+
   // Get specific plan by ID
   getPlan(planId: string): Plan | undefined {
     return this.plans().find(p => p.id === planId);
@@ -10176,6 +10191,108 @@ export class LmsDataService {
     });
 
     this.showToast('Attendance has been recorded.', 'success', 2500, 'Attendance Logged');
+  }
+
+  // =========================================================================
+  // LANDING PAGE BUILDER STATE & ACTIONS (Multi-Tenant LMS Scope)
+  // =========================================================================
+  landingPages = signal<Record<string, LandingPageConfig>>({});
+
+  activeLandingPage = computed<LandingPageConfig>(() => {
+    const curLms = this.activeLms();
+    const curTenant = this.activeTenant();
+    const lmsId = curLms?.id || curTenant?.id || 'default';
+    const store = this.landingPages();
+
+    if (store[lmsId]) {
+      return store[lmsId];
+    }
+
+    // Auto-inherit branding attributes from active LMS and Tenant
+    const defaultPage = createDefaultLandingPage(
+      lmsId,
+      curTenant?.id || 'tenant-1',
+      curLms?.basicInfo?.lmsName || curTenant?.name || 'BRAC Learning Management Portal',
+      curLms?.branding?.tagline || curTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      curLms?.branding?.logoUrl || curLms?.basicInfo?.logo?.url || curTenant?.branding?.logoUrl || '',
+      curLms?.branding?.primaryColor || curTenant?.branding?.primaryColor || '#EC008C',
+      curLms?.branding?.accentColor || curTenant?.branding?.accentColor || '#005b94'
+    );
+
+    return defaultPage;
+  });
+
+  getLandingPageForLms(lmsId: string): LandingPageConfig {
+    const store = this.landingPages();
+    if (store[lmsId]) {
+      return store[lmsId];
+    }
+
+    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
+    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
+
+    const created = createDefaultLandingPage(
+      lmsId,
+      targetTenant?.id || 'tenant-1',
+      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
+      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
+      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
+      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+    );
+
+    this.landingPages.update(s => ({ ...s, [lmsId]: created }));
+    return created;
+  }
+
+  saveLandingPage(config: LandingPageConfig): void {
+    if (!config || !config.lmsId) return;
+    const author = this.activeUser()?.name || 'System Admin';
+    const updated: LandingPageConfig = {
+      ...config,
+      lastUpdatedBy: author,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    this.landingPages.update(s => ({ ...s, [config.lmsId]: updated }));
+    this.logAction('Landing Page Draft Saved', `Saved Landing Page configuration draft for ${config.lmsName}`, 'info');
+    this.showToast(`Landing page draft saved for ${config.lmsName}`, 'success', 2500, 'Draft Saved');
+  }
+
+  publishLandingPageConfig(config: LandingPageConfig): void {
+    if (!config || !config.lmsId) return;
+    const newVer = Math.round(((config.version || 1) + 0.1) * 10) / 10;
+    const author = this.activeUser()?.name || 'System Admin';
+    const published: LandingPageConfig = {
+      ...config,
+      status: 'Published',
+      version: newVer,
+      lastUpdatedBy: author,
+      lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+    };
+
+    this.landingPages.update(s => ({ ...s, [config.lmsId]: published }));
+    this.logAction('Landing Page Published Live', `Published Landing Page v${newVer} for ${config.lmsName}`, 'success');
+    this.showToast(`Landing page for ${config.lmsName} is now live! (v${newVer})`, 'success', 4000, 'Page Published');
+  }
+
+  resetLandingPageForLms(lmsId: string): LandingPageConfig {
+    const targetLms = this.lmsInstances().find(l => l.id === lmsId);
+    const targetTenant = this.tenants().find(t => t.id === targetLms?.organizationId || t.id === lmsId) || this.activeTenant();
+
+    const fresh = createDefaultLandingPage(
+      lmsId,
+      targetTenant?.id || 'tenant-1',
+      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
+      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
+      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
+      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+    );
+
+    this.landingPages.update(s => ({ ...s, [lmsId]: fresh }));
+    this.showToast(`Landing page reset to LMS branding preset for ${fresh.lmsName}`, 'info', 3000, 'Reset Complete');
+    return fresh;
   }
 }
 

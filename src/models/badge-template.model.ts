@@ -397,6 +397,268 @@ export interface BadgeMapping {
   mappedAt: string;
 }
 
+export interface EarnedBadge {
+  id: string;
+  badgeTemplateId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  name: string;
+  description: string;
+  category: BadgeCategory;
+  level: string;
+  
+  // Origin LMS Metadata (§Trainee LMS Provenance)
+  lmsId: string;
+  lmsName: string;
+  lmsDomain?: string;
+  lmsLogo?: string;
+  organizationId: string;
+  organizationName: string;
+  department: string;
+  
+  // Educational & Issuance Context
+  courseId?: string;
+  courseName?: string;
+  phaseId?: string;
+  phaseName?: string;
+  planId?: string;
+  planName?: string;
+  earnedDate: string;
+  expiryDate?: string;
+  serialNumber: string;
+  gradeScore?: number;
+  criteria: string;
+  issuerName: string;
+  skillTags: string[];
+  emblem: BadgeEmblem;
+  status: 'active' | 'expired' | 'revoked';
+  verified: boolean;
+  xpPoints?: number;
+}
+
+export const INITIAL_EARNED_BADGES: EarnedBadge[] = [
+  {
+    id: 'EB-2026-001',
+    badgeTemplateId: 'BDG-1001',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Data Science Specialist – Gold',
+    description: 'Mastered high-volume credit risk modeling and portfolio data analytics with distinction score.',
+    category: 'Certification',
+    level: 'Gold',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Learning Portal',
+    lmsDomain: 'microfinance.learn.brac.net',
+    lmsLogo: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'Microfinance',
+    courseId: 'crs-101',
+    courseName: 'Advanced SQL for Financial Analysts (CRS-101)',
+    phaseName: 'Phase 2: Portfolio Risk & Delinquency Modeling',
+    planName: 'Field Credit Operations & Data Analytics Certification 2026',
+    earnedDate: '18 Jan 2026',
+    expiryDate: '18 Jan 2028',
+    serialNumber: 'BDG-MF-2026-9041',
+    gradeScore: 94,
+    criteria: 'Complete all practical analytics modules and achieve >= 85% on final evaluation.',
+    issuerName: 'BRAC Learning Institute & Risk Council',
+    skillTags: ['Data Analysis', 'Python', 'SQL', 'Financial Analytics'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Shield',
+      fillColor: '#0d9488',
+      accentColor: '#f59e0b',
+      iconRef: 'analytics'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 350
+  },
+  {
+    id: 'EB-2026-002',
+    badgeTemplateId: 'BDG-1002',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Agile Leadership Champion',
+    description: 'Demonstrated agile sprint velocity and cross-functional field team leadership.',
+    category: 'Skill',
+    level: 'Silver',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Learning Portal',
+    lmsDomain: 'microfinance.learn.brac.net',
+    lmsLogo: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'Microfinance',
+    phaseName: 'Phase 1: Field Ethics & Client Protection Foundation',
+    planName: 'Field Credit Operations & Data Analytics Certification 2026',
+    earnedDate: '28 Jan 2026',
+    serialNumber: 'BDG-MF-2026-9112',
+    gradeScore: 90,
+    criteria: 'Lead 3 consecutive agile phase reviews with 100% submission adherence.',
+    issuerName: 'Global Leadership Academy',
+    skillTags: ['Agile', 'Scrum', 'Leadership', 'Field Management'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Circle',
+      fillColor: '#4f46e5',
+      accentColor: '#6366f1',
+      iconRef: 'groups'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 250
+  },
+  {
+    id: 'EB-2026-003',
+    badgeTemplateId: 'BDG-1003',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Cybersecurity Sentinel Level 1',
+    description: 'Passed organizational zero-trust data protection and customer privacy covenants.',
+    category: 'Certification',
+    level: 'Level 1',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Learning Portal',
+    lmsDomain: 'microfinance.learn.brac.net',
+    lmsLogo: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'IT Security',
+    courseId: 'crs-102',
+    courseName: 'POS Hardware & Offline Sync Mastery (CRS-102)',
+    earnedDate: '05 Feb 2026',
+    expiryDate: '05 Feb 2027',
+    serialNumber: 'BDG-MF-2026-9488',
+    gradeScore: 100,
+    criteria: 'Pass annual security compliance assessment with 100% correct answers.',
+    issuerName: 'BRAC IT Security Office',
+    skillTags: ['Cybersecurity', 'Zero Trust', 'Data Privacy'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Hexagon',
+      fillColor: '#0f172a',
+      accentColor: '#10b981',
+      iconRef: 'security'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 300
+  },
+  {
+    id: 'EB-2026-004',
+    badgeTemplateId: 'BDG-UPG-01',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Ultra-Poor Graduation Coach',
+    description: 'Certified in the 24-month multidimensional graduation methodology and coaching protocols.',
+    category: 'Milestone',
+    level: 'Gold',
+    lmsId: 'LMS-1972-02',
+    lmsName: 'BRAC Ultra-Poor Graduation Academy',
+    lmsDomain: 'upg-academy.learn.brac.net',
+    lmsLogo: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=200&q=80',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'Ultra-Poor Graduation',
+    courseName: 'Graduation Model Field Coaching Masterclass',
+    phaseName: 'Phase 3: Household Livelihood Asset Transfer',
+    earnedDate: '12 Feb 2026',
+    serialNumber: 'BDG-UPG-2026-1029',
+    gradeScore: 92,
+    criteria: 'Complete 40 hours of case studies and pass field simulation with distinction.',
+    issuerName: 'BRAC Ultra-Poor Graduation Centre of Excellence',
+    skillTags: ['Poverty Graduation', 'Community Coaching', 'Household Asset Management'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Star',
+      fillColor: '#059669',
+      accentColor: '#34d399',
+      iconRef: 'volunteer_activism'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 400
+  },
+  {
+    id: 'EB-2026-005',
+    badgeTemplateId: 'BDG-PLAY-01',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Play Labs Early Learning Champion',
+    description: 'Mastery in interactive play pedagogy and early childhood psychology observations.',
+    category: 'Achievement',
+    level: 'Platinum',
+    lmsId: 'LMS-1972-03',
+    lmsName: 'Play Labs Early Childhood Portal',
+    lmsDomain: 'playlabs.learn.brac.net',
+    lmsLogo: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=200&q=80',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'Education & Youth Skills',
+    courseName: 'Play-Based Curriculum & Child Development Pedagogy',
+    earnedDate: '22 Feb 2026',
+    serialNumber: 'BDG-PLAY-2026-3021',
+    gradeScore: 98,
+    criteria: 'Submit 5 gamified lesson plans and complete peer review evaluation.',
+    issuerName: 'BRAC Institute of Educational Development (BIED)',
+    skillTags: ['Child Pedagogy', 'Play-Based Learning', 'Early Development'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Rosette',
+      fillColor: '#db2777',
+      accentColor: '#f472b6',
+      iconRef: 'toys'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 500
+  },
+  {
+    id: 'EB-2026-006',
+    badgeTemplateId: 'BDG-1005',
+    userId: 'usr-1',
+    userName: 'Ayesha Rahman',
+    userEmail: 'ayesha.rahman@brac.net',
+    name: 'Community Development Specialist',
+    description: 'Awarded for exceptional field immersion and 100+ hours of community development service.',
+    category: 'Achievement',
+    level: 'Platinum',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Learning Portal',
+    lmsDomain: 'microfinance.learn.brac.net',
+    lmsLogo: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+    organizationId: 'tenant-brac',
+    organizationName: 'BRAC',
+    department: 'Social Innovation',
+    courseId: 'crs-101',
+    courseName: 'Advanced SQL for Financial Analysts (CRS-101)',
+    earnedDate: '02 Mar 2026',
+    serialNumber: 'BDG-MF-2026-9882',
+    gradeScore: 95,
+    criteria: 'Complete 100 hours practical community fieldwork and submit case report.',
+    issuerName: 'BRAC Social Innovation Lab',
+    skillTags: ['Field Work', 'Community', 'Sustainability'],
+    emblem: {
+      source: 'base-shape',
+      baseShape: 'Ribbon',
+      fillColor: '#059669',
+      accentColor: '#a7f3d0',
+      iconRef: 'nature'
+    },
+    status: 'active',
+    verified: true,
+    xpPoints: 300
+  }
+];
+
 export const INITIAL_BADGE_MAPPINGS: BadgeMapping[] = [
   {
     mappingId: 'bdg-map-001',
