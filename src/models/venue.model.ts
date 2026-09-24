@@ -45,6 +45,7 @@ export interface Room {
   name: string;
   capacity: number; // Max trainees
   equipment: RoomEquipment;
+  amenities?: string[]; // Room-specific amenities (Laser Projector, Smart Screen, Dedicated AC, Computer Lab, etc.)
   seatingLayouts: SeatingLayout[];
   status: RoomStatus;
   usedInClassesCount?: number;
@@ -52,28 +53,39 @@ export interface Room {
   notes?: string;
   createdAt: string;
   updatedAt?: string;
+  id?: string;
+  isAvailable?: boolean;
 }
+
+export type VenueRoom = Room;
 
 export interface Venue {
   venueId: string;
+  id?: string;
   code: string;
   name: string;
-  type: VenueType; // BRD §4.11: Physical
-  address: VenueAddress;
+  type?: VenueType | string; // BRD §4.11: Physical
+  ownership?: 'brac_internal' | 'external'; // Configured by System Admin: BRAC Internal vs External/Partner
+  address: VenueAddress | any;
+  city?: string;
+  division?: string;
+  district?: string;
   geo?: VenueGeo;
-  facilities: VenueFacilities;
+  facilities?: VenueFacilities | any;
   organizationId: string;
   organizationName?: string;
   lmsId: string;
   lmsName?: string;
-  status: VenueStatus;
+  status: VenueStatus | string;
   rooms: Room[];
+  roomsCount?: number;
+  totalCapacity?: number;
   usedInClassesCount?: number;
-  contactPerson?: {
-    name: string;
-    email: string;
-    phone: string;
-  };
+  contactPerson?: any;
+  contactPhone?: string;
+  contactEmail?: string;
+  imageUrl?: string;
+  amenities?: string[];
   createdBy?: string;
   createdAt: string;
   updatedAt?: string;
@@ -105,6 +117,7 @@ export const INITIAL_VENUES: Venue[] = [
     code: 'DHK-CENTRAL',
     name: 'Dhaka Executive Learning Center',
     type: 'physical',
+    ownership: 'brac_internal',
     address: {
       line1: 'Plot 75, Bir Uttam Mir Shawkat Sarak, Gulshan-1',
       city: 'Dhaka',
@@ -127,17 +140,17 @@ export const INITIAL_VENUES: Venue[] = [
       otherTags: ['High-speed Fiber WiFi', 'EV Charging Station', 'Wheelchair Ramp', 'Cafeteria']
     },
     organizationId: 'org-01',
-    organizationName: 'Grameenphone Corporate Academy',
+    organizationName: 'BRAC Corporate Academy',
     lmsId: 'lms-01',
     lmsName: 'Enterprise Leadership Portal',
     status: 'active',
     usedInClassesCount: 14,
     contactPerson: {
       name: 'Farhan Kabir',
-      email: 'farhan.kabir@grameenphone.com',
+      email: 'farhan.kabir@brac.net',
       phone: '+880 1711-223344'
     },
-    createdBy: 'LMS Academic Operations',
+    createdBy: 'System Administrator',
     createdAt: '10/01/2026 09:30:00',
     updatedAt: '12/03/2026 14:15:00',
     rooms: [
@@ -157,6 +170,7 @@ export const INITIAL_VENUES: Venue[] = [
           airConditioning: true,
           otherTags: ['Dual 4K Projectors', 'Wireless Lavalier Mics', 'Polycom Studio']
         },
+        amenities: ['Dual 4K Laser Projectors', 'JBL Sound Array & Wireless Mics', 'Dedicated High-Capacity AC', 'Smart Podium & Stage', 'Wheelchair Stage Access'],
         seatingLayouts: ['theatre', 'classroom', 'banquet'],
         status: 'active',
         usedInClassesCount: 8,
@@ -179,6 +193,7 @@ export const INITIAL_VENUES: Venue[] = [
           airConditioning: true,
           otherTags: ['85" Interactive Touch Display', 'Ceiling Array Mic']
         },
+        amenities: ['85" Interactive 4K Touch Display', 'Ceiling Beamforming Mics', 'Movable Cluster Pods', 'Dedicated AC', 'Magnetic Whiteboards'],
         seatingLayouts: ['classroom', 'uShape', 'cluster'],
         status: 'active',
         usedInClassesCount: 4,
@@ -201,6 +216,7 @@ export const INITIAL_VENUES: Venue[] = [
           airConditioning: true,
           otherTags: ['Executive Ergonomic Chairs', 'Video Soundbar']
         },
+        amenities: ['Cisco Webex Telepresence Suite', 'Executive Leather Ergonomic Chairs', 'Individual Desk Power & LAN', 'Dedicated AC'],
         seatingLayouts: ['boardroom', 'uShape'],
         status: 'active',
         usedInClassesCount: 2,
@@ -214,6 +230,7 @@ export const INITIAL_VENUES: Venue[] = [
     code: 'CTG-PORT',
     name: 'Chittagong Coastal Training Institute',
     type: 'physical',
+    ownership: 'external',
     address: {
       line1: 'Agrabad Commercial Area, Sheikh Mujib Road',
       city: 'Chittagong',
@@ -236,17 +253,17 @@ export const INITIAL_VENUES: Venue[] = [
       otherTags: ['Dedicated Parking', 'High-Speed Broadband', 'Catering Lounge']
     },
     organizationId: 'org-01',
-    organizationName: 'Grameenphone Corporate Academy',
+    organizationName: 'External Partner Network',
     lmsId: 'lms-01',
     lmsName: 'Enterprise Leadership Portal',
     status: 'active',
     usedInClassesCount: 9,
     contactPerson: {
       name: 'Nusrat Jahan',
-      email: 'nusrat.jahan@grameenphone.com',
+      email: 'nusrat.jahan@partner-academy.bd',
       phone: '+880 1819-334455'
     },
-    createdBy: 'Regional LMS Admin',
+    createdBy: 'System Administrator',
     createdAt: '15/01/2026 11:00:00',
     updatedAt: '05/03/2026 16:40:00',
     rooms: [
@@ -266,6 +283,7 @@ export const INITIAL_VENUES: Venue[] = [
           airConditioning: true,
           otherTags: ['Laser Projector', 'Boundary Microphones']
         },
+        amenities: ['Laser Projector & Screen', 'Boundary Mic Setup', 'Central AC', 'Wheelchair Ramp'],
         seatingLayouts: ['theatre', 'classroom', 'uShape'],
         status: 'active',
         usedInClassesCount: 6,
@@ -288,6 +306,7 @@ export const INITIAL_VENUES: Venue[] = [
           airConditioning: true,
           otherTags: ['Computer Terminals', 'Smart Whiteboard']
         },
+        amenities: ['25x Workstation PCs', 'Gigabit LAN', 'Smart Whiteboard', 'Split AC'],
         seatingLayouts: ['classroom', 'cluster'],
         status: 'active',
         usedInClassesCount: 3,
@@ -301,6 +320,7 @@ export const INITIAL_VENUES: Venue[] = [
     code: 'SYL-HUB',
     name: 'Sylhet Highlands Innovation & Learning Hub',
     type: 'physical',
+    ownership: 'brac_internal',
     address: {
       line1: 'Subidbazar VIP Road, Airport Junction',
       city: 'Sylhet',

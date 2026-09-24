@@ -6,6 +6,9 @@ export type OfflineAssessmentMode = AssessmentMode;
 export type OfflineContentAttachment = OfflineContentItem;
 export type ManualMarkCriteria = any;
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
+export type AttendeeAttendanceStatus = AttendanceStatus;
+export type OfflineTrainingSession = any;
+export type OfflineSessionAttendee = any;
 export type OfflineCompletionRule = 'attended_and_passed' | 'passed_only' | 'attended_only' | 'any';
 
 export interface OfflineContentItem {
@@ -287,6 +290,7 @@ export const INITIAL_OFFLINE_TRAININGS: OfflineTraining[] = [
         passingScore: 70,
         weightagePercent: 60
       }
+    ],
     deliveryMode: 'in_person',
     attendance: {
       required: true,

@@ -9658,6 +9658,273 @@ export class LmsDataService {
   }
 
   // =========================================================================
+  // DUAL-ROLE TAGGING & UNIFIED SYNC (Author <-> Instructor)
+  // =========================================================================
+
+  tagAuthorAsInstructor(authorId: string, customData?: { title?: string; department?: string; specialization?: string[] }): { success: boolean; instructor?: InstructorProfile } {
+    const author = this.getAuthorById(authorId);
+    if (!author) {
+      this.showToast('Author profile not found.', 'error', 3000, 'Tagging Failed');
+      return { success: false };
+    }
+
+    // Check if already an instructor
+    const existingInstructor = this.getInstructorByEmail(author.email) || (author.instructorId ? this.getInstructorById(author.instructorId) : undefined);
+    if (existingInstructor) {
+      this.authors.update(list => list.map(a => a.id === authorId ? { ...a, isInstructor: true, instructorId: existingInstructor.id } : a));
+      this.instructors.update(list => list.map(i => i.id === existingInstructor.id ? { ...i, isAuthor: true, authorId: author.id } : i));
+      this.showToast(`${author.name} is already linked with Instructor profile "${existingInstructor.name}".`, 'info', 3500, 'Role Synced');
+      return { success: true, instructor: existingInstructor };
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const newInstId = `inst-${Date.now().toString().slice(-6)}`;
+
+    const specs: string[] = customData?.specialization || (author.specialization ? [author.specialization] : ['General Pedagogy']);
+
+    const newInstructor: InstructorProfile = {
+      id: newInstId,
+      personId: author.personId || `person-${author.id}`,
+      name: author.name,
+      email: author.email,
+      contactNumber: author.contactNumber,
+      bio: author.bio,
+      specialization: specs,
+      avatar: author.avatar,
+      status: 'Active',
+      isAuthor: true,
+      authorId: author.id,
+      department: customData?.department || 'Academic & Training Division',
+      title: customData?.title || 'Lead Course Instructor',
+      organizationId: author.organizationId || this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      assignmentsCount: 0,
+      rating: 5.0,
+      isProfileComplete: true,
+      attachments: author.attachments || []
+    };
+
+    this.instructors.update(list => [newInstructor, ...list]);
+    this.authors.update(list => list.map(a => a.id === authorId ? { ...a, isInstructor: true, instructorId: newInstId } : a));
+
+    // Also update users directory
+    this.users.update(list => list.map(u => {
+      if (u.email.toLowerCase() === author.email.toLowerCase() || u.authorId === authorId) {
+        return { ...u, instructorId: newInstId, role: 'instructor' };
+      }
+      return u;
+    }));
+
+    this.showToast(`${author.name} has been tagged as an Instructor. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Instructor');
+    this.logAction('Author Tagged as Instructor', `Tagged author ${author.name} (${author.email}) as Instructor`, 'success');
+    return { success: true, instructor: newInstructor };
+  }
+
+  tagInstructorAsAuthor(instructorId: string, customData?: { specialization?: string; bio?: string }): { success: boolean; author?: AuthorProfile } {
+    const instructor = this.getInstructorById(instructorId);
+    if (!instructor) {
+      this.showToast('Instructor profile not found.', 'error', 3000, 'Tagging Failed');
+      return { success: false };
+    }
+
+    const existingAuthor = this.getAuthorByEmail(instructor.email) || (instructor.authorId ? this.getAuthorById(instructor.authorId) : undefined);
+    if (existingAuthor) {
+      this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, isAuthor: true, authorId: existingAuthor.id } : i));
+      this.authors.update(list => list.map(a => a.id === existingAuthor.id ? { ...a, isInstructor: true, instructorId: instructor.id } : a));
+      this.showToast(`${instructor.name} is already linked with Author profile "${existingAuthor.name}".`, 'info', 3500, 'Role Synced');
+      return { success: true, author: existingAuthor };
+    }
+
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const newAuthorId = `auth-${Date.now().toString().slice(-6)}`;
+
+    const newAuthor: AuthorProfile = {
+      id: newAuthorId,
+      personId: instructor.personId || `person-${instructor.id}`,
+      name: instructor.name,
+      email: instructor.email,
+      contactNumber: instructor.contactNumber,
+      bio: customData?.bio || instructor.bio,
+      specialization: customData?.specialization || instructor.specialization?.[0] || 'Curriculum & Instructional Design',
+      avatar: instructor.avatar,
+      status: 'Active',
+      isInstructor: true,
+      instructorId: instructor.id,
+      organizationId: instructor.organizationId || this.activeTenantId() || 'tenant-brac',
+      createdAt: formattedDate,
+      authoredItemsCount: 0,
+      isProfileComplete: true,
+      attachments: instructor.attachments || []
+    };
+
+    this.authors.update(list => [newAuthor, ...list]);
+    this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, isAuthor: true, authorId: newAuthorId } : i));
+
+    // Also update users directory
+    this.users.update(list => list.map(u => {
+      if (u.email.toLowerCase() === instructor.email.toLowerCase() || u.instructorId === instructorId) {
+        return { ...u, authorId: newAuthorId };
+      }
+      return u;
+    }));
+
+    this.showToast(`${instructor.name} has been tagged as a Content Author. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Author');
+    this.logAction('Instructor Tagged as Author', `Tagged instructor ${instructor.name} (${instructor.email}) as Content Author`, 'success');
+    return { success: true, author: newAuthor };
+  }
+
+  /**
+   * Comprehensive duplicate detection algorithm checking name similarity, email equality, and contact number.
+   */
+  detectDuplicates(data: { name?: string; email?: string; contactNumber?: string; excludeId?: string }): {
+    isDuplicate: boolean;
+    reason?: 'exact_email' | 'exact_contact' | 'similar_name_contact' | 'exact_name';
+    matchedPerson?: {
+      name: string;
+      email: string;
+      contactNumber?: string;
+      avatar?: string;
+      isAuthor: boolean;
+      isInstructor: boolean;
+      authorId?: string;
+      instructorId?: string;
+      source: string;
+    };
+    similarityScore: number;
+  } {
+    const cleanEmail = data.email?.trim().toLowerCase();
+    const cleanContact = data.contactNumber?.replace(/\D/g, '');
+    const cleanName = data.name?.trim().toLowerCase();
+
+    // 1. Check exact email in authors, instructors, users
+    if (cleanEmail) {
+      const authorMatch = this.authors().find(a => a.id !== data.excludeId && a.email.trim().toLowerCase() === cleanEmail);
+      if (authorMatch) {
+        return {
+          isDuplicate: true,
+          reason: 'exact_email',
+          matchedPerson: {
+            name: authorMatch.name,
+            email: authorMatch.email,
+            contactNumber: authorMatch.contactNumber,
+            avatar: authorMatch.avatar,
+            isAuthor: true,
+            isInstructor: authorMatch.isInstructor || false,
+            authorId: authorMatch.id,
+            instructorId: authorMatch.instructorId,
+            source: 'Author Registry'
+          },
+          similarityScore: 100
+        };
+      }
+
+      const instMatch = this.instructors().find(i => i.id !== data.excludeId && i.email.trim().toLowerCase() === cleanEmail);
+      if (instMatch) {
+        return {
+          isDuplicate: true,
+          reason: 'exact_email',
+          matchedPerson: {
+            name: instMatch.name,
+            email: instMatch.email,
+            contactNumber: instMatch.contactNumber,
+            avatar: instMatch.avatar,
+            isAuthor: instMatch.isAuthor || false,
+            isInstructor: true,
+            authorId: instMatch.authorId,
+            instructorId: instMatch.id,
+            source: 'Instructor Registry'
+          },
+          similarityScore: 100
+        };
+      }
+    }
+
+    // 2. Check exact phone/contact in authors and instructors
+    if (cleanContact && cleanContact.length >= 8) {
+      const authorPhoneMatch = this.authors().find(a => {
+        if (a.id === data.excludeId || !a.contactNumber) return false;
+        const norm = a.contactNumber.replace(/\D/g, '');
+        return norm.endsWith(cleanContact) || cleanContact.endsWith(norm);
+      });
+      if (authorPhoneMatch) {
+        return {
+          isDuplicate: true,
+          reason: 'exact_contact',
+          matchedPerson: {
+            name: authorPhoneMatch.name,
+            email: authorPhoneMatch.email,
+            contactNumber: authorPhoneMatch.contactNumber,
+            avatar: authorPhoneMatch.avatar,
+            isAuthor: true,
+            isInstructor: authorPhoneMatch.isInstructor || false,
+            authorId: authorPhoneMatch.id,
+            instructorId: authorPhoneMatch.instructorId,
+            source: 'Author Registry (Matching Contact Number)'
+          },
+          similarityScore: 90
+        };
+      }
+
+      const instPhoneMatch = this.instructors().find(i => {
+        if (i.id === data.excludeId || !i.contactNumber) return false;
+        const norm = i.contactNumber.replace(/\D/g, '');
+        return norm.endsWith(cleanContact) || cleanContact.endsWith(norm);
+      });
+      if (instPhoneMatch) {
+        return {
+          isDuplicate: true,
+          reason: 'exact_contact',
+          matchedPerson: {
+            name: instPhoneMatch.name,
+            email: instPhoneMatch.email,
+            contactNumber: instPhoneMatch.contactNumber,
+            avatar: instPhoneMatch.avatar,
+            isAuthor: instPhoneMatch.isAuthor || false,
+            isInstructor: true,
+            authorId: instPhoneMatch.authorId,
+            instructorId: instPhoneMatch.id,
+            source: 'Instructor Registry (Matching Contact Number)'
+          },
+          similarityScore: 90
+        };
+      }
+    }
+
+    // 3. Name similarity check
+    if (cleanName && cleanName.length >= 3) {
+      const allPeople = [
+        ...this.instructors().map(i => ({ ...i, roleType: 'Instructor' as const })),
+        ...this.authors().map(a => ({ ...a, roleType: 'Author' as const }))
+      ];
+
+      for (const person of allPeople) {
+        if (person.id === data.excludeId) continue;
+        const pName = person.name.trim().toLowerCase();
+        if (pName === cleanName) {
+          return {
+            isDuplicate: true,
+            reason: 'exact_name',
+            matchedPerson: {
+              name: person.name,
+              email: person.email,
+              contactNumber: person.contactNumber,
+              avatar: person.avatar,
+              isAuthor: person.roleType === 'Author' || ('isAuthor' in person && !!person.isAuthor),
+              isInstructor: person.roleType === 'Instructor' || ('isInstructor' in person && !!person.isInstructor),
+              source: `${person.roleType} Registry`
+            },
+            similarityScore: 85
+          };
+        }
+      }
+    }
+
+    return { isDuplicate: false, similarityScore: 0 };
+  }
+
+  // =========================================================================
   // VENUE & ROOM MANAGEMENT (BRD §4.11)
   // =========================================================================
   getVenueById(venueId: string): Venue | undefined {

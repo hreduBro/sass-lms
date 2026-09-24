@@ -22,7 +22,11 @@ export interface InstructorProfile {
   isProfileComplete?: boolean;
   incompleteReason?: string;
   attachments?: PersonnelAttachment[];
+  role?: string;
+  activeCoursesCount?: number;
 }
+
+export type Instructor = InstructorProfile;
 
 export interface InstructorAssignmentRecord {
   id: string;
@@ -52,11 +56,13 @@ export interface InstructorCreateForm {
   name: string;
   email: string;
   contactNumber?: string;
+  phone?: string;
   bio?: string;
-  specialization: string; // Comma separated or single string from form
+  specialization: string;
   status: 'Active' | 'Inactive';
   department?: string;
   title?: string;
+  role?: string;
   avatar?: string;
   attachments?: PersonnelAttachment[];
   isQuickAdd?: boolean;

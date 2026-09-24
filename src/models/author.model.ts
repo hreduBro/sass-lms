@@ -41,10 +41,16 @@ export interface AuthorProfile {
   createdAt: string;
   updatedAt?: string;
   authoredItemsCount?: number;
+  authoredCoursesCount?: number;
+  templatesCreatedCount?: number;
+  role?: string;
+  department?: string;
   isProfileComplete?: boolean;
   incompleteReason?: string;
   attachments?: PersonnelAttachment[];
 }
+
+export type Author = AuthorProfile;
 
 export interface AuthorshipRecord {
   id: string;
@@ -78,6 +84,8 @@ export interface AuthorCreateForm {
   bio?: string;
   specialization: string;
   status: 'Active' | 'Inactive';
+  role?: string;
+  department?: string;
   avatar?: string;
   attachments?: PersonnelAttachment[];
   isQuickAdd?: boolean;

@@ -4,10 +4,11 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angula
 import { LmsDataService } from '../../../services/lms-data.service';
 import { Plan, DurationType, EnrollmentType, parseDateDDMMYYYY } from '../../../models/plan.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-edit-plan-modal',
-  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent, DatePickerComponent],
   template: `
     <div 
       class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
@@ -130,53 +131,39 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
           <!-- Dates: Start Date & End Date (DD/MM/YYYY) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-text-primary mb-1">
-                Start Date <span class="text-rose-500">*</span>
-                <span class="text-[10px] text-text-secondary font-normal ml-1">(DD/MM/YYYY)</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
-                  calendar_today
-                </span>
-                <input 
-                  id="edit-plan-start-date"
-                  type="text" 
-                  formControlName="startDate"
-                  placeholder="01/01/2026" 
-                  [readonly]="isActivePlan()"
-                  class="w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all disabled:opacity-60"
-                  [class.opacity-60]="isActivePlan()"
-                  [class.border-rose-500]="isFieldInvalid('startDate')" />
-              </div>
-              @if (isFieldInvalid('startDate')) {
-                <p class="text-[11px] text-rose-500 mt-1">Please enter valid DD/MM/YYYY date.</p>
-              }
+              <app-date-picker
+                label="Start Date"
+                [required]="true"
+                hint="DD/MM/YYYY"
+                placeholder="01/01/2026"
+                formControlName="startDate"
+                [hasError]="isFieldInvalid('startDate')"
+                errorMessage="Please enter valid DD/MM/YYYY date.">
+              </app-date-picker>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-text-primary mb-1">
-                End Date <span class="text-rose-500">*</span>
-                <span class="text-[10px] text-text-secondary font-normal ml-1">(DD/MM/YYYY)</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm pointer-events-none">
-                  event_busy
-                </span>
-                <input 
-                  id="edit-plan-end-date"
-                  type="text" 
-                  formControlName="endDate"
-                  placeholder="31/12/2026" 
-                  [readonly]="isActivePlan()"
-                  class="w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all disabled:opacity-60"
-                  [class.opacity-60]="isActivePlan()"
-                  [class.border-rose-500]="isFieldInvalid('endDate')" />
-              </div>
-              @if (isFieldInvalid('endDate')) {
-                <p class="text-[11px] text-rose-500 mt-1">Please enter valid DD/MM/YYYY date.</p>
-              }
+              <app-date-picker
+                label="End Date"
+                [required]="true"
+                hint="DD/MM/YYYY"
+                placeholder="31/12/2026"
+                [minDate]="editForm.get('startDate')?.value || ''"
+                formControlName="endDate"
+                [hasError]="isFieldInvalid('endDate')"
+                errorMessage="Please enter valid DD/MM/YYYY date."
+                [isInvalidOrder]="!!dateOrderError()"
+                [orderErrorMessage]="dateOrderError() || ''">
+              </app-date-picker>
             </div>
           </div>
+
+          @if (dateOrderError()) {
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm shrink-0 text-rose-600">error</span>
+              <span class="font-medium">{{ dateOrderError() }}</span>
+            </div>
+          }
 
           <!-- Recurring Plan Option -->
           <div>
@@ -218,8 +205,8 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
             <button 
               id="save-edit-plan-btn"
               type="submit" 
-              [disabled]="isSaving()"
-              class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm hover:shadow transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+              [disabled]="isSaving() || !!dateOrderError()"
+              class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-tenant-600 hover:bg-tenant-700 text-white shadow-sm hover:shadow transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
               @if (isSaving()) {
                 <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
                 <span>Saving Changes...</span>
@@ -283,6 +270,17 @@ export class EditPlanModalComponent implements OnInit {
   });
 
   isActivePlan = computed(() => this.plan().status === 'Active');
+
+  dateOrderError = computed<string | null>(() => {
+    const s = this.editForm.get('startDate')?.value;
+    const e = this.editForm.get('endDate')?.value;
+    const ds = parseDateDDMMYYYY(s);
+    const de = parseDateDDMMYYYY(e);
+    if (ds && de && de.getTime() < ds.getTime()) {
+      return 'End date cannot be earlier than start date.';
+    }
+    return null;
+  });
 
   ngOnInit() {
     const p = this.plan();

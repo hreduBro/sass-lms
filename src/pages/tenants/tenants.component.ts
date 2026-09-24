@@ -152,13 +152,16 @@ export class TenantsComponent {
       // 3. Date Range Filter
       if (filters.createdDateFrom) {
         const itemDate = t.createdAt ? new Date(t.createdAt).getTime() : 0;
-        const start = new Date(filters.createdDateFrom).getTime();
-        if (itemDate < start) return false;
+        const start = this.parseDate(filters.createdDateFrom);
+        if (start && itemDate < start.getTime()) return false;
       }
       if (filters.createdDateTo) {
         const itemDate = t.createdAt ? new Date(t.createdAt).getTime() : 0;
-        const end = new Date(filters.createdDateTo).getTime() + (24 * 60 * 60 * 1000 - 1);
-        if (itemDate > end) return false;
+        const end = this.parseDate(filters.createdDateTo);
+        if (end) {
+          end.setHours(23, 59, 59, 999);
+          if (itemDate > end.getTime()) return false;
+        }
       }
 
       return true;
@@ -490,6 +493,21 @@ export class TenantsComponent {
 
   getLmsCountForTenant(tenantId: string): number {
     return this.lms.lmsInstances().filter(i => i.organizationId === tenantId).length;
+  }
+
+  private parseDate(str: string): Date | null {
+    if (!str) return null;
+    const parts = str.trim().split('/');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const y = parseInt(parts[2], 10);
+      if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+        return new Date(y, m, d);
+      }
+    }
+    const dt = new Date(str);
+    return isNaN(dt.getTime()) ? null : dt;
   }
 }
 

@@ -27,6 +27,7 @@ import {
 } from '../../../models/phase.model';
 import { StepperComponent, StepItem } from '../../../components/stepper/stepper.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 
 @Component({
@@ -37,7 +38,8 @@ import { ConfirmationModalService } from '../../../services/confirmation-modal.s
     ReactiveFormsModule, 
     RouterModule, 
     StepperComponent,
-    CustomAvatarComponent
+    CustomAvatarComponent,
+    DatePickerComponent
   ],
   templateUrl: './phase-create.component.html',
   styles: [`

@@ -11,13 +11,15 @@ import {
 } from '../../../../models/plan.model';
 import { LmsDataService } from '../../../../services/lms-data.service';
 import { CustomSelectComponent, SelectOption } from '../../../../components/custom-select/custom-select.component';
+import { DatePickerComponent } from '../../../../components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-component-drawer',
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    CustomSelectComponent
+    CustomSelectComponent,
+    DatePickerComponent
   ],
   styles: [`
     :host {
@@ -228,36 +230,51 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
                   <span class="material-symbols-outlined text-sm text-tenant-500">calendar_month</span>
                   <span>Timeline & Dates</span>
                 </h3>
-                <span class="text-xs font-mono font-bold text-tenant-600 bg-base-100 px-2.5 py-0.5 rounded-md border border-base-300">
-                  {{ computedDuration() }} Days Window
+                <span 
+                  class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-md border transition-colors"
+                  [class.text-tenant-600]="!dateOrderError()"
+                  [class.bg-base-100]="!dateOrderError()"
+                  [class.border-base-300]="!dateOrderError()"
+                  [class.text-rose-600]="dateOrderError()"
+                  [class.bg-rose-50]="dateOrderError()"
+                  [class.border-rose-300]="dateOrderError()">
+                  @if (dateOrderError()) {
+                    Invalid Date Range
+                  } @else {
+                    {{ computedDuration() }} Days Window
+                  }
                 </span>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold text-text-primary mb-1">
-                    Start Date <span class="text-rose-500">*</span> <span class="text-[10px] text-text-secondary">(DD/MM/YYYY)</span>
-                  </label>
-                  <input 
-                    type="text"
-                    formControlName="startDate"
-                    (input)="updateDates()"
-                    placeholder="01/01/2026"
-                    class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-100 border border-base-300 focus:outline-none focus:ring-2 focus:ring-tenant-500 font-mono" />
-                </div>
+                <app-date-picker
+                  label="Start Date"
+                  [required]="true"
+                  hint="DD/MM/YYYY"
+                  placeholder="01/01/2026"
+                  formControlName="startDate"
+                  (valueChange)="updateDates()">
+                </app-date-picker>
 
-                <div>
-                  <label class="block text-xs font-semibold text-text-primary mb-1">
-                    End Date <span class="text-rose-500">*</span> <span class="text-[10px] text-text-secondary">(DD/MM/YYYY)</span>
-                  </label>
-                  <input 
-                    type="text"
-                    formControlName="endDate"
-                    (input)="updateDates()"
-                    placeholder="31/03/2026"
-                    class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-100 border border-base-300 focus:outline-none focus:ring-2 focus:ring-tenant-500 font-mono" />
-                </div>
+                <app-date-picker
+                  label="End Date"
+                  [required]="true"
+                  hint="DD/MM/YYYY"
+                  placeholder="31/03/2026"
+                  [minDate]="form.get('startDate')?.value || ''"
+                  [isInvalidOrder]="!!dateOrderError()"
+                  [orderErrorMessage]="dateOrderError() || ''"
+                  formControlName="endDate"
+                  (valueChange)="updateDates()">
+                </app-date-picker>
               </div>
+
+              @if (dateOrderError()) {
+                <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm shrink-0 text-rose-600">error</span>
+                  <span class="font-medium">{{ dateOrderError() }}</span>
+                </div>
+              }
 
               @if (phaseBoundsError()) {
                 <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
@@ -570,7 +587,7 @@ import { CustomSelectComponent, SelectOption } from '../../../../components/cust
             </button>
             <button 
               type="submit" 
-              [disabled]="form.invalid"
+              [disabled]="form.invalid || !!dateOrderError() || !!phaseBoundsError()"
               class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-sm">check</span>
               <span>{{ isEditing() ? 'Save Changes' : 'Add to Plan' }}</span>
@@ -636,8 +653,23 @@ export class ComponentDrawerComponent {
     surveyMode: ['Anonymous']
   });
 
+  dateOrderError = computed<string | null>(() => {
+    const dates = this.formDates();
+    const ds = parseDateDDMMYYYY(dates.start);
+    const de = parseDateDDMMYYYY(dates.end);
+    if (ds && de && de.getTime() < ds.getTime()) {
+      return 'End date cannot be earlier than start date.';
+    }
+    return null;
+  });
+
   computedDuration = computed<number>(() => {
     const dates = this.formDates();
+    const ds = parseDateDDMMYYYY(dates.start);
+    const de = parseDateDDMMYYYY(dates.end);
+    if (ds && de && de.getTime() < ds.getTime()) {
+      return 0;
+    }
     return getDurationDays(dates.start, dates.end);
   });
 

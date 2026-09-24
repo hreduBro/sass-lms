@@ -321,6 +321,10 @@ export const routes: Routes = [
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
+  { path: 'users/instructors', redirectTo: 'instructors', pathMatch: 'full' },
+  { path: 'users/authors', redirectTo: 'authors', pathMatch: 'full' },
+  { path: 'users/offline-trainings', redirectTo: 'offline-trainings', pathMatch: 'full' },
+  { path: 'users/venues', redirectTo: 'venues', pathMatch: 'full' },
 
   // Author Management (Organization-Scoped Author Pool)
   {

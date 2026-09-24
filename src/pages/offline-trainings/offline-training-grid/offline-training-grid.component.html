@@ -1,45 +1,46 @@
 <div class="space-y-6 pb-16 max-w-7xl mx-auto">
 
   <!-- ========================================================================= -->
-  <!-- 1. CLEAN UNBOXED HEADER ROW                                               -->
+  <!-- 1. HEADER SECTION (Breadcrumb, Title, Subtitle, Actions)                  -->
   <!-- ========================================================================= -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
         <span class="text-xs font-semibold text-text-secondary">Curriculum & Delivery</span>
         <span class="text-text-secondary text-xs">•</span>
-        <span class="text-[11px] font-mono font-bold text-tenant-700 dark:text-tenant-300 px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/40">
+        <span class="text-xs font-bold text-[#ff007a] px-2.5 py-0.5 rounded-md bg-pink-50 dark:bg-pink-950/60 border border-pink-200 dark:border-pink-900/60">
           Physical Workshops
         </span>
       </div>
 
       <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
-        <span class="material-symbols-outlined text-tenant-600 text-3xl">groups_3</span>
+        <span class="material-symbols-outlined text-[#ff007a] text-3xl">groups_3</span>
         <span>Offline Training Management</span>
       </h1>
 
-      <p class="text-xs sm:text-sm text-text-secondary mt-0.5 max-w-2xl">
+      <p class="text-xs sm:text-sm text-text-secondary mt-1 max-w-2xl leading-relaxed">
         Classroom workshops, physical venue capacity, reusable materials, multi-mode assessments & trainer overrides.
       </p>
     </div>
 
-    <div class="flex items-center gap-2.5 flex-wrap">
+    <!-- Top Right Actions -->
+    <div class="flex items-center gap-2.5 flex-wrap shrink-0">
       <a routerLink="/offline-trainings/results" 
-         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-base text-tenant-600">fact_check</span>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-100 hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base text-[#ff007a]">fact_check</span>
         <span>Trainee Gradebook</span>
       </a>
 
       <a routerLink="/offline-trainings/dashboard" 
-         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-200 hover:bg-base-300 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-base text-tenant-600">space_dashboard</span>
+         class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-base-100 hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-base-300 shadow-2xs transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base text-[#ff007a]">space_dashboard</span>
         <span>Telemetry</span>
       </a>
 
       @if (permissions().canCreateOfflineTraining) {
         <button (click)="navigateToCreate()"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-lg">add_circle</span>
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ff007a] hover:bg-pink-600 active:scale-95 text-white text-xs font-bold shadow-sm shadow-pink-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-base">add_circle</span>
           <span>Create Offline Training</span>
         </button>
       }
@@ -47,56 +48,62 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 2. KPI SUMMARY STATS CARDS                                                -->
+  <!-- 2. KPI SUMMARY METRIC CARDS (4-Column Grid)                               -->
   <!-- ========================================================================= -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    <!-- Card 1: Total Workshops -->
+    <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
       <div>
         <span class="text-xs font-medium text-text-secondary">Total Workshops</span>
-        <div class="text-2xl font-bold text-text-primary mt-1">{{ totalCount() }}</div>
-        <span class="text-[11px] text-text-secondary">catalog modules</span>
+        <div class="text-3xl font-extrabold text-text-primary mt-1">{{ totalCount() }}</div>
+        <span class="text-xs text-text-secondary mt-1 block">catalog modules</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
-        <span class="material-symbols-outlined">groups</span>
+      <div class="w-11 h-11 rounded-2xl bg-pink-50 dark:bg-pink-950/50 text-[#ff007a] border border-pink-100 dark:border-pink-900/40 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-xl">groups</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
+    <!-- Card 2: Published Modules -->
+    <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
       <div>
         <span class="text-xs font-medium text-text-secondary">Published Modules</span>
-        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ publishedCount() }}</div>
-        <span class="text-[11px] text-emerald-600 font-semibold">ready for delivery</span>
+        <div class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ publishedCount() }}</div>
+        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">ready for delivery</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center border border-emerald-200 dark:border-emerald-800/40">
-        <span class="material-symbols-outlined">verified</span>
+      <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/40 shrink-0">
+        <span class="material-symbols-outlined text-xl">verified</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
+    <!-- Card 3: Draft Designs -->
+    <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
       <div>
         <span class="text-xs font-medium text-text-secondary">Draft Designs</span>
-        <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ draftCount() }}</div>
-        <span class="text-[11px] text-amber-600 font-semibold">in curation</span>
+        <div class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{{ draftCount() }}</div>
+        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1 block">in curation</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center border border-amber-200 dark:border-amber-800/40">
-        <span class="material-symbols-outlined">edit_note</span>
+      <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center border border-amber-100 dark:border-amber-900/40 shrink-0">
+        <span class="material-symbols-outlined text-xl">edit_note</span>
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-between">
+    <!-- Card 4: Active Embeddings -->
+    <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
       <div>
         <span class="text-xs font-medium text-text-secondary">Active Embeddings</span>
-        <div class="text-2xl font-bold text-tenant-600 dark:text-tenant-400 mt-1">{{ embeddedCount() }}</div>
-        <span class="text-[11px] text-text-secondary">course & plan linkages</span>
+        <div class="text-3xl font-extrabold text-[#ff007a] mt-1">{{ embeddedCount() }}</div>
+        <span class="text-xs font-semibold text-text-secondary mt-1 block">course & plan linkages</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200 dark:border-tenant-800/40 flex items-center justify-center">
-        <span class="material-symbols-outlined">hub</span>
+      <div class="w-11 h-11 rounded-2xl bg-pink-50 dark:bg-pink-950/50 text-[#ff007a] border border-pink-100 dark:border-pink-900/40 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-xl">hub</span>
       </div>
     </div>
+
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. DATA GRID CONTAINER                                                    -->
+  <!-- 3. DATA GRID WRAPPER (Search & Filter Bar)                                -->
   <!-- ========================================================================= -->
   <app-data-grid
     [searchQuery]="searchQuery()"
@@ -131,9 +138,8 @@
     (applyFilters)="applyFilters()"
     [showPagination]="false">
 
-    <!-- Filter Drawer Slot (Matching Image 1) -->
+    <!-- Filter Drawer Slot -->
     <div filter-panel class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start pt-1">
-      <!-- 1. Status -->
       <div>
         <label class="block text-xs font-bold text-text-primary mb-1.5">1. Status</label>
         <app-custom-select
@@ -145,7 +151,6 @@
         </app-custom-select>
       </div>
 
-      <!-- 2. Venue -->
       <div>
         <label class="block text-xs font-bold text-text-primary mb-1.5">2. Venue</label>
         <app-custom-select
@@ -157,171 +162,220 @@
         </app-custom-select>
       </div>
 
-      <!-- 3. Assessment Type -->
       <div>
-        <label class="block text-xs font-bold text-text-primary mb-1.5">3. Assessment Type</label>
+        <label class="block text-xs font-bold text-text-primary mb-1.5">3. Assessment Mode</label>
         <app-custom-select
           [options]="assessmentModeOptions"
           [ngModel]="draftAssessmentMode()"
           (ngModelChange)="draftAssessmentMode.set($event || 'all')"
-          placeholder="All Assessment Types"
+          placeholder="All Assessment Modes"
           [clearable]="true">
         </app-custom-select>
       </div>
 
-      <!-- 4. Sort By -->
       <div>
         <label class="block text-xs font-bold text-text-primary mb-1.5">4. Sort By</label>
         <app-custom-select
           [options]="sortOptions"
           [ngModel]="draftSortBy()"
           (ngModelChange)="draftSortBy.set($event || 'newest')"
-          placeholder="Newest First"
-          [clearable]="true">
+          placeholder="Sort By"
+          [clearable]="false">
         </app-custom-select>
       </div>
     </div>
 
-    <!-- 4. GRID VIEW -->
+    <!-- ========================================================================= -->
+    <!-- 4. GRID VIEW CARDS (Matches Image Exactly)                                -->
+    <!-- ========================================================================= -->
     @if (viewMode() === 'grid' && filteredTrainings().length > 0) {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-1">
         @for (item of filteredTrainings(); track item.trainingId || item.id) {
-          <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md hover:border-tenant-500/40 transition-all flex flex-col justify-between overflow-hidden group">
+          <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4">
             
-            <div class="p-5">
-              <!-- Top Status & Actions Menu -->
-              <div class="flex items-start justify-between gap-3 mb-3">
-                <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded-md bg-base-200 text-text-primary border border-base-300">
+            <div class="space-y-3.5">
+              <!-- Card Top Header: Code Pill, Type Pill, Status Pill, 3-dot Menu -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 text-[11px] font-mono font-bold rounded-md bg-base-200/80 text-text-primary border border-base-300">
                     {{ item.code }}
                   </span>
-                  <span [class]="item.status === 'published' 
-                                 ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                                 : (item.status === 'draft' 
-                                    ? 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' 
-                                    : 'px-2 py-0.5 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800')">
-                    {{ item.status | uppercase }}
+                  <span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-base-200/80 text-text-secondary border border-base-300">
+                    Workshop
                   </span>
                 </div>
 
-                <!-- 3-Dots Dropdown -->
-                <div class="relative">
-                  <button (click)="toggleActionMenu(item.trainingId, $event)" 
-                          class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
-
-                  @if (openActionMenuId() === item.trainingId) {
-                    <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
-                      <button (click)="navigateToView(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
-                        <span>View Training Details</span>
-                      </button>
-                      @if (permissions().canEditOfflineTraining) {
-                        <button (click)="navigateToEdit(item.trainingId)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm text-tenant-600">edit</span>
-                          <span>Edit Module</span>
-                        </button>
-                      }
-                      @if (permissions().canEmbedOfflineTraining) {
-                        <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-tenant-600 dark:text-tenant-400 font-semibold cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">hub</span>
-                          <span>Embed to Course/Plan</span>
-                        </button>
-                      }
-                      <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
-                        <span>Duplicate Module</span>
-                      </button>
-                      <div class="my-1 border-t border-base-300"></div>
-                      @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
-                        <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">verified</span>
-                          <span>Publish Module</span>
-                        </button>
-                      }
-                      @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
-                        <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">power_settings_new</span>
-                          <span>Deactivate</span>
-                        </button>
-                      } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
-                        <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">check_circle</span>
-                          <span>Reactivate</span>
-                        </button>
-                      }
-                      @if (permissions().canDeleteOfflineTraining) {
-                        <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">delete</span>
-                          <span>Delete</span>
-                        </button>
-                      }
-                    </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  @if (item.status === 'published') {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span>Published</span>
+                    </span>
+                  } @else if (item.status === 'draft') {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      <span>Draft</span>
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      <span>Inactive</span>
+                    </span>
                   }
+
+                  <!-- 3-Dots Dropdown Trigger -->
+                  <div class="relative">
+                    <button (click)="toggleActionMenu(item.trainingId || item.id, $event)" 
+                            class="p-1 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+                            title="More Actions">
+                      <span class="material-symbols-outlined text-lg">more_vert</span>
+                    </button>
+
+                    @if (openActionMenuId() === (item.trainingId || item.id)) {
+                      <div class="absolute right-0 mt-1 w-52 bg-base-100 rounded-2xl shadow-xl border border-base-300 py-1.5 z-30 text-xs font-medium text-text-primary">
+                        <button (click)="navigateToView(item.trainingId || item.id)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-text-secondary">visibility</span>
+                          <span>View Training Details</span>
+                        </button>
+                        @if (permissions().canEditOfflineTraining) {
+                          <button (click)="navigateToEdit(item.trainingId || item.id)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm text-[#ff007a]">edit</span>
+                            <span>Edit Module</span>
+                          </button>
+                        }
+                        @if (permissions().canEmbedOfflineTraining) {
+                          <button (click)="openEmbedModal(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 text-[#ff007a] font-semibold cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">hub</span>
+                            <span>Embed to Course/Plan</span>
+                          </button>
+                        }
+                        <button (click)="promptDuplicate(item)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
+                          <span class="material-symbols-outlined text-sm text-emerald-600">content_copy</span>
+                          <span>Duplicate Module</span>
+                        </button>
+                        <div class="my-1 border-t border-base-300"></div>
+                        @if (item.status === 'draft' && permissions().canPublishOfflineTraining) {
+                          <button (click)="promptPublish(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">verified</span>
+                            <span>Publish Module</span>
+                          </button>
+                        }
+                        @if (item.status === 'published' && permissions().canDeactivateOfflineTraining) {
+                          <button (click)="promptDeactivate(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">power_settings_new</span>
+                            <span>Deactivate</span>
+                          </button>
+                        } @else if (item.status === 'inactive' && permissions().canDeactivateOfflineTraining) {
+                          <button (click)="promptReactivate(item)" class="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            <span>Reactivate</span>
+                          </button>
+                        }
+                        @if (permissions().canDeleteOfflineTraining) {
+                          <button (click)="promptDelete(item)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                            <span>Delete</span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               </div>
 
-              <!-- Title & Description -->
-              <a [routerLink]="['/offline-trainings/view', item.trainingId]" class="block group-hover:text-tenant-600 transition-colors">
-                <h3 class="font-bold text-base text-text-primary line-clamp-1 mb-1">
-                  {{ item.title }}
-                </h3>
-              </a>
-              <p class="text-xs text-text-secondary line-clamp-2 mb-4 leading-relaxed">
+              <!-- Main Title & Location Block with Pink Icon -->
+              <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-pink-50 dark:bg-pink-950/50 text-[#ff007a] border border-pink-100 dark:border-pink-900/40 flex items-center justify-center shrink-0 shadow-2xs">
+                  <span class="material-symbols-outlined text-xl">co_present</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <a [routerLink]="['/offline-trainings/view', item.trainingId || item.id]" class="block">
+                    <h3 class="font-extrabold text-sm sm:text-base text-text-primary hover:text-[#ff007a] transition-colors line-clamp-1">
+                      {{ item.title }}
+                    </h3>
+                  </a>
+                  <div class="text-xs text-text-secondary mt-0.5 font-medium">
+                    Curriculum Delivery • Hours ({{ item.durationDays || 1 }} Days)
+                  </div>
+                  <div class="text-xs text-text-secondary flex items-center gap-1 mt-1 truncate">
+                    <span class="material-symbols-outlined text-sm text-[#ff007a] shrink-0">location_on</span>
+                    <span class="truncate">{{ item.venueName || 'Dhaka Executive Learning Center' }} • {{ item.roomName || 'Hall A' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <p class="text-xs text-text-secondary line-clamp-2 leading-relaxed">
                 {{ item.description }}
               </p>
 
-              <!-- Venue & Room Badge -->
-              <div class="p-2.5 rounded-xl bg-base-200/50 border border-base-300 mb-3 space-y-1">
-                <div class="text-xs font-semibold text-text-primary flex items-center gap-1.5 truncate">
-                  <span class="material-symbols-outlined text-sm text-tenant-600 shrink-0">location_on</span>
-                  <span>{{ item.venueName || 'Unassigned Venue' }}</span>
-                </div>
-                <div class="text-[11px] text-text-secondary flex items-center justify-between pl-5">
-                  <span>Room: <strong class="text-text-primary">{{ item.roomName || 'TBD' }}</strong></span>
-                  <span class="font-mono text-tenant-600 dark:text-tenant-400">Cap: {{ getCapacityDisplay(item) }} seats</span>
-                </div>
+              <!-- Pill Badges Row -->
+              <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                <!-- No Exam / Exam Pill -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-lg bg-base-200/60 text-text-secondary border border-base-300">
+                  <span class="material-symbols-outlined text-xs">block</span>
+                  <span>No Exam</span>
+                </span>
+
+                <!-- Hours Pill -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-lg bg-base-200/60 text-text-secondary border border-base-300">
+                  <span class="material-symbols-outlined text-xs">schedule</span>
+                  <span>hrs</span>
+                </span>
+
+                <!-- Embeds Pill -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-pink-50 dark:bg-pink-950/60 text-[#ff007a] border border-pink-200 dark:border-pink-900/60">
+                  <span class="material-symbols-outlined text-xs">hub</span>
+                  <span>{{ getEmbedsCount(item) }} Embeds</span>
+                </span>
+
+                <!-- In-Person Pill -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span class="material-symbols-outlined text-xs">groups</span>
+                  <span>In-Person</span>
+                </span>
               </div>
 
-              <!-- Trainer & Duration Row -->
-              <div class="flex items-center justify-between text-xs text-text-primary pt-1">
-                <div class="flex items-center gap-2 truncate">
-                  <div class="w-6 h-6 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
-                    {{ getTrainerInitial(item) }}
+              <!-- Specs Box -->
+              <div class="p-3.5 rounded-2xl bg-base-200/40 dark:bg-base-900/30 border border-base-200 dark:border-base-800 space-y-2.5 text-xs">
+                <div class="flex items-center justify-between text-text-secondary text-[11px]">
+                  <span>Capacity: <strong class="text-text-primary font-bold">{{ getCapacityDisplay(item) }} seats</strong></span>
+                  <span>Duration: <strong class="text-text-primary font-bold">hrs</strong></span>
+                  <span>Embeds: <strong class="text-text-primary font-bold">{{ getEmbedsCount(item) }}</strong></span>
+                </div>
+                <div class="pt-2 border-t border-base-200 dark:border-base-800/80 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="material-symbols-outlined text-sm text-text-secondary shrink-0">person</span>
+                    <span class="font-bold text-text-primary truncate text-xs">{{ getTrainerDisplayName(item) }}</span>
                   </div>
-                  <span class="truncate font-medium">{{ getTrainerDisplayName(item) }}</span>
+                  <span class="text-[11px] text-text-secondary truncate shrink-0 max-w-[130px]">
+                    {{ getTrainerEmail(item) }}
+                  </span>
                 </div>
-                <span class="text-[11px] font-mono font-semibold text-text-secondary shrink-0 bg-base-200 border border-base-300 px-2 py-0.5 rounded-md">
-                  {{ getDurationDisplay(item) }}
-                </span>
               </div>
 
-              <!-- Assessment Mode Tag -->
-              <div class="mt-3 pt-2.5 border-t border-base-300 flex items-center justify-between text-[11px]">
-                <span class="text-text-secondary">Assessment:</span>
-                <span class="font-semibold text-tenant-600 dark:text-tenant-400">
-                  {{ getAssessmentModeLabel(item.assessmentMode) }}
-                </span>
-              </div>
             </div>
 
-            <!-- Bottom Footer -->
-            <div class="px-5 py-3 bg-base-200/40 border-t border-base-300 flex items-center justify-between">
-              <span class="text-[11px] text-text-secondary">
-                {{ item.embeddingCount || 0 }} Course Embedding(s)
-              </span>
-              <div class="flex items-center gap-2">
-                <button (click)="openEmbedModal(item)"
-                        class="px-2.5 py-1 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/40 hover:bg-tenant-100 border border-tenant-200 dark:border-tenant-800/40 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                  <span class="material-symbols-outlined text-xs">hub</span> Embed
-                </button>
-                <button (click)="navigateToView(item.trainingId)"
-                        class="px-3 py-1 text-xs font-semibold text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
-                  <span>View</span>
-                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            <!-- Card Bottom Footer Actions -->
+            <div class="pt-3 border-t border-base-200 dark:border-base-800 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1">
+                <a [routerLink]="['/offline-trainings/edit', item.trainingId || item.id]" 
+                   class="p-2 rounded-xl text-text-secondary hover:text-[#ff007a] hover:bg-base-200 transition-colors cursor-pointer" 
+                   title="Edit Workshop">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </a>
+                <button (click)="openEmbedModal(item)" 
+                        class="p-2 rounded-xl text-[#ff007a] hover:bg-pink-50 dark:hover:bg-pink-950/40 transition-colors cursor-pointer" 
+                        title="Embed Workshop">
+                  <span class="material-symbols-outlined text-base">diamond</span>
                 </button>
               </div>
+
+              <a [routerLink]="['/offline-trainings/view', item.trainingId || item.id]" 
+                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ff007a] hover:bg-pink-600 active:scale-95 text-white text-xs font-bold shadow-sm shadow-pink-500/20 transition-all cursor-pointer">
+                <span>View Workshop</span>
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              </a>
             </div>
 
           </div>
@@ -329,7 +383,9 @@
       </div>
     }
 
-    <!-- 5. TABLE VIEW -->
+    <!-- ========================================================================= -->
+    <!-- 5. TABLE VIEW                                                             -->
+    <!-- ========================================================================= -->
     @if (viewMode() === 'table' && filteredTrainings().length > 0) {
       <div class="bg-base-100 rounded-3xl border border-base-300 shadow-sm overflow-hidden pt-1">
         <div class="overflow-x-auto">
@@ -340,7 +396,7 @@
                 <th class="px-4 py-3.5">Venue & Room</th>
                 <th class="px-4 py-3.5">Primary Trainer</th>
                 <th class="px-4 py-3.5">Duration</th>
-                <th class="px-4 py-3.5">Assessment Mode</th>
+                <th class="px-4 py-3.5">Embeddings</th>
                 <th class="px-4 py-3.5">Status</th>
                 <th class="px-5 py-3.5 text-right sticky right-0 bg-base-200/90 backdrop-blur-xs">Actions</th>
               </tr>
@@ -349,69 +405,62 @@
               @for (item of filteredTrainings(); track item.trainingId || item.id) {
                 <tr class="hover:bg-base-200/40 transition-colors">
                   <td class="px-5 py-4">
-                    <div class="font-bold text-text-primary">{{ item.title }}</div>
-                    <div class="text-[11px] font-mono text-text-secondary mt-0.5">
-                      {{ item.code }} • {{ getCategoryDisplay(item) }}
+                    <div class="font-bold text-text-primary">
+                      <a [routerLink]="['/offline-trainings/view', item.trainingId || item.id]" class="hover:text-[#ff007a]">
+                        {{ item.title }}
+                      </a>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs font-mono text-[#ff007a] font-semibold">{{ item.code }}</span>
+                      <span class="text-xs text-text-secondary">• v{{ item.version || 1 }}.0</span>
                     </div>
                   </td>
                   <td class="px-4 py-4 text-xs">
-                    <div class="font-semibold text-text-primary flex items-center gap-1">
-                      <span class="material-symbols-outlined text-xs text-tenant-600">location_on</span>
-                      <span>{{ item.venueName || 'Unassigned Venue' }}</span>
-                    </div>
-                    <div class="text-[11px] text-text-secondary mt-0.5 pl-4">
-                      {{ item.roomName || 'Room TBD' }} (Cap: {{ getCapacityDisplay(item) }})
-                    </div>
+                    <div class="font-semibold text-text-primary">{{ item.venueName || 'Unassigned Venue' }}</div>
+                    <div class="text-text-secondary mt-0.5">Room: {{ item.roomName || 'TBD' }} ({{ getCapacityDisplay(item) }} seats)</div>
                   </td>
                   <td class="px-4 py-4 text-xs">
-                    <div class="flex items-center gap-2">
-                      <div class="w-6 h-6 rounded-full bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 font-bold text-[10px] flex items-center justify-center shrink-0 border border-tenant-200 dark:border-tenant-800">
-                        {{ getTrainerInitial(item) }}
-                      </div>
-                      <span class="font-medium text-text-primary">{{ getTrainerDisplayName(item) }}</span>
-                    </div>
+                    <div class="font-semibold text-text-primary">{{ getTrainerDisplayName(item) }}</div>
+                    <div class="text-text-secondary">{{ getTrainerEmail(item) }}</div>
                   </td>
-                  <td class="px-4 py-4 text-xs font-mono font-medium text-text-primary">
+                  <td class="px-4 py-4 text-xs font-mono">
                     {{ getDurationDisplay(item) }}
                   </td>
                   <td class="px-4 py-4 text-xs">
-                    <span class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-base-200 text-text-primary border border-base-300">
-                      {{ getAssessmentModeLabel(item.assessmentMode) }}
-                    </span>
+                    <span class="font-bold text-[#ff007a]">{{ getEmbedsCount(item) }} Active Linkages</span>
                   </td>
-                  <td class="px-4 py-4">
+                  <td class="px-4 py-4 text-xs">
                     @if (item.status === 'published') {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Published
+                        <span>Published</span>
                       </span>
                     } @else if (item.status === 'draft') {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        Draft
+                        <span>Draft</span>
                       </span>
                     } @else {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                        Inactive
+                        <span>Inactive</span>
                       </span>
                     }
                   </td>
                   <td class="px-5 py-4 text-right sticky right-0 bg-base-100/90 backdrop-blur-xs">
                     <div class="flex items-center justify-end gap-1.5">
-                      <button (click)="navigateToView(item.trainingId)" class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="View Details">
+                      <a [routerLink]="['/offline-trainings/view', item.trainingId || item.id]" 
+                         class="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-base-200 transition-colors" title="View">
                         <span class="material-symbols-outlined text-base">visibility</span>
+                      </a>
+                      <a [routerLink]="['/offline-trainings/edit', item.trainingId || item.id]" 
+                         class="p-1.5 text-[#ff007a] hover:bg-pink-50 rounded-lg transition-colors" title="Edit">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                      </a>
+                      <button (click)="openEmbedModal(item)"
+                              class="p-1.5 text-[#ff007a] hover:bg-pink-50 rounded-lg transition-colors" title="Embed">
+                        <span class="material-symbols-outlined text-base">hub</span>
                       </button>
-                      @if (permissions().canEmbedOfflineTraining) {
-                        <button (click)="openEmbedModal(item)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Embed Workshop">
-                          <span class="material-symbols-outlined text-base">hub</span>
-                        </button>
-                      }
-                      @if (permissions().canEditOfflineTraining) {
-                        <button (click)="navigateToEdit(item.trainingId)" class="p-1.5 text-text-secondary hover:text-tenant-600 rounded-lg hover:bg-base-200 transition-colors cursor-pointer" title="Edit Workshop">
-                          <span class="material-symbols-outlined text-base">edit</span>
-                        </button>
-                      }
                     </div>
                   </td>
                 </tr>
@@ -421,105 +470,102 @@
         </div>
       </div>
     }
+
   </app-data-grid>
 
-  <!-- ========================================================================= -->
-  <!-- 7. EMBED WORKSHOP MODAL                                                   -->
-  <!-- ========================================================================= -->
-  <app-modal-overlay
-    [isOpen]="isEmbedModalOpen()"
-    (close)="closeEmbedModal()"
-    maxWidth="lg"
-    title="Embed Offline Workshop"
-    [subtitle]="activeTrainingForEmbed()?.title || 'Course / Learning Plan Linking'"
-    icon="hub">
+</div>
 
+<!-- ========================================================================= -->
+<!-- 6. MODAL OVERLAY: EMBED TO COURSE/PLAN                                    -->
+<!-- ========================================================================= -->
+<app-modal-overlay
+  [isOpen]="isEmbedModalOpen()"
+  (close)="closeEmbedModal()"
+  title="Embed Offline Workshop into Course / Phase"
+  subtitle="Link this in-person training module into a live cohort with custom scheduling or instructor overrides."
+  icon="hub">
+  
+  @if (activeTrainingForEmbed(); as training) {
     <form [formGroup]="embedForm" (ngSubmit)="submitEmbed()" class="space-y-4">
-      <div>
-        <label class="block text-xs font-semibold text-text-primary mb-1">Host Entity Target *</label>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <label class="flex items-center gap-2 p-3 rounded-xl bg-base-200/50 border border-base-300 cursor-pointer hover:border-tenant-300">
-            <input type="radio" formControlName="hostEntityType" value="course" class="accent-tenant-500 cursor-pointer" />
-            <span class="font-medium text-text-primary">Course Unit / Activity</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 rounded-xl bg-base-200/50 border border-base-300 cursor-pointer hover:border-tenant-300">
-            <input type="radio" formControlName="hostEntityType" value="learning_plan" class="accent-tenant-500 cursor-pointer" />
-            <span class="font-medium text-text-primary">Learning Plan Phase</span>
-          </label>
+      
+      <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-text-secondary font-medium">Workshop Module:</span>
+          <div class="font-bold text-text-primary mt-0.5">{{ training.title }}</div>
+        </div>
+        <span class="font-mono px-2 py-0.5 rounded bg-pink-50 text-[#ff007a] font-bold border border-pink-200">
+          {{ training.code }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-text-primary mb-1">Host Entity Type</label>
+          <select formControlName="hostEntityType" class="w-full text-xs rounded-xl bg-base-100 border border-base-300 p-2.5 font-medium text-text-primary focus:border-[#ff007a]">
+            <option value="course">Course Module</option>
+            <option value="learning_plan_phase">Learning Plan Phase</option>
+            <option value="direct_cohort">Standalone Cohort Event</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-text-primary mb-1">Target Curriculum Name</label>
+          <input type="text" formControlName="hostEntityTitle" class="w-full text-xs rounded-xl bg-base-100 border border-base-300 p-2.5 text-text-primary focus:border-[#ff007a]" placeholder="e.g. Humanitarian Field Fundamentals" />
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-text-primary mb-1">Target Course / Plan Title *</label>
-        <input type="text" formControlName="hostEntityTitle"
-               class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <app-date-picker
+            label="Session Date"
+            formControlName="customScheduledDate"
+            placeholder="DD/MM/YYYY">
+          </app-date-picker>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-text-primary mb-1">Start Time</label>
+          <input type="time" formControlName="customScheduledStartTime" class="w-full text-xs rounded-xl bg-base-100 border border-base-300 p-2.5 text-text-primary focus:border-[#ff007a]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-text-primary mb-1">Batch / Cohort Label</label>
+          <input type="text" formControlName="customBatchName" class="w-full text-xs rounded-xl bg-base-100 border border-base-300 p-2.5 text-text-primary focus:border-[#ff007a]" placeholder="e.g. Q4 Batch 01" />
+        </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-text-primary mb-1">Cohort / Batch Label</label>
-        <input type="text" formControlName="customBatchName"
-               class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
-      </div>
-
-      <!-- Trainer Override Setting (BRD Spec 2) -->
-      <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-2">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" formControlName="overrideTrainer" class="accent-tenant-500 rounded cursor-pointer" />
-          <span class="text-xs font-bold text-text-primary">Override Default Trainer for this Delivery?</span>
-        </label>
-        <p class="text-xs text-text-secondary">
-          Default trainer: <strong>{{ activeTrainingForEmbed()?.primaryTrainerName }}</strong>. You can assign an alternate instructor for this specific host embedding.
-        </p>
-
-        @if (embedForm.get('overrideTrainer')?.value) {
-          <div class="pt-2">
-            <input type="text" formControlName="customTrainerName" placeholder="Enter alternate instructor name"
-                   class="w-full px-3 py-2 text-xs bg-base-100 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
-          </div>
-        }
-      </div>
-
-      <div class="pt-3 border-t border-base-300 flex items-center justify-end gap-2.5">
-        <button type="button" (click)="closeEmbedModal()"
-                class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors cursor-pointer">
+      <div class="pt-2 flex items-center justify-end gap-2.5">
+        <button type="button" (click)="closeEmbedModal()" class="px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary rounded-xl hover:bg-base-200 transition-colors">
           Cancel
         </button>
-        <button type="submit" [disabled]="embedForm.invalid"
-                class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 disabled:opacity-50 transition-all cursor-pointer">
-          Confirm Embedding
+        <button type="submit" [disabled]="embedForm.invalid" class="px-5 py-2 text-xs font-bold text-white bg-[#ff007a] hover:bg-pink-600 rounded-xl shadow-sm shadow-pink-500/20 disabled:opacity-50 transition-all cursor-pointer">
+          Confirm Linkage
         </button>
       </div>
+
     </form>
-  </app-modal-overlay>
+  }
+</app-modal-overlay>
 
-  <!-- ========================================================================= -->
-  <!-- 8. CONFIRMATION MODAL                                                     -->
-  <!-- ========================================================================= -->
-  <app-modal-overlay
-    [isOpen]="confirmDialog().isOpen"
-    (close)="closeConfirmDialog()"
-    maxWidth="md"
-    [title]="confirmDialog().title"
-    subtitle="Please review the requested action"
-    icon="warning">
-
-    <div class="space-y-4">
-      <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
-        {{ confirmDialog().message }}
-      </p>
-
-      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-base-300">
-        <button (click)="closeConfirmDialog()"
-                class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors cursor-pointer">
+<!-- ========================================================================= -->
+<!-- 7. CONFIRMATION DIALOG                                                    -->
+<!-- ========================================================================= -->
+@if (confirmDialog().isOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-base-100 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-base-300 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-pink-50 text-[#ff007a] flex items-center justify-center">
+          <span class="material-symbols-outlined">help</span>
+        </div>
+        <h3 class="text-base font-bold text-text-primary">{{ confirmDialog().title }}</h3>
+      </div>
+      <p class="text-xs text-text-secondary leading-relaxed">{{ confirmDialog().message }}</p>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button (click)="closeConfirmDialog()" class="px-4 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:bg-base-200 transition-colors">
           Cancel
         </button>
-        <button (click)="executeConfirmAction()"
-                class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+        <button (click)="executeConfirmAction()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#ff007a] hover:bg-pink-600 transition-colors">
           {{ confirmDialog().confirmBtnLabel }}
         </button>
       </div>
     </div>
-  </app-modal-overlay>
-
-</div>
-
+  </div>
+}

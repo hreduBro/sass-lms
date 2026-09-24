@@ -8,6 +8,7 @@ import { CertificateTemplate } from '../../../models/certificate-template.model'
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
 import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-signatory-grid',
@@ -18,7 +19,8 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
     RouterModule,
     CustomSelectComponent,
     DataGridComponent,
-    FilterSectionComponent
+    FilterSectionComponent,
+    DatePickerComponent
   ],
   templateUrl: './signatory-grid.component.html'
 })

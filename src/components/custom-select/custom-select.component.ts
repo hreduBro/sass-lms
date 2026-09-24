@@ -35,13 +35,13 @@ export interface SelectOption {
   template: `
     <div class="relative text-left custom-select-root" [class.w-full]="!inline()" [class.z-[99999]]="isOpen()" [class.opacity-60]="disabled()">
       @if (label()) {
-        <label class="block text-xs font-semibold text-text-primary mb-1">
+        <label class="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
           {{ label() }}
           @if (required()) {
             <span class="text-rose-500">*</span>
           }
           @if (hint()) {
-            <span class="text-[10px] text-text-secondary font-normal ml-1">{{ hint() }}</span>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-normal ml-1">{{ hint() }}</span>
           }
         </label>
       }
@@ -60,22 +60,22 @@ export interface SelectOption {
           [class.w-full]="!inline()"
           [ngClass]="[
             isOpen() 
-              ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-base-100 dark:bg-base-200 shadow-sm' 
-              : 'bg-base-200/70 hover:bg-base-200 hover:border-slate-400 dark:hover:border-slate-600',
-            error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-base-300 dark:border-slate-700',
+              ? 'border-tenant-500 ring-2 ring-tenant-500/20 bg-white dark:bg-slate-800 shadow-sm' 
+              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 hover:border-slate-400 dark:hover:border-slate-600',
+            error() ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20' : 'border border-slate-200 dark:border-slate-700',
             sizeClass(),
             customTriggerClass()
           ]">
           
           <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
             @if (!multiple() && selectedOption()?.avatar) {
-              <img [src]="selectedOption()?.avatar" [alt]="selectedOption()?.label" class="w-4 h-4 rounded-full object-cover shrink-0 border border-base-300" referrerpolicy="no-referrer" />
+              <img [src]="selectedOption()?.avatar" [alt]="selectedOption()?.label" class="w-4 h-4 rounded-full object-cover shrink-0 border border-slate-200" referrerpolicy="no-referrer" />
             } @else if (leadingIcon()) {
-              <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[16px] leading-none text-slate-500 dark:text-slate-400 shrink-0 w-4 h-4 flex items-center justify-center">
                 {{ leadingIcon() }}
               </span>
             } @else if (!multiple() && selectedOption()?.icon) {
-              <span class="material-symbols-outlined text-[16px] leading-none text-text-secondary shrink-0 w-4 h-4 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[16px] leading-none text-slate-500 dark:text-slate-400 shrink-0 w-4 h-4 flex items-center justify-center">
                 {{ selectedOption()?.icon }}
               </span>
             }
@@ -106,12 +106,12 @@ export interface SelectOption {
                     }
                   </div>
                 } @else {
-                  <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
+                  <span class="text-slate-500 dark:text-slate-400 text-xs leading-4 truncate">{{ placeholder() }}</span>
                 }
               } @else {
                 @if (selectedOption()) {
                   <div class="flex items-center gap-1.5 truncate">
-                    <span class="font-medium text-text-primary truncate text-xs leading-4">{{ selectedOption()?.label }}</span>
+                    <span class="font-medium text-slate-900 dark:text-white truncate text-xs leading-4">{{ selectedOption()?.label }}</span>
                     @if (selectedOption()?.badge) {
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono shrink-0" [ngClass]="selectedOption()?.badgeClass || 'bg-tenant-500/10 text-tenant-600 dark:text-tenant-400'">
                         {{ selectedOption()?.badge }}
@@ -119,7 +119,7 @@ export interface SelectOption {
                     }
                   </div>
                 } @else {
-                  <span class="text-text-secondary text-xs leading-4 truncate">{{ placeholder() }}</span>
+                  <span class="text-slate-500 dark:text-slate-400 text-xs leading-4 truncate">{{ placeholder() }}</span>
                 }
               }
             </div>
@@ -136,14 +136,14 @@ export interface SelectOption {
                 (keydown.space)="clearValue($event)"
                 title="Clear selection"
                 aria-label="Clear selection"
-                class="w-5 h-5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-text-secondary hover:text-rose-500 dark:hover:text-rose-400 transition-colors flex items-center justify-center cursor-pointer">
+                class="w-5 h-5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors flex items-center justify-center cursor-pointer">
                 <span class="material-symbols-outlined text-[15px] leading-none">close</span>
               </span>
             }
 
             <!-- Chevron Icon -->
             <span 
-              class="material-symbols-outlined text-[18px] leading-none text-text-secondary transition-transform duration-200 w-4 h-4 flex items-center justify-center pointer-events-none"
+              class="material-symbols-outlined text-[18px] leading-none text-slate-500 dark:text-slate-400 transition-transform duration-200 w-4 h-4 flex items-center justify-center pointer-events-none"
               [class.rotate-180]="isOpen()"
               [class.text-tenant-500]="isOpen()">
               expand_more
@@ -154,7 +154,7 @@ export interface SelectOption {
         <!-- Dropdown Popover Menu -->
         @if (isOpen()) {
           <div 
-            class="absolute rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl z-[9999]"
+            class="absolute rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-dropdown flex flex-col backdrop-blur-xl z-[9999]"
             [ngClass]="[
               actualPlacement() === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'top-full mt-1.5 origin-top',
               dropdownAlign() === 'right' ? 'right-0' : 'left-0',
@@ -166,10 +166,10 @@ export interface SelectOption {
             
             <!-- Search Bar & Multi Actions -->
             @if (shouldShowSearch() || multiple()) {
-              <div class="p-2.5 border-b border-base-300 bg-base-200/50 dark:bg-base-200/30 space-y-2">
+              <div class="p-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-2">
                 @if (shouldShowSearch()) {
                   <div class="relative">
-                    <span class="material-symbols-outlined absolute left-2.5 top-2 text-text-secondary text-sm">search</span>
+                    <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-500 dark:text-slate-400 text-sm">search</span>
                     <input 
                       #searchInput
                       type="text"
@@ -178,12 +178,12 @@ export interface SelectOption {
                       placeholder="Search..."
                       (click)="$event.stopPropagation()"
                       (keydown)="onSearchKeydown($event)"
-                      class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
+                      class="w-full pl-8 pr-7 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/20" />
                     @if (searchQuery()) {
                       <button 
                         type="button" 
                         (click)="searchQuery.set(''); $event.stopPropagation()"
-                        class="absolute right-2.5 top-2 text-text-secondary hover:text-text-primary text-xs cursor-pointer">
+                        class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
                         ✕
                       </button>
                     }
@@ -192,7 +192,7 @@ export interface SelectOption {
 
                 @if (multiple()) {
                   <div class="flex items-center justify-between text-[11px] px-1 font-semibold">
-                    <span class="text-text-secondary">
+                    <span class="text-slate-500 dark:text-slate-400">
                       {{ selectedOptions().length }} of {{ normalizedOptions().length }} selected
                     </span>
                     <div class="flex items-center gap-3">
@@ -205,7 +205,7 @@ export interface SelectOption {
                       <button 
                         type="button" 
                         (click)="clearValue($event)"
-                        class="text-text-secondary hover:text-rose-500 cursor-pointer">
+                        class="text-slate-500 hover:text-rose-500 cursor-pointer">
                         Clear
                       </button>
                     </div>
@@ -217,7 +217,7 @@ export interface SelectOption {
             <!-- Options List with Custom Smooth Scrollbar -->
             <div class="overflow-y-auto p-1.5 space-y-1 max-h-52 flex-1 custom-select-scrollbar">
               @if (normalizedFilteredOptions().length === 0) {
-                <div class="px-3 py-4 text-center text-xs text-text-secondary">
+                <div class="px-3 py-4 text-center text-xs text-slate-500 dark:text-slate-400">
                   No matching options found
                 </div>
               } @else {
@@ -232,7 +232,7 @@ export interface SelectOption {
                     [ngClass]="[
                       isSelected(opt) 
                         ? 'bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 font-semibold' 
-                        : 'text-text-primary hover:bg-slate-100 dark:hover:bg-base-200',
+                        : 'text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800',
                       highlightedIndex() === idx ? 'ring-1 ring-tenant-500/30' : '',
                       opt.disabled ? 'opacity-40 cursor-not-allowed' : ''
                     ]">
@@ -247,7 +247,7 @@ export interface SelectOption {
                           }
                         </div>
                       } @else if (opt.avatar) {
-                        <img [src]="opt.avatar" [alt]="opt.label" class="w-5 h-5 rounded-full object-cover shrink-0 border border-base-300" referrerpolicy="no-referrer" />
+                        <img [src]="opt.avatar" [alt]="opt.label" class="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-200" referrerpolicy="no-referrer" />
                       } @else if (opt.icon) {
                         <span class="material-symbols-outlined text-sm shrink-0" [class.text-tenant-500]="isSelected(opt)">
                           {{ opt.icon }}
@@ -257,14 +257,14 @@ export interface SelectOption {
                       <div class="truncate">
                         <div class="truncate">{{ opt.label }}</div>
                         @if (opt.sublabel) {
-                          <div class="text-[10px] text-text-secondary truncate">{{ opt.sublabel }}</div>
+                          <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ opt.sublabel }}</div>
                         }
                       </div>
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
                       @if (opt.badge) {
-                        <span class="text-[10px] px-2 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-base-300 text-text-secondary'">
+                        <span class="text-[10px] px-2 py-0.5 rounded font-semibold font-mono" [ngClass]="opt.badgeClass || 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'">
                           {{ opt.badge }}
                         </span>
                       }

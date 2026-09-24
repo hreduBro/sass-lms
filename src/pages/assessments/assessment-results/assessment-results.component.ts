@@ -21,6 +21,7 @@ import { CustomSelectComponent, SelectOption } from '../../../components/custom-
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
 import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 
 export type AssessmentSortField = 'date' | 'score' | 'percentage' | 'trainee' | 'assessment';
 export type SortDirection = 'asc' | 'desc';
@@ -35,7 +36,8 @@ export type SortDirection = 'asc' | 'desc';
     CustomSelectComponent,
     CustomAvatarComponent,
     DataGridComponent,
-    FilterSectionComponent
+    FilterSectionComponent,
+    DatePickerComponent
   ],
   templateUrl: './assessment-results.component.html',
   styleUrls: ['./assessment-results.component.css'],

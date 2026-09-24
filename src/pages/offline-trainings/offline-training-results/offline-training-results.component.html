@@ -1,247 +1,690 @@
-<div class="space-y-6">
+<div class="space-y-6 pb-12">
 
-  <!-- UNBOXED TOP HEADER -->
+  <!-- ========================================================================= -->
+  <!-- 1. TOP HEADER & WORKSPACE TOOLBAR                                         -->
+  <!-- ========================================================================= -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="p-2.5 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 text-tenant-600 dark:text-tenant-400">
+    <div class="flex items-start sm:items-center gap-3.5">
+      <div class="p-3 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 text-tenant-600 dark:text-tenant-400 shadow-2xs">
         <span class="material-symbols-outlined text-2xl">fact_check</span>
       </div>
       <div>
-        <div class="flex items-center gap-2 text-xs text-text-secondary mb-0.5">
+        <div class="flex items-center gap-2 text-xs text-text-secondary mb-1">
           <a routerLink="/offline-trainings" class="hover:text-tenant-600 transition-colors flex items-center gap-1 font-medium">
-            <span class="material-symbols-outlined text-xs">arrow_back</span>
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
             Offline Trainings
           </a>
-          <span>/</span>
+          <span class="text-base-300 dark:text-base-700">/</span>
           <span class="text-text-primary font-medium">Gradebook & Evaluations</span>
+          @if (selectedTraining()) {
+            <span class="px-2 py-0.5 rounded-md bg-tenant-50 dark:bg-tenant-950/40 text-tenant-600 dark:text-tenant-400 font-mono text-[10px] font-semibold border border-tenant-200/60 dark:border-tenant-800/60">
+              {{ selectedTraining()?.code }}
+            </span>
+          }
         </div>
-        <h1 class="text-2xl font-bold text-text-primary tracking-tight">Trainee Gradebook & Evaluations</h1>
+        <h1 class="text-2xl font-extrabold text-text-primary tracking-tight">Trainee Gradebook & Evaluations</h1>
         <p class="text-xs text-text-secondary mt-0.5">
           Record attendance percentages, enter manual instructor evaluation rubric scores, and synchronize cohort grading.
         </p>
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
+    <!-- Header Action Buttons -->
+    <div class="flex items-center gap-2.5 flex-wrap">
       <a routerLink="/offline-trainings"
-         class="px-3.5 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-all flex items-center gap-1.5 shadow-xs">
+         class="px-3.5 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
         <span class="material-symbols-outlined text-base">dashboard</span>
         <span>All Workshops</span>
       </a>
-      <button (click)="saveAll()"
-              class="px-4 py-2 text-xs font-semibold text-white bg-tenant-500 hover:bg-tenant-600 rounded-xl shadow-xs transition-all flex items-center gap-2">
+
+      <button
+        type="button"
+        (click)="exportGradebookCsv()"
+        [disabled]="results().length === 0"
+        class="px-3.5 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer"
+        title="Export Gradebook to CSV">
+        <span class="material-symbols-outlined text-base">download</span>
+        <span>Export CSV</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="saveAll()"
+        [disabled]="results().length === 0"
+        class="px-4 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 active:scale-95 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 relative">
         <span class="material-symbols-outlined text-base">save</span>
         <span>Save All Grades</span>
+        @if (unsavedChangesCount() > 0) {
+          <span class="px-1.5 py-0.2 rounded-full bg-white text-tenant-600 text-[10px] font-extrabold shadow-2xs animate-pulse">
+            {{ unsavedChangesCount() }}
+          </span>
+        }
       </button>
     </div>
   </div>
 
   <!-- SUCCESS ALERT BANNER -->
   @if (saveSuccessAlert()) {
-    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between gap-2 animate-in fade-in duration-200">
-      <div class="flex items-center gap-2">
+    <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-200">
+      <div class="flex items-center gap-2.5">
         <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400">check_circle</span>
         <span class="font-semibold">{{ saveSuccessAlert() }}</span>
       </div>
-      <button (click)="saveSuccessAlert.set(null)" class="text-emerald-700 hover:text-emerald-900 dark:text-emerald-300">
+      <button (click)="saveSuccessAlert.set(null)" class="p-1 text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 rounded-lg hover:bg-emerald-100/50 cursor-pointer">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
     </div>
   }
 
-  <!-- 4 KPI SUMMARY METRIC CARDS -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Total Trainees -->
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-        <span class="material-symbols-outlined text-xl">groups</span>
+  <!-- ========================================================================= -->
+  <!-- 2. SUMMARY KPI METRIC CARDS                                               -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- Card 1: Cohort Trainees -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-shadow flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-900/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+        <span class="material-symbols-outlined text-2xl">groups</span>
       </div>
-      <div class="min-w-0">
-        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Cohort Trainees</p>
-        <p class="text-xl font-bold text-text-primary tracking-tight">{{ results().length }}</p>
-      </div>
-    </div>
-
-    <!-- Class Average -->
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 flex items-center justify-center text-tenant-600 dark:text-tenant-400 shrink-0">
-        <span class="material-symbols-outlined text-xl">analytics</span>
-      </div>
-      <div class="min-w-0">
-        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Class Average</p>
-        <p class="text-xl font-bold text-tenant-600 dark:text-tenant-400 tracking-tight">{{ avgScore() }}%</p>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Cohort Trainees</p>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-base-200 text-text-secondary">Enrolled</span>
+        </div>
+        <p class="text-2xl font-black text-text-primary tracking-tight mt-0.5">{{ results().length }}</p>
       </div>
     </div>
 
-    <!-- Passed Count -->
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-        <span class="material-symbols-outlined text-xl">verified</span>
+    <!-- Card 2: Class Average Score -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-shadow flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 flex items-center justify-center text-tenant-600 dark:text-tenant-400 shrink-0">
+        <span class="material-symbols-outlined text-2xl">analytics</span>
       </div>
-      <div class="min-w-0">
-        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Passed Count</p>
-        <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{{ passCount() }}</p>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Class Average</p>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                [class]="avgScore() >= 60 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'">
+            {{ avgScore() >= 60 ? 'Passing' : 'Below Par' }}
+          </span>
+        </div>
+        <div class="flex items-baseline gap-1.5 mt-0.5">
+          <p class="text-2xl font-black text-tenant-600 dark:text-tenant-400 tracking-tight">{{ avgScore() }}%</p>
+          <span class="text-[11px] text-text-secondary font-medium">overall</span>
+        </div>
       </div>
     </div>
 
-    <!-- Pass Rate -->
-    <div class="p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-        <span class="material-symbols-outlined text-xl">rate_review</span>
+    <!-- Card 3: Passed Count -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-shadow flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+        <span class="material-symbols-outlined text-2xl">verified</span>
       </div>
-      <div class="min-w-0">
-        <p class="text-2xs font-semibold text-text-secondary uppercase tracking-wider">Pass Rate</p>
-        <p class="text-xl font-bold text-text-primary tracking-tight">{{ passRate() }}%</p>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Passed Trainees</p>
+          <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+            {{ passCount() }} / {{ results().length }}
+          </span>
+        </div>
+        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight mt-0.5">{{ passCount() }}</p>
       </div>
     </div>
+
+    <!-- Card 4: Pass Rate Gauge -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-shadow flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+        <span class="material-symbols-outlined text-2xl">percent</span>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Pass Rate</p>
+          <span class="text-[10px] font-mono text-text-secondary">{{ failCount() }} failing</span>
+        </div>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <p class="text-2xl font-black text-text-primary tracking-tight">{{ passRate() }}%</p>
+        </div>
+        <!-- Mini Progress Bar -->
+        <div class="w-full bg-slate-100 dark:bg-base-200 h-1.5 rounded-full overflow-hidden mt-1.5">
+          <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300" [style.width.%]="passRate()"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- WORKSHOP & COHORT SELECTORS + SEARCH FILTER TOOLBAR -->
-  <div class="p-4 bg-base-100 rounded-2xl border border-base-300 shadow-xs space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-      <!-- Target Offline Workshop -->
-      <div class="lg:col-span-2">
-        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Target Offline Workshop</label>
-        <app-custom-select
-          [options]="trainingOptions()"
-          [ngModel]="selectedTrainingId()"
-          (ngModelChange)="onTrainingChange($event)"
-          placeholder="Select Workshop">
-        </app-custom-select>
+  <!-- ========================================================================= -->
+  <!-- 3. FILTER & WORKSPACE TOOLBAR                                             -->
+  <!-- ========================================================================= -->
+  <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 p-4 sm:p-5 shadow-2xs space-y-4">
+    
+    <!-- Search Input, Filter Button, Reset & Quick Helpers -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      
+      <!-- Search & Filter Trigger Cluster -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-xl">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">search</span>
+          <input
+            type="text"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            placeholder="Search trainee name, email, or ID..."
+            class="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-white dark:focus:bg-base-100 transition-all shadow-2xs" />
+          @if (searchQuery()) {
+            <button
+              type="button"
+              (click)="searchQuery.set('')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Toggle Button -->
+        <button
+          type="button"
+          (click)="toggleFilter()"
+          class="px-3.5 py-2 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-2xs shrink-0 select-none"
+          [class]="isFilterOpen() || activeFilterCount() > 0
+            ? 'bg-tenant-50 text-tenant-700 border-tenant-300 dark:bg-tenant-950/60 dark:text-tenant-300 dark:border-tenant-800'
+            : 'bg-base-100 hover:bg-base-200 text-text-secondary hover:text-text-primary border-base-300'">
+          <span class="material-symbols-outlined text-base">filter_list</span>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-5 h-5 rounded-full bg-tenant-500 text-white text-[10px] font-black flex items-center justify-center shadow-2xs">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Reset Button (When filters or search are active) -->
+        @if (hasActiveFilters()) {
+          <button
+            type="button"
+            (click)="resetAllFilters()"
+            class="px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-800 rounded-xl transition-all flex items-center gap-1 shadow-2xs cursor-pointer shrink-0"
+            title="Reset all filters & search">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span class="hidden sm:inline">Reset</span>
+          </button>
+        }
       </div>
 
-      <!-- Cohort / Embedding Filter -->
-      <div>
-        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Cohort / Batch Embedding</label>
-        <app-custom-select
-          [options]="cohortOptions()"
-          [ngModel]="selectedEmbeddingId()"
-          (ngModelChange)="onCohortChange($event)"
-          placeholder="Select Batch">
-        </app-custom-select>
+      <!-- Trainee Count in Toolbar -->
+      <div class="flex items-center gap-2.5 flex-wrap justify-end">
+        <span class="text-xs text-text-secondary">
+          Showing <strong class="text-text-primary font-bold">{{ results().length }}</strong> trainees
+        </span>
       </div>
 
-      <!-- Status Filter -->
-      <div>
-        <label class="block text-2xs font-bold text-text-secondary uppercase tracking-wider mb-1.5">Pass/Fail Status</label>
-        <app-custom-select
-          [options]="statusFilterOptions"
-          [ngModel]="statusFilter()"
-          (ngModelChange)="statusFilter.set($event)"
-          placeholder="Filter Status">
-        </app-custom-select>
-      </div>
     </div>
 
-    <!-- Search Input Row -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-base-300">
-      <div class="relative flex-1 max-w-md">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
-        <input type="text"
-               [value]="searchQuery()"
-               (input)="searchQuery.set($any($event.target).value)"
-               placeholder="Search trainee name or email..."
-               class="w-full pl-9 pr-4 py-2 text-xs bg-base-200/50 border border-base-300 rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors">
+    <!-- ======================================================================= -->
+    <!-- EXPANDABLE FILTER DRAWER PANEL                                          -->
+    <!-- ======================================================================= -->
+    @if (isFilterOpen()) {
+      <div class="mt-4 pt-4 border-t border-slate-200 dark:border-base-300 animate-in fade-in slide-in-from-top-2 duration-200">
+        
+        <!-- Filter Drawer Header -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">tune</span>
+            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">
+              Filter Trainees & Evaluations
+            </h3>
+            <span class="text-[11px] text-text-secondary hidden sm:inline">• Refine cohort records by status, score tiers, attendance, and dates</span>
+          </div>
+          <button
+            type="button"
+            (click)="closeFilter()"
+            class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-base-200 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <!-- Filter Controls Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-4 rounded-2xl bg-slate-50/80 dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300">
+          
+          <!-- 1. Pass / Fail & Performance Tier Filter -->
+          <app-filter-section title="1. Pass / Fail & Performance Tier">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              @for (st of statusOptionList; track st.key) {
+                <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="checkbox"
+                    [checked]="draftFilters().status.includes(st.key)"
+                    (change)="toggleDraftStatus(st.key)"
+                    class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs" [ngClass]="st.badgeClass">
+                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="st.dotClass"></span>
+                    <span>{{ st.label }}</span>
+                    <span class="text-[10px] opacity-75 font-mono ml-0.5">({{ getStatusCount(st.key) }})</span>
+                  </span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+
+          <!-- 2. Attendance Tier Filter -->
+          <app-filter-section title="2. Attendance Rate Tier">
+            <app-custom-select
+              [options]="attendanceTierOptions"
+              [ngModel]="draftFilters().attendanceTier"
+              (ngModelChange)="draftFilters().attendanceTier = $event"
+              placeholder="Select Attendance Range">
+            </app-custom-select>
+          </app-filter-section>
+
+          <!-- 3. Practical Score Tier Filter -->
+          <app-filter-section title="3. Practical Evaluation Score">
+            <app-custom-select
+              [options]="scoreTierOptions"
+              [ngModel]="draftFilters().scoreTier"
+              (ngModelChange)="draftFilters().scoreTier = $event"
+              placeholder="Select Score Tier">
+            </app-custom-select>
+          </app-filter-section>
+
+          <!-- 4. Evaluation Date Range Filter -->
+          <div class="lg:col-span-2">
+            <app-filter-section title="4. Evaluation / Enrollment Date Range">
+              <app-date-range-filter
+                [fromDate]="draftFilters().dateFrom"
+                [toDate]="draftFilters().dateTo"
+                (fromChange)="draftFilters().dateFrom = $event"
+                (toChange)="draftFilters().dateTo = $event"
+                fromLabel="Evaluation From Date"
+                toLabel="Evaluation To Date">
+              </app-date-range-filter>
+            </app-filter-section>
+          </div>
+
+          <!-- 5. Sort By Order -->
+          <app-filter-section title="5. Sort By Order">
+            <app-custom-select
+              [options]="sortByOptions"
+              [ngModel]="draftFilters().sortBy"
+              (ngModelChange)="draftFilters().sortBy = $event"
+              placeholder="Select Sort Order">
+            </app-custom-select>
+          </app-filter-section>
+
+          <!-- 6. Quick Batch Evaluation Actions -->
+          <div class="lg:col-span-3 pt-2 border-t border-slate-200/80 dark:border-base-300/80">
+            <app-filter-section title="6. Quick Batch Evaluation Actions">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                
+                <!-- Checkbox 1: All 100% Attendance -->
+                <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="checkbox"
+                    [checked]="draftBatchAttn100()"
+                    (change)="toggleBatchAttendance($any($event.target).checked)"
+                    class="rounded border-slate-300 dark:border-base-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" />
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+                    <span class="material-symbols-outlined text-xs text-emerald-600 dark:text-emerald-400">done_all</span>
+                    <span>All 100% Attendance</span>
+                  </span>
+                </label>
+
+                <!-- Checkbox 2: Fill Pass Marks -->
+                <label class="flex items-center gap-2.5 text-xs text-text-primary cursor-pointer group select-none p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="checkbox"
+                    [checked]="draftBatchFillPass()"
+                    (change)="toggleBatchPassMarks($any($event.target).checked)"
+                    class="rounded border-slate-300 dark:border-base-300 text-tenant-500 focus:ring-tenant-500 w-4 h-4 cursor-pointer" />
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all inline-flex items-center gap-1.5 shadow-2xs bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 border-pink-200 dark:border-pink-800">
+                    <span class="material-symbols-outlined text-xs text-pink-600 dark:text-pink-400">auto_fix_high</span>
+                    <span>Fill Pass Marks (75/100)</span>
+                  </span>
+                </label>
+
+              </div>
+            </app-filter-section>
+          </div>
+
+        </div>
+
+        <!-- Filter Drawer Footer Action Bar -->
+        <div class="flex items-center justify-between pt-4 mt-2">
+          <button
+            type="button"
+            (click)="clearFilterDraft()"
+            class="px-3.5 py-1.5 text-xs font-semibold text-text-secondary hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">clear_all</span>
+            <span>Clear All Selections</span>
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button
+              type="button"
+              (click)="closeFilter()"
+              class="px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary bg-base-100 hover:bg-base-200 border border-base-300 rounded-xl transition-all cursor-pointer">
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="applyFilter()"
+              class="px-5 py-2 text-xs font-bold text-white bg-tenant-500 hover:bg-tenant-600 active:scale-95 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">filter_alt</span>
+              <span>Apply Filter</span>
+            </button>
+          </div>
+        </div>
+
       </div>
-      <div class="flex items-center gap-2 text-xs text-text-secondary">
-        <span>Showing <strong class="text-text-primary font-semibold">{{ results().length }}</strong> trainees</span>
+    }
+
+    <!-- ======================================================================= -->
+    <!-- ACTIVE FILTER CHIPS ROW                                                 -->
+    <!-- ======================================================================= -->
+    @if (hasActiveFilters()) {
+      <div class="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-100 dark:border-base-300/60 animate-in fade-in duration-150">
+        <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mr-1">Active Filters:</span>
+
+        <!-- Status Chips -->
+        @for (stKey of appliedFilters().status; track stKey) {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-tenant-50 text-tenant-700 border border-tenant-200 dark:bg-tenant-950/50 dark:text-tenant-300 dark:border-tenant-800 shadow-2xs">
+            <span>Status: {{ getLabelForStatusKey(stKey) }}</span>
+            <button type="button" (click)="removeStatusFilter(stKey)" class="hover:text-tenant-900 dark:hover:text-white cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Attendance Chip -->
+        @if (appliedFilters().attendanceTier !== 'all') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800 shadow-2xs">
+            <span>Attendance: {{ getLabelForAttendanceKey(appliedFilters().attendanceTier) }}</span>
+            <button type="button" (click)="removeAttendanceFilter()" class="hover:text-indigo-900 dark:hover:text-white cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Score Tier Chip -->
+        @if (appliedFilters().scoreTier !== 'all') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800 shadow-2xs">
+            <span>Score: {{ getLabelForScoreKey(appliedFilters().scoreTier) }}</span>
+            <button type="button" (click)="removeScoreFilter()" class="hover:text-teal-900 dark:hover:text-white cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Date Range Chip -->
+        @if (appliedFilters().dateFrom || appliedFilters().dateTo) {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800 shadow-2xs">
+            <span>Date: {{ appliedFilters().dateFrom || 'Any' }} - {{ appliedFilters().dateTo || 'Any' }}</span>
+            <button type="button" (click)="removeDateFilter()" class="hover:text-amber-900 dark:hover:text-white cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Sort By Chip (If non-default) -->
+        @if (appliedFilters().sortBy !== 'name-asc') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-text-primary border border-slate-200 dark:bg-base-200 dark:border-base-300 shadow-2xs">
+            <span>Sort: {{ getLabelForSortKey(appliedFilters().sortBy) }}</span>
+            <button type="button" (click)="removeSortFilter()" class="hover:text-rose-600 cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Search Query Chip -->
+        @if (searchQuery()) {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-text-primary border border-slate-200 dark:bg-base-200 dark:border-base-300 shadow-2xs">
+            <span>Search: "{{ searchQuery() }}"</span>
+            <button type="button" (click)="searchQuery.set('')" class="hover:text-rose-600 cursor-pointer ml-0.5">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <!-- Clear All Action -->
+        <button
+          type="button"
+          (click)="resetAllFilters()"
+          class="text-xs font-bold text-tenant-600 dark:text-tenant-400 hover:text-tenant-700 underline cursor-pointer ml-1">
+          Clear All
+        </button>
       </div>
-    </div>
+    }
+
   </div>
 
-  <!-- GRADEBOOK TABLE -->
-  <div class="bg-base-100 rounded-2xl border border-base-300 shadow-xs overflow-hidden">
+  <!-- ========================================================================= -->
+  <!-- 4. GRADEBOOK DATA TABLE                                                   -->
+  <!-- ========================================================================= -->
+  <div class="bg-white dark:bg-base-100 rounded-2xl border border-slate-200/80 dark:border-base-300 shadow-2xs overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs text-text-secondary">
-        <thead class="bg-base-200/60 uppercase font-bold text-text-secondary border-b border-base-300">
+      <table class="w-full text-left text-xs text-text-secondary border-collapse">
+        <thead class="bg-slate-50/80 dark:bg-base-200/60 uppercase text-[11px] font-extrabold text-text-secondary border-b border-slate-200/80 dark:border-base-300 tracking-wider select-none">
           <tr>
-            <th class="px-5 py-3.5">Trainee</th>
-            <th class="px-4 py-3.5">Attendance (%)</th>
-            <th class="px-4 py-3.5">Manual Score (0 - 100)</th>
-            <th class="px-4 py-3.5">Calculated Status</th>
-            <th class="px-4 py-3.5">Instructor Remarks / Viva Feedback</th>
-            <th class="px-5 py-3.5 text-right">Actions</th>
+            <th class="px-5 py-4 min-w-[220px]">Trainee</th>
+            <th class="px-4 py-4 min-w-[150px]">Attendance (%)</th>
+            <th class="px-4 py-4 min-w-[170px]">Manual Score (0 - 100)</th>
+            <th class="px-4 py-4 min-w-[160px]">Calculated Status</th>
+            <th class="px-4 py-4 min-w-[280px]">Instructor Remarks / Viva Feedback</th>
+            <th class="px-5 py-4 text-right min-w-[120px]">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-base-300">
+        <tbody class="divide-y divide-slate-100 dark:divide-base-300">
           @for (r of results(); track r.resultId) {
-            <tr class="hover:bg-base-200/40 transition-colors">
-              <!-- Trainee Info -->
-              <td class="px-5 py-3.5">
+            @let avatar = getAvatarColors(r.traineeName);
+            @let currentAttendance = getLiveAttendance(r);
+            @let currentMarks = getLiveMarks(r);
+            @let currentOverall = getLiveOverallScore(r);
+            @let currentStatus = getLiveStatus(r);
+            @let gradeInfo = getGradeLetter(currentOverall);
+            @let isDirty = isRowDirty(r);
+
+            <tr class="hover:bg-slate-50/70 dark:hover:bg-base-200/40 transition-colors group" [class.bg-amber-50/20]="isDirty">
+              
+              <!-- 1. Trainee Identity Cell -->
+              <td class="px-5 py-3.5 align-middle">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 text-tenant-600 dark:text-tenant-400 font-bold flex items-center justify-center text-xs shrink-0">
-                    {{ r.traineeName.charAt(0) }}
+                  <!-- Avatar Initial -->
+                  <div class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
+                       [ngClass]="[avatar.bg, avatar.text, avatar.border]">
+                    {{ r.traineeName.charAt(0).toUpperCase() }}
                   </div>
-                  <div>
-                    <div class="font-bold text-text-primary">{{ r.traineeName }}</div>
-                    <div class="text-2xs text-text-secondary font-mono">{{ r.traineeEmail }}</div>
+                  <div class="min-w-0">
+                    <div class="font-bold text-text-primary text-xs flex items-center gap-1.5">
+                      <span class="truncate">{{ r.traineeName }}</span>
+                      @if (isDirty) {
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Unsaved changes"></span>
+                      }
+                    </div>
+                    <div class="text-[11px] text-text-secondary truncate mt-0.5">{{ r.traineeEmail }}</div>
                   </div>
                 </div>
               </td>
 
-              <!-- Attendance Input -->
-              <td class="px-4 py-3.5">
-                <div class="flex items-center gap-1.5">
-                  <input type="number" min="0" max="100"
-                         [value]="editableMarks()[r.resultId]?.attendance ?? r.attendancePercentage"
-                         (input)="updateAttendance(r.resultId, $any($event.target).valueAsNumber)"
-                         class="w-16 px-2 py-1.5 text-xs font-mono font-bold bg-base-200/60 border border-base-300 rounded-lg text-center text-text-primary focus:outline-none focus:border-tenant-500" />
-                  <span class="text-text-secondary font-semibold text-xs">%</span>
+              <!-- 2. Attendance Cell -->
+              <td class="px-4 py-3.5 align-middle">
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <div class="relative flex items-center w-24">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        [value]="currentAttendance"
+                        (input)="updateAttendance(r.resultId, $any($event.target).valueAsNumber)"
+                        class="w-full pl-3 pr-6 py-1.5 text-xs font-mono font-bold bg-white dark:bg-base-200/50 border rounded-xl text-center text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500 shadow-2xs transition-all"
+                        [class.border-emerald-400]="currentAttendance >= 80"
+                        [class.border-amber-400]="currentAttendance >= 50 && currentAttendance < 80"
+                        [class.border-rose-400]="currentAttendance < 50"
+                        [class.border-slate-200]="currentAttendance === 0" />
+                      <span class="absolute right-2 text-text-secondary font-semibold text-[11px] pointer-events-none">%</span>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div class="hidden sm:flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        (click)="updateAttendance(r.resultId, 100)"
+                        class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 cursor-pointer"
+                        title="100%">100</button>
+                      <button
+                        type="button"
+                        (click)="updateAttendance(r.resultId, 50)"
+                        class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-700 cursor-pointer"
+                        title="50%">50</button>
+                    </div>
+                  </div>
+
+                  <!-- Mini Attendance bar -->
+                  <div class="w-24 bg-slate-100 dark:bg-base-200 h-1 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                         [class.bg-emerald-500]="currentAttendance >= 80"
+                         [class.bg-amber-500]="currentAttendance >= 50 && currentAttendance < 80"
+                         [class.bg-rose-500]="currentAttendance < 50"
+                         [style.width.%]="currentAttendance"></div>
+                  </div>
                 </div>
               </td>
 
-              <!-- Manual Score Input -->
-              <td class="px-4 py-3.5">
-                <div class="flex items-center gap-1.5">
-                  <input type="number" min="0" max="100"
-                         [value]="editableMarks()[r.resultId]?.marks ?? r.manualMarkScore ?? 0"
-                         (input)="updateMark(r.resultId, $any($event.target).valueAsNumber)"
-                         class="w-16 px-2 py-1.5 text-xs font-mono font-bold bg-base-200/60 border border-base-300 rounded-lg text-center text-tenant-600 dark:text-tenant-400 focus:outline-none focus:border-tenant-500" />
-                  <span class="text-text-secondary font-semibold text-xs">/ 100</span>
+              <!-- 3. Manual Practical Score Cell -->
+              <td class="px-4 py-3.5 align-middle">
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    <div class="relative flex items-center w-24">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        [value]="currentMarks"
+                        (input)="updateMark(r.resultId, $any($event.target).valueAsNumber)"
+                        class="w-full pl-3 pr-7 py-1.5 text-xs font-mono font-bold bg-white dark:bg-base-200/50 border rounded-xl text-center text-tenant-600 dark:text-tenant-400 focus:outline-none focus:ring-2 focus:ring-tenant-500 shadow-2xs transition-all"
+                        [class.border-tenant-400]="currentMarks >= 60"
+                        [class.border-rose-400]="currentMarks < 50 && currentMarks > 0"
+                        [class.border-slate-200]="currentMarks === 0" />
+                      <span class="absolute right-2 text-text-secondary text-[10px] font-mono pointer-events-none">/100</span>
+                    </div>
+
+                    <!-- Live Grade Pill -->
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg border shadow-2xs shrink-0 font-mono"
+                          [ngClass]="gradeInfo.badgeClass">
+                      {{ gradeInfo.grade }}
+                    </span>
+                  </div>
+
+                  <!-- Mini score status caption -->
+                  <div class="text-[10px] text-text-secondary font-mono flex items-center gap-1">
+                    <span>Weight: 80%</span>
+                  </div>
                 </div>
               </td>
 
-              <!-- Calculated Status -->
-              <td class="px-4 py-3.5">
-                <span [class]="r.passStatus === 'passed' 
-                               ? 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                               : 'px-2.5 py-0.5 text-2xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'">
-                  {{ r.passStatus | uppercase }}
-                </span>
-                <span class="text-2xs text-text-secondary block mt-0.5">Overall: {{ r.finalOverallScore ?? '--' }}%</span>
+              <!-- 4. Calculated Status & Final Score Cell -->
+              <td class="px-4 py-3.5 align-middle">
+                <div class="space-y-1">
+                  <!-- Pass/Fail Badge with status dot -->
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-extrabold border shadow-2xs"
+                       [class]="currentStatus === 'passed'
+                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                         : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800'">
+                    <span class="w-1.5 h-1.5 rounded-full" [class]="currentStatus === 'passed' ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                    <span>{{ currentStatus === 'passed' ? 'PASSED' : 'FAILED' }}</span>
+                  </div>
+
+                  <!-- Overall Score Breakdown -->
+                  <div class="text-[11px] font-medium text-text-secondary flex items-center gap-1.5">
+                    <span>Overall:</span>
+                    <strong class="font-mono text-text-primary text-xs">{{ currentOverall }}%</strong>
+                  </div>
+                </div>
               </td>
 
-              <!-- Instructor Feedback -->
-              <td class="px-4 py-3.5">
-                <input type="text"
-                       [value]="editableMarks()[r.resultId]?.remarks ?? r.instructorRemarks ?? ''"
-                       (input)="updateRemarks(r.resultId, $any($event.target).value)"
-                       placeholder="Add performance feedback or viva notes..."
-                       class="w-full px-2.5 py-1.5 text-xs bg-base-200/60 border border-base-300 rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors" />
+              <!-- 5. Instructor Feedback / Viva Remarks Cell -->
+              <td class="px-4 py-3.5 align-middle">
+                <div class="space-y-1.5">
+                  <div class="relative flex items-center w-full">
+                    <span class="material-symbols-outlined absolute left-2.5 text-slate-400 text-sm pointer-events-none">chat_bubble_outline</span>
+                    <input
+                      type="text"
+                      [value]="getLiveRemarks(r)"
+                      (input)="updateRemarks(r.resultId, $any($event.target).value)"
+                      placeholder="Add performance feedback or viva notes..."
+                      class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-white dark:focus:bg-base-100 transition-colors shadow-2xs" />
+                  </div>
+
+                  <!-- Quick Remark Suggestion Chips -->
+                  <div class="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
+                    <button
+                      type="button"
+                      (click)="applyQuickRemark(r.resultId, 'Exemplary hands-on execution.')"
+                      class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
+                      + Exemplary
+                    </button>
+                    <button
+                      type="button"
+                      (click)="applyQuickRemark(r.resultId, 'Passed practical evaluation and viva.')"
+                      class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
+                      + Passed Viva
+                    </button>
+                    <button
+                      type="button"
+                      (click)="applyQuickRemark(r.resultId, 'Requires review on clinical protocols.')"
+                      class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
+                      + Needs Review
+                    </button>
+                  </div>
+                </div>
               </td>
 
-              <!-- Actions -->
-              <td class="px-5 py-3.5 text-right">
+              <!-- 6. Actions Cell -->
+              <td class="px-5 py-3.5 text-right align-middle">
                 <div class="flex items-center justify-end gap-1.5">
-                  <button (click)="openTraineeModal(r)"
-                          title="View Trainee Record"
-                          class="p-1.5 text-text-secondary hover:text-tenant-600 hover:bg-tenant-50 dark:hover:bg-tenant-950/40 rounded-lg transition-colors">
+                  <!-- View Dossier -->
+                  <button
+                    type="button"
+                    (click)="openTraineeModal(r)"
+                    title="View Trainee Dossier"
+                    class="p-2 text-text-secondary hover:text-tenant-600 hover:bg-tenant-50 dark:hover:bg-tenant-950/40 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-tenant-200/50">
                     <span class="material-symbols-outlined text-base">visibility</span>
                   </button>
-                  <button (click)="saveRow(r)"
-                          class="px-3 py-1.5 text-xs font-semibold text-tenant-600 dark:text-tenant-400 bg-tenant-50 dark:bg-tenant-950/50 border border-tenant-200 dark:border-tenant-800/60 hover:bg-tenant-500 hover:text-white rounded-lg transition-all shadow-2xs">
-                    Save
+
+                  <!-- Save Individual Row -->
+                  <button
+                    type="button"
+                    (click)="saveRow(r)"
+                    class="px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                    [class]="isDirty
+                      ? 'bg-tenant-500 hover:bg-tenant-600 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary'">
+                    <span class="material-symbols-outlined text-xs">{{ isDirty ? 'save' : 'check' }}</span>
+                    <span>Save</span>
                   </button>
                 </div>
               </td>
+
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="px-5 py-12 text-center text-text-secondary">
-                <div class="max-w-xs mx-auto space-y-2">
-                  <span class="material-symbols-outlined text-3xl text-text-secondary opacity-40">assignment_late</span>
-                  <p class="text-sm font-semibold text-text-primary">No trainee records match filter</p>
-                  <p class="text-xs text-text-secondary">Try selecting a different cohort or resetting search query.</p>
+              <td colspan="6" class="px-5 py-14 text-center">
+                <div class="max-w-sm mx-auto space-y-3">
+                  <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-base-200 text-text-secondary flex items-center justify-center mx-auto">
+                    <span class="material-symbols-outlined text-2xl">assignment_late</span>
+                  </div>
+                  <div class="space-y-1">
+                    <p class="text-sm font-bold text-text-primary">No trainee records match your filter criteria</p>
+                    <p class="text-xs text-text-secondary">Try selecting a different workshop, cohort batch, or resetting your filter criteria.</p>
+                  </div>
+                  @if (hasActiveFilters()) {
+                    <button
+                      type="button"
+                      (click)="resetAllFilters()"
+                      class="px-3.5 py-1.5 text-xs font-semibold text-text-primary bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+                      Reset Filters & Search
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -251,63 +694,112 @@
     </div>
   </div>
 
-  <!-- TRAINEE DETAIL MODAL -->
+  <!-- ========================================================================= -->
+  <!-- 5. TRAINEE DETAIL EVALUATION DOSSIER MODAL                                -->
+  <!-- ========================================================================= -->
   @if (selectedTraineeForModal()) {
+    @let t = selectedTraineeForModal()!;
+    @let avatar = getAvatarColors(t.traineeName);
+    @let currentAttendance = getLiveAttendance(t);
+    @let currentMarks = getLiveMarks(t);
+    @let currentOverall = getLiveOverallScore(t);
+    @let currentStatus = getLiveStatus(t);
+    @let gradeInfo = getGradeLetter(currentOverall);
+
     <app-modal-overlay
       [isOpen]="showDetailModal()"
       (close)="closeTraineeModal()"
       maxWidth="max-w-xl"
       title="Trainee Evaluation Dossier"
-      [subtitle]="selectedTraineeForModal()?.traineeName"
+      [subtitle]="t.traineeName"
       icon="account_circle">
-      <div class="space-y-4 text-xs text-text-secondary">
-        <div class="p-3.5 rounded-xl bg-base-200/60 border border-base-300 flex items-center justify-between">
-          <div>
-            <div class="font-bold text-sm text-text-primary">{{ selectedTraineeForModal()?.traineeName }}</div>
-            <div class="font-mono text-2xs text-text-secondary">{{ selectedTraineeForModal()?.traineeEmail }}</div>
+      
+      <div class="space-y-5 text-xs text-text-secondary">
+        
+        <!-- Trainee Header Banner -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-base-200/60 border border-slate-200/80 dark:border-base-300 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl border flex items-center justify-center font-bold text-base shadow-2xs"
+                 [ngClass]="[avatar.bg, avatar.text, avatar.border]">
+              {{ t.traineeName.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <div class="font-extrabold text-sm text-text-primary">{{ t.traineeName }}</div>
+              <div class="font-mono text-2xs text-text-secondary mt-0.5">{{ t.traineeEmail }}</div>
+              <div class="text-[10px] text-text-secondary font-mono mt-0.5">ID: {{ t.traineeId }}</div>
+            </div>
           </div>
-          <span [class]="selectedTraineeForModal()?.passStatus === 'passed' 
-                         ? 'px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-                         : 'px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'">
-            {{ selectedTraineeForModal()?.passStatus | uppercase }}
-          </span>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
-            <span class="text-2xs font-semibold uppercase text-text-secondary block">Attendance Record</span>
-            <span class="text-base font-bold text-text-primary">{{ selectedTraineeForModal()?.attendancePercentage }}%</span>
-          </div>
-          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
-            <span class="text-2xs font-semibold uppercase text-text-secondary block">Manual Practical Score</span>
-            <span class="text-base font-bold text-tenant-600 dark:text-tenant-400">{{ selectedTraineeForModal()?.manualMarkScore ?? 0 }} / 100</span>
-          </div>
-          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
-            <span class="text-2xs font-semibold uppercase text-text-secondary block">Overall Grade</span>
-            <span class="text-base font-bold text-text-primary">{{ selectedTraineeForModal()?.finalOverallScore ?? '--' }}%</span>
-          </div>
-          <div class="p-3 rounded-xl bg-base-200/40 border border-base-300">
-            <span class="text-2xs font-semibold uppercase text-text-secondary block">Result ID</span>
-            <span class="text-xs font-mono font-bold text-text-primary truncate block">{{ selectedTraineeForModal()?.resultId }}</span>
+          <div class="text-right">
+            <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-extrabold rounded-full border shadow-2xs"
+                  [class]="currentStatus === 'passed'
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800'">
+              <span class="w-2 h-2 rounded-full" [class]="currentStatus === 'passed' ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+              <span>{{ currentStatus === 'passed' ? 'PASSED' : 'FAILED' }}</span>
+            </span>
+            <span class="text-[10px] text-text-secondary block mt-1 font-mono">Grade: {{ gradeInfo.grade }}</span>
           </div>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-base-200/40 border border-base-300">
-          <span class="text-2xs font-semibold uppercase text-text-secondary block mb-1">Instructor Remarks</span>
-          <p class="text-xs text-text-primary italic">
-            "{{ selectedTraineeForModal()?.instructorRemarks || 'No qualitative remarks logged yet.' }}"
+        <!-- Metric Grid -->
+        <div class="grid grid-cols-3 gap-3">
+          <!-- Attendance -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-text-secondary tracking-wider block">Attendance</span>
+            <span class="text-lg font-black text-text-primary block mt-1">{{ currentAttendance }}%</span>
+            <span class="text-[10px] text-text-secondary block mt-0.5">{{ currentAttendance >= 50 ? 'Compliant' : 'Unmet' }}</span>
+          </div>
+
+          <!-- Practical Score -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-text-secondary tracking-wider block">Practical Score</span>
+            <span class="text-lg font-black text-tenant-600 dark:text-tenant-400 block mt-1">{{ currentMarks }} / 100</span>
+            <span class="text-[10px] text-text-secondary block mt-0.5">Weight: 80%</span>
+          </div>
+
+          <!-- Overall Grade -->
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-text-secondary tracking-wider block">Overall Grade</span>
+            <span class="text-lg font-black text-text-primary block mt-1">{{ currentOverall }}%</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">Rating: {{ gradeInfo.grade }}</span>
+          </div>
+        </div>
+
+        <!-- Grading Rubric Formula Explainer -->
+        <div class="p-3.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-[11px] space-y-1">
+          <div class="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm text-indigo-600 dark:text-indigo-400">calculate</span>
+            <span>Grade Calculation Formula</span>
+          </div>
+          <p class="text-indigo-700/80 dark:text-indigo-300/80">
+            Final Overall Grade = (Manual Practical Score × 0.80) + (Attendance Percentage × 0.20). Passing threshold is ≥ 50% attendance and ≥ 50% overall mark.
           </p>
         </div>
 
-        <div class="flex justify-end pt-2">
-          <button (click)="closeTraineeModal()"
-                  class="px-4 py-2 text-xs font-semibold text-text-primary bg-base-200 hover:bg-base-300 border border-base-300 rounded-xl transition-all">
+        <!-- Instructor Remarks Section -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 space-y-1.5">
+          <span class="text-[10px] font-extrabold uppercase text-text-secondary tracking-wider block">Instructor Qualitative Remarks</span>
+          <p class="text-xs text-text-primary italic leading-relaxed">
+            "{{ getLiveRemarks(t) || 'No qualitative remarks logged yet for this trainee.' }}"
+          </p>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-base-300">
+          <div class="text-[10px] text-text-secondary font-mono">
+            Result ID: {{ t.resultId }}
+          </div>
+          <button
+            type="button"
+            (click)="closeTraineeModal()"
+            class="px-4 py-2 text-xs font-bold text-text-primary bg-slate-100 hover:bg-slate-200 dark:bg-base-200 dark:hover:bg-base-300 rounded-xl transition-all cursor-pointer">
             Close Dossier
           </button>
         </div>
+
       </div>
     </app-modal-overlay>
   }
 
 </div>
-

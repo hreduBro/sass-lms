@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -7,11 +7,13 @@ import { InstructorCreateForm, InstructorProfile } from '../../../models/instruc
 import { PersonnelAttachment } from '../../../models/author.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
+export type PersonnelRoleOption = 'instructor' | 'author' | 'both';
+
 @Component({
   selector: 'app-instructor-create',
+  standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './instructor-create.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InstructorCreateComponent implements OnInit {
   lms = inject(LmsDataService);
@@ -21,6 +23,36 @@ export class InstructorCreateComponent implements OnInit {
   isEditMode = signal<boolean>(false);
   editInstructorId = signal<string | null>(null);
 
+  // Unified Role Selection: instructor, author, or both
+  roleSelection = signal<PersonnelRoleOption>('instructor');
+
+  roleOptions: SelectOption[] = [
+    {
+      value: 'instructor',
+      label: 'Instructor Only',
+      sublabel: 'Dedicated to live instruction, module delivery, and grading',
+      icon: 'school',
+      badge: 'Instructor',
+      badgeClass: 'bg-blue-100 text-blue-800'
+    },
+    {
+      value: 'author',
+      label: 'Author Only',
+      sublabel: 'Dedicated to curriculum design, question banks, and content authoring',
+      icon: 'edit_document',
+      badge: 'Author',
+      badgeClass: 'bg-purple-100 text-purple-800'
+    },
+    {
+      value: 'both',
+      label: 'Both (Instructor & Content Author)',
+      sublabel: 'Full dual-role credentials for delivery and curriculum creation',
+      icon: 'verified',
+      badge: 'Dual Role',
+      badgeClass: 'bg-emerald-100 text-emerald-800'
+    }
+  ];
+
   // Avatar & Media Upload State
   avatarPreview = signal<string>('');
   attachments = signal<PersonnelAttachment[]>([]);
@@ -28,30 +60,29 @@ export class InstructorCreateComponent implements OnInit {
   isDraggingAvatar = signal<boolean>(false);
   previewModalAttachment = signal<PersonnelAttachment | null>(null);
 
-  // Status options for custom select component
   statusOptions: SelectOption[] = [
     {
       value: 'Active',
-      label: 'Active (Available for Course Delivery Layers)',
-      sublabel: 'Ready for assignment to course delivery instances across organizations',
+      label: 'Active (Available for Assignment)',
+      sublabel: 'Ready for course delivery and content tagging',
       icon: 'check_circle',
       badge: 'Active',
-      badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300'
+      badgeClass: 'bg-emerald-100 text-emerald-700'
     },
     {
       value: 'Inactive',
       label: 'Inactive (Draft / Staged Profile)',
-      sublabel: 'Temporarily hidden from faculty selection lists',
+      sublabel: 'Temporarily hidden from selection lists',
       icon: 'pause_circle',
       badge: 'Inactive',
-      badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+      badgeClass: 'bg-slate-100 text-slate-700'
     }
   ];
 
   attachmentCategoryOptions: { value: PersonnelAttachment['category']; label: string; icon: string }[] = [
     { value: 'CV / Resume', label: 'CV / Academic Resume', icon: 'badge' },
-    { value: 'Certificate / Credential', label: 'Faculty Certificate / Credential', icon: 'verified' },
-    { value: 'Portfolio / Sample', label: 'Sample Syllabus / Lecture Media', icon: 'folder_special' },
+    { value: 'Certificate / Credential', label: 'Teaching Certificate / Credential', icon: 'verified' },
+    { value: 'Portfolio / Sample', label: 'Sample Syllabus / Content', icon: 'folder_special' },
     { value: 'Identity / Government ID', label: 'Identity / Verification Doc', icon: 'id_card' },
     { value: 'General Document', label: 'General Document / Notes', icon: 'description' },
     { value: 'Other Media', label: 'Other Media Assets', icon: 'perm_media' }
@@ -67,27 +98,44 @@ export class InstructorCreateComponent implements OnInit {
   // Field-specific validation errors
   fieldErrors = signal<{ name?: string; email?: string }>({});
 
-  formData: InstructorCreateForm = {
+  submitButtonLabel = computed<string>(() => {
+    if (this.isEditMode()) {
+      return 'Save Instructor Changes';
+    }
+    const role = this.roleSelection();
+    if (role === 'both') return 'Create Author & Instructor';
+    if (role === 'author') return 'Create Author';
+    return 'Create Instructor';
+  });
+
+  formData: InstructorCreateForm & { contentSpecialization?: string } = {
     name: '',
     email: '',
     contactNumber: '',
     title: '',
     department: '',
     specialization: '',
+    contentSpecialization: '',
     bio: '',
     status: 'Active'
   };
 
-  // Duplicate Person Detection State (§2.2)
-  isCheckingPerson = signal<boolean>(false);
-  existingPersonFound = signal<{
-    found: boolean;
-    name?: string;
-    email?: string;
-    avatar?: string;
-    isAuthor?: boolean;
-    authorId?: string;
-    isInstructor?: boolean;
+  // Duplicate Person Detection State (Name + Email + Contact)
+  duplicateAlert = signal<{
+    isDuplicate: boolean;
+    reason?: string;
+    matchedPerson?: {
+      name: string;
+      email: string;
+      contactNumber?: string;
+      avatar?: string;
+      isAuthor: boolean;
+      isInstructor: boolean;
+      authorId?: string;
+      instructorId?: string;
+      source: string;
+    };
+    similarityScore: number;
   } | null>(null);
 
   isSubmitting = signal<boolean>(false);
@@ -95,6 +143,11 @@ export class InstructorCreateComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('id');
     const email = this.route.snapshot.queryParamMap.get('email');
+    const defaultRole = this.route.snapshot.queryParamMap.get('role') as PersonnelRoleOption | null;
+
+    if (defaultRole && ['instructor', 'author', 'both'].includes(defaultRole)) {
+      this.roleSelection.set(defaultRole);
+    }
 
     let instructor = id ? this.lms.getInstructorById(id) : undefined;
     if (!instructor && email) {
@@ -106,6 +159,7 @@ export class InstructorCreateComponent implements OnInit {
       this.editInstructorId.set(instructor.id);
       this.avatarPreview.set(instructor.avatar || '');
       this.attachments.set(instructor.attachments ? [...instructor.attachments] : []);
+      this.roleSelection.set(instructor.isAuthor ? 'both' : 'instructor');
       this.formData = {
         name: instructor.name,
         email: instructor.email,
@@ -117,7 +171,7 @@ export class InstructorCreateComponent implements OnInit {
         status: instructor.status,
         avatar: instructor.avatar
       };
-      this.lms.showToast('Instructor Profile loaded for editing. You can update documents, photo, and faculty credentials.', 'info', 3500, 'Instructor Profile');
+      this.lms.showToast('Profile loaded for editing. You can update documents, credentials, and role permissions.', 'info', 3500);
     } else if (email) {
       const user = this.lms.users().find(u => u.email.toLowerCase() === email.toLowerCase());
       if (user) {
@@ -131,339 +185,210 @@ export class InstructorCreateComponent implements OnInit {
         this.formData.department = user.department || '';
         this.formData.title = user.title || '';
         this.formData.avatar = user.avatar;
-        this.lms.showToast(`Completing Instructor profile for "${user.name}".`, 'info', 3500, 'Instructor Onboarding');
+      }
+    }
+  }
+
+  // Trigger duplicate checks whenever email, name, or contact changes
+  checkDuplicatePerson(): void {
+    if (this.isEditMode()) return;
+
+    const email = this.formData.email.trim();
+    const name = this.formData.name.trim();
+    const contact = this.formData.contactNumber?.trim();
+
+    if (email || (name && name.length >= 3) || (contact && contact.length >= 7)) {
+      const dup = this.lms.detectDuplicates({
+        name,
+        email,
+        contactNumber: contact
+      });
+
+      if (dup.isDuplicate) {
+        this.duplicateAlert.set(dup);
+      } else {
+        this.duplicateAlert.set(null);
       }
     } else {
-      this.lms.showToast(
-        'Welcome to Instructor Profile Onboarding. Upload documents, certificates, or profile image.',
-        'info',
-        4000,
-        'Instructor Onboarding'
-      );
+      this.duplicateAlert.set(null);
     }
   }
 
-  dismissEnterAlert(): void {
-    this.showEnterAlert.set(false);
-  }
+  linkWithExistingPerson(): void {
+    const dup = this.duplicateAlert();
+    if (!dup || !dup.matchedPerson) return;
+    const match = dup.matchedPerson;
 
-  dismissErrorAlert(): void {
-    this.showErrorAlert.set(false);
-  }
-
-  dismissSuccessAlert(): void {
-    this.showSuccessAlert.set(false);
-  }
-
-  onFieldInput(field: 'name' | 'email'): void {
-    const current = { ...this.fieldErrors() };
-    if (current[field]) {
-      delete current[field];
-      this.fieldErrors.set(current);
-      if (Object.keys(current).length === 0) {
-        this.showErrorAlert.set(false);
-      }
+    this.formData.name = match.name;
+    this.formData.email = match.email;
+    if (match.contactNumber) {
+      this.formData.contactNumber = match.contactNumber;
     }
-  }
-
-  updateStatus(status: 'Active' | 'Inactive'): void {
-    this.formData.status = status;
-  }
-
-  checkEmailForExistingPerson(): void {
-    const cleanEmail = this.formData.email.trim();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      this.existingPersonFound.set(null);
-      return;
+    if (match.avatar) {
+      this.avatarPreview.set(match.avatar);
+      this.formData.avatar = match.avatar;
     }
-
-    this.isCheckingPerson.set(true);
-    const result = this.lms.findExistingPerson(cleanEmail);
-    this.isCheckingPerson.set(false);
-
-    if (result.found) {
-      this.existingPersonFound.set(result);
-      if (!this.formData.name && result.name) {
-        this.formData.name = result.name;
-      }
-      if (!this.avatarPreview() && result.avatar) {
-        this.avatarPreview.set(result.avatar);
-      }
-    } else {
-      this.existingPersonFound.set(null);
-    }
+    this.roleSelection.set('both');
+    this.duplicateAlert.set(null);
+    this.lms.showToast(`Linked with existing record for ${match.name}. Role updated to Both.`, 'success', 3500);
   }
 
-  // =========================================================================
-  // AVATAR / PROFILE PHOTO UPLOAD HANDLING
-  // =========================================================================
-  onAvatarFileChange(event: Event): void {
+  dismissDuplicateAlert(): void {
+    this.duplicateAlert.set(null);
+  }
+
+  onAvatarFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      this.readAvatarFile(input.files[0]);
-    }
-  }
-
-  onAvatarDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingAvatar.set(false);
-    if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
-      const file = event.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        this.readAvatarFile(file);
-      } else {
-        this.lms.showToast('Please upload a valid image file (PNG, JPG, SVG, WebP) for profile photo.', 'error', 3500, 'Invalid Photo');
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.lms.showToast('Please upload a valid image file (PNG, JPG, WebP).', 'error', 3000);
+        return;
       }
-    }
-  }
-
-  private readAvatarFile(file: File): void {
-    if (file.size > 10 * 1024 * 1024) {
-      this.lms.showToast('Avatar image exceeds 10MB limit. Please choose a smaller image.', 'error', 3500, 'File Too Large');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      const result = e.target?.result as string;
-      if (result) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
         this.avatarPreview.set(result);
         this.formData.avatar = result;
-        this.lms.showToast('Profile photo updated successfully.', 'success', 2500, 'Photo Uploaded');
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeAvatar(): void {
-    this.avatarPreview.set('');
-    this.formData.avatar = undefined;
-    this.lms.showToast('Profile photo cleared.', 'info', 2000);
-  }
-
-  generateRandomAvatar(): void {
-    const randomSeed = Math.floor(Math.random() * 999999);
-    const url = `https://images.unsplash.com/photo-${1500000000000 + randomSeed}?auto=format&fit=crop&w=240&q=80`;
-    this.avatarPreview.set(url);
-    this.formData.avatar = url;
-    this.lms.showToast('Random avatar assigned.', 'success', 2000);
-  }
-
-  // =========================================================================
-  // DOCUMENTS & MEDIA ATTACHMENTS UPLOAD HANDLING
-  // =========================================================================
-  onAttachmentsFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.processIncomingFiles(Array.from(input.files));
-      input.value = ''; // Reset input
-    }
-  }
-
-  onAttachmentsDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingAttachments.set(false);
-    if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      this.processIncomingFiles(Array.from(event.dataTransfer.files));
-    }
-  }
-
-  private processIncomingFiles(files: File[]): void {
-    const now = new Date();
-    const formattedTime = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-    let uploadedCount = 0;
-    for (const file of files) {
-      const isImage = file.type.startsWith('image/') || /\.(png|jpg|jpeg|webp|svg|gif)$/i.test(file.name);
-      const isPdf = file.type.includes('pdf') || /\.pdf$/i.test(file.name);
-      const isDoc = /\.(doc|docx|txt|rtf|odt)$/i.test(file.name) || file.type.includes('word');
-      
-      let defaultCategory: PersonnelAttachment['category'] = 'General Document';
-      if (isPdf || isDoc) {
-        if (/cv|resume|curriculum/i.test(file.name)) {
-          defaultCategory = 'CV / Resume';
-        } else if (/cert|award|degree|diploma|badge|faculty|phd/i.test(file.name)) {
-          defaultCategory = 'Certificate / Credential';
-        } else if (/id|passport|nid|license/i.test(file.name)) {
-          defaultCategory = 'Identity / Government ID';
-        }
-      } else if (isImage) {
-        defaultCategory = 'Portfolio / Sample';
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        const url = (e.target?.result as string) || '';
-        const attachment: PersonnelAttachment = {
-          id: `att-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          name: file.name,
-          size: file.size,
-          sizeFormatted: this.formatFileSize(file.size),
-          type: file.type || 'application/octet-stream',
-          category: defaultCategory,
-          url,
-          uploadedAt: formattedTime,
-          isImage
-        };
-
-        this.attachments.update(list => [...list, attachment]);
-        uploadedCount++;
-        if (uploadedCount === files.length) {
-          this.lms.showToast(`${files.length} document/media file(s) attached successfully.`, 'success', 3000, 'Files Uploaded');
-        }
       };
-
       reader.readAsDataURL(file);
     }
   }
 
-  formatFileSize(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  getFileIcon(attachment: PersonnelAttachment): string {
-    const ext = attachment.name.split('.').pop()?.toLowerCase() || '';
-    if (attachment.isImage || attachment.type.startsWith('image/')) return 'image';
-    if (attachment.type.includes('pdf') || ext === 'pdf') return 'picture_as_pdf';
-    if (['doc', 'docx', 'odt', 'rtf'].includes(ext) || attachment.type.includes('word')) return 'description';
-    if (['xls', 'xlsx', 'csv'].includes(ext) || attachment.type.includes('sheet')) return 'table_chart';
-    if (['ppt', 'pptx'].includes(ext) || attachment.type.includes('presentation')) return 'slideshow';
-    if (attachment.type.startsWith('video/') || ['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'video_file';
-    if (attachment.type.startsWith('audio/') || ['mp3', 'wav', 'aac', 'ogg', 'm4a'].includes(ext)) return 'audio_file';
-    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || attachment.type.includes('zip')) return 'folder_zip';
-    return 'draft';
-  }
-
-  removeAttachment(index: number, event?: Event): void {
-    if (event) event.stopPropagation();
-    const target = this.attachments()[index];
-    this.attachments.update(list => list.filter((_, i) => i !== index));
-    if (this.previewModalAttachment()?.id === target?.id) {
-      this.previewModalAttachment.set(null);
+  onAttachmentsSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      this.processAttachmentFiles(Array.from(input.files));
     }
-    this.lms.showToast(`Removed "${target.name}".`, 'info', 2000);
   }
 
-  updateAttachmentCategory(index: number, category: any): void {
-    this.attachments.update(list => list.map((item, i) => i === index ? { ...item, category } : item));
+  private processAttachmentFiles(files: File[]): void {
+    for (const file of files) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const isImg = file.type.startsWith('image/');
+      const newAtt: PersonnelAttachment = {
+        id: `att-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: file.name,
+        size: file.size,
+        sizeFormatted: `${sizeMb} MB`,
+        type: file.type || 'application/octet-stream',
+        url: URL.createObjectURL(file),
+        uploadedAt: new Date().toLocaleDateString(),
+        category: isImg ? 'Portfolio / Sample' : 'CV / Resume',
+        isImage: isImg
+      };
+      this.attachments.update(list => [...list, newAtt]);
+    }
   }
 
-  openPreview(att: PersonnelAttachment): void {
-    this.previewModalAttachment.set(att);
+  removeAttachment(id: string): void {
+    this.attachments.update(list => list.filter(a => a.id !== id));
   }
 
-  closePreview(): void {
-    this.previewModalAttachment.set(null);
-  }
+  onSubmit(): void {
+    const cleanName = this.formData.name.trim();
+    const cleanEmail = this.formData.email.trim();
 
-  downloadAttachment(att: PersonnelAttachment): void {
-    if (!att.url) return;
-    const a = document.createElement('a');
-    a.href = att.url;
-    a.download = att.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    this.lms.showToast(`Downloading "${att.name}"...`, 'info', 2000);
-  }
-
-  validateForm(): boolean {
     const errors: { name?: string; email?: string } = {};
-    let firstErrorElementId: string | null = null;
-
-    if (!this.formData.name.trim()) {
-      errors.name = 'Full Name is required and cannot be empty.';
-      if (!firstErrorElementId) firstErrorElementId = 'instructor-name';
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!this.formData.email.trim()) {
-      errors.email = 'Institutional Email is required as the unique Person identity key.';
-      if (!firstErrorElementId) firstErrorElementId = 'instructor-email';
-    } else if (!emailPattern.test(this.formData.email.trim())) {
-      errors.email = 'Please provide a valid email format (e.g. name@brac.net).';
-      if (!firstErrorElementId) firstErrorElementId = 'instructor-email';
+    if (!cleanName) errors.name = 'Full Name is required.';
+    if (!cleanEmail) {
+      errors.email = 'Email address is required.';
+    } else if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      errors.email = 'Please enter a valid email address.';
     }
 
     this.fieldErrors.set(errors);
 
     if (Object.keys(errors).length > 0) {
-      const messages = Object.values(errors).join(' ');
-      this.errorMessage.set(messages);
+      this.errorMessage.set('Please correct the highlighted form errors before proceeding.');
       this.showErrorAlert.set(true);
-      this.lms.showToast('Please fix the highlighted required fields.', 'error', 4000, 'Validation Error');
-
-      // Smooth scroll up to the first error field and focus it
-      if (firstErrorElementId) {
-        setTimeout(() => {
-          const el = document.getElementById(firstErrorElementId!);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.focus();
-          }
-        }, 50);
-      }
-      return false;
-    }
-
-    this.showErrorAlert.set(false);
-    this.errorMessage.set('');
-    return true;
-  }
-
-  onSubmit(): void {
-    if (!this.validateForm()) {
       return;
     }
 
     this.isSubmitting.set(true);
-    const avatar = this.avatarPreview().trim() || undefined;
+    const role = this.roleSelection();
     const attachments = this.attachments();
+    const avatar = this.avatarPreview() || this.formData.avatar;
 
     if (this.isEditMode() && this.editInstructorId()) {
+      const instructorId = this.editInstructorId()!;
       const specs = typeof this.formData.specialization === 'string'
         ? this.formData.specialization.split(',').map(s => s.trim()).filter(Boolean)
-        : this.formData.specialization;
+        : (this.formData.specialization || []);
 
-      const success = this.lms.updateInstructor(this.editInstructorId()!, {
-        name: this.formData.name.trim(),
-        email: this.formData.email.trim(),
-        contactNumber: this.formData.contactNumber?.trim() || undefined,
-        title: this.formData.title?.trim() || 'Senior Faculty Instructor',
-        department: this.formData.department?.trim() || 'Academic & Faculty Division',
-        specialization: specs.length > 0 ? specs : ['General Pedagogy'],
-        bio: this.formData.bio?.trim() || undefined,
+      this.lms.updateInstructor(instructorId, {
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: this.formData.contactNumber,
+        title: this.formData.title,
+        department: this.formData.department,
+        specialization: specs,
+        bio: this.formData.bio,
         status: this.formData.status,
-        avatar: avatar || undefined,
+        avatar,
         attachments
       });
-      this.isSubmitting.set(false);
 
-      if (success) {
-        this.successMessage.set(`Instructor profile "${this.formData.name}" has been updated successfully with ${attachments.length} document/media attachment(s).`);
-        this.showSuccessAlert.set(true);
-        this.lms.showToast('Instructor profile updated successfully!', 'success', 3000, 'Changes Saved');
-        setTimeout(() => {
-          this.router.navigate(['/instructors', this.editInstructorId()]);
-        }, 800);
+      if (role === 'both') {
+        this.lms.tagInstructorAsAuthor(instructorId, {
+          specialization: this.formData.contentSpecialization || specs[0],
+          bio: this.formData.bio
+        });
       }
-    } else {
-      const result = this.lms.addInstructor({
+
+      this.isSubmitting.set(false);
+      this.router.navigate(['/instructors', instructorId]);
+      return;
+    }
+
+    // New Creation Flow
+    if (role === 'instructor') {
+      const res = this.lms.addInstructor({
         ...this.formData,
         avatar,
         attachments
       });
       this.isSubmitting.set(false);
+      if (res.success) {
+        this.router.navigate(['/instructors', res.instructor.id]);
+      }
+    } else if (role === 'author') {
+      const res = this.lms.addAuthor({
+        name: cleanName,
+        email: cleanEmail,
+        contactNumber: this.formData.contactNumber,
+        specialization: this.formData.contentSpecialization || (typeof this.formData.specialization === 'string' ? this.formData.specialization : 'Curriculum Design'),
+        bio: this.formData.bio,
+        status: this.formData.status,
+        avatar,
+        attachments
+      });
+      this.isSubmitting.set(false);
+      if (res.success) {
+        this.router.navigate(['/authors', res.author.id]);
+      }
+    } else if (role === 'both') {
+      // Create both profiles and cross-link
+      const instRes = this.lms.addInstructor({
+        ...this.formData,
+        avatar,
+        attachments
+      });
 
-      if (result.success) {
-        this.successMessage.set(`Instructor profile for "${result.instructor.name}" has been created successfully with ${attachments.length} attached document(s).`);
-        this.showSuccessAlert.set(true);
-        this.lms.showToast('Instructor Profile Created Successfully!', 'success', 3000, 'Profile Saved');
-        setTimeout(() => {
-          this.router.navigate(['/instructors', result.instructor.id]);
-        }, 800);
+      if (instRes.success) {
+        this.lms.tagInstructorAsAuthor(instRes.instructor.id, {
+          specialization: this.formData.contentSpecialization || (typeof this.formData.specialization === 'string' ? this.formData.specialization : 'Curriculum Design'),
+          bio: this.formData.bio
+        });
+        this.isSubmitting.set(false);
+        this.router.navigate(['/instructors', instRes.instructor.id]);
+      } else {
+        this.isSubmitting.set(false);
       }
     }
+  }
+
+  cancel(): void {
+    this.router.navigate(['/instructors']);
   }
 }

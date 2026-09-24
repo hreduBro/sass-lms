@@ -7,6 +7,7 @@ import { OfflineTraining, OfflineTrainingStatus, OfflineAssessmentMode } from '.
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { ModalOverlayComponent } from '../../../components/modal-overlay/modal-overlay.component';
 import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { GridViewMode, GridEmptyStateType, GridActiveChip } from '../../../components/data-grid/data-grid.types';
 
 @Component({
@@ -19,7 +20,8 @@ import { GridViewMode, GridEmptyStateType, GridActiveChip } from '../../../compo
     RouterModule,
     CustomSelectComponent,
     ModalOverlayComponent,
-    DataGridComponent
+    DataGridComponent,
+    DatePickerComponent
   ],
   templateUrl: './offline-training-grid.component.html'
 })
@@ -33,7 +35,7 @@ export class OfflineTrainingGridComponent implements OnInit {
   permissions = this.lmsData.offlineTrainingPermissions;
 
   // View Mode: Grid vs Table
-  viewMode = signal<GridViewMode>('table');
+  viewMode = signal<GridViewMode>('grid');
 
   // Filter Drawer Open State
   isFilterPanelOpen = signal<boolean>(false);
@@ -242,14 +244,29 @@ export class OfflineTrainingGridComponent implements OnInit {
     return item.primaryTrainerName || item.defaultTrainerName || 'Senior Faculty Trainer';
   }
 
+  getTrainerEmail(item: OfflineTraining): string {
+    return item.primaryTrainerEmail || item.defaultTrainerEmail || 'trainer@grameenphone.com';
+  }
+
   getTrainerInitial(item: OfflineTraining): string {
     const name = this.getTrainerDisplayName(item);
     return name ? name.charAt(0).toUpperCase() : 'T';
   }
 
+  getDurationHours(item: OfflineTraining): number {
+    return item.durationHours || (item.sessionMeta?.durationMinutes ? Math.round(item.sessionMeta.durationMinutes / 60) : 4);
+  }
+
   getDurationDisplay(item: OfflineTraining): string {
-    const hours = item.durationHours || (item.sessionMeta?.durationMinutes ? Math.round(item.sessionMeta.durationMinutes / 60) : 4);
+    const hours = this.getDurationHours(item);
     return `${hours} Hours`;
+  }
+
+  getEmbedsCount(item: OfflineTraining): number {
+    const tId = item.trainingId || item.id;
+    const direct = this.lmsData.offlineTrainingEmbeddings().filter(e => e.offlineTrainingId === tId).length;
+    if (direct > 0) return direct;
+    return item.usedInCount !== undefined ? item.usedInCount : 0;
   }
 
   getAssessmentModeLabel(mode: string | undefined): string {

@@ -413,8 +413,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Instructors Pool',
         route: '/instructors',
         icon: 'co_present',
-        badge: 'Faculty',
-        description: 'Faculty pool & course layer assignments',
+        description: 'Instructor pool & course layer assignments',
         matchPatterns: ['/instructors', '/instructors/view/**', '/instructors/details/**']
       },
       {

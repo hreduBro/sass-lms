@@ -20,6 +20,7 @@ import {
 import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 import { ComponentDrawerComponent } from './component-drawer/component-drawer.component';
 import { ReviewModalComponent } from './review-modal/review-modal.component';
@@ -34,6 +35,7 @@ import { BulkUploadModalComponent } from './bulk-upload-modal/bulk-upload-modal.
     StepperComponent,
     CustomSelectComponent,
     CustomAvatarComponent,
+    DatePickerComponent,
     ComponentDrawerComponent,
     ReviewModalComponent,
     BulkUploadModalComponent
@@ -275,10 +277,27 @@ export class PlanCreateComponent implements OnInit {
     return [...base, ...phaseOptions];
   });
 
+  // Plan date order validation
+  planDateOrderError = computed<string | null>(() => {
+    const s = this.basicForm.get('startDate')?.value;
+    const e = this.basicForm.get('endDate')?.value;
+    const ds = parseDateDDMMYYYY(s);
+    const de = parseDateDDMMYYYY(e);
+    if (ds && de && de.getTime() < ds.getTime()) {
+      return 'End date cannot be earlier than start date.';
+    }
+    return null;
+  });
+
   // Plan duration in days
   computedPlanDuration = computed<number>(() => {
     const s = this.basicForm.get('startDate')?.value;
     const e = this.basicForm.get('endDate')?.value;
+    const ds = parseDateDDMMYYYY(s);
+    const de = parseDateDDMMYYYY(e);
+    if (ds && de && de.getTime() < ds.getTime()) {
+      return 0;
+    }
     return getDurationDays(s, e);
   });
 
@@ -430,11 +449,12 @@ export class PlanCreateComponent implements OnInit {
     this.formErrorAlert.set(null);
 
     // Validation check when advancing from Step 1
-    if (step > 1 && this.currentStep() === 1 && this.basicForm.invalid) {
+    if (step > 1 && this.currentStep() === 1 && (this.basicForm.invalid || !!this.planDateOrderError())) {
       this.markFormGroupTouched(this.basicForm);
-      this.formErrorAlert.set('All mandatory fields are not filled up. Please complete all highlighted required fields in Step 1 before proceeding.');
+      const errMsg = this.planDateOrderError() || 'All mandatory fields are not filled up. Please complete all highlighted required fields in Step 1 before proceeding.';
+      this.formErrorAlert.set(errMsg);
       this.lmsData.showToast(
-        'Step 1 Validation Error: All mandatory fields are not filled up before proceeding.',
+        errMsg,
         'error',
         4500,
         'Step 1 Validation Blocked',
