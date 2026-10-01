@@ -33,7 +33,7 @@ export class InstructorCreateComponent implements OnInit {
       sublabel: 'Dedicated to live instruction, module delivery, and grading',
       icon: 'school',
       badge: 'Instructor',
-      badgeClass: 'bg-blue-100 text-blue-800'
+      badgeClass: 'bg-tenant-100 text-tenant-800 dark:bg-tenant-900/40 dark:text-tenant-300'
     },
     {
       value: 'author',
@@ -41,7 +41,7 @@ export class InstructorCreateComponent implements OnInit {
       sublabel: 'Dedicated to curriculum design, question banks, and content authoring',
       icon: 'edit_document',
       badge: 'Author',
-      badgeClass: 'bg-purple-100 text-purple-800'
+      badgeClass: 'bg-tenant-100 text-tenant-800 dark:bg-tenant-900/40 dark:text-tenant-300'
     },
     {
       value: 'both',
@@ -49,7 +49,7 @@ export class InstructorCreateComponent implements OnInit {
       sublabel: 'Full dual-role credentials for delivery and curriculum creation',
       icon: 'verified',
       badge: 'Dual Role',
-      badgeClass: 'bg-emerald-100 text-emerald-800'
+      badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
     }
   ];
 
@@ -252,6 +252,38 @@ export class InstructorCreateComponent implements OnInit {
         this.formData.avatar = result;
       };
       reader.readAsDataURL(file);
+    }
+  }
+
+  removeAvatar(): void {
+    this.avatarPreview.set('');
+    this.formData.avatar = '';
+  }
+
+  onAvatarDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingAvatar.set(false);
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      const file = event.dataTransfer.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.lms.showToast('Please upload a valid image file (PNG, JPG, WebP).', 'error', 3000);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        this.avatarPreview.set(result);
+        this.formData.avatar = result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  onAttachmentsDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingAttachments.set(false);
+    if (event.dataTransfer?.files) {
+      this.processAttachmentFiles(Array.from(event.dataTransfer.files));
     }
   }
 

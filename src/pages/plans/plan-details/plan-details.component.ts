@@ -57,11 +57,21 @@ import { TranscriptRecord } from '../../../models/transcript.model';
           </div>
         </div>
 
-        <!-- LMS Workspace Context Badge -->
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200 dark:bg-base-300/50 border border-base-300 dark:border-slate-800 text-xs text-text-secondary">
-          <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">layers</span>
-          <span>Fixed Workspace:</span>
-          <span class="font-semibold text-text-primary">{{ activeLms().basicInfo.lmsName }}</span>
+        <!-- LMS Workspace Context Badge & Trainee View Link -->
+        <div class="flex items-center gap-2">
+          @if (currentPlan(); as p) {
+            <a 
+              [routerLink]="['/my-plans', p.id]"
+              class="px-3 py-1.5 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 hover:bg-tenant-100 text-tenant-700 dark:text-tenant-300 border border-tenant-300 dark:border-tenant-800 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs">
+              <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">school</span>
+              <span>Preview Trainee Experience</span>
+            </a>
+          }
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200 dark:bg-base-300/50 border border-base-300 dark:border-slate-800 text-xs text-text-secondary">
+            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">layers</span>
+            <span>Fixed Workspace:</span>
+            <span class="font-semibold text-text-primary">{{ activeLms().basicInfo.lmsName }}</span>
+          </div>
         </div>
       </div>
 

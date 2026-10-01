@@ -32,6 +32,44 @@ export const APP_NAV_ITEMS: NavItem[] = [
     description: 'Overview metrics, recent activities & quick insights'
   },
   {
+    label: 'My Learning',
+    route: '/my-plans',
+    icon: 'school',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    badge: 'Trainee',
+    description: 'Trainee Plan Journey, Classroom Sessions, and Credentials',
+    matchPatterns: ['/my-plans', '/my-plans/**', '/my-schedule', '/my-schedule/**', '/my-achievements', '/my-achievements/**', '/achievements', '/schedule'],
+    children: [
+      {
+        label: 'My Plans',
+        route: '/my-plans',
+        icon: 'assignment_turned_in',
+        badge: 'Spine',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'Onboarded learning pathways & ordered journey spine',
+        matchPatterns: ['/my-plans', '/my-plans/**']
+      },
+      {
+        label: 'My Schedule',
+        route: '/my-schedule',
+        icon: 'calendar_month',
+        badge: 'Classes',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'In-person classroom sessions, exams & phase windows',
+        matchPatterns: ['/my-schedule', '/my-schedule/**', '/schedule']
+      },
+      {
+        label: 'My Achievements',
+        route: '/my-achievements',
+        icon: 'military_tech',
+        badge: 'Diplomas',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'Earned course badges, phase & graduation certificates',
+        matchPatterns: ['/my-achievements', '/my-achievements/**', '/achievements']
+      }
+    ]
+  },
+  {
     label: 'Organizations',
     route: '/tenants',
     icon: 'corporate_fare',

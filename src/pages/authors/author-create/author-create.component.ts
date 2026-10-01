@@ -32,7 +32,7 @@ export class AuthorCreateComponent implements OnInit {
       sublabel: 'Dedicated to curriculum design, question banks, and content authoring',
       icon: 'edit_document',
       badge: 'Author',
-      badgeClass: 'bg-purple-100 text-purple-800'
+      badgeClass: 'bg-tenant-100 text-tenant-800 dark:bg-tenant-900/40 dark:text-tenant-300'
     },
     {
       value: 'instructor',
@@ -40,7 +40,7 @@ export class AuthorCreateComponent implements OnInit {
       sublabel: 'Dedicated to live instruction, module delivery, and grading',
       icon: 'school',
       badge: 'Instructor',
-      badgeClass: 'bg-blue-100 text-blue-800'
+      badgeClass: 'bg-tenant-100 text-tenant-800 dark:bg-tenant-900/40 dark:text-tenant-300'
     },
     {
       value: 'both',
@@ -48,12 +48,14 @@ export class AuthorCreateComponent implements OnInit {
       sublabel: 'Full dual-role credentials for delivery and curriculum creation',
       icon: 'verified',
       badge: 'Dual Role',
-      badgeClass: 'bg-emerald-100 text-emerald-800'
+      badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
     }
   ];
 
   avatarPreview = signal<string>('');
   attachments = signal<PersonnelAttachment[]>([]);
+  isDraggingAttachments = signal<boolean>(false);
+  isDraggingAvatar = signal<boolean>(false);
 
   statusOptions: SelectOption[] = [
     {
@@ -226,25 +228,61 @@ export class AuthorCreateComponent implements OnInit {
     }
   }
 
+  removeAvatar(): void {
+    this.avatarPreview.set('');
+    this.form.update(f => ({ ...f, avatar: '' }));
+  }
+
+  onAvatarDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingAvatar.set(false);
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      const file = event.dataTransfer.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.lms.showToast('Please upload a valid image file (PNG, JPG, WebP).', 'error', 3000);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        this.avatarPreview.set(result);
+        this.form.update(f => ({ ...f, avatar: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  onAttachmentsDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingAttachments.set(false);
+    if (event.dataTransfer?.files) {
+      this.handleAttachmentFiles(Array.from(event.dataTransfer.files));
+    }
+  }
+
   onAttachmentsSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      for (const file of Array.from(input.files)) {
-        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-        const isImg = file.type.startsWith('image/');
-        const newAtt: PersonnelAttachment = {
-          id: `att-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          name: file.name,
-          size: file.size,
-          sizeFormatted: `${sizeMb} MB`,
-          type: file.type || 'application/octet-stream',
-          url: URL.createObjectURL(file),
-          uploadedAt: new Date().toLocaleDateString(),
-          category: isImg ? 'Portfolio / Sample' : 'CV / Resume',
-          isImage: isImg
-        };
-        this.attachments.update(list => [...list, newAtt]);
-      }
+      this.handleAttachmentFiles(Array.from(input.files));
+    }
+  }
+
+  handleAttachmentFiles(files: File[]): void {
+    for (const file of files) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const isImg = file.type.startsWith('image/');
+      const newAtt: PersonnelAttachment = {
+        id: `att-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: file.name,
+        size: file.size,
+        sizeFormatted: `${sizeMb} MB`,
+        type: file.type || 'application/octet-stream',
+        url: URL.createObjectURL(file),
+        uploadedAt: new Date().toLocaleDateString(),
+        category: isImg ? 'Portfolio / Sample' : 'CV / Resume',
+        isImage: isImg
+      };
+      this.attachments.update(list => [...list, newAtt]);
     }
   }
 

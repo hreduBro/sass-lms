@@ -4850,8 +4850,18 @@ export class LmsDataService {
   // Route authorization checker for RBAC
   isRouteAllowedForRole(url: string, role: UserRole): boolean {
     const cleanPath = url.split('?')[0].split('#')[0].replace(/^\//, '');
+
+    // 0. Trainee / Learner Plan Experience is strictly for the 'learner' role only
+    if (
+      cleanPath === 'my-plans' || cleanPath.startsWith('my-plans/') ||
+      cleanPath === 'my-schedule' || cleanPath.startsWith('my-schedule/') ||
+      cleanPath === 'my-achievements' || cleanPath.startsWith('my-achievements/') ||
+      cleanPath === 'my-learning' || cleanPath === 'schedule' || cleanPath === 'achievements'
+    ) {
+      return role === 'learner';
+    }
     
-    // System admin / super admin has unrestricted access to all routes
+    // System admin / super admin has unrestricted access to all other administrative routes
     if (role === 'system_admin' || (role as string) === 'super_admin') {
       return true;
     }

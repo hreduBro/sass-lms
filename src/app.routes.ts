@@ -193,6 +193,48 @@ export const routes: Routes = [
     canActivate: [roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
+
+  // =========================================================================
+  // TRAINEE / LEARNER PLAN EXPERIENCE
+  // =========================================================================
+  {
+    path: 'my-plans',
+    loadComponent: () => import('./pages/trainee/my-plans/my-plans.component').then(m => m.TraineePlanGridComponent),
+    title: 'My Learning Plans | Trainee Experience',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'my-plans/:planId',
+    loadComponent: () => import('./pages/trainee/plan-overview/plan-overview.component').then(m => m.TraineePlanOverviewComponent),
+    title: 'Plan Journey Overview | Trainee Experience',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'my-plans/:planId/phase/:phaseId',
+    loadComponent: () => import('./pages/trainee/phase-view/phase-view.component').then(m => m.TraineePhaseViewComponent),
+    title: 'Phase View & Curriculum | Trainee Experience',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'my-achievements',
+    loadComponent: () => import('./pages/trainee/my-achievements/my-achievements.component').then(m => m.MyAchievementsComponent),
+    title: 'My Achievements & Credentials | Trainee Experience',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  {
+    path: 'my-schedule',
+    loadComponent: () => import('./pages/trainee/my-schedule/my-schedule.component').then(m => m.MyScheduleComponent),
+    title: 'My Schedule & Classroom Sessions | Trainee Experience',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+  },
+  { path: 'my-learning', redirectTo: 'my-plans', pathMatch: 'full' },
+  { path: 'achievements', redirectTo: 'my-achievements', pathMatch: 'full' },
+  { path: 'schedule', redirectTo: 'my-schedule', pathMatch: 'full' },
   { 
     path: 'engagement', 
     loadComponent: () => import('./pages/engagement/engagement-hub.component').then(m => m.EngagementHubComponent), 

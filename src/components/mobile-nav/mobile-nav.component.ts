@@ -21,9 +21,8 @@ import { CustomSelectComponent, SelectOption } from '../custom-select/custom-sel
           [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
           [routerLinkActiveOptions]="{ exact: true }"
           #homeRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
           [class]="homeRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          
           <div class="relative flex items-center justify-center">
             <span class="material-symbols-outlined text-2xl">space_dashboard</span>
             @if (homeRla.isActive) {
@@ -33,14 +32,29 @@ import { CustomSelectComponent, SelectOption } from '../custom-select/custom-sel
           <span class="text-[10px] tracking-tight mt-0.5">Dashboard</span>
         </a>
 
-        <!-- 2. Courses -->
+        <!-- 2. My Learning Plans (Trainee Experience) -->
+        <a 
+          routerLink="/my-plans"
+          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+          #plansRla="routerLinkActive"
+          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+          [class]="plansRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+          <div class="relative flex items-center justify-center">
+            <span class="material-symbols-outlined text-2xl">assignment_turned_in</span>
+            @if (plansRla.isActive) {
+              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+            }
+          </div>
+          <span class="text-[10px] tracking-tight mt-0.5">My Plans</span>
+        </a>
+
+        <!-- 3. Courses -->
         <a 
           routerLink="/courses"
           [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
           #coursesRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
           [class]="coursesRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          
           <div class="relative flex items-center justify-center">
             <span class="material-symbols-outlined text-2xl">school</span>
             @if (coursesRla.isActive) {

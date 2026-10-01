@@ -34,19 +34,74 @@
         </p>
       </div>
 
-      <!-- Admin Actions: Open Dashboard Studio -->
-      @if (isAdmin()) {
-        <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+      <!-- Trainee Plan Journey & Learning Navigation Banner (Learner Role Only) -->
+      <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+        @if (activeRole() === 'learner') {
+          <a 
+            routerLink="/my-plans" 
+            class="px-4 py-2.5 rounded-2xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-tenant-600/20 active:scale-[0.98]">
+            <span class="material-symbols-outlined text-base">school</span>
+            <span>My Learning Plans</span>
+          </a>
+
+          <a 
+            routerLink="/my-schedule" 
+            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+            <span class="material-symbols-outlined text-base text-indigo-500">calendar_month</span>
+            <span>My Schedule</span>
+          </a>
+
+          <a 
+            routerLink="/my-achievements" 
+            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+            <span class="material-symbols-outlined text-base text-amber-500">military_tech</span>
+            <span>My Achievements</span>
+          </a>
+        }
+
+        <!-- Admin Actions: Open Dashboard Studio -->
+        @if (isAdmin()) {
           <button 
             id="btn-open-builder"
             (click)="enterBuilderMode()"
-            class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] group">
+            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-secondary hover:text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs group">
             <span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
-            <span>Customize Dashboard Studio</span>
+            <span>Customize</span>
           </button>
-        </div>
-      }
+        }
+      </div>
     </div>
+
+    <!-- Active Learning Plan Hero Card (Learner Role Only) -->
+    @if (activeRole() === 'learner') {
+      <div class="p-5 sm:p-6 rounded-3xl border-2 border-tenant-500/30 bg-gradient-to-r from-tenant-50/60 via-base-100 to-indigo-50/40 dark:from-tenant-950/40 dark:via-base-200 dark:to-indigo-950/30 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div class="space-y-2 max-w-2xl">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tenant-100 dark:bg-tenant-900/60 text-tenant-700 dark:text-tenant-300 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 animate-pulse"></span>
+              Active Learning Pathway
+            </span>
+            <span class="text-xs text-text-secondary">•</span>
+            <span class="text-xs text-text-secondary font-medium">PLN-1972-001</span>
+          </div>
+          <h3 class="text-lg font-bold text-text-primary">
+            2026 Microfinance Branch Transformation & Ethics Plan
+          </h3>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Structured curriculum covering client protection, digital credit POS operations, disaster-resilient micro-insurance, and graduation diplomas.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <a 
+            routerLink="/my-plans/plan-brac-01" 
+            class="px-5 py-3 rounded-2xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-tenant-600/20 hover:scale-[1.02] transition-all">
+            <span class="material-symbols-outlined text-base">route</span>
+            <span>Open Plan Journey</span>
+          </a>
+        </div>
+      </div>
+    }
   }
 
   <!-- 2. Builder Mode Interactive Studio Top Bar -->
