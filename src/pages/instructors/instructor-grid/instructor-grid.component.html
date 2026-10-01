@@ -10,13 +10,14 @@
         <span class="text-tenant-600 font-semibold">Instructors Pool</span>
       </div>
       <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-text-primary tracking-tight">Organization Instructors</h1>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
-          Organization-Wide Pool
+        <h1 class="text-2xl font-bold text-text-primary tracking-tight">Instructor Profile Management</h1>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-950 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          <span class="material-symbols-outlined text-xs">school</span>
+          {{ lms.activeLms()?.basicInfo?.lmsName || 'LMS Portal' }} Pool
         </span>
       </div>
       <p class="text-xs text-text-secondary mt-1">
-        Shared instructor pool tagged across course delivery layers, live classroom modules, and assessment sessions
+        Manage faculty instructors, mentors, and trainers assigned across course delivery layers, live classroom modules, and assessment sessions for {{ lms.activeLms()?.basicInfo?.lmsName || 'this LMS' }}.
       </p>
     </div>
 

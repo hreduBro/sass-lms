@@ -2674,20 +2674,30 @@ export class LmsDataService {
   // Login Branding Store (System Admin Scope)
   loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
 
-  // Author Profile Store (Organization-Scoped Author Pool)
+  // Author Profile Store (Per-LMS Scoped Author Pool)
   authors = signal<AuthorProfile[]>(INITIAL_AUTHORS_REPO);
   authorshipRecords = signal<AuthorshipRecord[]>(INITIAL_AUTHORSHIP_RECORDS);
 
-  activeAuthors = computed<AuthorProfile[]>(() => {
-    return this.authors().filter(a => a.status === 'Active');
+  activeLmsAuthors = computed<AuthorProfile[]>(() => {
+    const currentLmsId = this.activeLmsId();
+    return this.authors().filter(a => a.lmsId === currentLmsId);
   });
 
-  // Instructor Profile Store (Organization-Scoped Instructor Pool)
+  activeAuthors = computed<AuthorProfile[]>(() => {
+    return this.activeLmsAuthors().filter(a => a.status === 'Active');
+  });
+
+  // Instructor Profile Store (Per-LMS Scoped Instructor Pool)
   instructors = signal<InstructorProfile[]>(INITIAL_INSTRUCTORS_REPO);
   instructorAssignments = signal<InstructorAssignmentRecord[]>(INITIAL_INSTRUCTOR_ASSIGNMENTS);
 
+  activeLmsInstructors = computed<InstructorProfile[]>(() => {
+    const currentLmsId = this.activeLmsId();
+    return this.instructors().filter(i => i.lmsId === currentLmsId);
+  });
+
   activeInstructors = computed<InstructorProfile[]>(() => {
-    return this.instructors().filter(i => i.status === 'Active');
+    return this.activeLmsInstructors().filter(i => i.status === 'Active');
   });
 
   // Venue Management Store (BRD §4.11)
@@ -3209,8 +3219,28 @@ export class LmsDataService {
 
   // Course Management Reactive State (BRD §4.4)
   courseEntities = signal<CourseEntity[]>(INITIAL_COURSES_ENTITIES);
-  instructorsRepo = signal<InstructorRef[]>(MOCK_INSTRUCTORS_REPO);
-  creatorsRepo = signal<CreatorRef[]>(MOCK_CREATORS_REPO);
+  instructorsRepo = computed<InstructorRef[]>(() => {
+    return this.activeLmsInstructors().map(inst => ({
+      id: inst.id,
+      name: inst.name,
+      email: inst.email,
+      avatar: inst.avatar,
+      title: inst.title || 'Faculty Instructor',
+      department: inst.department || 'Academic Division',
+      specialization: inst.specialization || ['General Pedagogy']
+    }));
+  });
+  creatorsRepo = computed<CreatorRef[]>(() => {
+    return this.activeLmsAuthors().map(auth => ({
+      id: auth.id,
+      name: auth.name,
+      email: auth.email,
+      avatar: auth.avatar,
+      title: auth.specialization || 'Content Author',
+      department: 'Instructional Design & Content Creation',
+      role: auth.isInstructor ? 'Author & Instructor' : 'Content Author'
+    }));
+  });
 
   // Transcript Drag-and-Drop Templates State
   transcriptTemplates = signal<TranscriptTemplate[]>(INITIAL_TRANSCRIPT_TEMPLATES);
@@ -9056,17 +9086,18 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // AUTHOR PROFILE MANAGEMENT (Organization-Scoped Author Pool)
+  // AUTHOR PROFILE MANAGEMENT (Per-LMS Scoped Author Pool)
   // =========================================================================
 
   getAuthorById(authorId: string): AuthorProfile | undefined {
     return this.authors().find(a => a.id === authorId || a.personId === authorId);
   }
 
-  getAuthorByEmail(email: string): AuthorProfile | undefined {
+  getAuthorByEmail(email: string, lmsId?: string): AuthorProfile | undefined {
     if (!email) return undefined;
     const clean = email.trim().toLowerCase();
-    return this.authors().find(a => a.email.trim().toLowerCase() === clean);
+    const targetLmsId = lmsId || this.activeLmsId();
+    return this.authors().find(a => a.lmsId === targetLmsId && a.email.trim().toLowerCase() === clean);
   }
 
   getAuthorshipHistory(authorId: string): AuthorshipRecord[] {
@@ -9075,12 +9106,13 @@ export class LmsDataService {
     return this.authorshipRecords().filter(r => r.authorId === targetAuthor.id || r.authorEmail.toLowerCase() === targetAuthor.email.toLowerCase());
   }
 
-  findExistingPerson(email: string): { found: boolean; name?: string; email?: string; avatar?: string; isInstructor?: boolean; instructorId?: string; isUser?: boolean; isAuthor?: boolean; authorId?: string } {
+  findExistingPerson(email: string, lmsId?: string): { found: boolean; name?: string; email?: string; avatar?: string; isInstructor?: boolean; instructorId?: string; isUser?: boolean; isAuthor?: boolean; authorId?: string } {
     if (!email) return { found: false };
     const clean = email.trim().toLowerCase();
+    const targetLmsId = lmsId || this.activeLmsId();
 
-    // Check existing authors
-    const existingAuthor = this.authors().find(a => a.email.trim().toLowerCase() === clean);
+    // Check existing authors in current LMS
+    const existingAuthor = this.authors().find(a => a.lmsId === targetLmsId && a.email.trim().toLowerCase() === clean);
     if (existingAuthor) {
       return {
         found: true,
@@ -9094,8 +9126,8 @@ export class LmsDataService {
       };
     }
 
-    // Check existing instructors
-    const existingInstructor = this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+    // Check existing instructors in current LMS
+    const existingInstructor = this.instructors().find(i => i.lmsId === targetLmsId && i.email.trim().toLowerCase() === clean);
     if (existingInstructor) {
       return {
         found: true,
@@ -9128,18 +9160,20 @@ export class LmsDataService {
   addAuthor(formData: AuthorCreateForm): { success: boolean; author: AuthorProfile; isExistingPersonLinked: boolean } {
     const cleanEmail = formData.email.trim();
     const cleanName = formData.name.trim();
+    const targetLmsId = formData.lmsId || this.activeLmsId();
+    const lmsInstance = this.lmsInstances().find(l => l.id === targetLmsId);
     const now = new Date();
     const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-    // Duplicate guard check
-    const existingAuthor = this.getAuthorByEmail(cleanEmail);
+    // Duplicate guard check: strictly within target LMS
+    const existingAuthor = this.getAuthorByEmail(cleanEmail, targetLmsId);
     if (existingAuthor) {
-      this.showToast(`An Author profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Author');
+      this.showToast(`An Author profile with email "${cleanEmail}" already exists in ${lmsInstance?.basicInfo?.lmsName || targetLmsId}.`, 'error', 4000, 'Duplicate Author');
       return { success: false, author: existingAuthor, isExistingPersonLinked: false };
     }
 
-    // Check if Person exists as Instructor or User
-    const existingPerson = this.findExistingPerson(cleanEmail);
+    // Check if Person exists as Instructor in this LMS or as Platform User
+    const existingPerson = this.findExistingPerson(cleanEmail, targetLmsId);
     const isExistingLinked = existingPerson.found;
     const authorId = `auth-${Date.now().toString().slice(-6)}`;
     const personId = isExistingLinked ? (existingPerson.instructorId ? `person-${existingPerson.instructorId}` : `person-${Date.now()}`) : `person-${authorId}`;
@@ -9159,6 +9193,8 @@ export class LmsDataService {
       isInstructor: existingPerson.isInstructor || false,
       instructorId: existingPerson.instructorId,
       organizationId: this.activeTenantId() || 'tenant-brac',
+      lmsId: targetLmsId,
+      lmsName: lmsInstance?.basicInfo?.lmsName || 'OneLMS Portal',
       createdAt: formattedDate,
       authoredItemsCount: 0,
       isProfileComplete: isComplete,
@@ -9211,10 +9247,10 @@ export class LmsDataService {
       this.users.update(list => [newUser, ...list]);
     }
 
-    // If linked to an instructor, also mark that instructor as isAuthor: true
+    // If linked to an instructor in this same LMS, also mark that instructor as isAuthor: true
     if (existingPerson.instructorId) {
       this.instructors.update(list => list.map(inst => {
-        if (inst.id === existingPerson.instructorId || inst.email.toLowerCase() === cleanEmail.toLowerCase()) {
+        if (inst.lmsId === targetLmsId && (inst.id === existingPerson.instructorId || inst.email.toLowerCase() === cleanEmail.toLowerCase())) {
           return { ...inst, isAuthor: true, authorId };
         }
         return inst;
@@ -9222,11 +9258,11 @@ export class LmsDataService {
     }
 
     if (isExistingLinked) {
-      this.showToast(`Author role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
-      this.logAction('Author Role Added', `Added Author role to existing person ${cleanName} (${cleanEmail})`, 'info');
+      this.showToast(`Author role added to ${cleanName}'s profile in ${newAuthor.lmsName}.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Author Role Added', `Added Author role to person ${cleanName} (${cleanEmail}) in LMS ${targetLmsId}`, 'info');
     } else {
-      this.showToast(`${cleanName} has been added as an Author.`, 'success', 3500, 'Author Created');
-      this.logAction('Author Created', `Created new Author profile for ${cleanName} (${cleanEmail})`, 'success');
+      this.showToast(`${cleanName} has been added as an Author in ${newAuthor.lmsName}.`, 'success', 3500, 'Author Created');
+      this.logAction('Author Created', `Created new Author profile for ${cleanName} (${cleanEmail}) in LMS ${targetLmsId}`, 'success');
     }
 
     return { success: true, author: newAuthor, isExistingPersonLinked: isExistingLinked };
@@ -9376,17 +9412,18 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // INSTRUCTOR PROFILE MANAGEMENT (Organization-Scoped Instructor Pool)
+  // INSTRUCTOR PROFILE MANAGEMENT (Per-LMS Scoped Instructor Pool)
   // =========================================================================
 
   getInstructorById(instructorId: string): InstructorProfile | undefined {
     return this.instructors().find(i => i.id === instructorId || i.personId === instructorId);
   }
 
-  getInstructorByEmail(email: string): InstructorProfile | undefined {
+  getInstructorByEmail(email: string, lmsId?: string): InstructorProfile | undefined {
     if (!email) return undefined;
     const clean = email.trim().toLowerCase();
-    return this.instructors().find(i => i.email.trim().toLowerCase() === clean);
+    const targetLmsId = lmsId || this.activeLmsId();
+    return this.instructors().find(i => i.lmsId === targetLmsId && i.email.trim().toLowerCase() === clean);
   }
 
   getInstructorAssignments(instructorId: string): InstructorAssignmentRecord[] {
@@ -9398,18 +9435,20 @@ export class LmsDataService {
   addInstructor(formData: InstructorCreateForm): { success: boolean; instructor: InstructorProfile; isExistingPersonLinked: boolean } {
     const cleanEmail = formData.email.trim();
     const cleanName = formData.name.trim();
+    const targetLmsId = formData.lmsId || this.activeLmsId();
+    const lmsInstance = this.lmsInstances().find(l => l.id === targetLmsId);
     const now = new Date();
     const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-    // Duplicate guard check
-    const existingInst = this.getInstructorByEmail(cleanEmail);
+    // Duplicate guard check: strictly within target LMS
+    const existingInst = this.getInstructorByEmail(cleanEmail, targetLmsId);
     if (existingInst) {
-      this.showToast(`An Instructor profile with email "${cleanEmail}" already exists.`, 'error', 4000, 'Duplicate Instructor');
+      this.showToast(`An Instructor profile with email "${cleanEmail}" already exists in ${lmsInstance?.basicInfo?.lmsName || targetLmsId}.`, 'error', 4000, 'Duplicate Instructor');
       return { success: false, instructor: existingInst, isExistingPersonLinked: false };
     }
 
-    // Check if Person exists as Author or User
-    const existingPerson = this.findExistingPerson(cleanEmail);
+    // Check if Person exists as Author in this LMS or as Platform User
+    const existingPerson = this.findExistingPerson(cleanEmail, targetLmsId);
     const isExistingLinked = existingPerson.found;
     const instructorId = `inst-${Date.now().toString().slice(-6)}`;
     const personId = isExistingLinked ? (existingPerson.authorId ? `person-${existingPerson.authorId}` : `person-${Date.now()}`) : `person-${instructorId}`;
@@ -9435,6 +9474,8 @@ export class LmsDataService {
       department: formData.department?.trim() || 'Academic & Faculty Division',
       title: formData.title?.trim() || 'Senior Faculty Instructor',
       organizationId: this.activeTenantId() || 'tenant-brac',
+      lmsId: targetLmsId,
+      lmsName: lmsInstance?.basicInfo?.lmsName || 'OneLMS Portal',
       createdAt: formattedDate,
       assignmentsCount: 0,
       rating: 5.0,
@@ -9492,10 +9533,10 @@ export class LmsDataService {
       this.users.update(list => [newUser, ...list]);
     }
 
-    // If linked to an author, also mark that author as isInstructor: true
+    // If linked to an author in this same LMS, also mark that author as isInstructor: true
     if (existingPerson.authorId) {
       this.authors.update(list => list.map(auth => {
-        if (auth.id === existingPerson.authorId || auth.email.toLowerCase() === cleanEmail.toLowerCase()) {
+        if (auth.lmsId === targetLmsId && (auth.id === existingPerson.authorId || auth.email.toLowerCase() === cleanEmail.toLowerCase())) {
           return { ...auth, isInstructor: true, instructorId };
         }
         return auth;
@@ -9503,11 +9544,11 @@ export class LmsDataService {
     }
 
     if (isExistingLinked) {
-      this.showToast(`Instructor role added to ${cleanName}'s existing profile.`, 'success', 3500, 'Profile Linked');
-      this.logAction('Instructor Role Added', `Added Instructor role to existing person ${cleanName} (${cleanEmail})`, 'info');
+      this.showToast(`Instructor role added to ${cleanName}'s profile in ${newInstructor.lmsName}.`, 'success', 3500, 'Profile Linked');
+      this.logAction('Instructor Role Added', `Added Instructor role to person ${cleanName} (${cleanEmail}) in LMS ${targetLmsId}`, 'info');
     } else {
-      this.showToast(`${cleanName} has been added as an Instructor.`, 'success', 3500, 'Instructor Created');
-      this.logAction('Instructor Created', `Created new Instructor profile for ${cleanName} (${cleanEmail})`, 'success');
+      this.showToast(`${cleanName} has been added as an Instructor in ${newInstructor.lmsName}.`, 'success', 3500, 'Instructor Created');
+      this.logAction('Instructor Created', `Created new Instructor profile for ${cleanName} (${cleanEmail}) in LMS ${targetLmsId}`, 'success');
     }
 
     return { success: true, instructor: newInstructor, isExistingPersonLinked: isExistingLinked };
@@ -9658,7 +9699,7 @@ export class LmsDataService {
   }
 
   // =========================================================================
-  // DUAL-ROLE TAGGING & UNIFIED SYNC (Author <-> Instructor)
+  // DUAL-ROLE TAGGING & UNIFIED SYNC (Author <-> Instructor per LMS)
   // =========================================================================
 
   tagAuthorAsInstructor(authorId: string, customData?: { title?: string; department?: string; specialization?: string[] }): { success: boolean; instructor?: InstructorProfile } {
@@ -9668,12 +9709,15 @@ export class LmsDataService {
       return { success: false };
     }
 
-    // Check if already an instructor
-    const existingInstructor = this.getInstructorByEmail(author.email) || (author.instructorId ? this.getInstructorById(author.instructorId) : undefined);
+    const targetLmsId = author.lmsId || this.activeLmsId();
+    const lmsInstance = this.lmsInstances().find(l => l.id === targetLmsId);
+
+    // Check if already an instructor in this same LMS
+    const existingInstructor = this.instructors().find(i => i.lmsId === targetLmsId && (i.email.toLowerCase() === author.email.toLowerCase() || (author.instructorId && i.id === author.instructorId)));
     if (existingInstructor) {
       this.authors.update(list => list.map(a => a.id === authorId ? { ...a, isInstructor: true, instructorId: existingInstructor.id } : a));
       this.instructors.update(list => list.map(i => i.id === existingInstructor.id ? { ...i, isAuthor: true, authorId: author.id } : i));
-      this.showToast(`${author.name} is already linked with Instructor profile "${existingInstructor.name}".`, 'info', 3500, 'Role Synced');
+      this.showToast(`${author.name} is already linked with Instructor profile "${existingInstructor.name}" in this LMS.`, 'info', 3500, 'Role Synced');
       return { success: true, instructor: existingInstructor };
     }
 
@@ -9698,6 +9742,8 @@ export class LmsDataService {
       department: customData?.department || 'Academic & Training Division',
       title: customData?.title || 'Lead Course Instructor',
       organizationId: author.organizationId || this.activeTenantId() || 'tenant-brac',
+      lmsId: targetLmsId,
+      lmsName: author.lmsName || lmsInstance?.basicInfo?.lmsName || 'OneLMS Portal',
       createdAt: formattedDate,
       assignmentsCount: 0,
       rating: 5.0,
@@ -9716,8 +9762,8 @@ export class LmsDataService {
       return u;
     }));
 
-    this.showToast(`${author.name} has been tagged as an Instructor. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Instructor');
-    this.logAction('Author Tagged as Instructor', `Tagged author ${author.name} (${author.email}) as Instructor`, 'success');
+    this.showToast(`${author.name} has been tagged as an Instructor in ${newInstructor.lmsName}. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Instructor');
+    this.logAction('Author Tagged as Instructor', `Tagged author ${author.name} (${author.email}) as Instructor in LMS ${targetLmsId}`, 'success');
     return { success: true, instructor: newInstructor };
   }
 
@@ -9728,11 +9774,15 @@ export class LmsDataService {
       return { success: false };
     }
 
-    const existingAuthor = this.getAuthorByEmail(instructor.email) || (instructor.authorId ? this.getAuthorById(instructor.authorId) : undefined);
+    const targetLmsId = instructor.lmsId || this.activeLmsId();
+    const lmsInstance = this.lmsInstances().find(l => l.id === targetLmsId);
+
+    // Check if already an author in this same LMS
+    const existingAuthor = this.authors().find(a => a.lmsId === targetLmsId && (a.email.toLowerCase() === instructor.email.toLowerCase() || (instructor.authorId && a.id === instructor.authorId)));
     if (existingAuthor) {
       this.instructors.update(list => list.map(i => i.id === instructorId ? { ...i, isAuthor: true, authorId: existingAuthor.id } : i));
       this.authors.update(list => list.map(a => a.id === existingAuthor.id ? { ...a, isInstructor: true, instructorId: instructor.id } : a));
-      this.showToast(`${instructor.name} is already linked with Author profile "${existingAuthor.name}".`, 'info', 3500, 'Role Synced');
+      this.showToast(`${instructor.name} is already linked with Author profile "${existingAuthor.name}" in this LMS.`, 'info', 3500, 'Role Synced');
       return { success: true, author: existingAuthor };
     }
 
@@ -9753,6 +9803,8 @@ export class LmsDataService {
       isInstructor: true,
       instructorId: instructor.id,
       organizationId: instructor.organizationId || this.activeTenantId() || 'tenant-brac',
+      lmsId: targetLmsId,
+      lmsName: instructor.lmsName || lmsInstance?.basicInfo?.lmsName || 'OneLMS Portal',
       createdAt: formattedDate,
       authoredItemsCount: 0,
       isProfileComplete: true,
@@ -9770,15 +9822,15 @@ export class LmsDataService {
       return u;
     }));
 
-    this.showToast(`${instructor.name} has been tagged as a Content Author. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Author');
-    this.logAction('Instructor Tagged as Author', `Tagged instructor ${instructor.name} (${instructor.email}) as Content Author`, 'success');
+    this.showToast(`${instructor.name} has been tagged as a Content Author in ${newAuthor.lmsName}. Dual-role credentials synchronized.`, 'success', 4000, 'Tagged as Author');
+    this.logAction('Instructor Tagged as Author', `Tagged instructor ${instructor.name} (${instructor.email}) as Content Author in LMS ${targetLmsId}`, 'success');
     return { success: true, author: newAuthor };
   }
 
   /**
-   * Comprehensive duplicate detection algorithm checking name similarity, email equality, and contact number.
+   * Duplicate detection algorithm scoped strictly to target LMS instance.
    */
-  detectDuplicates(data: { name?: string; email?: string; contactNumber?: string; excludeId?: string }): {
+  detectDuplicates(data: { name?: string; email?: string; contactNumber?: string; excludeId?: string; lmsId?: string }): {
     isDuplicate: boolean;
     reason?: 'exact_email' | 'exact_contact' | 'similar_name_contact' | 'exact_name';
     matchedPerson?: {
@@ -9794,13 +9846,17 @@ export class LmsDataService {
     };
     similarityScore: number;
   } {
+    const targetLmsId = data.lmsId || this.activeLmsId();
     const cleanEmail = data.email?.trim().toLowerCase();
     const cleanContact = data.contactNumber?.replace(/\D/g, '');
     const cleanName = data.name?.trim().toLowerCase();
 
-    // 1. Check exact email in authors, instructors, users
+    const scopedAuthors = this.authors().filter(a => a.lmsId === targetLmsId);
+    const scopedInstructors = this.instructors().filter(i => i.lmsId === targetLmsId);
+
+    // 1. Check exact email in LMS-scoped authors and instructors
     if (cleanEmail) {
-      const authorMatch = this.authors().find(a => a.id !== data.excludeId && a.email.trim().toLowerCase() === cleanEmail);
+      const authorMatch = scopedAuthors.find(a => a.id !== data.excludeId && a.email.trim().toLowerCase() === cleanEmail);
       if (authorMatch) {
         return {
           isDuplicate: true,
@@ -9814,13 +9870,13 @@ export class LmsDataService {
             isInstructor: authorMatch.isInstructor || false,
             authorId: authorMatch.id,
             instructorId: authorMatch.instructorId,
-            source: 'Author Registry'
+            source: 'Author Registry (Current LMS)'
           },
           similarityScore: 100
         };
       }
 
-      const instMatch = this.instructors().find(i => i.id !== data.excludeId && i.email.trim().toLowerCase() === cleanEmail);
+      const instMatch = scopedInstructors.find(i => i.id !== data.excludeId && i.email.trim().toLowerCase() === cleanEmail);
       if (instMatch) {
         return {
           isDuplicate: true,
@@ -9834,16 +9890,16 @@ export class LmsDataService {
             isInstructor: true,
             authorId: instMatch.authorId,
             instructorId: instMatch.id,
-            source: 'Instructor Registry'
+            source: 'Instructor Registry (Current LMS)'
           },
           similarityScore: 100
         };
       }
     }
 
-    // 2. Check exact phone/contact in authors and instructors
+    // 2. Check exact phone/contact in LMS-scoped authors and instructors
     if (cleanContact && cleanContact.length >= 8) {
-      const authorPhoneMatch = this.authors().find(a => {
+      const authorPhoneMatch = scopedAuthors.find(a => {
         if (a.id === data.excludeId || !a.contactNumber) return false;
         const norm = a.contactNumber.replace(/\D/g, '');
         return norm.endsWith(cleanContact) || cleanContact.endsWith(norm);
@@ -9861,13 +9917,13 @@ export class LmsDataService {
             isInstructor: authorPhoneMatch.isInstructor || false,
             authorId: authorPhoneMatch.id,
             instructorId: authorPhoneMatch.instructorId,
-            source: 'Author Registry (Matching Contact Number)'
+            source: 'Author Registry (Current LMS)'
           },
           similarityScore: 90
         };
       }
 
-      const instPhoneMatch = this.instructors().find(i => {
+      const instPhoneMatch = scopedInstructors.find(i => {
         if (i.id === data.excludeId || !i.contactNumber) return false;
         const norm = i.contactNumber.replace(/\D/g, '');
         return norm.endsWith(cleanContact) || cleanContact.endsWith(norm);
@@ -9885,18 +9941,18 @@ export class LmsDataService {
             isInstructor: true,
             authorId: instPhoneMatch.authorId,
             instructorId: instPhoneMatch.id,
-            source: 'Instructor Registry (Matching Contact Number)'
+            source: 'Instructor Registry (Current LMS)'
           },
           similarityScore: 90
         };
       }
     }
 
-    // 3. Name similarity check
+    // 3. Name similarity check within current LMS
     if (cleanName && cleanName.length >= 3) {
       const allPeople = [
-        ...this.instructors().map(i => ({ ...i, roleType: 'Instructor' as const })),
-        ...this.authors().map(a => ({ ...a, roleType: 'Author' as const }))
+        ...scopedInstructors.map(i => ({ ...i, roleType: 'Instructor' as const })),
+        ...scopedAuthors.map(a => ({ ...a, roleType: 'Author' as const }))
       ];
 
       for (const person of allPeople) {
@@ -9913,7 +9969,7 @@ export class LmsDataService {
               avatar: person.avatar,
               isAuthor: person.roleType === 'Author' || ('isAuthor' in person && !!person.isAuthor),
               isInstructor: person.roleType === 'Instructor' || ('isInstructor' in person && !!person.isInstructor),
-              source: `${person.roleType} Registry`
+              source: `${person.roleType} Registry (Current LMS)`
             },
             similarityScore: 85
           };

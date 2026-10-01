@@ -12,12 +12,12 @@
       <div class="flex items-center gap-3">
         <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Author Profile Management</h1>
         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 text-tenant-700 dark:bg-tenant-900/30 dark:text-tenant-300 border border-tenant-200/60 dark:border-tenant-700/50">
-          <span class="material-symbols-outlined text-xs">domain</span>
-          Organization Pool
+          <span class="material-symbols-outlined text-xs">edit_note</span>
+          {{ lms.activeLms()?.basicInfo?.lmsName || 'LMS Portal' }} Pool
         </span>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
-        Manage content authors and media creators credited across video lessons, readings, interactive labs, and assessments. Authors are shared organization-wide across all LMS instances under {{ lms.activeTenant().name }}.
+        Manage content authors and media creators credited across video lessons, readings, interactive labs, and assessments for {{ lms.activeLms()?.basicInfo?.lmsName || 'this LMS' }}. Each LMS maintains its own separate author roster.
       </p>
     </div>
 

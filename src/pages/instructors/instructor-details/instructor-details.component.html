@@ -348,7 +348,7 @@
                         <div class="text-xs text-text-secondary flex items-center gap-2 mt-0.5">
                           <span>Layer: <strong class="text-text-primary">{{ asg.layer }}</strong></span>
                           <span>•</span>
-                          <span>Portal: {{ asg.lmsName }}</span>
+                          <span>Category: {{ asg.courseCategory }}</span>
                         </div>
                       </div>
                     </div>
@@ -467,7 +467,6 @@
               <thead class="bg-base-200/80 border-b border-base-300 text-text-secondary uppercase tracking-wider text-[10px] font-bold">
                 <tr>
                   <th class="py-3 px-4">Course & Identifier</th>
-                  <th class="py-3 px-4">LMS Portal</th>
                   <th class="py-3 px-4">Assigned Layer</th>
                   <th class="py-3 px-4">Delivery Mode</th>
                   <th class="py-3 px-4">Learner Completion</th>
@@ -487,12 +486,6 @@
                           <div class="text-[11px] text-tenant-600 font-mono font-semibold">{{ item.courseCode }} • {{ item.courseCategory }}</div>
                         </div>
                       </div>
-                    </td>
-
-                    <!-- LMS Portal -->
-                    <td class="py-3.5 px-4">
-                      <div class="font-medium text-text-primary">{{ item.lmsName }}</div>
-                      <div class="text-[10px] text-text-secondary font-mono">{{ item.lmsId }}</div>
                     </td>
 
                     <!-- Assigned Layer -->
@@ -553,9 +546,9 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="py-12 text-center text-text-secondary">
+                    <td colspan="6" class="py-12 text-center text-text-secondary">
                       <span class="material-symbols-outlined text-3xl text-slate-400 mb-2">search_off</span>
-                      <p class="text-xs">No course assignments found matching the selected LMS filter.</p>
+                      <p class="text-xs">No course assignments found matching the filter.</p>
                     </td>
                   </tr>
                 }

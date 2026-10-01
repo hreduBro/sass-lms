@@ -13,6 +13,8 @@ export interface InstructorProfile {
   isAuthor: boolean;
   authorId?: string;
   organizationId: string;
+  lmsId: string;
+  lmsName?: string;
   createdAt: string;
   updatedAt?: string;
   assignmentsCount?: number;
@@ -64,6 +66,7 @@ export interface InstructorCreateForm {
   title?: string;
   role?: string;
   avatar?: string;
+  lmsId?: string;
   attachments?: PersonnelAttachment[];
   isQuickAdd?: boolean;
 }
@@ -135,6 +138,8 @@ export const INITIAL_INSTRUCTORS_REPO: InstructorProfile[] = [
     isAuthor: true,
     authorId: 'auth-tanvir',
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '15/01/2026',
     assignmentsCount: 4,
     rating: 4.95
@@ -154,64 +159,11 @@ export const INITIAL_INSTRUCTORS_REPO: InstructorProfile[] = [
     isAuthor: true,
     authorId: 'auth-farhana',
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '01/03/2026',
     assignmentsCount: 3,
     rating: 4.98
-  },
-  {
-    id: 'inst-nusrat',
-    personId: 'person-nusrat',
-    name: 'Nusrat Jahan',
-    email: 'nusrat.jahan@brac.net',
-    contactNumber: '+880 1913-778899',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    title: 'Ultra-Poor Graduation Program Lead',
-    department: 'Ultra-Poor Graduation',
-    specialization: ['Livelihood Coaching', 'Asset Transfer', 'Household Mentorship', 'Social Protection'],
-    bio: 'Senior Director of BRAC Ultra-Poor Graduation (UPG) program. International speaker and field pedagogue on multi-dimensional poverty alleviation, household coaching, and productive asset transfer methodologies.',
-    status: 'Active',
-    isAuthor: false,
-    organizationId: 'tenant-brac',
-    createdAt: '20/01/2026',
-    assignmentsCount: 3,
-    rating: 4.92
-  },
-  {
-    id: 'inst-shakil',
-    personId: 'person-shakil',
-    name: 'Shakil Anwar',
-    email: 'shakil.anwar@brac.net',
-    contactNumber: '+880 1611-443322',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    title: 'Climate Resilience & Disaster Hub Director',
-    department: 'Climate Change & Disaster Management',
-    specialization: ['Early Warning Systems', 'Emergency Logistics', 'Needs Assessment', 'Community Shelters'],
-    bio: 'Emergency Response Lead with extensive deployment across Cyclone, Flash Flood, and Coastal Disaster relief operations. Trains emergency rapid deployment volunteers and community disaster teams.',
-    status: 'Active',
-    isAuthor: false,
-    organizationId: 'tenant-brac',
-    createdAt: '05/02/2026',
-    assignmentsCount: 2,
-    rating: 4.88
-  },
-  {
-    id: 'inst-sadia',
-    personId: 'person-sadia',
-    name: 'Sadia Rahman',
-    email: 'sadia.rahman@brac.net',
-    contactNumber: '+880 1713-334455',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
-    title: 'Digital Pedagogy & Assessment Lead',
-    department: 'Education & Youth Skills (BEP)',
-    specialization: ['Curriculum Design', 'Instructional Assessment', 'Interactive Media', 'Youth Empowerment'],
-    bio: 'Senior Educational Technologist overseeing teacher training and adaptive e-learning curriculum design for BRAC Education Programme schools and technical vocational centers.',
-    status: 'Active',
-    isAuthor: true,
-    authorId: 'auth-sadia',
-    organizationId: 'tenant-brac',
-    createdAt: '18/02/2026',
-    assignmentsCount: 3,
-    rating: 4.91
   },
   {
     id: 'inst-rafiq',
@@ -227,9 +179,113 @@ export const INITIAL_INSTRUCTORS_REPO: InstructorProfile[] = [
     status: 'Inactive',
     isAuthor: false,
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '10/01/2026',
     assignmentsCount: 0,
     rating: 4.75
+  },
+  {
+    id: 'inst-nusrat',
+    personId: 'person-nusrat',
+    name: 'Nusrat Jahan',
+    email: 'nusrat.jahan@brac.net',
+    contactNumber: '+880 1913-778899',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    title: 'Ultra-Poor Graduation Program Lead',
+    department: 'Ultra-Poor Graduation',
+    specialization: ['Livelihood Coaching', 'Asset Transfer', 'Household Mentorship', 'Social Protection'],
+    bio: 'Senior Director of BRAC Ultra-Poor Graduation (UPG) program. International speaker and field pedagogue on multi-dimensional poverty alleviation, household coaching, and productive asset transfer methodologies.',
+    status: 'Active',
+    isAuthor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-02',
+    lmsName: 'Ultra-Poor Graduation & Social Development Institute',
+    createdAt: '20/01/2026',
+    assignmentsCount: 3,
+    rating: 4.92
+  },
+  {
+    id: 'inst-sadia',
+    personId: 'person-sadia',
+    name: 'Sadia Rahman',
+    email: 'sadia.rahman@brac.net',
+    contactNumber: '+880 1713-334455',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
+    title: 'Digital Pedagogy & Assessment Lead',
+    department: 'Ultra-Poor Graduation',
+    specialization: ['Curriculum Design', 'Instructional Assessment', 'Interactive Media', 'Livelihood Coaching'],
+    bio: 'Senior Educational Technologist overseeing coaching and adaptive e-learning curriculum design for BRAC Ultra-Poor Graduation programmes.',
+    status: 'Active',
+    isAuthor: true,
+    authorId: 'auth-sadia',
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-02',
+    lmsName: 'Ultra-Poor Graduation & Social Development Institute',
+    createdAt: '18/02/2026',
+    assignmentsCount: 2,
+    rating: 4.91
+  },
+  {
+    id: 'inst-shakil',
+    personId: 'person-shakil',
+    name: 'Shakil Anwar',
+    email: 'shakil.anwar@brac.net',
+    contactNumber: '+880 1611-443322',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    title: 'Climate Resilience & Disaster Hub Director',
+    department: 'Climate Change & Disaster Management',
+    specialization: ['Early Warning Systems', 'Emergency Logistics', 'Needs Assessment', 'Community Shelters'],
+    bio: 'Emergency Response Lead with extensive deployment across Cyclone, Flash Flood, and Coastal Disaster relief operations. Trains emergency rapid deployment volunteers and community disaster teams.',
+    status: 'Active',
+    isAuthor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-03',
+    lmsName: 'Climate Resilience & Humanitarian Action Institute',
+    createdAt: '05/02/2026',
+    assignmentsCount: 2,
+    rating: 4.88
+  },
+  {
+    id: 'inst-meherun',
+    personId: 'person-meherun',
+    name: 'Dr. Meherun Nesa',
+    email: 'meherun.nesa@brac.net',
+    contactNumber: '+880 1715-998822',
+    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=200&q=80',
+    title: 'Climate Adaptation & Flood Response Master Trainer',
+    department: 'Disaster Risk Reduction',
+    specialization: ['Flood Preparedness', 'Shelter Management', 'Post-Disaster Rehabilitation'],
+    bio: 'Specialist in rapid flood rescue protocols, tidal surge shelters, and community early warning networks in coastal belt divisions.',
+    status: 'Active',
+    isAuthor: true,
+    authorId: 'auth-meherun',
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-03',
+    lmsName: 'Climate Resilience & Humanitarian Action Institute',
+    createdAt: '12/02/2026',
+    assignmentsCount: 1,
+    rating: 4.90
+  },
+  {
+    id: 'inst-bilkis',
+    personId: 'person-bilkis',
+    name: 'Bilkis Banu',
+    email: 'bilkis.banu@brac.net',
+    contactNumber: '+880 1817-665544',
+    avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=200&q=80',
+    title: 'Head of BEP Primary Pedagogy',
+    department: 'Education & Youth Skills (BEP)',
+    specialization: ['Play-Based Pedagogy', 'Formative Child Assessment', 'Teacher Mentoring'],
+    bio: 'Lead Master Trainer for BRAC Education Programme with 14 years supporting non-formal primary and pre-primary educator certification.',
+    status: 'Active',
+    isAuthor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-04',
+    lmsName: 'BRAC Education Programme (BEP) Digital Skills Academy',
+    createdAt: '08/01/2026',
+    assignmentsCount: 2,
+    rating: 4.96
   }
 ];
 

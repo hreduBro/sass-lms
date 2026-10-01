@@ -313,7 +313,7 @@
                         <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
                           <span>Course: <strong class="text-slate-700 dark:text-slate-300">{{ rec.courseTitle }}</strong></span>
                           <span>•</span>
-                          <span>Portal: {{ rec.lmsName }}</span>
+                          <span>Category: {{ rec.courseCategory }}</span>
                         </div>
                       </div>
                     </div>
@@ -440,7 +440,6 @@
                 <tr>
                   <th class="py-3 px-4">Content Item & Course</th>
                   <th class="py-3 px-4">Type</th>
-                  <th class="py-3 px-4">LMS Portal</th>
                   <th class="py-3 px-4">Version & History</th>
                   <th class="py-3 px-4">Learner Completion</th>
                   <th class="py-3 px-4">Rating</th>
@@ -464,12 +463,6 @@
                         <span class="material-symbols-outlined text-xs">{{ getContentTypeIcon(item.contentType) }}</span>
                         <span class="capitalize">{{ item.contentType }}</span>
                       </span>
-                    </td>
-
-                    <!-- LMS Portal -->
-                    <td class="py-3.5 px-4">
-                      <div class="font-medium text-slate-900 dark:text-white">{{ item.lmsName }}</div>
-                      <div class="text-[10px] text-slate-400 font-mono">{{ item.lmsId }}</div>
                     </td>
 
                     <!-- Version & History -->
@@ -518,7 +511,7 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="py-12 text-center text-slate-500">
+                    <td colspan="6" class="py-12 text-center text-slate-500">
                       <span class="material-symbols-outlined text-3xl text-slate-400 mb-2">search_off</span>
                       <p class="text-xs">No authored content items found matching the selected filters.</p>
                     </td>

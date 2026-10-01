@@ -38,6 +38,8 @@ export interface AuthorProfile {
   isInstructor: boolean;
   instructorId?: string;
   organizationId: string;
+  lmsId: string;
+  lmsName?: string;
   createdAt: string;
   updatedAt?: string;
   authoredItemsCount?: number;
@@ -87,6 +89,7 @@ export interface AuthorCreateForm {
   role?: string;
   department?: string;
   avatar?: string;
+  lmsId?: string;
   attachments?: PersonnelAttachment[];
   isQuickAdd?: boolean;
 }
@@ -104,6 +107,8 @@ export const INITIAL_AUTHORS_REPO: AuthorProfile[] = [
     status: 'Active',
     isInstructor: false,
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '10/01/2026',
     authoredItemsCount: 5
   },
@@ -120,54 +125,10 @@ export const INITIAL_AUTHORS_REPO: AuthorProfile[] = [
     isInstructor: true,
     instructorId: 'inst-tanvir',
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '15/01/2026',
     authoredItemsCount: 4
-  },
-  {
-    id: 'auth-ayesha',
-    personId: 'person-ayesha',
-    name: 'Ayesha Siddiqua',
-    email: 'ayesha.s@brac.net',
-    contactNumber: '+880 1912-887766',
-    bio: 'Senior Pedagogical Field Researcher specializing in participatory community learning frameworks, ultra-poor household coaching materials, and social accountability assessment design.',
-    specialization: 'Instructional Design, Case Studies & Qualitative Assessments',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-    status: 'Active',
-    isInstructor: false,
-    organizationId: 'tenant-brac',
-    createdAt: '22/01/2026',
-    authoredItemsCount: 3
-  },
-  {
-    id: 'auth-kamrul',
-    personId: 'person-kamrul',
-    name: 'Kamrul Hasan',
-    email: 'kamrul.h@brac.net',
-    contactNumber: '+880 1610-998811',
-    bio: 'Curriculum Architect and Technical Content Developer. Focuses on digital toolkits, SCORM/xAPI compliant interactive sandboxes, and automated diagnostic quiz banks.',
-    specialization: 'Interactive Simulators & Assessment Question Banks',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80',
-    status: 'Active',
-    isInstructor: false,
-    organizationId: 'tenant-brac',
-    createdAt: '05/02/2026',
-    authoredItemsCount: 4
-  },
-  {
-    id: 'auth-sadia',
-    personId: 'person-sadia',
-    name: 'Sadia Rahman',
-    email: 'sadia.rahman@brac.net',
-    contactNumber: '+880 1713-334455',
-    bio: 'Digital Pedagogy & Assessment Lead. Dual role holder as Master Faculty and Instructional Designer with specialization in youth skill development pathways and adaptive question banks.',
-    specialization: 'Curriculum Architecture, Youth Pedagogy & Adaptive Quizzes',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
-    status: 'Active',
-    isInstructor: true,
-    instructorId: 'inst-sadia',
-    organizationId: 'tenant-brac',
-    createdAt: '18/02/2026',
-    authoredItemsCount: 3
   },
   {
     id: 'auth-farhana',
@@ -182,8 +143,114 @@ export const INITIAL_AUTHORS_REPO: AuthorProfile[] = [
     isInstructor: true,
     instructorId: 'inst-farhana',
     organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
     createdAt: '01/03/2026',
     authoredItemsCount: 2
+  },
+  {
+    id: 'auth-kamrul',
+    personId: 'person-kamrul',
+    name: 'Kamrul Hasan',
+    email: 'kamrul.h@brac.net',
+    contactNumber: '+880 1610-998811',
+    bio: 'Curriculum Architect and Technical Content Developer. Focuses on digital toolkits, SCORM/xAPI compliant interactive sandboxes, and automated diagnostic quiz banks.',
+    specialization: 'Interactive Simulators & Assessment Question Banks',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-01',
+    lmsName: 'BRAC Microfinance Operations & Enterprise Academy',
+    createdAt: '05/02/2026',
+    authoredItemsCount: 4
+  },
+  {
+    id: 'auth-ayesha',
+    personId: 'person-ayesha',
+    name: 'Ayesha Siddiqua',
+    email: 'ayesha.s@brac.net',
+    contactNumber: '+880 1912-887766',
+    bio: 'Senior Pedagogical Field Researcher specializing in participatory community learning frameworks, ultra-poor household coaching materials, and social accountability assessment design.',
+    specialization: 'Instructional Design, Case Studies & Qualitative Assessments',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-02',
+    lmsName: 'Ultra-Poor Graduation & Social Development Institute',
+    createdAt: '22/01/2026',
+    authoredItemsCount: 3
+  },
+  {
+    id: 'auth-sadia',
+    personId: 'person-sadia',
+    name: 'Sadia Rahman',
+    email: 'sadia.rahman@brac.net',
+    contactNumber: '+880 1713-334455',
+    bio: 'Digital Pedagogy & Assessment Lead. Dual role holder as Master Faculty and Instructional Designer with specialization in youth skill development pathways and adaptive question banks.',
+    specialization: 'Curriculum Architecture, Youth Pedagogy & Adaptive Quizzes',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: true,
+    instructorId: 'inst-sadia',
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-02',
+    lmsName: 'Ultra-Poor Graduation & Social Development Institute',
+    createdAt: '18/02/2026',
+    authoredItemsCount: 3
+  },
+  {
+    id: 'auth-shafiq',
+    personId: 'person-shafiq',
+    name: 'Shafiqul Alam',
+    email: 'shafiqul.a@brac.net',
+    contactNumber: '+880 1612-334455',
+    bio: 'Disaster response manual author and interactive cyclone simulation architect with 7+ years creating rapid-response infographics and field checklists.',
+    specialization: 'Emergency Field Manuals & Rapid Scenario Design',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-03',
+    lmsName: 'Climate Resilience & Humanitarian Action Institute',
+    createdAt: '10/02/2026',
+    authoredItemsCount: 2
+  },
+  {
+    id: 'auth-meherun',
+    personId: 'person-meherun',
+    name: 'Dr. Meherun Nesa',
+    email: 'meherun.nesa@brac.net',
+    contactNumber: '+880 1715-998822',
+    bio: 'Author of coastal flood response protocols, volunteer handbook and emergency shelter health checklists.',
+    specialization: 'Disaster Risk Reduction & Volunteer Manuals',
+    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: true,
+    instructorId: 'inst-meherun',
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-03',
+    lmsName: 'Climate Resilience & Humanitarian Action Institute',
+    createdAt: '12/02/2026',
+    authoredItemsCount: 2
+  },
+  {
+    id: 'auth-rasheda',
+    personId: 'person-rasheda',
+    name: 'Rasheda Khanam',
+    email: 'rasheda.k@brac.net',
+    contactNumber: '+880 1819-776655',
+    bio: 'Child development and non-formal primary curriculum creator for BRAC Education Programme Play Labs and digital storybooks.',
+    specialization: 'Primary Curriculum & Interactive Storybooks',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    status: 'Active',
+    isInstructor: false,
+    organizationId: 'tenant-brac',
+    lmsId: 'LMS-1972-04',
+    lmsName: 'BRAC Education Programme (BEP) Digital Skills Academy',
+    createdAt: '14/01/2026',
+    authoredItemsCount: 3
   }
 ];
 

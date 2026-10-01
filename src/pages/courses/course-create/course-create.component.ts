@@ -1721,9 +1721,9 @@ export class CourseCreateComponent implements OnInit {
     return list.filter(entry => entry.item.family === filter);
   }
 
-  // Global Author pool options for content tagging
+  // Global Author pool options for content tagging (Scoped to current active LMS)
   authorPoolOptions = computed<SelectOption[]>(() => {
-    return this.lmsService.activeAuthors().map(a => ({
+    return this.lmsService.activeLmsAuthors().filter(a => a.status === 'Active').map(a => ({
       value: a.id,
       label: `${a.name} (${a.specialization})`,
       sublabel: `${a.email}${a.isInstructor ? ' • Dual-Role Instructor' : ''}`,
@@ -1866,8 +1866,8 @@ export class CourseCreateComponent implements OnInit {
   addAuthorToContentItem(item: CourseContentItem, authorOrInstructorId: string) {
     if (!authorOrInstructorId) return;
 
-    // Check in Author pool first
-    const author = this.lmsService.authors().find(a => a.id === authorOrInstructorId || a.personId === authorOrInstructorId);
+    // Check in Active LMS Author pool first
+    const author = this.lmsService.activeLmsAuthors().find(a => a.id === authorOrInstructorId || a.personId === authorOrInstructorId);
     if (author) {
       if (!item.authors) item.authors = [];
       const alreadyTagged = item.authors.some(a => 

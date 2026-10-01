@@ -86,15 +86,26 @@ export class AuthorGridComponent {
   reassignmentSelections = signal<Record<string, string>>({}); // key: contentItemId+courseId -> replacement authorId
 
   // Metrics
-  totalAuthorsCount = computed(() => this.lms.authors().length);
-  activeAuthorsCount = computed(() => this.lms.authors().filter(a => a.status === 'Active').length);
-  dualRoleCount = computed(() => this.lms.authors().filter(a => a.isInstructor).length);
-  totalContentItemsAuthored = computed(() => this.lms.authorshipRecords().length);
+  totalAuthorsCount = computed(() => this.lms.activeLmsAuthors().length);
+  activeAuthorsCount = computed(() => this.lms.activeLmsAuthors().filter(a => a.status === 'Active').length);
+  dualRoleCount = computed(() => this.lms.activeLmsAuthors().filter(a => this.isAuthorDualRoleInCurrentLms(a)).length);
+  totalContentItemsAuthored = computed(() => {
+    const currentAuthorIds = new Set(this.lms.activeLmsAuthors().map(a => a.id));
+    return this.lms.authorshipRecords().filter(r => currentAuthorIds.has(r.authorId) || (r.lmsId === this.lms.activeLmsId())).length;
+  });
+
+  isAuthorDualRoleInCurrentLms(author: AuthorProfile): boolean {
+    const activeLmsId = this.lms.activeLmsId();
+    return this.lms.instructors().some(i => 
+      i.lmsId === activeLmsId && 
+      (i.email.toLowerCase() === author.email.toLowerCase() || (author.personId && i.personId === author.personId))
+    );
+  }
 
   // Specialization dropdown options extracted dynamically from authors
   specializationOptions = computed<SelectOption[]>(() => {
     const specs = new Set<string>();
-    for (const a of this.lms.authors()) {
+    for (const a of this.lms.activeLmsAuthors()) {
       if (a.specialization) {
         a.specialization.split(',').forEach(s => {
           const trimmed = s.trim();
@@ -145,7 +156,7 @@ export class AuthorGridComponent {
   filteredAuthors = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const f = this.appliedFilters();
-    const authors = this.lms.authors();
+    const authors = this.lms.activeLmsAuthors();
 
     return authors.filter(auth => {
       const matchQuery = !q || 
@@ -158,7 +169,7 @@ export class AuthorGridComponent {
 
       let matchRole = true;
       if (f.roles.length > 0) {
-        const isDual = auth.isInstructor;
+        const isDual = this.isAuthorDualRoleInCurrentLms(auth);
         const wantsDual = f.roles.includes('dual_role');
         const wantsOnly = f.roles.includes('author_only');
         if (wantsDual && wantsOnly) {
@@ -207,7 +218,7 @@ export class AuthorGridComponent {
   // Selected Personnel items mapped for Bulk Assign modal
   selectedPersonnelItems = computed<BulkAssignItem[]>(() => {
     const ids = this.selectedAuthorIds();
-    return this.lms.authors()
+    return this.lms.activeLmsAuthors()
       .filter(a => ids.has(a.id) && a.status === 'Active')
       .map(a => ({
         id: a.id,
@@ -222,8 +233,9 @@ export class AuthorGridComponent {
   // Candidate replacement authors for blocked deactivation modal
   replacementAuthors = computed(() => {
     const target = this.targetAuthorForDeactivation();
-    if (!target) return this.lms.activeAuthors();
-    return this.lms.activeAuthors().filter(a => a.id !== target.id);
+    const currentActive = this.lms.activeLmsAuthors().filter(a => a.status === 'Active');
+    if (!target) return currentActive;
+    return currentActive.filter(a => a.id !== target.id);
   });
 
   replacementAuthorOptions = computed<SelectOption[]>(() => {

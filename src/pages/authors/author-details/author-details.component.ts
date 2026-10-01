@@ -178,14 +178,10 @@ export class AuthorDetailsComponent implements OnInit {
 
   filteredHistory = computed(() => {
     let records = this.enrichedHistory();
-    const lmsFilter = this.selectedLmsFilter();
     const cType = this.contentTypeFilter();
     const cStat = this.courseStatusFilter();
     const query = this.searchQuery().trim().toLowerCase();
 
-    if (lmsFilter !== 'all') {
-      records = records.filter(r => r.lmsId === lmsFilter);
-    }
     if (cType !== 'All') {
       records = records.filter(r => r.contentType.toLowerCase() === cType.toLowerCase());
     }

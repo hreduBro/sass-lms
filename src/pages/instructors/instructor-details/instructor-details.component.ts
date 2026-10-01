@@ -46,7 +46,7 @@ export class InstructorDetailsComponent implements OnInit {
 
   instructorId = signal<string>('');
   activeTab = signal<'dashboard' | 'details' | 'feedback' | 'bio' | 'profile'>('dashboard');
-  selectedLmsFilter = signal<string>('all');
+  selectedDeliveryModeFilter = signal<string>('all');
   selectedLayerFilter = signal<string>('all');
   searchQuery = signal<string>('');
 
@@ -236,24 +236,23 @@ export class InstructorDetailsComponent implements OnInit {
     return portals.size || 2;
   });
 
-  // Unique LMS options for custom select filter
-  lmsFilterOptions = computed<SelectOption[]>(() => {
-    return [
-      { value: 'all', label: 'All LMS Portals', sublabel: 'Filter across all enterprise hubs', icon: 'hub' },
-      { value: 'LMS-1972-01', label: 'Enterprise Leadership Portal', sublabel: 'ID: LMS-1972-01', icon: 'school' },
-      { value: 'LMS-1972-02', label: 'Community Development Academy', sublabel: 'ID: LMS-1972-02', icon: 'school' },
-      { value: 'LMS-1972-03', label: 'Health & Nutrition Training Portal', sublabel: 'ID: LMS-1972-03', icon: 'school' }
-    ];
-  });
+  // Delivery Mode options for custom select filter
+  deliveryModeOptions: SelectOption[] = [
+    { value: 'all', label: 'All Delivery Modes', sublabel: 'Filter across all modes', icon: 'hub' },
+    { value: 'Online Interactive', label: 'Online Interactive', sublabel: 'Self-paced / e-Learning', icon: 'devices' },
+    { value: 'In-Person Workshop', label: 'In-Person Workshop', sublabel: 'Physical classroom & lab', icon: 'groups' },
+    { value: 'Blended Classroom', label: 'Blended Classroom', sublabel: 'Hybrid delivery', icon: 'layers' },
+    { value: 'Live Virtual Lab', label: 'Live Virtual Lab', sublabel: 'Synchronous online cohort', icon: 'video_camera_front' }
+  ];
 
   filteredAssignments = computed(() => {
     let records = this.enrichedAssignments();
-    const lmsFilter = this.selectedLmsFilter();
+    const modeFilter = this.selectedDeliveryModeFilter();
     const layerFilter = this.selectedLayerFilter();
     const query = this.searchQuery().trim().toLowerCase();
 
-    if (lmsFilter !== 'all') {
-      records = records.filter(r => r.lmsId === lmsFilter);
+    if (modeFilter !== 'all') {
+      records = records.filter(r => r.deliveryMode.toLowerCase().includes(modeFilter.toLowerCase()));
     }
     if (layerFilter !== 'all') {
       records = records.filter(r => r.layerType.toLowerCase().includes(layerFilter.toLowerCase()));
@@ -262,8 +261,7 @@ export class InstructorDetailsComponent implements OnInit {
       records = records.filter(r =>
         r.courseTitle.toLowerCase().includes(query) ||
         r.courseCode.toLowerCase().includes(query) ||
-        r.layer.toLowerCase().includes(query) ||
-        r.lmsName.toLowerCase().includes(query)
+        r.layer.toLowerCase().includes(query)
       );
     }
     return records;

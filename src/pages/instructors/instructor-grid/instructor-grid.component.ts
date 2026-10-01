@@ -93,15 +93,23 @@ export class InstructorGridComponent {
   reassignmentSelections = signal<Record<string, string>>({}); // key: assignmentId -> replacement instructorId
 
   // Metrics (§1)
-  totalInstructorsCount = computed(() => this.lms.instructors().length);
-  activeInstructorsCount = computed(() => this.lms.instructors().filter(i => i.status === 'Active').length);
-  dualRoleCount = computed(() => this.lms.instructors().filter(i => i.isAuthor).length);
-  totalAssignmentsCount = computed(() => this.lms.instructorAssignments().length);
+  totalInstructorsCount = computed(() => this.lms.activeLmsInstructors().length);
+  activeInstructorsCount = computed(() => this.lms.activeLmsInstructors().filter(i => i.status === 'Active').length);
+  dualRoleCount = computed(() => {
+    const authors = this.lms.activeLmsAuthors();
+    return this.lms.activeLmsInstructors().filter(inst =>
+      authors.some(a => a.email.toLowerCase() === inst.email.toLowerCase() || (inst.authorId && a.id === inst.authorId))
+    ).length;
+  });
+  totalAssignmentsCount = computed(() => {
+    const currentInstIds = new Set(this.lms.activeLmsInstructors().map(i => i.id));
+    return this.lms.instructorAssignments().filter(a => currentInstIds.has(a.instructorId) || a.lmsId === this.lms.activeLmsId()).length;
+  });
 
   // Dynamic Specialization Options extracted from instructors
   specializationOptions = computed<SelectOption[]>(() => {
     const specs = new Set<string>();
-    for (const inst of this.lms.instructors()) {
+    for (const inst of this.lms.activeLmsInstructors()) {
       if (inst.specialization && Array.isArray(inst.specialization)) {
         inst.specialization.forEach(s => {
           const trimmed = s.trim();
@@ -119,7 +127,7 @@ export class InstructorGridComponent {
   // Dynamic Department Options extracted from instructors
   departmentOptions = computed<SelectOption[]>(() => {
     const deps = new Set<string>();
-    for (const inst of this.lms.instructors()) {
+    for (const inst of this.lms.activeLmsInstructors()) {
       if (inst.department && inst.department.trim()) {
         deps.add(inst.department.trim());
       }
@@ -170,7 +178,8 @@ export class InstructorGridComponent {
   filteredInstructors = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const f = this.appliedFilters();
-    const instructors = this.lms.instructors();
+    const instructors = this.lms.activeLmsInstructors();
+    const authorsInCurrentLms = this.lms.activeLmsAuthors();
 
     return instructors.filter(inst => {
       const matchQuery = !q ||
@@ -185,7 +194,7 @@ export class InstructorGridComponent {
 
       let matchRole = true;
       if (f.roles.length > 0) {
-        const isDual = inst.isAuthor;
+        const isDual = authorsInCurrentLms.some(a => a.email.toLowerCase() === inst.email.toLowerCase() || (inst.authorId && a.id === inst.authorId));
         const wantsDual = f.roles.includes('dual_role');
         const wantsOnly = f.roles.includes('instructor_only');
         if (wantsDual && wantsOnly) {
@@ -240,7 +249,7 @@ export class InstructorGridComponent {
   // Selected Personnel items mapped for Bulk Assign modal
   selectedPersonnelItems = computed<BulkAssignItem[]>(() => {
     const ids = this.selectedInstructorIds();
-    return this.lms.instructors()
+    return this.lms.activeLmsInstructors()
       .filter(i => ids.has(i.id) && i.status === 'Active')
       .map(i => ({
         id: i.id,
@@ -255,8 +264,9 @@ export class InstructorGridComponent {
   // Candidate replacement instructors for deactivation block modal
   replacementInstructors = computed(() => {
     const target = this.targetInstructorForDeactivation();
-    if (!target) return this.lms.activeInstructors();
-    return this.lms.activeInstructors().filter(i => i.id !== target.id);
+    const active = this.lms.activeLmsInstructors().filter(i => i.status === 'Active');
+    if (!target) return active;
+    return active.filter(i => i.id !== target.id);
   });
 
   resolutionOptions = computed<SelectOption[]>(() => {
