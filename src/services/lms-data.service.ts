@@ -259,6 +259,15 @@ import {
   INITIAL_OFFLINE_TRAINING_EMBEDDINGS,
   INITIAL_OFFLINE_TRAINEE_RESULTS
 } from '../models/offline-training.model';
+import {
+  RepositoryItem,
+  SharingMode,
+  ContentStatus,
+  INITIAL_REPOSITORY_ITEMS,
+  evaluateAutomaticStatus,
+  formatDateToDDMMYYYY,
+  parseDateString
+} from '../models/content-repository.model';
 
 const INITIAL_TENANTS: Tenant[] = [
   {
@@ -2699,6 +2708,213 @@ export class LmsDataService {
   activeInstructors = computed<InstructorProfile[]>(() => {
     return this.activeLmsInstructors().filter(i => i.status === 'Active');
   });
+
+  // =========================================================================
+  // CONTENT REPOSITORY & SHARING STORE (§0 - §6)
+  // =========================================================================
+  repositoryItems = signal<RepositoryItem[]>(INITIAL_REPOSITORY_ITEMS);
+
+  // Items visible in the current LMS workspace:
+  // 1. Items owned by this LMS (owningLmsId === activeLmsId)
+  // 2. Items shared-in from other LMS under the same Organization (Drafts excluded)
+  activeLmsRepositoryItems = computed<RepositoryItem[]>(() => {
+    const activeLms = this.activeLms();
+    const lmsId = activeLms ? activeLms.id : this.activeLmsId();
+    const activeOrgId = this.activeTenantId();
+    const all = this.repositoryItems();
+
+    return all.filter(item => {
+      // 1. Owner LMS: sees all items created here
+      if (item.owningLmsId === lmsId) {
+        return true;
+      }
+
+      // 2. Shared-in content from sister LMS under the same Organization
+      // Note: Drafts are never visible to other LMS
+      if (item.owningOrganizationId === activeOrgId && item.status !== 'Draft') {
+        if (item.sharingMode === 'Organization-wide') {
+          return true;
+        }
+        if (item.sharingMode === 'Custom Share' && item.sharedWithLmsIds && item.sharedWithLmsIds.includes(lmsId)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  });
+
+  createRepositoryItem(data: Partial<RepositoryItem>, isDraft: boolean): RepositoryItem {
+    const activeLms = this.activeLms();
+    const activeOrg = this.activeTenant();
+    const now = new Date();
+    const formattedNow = formatDateToDDMMYYYY(now);
+    const pubDate = data.publishDate || formattedNow;
+    const expDate = data.hasNoExpiry ? null : (data.expiryDate || null);
+    const status: ContentStatus = isDraft
+      ? 'Draft'
+      : evaluateAutomaticStatus('Active', pubDate, expDate, !!data.hasNoExpiry, now);
+
+    const newItem: RepositoryItem = {
+      id: `repo-item-${Date.now()}`,
+      title: data.title || 'Untitled Repository Item',
+      titleBangla: data.titleBangla || '',
+      family: data.family || 'Learning',
+      type: data.type || 'PDF / Document',
+      authorIds: data.authorIds || [],
+      authorNames: data.authorNames && data.authorNames.length > 0 ? data.authorNames : ['Tanvir Hossain'],
+      publishDate: pubDate,
+      expiryDate: expDate,
+      hasNoExpiry: !!data.hasNoExpiry,
+      description: data.description || '',
+      thumbnailUrl: data.thumbnailUrl,
+      altText: data.altText,
+      owningLmsId: activeLms ? activeLms.id : this.activeLmsId(),
+      owningLmsName: activeLms ? activeLms.basicInfo.lmsName : 'Current LMS',
+      owningOrganizationId: activeOrg ? activeOrg.id : this.activeTenantId(),
+      sharingMode: data.sharingMode || 'Private',
+      sharedWithLmsIds: data.sharedWithLmsIds || [],
+      status,
+      createdAt: formattedNow,
+      updatedAt: formattedNow,
+      createdBy: this.activeRole(),
+      contentConfig: data.contentConfig || { fileCategory: 'PDF', fileName: 'sample.pdf', fileSize: '1.0 MB' } as any,
+      referencedInPlansCount: 0,
+      referencedInCoursesCount: 0,
+      referencedEntities: []
+    };
+
+    this.repositoryItems.update(prev => [newItem, ...prev]);
+    this.showToast(
+      isDraft
+        ? `Saved repository draft "${newItem.title}"`
+        : `Published repository item "${newItem.title}" (${newItem.status})`,
+      'success'
+    );
+    return newItem;
+  }
+
+  updateRepositoryItem(id: string, data: Partial<RepositoryItem>): void {
+    const now = new Date();
+    const formattedNow = formatDateToDDMMYYYY(now);
+
+    this.repositoryItems.update(list =>
+      list.map(item => {
+        if (item.id !== id) return item;
+
+        const hasNoExp = data.hasNoExpiry !== undefined ? data.hasNoExpiry : item.hasNoExpiry;
+        const pubDate = data.publishDate || item.publishDate;
+        const expDate = hasNoExp ? null : (data.expiryDate !== undefined ? data.expiryDate : item.expiryDate);
+
+        // If it was draft and being published or vice-versa
+        let updatedStatus = item.status;
+        if (item.status === 'Draft' && data.status && data.status !== 'Draft') {
+          updatedStatus = evaluateAutomaticStatus(data.status, pubDate, expDate, hasNoExp, now);
+        } else if (item.status !== 'Draft' && item.status !== 'Inactive') {
+          updatedStatus = evaluateAutomaticStatus(item.status, pubDate, expDate, hasNoExp, now);
+        }
+
+        return {
+          ...item,
+          ...data,
+          publishDate: pubDate,
+          expiryDate: expDate,
+          hasNoExpiry: hasNoExp,
+          status: data.status || updatedStatus,
+          updatedAt: formattedNow
+        };
+      })
+    );
+    this.showToast('Repository item updated successfully', 'info');
+  }
+
+  updateRepositoryItemSharing(id: string, sharingMode: SharingMode, sharedWithLmsIds?: string[]): void {
+    const formattedNow = formatDateToDDMMYYYY(new Date());
+    this.repositoryItems.update(list =>
+      list.map(item => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          sharingMode,
+          sharedWithLmsIds: sharingMode === 'Custom Share' ? (sharedWithLmsIds || []) : [],
+          updatedAt: formattedNow
+        };
+      })
+    );
+    this.showToast(`Sharing permissions updated to "${sharingMode}"`, 'success');
+  }
+
+  updateRepositoryItemExpiry(id: string, expiryDate: string | null, hasNoExpiry: boolean): void {
+    const now = new Date();
+    const formattedNow = formatDateToDDMMYYYY(now);
+
+    this.repositoryItems.update(list =>
+      list.map(item => {
+        if (item.id !== id) return item;
+        const newStatus = evaluateAutomaticStatus(item.status, item.publishDate, expiryDate, hasNoExpiry, now);
+        return {
+          ...item,
+          expiryDate: hasNoExpiry ? null : expiryDate,
+          hasNoExpiry,
+          status: newStatus,
+          updatedAt: formattedNow
+        };
+      })
+    );
+    this.showToast('Expiry date updated successfully', 'success');
+  }
+
+  toggleRepositoryItemStatus(id: string, targetStatus: 'Active' | 'Inactive'): void {
+    const formattedNow = formatDateToDDMMYYYY(new Date());
+    this.repositoryItems.update(list =>
+      list.map(item => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          status: targetStatus,
+          updatedAt: formattedNow
+        };
+      })
+    );
+    this.showToast(
+      targetStatus === 'Active'
+        ? 'Repository item activated and now available to learners'
+        : 'Repository item deactivated across all LMS',
+      targetStatus === 'Active' ? 'success' : 'info'
+    );
+  }
+
+  cloneRepositoryItem(id: string, newTitleSuffix = ' (Copy)'): RepositoryItem {
+    const item = this.repositoryItems().find(r => r.id === id);
+    if (!item) throw new Error('Item not found');
+    const now = new Date();
+    const formattedNow = formatDateToDDMMYYYY(now);
+    const activeLms = this.activeLms();
+
+    const cloned: RepositoryItem = {
+      ...JSON.parse(JSON.stringify(item)),
+      id: `repo-item-${Date.now()}`,
+      title: `${item.title}${newTitleSuffix}`.slice(0, 199),
+      owningLmsId: activeLms ? activeLms.id : this.activeLmsId(),
+      owningLmsName: activeLms ? activeLms.basicInfo.lmsName : item.owningLmsName,
+      status: 'Draft',
+      createdAt: formattedNow,
+      updatedAt: formattedNow,
+      referencedInPlansCount: 0,
+      referencedInCoursesCount: 0,
+      referencedEntities: []
+    };
+
+    this.repositoryItems.update(prev => [cloned, ...prev]);
+    this.showToast(`Created new editable version "${cloned.title}"`, 'info');
+    return cloned;
+  }
+
+  deleteRepositoryItem(id: string): void {
+    const item = this.repositoryItems().find(r => r.id === id);
+    this.repositoryItems.update(prev => prev.filter(r => r.id !== id));
+    this.showToast(`Deleted repository item "${item?.title || id}"`, 'info');
+  }
 
   // Venue Management Store (BRD §4.11)
   venues = signal<Venue[]>(INITIAL_VENUES);

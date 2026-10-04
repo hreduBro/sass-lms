@@ -460,7 +460,7 @@ export class CustomSelectComponent implements ControlValueAccessor, OnDestroy {
     if (this.multiple()) {
       return Array.isArray(val) && val.length > 0;
     }
-    return val !== null && val !== undefined && val !== '';
+    return val !== null && val !== undefined && val !== '' && val !== 'all' && val !== 'All';
   });
 
   normalizedFilteredOptions = computed(() => {

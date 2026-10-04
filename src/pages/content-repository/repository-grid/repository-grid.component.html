@@ -1,0 +1,1180 @@
+<div class="space-y-6 pb-16">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. WORKSPACE HEADER & SCOPE BANNER                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800">
+          Centralized Content Store
+        </span>
+        <span class="text-xs text-text-secondary">
+          Organization: <strong class="font-bold text-text-primary">{{ activeOrg().name }}</strong>
+          &bull; LMS: <strong class="text-text-primary">{{ activeLms()?.basicInfo?.lmsName || 'Current LMS' }}</strong>
+        </span>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-3xl">folder_special</span>
+        <span>Content Repository & Sharing</span>
+      </h1>
+
+      <p class="text-xs sm:text-sm text-text-secondary mt-0.5">
+        Manage reusable learning & assessment items. Referenced live across Plans, Phases, and Courses without duplication.
+      </p>
+    </div>
+
+    <!-- Top-Right Actions -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <a
+        routerLink="/content-repository/create"
+        id="btn-create-repo-item"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span>Create Repository Item</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. KPI METRIC CARDS (DESIGNED LIKE LMS DASHBOARD)                         -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    
+    <!-- 1. Total Items -->
+    <div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Visible Assets</span>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-tenant-50 dark:bg-tenant-950/60 text-tenant-600 dark:text-tenant-400">
+          <span class="material-symbols-outlined text-[19px]">folder_special</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-3xl font-extrabold tracking-tight font-sans text-text-primary">
+            {{ kpiMetrics().total }}
+          </span>
+          <div class="flex items-center gap-0.5 text-xs font-medium text-tenant-600 dark:text-tenant-400">
+            <span class="material-symbols-outlined text-xs">database</span>
+            <span>Central</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+          Total in repository scope
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Active & Available -->
+    <div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Active & Live</span>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+          <span class="material-symbols-outlined text-[19px]">check_circle</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-3xl font-extrabold tracking-tight font-sans text-emerald-600 dark:text-emerald-400">
+            {{ kpiMetrics().active }}
+          </span>
+          <div class="flex items-center gap-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span class="material-symbols-outlined text-xs">done_all</span>
+            <span>Available</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+          Learners can view & study
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Scheduled Content -->
+    <div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Scheduled</span>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400">
+          <span class="material-symbols-outlined text-[19px]">schedule</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-3xl font-extrabold tracking-tight font-sans text-sky-600 dark:text-sky-400">
+            {{ kpiMetrics().scheduled }}
+          </span>
+          <div class="flex items-center gap-0.5 text-xs font-medium text-sky-600 dark:text-sky-400">
+            <span class="material-symbols-outlined text-xs">pending</span>
+            <span>Upcoming</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+          Releases on publish date
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Shared Across Org -->
+    <div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Shared Across Org</span>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
+          <span class="material-symbols-outlined text-[19px]">share</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-3xl font-extrabold tracking-tight font-sans text-purple-600 dark:text-purple-400">
+            {{ kpiMetrics().sharedOut }}
+          </span>
+          <div class="flex items-center gap-0.5 text-xs font-medium text-purple-600 dark:text-purple-400">
+            <span class="material-symbols-outlined text-xs">hub</span>
+            <span>Syndicated</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+          Shared with sister portals
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Shared-in from Other LMS -->
+    <div class="p-5 sm:p-6 rounded-[28px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between min-h-[140px]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Shared-in (Received)</span>
+        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+          <span class="material-symbols-outlined text-[19px]">move_to_inbox</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-3xl font-extrabold tracking-tight font-sans text-amber-600 dark:text-amber-400">
+            {{ kpiMetrics().sharedIn }}
+          </span>
+          <div class="flex items-center gap-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+            <span class="material-symbols-outlined text-xs">input</span>
+            <span>External</span>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400 dark:text-text-secondary mt-1.5 line-clamp-1">
+          Originated from sister LMS
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. TOP TOOLBAR: SEARCHBOX + FILTER OPTION (LIKE LMS GRID)                 -->
+  <!-- ========================================================================= -->
+  <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-3.5 sm:p-4 shadow-2xs space-y-3">
+    
+    <!-- Row 1: Searchbox, Filter Button, Reset Button, and View Switcher -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      
+      <!-- Left side: Search + Filter Toggle + Reset -->
+      <div class="flex items-center gap-2.5 sm:gap-3 flex-1 max-w-3xl flex-wrap sm:flex-nowrap">
+        
+        <!-- Search Field -->
+        <div class="relative flex-1 min-w-[200px]">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg pointer-events-none">
+            search
+          </span>
+          <input
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search repository items by title, Bangla, or author..."
+            class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-base-200/50 border border-slate-200/80 dark:border-base-300 text-xs sm:text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-tenant-500 transition-all shadow-2xs" />
+
+          @if (searchQuery()) {
+            <button
+              type="button"
+              (click)="clearSearch()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-0.5 rounded-md cursor-pointer transition-colors"
+              title="Clear Search">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Filter Option Button (Like LMS Grid) -->
+        <button
+          type="button"
+          (click)="toggleFilterPanel()"
+          class="px-4 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+          [class]="isFilterOpen() || hasActiveFilters()
+            ? 'bg-tenant-500 text-white border-tenant-500 shadow-sm'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-base-300 dark:bg-base-200/70'"
+          title="Toggle Filter Options Panel">
+          <span class="material-symbols-outlined text-base">filter_list</span>
+          <span>Filter</span>
+          @if (activeFilterCount() > 0) {
+            <span class="w-4 h-4 rounded-full bg-white text-tenant-600 text-[10px] font-bold flex items-center justify-center shadow-xs">
+              {{ activeFilterCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Reset Button (When filters active) -->
+        @if (hasActiveFilters()) {
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="px-3.5 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap animate-in fade-in"
+            title="Reset All Filters">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        }
+      </div>
+
+      <!-- Right side: View Switcher -->
+      <div class="flex items-center justify-end gap-2.5 self-end sm:self-auto flex-shrink-0 flex-wrap">
+        <!-- View Mode Switcher (Grid / Table) -->
+        <div class="flex items-center bg-slate-50 dark:bg-base-200 p-1 rounded-2xl border border-slate-200/80 dark:border-base-300">
+          <button
+            type="button"
+            (click)="viewMode.set('table')"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'table' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+            title="Table View">
+            <span class="material-symbols-outlined text-base leading-none">table_rows</span>
+          </button>
+          <button
+            type="button"
+            (click)="viewMode.set('grid')"
+            class="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+            [class]="viewMode() === 'grid' ? 'bg-white dark:bg-base-100 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200/40 dark:border-transparent font-bold' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'"
+            title="Grid View">
+            <span class="material-symbols-outlined text-base leading-none">grid_view</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Inline Filter Selectors (Family, Content Type, Status, Source, Sort By) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-200/60 dark:border-base-300/60">
+      <div>
+        <app-custom-select
+          label="Family"
+          [clearable]="false"
+          [options]="familyOptions"
+          [ngModel]="selectedFamily()"
+          (ngModelChange)="selectedFamily.set($event)">
+        </app-custom-select>
+      </div>
+
+      <div>
+        <app-custom-select
+          label="Content Type"
+          [clearable]="false"
+          [searchable]="true"
+          [options]="typeOptions"
+          [ngModel]="selectedType()"
+          (ngModelChange)="selectedType.set($event)">
+        </app-custom-select>
+      </div>
+
+      <div>
+        <app-custom-select
+          label="Status"
+          [clearable]="false"
+          [options]="statusOptions"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event)">
+        </app-custom-select>
+      </div>
+
+      <div>
+        <app-custom-select
+          label="Source"
+          [clearable]="false"
+          [options]="sourceOptions"
+          [ngModel]="selectedSource()"
+          (ngModelChange)="selectedSource.set($event)">
+        </app-custom-select>
+      </div>
+
+      <div>
+        <app-custom-select
+          label="Sort By"
+          [clearable]="false"
+          [options]="sortOptions"
+          [ngModel]="sortBy()"
+          (ngModelChange)="sortBy.set($event)">
+        </app-custom-select>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- EXPANDABLE FILTER PANEL DRAWER (LIKE LMS GRID)                          -->
+    <!-- ======================================================================= -->
+    @if (isFilterOpen()) {
+      <div class="p-5 rounded-2xl bg-base-50/70 dark:bg-base-200/40 border border-tenant-500/20 shadow-xs space-y-4 animate-in fade-in slide-in-from-top-2">
+        <div class="flex items-center justify-between pb-2 border-b border-base-300">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tenant-600 text-lg">tune</span>
+            <span class="text-xs font-bold text-text-primary uppercase tracking-wider">Advanced Filter Options</span>
+          </div>
+          <button (click)="isFilterOpen.set(false)" class="text-slate-400 hover:text-text-primary cursor-pointer p-1">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- 1. Family -->
+          <app-filter-section title="1. Content Family">
+            <div class="flex flex-col gap-1.5">
+              @for (fam of familyOptions; track fam.value) {
+                <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="radio"
+                    name="filter_family"
+                    [value]="fam.value"
+                    [checked]="selectedFamily() === fam.value"
+                    (change)="selectedFamily.set(fam.value)"
+                    class="text-tenant-500 focus:ring-tenant-500 cursor-pointer" />
+                  <span [class.font-bold]="selectedFamily() === fam.value">{{ fam.label }}</span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+
+          <!-- 2. Status -->
+          <app-filter-section title="2. Lifecycle Status">
+            <div class="flex flex-col gap-1.5">
+              @for (st of statusOptions; track st.value) {
+                <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="radio"
+                    name="filter_status"
+                    [value]="st.value"
+                    [checked]="selectedStatus() === st.value"
+                    (change)="selectedStatus.set(st.value)"
+                    class="text-tenant-500 focus:ring-tenant-500 cursor-pointer" />
+                  <span [class.font-bold]="selectedStatus() === st.value">{{ st.label }}</span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+
+          <!-- 3. Source -->
+          <app-filter-section title="3. Originating Source">
+            <div class="flex flex-col gap-1.5">
+              @for (src of sourceOptions; track src.value) {
+                <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="radio"
+                    name="filter_source"
+                    [value]="src.value"
+                    [checked]="selectedSource() === src.value"
+                    (change)="selectedSource.set(src.value)"
+                    class="text-tenant-500 focus:ring-tenant-500 cursor-pointer" />
+                  <span [class.font-bold]="selectedSource() === src.value">{{ src.label }}</span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+
+          <!-- 4. Sort By -->
+          <app-filter-section title="4. Sort Criteria">
+            <div class="flex flex-col gap-1.5">
+              @for (sort of sortOptions; track sort.value) {
+                <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="radio"
+                    name="filter_sort"
+                    [value]="sort.value"
+                    [checked]="sortBy() === sort.value"
+                    (change)="sortBy.set($any(sort.value))"
+                    class="text-tenant-500 focus:ring-tenant-500 cursor-pointer" />
+                  <span [class.font-bold]="sortBy() === sort.value">{{ sort.label }}</span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-base-300">
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="text-xs font-semibold text-rose-600 hover:text-rose-700 cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>
+            <span>Clear All Selections</span>
+          </button>
+          <button
+            type="button"
+            (click)="isFilterOpen.set(false)"
+            class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer">
+            Apply & Close
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Active Filter Chips Row -->
+    @if (hasActiveFilters()) {
+      <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-base-300/60">
+        <span class="text-[11px] font-semibold text-text-secondary">Active Filters:</span>
+
+        @if (searchQuery().trim()) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Query: <strong>"{{ searchQuery() }}"</strong></span>
+            <button type="button" (click)="clearSearch()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedFamily() !== 'All') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Family: <strong>{{ selectedFamily() }}</strong></span>
+            <button type="button" (click)="removeFamilyFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedType() !== 'All') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Type: <strong>{{ selectedType() }}</strong></span>
+            <button type="button" (click)="removeTypeFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedStatus() !== 'All') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Status: <strong>{{ selectedStatus() }}</strong></span>
+            <button type="button" (click)="removeStatusFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (selectedSource() !== 'All') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Source: <strong>{{ selectedSource() }}</strong></span>
+            <button type="button" (click)="removeSourceFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        @if (sortBy() !== 'createdAt') {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-base-200 border border-base-300 text-text-primary">
+            <span>Sort: <strong>{{ sortBy() }}</strong></span>
+            <button type="button" (click)="removeSortFilter()" class="hover:text-rose-600 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">close</span>
+            </button>
+          </span>
+        }
+
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="text-xs text-rose-600 hover:text-rose-700 underline font-semibold ml-1 cursor-pointer">
+          Clear all
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. REDESIGNED REPOSITORY TABLE VIEW (MATCHING EXISTING TABLE THEME)       -->
+  <!-- ========================================================================= -->
+  @if (viewMode() === 'table') {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 overflow-hidden shadow-2xs">
+      <div class="overflow-x-auto">
+        <table class="min-w-[1100px] w-full text-left text-xs border-separate border-spacing-0">
+          <thead class="bg-base-200/90 dark:bg-base-200 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
+            <tr>
+              <!-- 1. Repository Name -->
+              <th scope="col" class="py-3.5 px-4 min-w-[280px] border-b border-base-300 cursor-pointer hover:text-text-primary select-none" (click)="toggleSort('title')">
+                <div class="flex items-center gap-1.5">
+                  <span>Repository Name</span>
+                  @if (sortBy() === 'title') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 font-bold">
+                      {{ sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                    </span>
+                  }
+                </div>
+              </th>
+
+              <!-- 2. Family -->
+              <th scope="col" class="py-3.5 px-4 min-w-[120px] border-b border-base-300">Family</th>
+
+              <!-- 3. Content Type -->
+              <th scope="col" class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Content Type</th>
+
+              <!-- 4. Source -->
+              <th scope="col" class="py-3.5 px-4 min-w-[160px] border-b border-base-300">Source</th>
+
+              <!-- 5. Created On -->
+              <th scope="col" class="py-3.5 px-4 min-w-[120px] border-b border-base-300 cursor-pointer hover:text-text-primary select-none" (click)="toggleSort('createdAt')">
+                <div class="flex items-center gap-1.5">
+                  <span>Created On</span>
+                  @if (sortBy() === 'createdAt') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 font-bold">
+                      {{ sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                    </span>
+                  }
+                </div>
+              </th>
+
+              <!-- 6. Publish Date -->
+              <th scope="col" class="py-3.5 px-4 min-w-[120px] border-b border-base-300 cursor-pointer hover:text-text-primary select-none" (click)="toggleSort('publishDate')">
+                <div class="flex items-center gap-1.5">
+                  <span>Publish Date</span>
+                  @if (sortBy() === 'publishDate') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 font-bold">
+                      {{ sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                    </span>
+                  }
+                </div>
+              </th>
+
+              <!-- 7. Expiry Date -->
+              <th scope="col" class="py-3.5 px-4 min-w-[120px] border-b border-base-300 cursor-pointer hover:text-text-primary select-none" (click)="toggleSort('expiryDate')">
+                <div class="flex items-center gap-1.5">
+                  <span>Expiry Date</span>
+                  @if (sortBy() === 'expiryDate') {
+                    <span class="material-symbols-outlined text-xs text-tenant-600 font-bold">
+                      {{ sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                    </span>
+                  }
+                </div>
+              </th>
+
+              <!-- 8. Status -->
+              <th scope="col" class="py-3.5 px-4 min-w-[120px] border-b border-base-300">Status</th>
+
+              <!-- 9. Actions (Sticky column matching LMS List) -->
+              <th scope="col" class="py-3.5 px-4 text-right sticky right-0 bg-base-200 dark:bg-base-200 z-10 w-[170px] min-w-[170px] border-b border-l border-base-300 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of filteredItems(); track item.id) {
+              <tr 
+                (click)="openViewModal(item)"
+                class="group hover:bg-base-200/50 transition-colors cursor-pointer">
+                
+                <!-- 1. Repository Name -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <div class="flex items-start gap-3 min-w-[240px]">
+                    <!-- Thumbnail preview with theme styling -->
+                    <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-base-300 dark:border-base-200 bg-base-200 flex items-center justify-center shadow-2xs">
+                      @if (item.thumbnailUrl) {
+                        <img
+                          [src]="item.thumbnailUrl"
+                          [alt]="item.altText || item.title"
+                          referrerpolicy="no-referrer"
+                          class="w-full h-full object-cover" />
+                      } @else {
+                        <span class="material-symbols-outlined text-lg" [class]="getTypeColorClass(item.type).split(' ')[0]">
+                          {{ getTypeIcon(item.type) }}
+                        </span>
+                      }
+                    </div>
+
+                    <div class="min-w-0">
+                      <span class="font-bold text-text-primary block group-hover:text-tenant-600 transition-colors line-clamp-1">
+                        {{ item.title }}
+                      </span>
+
+                      @if (item.titleBangla) {
+                        <span class="text-[11px] text-text-tertiary block line-clamp-1 font-serif">
+                          {{ item.titleBangla }}
+                        </span>
+                      }
+
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-text-secondary mt-0.5">
+                        <span class="flex items-center gap-1">
+                          <span class="material-symbols-outlined text-[12px] text-text-tertiary">person</span>
+                          <span>{{ item.authorNames.join(', ') }}</span>
+                        </span>
+                        @if (item.referencedInPlansCount > 0 || item.referencedInCoursesCount > 0) {
+                          <span class="text-text-tertiary">&bull;</span>
+                          <span class="text-tenant-600 dark:text-tenant-400 font-semibold flex items-center gap-0.5">
+                            <span class="material-symbols-outlined text-[12px]">link</span>
+                            <span>{{ item.referencedInPlansCount + item.referencedInCoursesCount }} plans/courses</span>
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. Family -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border shadow-2xs"
+                    [class]="item.family === 'Learning'
+                      ? 'bg-tenant-50 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-300 border-tenant-200 dark:border-tenant-800'
+                      : 'bg-purple-50 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800'">
+                    <span class="material-symbols-outlined text-xs">
+                      {{ item.family === 'Learning' ? 'school' : 'quiz' }}
+                    </span>
+                    <span>{{ item.family }}</span>
+                  </span>
+                </td>
+
+                <!-- 3. Content Type -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border shadow-2xs"
+                    [class]="getTypeColorClass(item.type)">
+                    <span class="material-symbols-outlined text-xs">
+                      {{ getTypeIcon(item.type) }}
+                    </span>
+                    <span class="truncate max-w-[130px]">{{ item.type }}</span>
+                  </span>
+                </td>
+
+                <!-- 4. Source -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  @if (isOwner(item)) {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-base-200 border border-base-300 text-text-primary shadow-2xs">
+                      <span class="material-symbols-outlined text-xs text-tenant-600">home</span>
+                      <span>This LMS</span>
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs" title="Shared by sister LMS">
+                      <span class="material-symbols-outlined text-xs text-amber-600">move_to_inbox</span>
+                      <span class="truncate max-w-[110px]">{{ item.owningLmsName }}</span>
+                    </span>
+                  }
+                </td>
+
+                <!-- 5. Created On -->
+                <td class="py-3.5 px-4 border-b border-base-300/60 text-text-secondary font-mono text-[11px]">
+                  {{ item.createdAt }}
+                </td>
+
+                <!-- 6. Publish Date -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <span class="font-mono text-[11px] text-text-primary font-medium block">{{ item.publishDate }}</span>
+                  @if (item.status === 'Scheduled') {
+                    <span class="text-[10px] text-sky-600 font-semibold block">Scheduled</span>
+                  }
+                </td>
+
+                <!-- 7. Expiry Date -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  @if (item.hasNoExpiry) {
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-base-200 text-text-secondary border border-base-300">
+                      No Expiry
+                    </span>
+                  } @else {
+                    <span class="font-mono text-[11px] text-text-primary">{{ item.expiryDate || 'N/A' }}</span>
+                  }
+                </td>
+
+                <!-- 8. Status -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border shadow-2xs"
+                    [class]="getStatusBadgeClass(item.status)">
+                    @if (item.status === 'Active') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    } @else if (item.status === 'Scheduled') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    } @else if (item.status === 'Draft') {
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    } @else {
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    }
+                    {{ item.status }}
+                  </span>
+                </td>
+
+                <!-- 9. Actions (Sticky column matching LMS List) -->
+                <td 
+                  class="py-3.5 px-4 text-right sticky right-0 bg-white group-hover:bg-base-100/90 dark:bg-base-100 dark:group-hover:bg-base-200/90 z-10 border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
+                  (click)="$event.stopPropagation()">
+                  <div class="flex items-center justify-end gap-1">
+                    
+                    <!-- Preview / Details -->
+                    <button
+                      type="button"
+                      (click)="openViewModal(item)"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-tenant-600 hover:bg-base-200 transition-colors cursor-pointer"
+                      title="View Details">
+                      <span class="material-symbols-outlined text-base">visibility</span>
+                    </button>
+
+                    <!-- If Draft: Continue Editing -->
+                    @if (isOwner(item) && item.status === 'Draft') {
+                      <button
+                        type="button"
+                        (click)="continueEditing(item)"
+                        class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors cursor-pointer"
+                        title="Continue Editing Draft">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                      </button>
+                    }
+
+                    <!-- If Owner & Published: Clone/Revise -->
+                    @if (isOwner(item) && item.status !== 'Draft') {
+                      <button
+                        type="button"
+                        (click)="cloneItem(item)"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-tenant-600 hover:bg-base-200 transition-colors cursor-pointer"
+                        title="Create New Revision (Clone)">
+                        <span class="material-symbols-outlined text-base">content_copy</span>
+                      </button>
+                    }
+
+                    <!-- If Owner: Edit Sharing -->
+                    @if (isOwner(item)) {
+                      <button
+                        type="button"
+                        (click)="openSharingModal(item)"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-base-200 transition-colors cursor-pointer"
+                        title="Edit Sharing Mode">
+                        <span class="material-symbols-outlined text-base">share</span>
+                      </button>
+
+                      <!-- Update Expiry -->
+                      <button
+                        type="button"
+                        (click)="openExpiryModal(item)"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-base-200 transition-colors cursor-pointer"
+                        title="Update Expiry Date">
+                        <span class="material-symbols-outlined text-base">event</span>
+                      </button>
+
+                      <!-- Activate / Deactivate Toggle -->
+                      @if (item.status === 'Active') {
+                        <button
+                          type="button"
+                          (click)="openStatusToggleModal(item, 'Inactive')"
+                          class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors cursor-pointer"
+                          title="Deactivate item">
+                          <span class="material-symbols-outlined text-base">pause_circle</span>
+                        </button>
+                      } @else if (item.status === 'Inactive') {
+                        <button
+                          type="button"
+                          (click)="openStatusToggleModal(item, 'Active')"
+                          class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors cursor-pointer"
+                          title="Reactivate item">
+                          <span class="material-symbols-outlined text-base">play_circle</span>
+                        </button>
+                      }
+
+                      <!-- Delete -->
+                      <button
+                        type="button"
+                        (click)="deleteItem(item)"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors cursor-pointer"
+                        title="Delete Item">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="py-12 text-center text-text-secondary">
+                  <div class="flex flex-col items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">folder_off</span>
+                    <span class="font-bold text-sm text-text-primary">No repository items match your filters</span>
+                    <span class="text-xs text-text-tertiary">Try clearing your search query or reset active filters.</span>
+                    <button
+                      type="button"
+                      (click)="resetFilters()"
+                      class="mt-2 px-3.5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold cursor-pointer">
+                      Reset Filters
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 5. GRID VIEW (ALTERNATIVE WHEN VIEW SWITCHER SET TO GRID)                 -->
+  <!-- ========================================================================= -->
+  @if (viewMode() === 'grid') {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      @for (item of filteredItems(); track item.id) {
+        <div
+          (click)="openViewModal(item)"
+          class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 hover:border-tenant-500/50 hover:shadow-lg transition-all duration-200 p-5 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
+          
+          <div class="space-y-3.5">
+            <!-- Top Row: Type & Status Badge -->
+            <div class="flex items-center justify-between gap-2">
+              <span
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border shadow-2xs"
+                [class]="getTypeColorClass(item.type)">
+                <span class="material-symbols-outlined text-xs">{{ getTypeIcon(item.type) }}</span>
+                <span>{{ item.type }}</span>
+              </span>
+
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border shadow-2xs"
+                [class]="getStatusBadgeClass(item.status)">
+                @if (item.status === 'Active') {
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                }
+                {{ item.status }}
+              </span>
+            </div>
+
+            <!-- Title & Thumbnail Card Area -->
+            <div class="flex items-start gap-3">
+              <div class="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-base-300 dark:border-base-200 bg-base-200 flex items-center justify-center shadow-xs">
+                @if (item.thumbnailUrl) {
+                  <img [src]="item.thumbnailUrl" [alt]="item.title" referrerpolicy="no-referrer" class="w-full h-full object-cover" />
+                } @else {
+                  <span class="material-symbols-outlined text-xl" [class]="getTypeColorClass(item.type).split(' ')[0]">
+                    {{ getTypeIcon(item.type) }}
+                  </span>
+                }
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="font-bold text-xs sm:text-sm text-text-primary line-clamp-2 group-hover:text-tenant-600 transition-colors">
+                  {{ item.title }}
+                </h3>
+                @if (item.titleBangla) {
+                  <p class="text-[11px] text-text-tertiary font-serif line-clamp-1 mt-0.5">{{ item.titleBangla }}</p>
+                }
+              </div>
+            </div>
+
+            <!-- Metadata Box -->
+            <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300/60 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-[11px] text-text-secondary">
+                <span>Source:</span>
+                <strong class="text-text-primary">{{ isOwner(item) ? 'This LMS (Owner)' : item.owningLmsName }}</strong>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-text-secondary">
+                <span>Authors:</span>
+                <span class="text-text-primary font-medium truncate max-w-[140px]">{{ item.authorNames.join(', ') }}</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-text-secondary">
+                <span>Publish:</span>
+                <span class="font-mono text-text-primary">{{ item.publishDate }}</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-text-secondary">
+                <span>Expiry:</span>
+                <span class="font-mono text-text-primary">{{ item.hasNoExpiry ? 'No Expiry' : (item.expiryDate || 'N/A') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Footer Actions -->
+          <div class="pt-3.5 mt-3 border-t border-base-300/80 flex items-center justify-between gap-2" (click)="$event.stopPropagation()">
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                (click)="openViewModal(item)"
+                class="p-1 rounded-lg text-slate-400 hover:text-tenant-600 hover:bg-base-200 transition-colors cursor-pointer"
+                title="View Details">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              @if (isOwner(item)) {
+                <button
+                  type="button"
+                  (click)="openSharingModal(item)"
+                  class="p-1 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-base-200 transition-colors cursor-pointer"
+                  title="Sharing Settings">
+                  <span class="material-symbols-outlined text-base">share</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="openExpiryModal(item)"
+                  class="p-1 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-base-200 transition-colors cursor-pointer"
+                  title="Update Expiry">
+                  <span class="material-symbols-outlined text-base">event</span>
+                </button>
+              }
+            </div>
+
+            @if (isOwner(item) && item.status === 'Draft') {
+              <button
+                type="button"
+                (click)="continueEditing(item)"
+                class="px-2.5 py-1 rounded-lg bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">edit</span>
+                <span>Edit</span>
+              </button>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 6. MODALS (§3.3 & §4 SPECIFICATIONS)                                      -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal 1: View Item Details -->
+  @if (selectedItemForView()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-base-200 dark:border-slate-800 max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4 pb-3 border-b border-base-200 dark:border-slate-800">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold" [class]="getTypeColorClass(selectedItemForView()!.type)">
+                {{ selectedItemForView()!.type }}
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold" [class]="getStatusBadgeClass(selectedItemForView()!.status)">
+                {{ selectedItemForView()!.status }}
+              </span>
+            </div>
+            <h2 class="text-lg font-bold text-text-primary">{{ selectedItemForView()!.title }}</h2>
+            @if (selectedItemForView()!.titleBangla) {
+              <div class="text-xs text-text-tertiary font-serif mt-0.5">{{ selectedItemForView()!.titleBangla }}</div>
+            }
+          </div>
+          <button (click)="closeViewModal()" class="text-text-tertiary hover:text-text-primary p-1 rounded-lg cursor-pointer">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <!-- Thumbnail & Description -->
+        @if (selectedItemForView()!.thumbnailUrl) {
+          <div class="w-full h-48 rounded-2xl overflow-hidden border border-base-200 dark:border-slate-800 bg-base-100">
+            <img [src]="selectedItemForView()!.thumbnailUrl" [alt]="selectedItemForView()!.altText || selectedItemForView()!.title" referrerpolicy="no-referrer" class="w-full h-full object-cover" />
+          </div>
+        }
+
+        @if (selectedItemForView()!.description) {
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 text-xs text-text-secondary leading-relaxed">
+            {{ selectedItemForView()!.description }}
+          </div>
+        }
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Author(s)</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.authorNames.join(', ') }}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Originating LMS</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.owningLmsName }}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Sharing Mode</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.sharingMode }}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Publish Date</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.publishDate }}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Expiry Date</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">
+              {{ selectedItemForView()!.hasNoExpiry ? 'No Expiry Date' : (selectedItemForView()!.expiryDate || 'N/A') }}
+            </span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Used in Plans</span>
+            <span class="font-semibold text-tenant-600 mt-0.5 block">
+              {{ selectedItemForView()!.referencedInPlansCount + selectedItemForView()!.referencedInCoursesCount }} plans/courses
+            </span>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-3 border-t border-base-200 dark:border-slate-800">
+          <button (click)="closeViewModal()" class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold cursor-pointer">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal 2: Edit Sharing Mode (§2.4 & §4) -->
+  @if (selectedItemForSharing()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-base-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-2xl space-y-5">
+        <div class="flex items-start justify-between gap-4 pb-3 border-b border-base-200 dark:border-slate-800">
+          <div>
+            <span class="text-xs font-semibold text-tenant-600">Sharing Governance</span>
+            <h2 class="text-lg font-bold text-text-primary">Edit Sharing: {{ selectedItemForSharing()!.title }}</h2>
+          </div>
+          <button (click)="closeSharingModal()" class="text-text-tertiary hover:text-text-primary p-1 rounded-lg cursor-pointer">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="sharingForm" (ngSubmit)="saveSharing()" class="space-y-4 text-xs">
+          <div class="space-y-3">
+            <!-- Private -->
+            <label class="p-3 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all"
+              [class]="sharingForm.get('sharingMode')?.value === 'Private' ? 'border-tenant-500 bg-tenant-50/40 ring-1 ring-tenant-500' : 'border-base-200 dark:border-slate-700'">
+              <input type="radio" formControlName="sharingMode" value="Private" class="mt-0.5 text-tenant-600">
+              <div>
+                <div class="font-bold text-text-primary">Private</div>
+                <div class="text-[11px] text-text-secondary mt-0.5">Only this LMS instance can see and attach this item.</div>
+              </div>
+            </label>
+
+            <!-- Organization-wide -->
+            <label class="p-3 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all"
+              [class]="sharingForm.get('sharingMode')?.value === 'Organization-wide' ? 'border-tenant-500 bg-tenant-50/40 ring-1 ring-tenant-500' : 'border-base-200 dark:border-slate-700'">
+              <input type="radio" formControlName="sharingMode" value="Organization-wide" class="mt-0.5 text-tenant-600">
+              <div>
+                <div class="font-bold text-text-primary">Organization-wide</div>
+                <div class="text-[11px] text-text-secondary mt-0.5">Every LMS instance under <strong>{{ activeOrg().name }}</strong> can discover and use this item.</div>
+              </div>
+            </label>
+
+            <!-- Custom Share -->
+            <label class="p-3 rounded-2xl border flex items-start gap-3 cursor-pointer transition-all"
+              [class]="sharingForm.get('sharingMode')?.value === 'Custom Share' ? 'border-tenant-500 bg-tenant-50/40 ring-1 ring-tenant-500' : 'border-base-200 dark:border-slate-700'">
+              <input type="radio" formControlName="sharingMode" value="Custom Share" class="mt-0.5 text-tenant-600">
+              <div>
+                <div class="font-bold text-text-primary">Custom Share</div>
+                <div class="text-[11px] text-text-secondary mt-0.5">Share with specific sister LMS instances under {{ activeOrg().name }}.</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Sister LMS checklist -->
+          @if (sharingForm.get('sharingMode')?.value === 'Custom Share') {
+            <div class="p-3 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-2">
+              <span class="block font-bold text-[11px] uppercase tracking-wider text-text-secondary">Select Sibling LMS Portals</span>
+              <div class="space-y-1.5 max-h-36 overflow-y-auto">
+                @for (sister of sisterLmsList(); track sister.id) {
+                  <label class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-800 flex items-center justify-between cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <input type="checkbox" [checked]="isSisterLmsSelected(sister.id)" (change)="toggleSisterLmsSelection(sister.id)" class="text-tenant-600">
+                      <span class="font-semibold text-text-primary text-xs">{{ sister.basicInfo.lmsName }}</span>
+                    </div>
+                    <span class="text-[10px] text-text-tertiary font-mono">{{ sister.id }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-base-200 dark:border-slate-800">
+            <button type="button" (click)="closeSharingModal()" class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold cursor-pointer">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold cursor-pointer">
+              Save Sharing
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal 3: Update Expiry Date (§3.3 & §4.2) -->
+  @if (selectedItemForExpiry()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-base-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl space-y-5">
+        <div class="flex items-start justify-between gap-4 pb-3 border-b border-base-200 dark:border-slate-800">
+          <div>
+            <span class="text-xs font-semibold text-amber-600">Lifecycle Management</span>
+            <h2 class="text-lg font-bold text-text-primary">Update Expiry Date</h2>
+            <div class="text-xs text-text-secondary mt-0.5 line-clamp-1">{{ selectedItemForExpiry()!.title }}</div>
+          </div>
+          <button (click)="closeExpiryModal()" class="text-text-tertiary hover:text-text-primary p-1 rounded-lg cursor-pointer">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="expiryForm" (ngSubmit)="saveExpiry()" class="space-y-4 text-xs">
+          <div class="p-3 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 flex items-center justify-between">
+            <span class="font-bold text-text-primary">No Expiry Date</span>
+            <input type="checkbox" formControlName="hasNoExpiry" class="w-4 h-4 text-tenant-600 rounded">
+          </div>
+
+          @if (!expiryForm.get('hasNoExpiry')?.value) {
+            <div>
+              <app-date-picker
+                label="New Expiry Date"
+                [required]="true"
+                hint="Must not precede publish date ({{ selectedItemForExpiry()!.publishDate }})"
+                formControlName="expiryDate">
+              </app-date-picker>
+            </div>
+          }
+
+          <div class="flex justify-end gap-2.5 pt-3 border-t border-base-200 dark:border-slate-800">
+            <button type="button" (click)="closeExpiryModal()" class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold cursor-pointer">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold cursor-pointer">
+              Update Expiry
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal 4: Activate / Deactivate Confirmation (§3.3) -->
+  @if (selectedItemForStatusToggle()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-base-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center"
+            [class]="selectedItemForStatusToggle()!.targetStatus === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'">
+            <span class="material-symbols-outlined text-2xl">
+              {{ selectedItemForStatusToggle()!.targetStatus === 'Active' ? 'play_circle' : 'pause_circle' }}
+            </span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-text-primary">
+              {{ selectedItemForStatusToggle()!.targetStatus === 'Active' ? 'Reactivate Content Item' : 'Deactivate Content Item' }}
+            </h2>
+            <div class="text-xs text-text-secondary mt-0.5">{{ selectedItemForStatusToggle()!.item.title }}</div>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-secondary leading-relaxed">
+          @if (selectedItemForStatusToggle()!.targetStatus === 'Active') {
+            Reactivating this item makes it instantly accessible again across all enrolled learners and attached plans.
+          } @else {
+            Deactivating takes this item off learners' active views instantly across all referencing Plans and Courses. It remains preserved in the Repository for later reactivation.
+          }
+        </p>
+
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-base-200 dark:border-slate-800">
+          <button type="button" (click)="closeStatusToggleModal()" class="px-4 py-2 rounded-xl border border-base-300 text-xs font-semibold cursor-pointer">
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="confirmStatusToggle()"
+            class="px-5 py-2 rounded-xl text-white text-xs font-bold shadow-xs cursor-pointer"
+            [class]="selectedItemForStatusToggle()!.targetStatus === 'Active' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'">
+            Confirm {{ selectedItemForStatusToggle()!.targetStatus }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

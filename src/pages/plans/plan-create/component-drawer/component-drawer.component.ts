@@ -818,10 +818,15 @@ export class ComponentDrawerComponent {
   ];
 
   contentTypeOptions: SelectOption[] = [
-    { value: 'PDF / Document', label: 'PDF / Document' },
-    { value: 'Video', label: 'Video Stream' },
+    { value: 'Video', label: 'Video (File / Embed)' },
     { value: 'Audio', label: 'Audio Masterclass' },
-    { value: 'Interactive Lab', label: 'SCORM / Interactive Lab' }
+    { value: 'PDF / Document', label: 'PDF / Document' },
+    { value: 'Slides / Presentation', label: 'Slides / Presentation (.ppt, .pptx, .odp)' },
+    { value: 'Reading', label: 'Reading Article' },
+    { value: 'Recorded Class', label: 'Recorded Class Session' },
+    { value: 'Book / E-book', label: 'Book / E-book (PDF, EPUB)' },
+    { value: 'External Link', label: 'External Resource Link' },
+    { value: 'Question Bank / Question Set', label: 'Question Bank / Question Set' }
   ];
 
   evaluationTypeOptions: SelectOption[] = [
@@ -875,21 +880,24 @@ export class ComponentDrawerComponent {
     }));
   });
 
-  // Content Repo Assets
+  // Content Repo Assets (Live from Content Repository)
   contentAssets = computed<any[]>(() => {
-    return [
-      { id: 'ast-01', title: 'Rural Microfinance Operations Handbook 2026', type: 'PDF / Document', duration: '45 mins' },
-      { id: 'ast-02', title: 'Digital Credit Assessment Video Lecture', type: 'Video', duration: '32 mins' },
-      { id: 'ast-03', title: 'Community Engagement Audio Masterclass', type: 'Audio', duration: '25 mins' },
-      { id: 'ast-04', title: 'Regulatory Compliance Standard Operating Procedure', type: 'PDF / Document', duration: '60 mins' }
-    ];
+    return this.lmsData.activeLmsRepositoryItems().map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      duration: item.contentConfig && 'durationMinutes' in item.contentConfig 
+        ? `${item.contentConfig.durationMinutes} mins` 
+        : (item.contentConfig && 'estimatedReadMinutes' in item.contentConfig ? `${item.contentConfig.estimatedReadMinutes} mins read` : 'Self-paced'),
+      source: item.owningLmsId === this.lmsData.activeLmsId() ? 'This LMS' : item.owningLmsName
+    }));
   });
 
   contentAssetOptions = computed<SelectOption[]>(() => {
     return this.contentAssets().map(a => ({
       value: a.id,
       label: a.title,
-      sublabel: `${a.type} · ${a.duration}`
+      sublabel: `${a.type} · ${a.duration} · ${a.source}`
     }));
   });
 

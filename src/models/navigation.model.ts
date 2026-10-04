@@ -248,6 +248,33 @@ export const APP_NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    label: 'Content Repository',
+    route: '/content-repository',
+    icon: 'folder_special',
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    badge: 'Reusable',
+    description: 'Centralized Learning & Assessment Repository, Multi-LMS Sharing & Content Lifecycle',
+    matchPatterns: ['/content-repository', '/content-repository/**'],
+    children: [
+      {
+        label: 'Repository Grid',
+        route: '/content-repository',
+        icon: 'grid_view',
+        description: 'Browse, filter & manage LMS repository assets and shared-in content',
+        matchPatterns: ['/content-repository', '/content-repository/view/**']
+      },
+      {
+        label: 'Create Repository',
+        route: '/content-repository/create',
+        icon: 'add_circle',
+        badge: 'Stepper',
+        description: '4-step repository creation & sharing wizard',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        matchPatterns: ['/content-repository/create', '/content-repository/edit/**']
+      }
+    ]
+  },
+  {
     label: 'Offline Trainings',
     route: '/offline-trainings',
     icon: 'groups_3',

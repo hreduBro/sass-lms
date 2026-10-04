@@ -1,0 +1,764 @@
+<div class="max-w-6xl mx-auto space-y-6 pb-20">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER & BREADCRUMB CONTEXT                                            -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5">
+        <a routerLink="/content-repository" class="text-xs font-semibold text-text-secondary hover:text-tenant-600 transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">folder_special</span>
+          Content Repository
+        </a>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
+          {{ isEditMode() ? 'Edit Repository Item' : 'Creation Wizard' }}
+        </span>
+        <span class="text-text-secondary text-xs">/</span>
+        <span class="text-[11px] font-medium text-text-secondary">
+          LMS: <strong class="text-text-primary">{{ activeLms()?.basicInfo?.lmsName || 'Current LMS' }}</strong>
+        </span>
+      </div>
+
+      <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        @if (isEditMode()) {
+          @if (currentStep() === 1) { Edit Item – Details & Provenance }
+          @else if (currentStep() === 2) { Edit Item – Content Family & Type }
+          @else if (currentStep() === 3) { Edit Item – Content Setup & Media }
+          @else { Edit Item – Sharing & Publishing }
+        } @else {
+          @if (currentStep() === 1) { Create Item – Details & Provenance }
+          @else if (currentStep() === 2) { Create Item – Content Family & Type }
+          @else if (currentStep() === 3) { Create Item – Content Setup & Media }
+          @else { Create Item – Sharing & Publishing }
+        }
+      </h1>
+
+      <p class="text-xs text-text-secondary mt-0.5">
+        @if (currentStep() === 1) { Enter title in English & Bangla, authors, and schedule window. }
+        @else if (currentStep() === 2) { Select between Learning and Assessment families, and pick the authoritative content type. }
+        @else if (currentStep() === 3) { Configure media files, document uploads, or question set references. }
+        @else { Set multi-LMS sharing scope across {{ activeOrg().name }} and publish to repository. }
+      </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center gap-2.5">
+      <button 
+        type="button"
+        (click)="saveAsDraft()"
+        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer"
+        title="Save progress and resume later">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        <span>Save as Draft</span>
+      </button>
+
+      <button 
+        type="button"
+        (click)="cancel()"
+        class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-base-200 transition-all cursor-pointer">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. REUSABLE STEPPER BAR (IDENTICAL TO CREATE LMS)                         -->
+  <!-- ========================================================================= -->
+  <app-stepper
+    [steps]="steps"
+    [currentStep]="currentStep()"
+    [completedSteps]="completedSteps()"
+    (stepChange)="jumpToStep($event)">
+  </app-stepper>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MANDATORY FIELD ERROR ALERT                                            -->
+  <!-- ========================================================================= -->
+  @if (formErrorAlert()) {
+    <div 
+      id="form-error-banner" 
+      class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 shadow-xs">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+          <span class="material-symbols-outlined text-base">error</span>
+        </div>
+        <div>
+          <span class="font-bold uppercase tracking-wider text-[10px] text-rose-700 dark:text-rose-300 block">Validation Alert</span>
+          <span>{{ formErrorAlert() }}</span>
+        </div>
+      </div>
+      <button 
+        type="button"
+        (click)="formErrorAlert.set(null)"
+        class="text-rose-600 hover:text-rose-800 dark:hover:text-rose-300 p-1 rounded-lg cursor-pointer transition-colors"
+        title="Dismiss Error Alert">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 4. STEPPER FORM WIZARD PANELS                                             -->
+  <!-- ========================================================================= -->
+
+  <!-- STEP 1: ITEM DETAILS & PROVENANCE -->
+  @if (currentStep() === 1) {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+      <form [formGroup]="step1Form" class="space-y-5 text-xs">
+        <!-- Titles -->
+        <div class="space-y-4">
+          <div>
+            <label class="block font-bold text-text-primary mb-1">
+              Content Title (English) <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              maxlength="199"
+              formControlName="title"
+              (input)="clearError('title')"
+              placeholder="e.g. BRAC Microfinance Operations & Village Banking Field Handbook"
+              class="w-full px-4 py-2.5 rounded-xl bg-base-100 dark:bg-slate-800 border text-text-primary text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none transition-all"
+              [class.border-rose-500]="hasError('title')"
+              [class.border-base-300]="!hasError('title')"
+              [class.dark:border-slate-700]="!hasError('title')"
+              [attr.aria-invalid]="hasError('title')" />
+            
+            @if (hasError('title')) {
+              <p class="text-xs text-rose-500 font-medium mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                <span>{{ getError('title') }}</span>
+              </p>
+            }
+
+            <div class="flex justify-end text-[11px] text-text-tertiary mt-1">
+              <span>{{ step1Form.get('title')?.value?.length || 0 }} / 199</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-text-primary mb-1">
+              Content Title (Bangla) <span class="text-text-tertiary font-normal">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              maxlength="199"
+              formControlName="titleBangla"
+              placeholder="e.g. ব্র্যাক ক্ষুদ্রঋণ পরিচালনা ও পল্লী সংগঠন ফিল্ড নির্দেশিকা"
+              class="w-full px-4 py-2.5 rounded-xl bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-primary text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none font-serif" />
+            <div class="flex justify-between text-[11px] text-text-tertiary mt-1">
+              <span>Localized title rendered for native language learners</span>
+              <span>{{ step1Form.get('titleBangla')?.value?.length || 0 }} / 199</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Authors Section -->
+        <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border space-y-3"
+          [class.border-rose-500]="hasError('authors')"
+          [class.border-base-200]="!hasError('authors')"
+          [class.dark:border-slate-700]="!hasError('authors')">
+          
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-tenant-500">edit</span>
+              <span>Author(s)</span> <span class="text-rose-500">*</span>
+            </label>
+            <span class="text-[11px] text-text-secondary">{{ selectedAuthors().length }} Selected</span>
+          </div>
+
+          @if (hasError('authors')) {
+            <p class="text-xs text-rose-500 font-medium flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">error</span>
+              <span>{{ getError('authors') }}</span>
+            </p>
+          }
+
+          <!-- Author Chips -->
+          <div class="flex flex-wrap gap-2 min-h-8 items-center">
+            @for (author of selectedAuthors(); track author) {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-slate-800 border border-base-300 dark:border-slate-600 text-text-primary shadow-2xs">
+                <span class="material-symbols-outlined text-sm text-tenant-500">person</span>
+                <span>{{ author }}</span>
+                <button
+                  type="button"
+                  (click)="removeAuthor(author)"
+                  class="text-text-tertiary hover:text-rose-500 p-0.5 rounded-full cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">close</span>
+                </button>
+              </span>
+            } @empty {
+              <span class="text-text-tertiary italic text-xs">No authors selected yet. Please select or add an author.</span>
+            }
+          </div>
+
+          <!-- Author selection & Custom author adder -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div>
+              <app-custom-select
+                label="Select from Authors Pool"
+                [searchable]="true"
+                [options]="authorOptions()"
+                (valueChange)="addAuthorFromDropdown($event)"
+                placeholder="Choose author from pool...">
+              </app-custom-select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Or Add Custom Author Name</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [ngModel]="newAuthorInput()"
+                  (ngModelChange)="newAuthorInput.set($event)"
+                  [ngModelOptions]="{standalone: true}"
+                  (keyup.enter)="addCustomAuthor()"
+                  placeholder="e.g. Dr. Ayesha Siddiqa"
+                  class="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none" />
+                <button
+                  type="button"
+                  (click)="addCustomAuthor()"
+                  class="px-3.5 py-2 rounded-xl bg-base-200 dark:bg-slate-700 hover:bg-base-300 font-semibold text-xs cursor-pointer">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule & Expiry Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700">
+          <div>
+            <app-date-picker
+              label="Publish Date"
+              [required]="true"
+              hint="Drives Scheduled vs Active status (DD/MM/YYYY)"
+              formControlName="publishDate">
+            </app-date-picker>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block font-semibold text-text-primary">Expiry Date</label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-tenant-600">
+                <input type="checkbox" formControlName="hasNoExpiry" class="rounded text-tenant-600 focus:ring-tenant-500">
+                <span>No Expiry Date</span>
+              </label>
+            </div>
+
+            @if (!step1Form.get('hasNoExpiry')?.value) {
+              <app-date-picker
+                label=""
+                hint="Drives Expired status after this date (DD/MM/YYYY)"
+                formControlName="expiryDate">
+              </app-date-picker>
+            } @else {
+              <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">all_inclusive</span>
+                <span>This item will remain continuously active without an expiration cutoff.</span>
+              </div>
+            }
+
+            @if (hasError('expiryDate')) {
+              <p class="text-xs text-rose-500 font-medium mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                <span>{{ getError('expiryDate') }}</span>
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block font-bold text-text-primary mb-1">Description / Syllabus Overview</label>
+          <textarea
+            rows="3"
+            formControlName="description"
+            placeholder="Briefly describe what this learning material covers, target audience, and outcomes..."
+            class="w-full px-4 py-2.5 rounded-xl bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-primary text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Thumbnail & Alt Text -->
+        <div class="space-y-3">
+          <label class="block font-bold text-text-primary">Thumbnail Cover Image</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            @for (preset of coverPresets; track preset.label) {
+              <button
+                type="button"
+                (click)="selectCoverPreset(preset.url)"
+                class="rounded-xl overflow-hidden border-2 transition-all p-0.5 text-left relative group cursor-pointer"
+                [class]="step1Form.get('thumbnailUrl')?.value === preset.url ? 'border-tenant-500 ring-2 ring-tenant-500/20' : 'border-base-200 dark:border-slate-700 opacity-80 hover:opacity-100'">
+                <img [src]="preset.url" [alt]="preset.label" referrerpolicy="no-referrer" class="w-full h-16 object-cover rounded-lg" />
+                <span class="text-[10px] font-semibold text-text-primary block mt-1 px-1 truncate">{{ preset.label }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="pt-1">
+            <label class="block font-medium text-text-secondary text-[11px] mb-1">Alt-Text for Accessibility</label>
+            <input
+              type="text"
+              formControlName="altText"
+              placeholder="e.g. Field trainer reviewing microfinance ledger with village group"
+              class="w-full px-3 py-2 rounded-xl bg-base-100 dark:bg-slate-800 border border-base-300 dark:border-slate-700 text-text-primary text-xs focus:outline-none" />
+          </div>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- STEP 2: CONTENT FAMILY & TYPE SELECTION -->
+  @if (currentStep() === 2) {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+      <div>
+        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200">
+          Step 2 of 4
+        </span>
+        <h2 class="text-xl font-bold text-text-primary mt-1">Content Family & Type</h2>
+        <p class="text-xs text-text-secondary">Choose the content classification and exact media format for this repository item.</p>
+      </div>
+
+      <!-- Family Toggle Cards -->
+      <div class="space-y-3">
+        <label class="block font-bold text-text-primary text-xs uppercase tracking-wider">
+          Select Content Family <span class="text-rose-500">*</span>
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Learning -->
+          <div
+            (click)="selectFamily('Learning')"
+            class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-4"
+            [class]="selectedFamily() === 'Learning'
+              ? 'border-tenant-500 bg-tenant-50/30 dark:bg-tenant-950/20 shadow-xs'
+              : 'border-base-200 dark:border-slate-800 hover:border-tenant-300'">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              [class]="selectedFamily() === 'Learning' ? 'bg-tenant-500 text-white' : 'bg-base-200 dark:bg-slate-800 text-text-secondary'">
+              <span class="material-symbols-outlined text-2xl">school</span>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-text-primary flex items-center gap-2">
+                <span>Learning Content</span>
+                @if (selectedFamily() === 'Learning') {
+                  <span class="material-symbols-outlined text-base text-tenant-600">check_circle</span>
+                }
+              </div>
+              <p class="text-xs text-text-secondary mt-1">
+                Instructional media including Videos, Audios, PDFs, Slides, Readings, Recorded Classes, and Books.
+              </p>
+            </div>
+          </div>
+
+          <!-- Assessment -->
+          <div
+            (click)="selectFamily('Assessment')"
+            class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-4"
+            [class]="selectedFamily() === 'Assessment'
+              ? 'border-purple-500 bg-purple-50/30 dark:bg-purple-950/20 shadow-xs'
+              : 'border-base-200 dark:border-slate-800 hover:border-purple-300'">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              [class]="selectedFamily() === 'Assessment' ? 'bg-purple-600 text-white' : 'bg-base-200 dark:bg-slate-800 text-text-secondary'">
+              <span class="material-symbols-outlined text-2xl">quiz</span>
+            </div>
+            <div>
+              <div class="font-bold text-sm text-text-primary flex items-center gap-2">
+                <span>Assessment Content</span>
+                @if (selectedFamily() === 'Assessment') {
+                  <span class="material-symbols-outlined text-base text-purple-600">check_circle</span>
+                }
+              </div>
+              <p class="text-xs text-text-secondary mt-1">
+                Formal Question Banks, Scored Quizzes, and Exam sets managed through the centralized repository.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Type Selection Grid -->
+      <div class="space-y-3 pt-2">
+        <label class="block font-bold text-text-primary text-xs uppercase tracking-wider">
+          Select Content Type <span class="text-rose-500">*</span>
+        </label>
+
+        @if (selectedFamily() === 'Learning') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            @for (typ of learningTypes; track typ) {
+              <div
+                (click)="selectType(typ)"
+                class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3.5 group"
+                [class]="selectedType() === typ
+                  ? 'border-tenant-500 bg-tenant-50/40 dark:bg-tenant-950/30 font-bold shadow-xs'
+                  : 'border-base-200 dark:border-slate-800 hover:border-tenant-400 bg-base-50/50 dark:bg-slate-800/40'">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                  [class]="selectedType() === typ ? 'bg-tenant-500 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-tenant-500'">
+                  <span class="material-symbols-outlined text-xl">
+                    @if (typ === 'Video') { smart_display }
+                    @else if (typ === 'Audio') { volume_up }
+                    @else if (typ === 'PDF / Document') { description }
+                    @else if (typ === 'Slides / Presentation') { slideshow }
+                    @else if (typ === 'Reading') { article }
+                    @else if (typ === 'Recorded Class') { videocam }
+                    @else if (typ === 'Book / E-book') { menu_book }
+                    @else if (typ === 'External Link') { open_in_new }
+                    @else { extension }
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs text-text-primary truncate">{{ typ }}</div>
+                  <div class="text-[10px] text-text-secondary font-normal">
+                    @if (typ === 'Video') { Upload or Stream link }
+                    @else if (typ === 'Audio') { Podcast or Lecture mp3 }
+                    @else if (typ === 'PDF / Document') { Field manuals & handouts }
+                    @else if (typ === 'Slides / Presentation') { PPTX or slide decks }
+                    @else if (typ === 'Reading') { Rich text article }
+                    @else if (typ === 'Recorded Class') { Zoom/Teams session link }
+                    @else if (typ === 'Book / E-book') { EPUB or textbook }
+                    @else if (typ === 'External Link') { Web article or portal }
+                    @else { Standard format }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            @for (typ of assessmentTypes; track typ) {
+              <div
+                (click)="selectType(typ)"
+                class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3.5 group"
+                [class]="selectedType() === typ
+                  ? 'border-purple-500 bg-purple-50/40 dark:bg-purple-950/30 font-bold shadow-xs'
+                  : 'border-base-200 dark:border-slate-800 hover:border-purple-400 bg-base-50/50 dark:bg-slate-800/40'">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  [class]="selectedType() === typ ? 'bg-purple-600 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-purple-600'">
+                  <span class="material-symbols-outlined text-xl">quiz</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs text-text-primary truncate">{{ typ }}</div>
+                  <div class="text-[10px] text-text-secondary font-normal">
+                    Attached to assessments engine for randomized or fixed questions
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- STEP 3: CONTENT SETUP BY TYPE -->
+  @if (currentStep() === 3) {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+      <div>
+        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200">
+          Step 3 of 4
+        </span>
+        <h2 class="text-xl font-bold text-text-primary mt-1">
+          Content Setup: {{ selectedType() }}
+        </h2>
+        <p class="text-xs text-text-secondary">Provide media files, URLs, or parameter configuration for {{ selectedType() }}.</p>
+      </div>
+
+      <!-- Dynamic Type Form Switch -->
+      @if (selectedType() === 'Video') {
+        <form [formGroup]="videoForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div class="flex items-center gap-4">
+              <label class="font-bold text-text-primary">Source Type:</label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" formControlName="source" value="upload" class="text-tenant-600">
+                <span>File Upload (MP4 / WebM)</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" formControlName="source" value="embed" class="text-tenant-600">
+                <span>Streaming URL (HLS / Vimeo)</span>
+              </label>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Video Stream or Hosted URL</label>
+              <input type="text" formControlName="videoUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">File Name</label>
+                <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
+                <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'PDF / Document') {
+        <form [formGroup]="documentForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Document Category</label>
+              <select formControlName="fileCategory" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
+                <option value="PDF">PDF Document</option>
+                <option value="DOCX">Microsoft Word (.docx)</option>
+                <option value="XLSX">Excel Spreadsheet (.xlsx)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">File Name</label>
+              <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Storage URL or Download Link</label>
+              <input type="text" formControlName="fileUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'Audio') {
+        <form [formGroup]="audioForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Audio Stream URL (MP3 / AAC)</label>
+              <input type="text" formControlName="audioUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">File Name</label>
+                <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
+                <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'Reading') {
+        <form [formGroup]="readingForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Reading Content (HTML / Text)</label>
+              <textarea rows="6" formControlName="contentHtml" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary font-mono"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Approx Word Count</label>
+                <input type="number" formControlName="wordCount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Estimated Read Time (Minutes)</label>
+                <input type="number" formControlName="estimatedReadMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'Recorded Class') {
+        <form [formGroup]="recordedClassForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Session Date</label>
+                <input type="text" formControlName="sessionDate" placeholder="DD/MM/YYYY" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Instructor</label>
+                <input type="text" formControlName="instructorName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Session Recording URL</label>
+              <input type="text" formControlName="sessionUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'External Link') {
+        <form [formGroup]="externalLinkForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">External Resource URL</label>
+              <input type="text" formControlName="url" placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+            <div>
+              <label class="block font-semibold text-text-primary mb-1">Platform / Institution Tag</label>
+              <input type="text" formControlName="platformTag" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+            </div>
+          </div>
+        </form>
+      }
+
+      @if (selectedType() === 'Question Bank / Question Set') {
+        <form [formGroup]="questionSetForm" class="space-y-4 text-xs">
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div>
+              <app-custom-select
+                label="Select Question Bank / Assessment"
+                [options]="assessmentBankOptions()"
+                formControlName="assessmentId"
+                placeholder="Choose linked assessment...">
+              </app-custom-select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Pass Mark Percentage</label>
+                <input type="number" formControlName="passMarkPercent" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Scoring Mode</label>
+                <select formControlName="scoringMode" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
+                  <option value="scored">Scored</option>
+                  <option value="ungraded">Ungraded / Practice</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+
+    </div>
+  }
+
+  <!-- STEP 4: SHARING MODE & GOVERNANCE -->
+  @if (currentStep() === 4) {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+      <div>
+        <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 border border-tenant-200">
+          Step 4 of 4
+        </span>
+        <h2 class="text-xl font-bold text-text-primary mt-1">Sharing Governance & Publication</h2>
+        <p class="text-xs text-text-secondary">Determine multi-LMS visibility across the {{ activeOrg().name }} organization.</p>
+      </div>
+
+      <form [formGroup]="step4Form" class="space-y-5 text-xs">
+        <div class="space-y-3">
+          <!-- Private -->
+          <label class="p-4 rounded-2xl border flex items-start gap-3.5 cursor-pointer transition-all"
+            [class]="step4Form.get('sharingMode')?.value === 'Private' ? 'border-tenant-500 bg-tenant-50/30 ring-2 ring-tenant-500/20' : 'border-base-200 dark:border-slate-800'">
+            <input type="radio" formControlName="sharingMode" value="Private" class="mt-0.5 text-tenant-600 focus:ring-tenant-500">
+            <div>
+              <div class="font-bold text-sm text-text-primary">Private</div>
+              <div class="text-xs text-text-secondary mt-0.5">
+                Only this LMS instance ({{ activeLms()?.basicInfo?.lmsName || 'Current LMS' }}) can see and attach this item.
+              </div>
+            </div>
+          </label>
+
+          <!-- Organization-wide -->
+          <label class="p-4 rounded-2xl border flex items-start gap-3.5 cursor-pointer transition-all"
+            [class]="step4Form.get('sharingMode')?.value === 'Organization-wide' ? 'border-tenant-500 bg-tenant-50/30 ring-2 ring-tenant-500/20' : 'border-base-200 dark:border-slate-800'">
+            <input type="radio" formControlName="sharingMode" value="Organization-wide" class="mt-0.5 text-tenant-600 focus:ring-tenant-500">
+            <div>
+              <div class="font-bold text-sm text-text-primary">Organization-wide</div>
+              <div class="text-xs text-text-secondary mt-0.5">
+                Every LMS instance under <strong>{{ activeOrg().name }}</strong> can search, view, and reference this item live.
+              </div>
+            </div>
+          </label>
+
+          <!-- Custom Share -->
+          <label class="p-4 rounded-2xl border flex items-start gap-3.5 cursor-pointer transition-all"
+            [class]="step4Form.get('sharingMode')?.value === 'Custom Share' ? 'border-tenant-500 bg-tenant-50/30 ring-2 ring-tenant-500/20' : 'border-base-200 dark:border-slate-800'">
+            <input type="radio" formControlName="sharingMode" value="Custom Share" class="mt-0.5 text-tenant-600 focus:ring-tenant-500">
+            <div>
+              <div class="font-bold text-sm text-text-primary">Custom Share (Named LMS Portals)</div>
+              <div class="text-xs text-text-secondary mt-0.5">
+                Share specifically with selected sister LMS portals under {{ activeOrg().name }}.
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Sister LMS Selector for Custom Share -->
+        @if (step4Form.get('sharingMode')?.value === 'Custom Share') {
+          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="block font-bold text-text-primary text-xs uppercase tracking-wider">
+                Select Sibling LMS Instances
+              </span>
+              <div class="flex gap-2 text-xs">
+                <button type="button" (click)="selectAllSisterLms()" class="text-tenant-600 hover:underline font-semibold cursor-pointer">Select All</button>
+                <span>&bull;</span>
+                <button type="button" (click)="deselectAllSisterLms()" class="text-text-tertiary hover:underline cursor-pointer">Deselect All</button>
+              </div>
+            </div>
+
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              @for (sister of sisterLmsList(); track sister.id) {
+                <label class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:border-tenant-400">
+                  <div class="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      [checked]="isSisterLmsSelected(sister.id)"
+                      (change)="toggleSisterLms(sister.id)"
+                      class="rounded text-tenant-600 focus:ring-tenant-500">
+                    <div>
+                      <div class="font-bold text-text-primary">{{ sister.basicInfo.lmsName }}</div>
+                      <div class="text-[11px] text-text-secondary">{{ sister.basicInfo.programmeDepartment }}</div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-base-100 dark:bg-slate-800 text-text-tertiary">
+                    {{ sister.id }}
+                  </span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+      </form>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 5. NAVIGATION FOOTER ACTIONS (PREVIOUS, DRAFT, NEXT, PUBLISH)              -->
+  <!-- ========================================================================= -->
+  <div class="flex items-center justify-between pt-4 border-t border-base-200 dark:border-slate-800">
+    <button
+      type="button"
+      (click)="prevStep()"
+      [disabled]="currentStep() === 1"
+      class="px-4 py-2.5 rounded-xl border border-base-300 dark:border-slate-700 text-text-secondary hover:text-text-primary text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-sm">arrow_back</span>
+      <span>Previous</span>
+    </button>
+
+    <div class="flex items-center gap-2.5">
+      <button
+        type="button"
+        (click)="saveAsDraft()"
+        class="px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 transition-colors cursor-pointer flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm">bookmark</span>
+        <span>Save as Draft</span>
+      </button>
+
+      @if (currentStep() < 4) {
+        <button
+          type="button"
+          (click)="nextStep()"
+          class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5">
+          <span>Next Step</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      } @else {
+        <button
+          type="button"
+          (click)="publish()"
+          class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">publish</span>
+          <span>Publish Repository Item</span>
+        </button>
+      }
+    </div>
+  </div>
+
+</div>

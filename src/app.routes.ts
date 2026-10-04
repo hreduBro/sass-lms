@@ -292,6 +292,39 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
 
+  // =========================================================================
+  // CONTENT REPOSITORY & SHARING FLOW (§0 - §6)
+  // Sibling destination alongside Plan, Phase, and Course Management
+  // =========================================================================
+  {
+    path: 'content-repository',
+    loadComponent: () => import('./pages/content-repository/repository-grid/repository-grid.component').then(m => m.RepositoryGridComponent),
+    title: 'Content Repository Grid | OneLMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'content-repository/create',
+    loadComponent: () => import('./pages/content-repository/repository-create/repository-create.component').then(m => m.RepositoryCreateComponent),
+    title: 'Create Repository Item | OneLMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'content-repository/edit/:id',
+    loadComponent: () => import('./pages/content-repository/repository-create/repository-create.component').then(m => m.RepositoryCreateComponent),
+    title: 'Edit Repository Item | OneLMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+  {
+    path: 'content-repository/view/:id',
+    loadComponent: () => import('./pages/content-repository/repository-grid/repository-grid.component').then(m => m.RepositoryGridComponent),
+    title: 'View Repository Item | OneLMS',
+    canActivate: [roleGuard],
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+  },
+
   // Courses & Learning Player
   { 
     path: 'courses/dashboard', 
