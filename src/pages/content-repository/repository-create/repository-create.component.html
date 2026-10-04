@@ -382,39 +382,23 @@
 
         @if (selectedFamily() === 'Learning') {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            @for (typ of learningTypes; track typ) {
+            @for (typ of learningTypes; track typ.type) {
               <div
-                (click)="selectType(typ)"
+                (click)="selectType(typ.type)"
                 class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3.5 group"
-                [class]="selectedType() === typ
+                [class]="selectedType() === typ.type
                   ? 'border-tenant-500 bg-tenant-50/40 dark:bg-tenant-950/30 font-bold shadow-xs'
                   : 'border-base-200 dark:border-slate-800 hover:border-tenant-400 bg-base-50/50 dark:bg-slate-800/40'">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                  [class]="selectedType() === typ ? 'bg-tenant-500 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-tenant-500'">
+                  [class]="selectedType() === typ.type ? 'bg-tenant-500 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-tenant-500'">
                   <span class="material-symbols-outlined text-xl">
-                    @if (typ === 'Video') { smart_display }
-                    @else if (typ === 'Audio') { volume_up }
-                    @else if (typ === 'PDF / Document') { description }
-                    @else if (typ === 'Slides / Presentation') { slideshow }
-                    @else if (typ === 'Reading') { article }
-                    @else if (typ === 'Recorded Class') { videocam }
-                    @else if (typ === 'Book / E-book') { menu_book }
-                    @else if (typ === 'External Link') { open_in_new }
-                    @else { extension }
+                    {{ typ.icon }}
                   </span>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <div class="text-xs text-text-primary truncate">{{ typ }}</div>
-                  <div class="text-[10px] text-text-secondary font-normal">
-                    @if (typ === 'Video') { Upload or Stream link }
-                    @else if (typ === 'Audio') { Podcast or Lecture mp3 }
-                    @else if (typ === 'PDF / Document') { Field manuals & handouts }
-                    @else if (typ === 'Slides / Presentation') { PPTX or slide decks }
-                    @else if (typ === 'Reading') { Rich text article }
-                    @else if (typ === 'Recorded Class') { Zoom/Teams session link }
-                    @else if (typ === 'Book / E-book') { EPUB or textbook }
-                    @else if (typ === 'External Link') { Web article or portal }
-                    @else { Standard format }
+                  <div class="text-xs text-text-primary truncate font-bold">{{ typ.type }}</div>
+                  <div class="text-[10px] text-text-secondary font-normal truncate" [title]="typ.description">
+                    {{ typ.description }}
                   </div>
                 </div>
               </div>
@@ -422,21 +406,23 @@
           </div>
         } @else {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @for (typ of assessmentTypes; track typ) {
+            @for (typ of assessmentTypes; track typ.type) {
               <div
-                (click)="selectType(typ)"
+                (click)="selectType(typ.type)"
                 class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3.5 group"
-                [class]="selectedType() === typ
+                [class]="selectedType() === typ.type
                   ? 'border-purple-500 bg-purple-50/40 dark:bg-purple-950/30 font-bold shadow-xs'
                   : 'border-base-200 dark:border-slate-800 hover:border-purple-400 bg-base-50/50 dark:bg-slate-800/40'">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  [class]="selectedType() === typ ? 'bg-purple-600 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-purple-600'">
-                  <span class="material-symbols-outlined text-xl">quiz</span>
+                  [class]="selectedType() === typ.type ? 'bg-purple-600 text-white' : 'bg-white dark:bg-slate-800 text-text-secondary group-hover:text-purple-600'">
+                  <span class="material-symbols-outlined text-xl">
+                    {{ typ.icon }}
+                  </span>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <div class="text-xs text-text-primary truncate">{{ typ }}</div>
-                  <div class="text-[10px] text-text-secondary font-normal">
-                    Attached to assessments engine for randomized or fixed questions
+                  <div class="text-xs text-text-primary truncate font-bold">{{ typ.type }}</div>
+                  <div class="text-[10px] text-text-secondary font-normal truncate" [title]="typ.description">
+                    {{ typ.description }}
                   </div>
                 </div>
               </div>

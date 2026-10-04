@@ -254,60 +254,6 @@
 
     </div>
 
-    <!-- Quick Inline Filter Selectors (Family, Content Type, Status, Source, Sort By) -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-200/60 dark:border-base-300/60">
-      <div>
-        <app-custom-select
-          label="Family"
-          [clearable]="false"
-          [options]="familyOptions"
-          [ngModel]="selectedFamily()"
-          (ngModelChange)="selectedFamily.set($event)">
-        </app-custom-select>
-      </div>
-
-      <div>
-        <app-custom-select
-          label="Content Type"
-          [clearable]="false"
-          [searchable]="true"
-          [options]="typeOptions"
-          [ngModel]="selectedType()"
-          (ngModelChange)="selectedType.set($event)">
-        </app-custom-select>
-      </div>
-
-      <div>
-        <app-custom-select
-          label="Status"
-          [clearable]="false"
-          [options]="statusOptions"
-          [ngModel]="selectedStatus()"
-          (ngModelChange)="selectedStatus.set($event)">
-        </app-custom-select>
-      </div>
-
-      <div>
-        <app-custom-select
-          label="Source"
-          [clearable]="false"
-          [options]="sourceOptions"
-          [ngModel]="selectedSource()"
-          (ngModelChange)="selectedSource.set($event)">
-        </app-custom-select>
-      </div>
-
-      <div>
-        <app-custom-select
-          label="Sort By"
-          [clearable]="false"
-          [options]="sortOptions"
-          [ngModel]="sortBy()"
-          (ngModelChange)="sortBy.set($event)">
-        </app-custom-select>
-      </div>
-    </div>
-
     <!-- ======================================================================= -->
     <!-- EXPANDABLE FILTER PANEL DRAWER (LIKE LMS GRID)                          -->
     <!-- ======================================================================= -->
@@ -323,7 +269,7 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
           <!-- 1. Family -->
           <app-filter-section title="1. Content Family">
             <div class="flex flex-col gap-1.5">
@@ -342,8 +288,26 @@
             </div>
           </app-filter-section>
 
-          <!-- 2. Status -->
-          <app-filter-section title="2. Lifecycle Status">
+          <!-- 2. Content Type -->
+          <app-filter-section title="2. Content Type">
+            <div class="flex flex-col gap-1.5 max-h-52 overflow-y-auto pr-1">
+              @for (typ of typeOptions; track typ.value) {
+                <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
+                  <input
+                    type="radio"
+                    name="filter_type"
+                    [value]="typ.value"
+                    [checked]="selectedType() === typ.value"
+                    (change)="selectedType.set(typ.value)"
+                    class="text-tenant-500 focus:ring-tenant-500 cursor-pointer" />
+                  <span [class.font-bold]="selectedType() === typ.value">{{ typ.label }}</span>
+                </label>
+              }
+            </div>
+          </app-filter-section>
+
+          <!-- 3. Status -->
+          <app-filter-section title="3. Lifecycle Status">
             <div class="flex flex-col gap-1.5">
               @for (st of statusOptions; track st.value) {
                 <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
@@ -360,8 +324,8 @@
             </div>
           </app-filter-section>
 
-          <!-- 3. Source -->
-          <app-filter-section title="3. Originating Source">
+          <!-- 4. Source -->
+          <app-filter-section title="4. Originating Source">
             <div class="flex flex-col gap-1.5">
               @for (src of sourceOptions; track src.value) {
                 <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
@@ -378,8 +342,8 @@
             </div>
           </app-filter-section>
 
-          <!-- 4. Sort By -->
-          <app-filter-section title="4. Sort Criteria">
+          <!-- 5. Sort By -->
+          <app-filter-section title="5. Sort Criteria">
             <div class="flex flex-col gap-1.5">
               @for (sort of sortOptions; track sort.value) {
                 <label class="flex items-center gap-2 text-xs text-text-primary cursor-pointer p-1 rounded-lg hover:bg-white dark:hover:bg-base-200 transition-colors">
