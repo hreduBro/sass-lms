@@ -2916,6 +2916,56 @@ export class LmsDataService {
     this.showToast(`Deleted repository item "${item?.title || id}"`, 'info');
   }
 
+  toggleOrgRepositorySharing(organizationId: string, enabled: boolean): void {
+    this.tenants.update(list =>
+      list.map(t => {
+        if (t.id === organizationId) {
+          return { ...t, repositorySharingEnabled: enabled };
+        }
+        return t;
+      })
+    );
+    const org = this.tenants().find(t => t.id === organizationId);
+    this.showToast(
+      enabled
+        ? `Enabled organization-wide repository sharing for "${org?.name || organizationId}".`
+        : `Disabled repository sharing for "${org?.name || organizationId}". Strict LMS content isolation enforced.`,
+      enabled ? 'success' : 'warning',
+      4000
+    );
+  }
+
+  toggleLmsSharing(lmsId: string, enabled: boolean, contribute = true, discover = true): void {
+    this.lmsInstances.update(list =>
+      list.map(inst => {
+        if (inst.id === lmsId) {
+          const currentResources = inst.resources || { databaseSizeGb: 50, fileStorageGb: 100, usageAlertThresholdPct: 80 };
+          return {
+            ...inst,
+            resources: {
+              ...currentResources,
+              dataSharing: {
+                enabled,
+                contribute: enabled ? contribute : false,
+                discover: enabled ? discover : false,
+                mode: enabled ? 'Shared' : 'Segregated'
+              }
+            }
+          };
+        }
+        return inst;
+      })
+    );
+    const target = this.lmsInstances().find(l => l.id === lmsId);
+    this.showToast(
+      enabled
+        ? `LMS Content sharing enabled for "${target?.basicInfo?.lmsName || lmsId}".`
+        : `LMS Content sharing disabled for "${target?.basicInfo?.lmsName || lmsId}".`,
+      enabled ? 'success' : 'info',
+      3500
+    );
+  }
+
   // Venue Management Store (BRD §4.11)
   venues = signal<Venue[]>(INITIAL_VENUES);
   venuePermissions = signal<VenuePermissions>(DEFAULT_VENUE_PERMISSIONS);

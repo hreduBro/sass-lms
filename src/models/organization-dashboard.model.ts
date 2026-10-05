@@ -7,9 +7,11 @@ export type OrgDashboardWidgetType =
   | 'org_broadcast_banner'
   | 'resource_allocation_leaderboard'
   | 'org_admin_directory'
-  | 'timezone_distribution';
+  | 'timezone_distribution'
+  | 'org_content_repository_overview'
+  | 'org_courses_summary';
 
-export type OrgWidgetCategory = 'kpis-summary' | 'status-activity' | 'capacity' | 'directory';
+export type OrgWidgetCategory = 'kpis-summary' | 'status-activity' | 'capacity' | 'directory' | 'content-management';
 
 export interface OrgDashboardWidgetConfig {
   bannerText?: string;
@@ -183,6 +185,32 @@ export const ORG_WIDGET_CATALOG: OrgWidgetCatalogItem[] = [
     defaultRowSpan: 2,
     icon: 'schedule',
     description: 'Geographic and operational breakdown of registered organizations across global timezones.'
+  },
+  {
+    id: 'cat-org-content-repository-overview',
+    type: 'org_content_repository_overview',
+    name: 'Content Repository Overview',
+    category: 'content-management',
+    categoryLabel: 'Content & Learning',
+    defaultWidthPct: 50,
+    defaultColSpan: 2,
+    defaultRowSpan: 2,
+    icon: 'folder_special',
+    badge: 'Content',
+    description: 'Overview of all digital learning assets (Videos, PDFs, Slides, Assessments) in the Content Repository with direct upload & browse actions.'
+  },
+  {
+    id: 'cat-org-courses-summary',
+    type: 'org_courses_summary',
+    name: 'Courses & Curriculum Overview',
+    category: 'content-management',
+    categoryLabel: 'Content & Learning',
+    defaultWidthPct: 50,
+    defaultColSpan: 2,
+    defaultRowSpan: 2,
+    icon: 'menu_book',
+    badge: 'Courses',
+    description: 'Curriculum roll-up of courses, modules, and published learning pathways across organization LMS portals.'
   }
 ];
 
@@ -316,6 +344,19 @@ export const ORG_DASHBOARD_PRESETS: OrgDashboardPreset[] = [
       { type: 'recent_org_activity', colSpan: 2, rowSpan: 2 },
       { type: 'top_orgs_by_lms', colSpan: 2, rowSpan: 2 },
       { type: 'org_broadcast_banner', colSpan: 4, rowSpan: 1 }
+    ]
+  },
+  {
+    id: 'preset-content-learning',
+    name: 'Content & Learning',
+    description: 'Content Repository, Course Matrix, Status & KPIs',
+    icon: 'folder_special',
+    badge: 'Content',
+    widgetTemplates: [
+      { type: 'org_kpi_summary', colSpan: 4, rowSpan: 1 },
+      { type: 'org_content_repository_overview', colSpan: 2, rowSpan: 2 },
+      { type: 'org_courses_summary', colSpan: 2, rowSpan: 2 },
+      { type: 'recent_org_activity', colSpan: 4, rowSpan: 2 }
     ]
   }
 ];

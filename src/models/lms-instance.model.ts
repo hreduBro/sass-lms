@@ -34,12 +34,9 @@ export interface LmsBasicInfo {
 
 export interface LmsDataSharingConfig {
   enabled: boolean;
-  mode: 'Shared' | 'Segregated' | 'Custom';
-  shareCourses: boolean;
-  shareFacultyPool: boolean;
-  shareAssessmentBank: boolean;
-  shareTranscripts: boolean;
-  customCohortName?: string;
+  contribute?: boolean;
+  discover?: boolean;
+  mode?: 'Shared' | 'Segregated' | 'Custom';
 }
 
 export interface LmsResourceAllocation {

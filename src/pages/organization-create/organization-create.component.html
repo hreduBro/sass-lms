@@ -530,15 +530,15 @@
         </div>
       </div>
 
-      <!-- Section 2: Storage Allocation & Data Sharing Mode Configuration (§4.2) -->
+      <!-- Section 2: Storage Allocation -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-5">
         <div class="flex items-center gap-2.5 pb-3 border-b border-base-300">
           <div class="w-8 h-8 rounded-xl bg-tenant-100 dark:bg-tenant-900/50 text-tenant-600 dark:text-tenant-300 flex items-center justify-center">
             <span class="material-symbols-outlined text-base">settings_suggest</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-text-primary">2. Storage Allocation & Data Sharing Configuration</h2>
-            <p class="text-[11px] text-text-secondary">Allocate file storage quota, set warning alert threshold, and configure partition mode</p>
+            <h2 class="text-sm font-bold text-text-primary">2. Storage Allocation</h2>
+            <p class="text-[11px] text-text-secondary">Allocate file storage quota and set warning alert threshold</p>
           </div>
         </div>
 
@@ -587,137 +587,6 @@
               <p class="text-[11px] text-rose-500 mt-1">Must be a percentage between 1 and 100%.</p>
             }
           </div>
-
-          <!-- Data Sharing Mode (Governance Toggle Cards) (§4.2.1) -->
-          <div class="col-span-full space-y-3 pt-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-xs font-bold text-text-primary">
-                  Data Sharing Mode (Organization Governance Control) <span class="text-rose-500">*</span>
-                </label>
-                <p class="text-[11px] text-text-secondary mt-0.5">
-                  Acts as the master governance policy. LMS Admins can configure inter-instance sharing only when enabled here.
-                </p>
-              </div>
-              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
-                    [ngClass]="resourcesForm.get('dataSharingMode')?.value === 'Yes' 
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' 
-                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800'">
-                {{ resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'Governance: Sharing Permitted' : 'Governance: Strict Isolation' }}
-              </span>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              @for (opt of dataSharingOptions; track opt.value) {
-                <label 
-                  class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-4"
-                  [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value 
-                    ? (opt.value === 'Yes' ? 'border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/30 shadow-xs' : 'border-amber-500 bg-amber-50/20 dark:bg-amber-950/30 shadow-xs')
-                    : 'border-base-300 bg-base-200/50 hover:bg-base-200'">
-                  
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-3">
-                      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                           [ngClass]="resourcesForm.get('dataSharingMode')?.value === opt.value
-                             ? (opt.value === 'Yes' ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300')
-                             : 'bg-base-300/60 text-text-secondary'">
-                        <span class="material-symbols-outlined text-xl">{{ opt.icon }}</span>
-                      </div>
-                      <div class="space-y-1">
-                        <span class="text-xs font-bold text-text-primary block leading-snug">{{ opt.label }}</span>
-                        <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full inline-block" [class]="opt.badgeClass">
-                          {{ opt.governanceStatus }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <input 
-                      type="radio" 
-                      formControlName="dataSharingMode" 
-                      [value]="opt.value" 
-                      class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-base-300 mt-1 cursor-pointer shrink-0" />
-                  </div>
-
-                  <p class="text-[11px] text-text-secondary leading-relaxed">{{ opt.sublabel }}</p>
-                </label>
-              }
-            </div>
-
-            <!-- Governance Policy Callout Banner -->
-            <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex items-start gap-3 text-xs">
-              <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-lg shrink-0 mt-0.5">policy</span>
-              <div class="space-y-0.5 text-indigo-950 dark:text-indigo-200">
-                <span class="font-bold text-[11px] block">Governance Policy Rule</span>
-                <p class="text-[11px] text-indigo-900/90 dark:text-indigo-300 leading-relaxed">
-                  When set to <strong>Yes</strong>, LMS Administrators are delegated the ability to configure granular data sharing (course catalog, faculty pools, question repositories, and transcripts) for their individual LMS instances. When set to <strong>No</strong>, all LMS instances are strictly segregated regardless of LMS-level preferences.
-                </p>
-              </div>
-            </div>
-
-            @if (isFieldInvalid(resourcesForm, 'dataSharingMode')) {
-              <p class="text-[11px] text-rose-500 mt-1">Please select a Data Sharing Mode.</p>
-            }
-          </div>
-
-          <!-- Conditional: Custom Batches Panel (§4.2.2) -->
-          @if (resourcesForm.get('dataSharingMode')?.value === 'Custom') {
-            <div class="col-span-full p-5 rounded-2xl bg-base-200/90 border border-base-300 space-y-4 animate-in fade-in">
-              <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-base-300">
-                <div>
-                  <h3 class="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-tenant-600 text-base">hub</span>
-                    Configure Custom Data Sharing Batches
-                  </h3>
-                  <p class="text-[11px] text-text-secondary">Define isolated sharing cohorts of LMS instances under this organization.</p>
-                </div>
-
-                <button 
-                  type="button" 
-                  (click)="addCustomBatch()" 
-                  class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">add</span>
-                  <span>Add Batch Cohort</span>
-                </button>
-              </div>
-
-              <!-- Batches List -->
-              <div class="space-y-3">
-                @for (batch of customBatches(); track batch.id; let bIdx = $index) {
-                  <div class="p-3.5 rounded-xl bg-base-100 border border-base-300 space-y-2">
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-text-primary">{{ batch.name }}</span>
-                      @if (customBatches().length > 1) {
-                        <button 
-                          type="button" 
-                          (click)="removeCustomBatch(bIdx)" 
-                          class="text-rose-500 hover:text-rose-700 text-xs font-semibold flex items-center gap-1 cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">delete</span>
-                          Remove
-                        </button>
-                      }
-                    </div>
-
-                    <div class="flex flex-wrap gap-2 pt-1">
-                      @for (node of availableLmsNodes; track node.id) {
-                        <button 
-                          type="button"
-                          (click)="toggleNodeInBatch(bIdx, node.id)"
-                          class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer"
-                          [ngClass]="isNodeInBatch(bIdx, node.id) 
-                            ? 'bg-tenant-50 text-tenant-700 border-tenant-300 dark:bg-tenant-900/40 dark:text-tenant-300 dark:border-tenant-700' 
-                            : 'bg-base-200 text-text-secondary border-base-300 hover:text-text-primary'">
-                          <span class="material-symbols-outlined text-xs">
-                            {{ isNodeInBatch(bIdx, node.id) ? 'check_box' : 'check_box_outline_blank' }}
-                          </span>
-                          <span>{{ node.name }}</span>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          }
 
         </div>
       </div>
@@ -1108,29 +977,7 @@
                 <div class="text-[10px] text-text-secondary uppercase">Alert Trigger</div>
                 <div class="font-bold text-base text-amber-600 mt-0.5">{{ resourcesForm.get('usageAlertThresholdPct')?.value }}%</div>
               </div>
-
-              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
-                <div class="text-[10px] text-text-secondary uppercase">Data Sharing Governance</div>
-                <div class="font-bold text-xs mt-1 truncate"
-                     [ngClass]="resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">
-                  {{ resourcesForm.get('dataSharingMode')?.value === 'Yes' ? 'Yes (LMS Configurable)' : 'No (Strict Segregation)' }}
-                </div>
-              </div>
             </div>
-
-            @if (resourcesForm.get('dataSharingMode')?.value === 'Custom') {
-              <div class="p-3 rounded-xl bg-base-200 border border-base-300 text-xs">
-                <span class="text-[10px] text-text-secondary uppercase font-bold block mb-1">Custom Sharing Batches:</span>
-                <div class="space-y-1">
-                  @for (batch of customBatches(); track batch.id) {
-                    <div class="flex items-center justify-between text-[11px]">
-                      <span class="font-semibold text-text-primary">{{ batch.name }}</span>
-                      <span class="text-text-secondary font-mono">{{ batch.lmsInstanceIds.length }} LMS Nodes</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
           </div>
 
         </div>

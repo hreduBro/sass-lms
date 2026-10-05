@@ -14,7 +14,7 @@ import { LmsInstance, LmsDraft } from '../../models/lms-instance.model';
 import { LmsWidgetRendererComponent } from './lms-widget-renderer.component';
 import { LmsWidgetConfigModalComponent } from './lms-widget-config-modal.component';
 import { LmsAddWidgetModalComponent } from './lms-add-widget-modal.component';
-import { CustomAvatarComponent } from '../../components/custom-avatar/custom-avatar.component';
+import { CustomSwitchComponent } from '../../components/custom-switch/custom-switch.component';
 
 @Component({
   selector: 'app-lms-dashboard',
@@ -25,7 +25,7 @@ import { CustomAvatarComponent } from '../../components/custom-avatar/custom-ava
     LmsWidgetRendererComponent, 
     LmsWidgetConfigModalComponent, 
     LmsAddWidgetModalComponent,
-    CustomAvatarComponent
+    CustomSwitchComponent
   ],
   templateUrl: './lms-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +55,104 @@ export class LmsDashboardComponent {
 
   // Active Organization
   activeTenant = this.lms.activeTenant;
+
+  // Role Scoping: LMS Admin vs Org Admin
+  isLmsAdmin = computed(() => this.lms.activeRole() === 'lms_admin');
+
+  // Active LMS Instance for LMS Admin
+  activeLmsInstance = computed(() => {
+    const activeId = this.lms.activeLmsId();
+    return this.lms.lmsInstances().find(l => l.id === activeId) || this.lms.lmsInstances()[0];
+  });
+
+  // Parent Organization for active LMS
+  parentOrg = computed(() => {
+    const lms = this.activeLmsInstance();
+    if (!lms) return this.activeTenant();
+    return this.lms.tenants().find(t => t.id === lms.organizationId) || this.activeTenant();
+  });
+
+  // Master Organization Gate for repository sharing
+  isOrgSharingMasterOn = computed(() => {
+    return this.parentOrg()?.repositorySharingEnabled !== false;
+  });
+
+  // LMS instance sharing switches
+  isLmsSharingOn = computed(() => {
+    return this.activeLmsInstance()?.resources?.dataSharing?.enabled ?? false;
+  });
+
+  isContributeOn = computed(() => {
+    const sharing = this.activeLmsInstance()?.resources?.dataSharing;
+    return sharing?.contribute ?? this.isLmsSharingOn();
+  });
+
+  isDiscoverOn = computed(() => {
+    const sharing = this.activeLmsInstance()?.resources?.dataSharing;
+    return sharing?.discover ?? this.isLmsSharingOn();
+  });
+
+  // Customizer expander
+  showSharingCustomizer = signal<boolean>(false);
+
+  toggleSharingCustomizer() {
+    this.showSharingCustomizer.update(v => !v);
+  }
+
+  // LMS-scoped Metrics
+  singleLmsStats = computed(() => {
+    const currentLms = this.activeLmsInstance();
+    const lmsId = currentLms?.id;
+    const courses = this.lms.courses().filter(c => c.tenantId === currentLms?.organizationId);
+    const repoItems = this.lms.repositoryItems().filter(r => r.owningLmsId === lmsId || r.sharingMode === 'Organization-wide');
+    const storageAllocated = currentLms?.resources?.fileStorageGb || 250;
+    const storageUsed = Math.round(storageAllocated * 0.38);
+
+    return {
+      coursesCount: courses.length,
+      repoItemsCount: repoItems.length,
+      storageAllocated,
+      storageUsed,
+      storagePct: Math.round((storageUsed / storageAllocated) * 100),
+      dbSizeGb: currentLms?.resources?.databaseSizeGb || 100
+    };
+  });
+
+  onLmsSharingChange(checked: boolean) {
+    const lmsId = this.activeLmsInstance()?.id;
+    if (lmsId) {
+      this.lms.toggleLmsSharing(lmsId, checked, checked, checked);
+    }
+  }
+
+  onContributeChange(checked: boolean) {
+    const lmsId = this.activeLmsInstance()?.id;
+    if (lmsId) {
+      this.lms.toggleLmsSharing(lmsId, this.isLmsSharingOn(), checked, this.isDiscoverOn());
+    }
+  }
+
+  onDiscoverChange(checked: boolean) {
+    const lmsId = this.activeLmsInstance()?.id;
+    if (lmsId) {
+      this.lms.toggleLmsSharing(lmsId, this.isLmsSharingOn(), this.isContributeOn(), checked);
+    }
+  }
+
+  toggleLmsSharing(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.onLmsSharingChange(checked);
+  }
+
+  toggleContribute(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.onContributeChange(checked);
+  }
+
+  toggleDiscover(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.onDiscoverChange(checked);
+  }
 
   // Presets definition
   presets: LmsDashboardPreset[] = LMS_DASHBOARD_PRESETS;

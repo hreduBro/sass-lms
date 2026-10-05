@@ -67,6 +67,7 @@ export interface Tenant {
   branding: TenantBranding;
   departments: string[];
   stats: TenantStats;
+  repositorySharingEnabled?: boolean;
   createdAt: string;
   renewalDate: string;
   adminEmail: string;

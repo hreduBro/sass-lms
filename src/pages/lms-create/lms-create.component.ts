@@ -317,12 +317,7 @@ export class LmsCreateComponent implements OnInit {
 
       if (instance.resources.dataSharing) {
         this.lmsDataSharingEnabled.set(instance.resources.dataSharing.enabled);
-        this.lmsSharingMode.set(instance.resources.dataSharing.mode || 'Shared');
-        this.shareCourses.set(instance.resources.dataSharing.shareCourses ?? true);
-        this.shareFacultyPool.set(instance.resources.dataSharing.shareFacultyPool ?? true);
-        this.shareAssessmentBank.set(instance.resources.dataSharing.shareAssessmentBank ?? true);
-        this.shareTranscripts.set(instance.resources.dataSharing.shareTranscripts ?? true);
-        this.customCohortName.set(instance.resources.dataSharing.customCohortName || 'Primary Org Shared Pool');
+        this.lmsSharingMode.set(instance.resources.dataSharing.mode || 'Segregated');
       }
     }
 
@@ -386,12 +381,7 @@ export class LmsCreateComponent implements OnInit {
 
       if (draft.resources.dataSharing) {
         this.lmsDataSharingEnabled.set(draft.resources.dataSharing.enabled);
-        this.lmsSharingMode.set(draft.resources.dataSharing.mode || 'Shared');
-        this.shareCourses.set(draft.resources.dataSharing.shareCourses ?? true);
-        this.shareFacultyPool.set(draft.resources.dataSharing.shareFacultyPool ?? true);
-        this.shareAssessmentBank.set(draft.resources.dataSharing.shareAssessmentBank ?? true);
-        this.shareTranscripts.set(draft.resources.dataSharing.shareTranscripts ?? true);
-        this.customCohortName.set(draft.resources.dataSharing.customCohortName || 'Primary Org Shared Pool');
+        this.lmsSharingMode.set(draft.resources.dataSharing.mode || 'Segregated');
       }
     }
 
@@ -781,16 +771,11 @@ export class LmsCreateComponent implements OnInit {
   }
 
   getDataSharingPayload(): LmsDataSharingConfig {
-    const isAllowed = this.isOrgDataSharingEnabled();
-    const isLmsEnabled = isAllowed && this.lmsDataSharingEnabled();
     return {
-      enabled: isLmsEnabled,
-      mode: isLmsEnabled ? this.lmsSharingMode() : 'Segregated',
-      shareCourses: isLmsEnabled ? this.shareCourses() : false,
-      shareFacultyPool: isLmsEnabled ? this.shareFacultyPool() : false,
-      shareAssessmentBank: isLmsEnabled ? this.shareAssessmentBank() : false,
-      shareTranscripts: isLmsEnabled ? this.shareTranscripts() : false,
-      customCohortName: this.customCohortName()
+      enabled: false,
+      contribute: false,
+      discover: false,
+      mode: 'Segregated'
     };
   }
 

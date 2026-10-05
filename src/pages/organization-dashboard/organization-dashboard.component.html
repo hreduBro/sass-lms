@@ -1,231 +1,402 @@
 <div class="space-y-6">
+  
   <!-- ========================================================================= -->
-  <!-- 1. VIEW MODE HEADER                                                       -->
+  <!-- 1. ORG ADMIN SCOPED VIEW (When viewed as Org Admin / tenant_admin)         -->
   <!-- ========================================================================= -->
-  @if (!isStudioMode()) {
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
-            <span class="material-symbols-outlined text-xs">corporate_fare</span>
-            Platform Level
-          </span>
-          <span class="text-xs text-text-secondary flex items-center gap-1">
-            <span>Role:</span> 
-            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.activeRole().replace('_', ' ') }}</strong>
-          </span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
-            Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
-          </span>
+  @if (isOrgAdmin()) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- Org Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">domain</span>
+              Organization Scope: {{ activeOrg().name }}
+            </span>
+            <span class="text-xs text-text-secondary flex items-center gap-1">
+              <span>Role:</span> 
+              <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">Org Admin</strong>
+            </span>
+          </div>
+          
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+            {{ activeOrg().name }} Overview
+          </h1>
+          <p class="text-xs text-text-secondary mt-0.5">
+            Operational status, LMS instances, repository sharing governance, and resource quotas for your organization.
+          </p>
         </div>
-        
-        <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-          Organization Overview
-        </h1>
-        <p class="text-xs text-text-secondary mt-0.5">
-          Platform-wide status and activity across all Organizations on OneLMS.
-        </p>
+
+        <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+          <a 
+            routerLink="/lms/create"
+            class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            <span>Create New LMS</span>
+          </a>
+        </div>
       </div>
 
-      <!-- Action Button: Open Customize Studio -->
-      <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-        <button 
-          id="btn-open-org-studio"
-          (click)="enterStudioMode()"
-          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] group cursor-pointer">
-          <span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
-          <span>Customize Dashboard Studio</span>
-        </button>
+      <!-- MASTER REPOSITORY SHARING GOVERNANCE SWITCH (§4.2) -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-300">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+              [ngClass]="isMasterSharingEnabled() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400'">
+              <span class="material-symbols-outlined text-xl">{{ isMasterSharingEnabled() ? 'share' : 'lock' }}</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-sm font-bold text-text-primary">Enable repository sharing across this Organization</h2>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  [ngClass]="isMasterSharingEnabled() ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
+                  {{ isMasterSharingEnabled() ? 'Master Switch: ON' : 'Master Switch: OFF (Strict Isolation)' }}
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary mt-1 max-w-2xl leading-relaxed">
+                This is the master switch. When enabled, individual LMS instances under {{ activeOrg().name }} are permitted to cross-share repository items. When turned OFF, no content crosses between any two LMS in this organization, no matter what any individual LMS has set.
+              </p>
+            </div>
+          </div>
+
+          <!-- Master Toggle Switch -->
+          <div class="flex items-center shrink-0 self-start sm:self-center">
+            <app-custom-switch
+              [checked]="isMasterSharingEnabled()"
+              [onLabel]="'Enabled'"
+              [offLabel]="'Disabled'"
+              [variant]="'emerald'"
+              size="md"
+              (checkedChange)="onMasterSharingChange($event)">
+            </app-custom-switch>
+          </div>
+        </div>
+
+        <!-- Read-only Reporting List of LMS Sharing Statuses -->
+        <div class="space-y-3 pt-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs text-text-secondary">hub</span>
+              <span class="text-xs font-bold text-text-primary uppercase tracking-wider">LMS Instances Content Sharing Status (Reporting Only)</span>
+            </div>
+            <span class="text-[11px] text-text-secondary">
+              Note: Reporting only — individual LMS sharing switch cannot be toggled from here.
+            </span>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-base-300">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-base-200/60 text-text-secondary uppercase text-[10px] font-bold tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">LMS Instance</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4">LMS Sharing Switch</th>
+                  <th class="py-3 px-4">Contribute Out</th>
+                  <th class="py-3 px-4">Discover In</th>
+                  <th class="py-3 px-4">Effective State</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-base-300 bg-base-100 font-sans">
+                @for (lmsItem of orgLmsList(); track lmsItem.id) {
+                  @let isLmsOn = lmsItem.resources?.dataSharing?.enabled ?? false;
+                  @let canContribute = lmsItem.resources?.dataSharing?.contribute ?? isLmsOn;
+                  @let canDiscover = lmsItem.resources?.dataSharing?.discover ?? isLmsOn;
+                  <tr class="hover:bg-base-200/40 transition-colors">
+                    <td class="py-3 px-4">
+                      <div class="font-bold text-text-primary">{{ lmsItem.basicInfo?.lmsName || lmsItem.id }}</div>
+                      <div class="text-[10px] text-text-secondary font-mono">{{ lmsItem.id }} &bull; {{ lmsItem.basicInfo?.urlDomain || 'portal' }}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        {{ lmsItem.status }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                        [ngClass]="isLmsOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-base-200 text-text-secondary border border-base-300'">
+                        <span class="material-symbols-outlined text-xs">{{ isLmsOn ? 'check_circle' : 'cancel' }}</span>
+                        <span>{{ isLmsOn ? 'ON' : 'OFF' }}</span>
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="text-[10px] font-mono" [ngClass]="canContribute && isLmsOn ? 'text-emerald-600 font-bold' : 'text-text-secondary'">
+                        {{ isLmsOn && canContribute ? 'Allowed' : 'Disabled' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <span class="text-[10px] font-mono" [ngClass]="canDiscover && isLmsOn ? 'text-emerald-600 font-bold' : 'text-text-secondary'">
+                        {{ isLmsOn && canDiscover ? 'Allowed' : 'Disabled' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      @if (!isMasterSharingEnabled()) {
+                        <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                          Locked by Master
+                        </span>
+                      } @else if (isLmsOn) {
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                          Active & Sharing
+                        </span>
+                      } @else {
+                        <span class="text-[10px] font-bold text-text-secondary bg-base-200 px-2 py-0.5 rounded border border-base-300">
+                          Isolated (LMS OFF)
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
+      <!-- Scoped Org Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total LMS -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>LMS Instances</span>
+            <span class="material-symbols-outlined text-tenant-600">layers</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().totalLms }}</div>
+          <div class="text-[11px] text-text-secondary flex items-center gap-1.5">
+            <span class="text-emerald-600 font-bold">{{ orgStats().activeLms }} Active</span>
+            <span>&bull;</span>
+            <span class="text-amber-600 font-semibold">{{ orgStats().processingLms }} Processing</span>
+          </div>
+        </div>
+
+        <!-- Storage Quota -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Storage Allocated</span>
+            <span class="material-symbols-outlined text-cyan-600">hard_drive</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().usedGb }} / {{ orgStats().allocatedGb }} GB</div>
+          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-cyan-500 h-full rounded-full transition-all" [style.width.%]="orgStats().storagePct"></div>
+          </div>
+          <div class="text-[11px] text-text-secondary">{{ orgStats().storagePct }}% capacity consumed</div>
+        </div>
+
+        <!-- Seats Quota -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Seat Utilization</span>
+            <span class="material-symbols-outlined text-indigo-600">group</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().seatsUsed }} / {{ orgStats().seatLimit }}</div>
+          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-indigo-500 h-full rounded-full transition-all" [style.width.%]="orgStats().seatPct"></div>
+          </div>
+          <div class="text-[11px] text-text-secondary">{{ orgStats().seatPct }}% total learner seats</div>
+        </div>
+
+        <!-- Database Pool -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Database Allocated</span>
+            <span class="material-symbols-outlined text-amber-600">database</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().dbSize }} GB</div>
+          <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            <span>Dedicated DB Partition Healthy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scoped LMS Catalog -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">{{ activeOrg().name }} LMS Portals</h2>
+            <p class="text-xs text-text-secondary">Dedicated learning portals provisioned for your organization.</p>
+          </div>
+          <a routerLink="/lms" class="text-xs font-semibold text-tenant-600 hover:underline">View in LMS Grid &rarr;</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (inst of orgLmsList(); track inst.id) {
+            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-3 hover:border-tenant-500/40 transition-all shadow-2xs">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="font-bold text-xs text-text-primary">{{ inst.basicInfo?.lmsName }}</h3>
+                  <span class="text-[10px] text-text-secondary font-mono">{{ inst.id }} &bull; {{ inst.basicInfo?.programmeDepartment }}</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  {{ inst.status }}
+                </span>
+              </div>
+
+              <div class="text-[11px] text-text-secondary flex items-center justify-between pt-2 border-t border-base-300 font-mono">
+                <span>Storage: {{ inst.resources?.fileStorageGb || 50 }} GB</span>
+                <span>DB: {{ inst.resources?.databaseSizeGb || 20 }} GB</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
     </div>
   }
 
   <!-- ========================================================================= -->
-  <!-- 2. STUDIO MODE TOP BAR & CONTROLS                                         -->
+  <!-- 2. SYSTEM ADMIN PLATFORM-WIDE VIEW (When viewed as System Admin)           -->
   <!-- ========================================================================= -->
-  @if (isStudioMode()) {
-    <div class="p-4 lg:p-5 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xl space-y-4 animate-in fade-in transition-all">
+  @if (!isOrgAdmin()) {
+    <div class="space-y-6 animate-in fade-in">
       
-      <!-- Top Row: Studio Header + Main Actions -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        
-        <!-- Left: Title & Version Draft Tag -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
-            <span class="material-symbols-outlined text-xl animate-pulse">tune</span>
-          </div>
+      <!-- View Mode Header -->
+      @if (!isStudioMode()) {
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div class="flex items-center gap-2">
-              <h2 class="font-bold text-sm text-text-primary">Custom Dashboard Studio</h2>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold border border-tenant-500/20">
-                Organization Scope
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">corporate_fare</span>
+                Platform Level (All Organizations)
               </span>
-              <span class="text-[10px] px-2 py-0.2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-300 font-mono font-bold">
-                v{{ publishedLayout().version + 1 }} Draft
+              <span class="text-xs text-text-secondary flex items-center gap-1">
+                <span>Role:</span> 
+                <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.activeRole().replace('_', ' ') }}</strong>
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
+                Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
               </span>
             </div>
+            
+            <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+              Organization Overview
+            </h1>
             <p class="text-xs text-text-secondary mt-0.5">
-              Drag cards to reorder, click width pills (25%–100%), or configure role audiences.
+              Platform-wide status, cross-tenant telemetry, and activity across all Organizations on OneLMS.
             </p>
           </div>
+
+          <!-- Action Button: Open Customize Studio -->
+          <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+            <button 
+              id="btn-open-org-studio"
+              (click)="enterStudioMode()"
+              class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] group cursor-pointer">
+              <span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
+              <span>Customize Dashboard Studio</span>
+            </button>
+          </div>
         </div>
+      }
 
-        <!-- Right: Studio Actions (Add, Auto-Arrange, Reset, Discard, Publish) -->
-        <div class="flex items-center gap-2 flex-wrap">
-          
-          <!-- Add Widget -->
-          <button 
-            type="button"
-            id="btn-add-widget-catalog"
-            (click)="showAddWidgetModal.set(true)"
-            class="px-3 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95">
-            <span class="material-symbols-outlined text-base font-bold">add</span>
-            <span>Add Widget</span>
-          </button>
+      <!-- Studio Mode Controls -->
+      @if (isStudioMode()) {
+        <div class="p-4 lg:p-5 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xl space-y-4 animate-in fade-in transition-all">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+                <span class="material-symbols-outlined text-xl animate-pulse">tune</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-sm text-text-primary">Custom Dashboard Studio</h2>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold border border-tenant-500/20">
+                    Platform Scope
+                  </span>
+                </div>
+                <p class="text-xs text-text-secondary mt-0.5">
+                  Drag cards to reorder, click width pills, or configure role audiences.
+                </p>
+              </div>
+            </div>
 
-          <!-- Auto-Arrange -->
-          <button 
-            type="button"
-            (click)="autoArrangeLayout()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Automatically balance columns & clean spacing">
-            <span class="material-symbols-outlined text-base text-tenant-500">auto_fix_high</span>
-            <span class="hidden sm:inline">Auto-Arrange</span>
-          </button>
-
-          <!-- Reset to Factory Defaults -->
-          <button 
-            type="button"
-            (click)="resetLayout()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Reset to factory default layout">
-            <span class="material-symbols-outlined text-base">restart_alt</span>
-            <span class="hidden sm:inline">Reset</span>
-          </button>
-
-          <!-- Discard Draft Changes -->
-          <button 
-            type="button"
-            (click)="discardStudioChanges()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-base">close</span>
-            <span>Discard</span>
-          </button>
-
-          <!-- Publish Live -->
-          <button 
-            type="button"
-            id="btn-publish-org-dashboard"
-            (click)="publishDashboard()"
-            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer">
-            <span class="material-symbols-outlined text-base">check_circle</span>
-            <span>Publish Live</span>
-          </button>
-
+            <div class="flex items-center gap-2 flex-wrap">
+              <button 
+                type="button"
+                (click)="showAddWidgetModal.set(true)"
+                class="px-3 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+                <span class="material-symbols-outlined text-base font-bold">add</span>
+                <span>Add Widget</span>
+              </button>
+              <button 
+                type="button"
+                (click)="autoArrangeLayout()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base text-tenant-500">auto_fix_high</span>
+                <span>Auto-Arrange</span>
+              </button>
+              <button 
+                type="button"
+                (click)="resetLayout()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">restart_alt</span>
+                <span>Reset</span>
+              </button>
+              <button 
+                type="button"
+                (click)="discardStudioChanges()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">close</span>
+                <span>Discard</span>
+              </button>
+              <button 
+                type="button"
+                (click)="publishDashboard()"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+                <span>Publish Live</span>
+              </button>
+            </div>
+          </div>
         </div>
+      }
 
-      </div>
-
-      <!-- Presets Row -->
-      <div class="pt-3 border-t border-base-300/80 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1 flex-shrink-0 mr-1">
-          <span class="material-symbols-outlined text-sm">dashboard</span>
-          Presets:
-        </span>
-
-        @for (preset of presets; track preset.id) {
-          <button 
-            type="button"
-            (click)="applyPreset(preset)"
-            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-base-200/80 hover:bg-base-300 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all flex-shrink-0 cursor-pointer group">
-            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 group-hover:scale-110 transition-transform">{{ preset.icon }}</span>
-            <span>{{ preset.name }}</span>
-            @if (preset.badge) {
-              <span class="text-[9px] px-1 py-0.2 rounded-md bg-tenant-500/15 text-tenant-600 dark:text-tenant-300 font-bold">
-                {{ preset.badge }}
-              </span>
+      <!-- System Admin Widget Canvas -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 auto-rows-auto items-stretch">
+        @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
+          <div 
+            class="transition-all duration-200 relative group flex flex-col"
+            [ngClass]="[
+              widget.colSpan === 1 ? 'sm:col-span-3' : (widget.colSpan === 2 ? 'sm:col-span-6' : (widget.colSpan === 3 ? 'sm:col-span-9' : 'sm:col-span-12')),
+              widget.rowSpan === 2 ? 'sm:row-span-2' : (widget.rowSpan === 3 ? 'sm:row-span-3' : 'sm:row-span-1'),
+              isStudioMode() ? 'ring-2 ring-tenant-500/40 rounded-3xl bg-base-100 p-1 cursor-grab active:cursor-grabbing hover:ring-tenant-500' : ''
+            ]">
+            
+            @if (isStudioMode()) {
+              <div class="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-base-100/90 backdrop-blur-xs p-1 rounded-xl border border-base-300 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="editingWidget.set(widget)" class="p-1 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 cursor-pointer" title="Configure Widget">
+                  <span class="material-symbols-outlined text-sm">settings</span>
+                </button>
+                <button (click)="removeWidget(widget.id)" class="p-1 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 cursor-pointer" title="Remove Widget">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             }
-          </button>
+
+            <app-org-widget-renderer 
+              [widget]="widget" 
+              class="w-full h-full flex flex-col flex-1">
+            </app-org-widget-renderer>
+          </div>
         }
       </div>
 
     </div>
   }
 
-  <!-- ========================================================================= -->
-  <!-- 3. DASHBOARD CANVAS (12-COLUMN CSS GRID)                                  -->
-  <!-- ========================================================================= -->
-  <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 auto-rows-auto items-stretch">
-    
-    @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
-      <div 
-        [id]="'widget-slot-' + widget.id"
-        [class]="getColSpanClass(widget.colSpan) + ' ' + getRowSpanClass(widget.rowSpan)"
-        [draggable]="isStudioMode()"
-        (dragstart)="onDragStart($event, idx)"
-        (dragover)="onDragOver($event, idx)"
-        (dragleave)="onDragLeave(idx)"
-        (drop)="onDrop($event, idx)"
-        (dragend)="onDragEnd()"
-        class="transition-all duration-200"
-        [class.opacity-40]="draggedIndex() === idx"
-        [class.ring-2]="dragOverIndex() === idx"
-        [class.ring-tenant-500]="dragOverIndex() === idx"
-        [class.rounded-3xl]="dragOverIndex() === idx">
-        
-        <app-org-widget-renderer
-          [widget]="widget"
-          [isBuilderMode]="isStudioMode()"
-          (editWidget)="editingWidget.set($event)"
-          (removeWidget)="onRemoveWidget($event)"
-          (duplicateWidget)="onDuplicateWidget($event)"
-          (moveUp)="onMoveUp($event)"
-          (moveDown)="onMoveDown($event)"
-          (changeColSpan)="onChangeColSpan($event)"
-          (changeRowSpan)="onChangeRowSpan($event)"
-          (changeDimensions)="onChangeDimensions($event)"
-          class="h-full block">
-        </app-org-widget-renderer>
-
-      </div>
-    }
-
-    <!-- Empty Canvas Placeholder -->
-    @if (displayedWidgets().length === 0) {
-      <div class="col-span-12 py-16 text-center rounded-3xl border-2 border-dashed border-base-300 space-y-3 bg-base-100/50">
-        <span class="material-symbols-outlined text-5xl text-text-secondary/60">dashboard_customize</span>
-        <h3 class="text-sm font-bold text-text-primary">Dashboard Canvas is Empty</h3>
-        <p class="text-xs text-text-secondary max-w-md mx-auto">
-          No widgets are currently placed on this canvas. Click below to add modular components from the catalog.
-        </p>
-        <button 
-          type="button"
-          (click)="showAddWidgetModal.set(true)"
-          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer">
-          <span class="material-symbols-outlined text-sm font-bold">add</span>
-          <span>Add Widget from Catalog</span>
-        </button>
-      </div>
-    }
-
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 4. MODALS (Add Widget Catalog & Widget Configuration)                      -->
-  <!-- ========================================================================= -->
-  @if (showAddWidgetModal()) {
-    <app-org-add-widget-modal
-      (close)="showAddWidgetModal.set(false)"
-      (selectWidget)="onAddWidget($event)">
-    </app-org-add-widget-modal>
-  }
-
-  @if (editingWidget()) {
-    <app-org-widget-config-modal
-      [widget]="editingWidget()!"
-      (close)="editingWidget.set(null)"
-      (save)="onSaveWidgetConfig($event)">
-    </app-org-widget-config-modal>
-  }
-
 </div>
+
+<!-- Studio Modals -->
+@if (editingWidget(); as w) {
+  <app-org-widget-config-modal 
+    [widget]="w"
+    (save)="updateWidgetConfig($event)"
+    (close)="editingWidget.set(null)">
+  </app-org-widget-config-modal>
+}
+
+@if (showAddWidgetModal()) {
+  <app-org-add-widget-modal 
+    (addWidget)="onAddWidget($event)"
+    (close)="showAddWidgetModal.set(false)">
+  </app-org-add-widget-modal>
+}

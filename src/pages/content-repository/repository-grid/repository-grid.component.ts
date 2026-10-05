@@ -26,8 +26,8 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
     RouterModule,
     FormsModule,
     ReactiveFormsModule,
-    CustomSelectComponent,
-    DatePickerComponent
+    DatePickerComponent,
+    FilterSectionComponent
   ],
   templateUrl: './repository-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush

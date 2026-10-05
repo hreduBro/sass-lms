@@ -65,25 +65,6 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   selectedCountry = signal<string>('Bangladesh');
   selectedDivision = signal<string>('');
   
-  dataSharingOptions = [
-    { 
-      value: 'Yes', 
-      label: 'Yes – Allow Data Sharing (Governance Control)', 
-      governanceStatus: 'Governance Permitted',
-      sublabel: 'Authorizes inter-instance data sharing governance. LMS Administrators are permitted to configure and enable sharing (courses, faculty pool, question repository, transcripts) for their respective LMS instances.', 
-      icon: 'verified_user',
-      badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-    },
-    { 
-      value: 'No', 
-      label: 'No – Strict Segregation (Governance Lock)', 
-      governanceStatus: 'Governance Locked',
-      sublabel: 'Enforces strict organization-wide isolation. Inter-instance sharing is locked down across all LMS instances under this organization. LMS Admins cannot enable sharing.', 
-      icon: 'lock',
-      badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-    }
-  ];
-  
   districtsList = computed(() => {
     const div = this.selectedDivision();
     if (!div || !DIVISION_DISTRICTS_MAP[div]) {
@@ -331,8 +312,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.resourcesForm = this.fb.group({
       databaseSizeGb: [250, [Validators.min(1)]],
       fileStorageGb: [null, [Validators.required, Validators.min(1)]],
-      usageAlertThresholdPct: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
-      dataSharingMode: ['Yes', [Validators.required]]
+      usageAlertThresholdPct: [null, [Validators.required, Validators.min(1), Validators.max(100)]]
     });
   }
 
@@ -750,7 +730,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         databaseSizeGb: 250,
         fileStorageGb: 500,
         usageAlertThresholdPct: 80,
-        dataSharingMode: 'Yes'
+        dataSharingMode: 'No'
       });
       this.customBatches.set([
         { id: 'batch-1', name: 'Batch 1: Primary Campus Nodes', lmsInstanceIds: ['LMS-Core-01', 'LMS-Branch-02'] }
@@ -1005,8 +985,8 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         databaseSizeGb: rValues.databaseSizeGb || 250,
         fileStorageGb: rValues.fileStorageGb || 500,
         usageAlertThresholdPct: rValues.usageAlertThresholdPct || 80,
-        dataSharingMode: rValues.dataSharingMode || 'Yes',
-        customBatches: rValues.dataSharingMode === 'Custom' ? this.customBatches() : undefined
+        dataSharingMode: 'No',
+        customBatches: undefined
       }
     };
   }

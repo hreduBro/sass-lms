@@ -393,13 +393,22 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
               </div>
             }
 
-            <!-- B: Content Specific -->
+            <!-- B: Content Specific (Live Referenced from Repository) -->
             @if (selectedType() === 'Content') {
               <div class="space-y-4 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50">
-                <h3 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm">play_lesson</span>
-                  <span>Learning Content Asset</span>
-                </h3>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">play_lesson</span>
+                    <span>Learning Content Asset</span>
+                  </h3>
+                  <span class="text-[10px] text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 rounded font-bold">
+                    Live Repository Reference
+                  </span>
+                </div>
+
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Content items are live-referenced directly from the Content Repository. Any updates to content files, media, or lifecycle status made in the repository reflect dynamically in this Plan without version pinning.
+                </p>
 
                 <div>
                   <app-custom-select

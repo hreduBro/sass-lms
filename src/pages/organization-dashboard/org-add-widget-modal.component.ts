@@ -169,6 +169,7 @@ export class OrgAddWidgetModalComponent {
 
   categories = [
     { id: 'all', label: 'All', icon: 'apps' },
+    { id: 'content-management', label: 'Content & Learning', icon: 'folder_special' },
     { id: 'kpis-summary', label: 'KPIs & Summary', icon: 'insights' },
     { id: 'status-activity', label: 'Status & Activity', icon: 'pie_chart' },
     { id: 'capacity', label: 'Capacity', icon: 'dns' },

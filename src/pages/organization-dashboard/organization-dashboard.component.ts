@@ -13,6 +13,7 @@ import {
 import { OrgWidgetRendererComponent } from './org-widget-renderer.component';
 import { OrgWidgetConfigModalComponent } from './org-widget-config-modal.component';
 import { OrgAddWidgetModalComponent } from './org-add-widget-modal.component';
+import { CustomSwitchComponent } from '../../components/custom-switch/custom-switch.component';
 
 @Component({
   selector: 'app-organization-dashboard',
@@ -22,7 +23,8 @@ import { OrgAddWidgetModalComponent } from './org-add-widget-modal.component';
     FormsModule, 
     OrgWidgetRendererComponent, 
     OrgWidgetConfigModalComponent, 
-    OrgAddWidgetModalComponent
+    OrgAddWidgetModalComponent,
+    CustomSwitchComponent
   ],
   templateUrl: './organization-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,7 +50,58 @@ export class OrganizationDashboardComponent {
   // Presets definition
   presets: OrgDashboardPreset[] = ORG_DASHBOARD_PRESETS;
 
-  // Active / displayed widgets
+  // Role scoping: Org Admin vs System Admin
+  isOrgAdmin = computed(() => this.lms.activeRole() === 'tenant_admin');
+  activeOrg = computed(() => this.lms.activeTenant());
+
+  // Scoped LMS list for active organization
+  orgLmsList = computed(() => {
+    const tenantId = this.lms.activeTenantId();
+    return this.lms.lmsInstances().filter(l => l.organizationId === tenantId);
+  });
+
+  // Scoped Org metrics
+  orgStats = computed(() => {
+    const lmsList = this.orgLmsList();
+    const activeLms = lmsList.filter(l => l.status === 'Active').length;
+    const processingLms = lmsList.filter(l => l.status === 'Under Processing' || l.status === 'In-Progress' || l.status === 'Drafted').length;
+    const org = this.activeOrg();
+    const allocatedGb = org?.resourceAllocation?.fileStorageGb || org?.stats?.storageLimitGb || 500;
+    const usedGb = org?.stats?.storageUsedGb || 120;
+    const dbSize = org?.resourceAllocation?.databaseSizeGb || 250;
+    const seatsUsed = org?.stats?.seatsUsed || 240;
+    const seatLimit = org?.stats?.seatLimit || 1000;
+
+    return {
+      totalLms: lmsList.length,
+      activeLms,
+      processingLms,
+      allocatedGb,
+      usedGb,
+      dbSize,
+      storagePct: Math.min(100, Math.round((usedGb / allocatedGb) * 100)),
+      seatsUsed,
+      seatLimit,
+      seatPct: Math.min(100, Math.round((seatsUsed / seatLimit) * 100))
+    };
+  });
+
+  // Master switch for repository sharing across organization
+  isMasterSharingEnabled = computed(() => {
+    const org = this.activeOrg();
+    return org?.repositorySharingEnabled !== false;
+  });
+
+  onMasterSharingChange(checked: boolean) {
+    this.lms.toggleOrgRepositorySharing(this.activeOrg().id, checked);
+  }
+
+  toggleMasterSharing(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.onMasterSharingChange(checked);
+  }
+
+  // Active / displayed widgets (For System Admin Studio canvas)
   displayedWidgets = computed<OrgDashboardWidget[]>(() => {
     if (this.isStudioMode()) {
       return this.draftWidgets();

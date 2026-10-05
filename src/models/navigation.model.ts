@@ -407,35 +407,19 @@ export const APP_NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Assessments & Exams',
-    route: '/assessments',
+    route: '/assessments/results',
     icon: 'quiz',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'Bank',
-    description: 'Centralized Assessment Bank, Scoring Policy, Exam Runtime & Manual Grading',
+    badge: 'Exams',
+    description: 'Assessment Authoring, Exam Runtime, Scoring Policies & Trainee Results',
     matchPatterns: ['/assessments', '/assessments/**'],
     children: [
-      {
-        label: 'Assessment Bank',
-        route: '/assessments',
-        icon: 'grid_view',
-        description: 'Browse, filter & manage authorable assessment instruments',
-        matchPatterns: ['/assessments', '/assessments/view/**']
-      },
-      {
-        label: 'Assessment Dashboard',
-        route: '/assessments/dashboard',
-        icon: 'space_dashboard',
-        badge: 'Telemetry',
-        description: 'Assessment repository health, publish blockers & score telemetry',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/assessments/dashboard']
-      },
       {
         label: 'Create Assessment',
         route: '/assessments/create',
         icon: 'add_circle',
         badge: 'Builder',
-        description: '4-step assessment, question authoring & scoring policy builder',
+        description: '4-step question authoring & scoring policy builder (saves to Content Repository)',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/assessments/create', '/assessments/edit/**']
       },

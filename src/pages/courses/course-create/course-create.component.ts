@@ -17,6 +17,7 @@ import {
   validateCourseEntity,
   summarizeCourseMetrics
 } from '../../../models/course.model';
+import { RepositoryItem, ContentFamily, ContentType } from '../../../models/content-repository.model';
 import { Skill } from '../../../models/skill-mapping.model';
 import { BadgeTemplate } from '../../../models/badge-template.model';
 import { CertificateTemplate, CanvasElement, PLACEHOLDER_TOKENS } from '../../../models/certificate-template.model';
@@ -1507,26 +1508,131 @@ export class CourseCreateComponent implements OnInit {
     }
   }
 
-  // Content Modal Operations
+  // Content Repository Attachment State (§4.3)
+  repoSearchQuery = signal<string>('');
+  repoFamilyFilter = signal<string>('all');
+  repoTypeFilter = signal<string>('all');
+
+  availableRepoItems = computed<RepositoryItem[]>(() => {
+    const list = this.lmsService.repositoryItems();
+    const query = (this.repoSearchQuery() || '').toLowerCase().trim();
+    const fam = this.repoFamilyFilter();
+    const typ = this.repoTypeFilter();
+
+    return list.filter(item => {
+      // Must be Active or published
+      if (item.status === 'Draft' || item.status === 'Inactive') return false;
+
+      // Search match
+      if (query) {
+        const matchTitle = (item.title || '').toLowerCase().includes(query);
+        const matchDesc = (item.description || '').toLowerCase().includes(query);
+        const matchAuthor = (item.authorNames || []).some(a => a.toLowerCase().includes(query));
+        if (!matchTitle && !matchDesc && !matchAuthor) return false;
+      }
+
+      // Family match
+      if (fam !== 'all' && item.family.toLowerCase() !== fam.toLowerCase()) {
+        return false;
+      }
+
+      // Type match
+      if (typ !== 'all' && item.type !== typ) {
+        return false;
+      }
+
+      return true;
+    });
+  });
+
+  // Content Modal Operations: Opens Repository Attachment Selector
   openAddContentModal(nodeId: string) {
     this.activeTargetNodeId.set(nodeId);
     this.activeEditContentId.set(null);
-    const targetNode = this.findNodeById(this.structureNodes(), nodeId);
-    const topicInst = targetNode ? this.getNodeInstructor(targetNode) : null;
-
-    this.contentForm.reset({
-      title: '',
-      family: 'learning',
-      learningSubtype: 'video',
-      assessmentSubtype: 'quiz',
-      gradingMode: 'auto',
-      durationMinutes: 15,
-      passingScorePct: 80,
-      instructions: '',
-      mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      instructorId: topicInst ? '__topic__' : ''
-    });
+    this.repoSearchQuery.set('');
+    this.repoFamilyFilter.set('all');
+    this.repoTypeFilter.set('all');
     this.showContentModal.set(true);
+  }
+
+  attachRepositoryItem(repoItem: RepositoryItem) {
+    const targetNodeId = this.activeTargetNodeId();
+    if (!targetNodeId) return;
+
+    const user = this.lmsService.activeUser();
+    const targetNode = this.findNodeById(this.structureNodes(), targetNodeId);
+    const topicInst = targetNode ? this.getNodeInstructor(targetNode) : null;
+    const itemInstructors: InstructorRef[] = topicInst ? [topicInst] : [];
+
+    const isAssessment = repoItem.family === 'Assessment' || repoItem.type === 'Question Bank / Question Set';
+    const isLearning = !isAssessment;
+
+    const contentItem: CourseContentItem = {
+      contentId: `cnt-${repoItem.id}-${Date.now()}`,
+      title: repoItem.title,
+      family: isLearning ? 'learning' : 'assessment',
+      order: 1,
+      instructorTags: itemInstructors,
+      learning: isLearning ? {
+        subtype: this.mapRepoTypeToLearningSubtype(repoItem.type),
+        durationMinutes: (repoItem.contentConfig as any)?.durationMinutes || 15,
+        mediaUrl: (repoItem.contentConfig as any)?.videoUrl || (repoItem.contentConfig as any)?.audioUrl || (repoItem.contentConfig as any)?.fileUrl || ''
+      } : undefined,
+      assessment: isAssessment ? {
+        subtype: 'quiz',
+        gradingMode: 'auto',
+        passingScorePercent: 80,
+        durationMinutes: 30,
+        instructions: repoItem.description || 'Complete the attached assessment from Content Repository.'
+      } : undefined,
+      authors: [
+        {
+          personId: user.id,
+          name: (repoItem.authorNames && repoItem.authorNames[0]) || user.name,
+          email: user.email,
+          avatar: user.avatar,
+          kind: 'both',
+          source: 'instructor_mgmt'
+        }
+      ]
+    };
+
+    const attach = (nodes: CourseStructureNode[]) => {
+      for (const n of nodes) {
+        if (n.nodeId === targetNodeId) {
+          if (!n.content) n.content = [];
+          contentItem.order = n.content.length + 1;
+          n.content.push(contentItem);
+          return;
+        }
+        if (n.children) attach(n.children);
+      }
+    };
+
+    attach(this.structureNodes());
+    this.structureNodes.set([...this.structureNodes()]);
+    this.showContentModal.set(false);
+
+    this.lmsService.showToast(
+      `Attached repository content "${repoItem.title}" (${repoItem.type}) to course topic.`,
+      'success',
+      3500,
+      'Content Attached from Repository'
+    );
+  }
+
+  private mapRepoTypeToLearningSubtype(type: string): any {
+    switch (type) {
+      case 'Video': return 'video';
+      case 'Audio': return 'audio';
+      case 'PDF / Document': return 'document';
+      case 'Slides / Presentation': return 'slides';
+      case 'Reading': return 'reading';
+      case 'Recorded Class': return 'video';
+      case 'Book / E-book': return 'document';
+      case 'External Link': return 'link';
+      default: return 'document';
+    }
   }
 
   openEditContentModal(nodeId: string, item: CourseContentItem) {
@@ -1549,7 +1655,6 @@ export class CourseCreateComponent implements OnInit {
       mediaUrl: item.learning?.mediaUrl || '',
       instructorId: instId
     });
-    this.showContentModal.set(true);
   }
 
   saveContentItem() {

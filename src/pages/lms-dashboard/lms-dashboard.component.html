@@ -1,425 +1,384 @@
 <div class="space-y-6">
+  
   <!-- ========================================================================= -->
-  <!-- 1. VIEW MODE HEADER                                                       -->
+  <!-- 1. LMS ADMIN SCOPED VIEW (When viewed as LMS Admin)                       -->
   <!-- ========================================================================= -->
-  @if (!isStudioMode()) {
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
-            <span class="material-symbols-outlined text-xs">business</span>
-            Organization Level
-          </span>
-          <span class="text-xs text-text-secondary flex items-center gap-1">
-            <span>Role:</span> 
-            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">Organization Admin</strong>
-          </span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
-            Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
-          </span>
+  @if (isLmsAdmin()) {
+    <div class="space-y-6 animate-in fade-in">
+      
+      <!-- LMS Admin Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">layers</span>
+              LMS Instance: {{ activeLmsInstance()?.basicInfo?.lmsName || 'Portal Node' }}
+            </span>
+            <span class="text-xs text-text-secondary flex items-center gap-1">
+              <span>Organization:</span> 
+              <strong class="text-text-primary bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ parentOrg()?.name }}</strong>
+            </span>
+            <span class="text-xs text-text-secondary flex items-center gap-1">
+              <span>Role:</span> 
+              <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">LMS Admin</strong>
+            </span>
+          </div>
+          
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+            {{ activeLmsInstance()?.basicInfo?.lmsName || 'LMS Portal' }} Overview
+          </h1>
+          <p class="text-xs text-text-secondary mt-0.5">
+            Dedicated portal operations, content repository sharing governance, and resource quotas for your LMS instance.
+          </p>
         </div>
+
+        <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+          <a 
+            routerLink="/content-repository/create"
+            class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">folder_special</span>
+            <span>Add Repository Content</span>
+          </a>
+          <a 
+            routerLink="/courses/create"
+            class="px-4 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all border border-base-300 active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            <span>Create Course</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- LMS CONTENT REPOSITORY SHARING CONTROL PANEL (§4.2) -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
         
-        <h1 class="text-2xl font-bold text-text-primary tracking-tight">
-          {{ activeTenant().name }} — LMS Overview
-        </h1>
-        <p class="text-xs text-text-secondary mt-0.5">
-          Manage and deploy specialized learning management systems for {{ activeTenant().name }}'s programmes & departments.
-        </p>
+        <!-- Master Gate Status Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-300">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+              [ngClass]="isLmsSharingOn() && isOrgSharingMasterOn() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-base-200 dark:text-text-secondary'">
+              <span class="material-symbols-outlined text-xl">{{ isLmsSharingOn() && isOrgSharingMasterOn() ? 'share' : 'lock' }}</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-sm font-bold text-text-primary">Share my content with other LMS</h2>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  [ngClass]="isLmsSharingOn() && isOrgSharingMasterOn() ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-base-200 text-text-secondary'">
+                  {{ isLmsSharingOn() && isOrgSharingMasterOn() ? 'Sharing: ON' : 'Sharing: OFF' }}
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary mt-1 max-w-2xl leading-relaxed">
+                Allow learning content and question sets authored in this LMS instance to be shared across sister LMS portals under {{ parentOrg()?.name }}.
+              </p>
+            </div>
+          </div>
+
+          <!-- LMS Sharing Toggle Switch -->
+          <div class="flex items-center shrink-0 self-start sm:self-center">
+            <app-custom-switch
+              [checked]="isLmsSharingOn() && isOrgSharingMasterOn()"
+              [disabled]="!isOrgSharingMasterOn()"
+              [onLabel]="'Enabled'"
+              [offLabel]="'Disabled'"
+              [variant]="'emerald'"
+              size="md"
+              (checkedChange)="onLmsSharingChange($event)">
+            </app-custom-switch>
+          </div>
+        </div>
+
+        <!-- Organization Master Gate Lock Notice (If Org master switch is OFF) -->
+        @if (!isOrgSharingMasterOn()) {
+          <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
+            <span class="material-symbols-outlined text-amber-600 shrink-0 text-lg mt-0.5">lock</span>
+            <div>
+              <span class="font-bold">Organization Master Switch is OFF:</span>
+              <p class="text-[11px] text-amber-800/90 dark:text-amber-300 mt-0.5">
+                Content repository sharing across the organization is currently locked by the Org Admin. No content crosses between LMS instances until repository sharing is enabled in the Organization Dashboard.
+              </p>
+            </div>
+          </div>
+        }
+
+        <!-- Customizable Sub-Switches Expander (When LMS sharing is ON and Org Master is ON) -->
+        @if (isLmsSharingOn() && isOrgSharingMasterOn()) {
+          <div class="pt-2 border-t border-base-300 space-y-3">
+            <div class="flex items-center justify-between">
+              <button 
+                type="button" 
+                (click)="toggleSharingCustomizer()"
+                class="text-xs font-bold text-tenant-600 dark:text-tenant-400 hover:underline flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-sm transition-transform" [class.rotate-90]="showSharingCustomizer()">chevron_right</span>
+                <span>Customize what's shared (Contribute vs. Discover)</span>
+              </button>
+              <span class="text-[11px] text-text-secondary">
+                Defaults to full participation
+              </span>
+            </div>
+
+            @if (showSharingCustomizer()) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-base-200/60 border border-base-300 animate-in fade-in">
+                
+                <!-- 1. Contribute Switch -->
+                <div class="p-4 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-4">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-base text-tenant-600">upload_file</span>
+                      <span class="text-xs font-bold text-text-primary">Contribute Content</span>
+                    </div>
+                    <p class="text-[11px] text-text-secondary">
+                      Allow other LMS instances in {{ parentOrg()?.name }} to use content authored here.
+                    </p>
+                  </div>
+                  <app-custom-switch
+                    [checked]="isContributeOn()"
+                    size="sm"
+                    [variant]="'tenant'"
+                    [showStatusLabel]="false"
+                    (checkedChange)="onContributeChange($event)">
+                  </app-custom-switch>
+                </div>
+
+                <!-- 2. Discover Switch -->
+                <div class="p-4 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-4">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-base text-cyan-600">travel_explore</span>
+                      <span class="text-xs font-bold text-text-primary">Discover Shared Content</span>
+                    </div>
+                    <p class="text-[11px] text-text-secondary">
+                      Allow this LMS to discover and attach content shared by sister LMS instances.
+                    </p>
+                  </div>
+                  <app-custom-switch
+                    [checked]="isDiscoverOn()"
+                    size="sm"
+                    [variant]="'tenant'"
+                    [showStatusLabel]="false"
+                    (checkedChange)="onDiscoverChange($event)">
+                  </app-custom-switch>
+                </div>
+
+              </div>
+            }
+          </div>
+        }
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
-        <button 
-          id="btn-create-lms-from-dash"
-          [routerLink]="['/lms/create']"
-          class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
-          <span class="material-symbols-outlined text-base">add_circle</span>
-          <span>Create LMS</span>
-        </button>
+      <!-- Scoped LMS Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Courses in this LMS -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Course Catalog</span>
+            <span class="material-symbols-outlined text-tenant-600">school</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ singleLmsStats().coursesCount }}</div>
+          <div class="text-[11px] text-text-secondary">Published curriculum tracks</div>
+        </div>
 
-        <button 
-          id="btn-open-lms-studio"
-          (click)="enterStudioMode()"
-          class="px-4 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all border border-base-300 active:scale-[0.98] group cursor-pointer">
-          <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400 group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
-          <span>Customize Studio</span>
-        </button>
+        <!-- Repository Items -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Repository Items</span>
+            <span class="material-symbols-outlined text-indigo-600">folder_special</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ singleLmsStats().repoItemsCount }}</div>
+          <div class="text-[11px] text-text-secondary">Authored & attached assets</div>
+        </div>
+
+        <!-- Storage Consumed -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>LMS Storage Quota</span>
+            <span class="material-symbols-outlined text-cyan-600">storage</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ singleLmsStats().storageUsed }} / {{ singleLmsStats().storageAllocated }} GB</div>
+          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-cyan-500 h-full rounded-full transition-all" [style.width.%]="singleLmsStats().storagePct"></div>
+          </div>
+          <div class="text-[11px] text-text-secondary">{{ singleLmsStats().storagePct }}% partition utilized</div>
+        </div>
+
+        <!-- Database Partition -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
+            <span>Database Size</span>
+            <span class="material-symbols-outlined text-amber-600">database</span>
+          </div>
+          <div class="text-2xl font-bold font-mono text-text-primary">{{ singleLmsStats().dbSizeGb }} GB</div>
+          <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            <span>Allocated Quota Active</span>
+          </div>
+        </div>
+
       </div>
+
     </div>
   }
 
   <!-- ========================================================================= -->
-  <!-- 2. STUDIO MODE TOP BAR & CONTROLS                                         -->
+  <!-- 2. ORG ADMIN & SYSTEM ADMIN VIEW (Overview & Customizable Studio)          -->
   <!-- ========================================================================= -->
-  @if (isStudioMode()) {
-    <div class="p-4 lg:p-5 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xl space-y-4 animate-in fade-in transition-all">
+  @if (!isLmsAdmin()) {
+    <div class="space-y-6 animate-in fade-in">
       
-      <!-- Top Row: Studio Header + Main Actions -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        
-        <!-- Left: Title & Version Draft Tag -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
-            <span class="material-symbols-outlined text-xl animate-pulse">tune</span>
-          </div>
+      <!-- View Mode Header -->
+      @if (!isStudioMode()) {
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div class="flex items-center gap-2">
-              <h2 class="font-bold text-sm text-text-primary">LMS Dashboard Studio</h2>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold border border-tenant-500/20">
-                {{ activeTenant().name }} Scope
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">business</span>
+                Organization Level ({{ activeTenant().name }})
               </span>
-              <span class="text-[10px] px-2 py-0.2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-300 font-mono font-bold">
-                v{{ publishedLayout().version + 1 }} Draft
+              <span class="text-xs text-text-secondary flex items-center gap-1">
+                <span>Role:</span> 
+                <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ lms.activeRole().replace('_', ' ') }}</strong>
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
+                Layout v{{ publishedLayout().version }} &bull; {{ publishedLayout().widgets.length }} widgets
               </span>
             </div>
+            
+            <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+              {{ activeTenant().name }} — LMS Overview
+            </h1>
             <p class="text-xs text-text-secondary mt-0.5">
-              Drag cards to reorder, click width pills (25%–100%), or configure custom widgets.
+              Manage and deploy specialized learning management systems for {{ activeTenant().name }}'s programmes & departments.
             </p>
           </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+            <a 
+              routerLink="/lms/create"
+              class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              <span>Create LMS</span>
+            </a>
+
+            <button 
+              id="btn-open-lms-studio"
+              (click)="enterStudioMode()"
+              class="px-4 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all border border-base-300 active:scale-[0.98] group cursor-pointer">
+              <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-400 group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
+              <span>Customize Studio</span>
+            </button>
+          </div>
         </div>
+      }
 
-        <!-- Right: Studio Actions (Add, Auto-Arrange, Reset, Discard, Publish) -->
-        <div class="flex items-center gap-2 flex-wrap">
-          
-          <!-- Add Widget -->
-          <button 
-            type="button"
-            id="btn-add-lms-widget"
-            (click)="showAddWidgetModal.set(true)"
-            class="px-3 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95">
-            <span class="material-symbols-outlined text-base font-bold">add</span>
-            <span>Add Widget</span>
-          </button>
+      <!-- Studio Mode Controls -->
+      @if (isStudioMode()) {
+        <div class="p-4 lg:p-5 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xl space-y-4 animate-in fade-in transition-all">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+                <span class="material-symbols-outlined text-xl animate-pulse">tune</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-bold text-sm text-text-primary">LMS Dashboard Studio</h2>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-bold border border-tenant-500/20">
+                    {{ activeTenant().name }} Scope
+                  </span>
+                </div>
+                <p class="text-xs text-text-secondary mt-0.5">
+                  Drag cards to reorder, click width pills, or configure custom widgets.
+                </p>
+              </div>
+            </div>
 
-          <!-- Auto-Arrange -->
-          <button 
-            type="button"
-            (click)="autoArrangeLayout()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Automatically balance columns & clean spacing">
-            <span class="material-symbols-outlined text-base text-tenant-500">auto_fix_high</span>
-            <span class="hidden sm:inline">Auto-Arrange</span>
-          </button>
-
-          <!-- Reset to Factory Defaults -->
-          <button 
-            type="button"
-            (click)="resetLayout()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Reset to factory default layout">
-            <span class="material-symbols-outlined text-base">restart_alt</span>
-            <span class="hidden sm:inline">Reset</span>
-          </button>
-
-          <!-- Discard Draft Changes -->
-          <button 
-            type="button"
-            (click)="discardStudioChanges()"
-            class="px-3 py-2 rounded-xl bg-base-200 hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-base">close</span>
-            <span>Discard</span>
-          </button>
-
-          <!-- Publish Live -->
-          <button 
-            type="button"
-            id="btn-publish-lms-dashboard"
-            (click)="publishDashboard()"
-            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer">
-            <span class="material-symbols-outlined text-base">check_circle</span>
-            <span>Publish Live</span>
-          </button>
-
+            <div class="flex items-center gap-2 flex-wrap">
+              <button 
+                type="button"
+                (click)="showAddWidgetModal.set(true)"
+                class="px-3 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+                <span class="material-symbols-outlined text-base font-bold">add</span>
+                <span>Add Widget</span>
+              </button>
+              <button 
+                type="button"
+                (click)="autoArrangeLayout()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base text-tenant-500">auto_fix_high</span>
+                <span>Auto-Arrange</span>
+              </button>
+              <button 
+                type="button"
+                (click)="resetLayout()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary hover:text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">restart_alt</span>
+                <span>Reset</span>
+              </button>
+              <button 
+                type="button"
+                (click)="discardStudioChanges()"
+                class="px-3 py-2 rounded-xl bg-base-200 hover:bg-rose-500/10 text-text-secondary hover:text-rose-600 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">close</span>
+                <span>Discard</span>
+              </button>
+              <button 
+                type="button"
+                (click)="publishDashboard()"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+                <span>Publish Live</span>
+              </button>
+            </div>
+          </div>
         </div>
+      }
 
-      </div>
-
-      <!-- Presets Row -->
-      <div class="pt-3 border-t border-base-300/80 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        <span class="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1 flex-shrink-0 mr-1">
-          <span class="material-symbols-outlined text-sm">dashboard</span>
-          Presets:
-        </span>
-
-        @for (preset of presets; track preset.id) {
-          <button 
-            type="button"
-            (click)="applyPreset(preset)"
-            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-base-200/80 hover:bg-base-300 text-text-primary border border-base-300 flex items-center gap-1.5 transition-all flex-shrink-0 cursor-pointer group">
-            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400 group-hover:scale-110 transition-transform">{{ preset.icon }}</span>
-            <span>{{ preset.name }}</span>
-            @if (preset.badge) {
-              <span class="text-[9px] px-1 py-0.2 rounded-md bg-tenant-500/15 text-tenant-600 dark:text-tenant-300 font-bold">
-                {{ preset.badge }}
-              </span>
+      <!-- LMS Widget Canvas -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 auto-rows-auto items-stretch">
+        @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
+          <div 
+            class="transition-all duration-200 relative group flex flex-col"
+            [ngClass]="[
+              widget.colSpan === 1 ? 'sm:col-span-3' : (widget.colSpan === 2 ? 'sm:col-span-6' : (widget.colSpan === 3 ? 'sm:col-span-9' : 'sm:col-span-12')),
+              widget.rowSpan === 2 ? 'sm:row-span-2' : (widget.rowSpan === 3 ? 'sm:row-span-3' : 'sm:row-span-1'),
+              isStudioMode() ? 'ring-2 ring-tenant-500/40 rounded-3xl bg-base-100 p-1 cursor-grab active:cursor-grabbing hover:ring-tenant-500' : ''
+            ]">
+            
+            @if (isStudioMode()) {
+              <div class="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-base-100/90 backdrop-blur-xs p-1 rounded-xl border border-base-300 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="editingWidget.set(widget)" class="p-1 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 cursor-pointer" title="Configure Widget">
+                  <span class="material-symbols-outlined text-sm">settings</span>
+                </button>
+                <button (click)="removeWidget(widget.id)" class="p-1 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 cursor-pointer" title="Remove Widget">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             }
-          </button>
+
+            <app-lms-widget-renderer 
+              [widget]="widget" 
+              class="w-full h-full flex flex-col flex-1">
+            </app-lms-widget-renderer>
+          </div>
         }
       </div>
 
     </div>
   }
 
-  <!-- ========================================================================= -->
-  <!-- 3. DASHBOARD CANVAS (12-COLUMN CSS GRID)                                  -->
-  <!-- ========================================================================= -->
-  <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 auto-rows-auto items-stretch">
-    
-    @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
-      <div 
-        [id]="'lms-widget-slot-' + widget.id"
-        [class]="getColSpanClass(widget.colSpan) + ' ' + getRowSpanClass(widget.rowSpan)"
-        [draggable]="isStudioMode()"
-        (dragstart)="onDragStart($event, idx)"
-        (dragover)="onDragOver($event, idx)"
-        (dragleave)="onDragLeave(idx)"
-        (drop)="onDrop($event, idx)"
-        (dragend)="onDragEnd()"
-        class="transition-all duration-200"
-        [class.opacity-40]="draggedIndex() === idx"
-        [class.ring-2]="dragOverIndex() === idx"
-        [class.ring-tenant-500]="dragOverIndex() === idx"
-        [class.rounded-3xl]="dragOverIndex() === idx">
-        
-        <app-lms-widget-renderer
-          [widget]="widget"
-          [isBuilderMode]="isStudioMode()"
-          (editWidget)="editingWidget.set($event)"
-          (removeWidget)="onRemoveWidget($event)"
-          (duplicateWidget)="onDuplicateWidget($event)"
-          (moveUp)="onMoveUp($event)"
-          (moveDown)="onMoveDown($event)"
-          (changeColSpan)="onChangeColSpan($event)"
-          (changeRowSpan)="onChangeRowSpan($event)"
-          (changeDimensions)="onChangeDimensions($event)"
-          (confirmDeleteDraft)="confirmDeleteDraft($event)"
-          (openLmsDetails)="selectedLms.set($event)"
-          class="h-full block">
-        </app-lms-widget-renderer>
-
-      </div>
-    }
-
-    <!-- Empty Canvas Placeholder -->
-    @if (displayedWidgets().length === 0) {
-      <div class="col-span-12 py-16 text-center rounded-3xl border-2 border-dashed border-base-300 space-y-3 bg-base-100/50">
-        <span class="material-symbols-outlined text-5xl text-text-secondary/60">dashboard_customize</span>
-        <h3 class="text-sm font-bold text-text-primary">LMS Dashboard Canvas is Empty</h3>
-        <p class="text-xs text-text-secondary max-w-md mx-auto">
-          No widgets are currently placed on this canvas. Click below to add modular LMS overview components from the catalog.
-        </p>
-        <button 
-          type="button"
-          (click)="showAddWidgetModal.set(true)"
-          class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer">
-          <span class="material-symbols-outlined text-sm font-bold">add</span>
-          <span>Add Widget from Catalog</span>
-        </button>
-      </div>
-    }
-
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 4. MODALS (Add Widget Catalog, Widget Configuration, Delete Draft)         -->
-  <!-- ========================================================================= -->
-  @if (showAddWidgetModal()) {
-    <app-lms-add-widget-modal
-      (close)="showAddWidgetModal.set(false)"
-      (selectWidget)="onAddWidget($event)">
-    </app-lms-add-widget-modal>
-  }
-
-  @if (editingWidget()) {
-    <app-lms-widget-config-modal
-      [widget]="editingWidget()!"
-      (close)="editingWidget.set(null)"
-      (save)="onSaveWidgetConfig($event)">
-    </app-lms-widget-config-modal>
-  }
-
-  <!-- Delete Draft Confirmation Modal -->
-  @if (draftToDelete()) {
-    <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto animate-modal-backdrop"
-      (click)="draftToDelete.set(null)">
-      <div 
-        class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4 animate-slide-up-modal"
-        (click)="$event.stopPropagation()">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-xl">delete_forever</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-text-primary">Discard LMS Creation Draft</h3>
-            <p class="text-xs text-text-secondary">Are you sure you want to discard this draft?</p>
-          </div>
-        </div>
-
-        <div class="p-3 rounded-xl bg-base-200 border border-base-300 text-xs space-y-1">
-          <p class="font-bold text-text-primary">{{ draftToDelete()?.basicInfo?.lmsName || 'Unnamed LMS Draft' }}</p>
-          <p class="text-text-secondary text-[11px]">Last updated: {{ draftToDelete()?.updatedAt }}</p>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button 
-            type="button"
-            (click)="draftToDelete.set(null)"
-            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold transition-colors">
-            Cancel
-          </button>
-          <button 
-            type="button"
-            (click)="executeDeleteDraft()"
-            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors shadow-xs">
-            Discard Draft
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Selected LMS Details Modal -->
-  @if (selectedLms()) {
-    <div 
-      class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto animate-modal-backdrop"
-      (click)="selectedLms.set(null)">
-      <div 
-        class="bg-base-100 border border-base-300 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-slide-up-modal flex flex-col max-h-[90vh]"
-        (click)="$event.stopPropagation()">
-        
-        <!-- Header -->
-        <div class="p-5 sm:p-6 border-b border-base-300 flex items-start justify-between gap-4 bg-base-200/50">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-tenant-500 text-white flex items-center justify-center font-bold text-lg shadow-md flex-shrink-0">
-              {{ selectedLms()!.basicInfo.lmsName.charAt(0) }}
-            </div>
-            <div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs font-mono font-bold text-text-secondary">{{ selectedLms()!.id }}</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold"
-                      [class]="selectedLms()!.basicInfo.lmsType === 'Public' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300'">
-                  {{ selectedLms()!.basicInfo.lmsType }}
-                </span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border"
-                      [class]="selectedLms()!.status === 'Active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300' :
-                              selectedLms()!.status === 'Under Processing' ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300' :
-                              selectedLms()!.status === 'Deactivated' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300' :
-                              'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300'">
-                  {{ selectedLms()!.status }}
-                </span>
-              </div>
-              <h3 class="text-lg font-bold text-text-primary mt-1">{{ selectedLms()!.basicInfo.lmsName }}</h3>
-              <p class="text-xs text-text-secondary">{{ selectedLms()!.basicInfo.programmeDepartment }}</p>
-            </div>
-          </div>
-
-          <button 
-            type="button"
-            (click)="selectedLms.set(null)"
-            class="p-2 rounded-xl hover:bg-base-200 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-lg">close</span>
-          </button>
-        </div>
-
-        <!-- Body -->
-        <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs">
-          
-          <!-- Domain & Access Info -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300">
-              <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider block mb-1">Assigned URL Domain</span>
-              <p class="font-mono font-bold text-tenant-600 dark:text-tenant-400 truncate">{{ selectedLms()!.basicInfo.assignedUrl }}</p>
-              @if (selectedLms()!.basicInfo.customDomain) {
-                <p class="text-[10px] text-text-secondary font-mono mt-0.5">Custom: {{ selectedLms()!.basicInfo.customDomain }}</p>
-              }
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-base-200/60 border border-base-300">
-              <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider block mb-1">Target Audience</span>
-              <p class="font-bold text-text-primary capitalize">{{ selectedLms()!.basicInfo.targetAudience || 'General Organisation Personnel' }}</p>
-              <p class="text-[10px] text-text-secondary mt-0.5">Created: {{ selectedLms()!.createdAt }}</p>
-            </div>
-          </div>
-
-          <!-- Quota Allocations -->
-          <div class="space-y-2">
-            <h4 class="font-bold text-text-primary text-xs uppercase tracking-wider">Resource Allocation</h4>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="p-3 rounded-xl bg-base-200 border border-base-300 flex items-center justify-between">
-                <div>
-                  <span class="text-[10px] text-text-secondary block">Database Allocation</span>
-                  <strong class="text-sm font-bold text-text-primary font-mono">{{ selectedLms()!.resources.databaseSizeGb }} GB</strong>
-                </div>
-                <span class="material-symbols-outlined text-tenant-500 text-xl">database</span>
-              </div>
-
-              <div class="p-3 rounded-xl bg-base-200 border border-base-300 flex items-center justify-between">
-                <div>
-                  <span class="text-[10px] text-text-secondary block">File & Video Storage</span>
-                  <strong class="text-sm font-bold text-text-primary font-mono">{{ selectedLms()!.resources.fileStorageGb }} GB</strong>
-                </div>
-                <span class="material-symbols-outlined text-tenant-500 text-xl">cloud</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Administrators Roster -->
-          <div class="space-y-2">
-            <h4 class="font-bold text-text-primary text-xs uppercase tracking-wider">Assigned Administrators ({{ selectedLms()!.administrators.length }})</h4>
-            <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-              @for (admin of selectedLms()!.administrators; track admin.id) {
-                <div class="p-2.5 rounded-xl bg-base-200/70 border border-base-300 flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <app-custom-avatar 
-                      [name]="admin.name" 
-                      size="xs" 
-                      shape="squircle">
-                    </app-custom-avatar>
-                    <div>
-                      <p class="font-semibold text-text-primary text-xs">{{ admin.name }}</p>
-                      <p class="text-[10px] text-text-secondary">{{ admin.email }}</p>
-                    </div>
-                  </div>
-                  <span class="px-2 py-0.5 rounded-md bg-tenant-500/10 text-tenant-600 dark:text-tenant-300 font-mono text-[10px] font-bold">
-                    {{ admin.role }}
-                  </span>
-                </div>
-              }
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Footer Actions -->
-        <div class="p-4 sm:p-5 border-t border-base-300 bg-base-200/30 flex items-center justify-between gap-3">
-          <button 
-            type="button"
-            (click)="selectedLms.set(null)"
-            class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-secondary text-xs font-semibold transition-colors cursor-pointer">
-            Close
-          </button>
-
-          <div class="flex items-center gap-2">
-            <a 
-              [routerLink]="['/lms']"
-              (click)="selectedLms.set(null)"
-              class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold border border-base-300 transition-colors flex items-center gap-1.5 cursor-pointer">
-              <span class="material-symbols-outlined text-sm">grid_view</span>
-              <span>Open in LMS Grid</span>
-            </a>
-            <a 
-              [routerLink]="['/courses']"
-              (click)="selectedLms.set(null)"
-              class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-              <span class="material-symbols-outlined text-sm">open_in_new</span>
-              <span>Launch LMS Portal</span>
-            </a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  }
-
 </div>
+
+<!-- Studio Modals -->
+@if (editingWidget(); as w) {
+  <app-lms-widget-config-modal 
+    [widget]="w"
+    (save)="updateWidgetConfig($event)"
+    (close)="editingWidget.set(null)">
+  </app-lms-widget-config-modal>
+}
+
+@if (showAddWidgetModal()) {
+  <app-lms-add-widget-modal 
+    (addWidget)="onAddWidget($event)"
+    (close)="showAddWidgetModal.set(false)">
+  </app-lms-add-widget-modal>
+}
