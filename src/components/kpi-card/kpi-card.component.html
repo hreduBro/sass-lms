@@ -8,14 +8,14 @@
   </div>
 
   <div>
-    <div class="flex items-baseline justify-between">
-      <span class="text-3xl font-extrabold tracking-tight font-sans"
+    <div class="flex items-baseline justify-between gap-1 flex-wrap">
+      <span class="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans"
             [class]="getValueColorClass()">
         {{ resolvedData().value }}
       </span>
       
       @if (resolvedData().change) {
-        <div class="flex items-center gap-0.5 text-xs font-medium" 
+        <div class="flex items-center gap-0.5 text-xs font-medium shrink-0" 
              [class]="isPositiveChange() ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
           <span class="material-symbols-outlined text-xs">
             {{ isPositiveChange() ? 'arrow_upward' : 'arrow_downward' }}
