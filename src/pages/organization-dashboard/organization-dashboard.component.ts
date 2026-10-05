@@ -14,6 +14,8 @@ import { OrgWidgetRendererComponent } from './org-widget-renderer.component';
 import { OrgWidgetConfigModalComponent } from './org-widget-config-modal.component';
 import { OrgAddWidgetModalComponent } from './org-add-widget-modal.component';
 import { CustomSwitchComponent } from '../../components/custom-switch/custom-switch.component';
+import { KpiCardComponent } from '../../components/kpi-card/kpi-card.component';
+import { Kpi } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-organization-dashboard',
@@ -24,7 +26,8 @@ import { CustomSwitchComponent } from '../../components/custom-switch/custom-swi
     OrgWidgetRendererComponent, 
     OrgWidgetConfigModalComponent, 
     OrgAddWidgetModalComponent,
-    CustomSwitchComponent
+    CustomSwitchComponent,
+    KpiCardComponent
   ],
   templateUrl: './organization-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,6 +102,45 @@ export class OrganizationDashboardComponent {
       seatLimit,
       seatPct: Math.min(100, Math.round((seatsUsed / seatLimit) * 100))
     };
+  });
+
+  // KPI cards for Org Admin view matching the platform KPI design and color theme (Image 2)
+  orgKpiCards = computed<Kpi[]>(() => {
+    const stats = this.orgStats();
+    return [
+      {
+        title: 'LMS Instances',
+        value: stats.totalLms.toString(),
+        change: `+${stats.activeLms} this month`,
+        icon: 'building',
+        color: 'indigo',
+        subtext: `${stats.activeLms} Active • ${stats.processingLms} Processing`
+      },
+      {
+        title: 'Storage Allocated',
+        value: `${stats.usedGb} / ${stats.allocatedGb} GB`,
+        change: `${stats.storagePct}% of total`,
+        icon: 'check',
+        color: 'emerald',
+        subtext: `${stats.allocatedGb - stats.usedGb} GB free`
+      },
+      {
+        title: 'Seat Utilization',
+        value: `${(stats.seatsUsed || 0).toLocaleString()} / ${(stats.seatLimit || 0).toLocaleString()}`,
+        change: `+${stats.seatPct}% of total`,
+        icon: 'server',
+        color: 'sky',
+        subtext: `${((stats.seatLimit || 0) - (stats.seatsUsed || 0)).toLocaleString()} seats free`
+      },
+      {
+        title: 'Database Partition',
+        value: `${stats.dbSize} GB Allocated`,
+        change: 'Dedicated',
+        icon: 'trending',
+        color: 'amber',
+        subtext: 'Dedicated Partition Healthy'
+      }
+    ];
   });
 
   // Master switch for repository sharing across organization
