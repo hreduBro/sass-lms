@@ -59,7 +59,7 @@ export class LmsCreateComponent implements OnInit {
   logoSizeKb = signal<number>(0);
 
   // Step 2: Resource Allocation State
-  databaseSizeGb = signal<number | null>(null);
+  databaseSizeGb = signal<number | null>(50);
   fileStorageGb = signal<number | null>(null);
   usageAlertThresholdPct = signal<number | null>(null);
 
@@ -180,7 +180,7 @@ export class LmsCreateComponent implements OnInit {
 
     const stepDescriptions: Record<WizardStep, string> = {
       1: 'Step 1 of 4 — LMS Basic Info: Configure LMS name, department, domain URL, and branding.',
-      2: 'Step 2 of 4 — Resource Allocation: Allocate database and file storage from available capacity.',
+      2: 'Step 2 of 4 — Resource Allocation: Allocate file storage from available capacity.',
       3: 'Step 3 of 4 — Admin Assignment: Configure one or more administrators for this LMS instance.',
       4: 'Step 4 of 4 — Preview & Finalize: Review LMS instance parameters before provisioning.'
     };
@@ -579,18 +579,9 @@ export class LmsCreateComponent implements OnInit {
   // =========================================================================
   validateStep2(): boolean {
     const newErrors: Record<string, string> = {};
-    const db = this.databaseSizeGb();
     const file = this.fileStorageGb();
     const threshold = this.usageAlertThresholdPct();
     const cap = this.capacity();
-
-    if (db === null || db === undefined || isNaN(db)) {
-      newErrors['databaseSizeGb'] = 'Database Size is mandatory.';
-    } else if (db <= 0) {
-      newErrors['databaseSizeGb'] = 'Database Size must be greater than 0 GB.';
-    } else if (db > cap.dbAvailableGb) {
-      newErrors['databaseSizeGb'] = `Database Size (${db} GB) exceeds available Organization capacity (${cap.dbAvailableGb} GB).`;
-    }
 
     if (file === null || file === undefined || isNaN(file)) {
       newErrors['fileStorageGb'] = 'File Storage is mandatory.';

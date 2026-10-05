@@ -51,7 +51,7 @@ export type EnrollmentConfirmation = 'Auto Onboard' | 'Manual Review';
 // =========================================================================
 // COMPONENT-BASED PLAN BUILDER SPECIFICATION (v2.3)
 // =========================================================================
-export type PlanComponentType = 'Task' | 'Content' | 'Course' | 'Pre-Test' | 'Post-Test' | 'Survey' | 'Phase';
+export type PlanComponentType = 'Task' | 'Content' | 'Course' | 'Offline Training' | 'Pre-Test' | 'Post-Test' | 'Survey' | 'Phase';
 
 export interface PlanBudget {
   budgetYear: string;  // e.g. "FY 2026"
@@ -156,6 +156,23 @@ export interface PlanComponent {
   phaseCertificateOverride?: string;
   phaseTranscriptOverride?: string;
   phaseBadgeOverride?: string;
+
+  // Offline Training specific (§ Offline Training + Venue)
+  venueId?: string;
+  venueName?: string;
+  venueAddress?: string;
+  roomName?: string;
+  instructorName?: string;
+  sessionCapacity?: number;
+  offlineAttendanceRequirementPct?: number;
+  materialsProvided?: boolean;
+
+  // Completion Tagging: Skills, Certificates & Badges (Phase/Component completion)
+  completionSkills?: string[];
+  completionCertificateId?: string;
+  completionCertificateName?: string;
+  completionBadgeId?: string;
+  completionBadgeName?: string;
 
   // Status
   isIncomplete?: boolean;
@@ -383,6 +400,12 @@ export interface Plan {
   engagement?: EngagementConfig;
   recurringConfig?: RecurringConfig;
   alumniTracking?: boolean;
+  // Plan Completion Tagging (§ Plan completion credentials & skill tagging)
+  completionSkills?: string[];
+  completionCertificateId?: string;
+  completionCertificateName?: string;
+  completionBadgeId?: string;
+  completionBadgeName?: string;
 }
 
 export interface PlanGridFilter {
@@ -1486,6 +1509,12 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
       budgetAmount: 4500000,
       currency: 'BDT'
     },
+    // Plan Completion Tagging (§ Requirements 5 & 6)
+    completionSkills: ['skl-001', 'skl-002'],
+    completionCertificateId: 'CERT-TMP-1972-01',
+    completionCertificateName: 'Standard Completion Certificate',
+    completionBadgeId: 'badge-champ-01',
+    completionBadgeName: 'Grassroots Field Champion',
     recurringConfig: {
       enabled: true,
       cycleConfig: {
@@ -1656,7 +1685,13 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
         label: 'All mandatory components completed'
       },
       prerequisiteIds: ['comp-06'],
-      source: { sourceType: 'Phase Template', itemName: 'Core Field Foundation' }
+      source: { sourceType: 'Phase Template', itemName: 'Core Field Foundation' },
+      // Phase Completion Tagging (§ Requirements 5 & 6)
+      completionSkills: ['skl-001', 'skl-002'],
+      completionCertificateId: 'CERT-TMP-1972-01',
+      completionCertificateName: 'Standard Completion Certificate',
+      completionBadgeId: 'badge-champ-01',
+      completionBadgeName: 'Grassroots Field Champion'
     },
     // Children of Phase 1
     {
@@ -1782,6 +1817,33 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
         itemName: 'Digital Survey & Household Data Collection',
         version: 'v1.5'
       }
+    },
+    {
+      id: 'comp-07-child-offline',
+      type: 'Offline Training',
+      name: 'Classroom Practical: Grassroots Engagement & Loan Simulation',
+      description: 'In-person classroom training with physical venue, interactive roleplay and compliance debrief.',
+      sequence: 12,
+      phaseId: phase1Id,
+      startDate: '01/06/2026',
+      endDate: '12/06/2026',
+      durationDays: 12,
+      isMandatory: true,
+      venueId: 'venue-001',
+      venueName: 'BRAC Executive Learning Center (Gulshan Campus)',
+      venueAddress: '75 Mohakhali, Dhaka',
+      roomName: 'Executive Boardroom 402',
+      instructorName: 'Dr. Mahfuz Rahman',
+      sessionCapacity: 35,
+      offlineAttendanceRequirementPct: 80,
+      materialsProvided: true,
+      progressionCondition: {
+        type: 'attendance_verified',
+        value: 80,
+        label: 'Physical Attendance ≥ 80%'
+      },
+      prerequisiteIds: ['comp-07-child-4'],
+      source: { sourceType: 'Offline Training', itemName: 'Field Simulation Workshop' }
     },
     // Between Phases Component
     {

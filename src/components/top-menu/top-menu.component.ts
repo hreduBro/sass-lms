@@ -85,13 +85,6 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                       </span>
                       <span class="whitespace-nowrap">{{ item.label }}</span>
                       
-                      @if (item.badge) {
-                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                              [class]="isParentActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 dark:bg-tenant-950/80 text-tenant-700 dark:text-tenant-300'">
-                          {{ item.badge }}
-                        </span>
-                      }
-                      
                       <span class="material-symbols-outlined text-sm transition-transform duration-200"
                             [class.text-tenant-600]="isParentActive(item)"
                             [class.dark:text-tenant-300]="isParentActive(item)"
@@ -121,13 +114,6 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                         {{ item.icon }}
                       </span>
                       <span class="whitespace-nowrap">{{ item.label }}</span>
-                      
-                      @if (item.badge) {
-                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                              [class]="isParentActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
-                          {{ item.badge }}
-                        </span>
-                      }
                     </a>
                   </div>
                 }
@@ -181,16 +167,6 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
                     </div>
 
                     <div class="flex items-center gap-1 flex-shrink-0 ml-2">
-                      @if (child.badge) {
-                        <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold"
-                              [class]="isChildActive(child) 
-                                ? 'bg-white/20 text-white' 
-                                : (child.badge.toLowerCase() === 'wizard' 
-                                  ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
-                                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
-                          {{ child.badge }}
-                        </span>
-                      }
                       @if (isChildActive(child)) {
                         <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
                       }

@@ -54,11 +54,10 @@ export class UsersComponent {
     { value: 'learner', label: 'Learner' }
   ];
 
+  // Role Assignment options for Invite Personnel (only Learner and Instructor per creation chain)
   roleOptions = [
     { value: 'learner', label: 'Learner', sublabel: 'Standard student role' },
-    { value: 'instructor', label: 'Instructor', sublabel: 'Curriculum & course manager' },
-    { value: 'lms_admin', label: 'LMS Admin', sublabel: 'Manage LMS unit and learners' },
-    { value: 'system_admin', label: 'System Admin', sublabel: 'Full system authorization' }
+    { value: 'instructor', label: 'Instructor', sublabel: 'Curriculum & course manager' }
   ];
 
   draftFilters = signal<UserGridFilters>({

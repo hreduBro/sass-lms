@@ -37,14 +37,16 @@
         <span>LMS Dashboard</span>
       </a>
 
-      <button 
-        type="button"
-        id="btn-create-lms-header"
-        (click)="openCreateWizard()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
-        <span class="material-symbols-outlined text-lg">add_circle</span>
-        <span>Create LMS</span>
-      </button>
+      @if (canCreateLms()) {
+        <button 
+          type="button"
+          id="btn-create-lms-header"
+          (click)="openCreateWizard()"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
+          <span>Create LMS</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -204,8 +206,8 @@
     emptyTitle="No LMS Portal configured"
     emptyMessage="Create your first dedicated LMS portal to begin enrolling learners."
     emptyIcon="layers_clear"
-    emptyActionText="Create LMS Instance"
-    (emptyAction)="openCreateWizard()"
+    [emptyActionText]="canCreateLms() ? 'Create LMS Instance' : undefined"
+    (emptyAction)="canCreateLms() ? openCreateWizard() : null"
     (clearFilters)="clearFilterPanelDraft()"
     (cancelFilters)="closeFilterPanel()"
     (applyFilters)="applyFilterPanel()"

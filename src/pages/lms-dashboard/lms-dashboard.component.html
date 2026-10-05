@@ -34,10 +34,10 @@
 
         <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
           <a 
-            routerLink="/content-repository/create"
+            routerLink="/plans/create"
             class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
-            <span class="material-symbols-outlined text-base">folder_special</span>
-            <span>Add Repository Content</span>
+            <span class="material-symbols-outlined text-base">add_task</span>
+            <span>Create Plan</span>
           </a>
           <a 
             routerLink="/courses/create"
@@ -45,7 +45,172 @@
             <span class="material-symbols-outlined text-base">add_circle</span>
             <span>Create Course</span>
           </a>
+          <a 
+            routerLink="/content-repository/create"
+            class="px-4 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all border border-base-300 active:scale-[0.98] cursor-pointer">
+            <span class="material-symbols-outlined text-base">folder_special</span>
+            <span>Add Repository Content</span>
+          </a>
         </div>
+      </div>
+
+      <!-- 6 High-Impact LMS-Specific KPI Metric Tiles (Modeled on Plan Dashboard) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        
+        <!-- 1. Active Plans in this LMS -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">LMS Plans</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">event_note</span>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-text-primary font-mono">{{ singleLmsStats().activePlansCount }}</div>
+          <div class="text-[10px] text-text-secondary flex items-center gap-1">
+            <span class="text-emerald-600 font-semibold">{{ singleLmsStats().activePlansCount }} Active</span>
+            <span>•</span>
+            <span>{{ singleLmsStats().plansCount }} Total</span>
+          </div>
+        </div>
+
+        <!-- 2. Learners Enrolled in this LMS -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Enrolled Learners</span>
+            <div class="w-7 h-7 rounded-lg bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">groups</span>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-text-primary font-mono">{{ singleLmsStats().learnersCount }}</div>
+          <div class="text-[10px] text-text-secondary">
+            <span class="text-emerald-600 font-semibold">{{ singleLmsStats().activeLearnersCount }} active</span> learners
+          </div>
+        </div>
+
+        <!-- 3. Course Catalog in this LMS -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Course Catalog</span>
+            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">school</span>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-text-primary font-mono">{{ singleLmsStats().coursesCount }}</div>
+          <div class="text-[10px] text-text-secondary">Published learning tracks</div>
+        </div>
+
+        <!-- 4. Learner Completion Rate -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Completion Rate</span>
+            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">task_alt</span>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-text-primary font-mono">{{ singleLmsStats().completionRate }}%</div>
+          <div class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">trending_up</span>
+            <span>Target on track</span>
+          </div>
+        </div>
+
+        <!-- 5. LMS File Storage Quota -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">File Storage</span>
+            <div class="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">storage</span>
+            </div>
+          </div>
+          <div class="text-xl font-bold text-text-primary font-mono truncate">{{ singleLmsStats().storageUsed }} / {{ singleLmsStats().storageAllocated }} GB</div>
+          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-cyan-500 h-full rounded-full transition-all" [style.width.%]="singleLmsStats().storagePct"></div>
+          </div>
+          <div class="text-[10px] text-text-secondary">{{ singleLmsStats().storagePct }}% partition utilized</div>
+        </div>
+
+        <!-- 6. Credentials Awarded (Certificates & Badges) -->
+        <div class="p-4 rounded-2xl border border-base-300 bg-base-100 shadow-sm flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Credentials</span>
+            <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-sm">workspace_premium</span>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-text-primary font-mono">{{ singleLmsStats().credentialsCount }}</div>
+          <div class="text-[10px] text-text-secondary flex items-center gap-1">
+            <span>{{ singleLmsStats().certificatesCount }} Certs</span>
+            <span>•</span>
+            <span>{{ singleLmsStats().badgesCount }} Badges</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LMS Learning Plans Portfolio Telemetry (Modeled on Plan Dashboard) -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">view_quilt</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Curriculum Plans in this LMS Instance</h2>
+              <p class="text-[11px] text-text-secondary">Ordered progression tracks, duration bounds & phase completion</p>
+            </div>
+          </div>
+          <a routerLink="/plans" class="text-xs font-bold text-tenant-600 hover:underline flex items-center gap-1">
+            <span>View All Plans</span>
+            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+          </a>
+        </div>
+
+        @if (lmsPlans().length === 0) {
+          <div class="py-8 text-center text-text-secondary text-xs">
+            <p>No learning plans configured in this LMS instance yet.</p>
+            <a routerLink="/plans/create" class="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-tenant-500 text-white font-semibold text-xs">
+              <span class="material-symbols-outlined text-xs">add</span> Create First Plan
+            </a>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-base-300 text-text-secondary font-semibold">
+                  <th class="py-2.5 px-3">Plan Code</th>
+                  <th class="py-2.5 px-3">Curriculum Name</th>
+                  <th class="py-2.5 px-3">Timeline Window</th>
+                  <th class="py-2.5 px-3">Enrolled Trainees</th>
+                  <th class="py-2.5 px-3">Phases</th>
+                  <th class="py-2.5 px-3">Status</th>
+                  <th class="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-base-200">
+                @for (plan of lmsPlans(); track plan.id) {
+                  <tr class="hover:bg-base-200/50 transition-colors">
+                    <td class="py-3 px-3 font-mono font-bold text-tenant-600">{{ plan.code }}</td>
+                    <td class="py-3 px-3 font-semibold text-text-primary">{{ plan.name }}</td>
+                    <td class="py-3 px-3 text-text-secondary font-mono">{{ plan.startDate }} – {{ plan.endDate }}</td>
+                    <td class="py-3 px-3 font-mono font-bold text-text-primary">{{ plan.enrolledLearnersCount || 120 }}</td>
+                    <td class="py-3 px-3 text-text-secondary">{{ plan.phases?.length || 3 }} Phases</td>
+                    <td class="py-3 px-3">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        [class]="plan.status === 'Active' || plan.status === 'Published' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
+                        {{ plan.status }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 text-right">
+                      <a [routerLink]="['/plans/details', plan.id]" class="px-2.5 py-1 rounded-lg bg-base-200 hover:bg-base-300 text-text-primary text-[11px] font-semibold transition-colors">
+                        Details
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       </div>
 
       <!-- LMS CONTENT REPOSITORY SHARING CONTROL PANEL (§4.2) -->

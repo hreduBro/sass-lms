@@ -347,40 +347,26 @@
             </div>
             <div>
               <h2 class="text-sm font-bold text-text-primary">1. Organization Capacity Pool</h2>
-              <p class="text-[11px] text-text-secondary">Available resources allotted to {{ parentOrg().name }}</p>
+              <p class="text-[11px] text-text-secondary">Available file storage allotted to {{ parentOrg().name }}</p>
             </div>
           </div>
           <span class="text-xs font-bold px-3 py-1 rounded-full bg-base-200 border border-base-300 text-text-primary">
-            Org Total: {{ capacity().dbTotalGb }} GB DB / {{ capacity().fileTotalGb }} GB File
+            Org File Capacity: {{ capacity().fileTotalGb }} GB
           </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="p-4 rounded-2xl bg-base-200 border border-base-300 space-y-1">
-            <span class="text-[10px] text-text-secondary uppercase font-semibold">Total DB Quota</span>
-            <div class="text-lg font-mono font-bold text-text-primary">{{ capacity().dbTotalGb }} GB</div>
-            <div class="text-[10px] text-text-secondary">Full database pool</div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-1">
-            <span class="text-[10px] text-emerald-800 dark:text-emerald-300 uppercase font-semibold">Available DB</span>
-            <div class="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-200">{{ capacity().dbAvailableGb }} GB</div>
-            <div class="text-[10px] text-emerald-600 dark:text-emerald-400">Ready to allocate</div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-base-200 border border-base-300 space-y-1">
-            <span class="text-[10px] text-text-secondary uppercase font-semibold">Total File Storage</span>
+            <span class="text-[10px] text-text-secondary uppercase font-semibold">Total File Storage Pool</span>
             <div class="text-lg font-mono font-bold text-text-primary">{{ capacity().fileTotalGb }} GB</div>
-            <div class="text-[10px] text-text-secondary">SCORM, Video & Assets</div>
+            <div class="text-[10px] text-text-secondary">SCORM, Video, Documents & Assets</div>
           </div>
 
           <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-1">
             <span class="text-[10px] text-emerald-800 dark:text-emerald-300 uppercase font-semibold">Available File Storage</span>
             <div class="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-200">{{ capacity().fileAvailableGb }} GB</div>
-            <div class="text-[10px] text-emerald-600 dark:text-emerald-400">Ready to allocate</div>
+            <div class="text-[10px] text-emerald-600 dark:text-emerald-400">Ready to allocate to this LMS</div>
           </div>
-
         </div>
       </div>
 
@@ -391,36 +377,12 @@
             <span class="material-symbols-outlined text-base">storage</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-text-primary">2. LMS Storage Allocation & Quotas</h2>
-            <p class="text-[11px] text-text-secondary">Partition dedicated database and file storage for this LMS instance</p>
+            <h2 class="text-sm font-bold text-text-primary">2. LMS Storage Allocation</h2>
+            <p class="text-[11px] text-text-secondary">Partition dedicated file storage for this LMS instance</p>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          <!-- Database Size (GB) * -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Database Size (GB) <span class="text-rose-500">*</span>
-              <span class="text-[10px] text-text-secondary font-normal ml-1">(Max available: {{ capacity().dbAvailableGb }} GB)</span>
-            </label>
-            <div class="relative">
-              <input 
-                type="number" 
-                min="1" 
-                [max]="capacity().dbAvailableGb"
-                [ngModel]="databaseSizeGb()" 
-                (ngModelChange)="databaseSizeGb.set($event)"
-                placeholder="e.g. 50"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border text-xs focus:outline-none focus:border-tenant-500 transition-all font-mono font-bold"
-                [ngClass]="errors()['databaseSizeGb'] ? 'border-rose-500 bg-rose-50/20' : 'border-base-300'" />
-              <span class="absolute right-3.5 top-2.5 text-xs font-bold text-text-secondary font-mono">GB</span>
-            </div>
-            @if (errors()['databaseSizeGb']) {
-              <p class="text-[11px] text-rose-500 mt-1">{{ errors()['databaseSizeGb'] }}</p>
-            }
-          </div>
-
+        <div class="grid grid-cols-1 gap-4">
           <!-- File Storage (GB) * -->
           <div>
             <label class="block text-xs font-semibold text-text-primary mb-1">
@@ -486,19 +448,11 @@
         <!-- Live Impact Summary Panel -->
         <div class="p-4 rounded-2xl bg-base-200/80 border border-base-300 space-y-2 text-xs">
           <span class="font-bold text-text-primary block text-xs">Real-time Parent Organization Capacity Impact:</span>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-base-100 border border-base-300">
-              <span class="text-text-secondary text-[11px]">Remaining Org DB:</span>
-              <strong class="font-mono text-xs" [class]="remainingOrgDbAvailable() < 0 ? 'text-rose-600' : 'text-text-primary'">
-                {{ remainingOrgDbAvailable() }} GB
-              </strong>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-base-100 border border-base-300">
-              <span class="text-text-secondary text-[11px]">Remaining Org File Storage:</span>
-              <strong class="font-mono text-xs" [class]="remainingOrgFileAvailable() < 0 ? 'text-rose-600' : 'text-text-primary'">
-                {{ remainingOrgFileAvailable() }} GB
-              </strong>
-            </div>
+          <div class="p-2.5 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between">
+            <span class="text-text-secondary text-[11px]">Remaining Org File Storage:</span>
+            <strong class="font-mono text-xs" [class]="remainingOrgFileAvailable() < 0 ? 'text-rose-600' : 'text-text-primary'">
+              {{ remainingOrgFileAvailable() }} GB
+            </strong>
           </div>
         </div>
       </div>
@@ -874,12 +828,7 @@
               <button (click)="jumpToStep(2)" class="text-[11px] font-semibold text-tenant-600 hover:underline cursor-pointer">Edit</button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs">
-              <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
-                <div class="text-[10px] text-text-secondary uppercase">Database Size</div>
-                <div class="font-bold text-base text-text-primary mt-0.5">{{ databaseSizeGb() }} GB</div>
-              </div>
-
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center text-xs">
               <div class="p-3 rounded-2xl bg-base-200 border border-base-300">
                 <div class="text-[10px] text-text-secondary uppercase">File Storage</div>
                 <div class="font-bold text-base text-text-primary mt-0.5">{{ fileStorageGb() }} GB</div>
@@ -893,10 +842,6 @@
 
             <div class="p-3.5 rounded-2xl bg-base-200/80 border border-base-300 text-xs">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="text-text-secondary">Remaining {{ parentOrg()?.name || 'Org' }} DB Capacity:</span>
-                <strong class="font-mono text-text-primary">{{ remainingOrgDbAvailable() }} GB</strong>
-              </div>
-              <div class="flex items-center justify-between text-[11px] mt-1">
                 <span class="text-text-secondary">Remaining {{ parentOrg()?.name || 'Org' }} File Capacity:</span>
                 <strong class="font-mono text-text-primary">{{ remainingOrgFileAvailable() }} GB</strong>
               </div>
@@ -973,7 +918,7 @@
         </div>
         <div class="flex justify-between">
           <span>Allocated Storage:</span>
-          <strong class="text-text-primary font-mono">{{ databaseSizeGb() }}GB DB / {{ fileStorageGb() }}GB File</strong>
+          <strong class="text-text-primary font-mono">{{ fileStorageGb() }} GB File Storage</strong>
         </div>
         <div class="flex justify-between">
           <span>Primary Admin:</span>

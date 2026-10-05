@@ -190,12 +190,6 @@ import { CustomSelectComponent, SelectOption } from '../custom-select/custom-sel
                       <div class="text-left min-w-0 flex-1">
                         <div class="flex items-center gap-1">
                           <span class="font-bold text-xs truncate block" [class.text-white]="isChildActive(child)">{{ child.label }}</span>
-                          @if (child.badge) {
-                            <span class="text-[8px] px-1 py-0.2 rounded font-bold uppercase"
-                                  [class]="isChildActive(child) ? 'bg-white/20 text-white' : (child.badge === 'Wizard' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400')">
-                              {{ child.badge }}
-                            </span>
-                          }
                         </div>
                         @if (child.description) {
                           <span class="text-[10px] block truncate" [class]="isChildActive(child) ? 'text-white/80' : 'text-slate-400'">{{ child.description }}</span>
@@ -228,12 +222,6 @@ import { CustomSelectComponent, SelectOption } from '../custom-select/custom-sel
                   <div class="text-left min-w-0 flex-1">
                     <div class="flex items-center gap-1">
                       <span class="font-bold text-xs block truncate">{{ item.label }}</span>
-                      @if (item.badge) {
-                        <span class="text-[8px] px-1.5 py-0.2 rounded font-bold uppercase"
-                              [class]="isItemActive(item) ? 'bg-tenant-500 text-white' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
-                          {{ item.badge }}
-                        </span>
-                      }
                     </div>
                     @if (item.description) {
                       <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-tenant-600/80 dark:text-tenant-300/80' : 'text-slate-400'">{{ item.description }}</span>

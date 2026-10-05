@@ -105,14 +105,9 @@
                 <div class="absolute -left-4 top-0 bottom-0 w-4"></div>
 
                 <div class="bg-base-100 rounded-2xl border border-base-300 dark:border-white/10 shadow-2xl overflow-hidden py-1">
-                  <!-- Flyout Header: Uppercase category name with badge -->
+                  <!-- Flyout Header: Uppercase category name -->
                   <div class="px-4 py-2.5 text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase border-b border-base-300/80 dark:border-white/10 flex items-center justify-between">
                     <span>{{ item.label.toUpperCase() }}</span>
-                    @if (item.badge) {
-                      <span class="text-[9px] px-2 py-0.5 rounded-full font-bold bg-tenant-500 text-white">
-                        {{ item.badge }}
-                      </span>
-                    }
                   </div>
 
                   <!-- Flyout Child Menu Items -->
@@ -139,16 +134,6 @@
                           </div>
 
                           <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                            @if (child.badge) {
-                              <span class="text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider"
-                                    [class]="isChildActive(child) 
-                                      ? 'bg-white/20 text-white' 
-                                      : (child.badge.toLowerCase() === 'wizard' 
-                                        ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
-                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
-                                {{ child.badge }}
-                              </span>
-                            }
                             @if (isChildActive(child)) {
                               <span class="material-symbols-outlined text-sm text-white font-bold">check</span>
                             }
@@ -164,9 +149,6 @@
               <div 
                 class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 px-3 py-1.5 bg-slate-900 text-white dark:bg-slate-950 dark:text-slate-100 border border-slate-700/60 dark:border-slate-700 rounded-xl text-xs font-semibold shadow-2xl whitespace-nowrap invisible opacity-0 translate-x-1 group-hover/rail-item:visible group-hover/rail-item:opacity-100 group-hover/rail-item:translate-x-0 transition-all duration-150 pointer-events-none z-50 flex items-center gap-1.5">
                 <span>{{ item.label }}</span>
-                @if (item.badge) {
-                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-tenant-500 text-white font-bold">{{ item.badge }}</span>
-                }
               </div>
             }
           </div>
@@ -198,12 +180,6 @@
                 </div>
 
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  @if (item.badge) {
-                    <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                          [class]="isRouteActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-tenant-100 text-tenant-700 dark:bg-tenant-950/80 dark:text-tenant-200'">
-                      {{ item.badge }}
-                    </span>
-                  }
                   <span class="material-symbols-outlined text-base transition-transform duration-200 text-slate-400"
                         [class.text-tenant-600]="isRouteActive(item)"
                         [class.dark:text-tenant-300]="isRouteActive(item)"
@@ -233,16 +209,6 @@
                           <span class="truncate">{{ child.label }}</span>
                         </div>
                         <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                          @if (child.badge) {
-                            <span class="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold"
-                                  [class]="isChildActive(child) 
-                                    ? 'bg-white/20 text-white' 
-                                    : (child.badge.toLowerCase() === 'wizard' 
-                                      ? 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950 dark:text-amber-200' 
-                                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')">
-                              {{ child.badge }}
-                            </span>
-                          }
                           @if (isChildActive(child)) {
                             <span class="material-symbols-outlined text-sm text-white font-bold flex-shrink-0">check</span>
                           }
@@ -279,13 +245,6 @@
 
                 <span class="truncate text-[13px]">{{ item.label }}</span>
               </div>
-
-              @if (item.badge) {
-                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                      [class]="isRouteActive(item) ? 'bg-tenant-500 text-white shadow-2xs' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-200'">
-                  {{ item.badge }}
-                </span>
-              }
             </a>
           }
         }

@@ -566,6 +566,101 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
               </div>
             }
 
+            <!-- F: Offline Training + Venue Specific (§ Requirement 4) -->
+            @if (selectedType() === 'Offline Training') {
+              <div class="space-y-4 p-4 rounded-2xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">business</span>
+                    <span>Offline Training & Physical Venue</span>
+                  </h3>
+                  <span class="text-[10px] text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/50 px-2 py-0.5 rounded font-bold">
+                    Classroom & Fieldwork
+                  </span>
+                </div>
+
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Configure in-person classroom workshops, practical fieldwork, or physical symposiums with attached physical venue, room allocations, and attendance compliance.
+                </p>
+
+                <!-- Venue Selection -->
+                <div>
+                  <app-custom-select
+                    label="Physical Venue"
+                    hint="Select registered physical campus or training facility"
+                    [required]="true"
+                    [searchable]="true"
+                    [clearable]="false"
+                    [options]="venueSelectOptions()"
+                    formControlName="venueId"
+                    (valueChange)="onVenueSelected($event)"
+                    placeholder="Search and select physical venue...">
+                  </app-custom-select>
+                </div>
+
+                <!-- Room & Instructor Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <app-custom-select
+                      label="Designated Room / Hall"
+                      [options]="roomSelectOptions()"
+                      formControlName="roomName"
+                      placeholder="Select classroom or hall...">
+                    </app-custom-select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Lead Facilitator / Trainer
+                    </label>
+                    <input 
+                      type="text" 
+                      formControlName="instructorName" 
+                      placeholder="e.g. Dr. Mahfuz Rahman" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  </div>
+                </div>
+
+                <!-- Capacity & Attendance Requirement Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Session Capacity (Trainees)
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      formControlName="sessionCapacity" 
+                      placeholder="e.g. 40" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-mono focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Min Attendance Requirement (%)
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="100"
+                      formControlName="offlineAttendanceRequirementPct" 
+                      placeholder="80" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-mono focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  </div>
+                </div>
+
+                <!-- Physical Materials Provided Switch -->
+                <div class="flex items-center justify-between p-3 rounded-xl bg-base-100 border border-base-300">
+                  <div class="space-y-0.5">
+                    <span class="text-xs font-semibold text-text-primary">Physical Training Materials Provided</span>
+                    <p class="text-[11px] text-text-secondary">Distribute printed handbooks, participant kits, or protective gear at venue.</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    formControlName="materialsProvided"
+                    class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer">
+                </div>
+              </div>
+            }
+
             @if (selectedType() === 'Phase') {
               <div class="space-y-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-semibold text-xs">
@@ -578,6 +673,64 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
                 <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between text-xs">
                   <span class="text-text-secondary">Enforced Completion:</span>
                   <span class="font-bold text-tenant-600">Mandatory Milestone Stage</span>
+                </div>
+              </div>
+
+              <!-- Phase Completion Tagging & Rewards (§ Requirements 5 & 6) -->
+              <div class="space-y-4 p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-amber-600">military_tech</span>
+                    <span>Phase Completion Tagging & Credentials</span>
+                  </h3>
+                  <span class="text-[10px] text-amber-700 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded font-bold">
+                    Phase Graduation
+                  </span>
+                </div>
+
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Award standardized competency skills, phase certificate templates, and milestone digital badges to learners upon completing this Phase.
+                </p>
+
+                <!-- Skill Tagging -->
+                <div>
+                  <app-custom-select
+                    label="Skill Tagging (Awarded on Phase Completion)"
+                    hint="Search skills from repository"
+                    [searchable]="true"
+                    [multiple]="true"
+                    [clearable]="true"
+                    [options]="skillSelectOptions()"
+                    [value]="selectedCompletionSkills()"
+                    (valueChange)="onCompletionSkillsChange($event)"
+                    placeholder="Select competency skills to tag...">
+                  </app-custom-select>
+                </div>
+
+                <!-- Certificate & Badge Tagging -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <app-custom-select
+                      label="Certificate Tagging"
+                      hint="Certificate template for this phase"
+                      [searchable]="true"
+                      [clearable]="true"
+                      [options]="certificateSelectOptions()"
+                      formControlName="completionCertificateId"
+                      placeholder="Select certificate template...">
+                    </app-custom-select>
+                  </div>
+                  <div>
+                    <app-custom-select
+                      label="Badge Tagging"
+                      hint="Milestone badge for this phase"
+                      [searchable]="true"
+                      [clearable]="true"
+                      [options]="badgeSelectOptions()"
+                      formControlName="completionBadgeId"
+                      placeholder="Select milestone badge...">
+                    </app-custom-select>
+                  </div>
                 </div>
               </div>
             }
@@ -628,6 +781,7 @@ export class ComponentDrawerComponent {
     'Task',
     'Content',
     'Course',
+    'Offline Training',
     'Pre-Test',
     'Post-Test',
     'Survey',
@@ -638,6 +792,72 @@ export class ComponentDrawerComponent {
   selectedPrerequisites = signal<string[]>([]);
   selectedCourseClasses = signal<PlanComponentClassSession[]>([]);
   formDates = signal<{ start: string; end: string }>({ start: '01/01/2026', end: '31/03/2026' });
+
+  // Phase Completion Tagging signal (§ Requirements 5 & 6)
+  selectedCompletionSkills = signal<string[]>([]);
+
+  // Physical Venues (§ Requirement 4)
+  venues = computed(() => this.lmsData.venues());
+  venueSelectOptions = computed<SelectOption[]>(() => {
+    return this.venues().map(v => ({
+      value: v.venueId || v.id || '',
+      label: v.name,
+      sublabel: `${v.city || 'Campus'} • ${v.rooms?.length || 0} rooms available`
+    }));
+  });
+
+  selectedVenue = computed(() => {
+    const vId = this.form.get('venueId')?.value;
+    return this.venues().find(v => (v.venueId || v.id) === vId);
+  });
+
+  roomSelectOptions = computed<SelectOption[]>(() => {
+    const v = this.selectedVenue();
+    if (!v || !v.rooms || v.rooms.length === 0) {
+      return [
+        { value: 'Executive Boardroom 402', label: 'Executive Boardroom 402' },
+        { value: 'Conference Hall A', label: 'Conference Hall A' },
+        { value: 'Workshop Lab 1', label: 'Workshop Lab 1' }
+      ];
+    }
+    return v.rooms.map(r => ({
+      value: r.name,
+      label: `${r.name} (${r.capacity} seats)`,
+      sublabel: `Max capacity: ${r.capacity} seats`
+    }));
+  });
+
+  // Skills Repository for Tagging (§ Requirement 5)
+  skills = computed(() => this.lmsData.skills());
+  skillSelectOptions = computed<SelectOption[]>(() => {
+    return this.skills().map(s => ({
+      value: s.skillId,
+      label: s.name,
+      sublabel: `${s.skillCode} • ${s.category || 'Competency'}`
+    }));
+  });
+
+  // Certificate Templates for Tagging (§ Requirement 6)
+  certificateTemplates = computed(() => this.lmsData.certificateTemplates());
+  certificateSelectOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'None (No Phase Certificate)' },
+    ...this.certificateTemplates().map(c => ({
+      value: c.id,
+      label: c.name,
+      sublabel: `Template: ${c.type || 'Standard'}`
+    }))
+  ]);
+
+  // Badge Templates for Tagging (§ Requirement 6)
+  badgeTemplates = computed(() => this.lmsData.badgeTemplates());
+  badgeSelectOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'None (No Phase Badge)' },
+    ...this.badgeTemplates().map(b => ({
+      value: b.templateId,
+      label: b.name,
+      sublabel: `Category: ${b.category || 'Milestone'}`
+    }))
+  ]);
 
   form: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -655,11 +875,21 @@ export class ComponentDrawerComponent {
     // Content
     contentType: ['PDF / Document'],
     contentLength: ['45 mins'],
+    // Offline Training (§ Requirement 4)
+    venueId: ['venue-001'],
+    roomName: ['Executive Boardroom 402'],
+    instructorName: ['Dr. Mahfuz Rahman'],
+    sessionCapacity: [35],
+    offlineAttendanceRequirementPct: [80],
+    materialsProvided: [true],
     // Test
     evaluationType: ['Online'],
     passMark: [70],
     // Survey
-    surveyMode: ['Anonymous']
+    surveyMode: ['Anonymous'],
+    // Phase Completion Tagging (§ Requirements 5 & 6)
+    completionCertificateId: [''],
+    completionBadgeId: ['']
   });
 
   dateOrderError = computed<string | null>(() => {
@@ -706,26 +936,37 @@ export class ComponentDrawerComponent {
             endDate: comp.endDate,
             phaseId: comp.phaseId || null,
             isMandatory: comp.isMandatory,
-            progressionRule: comp.progressionCondition?.rule || 'mark_done',
-            progressionThreshold: comp.progressionCondition?.threshold || 75
+            progressionRule: comp.progressionCondition?.rule || (comp.type === 'Offline Training' ? 'attendance_verified' : 'mark_done'),
+            progressionThreshold: comp.progressionCondition?.threshold || 75,
+            venueId: comp.venueId || 'venue-001',
+            roomName: comp.roomName || 'Executive Boardroom 402',
+            instructorName: comp.instructorName || 'Dr. Mahfuz Rahman',
+            sessionCapacity: comp.sessionCapacity || 35,
+            offlineAttendanceRequirementPct: comp.offlineAttendanceRequirementPct || 80,
+            materialsProvided: comp.materialsProvided ?? true,
+            completionCertificateId: comp.completionCertificateId || '',
+            completionBadgeId: comp.completionBadgeId || ''
           });
+          this.selectedCompletionSkills.set(comp.completionSkills || []);
         } else {
           this.selectedType.set(this.initialType());
           this.selectedPrerequisites.set([]);
           this.selectedCourseClasses.set([]);
+          this.selectedCompletionSkills.set([]);
 
           const pStart = this.plan()?.startDate || '01/01/2026';
           const pEnd = this.plan()?.endDate || '31/12/2026';
           this.formDates.set({ start: pStart, end: pEnd });
 
           const isPhase = this.initialType() === 'Phase';
+          const isOffline = this.initialType() === 'Offline Training';
           const nextPhaseNum = this.availablePhases().length + 1;
           const defaultName = isPhase 
             ? `Phase 0${nextPhaseNum}: Field Specialization` 
-            : '';
+            : (isOffline ? 'In-Person Workshop: Dhaka Executive Learning Center' : '');
           const defaultDesc = isPhase 
             ? `Structured curriculum stage 0${nextPhaseNum} for targeted qualification.` 
-            : '';
+            : (isOffline ? 'Intensive physical hands-on training and peer group workshop.' : '');
 
           this.form.patchValue({
             name: defaultName,
@@ -734,8 +975,16 @@ export class ComponentDrawerComponent {
             endDate: pEnd,
             phaseId: this.targetPhaseId() || null,
             isMandatory: true,
-            progressionRule: 'mark_done',
-            progressionThreshold: 75
+            progressionRule: isOffline ? 'attendance_verified' : 'mark_done',
+            progressionThreshold: 75,
+            venueId: 'venue-001',
+            roomName: 'Executive Boardroom 402',
+            instructorName: 'Dr. Mahfuz Rahman',
+            sessionCapacity: 35,
+            offlineAttendanceRequirementPct: 80,
+            materialsProvided: true,
+            completionCertificateId: '',
+            completionBadgeId: ''
           });
         }
       }
@@ -750,6 +999,8 @@ export class ComponentDrawerComponent {
     this.selectedType.set(type);
     if (type === 'Course') {
       this.form.patchValue({ progressionRule: 'course_passed' });
+    } else if (type === 'Offline Training') {
+      this.form.patchValue({ progressionRule: 'attendance_verified' });
     } else if (type === 'Pre-Test' || type === 'Post-Test') {
       this.form.patchValue({ progressionRule: 'score_threshold' });
     } else if (type === 'Survey') {
@@ -780,6 +1031,11 @@ export class ComponentDrawerComponent {
           { value: 'course_passed', label: 'Course Final Passing Grade' },
           { value: 'attendance_verified', label: 'Live Session Attendance Verified' }
         ];
+      case 'Offline Training':
+        return [
+          { value: 'attendance_verified', label: 'Physical Attendance Verified' },
+          { value: 'mark_done', label: 'Instructor In-Person Evaluation Pass' }
+        ];
       case 'Pre-Test':
       case 'Post-Test':
         return [
@@ -796,6 +1052,20 @@ export class ComponentDrawerComponent {
         ];
     }
   });
+
+  onCompletionSkillsChange(skills: string[]) {
+    this.selectedCompletionSkills.set(skills || []);
+  }
+
+  onVenueSelected(venueId: any) {
+    if (!venueId) return;
+    const v = this.venues().find(x => (x.venueId || x.id) === venueId);
+    if (v && (!this.form.get('name')?.value || this.form.get('name')?.value.startsWith('In-Person Workshop') || this.form.get('name')?.value === '')) {
+      this.form.patchValue({ name: `In-Person Workshop: ${v.name}` });
+    }
+    const firstRoom = v?.rooms?.[0]?.name || 'Executive Boardroom 402';
+    this.form.patchValue({ roomName: firstRoom });
+  }
 
   requiresScoreThreshold(): boolean {
     return this.form.get('progressionRule')?.value === 'score_threshold';
@@ -968,6 +1238,7 @@ export class ComponentDrawerComponent {
       case 'Task': return 'bg-sky-500';
       case 'Content': return 'bg-indigo-500';
       case 'Course': return 'bg-emerald-600';
+      case 'Offline Training': return 'bg-teal-600';
       case 'Pre-Test': return 'bg-amber-500';
       case 'Post-Test': return 'bg-rose-500';
       case 'Survey': return 'bg-purple-600';
@@ -980,6 +1251,7 @@ export class ComponentDrawerComponent {
       case 'Task': return 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300';
       case 'Content': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
       case 'Course': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+      case 'Offline Training': return 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300';
       case 'Pre-Test': return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
       case 'Post-Test': return 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
       case 'Survey': return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300';
@@ -992,6 +1264,7 @@ export class ComponentDrawerComponent {
       case 'Task': return 'task_alt';
       case 'Content': return 'play_lesson';
       case 'Course': return 'school';
+      case 'Offline Training': return 'business';
       case 'Pre-Test': return 'quiz';
       case 'Post-Test': return 'assignment_turned_in';
       case 'Survey': return 'reviews';
@@ -1068,6 +1341,14 @@ export class ComponentDrawerComponent {
     const type = this.selectedType();
     const duration = getDurationDays(val.startDate, val.endDate);
 
+    const venue = this.venues().find(v => (v.venueId || v.id) === val.venueId);
+    const cert = this.certificateTemplates().find(c => c.id === val.completionCertificateId);
+    const badge = this.badgeTemplates().find(b => b.templateId === val.completionBadgeId);
+
+    const venueAddressStr = typeof venue?.address === 'object' 
+      ? `${venue?.address?.line1 || ''}, ${venue?.address?.city || ''}` 
+      : (venue?.address || '75 Mohakhali, Dhaka');
+
     const component: PlanComponent = {
       id: currentComp?.id || (type === 'Phase' ? `comp-ph-${Date.now()}` : `comp-${Date.now()}`),
       planId: this.plan()?.id || 'plan-fodp-2026',
@@ -1087,8 +1368,26 @@ export class ComponentDrawerComponent {
         label: this.availableProgressionRules().find(r => r.value === val.progressionRule)?.label || val.progressionRule
       },
       includedClasses: type === 'Course' ? this.selectedCourseClasses() : undefined,
+      
+      // Offline Training Specific (§ Requirement 4)
+      venueId: type === 'Offline Training' ? val.venueId : undefined,
+      venueName: type === 'Offline Training' ? (venue?.name || 'BRAC Executive Learning Center') : undefined,
+      venueAddress: type === 'Offline Training' ? venueAddressStr : undefined,
+      roomName: type === 'Offline Training' ? val.roomName : undefined,
+      instructorName: type === 'Offline Training' ? val.instructorName : undefined,
+      sessionCapacity: type === 'Offline Training' ? Number(val.sessionCapacity) || 35 : undefined,
+      offlineAttendanceRequirementPct: type === 'Offline Training' ? Number(val.offlineAttendanceRequirementPct) || 80 : undefined,
+      materialsProvided: type === 'Offline Training' ? !!val.materialsProvided : undefined,
+
+      // Phase Completion Tagging (§ Requirements 5 & 6)
+      completionSkills: type === 'Phase' ? this.selectedCompletionSkills() : undefined,
+      completionCertificateId: type === 'Phase' ? (val.completionCertificateId || undefined) : undefined,
+      completionCertificateName: type === 'Phase' ? (cert?.name || undefined) : undefined,
+      completionBadgeId: type === 'Phase' ? (val.completionBadgeId || undefined) : undefined,
+      completionBadgeName: type === 'Phase' ? (badge?.name || undefined) : undefined,
+
       source: currentComp?.source || {
-        sourceType: type === 'Course' ? 'Course Catalog' : type === 'Content' ? 'Content Repository' : type === 'Pre-Test' || type === 'Post-Test' || type === 'Survey' ? 'Questionnaire Library' : 'Task Template',
+        sourceType: type === 'Course' ? 'Course Catalog' : type === 'Content' ? 'Content Repository' : type === 'Offline Training' ? 'Venue Training Facility' : type === 'Pre-Test' || type === 'Post-Test' || type === 'Survey' ? 'Questionnaire Library' : 'Task Template',
         itemName: val.name
       },
       isComplete: currentComp?.isComplete || false

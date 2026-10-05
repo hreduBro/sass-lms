@@ -751,6 +751,18 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tenants']);
   }
 
+  // Auto-save per stage (§ Save as Draft removed from Org Creation; auto-save per stage)
+  private autoSaveStage(step: number) {
+    if (this.isEditMode()) return;
+    try {
+      const draft = this.constructDraftObject();
+      this.activeDraftId.set(draft.id);
+      this.lms.saveOrganizationDraft(draft);
+    } catch (e) {
+      console.warn('Auto-save stage error:', e);
+    }
+  }
+
   // 4. Next Step Validation & Advancement
   onNext() {
     this.formErrorAlert.set(null);
@@ -782,6 +794,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         return copy;
       });
 
+      // Auto-save Stage 1
+      this.autoSaveStage(1);
+
       // Mark step 1 done & advance
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -790,7 +805,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(2);
-      this.lms.showToast('Step 1 (Basic Information) saved. Proceeding to Step 2 of 4: Resource Allocation.', 'success', 4500, 'Step 1 Completed', 'STEP 2 / 4');
+      this.lms.showToast('Step 1 (Basic Information) auto-saved. Proceeding to Step 2 of 4: Resource Allocation.', 'success', 4500, 'Step 1 Auto-saved', 'STEP 2 / 4');
       this.scrollTop();
     } 
     else if (step === 2) {
@@ -821,6 +836,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Auto-save Stage 2
+      this.autoSaveStage(2);
+
       // Mark step 2 done & advance
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -829,7 +847,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(3);
-      this.lms.showToast('Step 2 (Resource Allocation) saved. Proceeding to Step 3 of 4: Admin Setup.', 'success', 4500, 'Step 2 Completed', 'STEP 3 / 4');
+      this.lms.showToast('Step 2 (Resource Allocation) auto-saved. Proceeding to Step 3 of 4: Admin Setup.', 'success', 4500, 'Step 2 Auto-saved', 'STEP 3 / 4');
       this.scrollTop();
     }
     else if (step === 3) {
@@ -839,6 +857,9 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Auto-save Stage 3
+      this.autoSaveStage(3);
+
       // Mark step 3 done & advance to preview (§5.2)
       this.completedSteps.update(set => {
         const next = new Set(set);
@@ -847,7 +868,7 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
       });
 
       this.currentStep.set(4);
-      this.lms.showToast('Step 3 (Admin Setup) saved. Proceeding to Step 4 of 4: Preview & Confirm.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 4');
+      this.lms.showToast('Step 3 (Admin Setup) auto-saved. Proceeding to Step 4 of 4: Preview & Confirm.', 'success', 4500, 'Step 3 Auto-saved', 'STEP 4 / 4');
       this.scrollTop();
     }
   }

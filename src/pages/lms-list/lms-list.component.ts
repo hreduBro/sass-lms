@@ -158,6 +158,11 @@ export class LmsListComponent {
     return !!this.searchQuery().trim() || this.hasActiveFilters();
   });
 
+  // Role gate: LMS Admin cannot create new LMS instances (only Org Admin and System Admin can)
+  canCreateLms = computed<boolean>(() => {
+    return this.lms.activeRole() !== 'lms_admin';
+  });
+
   // Total count of active filter criteria
   activeFilterCount = computed<number>(() => {
     const f = this.appliedFilters();

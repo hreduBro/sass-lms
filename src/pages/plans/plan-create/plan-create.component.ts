@@ -73,7 +73,7 @@ export class PlanCreateComponent implements OnInit {
   steps: StepperStep[] = [
     { id: 1, shortTitle: 'Curriculum Identity', sublabel: 'Identity & Bounds', icon: 'info' },
     { id: 2, shortTitle: 'Component Canvas', sublabel: 'Structure & Phases', icon: 'account_tree' },
-    { id: 3, shortTitle: 'User Onboarding', sublabel: 'Cohorts & Rosters', icon: 'groups' }
+    { id: 3, shortTitle: 'User Tagging', sublabel: 'Cohorts & Rosters', icon: 'groups' }
   ];
 
   completedSteps = computed<Set<number>>(() => {
@@ -93,6 +93,9 @@ export class PlanCreateComponent implements OnInit {
   planCode = signal<string>('PLN-1972-882');
   planStatus = signal<PlanStatus>('Draft');
   lastSavedAt = signal<string>('Just now');
+
+  // Plan Completion Tagging State (§ Requirements 5 & 6)
+  planCompletionSkills = signal<string[]>(['skill-001', 'skill-002']);
 
   // Core Data
   components = signal<PlanComponent[]>([]);
@@ -114,7 +117,9 @@ export class PlanCreateComponent implements OnInit {
     budgetAmount: [4500000, [Validators.required, Validators.min(0)]],
     currency: ['BDT', [Validators.required]],
     defaultProgressionMode: ['Sequential', [Validators.required]],
-    ownerUserId: ['usr-admin-01', [Validators.required]]
+    ownerUserId: ['usr-admin-01', [Validators.required]],
+    planCompletionCertificateId: ['cert-tpl-001'],
+    planCompletionBadgeId: ['badge-tpl-001']
   });
 
   // Step 02 State: Plan Builder
@@ -213,10 +218,43 @@ export class PlanCreateComponent implements OnInit {
     { value: 'Email', label: 'Email Address', sublabel: 'e.g. user@brac.net' }
   ];
 
+  // Plan Completion Competencies & Credentials (§ Requirements 5 & 6)
+  skillOptions = computed<SelectOption[]>(() => {
+    return this.lmsData.skills().map(s => ({
+      value: s.skillId,
+      label: s.name,
+      sublabel: `${s.skillCode} • ${s.category || 'Competency'}`
+    }));
+  });
+
+  certificateOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'None (No Graduation Certificate)' },
+    ...this.lmsData.certificateTemplates().map(c => ({
+      value: c.id,
+      label: c.name,
+      sublabel: `Template: ${c.type || 'Standard'}`
+    }))
+  ]);
+
+  badgeOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'None (No Graduation Badge)' },
+    ...this.lmsData.badgeTemplates().map(b => ({
+      value: b.templateId,
+      label: b.name,
+      sublabel: `Category: ${b.category || 'Milestone'}`
+    }))
+  ]);
+
+  onPlanCompletionSkillsChange(skills: string[]) {
+    this.planCompletionSkills.set(skills || []);
+  }
+
   // Current Plan representation
   currentPlan = computed<Plan>(() => {
     const val = this.basicForm.value;
     const ownerObj = this.ownerOptions().find(o => o.value === val.ownerUserId);
+    const certObj = this.certificateOptions().find(c => c.value === val.planCompletionCertificateId);
+    const badgeObj = this.badgeOptions().find(b => b.value === val.planCompletionBadgeId);
 
     return {
       id: this.planId(),
@@ -248,7 +286,13 @@ export class PlanCreateComponent implements OnInit {
         budgetYear: val.budgetYear,
         budgetAmount: Number(val.budgetAmount) || 0,
         currency: val.currency
-      }
+      },
+      // Plan Completion Tagging (§ Requirements 5 & 6)
+      completionSkills: this.planCompletionSkills(),
+      completionCertificateId: val.planCompletionCertificateId || undefined,
+      completionCertificateName: certObj && certObj.value ? certObj.label : undefined,
+      completionBadgeId: val.planCompletionBadgeId || undefined,
+      completionBadgeName: badgeObj && badgeObj.value ? badgeObj.label : undefined
     };
   });
 
@@ -404,9 +448,12 @@ export class PlanCreateComponent implements OnInit {
       budgetAmount: example.plan.budget?.budgetAmount || 4500000,
       currency: example.plan.budget?.currency || 'BDT',
       defaultProgressionMode: example.plan.defaultProgressionMode || 'Sequential',
-      ownerUserId: example.plan.owner?.userId || 'usr-admin-01'
+      ownerUserId: example.plan.owner?.userId || 'usr-admin-01',
+      planCompletionCertificateId: example.plan.completionCertificateId || 'CERT-TMP-1972-01',
+      planCompletionBadgeId: example.plan.completionBadgeId || 'badge-champ-01'
     });
 
+    this.planCompletionSkills.set(example.plan.completionSkills || ['skl-001', 'skl-002']);
     this.components.set(example.components);
     this.onboardedUsers.set(example.onboardedUsers);
   }
@@ -470,7 +517,7 @@ export class PlanCreateComponent implements OnInit {
     const stepNames: Record<number, string> = {
       1: 'Step 1: Curriculum Identity & Bounds',
       2: 'Step 2: Component & Phase Plan Builder',
-      3: 'Step 3: User Onboarding & Scope Assignment'
+      3: 'Step 3: User Tagging & Scope Assignment'
     };
 
     const successMsg = `Successfully transitioned to ${stepNames[step]} from ${stepNames[prevStep]}.`;
@@ -849,6 +896,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Task': return 'bg-sky-500 text-white';
       case 'Content': return 'bg-indigo-500 text-white';
       case 'Course': return 'bg-emerald-600 text-white';
+      case 'Offline Training': return 'bg-teal-600 text-white';
       case 'Pre-Test': return 'bg-amber-500 text-white';
       case 'Post-Test': return 'bg-rose-500 text-white';
       case 'Survey': return 'bg-purple-600 text-white';
@@ -861,6 +909,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Task': return 'border-l-sky-500';
       case 'Content': return 'border-l-indigo-500';
       case 'Course': return 'border-l-emerald-600';
+      case 'Offline Training': return 'border-l-teal-600';
       case 'Pre-Test': return 'border-l-amber-500';
       case 'Post-Test': return 'border-l-rose-500';
       case 'Survey': return 'border-l-purple-600';
@@ -873,6 +922,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Task': return 'task_alt';
       case 'Content': return 'play_lesson';
       case 'Course': return 'school';
+      case 'Offline Training': return 'business';
       case 'Pre-Test': return 'quiz';
       case 'Post-Test': return 'assignment_turned_in';
       case 'Survey': return 'reviews';

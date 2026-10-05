@@ -36,7 +36,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/my-plans',
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'Trainee',
     description: 'Trainee Plan Journey, Classroom Sessions, and Credentials',
     matchPatterns: ['/my-plans', '/my-plans/**', '/my-schedule', '/my-schedule/**', '/my-achievements', '/my-achievements/**', '/achievements', '/schedule'],
     children: [
@@ -44,7 +43,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'My Plans',
         route: '/my-plans',
         icon: 'assignment_turned_in',
-        badge: 'Spine',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Onboarded learning pathways & ordered journey spine',
         matchPatterns: ['/my-plans', '/my-plans/**']
@@ -53,7 +51,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'My Schedule',
         route: '/my-schedule',
         icon: 'calendar_month',
-        badge: 'Classes',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'In-person classroom sessions, exams & phase windows',
         matchPatterns: ['/my-schedule', '/my-schedule/**', '/schedule']
@@ -62,7 +59,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'My Achievements',
         route: '/my-achievements',
         icon: 'military_tech',
-        badge: 'Diplomas',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Earned course badges, phase & graduation certificates',
         matchPatterns: ['/my-achievements', '/my-achievements/**', '/achievements']
@@ -74,7 +70,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/tenants',
     icon: 'corporate_fare',
     roles: ['system_admin', 'super_admin'],
-    badge: 'Multi',
     description: 'Manage workspace tenants & subsidiaries',
     matchPatterns: ['/tenants/**', '/organization/**'],
     children: [
@@ -90,7 +85,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Organization Dashboard', 
         route: '/organization/dashboard', 
         icon: 'space_dashboard', 
-        badge: 'Overview', 
         description: 'Platform-wide status, health & capacity metrics', 
         roles: ['system_admin', 'super_admin'],
         matchPatterns: ['/organization/dashboard', '/tenants/dashboard']
@@ -99,7 +93,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Organization', 
         route: '/tenants/create', 
         icon: 'domain_add', 
-        badge: 'Wizard', 
         description: 'Step-by-step enterprise onboarding', 
         roles: ['system_admin', 'super_admin'],
         matchPatterns: ['/tenants/create', '/organization/create']
@@ -111,7 +104,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/login-branding',
     icon: 'branding_watermark',
     roles: ['system_admin', 'super_admin'],
-    badge: 'Admin',
     description: 'Custom portal login branding, SSO styling, and theme customizer',
     matchPatterns: ['/login-branding', '/login-branding/**'],
     children: [
@@ -119,7 +111,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Branding Preview',
         route: '/login-branding',
         icon: 'preview',
-        badge: 'Live',
         description: 'Interactive multi-device preview of portal login page',
         roles: ['system_admin', 'super_admin'],
         matchPatterns: ['/login-branding']
@@ -128,7 +119,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Edit Branding',
         route: '/login-branding/edit',
         icon: 'tune',
-        badge: 'Studio',
         description: 'Configure logos, layouts, backgrounds, SSO and legal copy',
         roles: ['system_admin', 'super_admin'],
         matchPatterns: ['/login-branding/edit']
@@ -137,7 +127,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Live Login Portal',
         route: '/login',
         icon: 'login',
-        badge: 'Portal',
         description: 'View full standalone live authentication portal',
         roles: ['system_admin', 'super_admin'],
         matchPatterns: ['/login']
@@ -149,7 +138,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/organization/dashboard',
     icon: 'space_dashboard',
     roles: ['tenant_admin'],
-    badge: 'Overview',
     description: 'Organization-wide health, capacity & LMS allocation',
     matchPatterns: ['/organization/dashboard', '/tenants/dashboard']
   },
@@ -165,7 +153,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'LMS Dashboard', 
         route: '/lms/dashboard', 
         icon: 'space_dashboard', 
-        badge: 'Overview', 
         description: 'Organization LMS status, active drafts & capacity metrics',
         matchPatterns: ['/lms/dashboard']
       },
@@ -180,7 +167,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create LMS', 
         route: '/lms/create', 
         icon: 'add_circle', 
-        badge: 'Wizard', 
         description: '4-step LMS creation wizard', 
         roles: ['system_admin', 'super_admin', 'tenant_admin'],
         matchPatterns: ['/lms/create']
@@ -192,7 +178,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/plans',
     icon: 'event_note',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'LMS Scope',
     description: 'Plan Grid, Owner Assignment, Phase Architecture & Lifecycle',
     matchPatterns: ['/plans/**', '/phases/**'],
     children: [
@@ -207,7 +192,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Phase Grid', 
         route: '/plans/phases', 
         icon: 'timeline', 
-        badge: 'Phases', 
         description: 'Curriculum phases, prerequisites & task roadmaps',
         matchPatterns: ['/plans/phases', '/phases', '/plans/*/phases/**', '/plans/phases/**', '/phases/**']
       },
@@ -215,7 +199,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Plan Dashboard', 
         route: '/plans/dashboard', 
         icon: 'monitoring', 
-        badge: 'Telemetry', 
         description: 'Plan progress, phase sequencing & completion rates',
         matchPatterns: ['/plans/dashboard']
       },
@@ -223,7 +206,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Transcripts', 
         route: '/transcripts', 
         icon: 'receipt_long', 
-        badge: 'Official', 
         description: 'View and export trainee transcripts across courses, phases and plans',
         matchPatterns: ['/transcripts', '/transcripts/**']
       },
@@ -231,7 +213,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Engagement Hub', 
         route: '/engagement', 
         icon: 'reviews', 
-        badge: 'Community', 
         description: 'Ratings telemetry, feedback questionnaires & discussion forums',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/engagement', '/engagement/**']
@@ -240,7 +221,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Plan', 
         route: '/plans/create', 
         icon: 'add_task', 
-        badge: 'Builder', 
         description: 'Design new learning plan & phase structure', 
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/plans/create', '/plans/edit/**']
@@ -252,7 +232,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/content-repository',
     icon: 'folder_special',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Reusable',
     description: 'Centralized Learning & Assessment Repository, Multi-LMS Sharing & Content Lifecycle',
     matchPatterns: ['/content-repository', '/content-repository/**'],
     children: [
@@ -267,7 +246,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Repository',
         route: '/content-repository/create',
         icon: 'add_circle',
-        badge: 'Stepper',
         description: '4-step repository creation & sharing wizard',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/content-repository/create', '/content-repository/edit/**']
@@ -279,7 +257,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/offline-trainings',
     icon: 'groups_3',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'In-Person',
     description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
     matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
     children: [
@@ -294,7 +271,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Training Dashboard',
         route: '/offline-trainings/dashboard',
         icon: 'space_dashboard',
-        badge: 'Telemetry',
         description: 'Classroom statistics, venue distribution & capacity metrics',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/offline-trainings/dashboard']
@@ -303,7 +279,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Training',
         route: '/offline-trainings/create',
         icon: 'add_circle',
-        badge: 'Builder',
         description: '5-step in-person offline training creation wizard',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/offline-trainings/create', '/offline-trainings/edit/**']
@@ -312,7 +287,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Trainee Results',
         route: '/offline-trainings/results',
         icon: 'fact_check',
-        badge: 'Gradebook',
         description: 'Attendance log, manual mark entry & cohort pass status',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/offline-trainings/results']
@@ -324,7 +298,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/venues',
     icon: 'location_city',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Physical',
     description: 'Manage physical learning centers, rooms, seating layouts & capacity guidance',
     matchPatterns: ['/venues', '/venues/**'],
     children: [
@@ -339,7 +312,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Venue Dashboard',
         route: '/venues/dashboard',
         icon: 'space_dashboard',
-        badge: 'Metrics',
         description: 'Venue telemetry, room utilization & capacity benchmarks',
         matchPatterns: ['/venues/dashboard']
       },
@@ -347,7 +319,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Venue',
         route: '/venues/create',
         icon: 'add_location_alt',
-        badge: 'New',
         description: 'Register physical venue with geo-coords & room configurations',
         matchPatterns: ['/venues/create', '/venues/edit/**']
       }
@@ -372,7 +343,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Course Dashboard',
         route: '/courses/dashboard',
         icon: 'space_dashboard',
-        badge: 'Overview',
         description: 'High-level course status, content split & publish governance',
         matchPatterns: ['/courses/dashboard']
       },
@@ -380,7 +350,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Template Grid',
         route: '/courses/templates',
         icon: 'dashboard_customize',
-        badge: 'Blueprints',
         description: 'Browse, filter & manage course blueprints',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/courses/templates', '/courses/templates/view/**']
@@ -389,7 +358,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Template Dashboard',
         route: '/courses/templates/dashboard',
         icon: 'monitoring',
-        badge: 'Telemetry',
         description: 'Blueprint metrics, adoption velocity & slot telemetry',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/courses/templates/dashboard']
@@ -398,7 +366,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Course',
         route: '/courses/create',
         icon: 'add_circle',
-        badge: 'Builder',
         description: '6-step structured curriculum creation wizard',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/courses/create', '/courses/edit/**']
@@ -410,7 +377,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/assessments/results',
     icon: 'quiz',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'Exams',
     description: 'Assessment Authoring, Exam Runtime, Scoring Policies & Trainee Results',
     matchPatterns: ['/assessments', '/assessments/**'],
     children: [
@@ -418,7 +384,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Assessment',
         route: '/assessments/create',
         icon: 'add_circle',
-        badge: 'Builder',
         description: '4-step question authoring & scoring policy builder (saves to Content Repository)',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/assessments/create', '/assessments/edit/**']
@@ -427,7 +392,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Results & Analytics',
         route: '/assessments/results',
         icon: 'fact_check',
-        badge: 'Scores',
         description: 'Learner attempt results, score distributions & manual grading queue',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         matchPatterns: ['/assessments/results', '/assessments/grade/**']
@@ -439,7 +403,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/users',
     icon: 'groups',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Pools',
     description: 'Personnel directory, author pool & instructor assignments',
     matchPatterns: ['/users/**', '/authors/**', '/instructors/**', '/authors', '/instructors'],
     children: [
@@ -454,7 +417,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Authors Pool',
         route: '/authors',
         icon: 'history_edu',
-        badge: 'Credits',
         description: 'Organization-scoped author pool & media credits',
         matchPatterns: ['/authors', '/authors/view/**', '/authors/details/**']
       },
@@ -469,7 +431,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Author',
         route: '/authors/create',
         icon: 'person_add',
-        badge: 'New',
         description: 'Onboard new content author with duplicate check',
         matchPatterns: ['/authors/create', '/authors/edit/**']
       },
@@ -477,7 +438,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Instructor',
         route: '/instructors/create',
         icon: 'school',
-        badge: 'New',
         description: 'Onboard new course delivery instructor',
         matchPatterns: ['/instructors/create', '/instructors/edit/**']
       }
@@ -496,7 +456,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/skills',
     icon: 'psychology',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-    badge: 'Competency',
     description: 'Centralized skill repository, competency clusters, polymorphic element mappings & gap reports',
     matchPatterns: ['/skills', '/skills/**'],
     children: [
@@ -518,7 +477,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Skill Dashboard',
         route: '/skills/dashboard',
         icon: 'space_dashboard',
-        badge: 'Analytics',
         description: 'Skill coverage metrics, distribution, learner progress & gap reports',
         matchPatterns: ['/skills/dashboard']
       }
@@ -529,7 +487,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/certificates/templates',
     icon: 'workspace_premium',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'Studio',
     description: 'WYSIWYG designer, template grid, sharing & credentials',
     matchPatterns: ['/certificates/templates/**', '/certificates/templates', '/certificates/vault', '/certificates/signatories/**'],
     children: [
@@ -544,7 +501,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Template Dashboard',
         route: '/certificates/templates/dashboard',
         icon: 'space_dashboard',
-        badge: 'Studio',
         description: 'KPI summary, status & sharing analytics studio',
         matchPatterns: ['/certificates/templates/dashboard']
       },
@@ -552,7 +508,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Template',
         route: '/certificates/templates/create',
         icon: 'add_circle',
-        badge: 'Wizard',
         description: '3-step WYSIWYG canvas & placeholder authoring',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/templates/create', '/certificates/templates/edit/**']
@@ -561,7 +516,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Certificates Vault',
         route: '/certificates/vault',
         icon: 'verified',
-        badge: 'Issued',
         description: 'Verifiable credentials & issued student certificates',
         matchPatterns: ['/certificates/vault', '/certificates']
       },
@@ -569,7 +523,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Signatories',
         route: '/certificates/signatories',
         icon: 'edit_note',
-        badge: 'Repository',
         description: 'Centralized repository of authorized signatories & digital signatures',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/signatories', '/signatories']
@@ -578,7 +531,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Signatory Dashboard',
         route: '/certificates/signatories/dashboard',
         icon: 'space_dashboard',
-        badge: 'Analytics',
         description: 'Signatory repository health, usage & propagation telemetry',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/signatories/dashboard', '/signatories/dashboard']
@@ -587,7 +539,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'My Transcripts',
         route: '/my-transcripts',
         icon: 'school',
-        badge: 'Records',
         description: 'Personal verified academic transcripts & grades',
         matchPatterns: ['/my-transcripts', '/my-transcripts/**']
       }
@@ -598,7 +549,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/certificates/badges',
     icon: 'military_tech',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'OpenBadges',
     description: 'Trainee earned badges with LMS provenance and template repository',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
@@ -607,7 +557,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/certificates/badges',
         queryParams: { tab: 'earned' },
         icon: 'verified',
-        badge: 'Trainee',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Verifiable credentials categorized by originating enterprise LMS portal',
         matchPatterns: ['/certificates/badges?tab=earned', '/certificates/badges/earned', '/badges/earned']
@@ -625,7 +574,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Badge Dashboard',
         route: '/certificates/badges/dashboard',
         icon: 'space_dashboard',
-        badge: 'Analytics',
         description: 'Badge telemetry, level/tier breakdown & utilization metrics',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/badges/dashboard', '/badges/dashboard', '/certificates/badges/analytics']
@@ -634,7 +582,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         label: 'Create Badge',
         route: '/certificates/badges/create',
         icon: 'add_task',
-        badge: 'Wizard',
         description: '3-step emblem design, criteria & placeholder authoring',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/badges/create', '/badges/create', '/certificates/badges/edit/**']
@@ -646,7 +593,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/webinars',
     icon: 'videocam',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    badge: 'Live',
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
   },

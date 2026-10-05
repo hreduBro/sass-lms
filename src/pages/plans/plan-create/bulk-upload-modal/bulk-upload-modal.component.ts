@@ -50,13 +50,13 @@ interface ParsedRow {
               </div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 mb-0.5">
-                  <span class="text-xs font-bold text-tenant-600 uppercase tracking-wider">Bulk Onboarding</span>
+                  <span class="text-xs font-bold text-tenant-600 uppercase tracking-wider">Bulk User Tagging</span>
                   <span class="text-xs font-medium text-text-secondary truncate">
                     Target Scope: <strong class="text-text-primary font-semibold">{{ getScopeDisplayName(targetScope()) }}</strong>
                   </span>
                 </div>
                 <h2 class="text-base sm:text-lg font-bold text-text-primary leading-tight truncate">
-                  Upload Trainee Roster (.CSV)
+                  Upload Trainee Roster (.CSV) & Tag Users
                 </h2>
               </div>
             </div>
@@ -214,7 +214,7 @@ interface ParsedRow {
               [disabled]="validRowsCount() === 0"
               class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
               <span class="material-symbols-outlined text-base">check_circle</span>
-              <span>Commit {{ validRowsCount() }} Valid Users</span>
+              <span>Commit {{ validRowsCount() }} Tagged Trainees</span>
             </button>
           </div>
 
@@ -258,7 +258,7 @@ export class BulkUploadModalComponent {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'Trainee_Onboarding_Template.csv');
+    link.setAttribute('download', 'Trainee_Tagging_Template.csv');
     link.click();
     URL.revokeObjectURL(url);
   }
