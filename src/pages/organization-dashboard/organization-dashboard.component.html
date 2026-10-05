@@ -16,7 +16,7 @@
             </span>
             <span class="text-xs text-text-secondary flex items-center gap-1">
               <span>Role:</span> 
-              <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">Org Admin</strong>
+              <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.5 rounded-md font-semibold">Org Admin</strong>
             </span>
           </div>
           
@@ -38,30 +38,121 @@
         </div>
       </div>
 
-      <!-- MASTER REPOSITORY SHARING GOVERNANCE SWITCH (§4.2) -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
+      <!-- ========================================================================= -->
+      <!-- SECTION 1: METRIC & RESOURCE QUOTA CARDS (CARDS FIRST)                    -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total LMS Card -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs hover:border-tenant-500/30 transition-all space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-text-secondary">LMS Instances</span>
+            <div class="w-9 h-9 rounded-2xl bg-tenant-50 dark:bg-tenant-500/20 text-tenant-600 dark:text-tenant-300 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">layers</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold font-mono text-text-primary tracking-tight">{{ orgStats().totalLms }}</div>
+            <div class="text-[11px] text-text-secondary mt-1 flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {{ orgStats().activeLms }} Active
+              </span>
+              <span class="text-text-secondary/40">&bull;</span>
+              <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                {{ orgStats().processingLms }} Processing
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage Quota Card -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs hover:border-cyan-500/30 transition-all space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-text-secondary">Storage Allocated</span>
+            <div class="w-9 h-9 rounded-2xl bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">hard_drive</span>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <div class="text-2xl font-bold font-mono text-text-primary tracking-tight">{{ orgStats().usedGb }} / {{ orgStats().allocatedGb }} GB</div>
+            <div class="w-full bg-base-200 h-2 rounded-full overflow-hidden">
+              <div class="bg-cyan-500 h-full rounded-full transition-all duration-500" [style.width.%]="orgStats().storagePct"></div>
+            </div>
+            <div class="text-[11px] text-text-secondary flex items-center justify-between">
+              <span>{{ orgStats().storagePct }}% capacity consumed</span>
+              <span class="font-mono text-text-secondary/80">{{ orgStats().allocatedGb - orgStats().usedGb }} GB free</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learner Seats Card -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs hover:border-indigo-500/30 transition-all space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-text-secondary">Seat Utilization</span>
+            <div class="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">group</span>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <div class="text-2xl font-bold font-mono text-text-primary tracking-tight">{{ orgStats().seatsUsed | number }} / {{ orgStats().seatLimit | number }}</div>
+            <div class="w-full bg-base-200 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" [style.width.%]="orgStats().seatPct"></div>
+            </div>
+            <div class="text-[11px] text-text-secondary flex items-center justify-between">
+              <span>{{ orgStats().seatPct }}% total seats allocated</span>
+              <span class="font-mono text-text-secondary/80">{{ orgStats().seatLimit - orgStats().seatsUsed | number }} seats free</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Database Partition Card -->
+        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs hover:border-amber-500/30 transition-all space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-text-secondary">Database Partition</span>
+            <div class="w-9 h-9 rounded-2xl bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">database</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold font-mono text-text-primary tracking-tight">{{ orgStats().dbSize }} GB Allocated</div>
+            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-1">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Dedicated Partition Healthy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 2: MASTER REPOSITORY SHARING GOVERNANCE SWITCH (§4.2)             -->
+      <!-- ========================================================================= -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-300">
-          <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
-              [ngClass]="isMasterSharingEnabled() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400'">
-              <span class="material-symbols-outlined text-xl">{{ isMasterSharingEnabled() ? 'share' : 'lock' }}</span>
+          <div class="flex items-start gap-3.5">
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs"
+              [ngClass]="isMasterSharingEnabled() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800'">
+              <span class="material-symbols-outlined text-2xl">{{ isMasterSharingEnabled() ? 'share' : 'lock' }}</span>
             </div>
             <div>
-              <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-2.5 flex-wrap">
                 <h2 class="text-sm font-bold text-text-primary">Enable repository sharing across this Organization</h2>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
                   [ngClass]="isMasterSharingEnabled() ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
                   {{ isMasterSharingEnabled() ? 'Master Switch: ON' : 'Master Switch: OFF (Strict Isolation)' }}
                 </span>
               </div>
-              <p class="text-xs text-text-secondary mt-1 max-w-2xl leading-relaxed">
+              <p class="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
                 This is the master switch. When enabled, individual LMS instances under {{ activeOrg().name }} are permitted to cross-share repository items. When turned OFF, no content crosses between any two LMS in this organization, no matter what any individual LMS has set.
               </p>
             </div>
           </div>
 
           <!-- Master Toggle Switch -->
-          <div class="flex items-center shrink-0 self-start sm:self-center">
+          <div class="flex items-center shrink-0 self-start sm:self-center bg-base-200/50 p-2 rounded-2xl border border-base-300">
             <app-custom-switch
               [checked]="isMasterSharingEnabled()"
               [onLabel]="'Enabled'"
@@ -75,14 +166,29 @@
 
         <!-- Read-only Reporting List of LMS Sharing Statuses -->
         <div class="space-y-3 pt-1">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-xs text-text-secondary">hub</span>
-              <span class="text-xs font-bold text-text-primary uppercase tracking-wider">LMS Instances Content Sharing Status (Reporting Only)</span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-400">hub</span>
+              <span class="text-xs font-bold text-text-primary uppercase tracking-wider">LMS INSTANCES CONTENT SHARING STATUS (REPORTING ONLY)</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-base-200 text-text-secondary border border-base-300">
+                {{ filteredOrgLmsList().length }} Instances
+              </span>
             </div>
-            <span class="text-[11px] text-text-secondary">
-              Note: Reporting only — individual LMS sharing switch cannot be toggled from here.
-            </span>
+            <div class="flex items-center gap-3">
+              <div class="relative w-full sm:w-56">
+                <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-text-secondary pointer-events-none">search</span>
+                <input 
+                  type="text" 
+                  [ngModel]="lmsSearchQuery()" 
+                  (ngModelChange)="lmsSearchQuery.set($event)"
+                  placeholder="Filter instances..."
+                  class="w-full pl-8 pr-3 py-1 text-xs bg-base-200 border border-base-300 rounded-xl focus:outline-none focus:border-tenant-500 text-text-primary placeholder:text-text-secondary/60 transition-colors"
+                />
+              </div>
+              <span class="text-[11px] text-text-secondary hidden md:inline">
+                Note: Reporting only — individual LMS sharing switch cannot be toggled from here.
+              </span>
+            </div>
           </div>
 
           <div class="overflow-x-auto rounded-2xl border border-base-300">
@@ -98,51 +204,70 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-base-300 bg-base-100 font-sans">
-                @for (lmsItem of orgLmsList(); track lmsItem.id) {
+                @for (lmsItem of filteredOrgLmsList(); track lmsItem.id) {
                   @let isLmsOn = lmsItem.resources?.dataSharing?.enabled ?? false;
                   @let canContribute = lmsItem.resources?.dataSharing?.contribute ?? isLmsOn;
                   @let canDiscover = lmsItem.resources?.dataSharing?.discover ?? isLmsOn;
                   <tr class="hover:bg-base-200/40 transition-colors">
-                    <td class="py-3 px-4">
+                    <td class="py-3.5 px-4">
                       <div class="font-bold text-text-primary">{{ lmsItem.basicInfo?.lmsName || lmsItem.id }}</div>
-                      <div class="text-[10px] text-text-secondary font-mono">{{ lmsItem.id }} &bull; {{ lmsItem.basicInfo?.urlDomain || 'portal' }}</div>
+                      <div class="text-[10px] text-text-secondary font-mono mt-0.5 flex items-center gap-1">
+                        <span>{{ lmsItem.id }}</span>
+                        <span>&bull;</span>
+                        <span class="text-tenant-600 dark:text-tenant-400">{{ lmsItem.basicInfo?.urlDomain || 'portal' }}</span>
+                      </div>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    <td class="py-3.5 px-4">
+                      <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+                        [ngClass]="{
+                          'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': lmsItem.status === 'Active',
+                          'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300': lmsItem.status === 'Under Processing' || lmsItem.status === 'In-Progress',
+                          'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': lmsItem.status === 'Drafted',
+                          'bg-base-200 text-text-secondary': lmsItem.status === 'Deactivated'
+                        }">
                         {{ lmsItem.status }}
                       </span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                    <td class="py-3.5 px-4">
+                      <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md inline-flex items-center gap-1"
                         [ngClass]="isLmsOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-base-200 text-text-secondary border border-base-300'">
                         <span class="material-symbols-outlined text-xs">{{ isLmsOn ? 'check_circle' : 'cancel' }}</span>
                         <span>{{ isLmsOn ? 'ON' : 'OFF' }}</span>
                       </span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-[10px] font-mono" [ngClass]="canContribute && isLmsOn ? 'text-emerald-600 font-bold' : 'text-text-secondary'">
+                    <td class="py-3.5 px-4">
+                      <span class="text-[10px] font-mono" [ngClass]="canContribute && isLmsOn ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-text-secondary'">
                         {{ isLmsOn && canContribute ? 'Allowed' : 'Disabled' }}
                       </span>
                     </td>
-                    <td class="py-3 px-4">
-                      <span class="text-[10px] font-mono" [ngClass]="canDiscover && isLmsOn ? 'text-emerald-600 font-bold' : 'text-text-secondary'">
+                    <td class="py-3.5 px-4">
+                      <span class="text-[10px] font-mono" [ngClass]="canDiscover && isLmsOn ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-text-secondary'">
                         {{ isLmsOn && canDiscover ? 'Allowed' : 'Disabled' }}
                       </span>
                     </td>
-                    <td class="py-3 px-4">
+                    <td class="py-3.5 px-4">
                       @if (!isMasterSharingEnabled()) {
-                        <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
-                          Locked by Master
+                        <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs">lock</span>
+                          <span>Locked by Master</span>
                         </span>
                       } @else if (isLmsOn) {
-                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                          Active & Sharing
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs">share</span>
+                          <span>Active & Sharing</span>
                         </span>
                       } @else {
-                        <span class="text-[10px] font-bold text-text-secondary bg-base-200 px-2 py-0.5 rounded border border-base-300">
-                          Isolated (LMS OFF)
+                        <span class="text-[10px] font-bold text-text-secondary bg-base-200 px-2.5 py-0.5 rounded border border-base-300 inline-flex items-center gap-1">
+                          <span class="material-symbols-outlined text-xs">do_not_disturb_on</span>
+                          <span>Isolated (LMS OFF)</span>
                         </span>
                       }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="py-8 text-center text-xs text-text-secondary">
+                      No LMS instances matched your search query.
                     </td>
                   </tr>
                 }
@@ -152,89 +277,69 @@
         </div>
       </div>
 
-      <!-- Scoped Org Metric Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Total LMS -->
-        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
-          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
-            <span>LMS Instances</span>
-            <span class="material-symbols-outlined text-tenant-600">layers</span>
-          </div>
-          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().totalLms }}</div>
-          <div class="text-[11px] text-text-secondary flex items-center gap-1.5">
-            <span class="text-emerald-600 font-bold">{{ orgStats().activeLms }} Active</span>
-            <span>&bull;</span>
-            <span class="text-amber-600 font-semibold">{{ orgStats().processingLms }} Processing</span>
-          </div>
-        </div>
-
-        <!-- Storage Quota -->
-        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
-          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
-            <span>Storage Allocated</span>
-            <span class="material-symbols-outlined text-cyan-600">hard_drive</span>
-          </div>
-          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().usedGb }} / {{ orgStats().allocatedGb }} GB</div>
-          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-cyan-500 h-full rounded-full transition-all" [style.width.%]="orgStats().storagePct"></div>
-          </div>
-          <div class="text-[11px] text-text-secondary">{{ orgStats().storagePct }}% capacity consumed</div>
-        </div>
-
-        <!-- Seats Quota -->
-        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
-          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
-            <span>Seat Utilization</span>
-            <span class="material-symbols-outlined text-indigo-600">group</span>
-          </div>
-          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().seatsUsed }} / {{ orgStats().seatLimit }}</div>
-          <div class="w-full bg-base-200 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-indigo-500 h-full rounded-full transition-all" [style.width.%]="orgStats().seatPct"></div>
-          </div>
-          <div class="text-[11px] text-text-secondary">{{ orgStats().seatPct }}% total learner seats</div>
-        </div>
-
-        <!-- Database Pool -->
-        <div class="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-2xs space-y-2">
-          <div class="flex items-center justify-between text-text-secondary text-xs font-semibold">
-            <span>Database Allocated</span>
-            <span class="material-symbols-outlined text-amber-600">database</span>
-          </div>
-          <div class="text-2xl font-bold font-mono text-text-primary">{{ orgStats().dbSize }} GB</div>
-          <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-            <span class="material-symbols-outlined text-xs">check_circle</span>
-            <span>Dedicated DB Partition Healthy</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Scoped LMS Catalog -->
-      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-sm space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+      <!-- ========================================================================= -->
+      <!-- SECTION 3: BRAC LMS PORTALS (SCOPED LMS CATALOG)                         -->
+      <!-- ========================================================================= -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
           <div>
-            <h2 class="text-sm font-bold text-text-primary">{{ activeOrg().name }} LMS Portals</h2>
-            <p class="text-xs text-text-secondary">Dedicated learning portals provisioned for your organization.</p>
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-bold text-text-primary">{{ activeOrg().name }} LMS Portals</h2>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30">
+                {{ orgLmsList().length }} Portals Provisioned
+              </span>
+            </div>
+            <p class="text-xs text-text-secondary mt-0.5">Dedicated learning portals provisioned for your organization.</p>
           </div>
-          <a routerLink="/lms" class="text-xs font-semibold text-tenant-600 hover:underline">View in LMS Grid &rarr;</a>
+          <a routerLink="/lms" class="text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:underline flex items-center gap-1 shrink-0">
+            <span>View in LMS Grid</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (inst of orgLmsList(); track inst.id) {
-            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-3 hover:border-tenant-500/40 transition-all shadow-2xs">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h3 class="font-bold text-xs text-text-primary">{{ inst.basicInfo?.lmsName }}</h3>
-                  <span class="text-[10px] text-text-secondary font-mono">{{ inst.id }} &bull; {{ inst.basicInfo?.programmeDepartment }}</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+          @for (inst of filteredOrgLmsList(); track inst.id) {
+            <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300 space-y-3.5 hover:border-tenant-500/40 hover:bg-base-200/80 transition-all shadow-2xs flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 class="font-bold text-xs text-text-primary leading-snug">{{ inst.basicInfo?.lmsName }}</h3>
+                    <div class="text-[10px] text-text-secondary font-mono mt-0.5">{{ inst.id }} &bull; {{ inst.basicInfo?.programmeDepartment || 'General' }}</div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                    [ngClass]="{
+                      'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': inst.status === 'Active',
+                      'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300': inst.status === 'Under Processing' || inst.status === 'In-Progress',
+                      'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': inst.status === 'Drafted',
+                      'bg-base-200 text-text-secondary': inst.status === 'Deactivated'
+                    }">
+                    {{ inst.status }}
+                  </span>
                 </div>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  {{ inst.status }}
-                </span>
+
+                <div class="text-[11px] text-tenant-600 dark:text-tenant-400 font-mono flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-xs">language</span>
+                  <a [href]="'https://' + (inst.basicInfo?.urlDomain || 'portal.learn.brac.net')" target="_blank" class="hover:underline truncate">
+                    {{ inst.basicInfo?.urlDomain || 'portal.learn.brac.net' }}
+                  </a>
+                </div>
               </div>
 
-              <div class="text-[11px] text-text-secondary flex items-center justify-between pt-2 border-t border-base-300 font-mono">
-                <span>Storage: {{ inst.resources?.fileStorageGb || 50 }} GB</span>
-                <span>DB: {{ inst.resources?.databaseSizeGb || 20 }} GB</span>
+              <div class="pt-2.5 border-t border-base-300/80 flex items-center justify-between text-[11px] text-text-secondary font-mono">
+                <div class="flex items-center gap-3">
+                  <span>Storage: {{ inst.resources?.fileStorageGb || 50 }} GB</span>
+                  <span>DB: {{ inst.resources?.databaseSizeGb || 20 }} GB</span>
+                </div>
+                <a [routerLink]="['/lms']" class="text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:text-tenant-700 flex items-center gap-0.5">
+                  <span>Open</span>
+                  <span class="material-symbols-outlined text-xs">open_in_new</span>
+                </a>
               </div>
+            </div>
+          } @empty {
+            <div class="col-span-full py-10 text-center text-xs text-text-secondary space-y-2 bg-base-200/30 rounded-2xl border border-dashed border-base-300">
+              <span class="material-symbols-outlined text-2xl text-text-secondary/60">search_off</span>
+              <p>No LMS portals matched your query.</p>
             </div>
           }
         </div>

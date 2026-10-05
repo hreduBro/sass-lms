@@ -60,6 +60,21 @@ export class OrganizationDashboardComponent {
     return this.lms.lmsInstances().filter(l => l.organizationId === tenantId);
   });
 
+  // Search filter for LMS table & portals
+  lmsSearchQuery = signal<string>('');
+
+  filteredOrgLmsList = computed(() => {
+    const q = this.lmsSearchQuery().toLowerCase().trim();
+    const list = this.orgLmsList();
+    if (!q) return list;
+    return list.filter(lms => 
+      (lms.basicInfo?.lmsName || '').toLowerCase().includes(q) ||
+      lms.id.toLowerCase().includes(q) ||
+      (lms.basicInfo?.urlDomain || '').toLowerCase().includes(q) ||
+      (lms.basicInfo?.programmeDepartment || '').toLowerCase().includes(q)
+    );
+  });
+
   // Scoped Org metrics
   orgStats = computed(() => {
     const lmsList = this.orgLmsList();

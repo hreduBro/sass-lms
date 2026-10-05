@@ -39,8 +39,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 
       <!-- Status Label (Optional) -->
       @if (showStatusLabel()) {
-        <span class="text-xs font-bold font-mono tracking-tight"
-          [ngClass]="isChecked() ? 'text-tenant-600 dark:text-tenant-400' : 'text-text-secondary'">
+        <span class="text-xs font-bold font-mono tracking-tight whitespace-nowrap"
+          [ngClass]="isChecked() ? (variant() === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : 'text-tenant-600 dark:text-tenant-400') : 'text-text-secondary'">
           {{ isChecked() ? (onLabel() || 'Enabled') : (offLabel() || 'Disabled') }}
         </span>
       }
