@@ -548,48 +548,6 @@
       </div>
 
 
-      <!-- Quick Component Palette Bar (§ Fast In-Canvas Actions) -->
-      <div class="px-5 py-3 rounded-2xl bg-base-100 border border-base-300 shadow-2xs flex items-center justify-between gap-3 flex-wrap">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-[11px] font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm text-tenant-500">category</span>
-            <span>Quick Palette:</span>
-          </span>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <button type="button" (click)="openAddDrawer('Task', null)" class="px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 text-sky-800 dark:text-sky-200 border border-sky-200 dark:border-sky-800 text-xs font-medium flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-sky-600">task_alt</span> Task
-            </button>
-            <button type="button" (click)="openAddDrawer('Content', null)" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-800 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800 text-xs font-medium flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-indigo-600">play_lesson</span> Content
-            </button>
-            <button type="button" (click)="openAddDrawer('Course', null)" class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800 text-xs font-medium flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-emerald-600">school</span> Course
-            </button>
-            <button type="button" (click)="openAddDrawer('Offline Training', null)" class="px-3 py-1 rounded-lg bg-teal-100 dark:bg-teal-900/60 hover:bg-teal-200 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-teal-600 dark:text-teal-400">business</span> Offline Training (Venue)
-            </button>
-            <button type="button" (click)="openAddDrawer('Pre-Test', null)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800 text-xs font-medium flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-amber-600">quiz</span> Assessment
-            </button>
-            <button type="button" (click)="openAddDrawer('Survey', null)" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-800 text-xs font-medium flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs text-purple-600">reviews</span> Survey
-            </button>
-            <button type="button" (click)="addPhase()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 transition-all cursor-pointer">
-              <span class="material-symbols-outlined text-xs">view_timeline</span> + Phase
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button 
-            type="button" 
-            (click)="currentStep.set(1)" 
-            class="text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer">
-            <span class="material-symbols-outlined text-sm">workspace_premium</span>
-            <span>Configure Plan Graduation Tagging</span>
-          </button>
-        </div>
-      </div>
 
       <!-- Main Full-Width Curriculum Canvas -->
       <div class="w-full space-y-5">
@@ -920,18 +878,6 @@
           </div>
         }
 
-        <!-- Sequencing & Prerequisites Guideline Footer Card -->
-        <div class="p-4 rounded-2xl bg-base-100 border border-base-300 text-xs flex items-start gap-3 text-text-secondary shadow-2xs">
-          <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-base">lightbulb</span>
-          </div>
-          <div class="space-y-0.5">
-            <div class="font-bold text-text-primary text-xs">Sequencing & Progression Architecture</div>
-            <p class="text-[11px] leading-relaxed">
-              Components assigned within Phases are automatically bounded by Phase start and end dates. You can enforce strict progression paths or prerequisites for subsequent modules in each component's configuration.
-            </p>
-          </div>
-        </div>
 
       </div>
 
