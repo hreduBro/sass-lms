@@ -514,6 +514,19 @@ export class PlanCreateComponent implements OnInit {
     const prevStep = this.currentStep();
     this.currentStep.set(step as 1 | 2 | 3);
 
+    // Auto-save per stage (§ Auto-saved per stage)
+    if (step > prevStep) {
+      try {
+        const plan = this.currentPlan();
+        plan.components = this.components();
+        plan.onboardedUsers = this.onboardedUsers();
+        this.lmsData.savePlan(plan);
+        this.lastSavedAt.set('Just now');
+      } catch (e) {
+        console.warn('Auto-save error', e);
+      }
+    }
+
     const stepNames: Record<number, string> = {
       1: 'Step 1: Curriculum Identity & Bounds',
       2: 'Step 2: Component & Phase Plan Builder',

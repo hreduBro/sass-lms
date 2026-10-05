@@ -700,6 +700,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(2);
+      this.autoSaveStage(1);
       this.lms.showToast('Step 1 (Basic Information) saved. Proceeding to Step 2 of 4: Resource Allocation.', 'success', 4500, 'Step 1 Completed', 'STEP 2 / 4');
       this.scrollTop();
     } else if (step === 2) {
@@ -716,6 +717,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(3);
+      this.autoSaveStage(2);
       this.lms.showToast('Step 2 (Resource Allocation) saved. Proceeding to Step 3 of 4: Admin Assignment.', 'success', 4500, 'Step 2 Completed', 'STEP 3 / 4');
       this.scrollTop();
     } else if (step === 3) {
@@ -732,6 +734,7 @@ export class LmsCreateComponent implements OnInit {
       });
 
       this.currentStep.set(4);
+      this.autoSaveStage(3);
       this.lms.showToast('Step 3 (Admin Assignment) saved. Proceeding to Step 4 of 4: Preview & Confirm.', 'success', 4500, 'Step 3 Completed', 'STEP 4 / 4');
       this.scrollTop();
     }
@@ -848,6 +851,47 @@ export class LmsCreateComponent implements OnInit {
     this.lms.saveLmsDraft(draftPayload);
     this.lms.showToast(`Draft saved at Step ${this.currentStep()} of 4 for "${draftPayload.basicInfo?.lmsName || draftPayload.id}".`, 'success', 5000, `Step ${this.currentStep()} Draft Saved`, `STEP ${this.currentStep()} / 4`);
     this.router.navigate(['/lms']);
+  }
+
+  // Silent auto-save per stage (§ Auto-saved per stage)
+  private autoSaveStage(step: number) {
+    if (this.isEditMode()) return;
+    try {
+      const draftPayload: LmsDraft = {
+        id: this.draftId() || `LMS-DRAFT-${this.parentOrg().numericId || 'ORG'}-${Math.floor(1000 + Math.random() * 9000)}`,
+        organizationId: this.parentOrg().id,
+        organizationName: this.parentOrg().name,
+        status: 'In-Progress',
+        isDraft: true,
+        lastCompletedStep: step === 1 ? 'basic-info' : (step === 2 ? 'resources' : (step === 3 ? 'admin' : 'preview')),
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0],
+        basicInfo: {
+          lmsName: this.lmsName(),
+          programmeDepartment: this.programmeDepartment(),
+          commonEmail: this.commonEmail() || undefined,
+          summary: this.summary(),
+          goal: this.goal(),
+          lmsType: this.lmsType(),
+          urlDomain: this.urlDomain(),
+          timezone: this.selectedTimezone(),
+          logo: this.logoUrl() ? { url: this.logoUrl(), fileName: this.logoFileName() } : undefined
+        },
+        resources: {
+          databaseSizeGb: this.databaseSizeGb(),
+          fileStorageGb: this.fileStorageGb(),
+          usageAlertThresholdPct: this.usageAlertThresholdPct(),
+          dataSharing: this.getDataSharingPayload()
+        },
+        admins: this.getAllAdmins()
+      };
+      this.lms.saveLmsDraft(draftPayload);
+      if (!this.draftId()) {
+        this.draftId.set(draftPayload.id);
+      }
+    } catch (e) {
+      console.warn('Auto-save error', e);
+    }
   }
 
   // Step 4 Terminal Action: Create LMS

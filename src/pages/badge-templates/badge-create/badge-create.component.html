@@ -29,19 +29,18 @@
       </div>
     </div>
 
-    <!-- Top Action Buttons -->
+    <!-- Auto-saved Stage Indicator -->
     <div class="flex items-center gap-2 flex-wrap">
+      <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#e6fbf5] dark:bg-emerald-950/40 border-2 border-[#00d68f] dark:border-emerald-500 text-[#006644] dark:text-emerald-200 text-xs font-bold shadow-2xs select-none">
+        <span class="material-symbols-outlined text-[15px] text-[#00a86b] dark:text-emerald-400">cloud_done</span>
+        <span>Auto-saved per stage</span>
+      </div>
+
       <button 
         type="button" 
         (click)="cancelAndExit()" 
         class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs">
         Cancel
-      </button>
-      <button 
-        type="button" 
-        (click)="saveDraftAndExit()" 
-        class="px-3.5 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all cursor-pointer shadow-xs">
-        <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
       </button>
     </div>
   </div>
@@ -511,12 +510,6 @@
         <div class="flex items-center gap-3">
           <button 
             type="button" 
-            (click)="saveDraftAndExit()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
-          </button>
-          <button 
-            type="button" 
             (click)="goToStep(2)" 
             class="px-5 py-2.5 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
             <span>Next: Designer</span>
@@ -771,12 +764,6 @@
         <div class="flex items-center gap-3">
           <button 
             type="button" 
-            (click)="saveDraftAndExit()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
-          </button>
-          <button 
-            type="button" 
             (click)="goToStep(3)" 
             class="px-5 py-2.5 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
             <span>Next: Preview</span>
@@ -933,12 +920,6 @@
         </button>
 
         <div class="flex items-center gap-3">
-          <button 
-            type="button" 
-            (click)="saveDraftAndExit()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700/80 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer shadow-xs">
-            <span class="material-symbols-outlined text-sm">bookmark</span> Save as Draft
-          </button>
           <button 
             type="button" 
             (click)="publishBadge()" 

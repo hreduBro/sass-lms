@@ -36,16 +36,12 @@
       </p>
     </div>
 
-    <!-- Quick Draft Badge / Action -->
+    <!-- Auto-saved Stage Indicator -->
     <div class="flex items-center gap-2">
-      <button 
-        type="button"
-        (click)="onSaveAsDraft()"
-        class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer"
-        title="Save progress and resume later">
-        <span class="material-symbols-outlined text-sm">bookmark</span>
-        Save as draft
-      </button>
+      <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#e6fbf5] dark:bg-emerald-950/40 border border-[#00d68f] dark:border-emerald-600 text-[#065f46] dark:text-emerald-300 text-xs font-semibold shadow-2xs select-none">
+        <span class="material-symbols-outlined text-[15px] text-[#00a86b] dark:text-emerald-400">cloud_done</span>
+        <span>Auto-saved per stage</span>
+      </div>
 
       <button 
         type="button"
@@ -291,7 +287,7 @@
         </div>
       </div>
 
-      <!-- Action Buttons — Step 1 (Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 1 (Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -311,14 +307,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -457,7 +445,7 @@
         </div>
       </div>
 
-      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 2 (Back, Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -485,14 +473,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -622,7 +602,7 @@
 
       </div>
 
-      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Save as draft, Next) -->
+      <!-- Action Buttons — Step 3 (Back, Cancel, Reset, Next) -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-base-300">
         <div class="flex items-center gap-2">
           <button 
@@ -650,14 +630,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             (click)="onNext()" 
@@ -863,14 +835,6 @@
         </button>
 
         <div class="flex items-center gap-3">
-          <button 
-            type="button" 
-            (click)="onSaveAsDraft()" 
-            class="px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-100 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">bookmark</span>
-            Save as draft
-          </button>
-
           <button 
             type="button" 
             id="btn-create-lms"
