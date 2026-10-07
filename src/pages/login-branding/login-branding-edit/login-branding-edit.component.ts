@@ -19,6 +19,7 @@ import {
   getHeroPanelDefaultCss
 } from '../../../models/login-branding.model';
 import { SsoLogoComponent } from '../../../components/sso-logo/sso-logo.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 export type BrandingPortalTab = 'authkit' | 'admin_portal' | 'emails';
 export type RightPanelTab = 'global_styles' | 'page_settings' | 'custom_css';
@@ -69,7 +70,7 @@ export interface ElementMenuItem {
 
 @Component({
   selector: 'app-login-branding-edit',
-  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent],
+  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent, CustomSelectComponent],
   templateUrl: './login-branding-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -104,8 +105,25 @@ export class LoginBrandingEditComponent {
   selectedPage = signal<PreviewPageId>('sign_in');
   isPageDropdownOpen = signal<boolean>(false);
 
+  pageSelectOptions: SelectOption[] = [
+    { value: 'sign_in', label: 'Sign-in', icon: 'login' },
+    { value: 'sign_up', label: 'Sign-up', icon: 'person_add' },
+    { value: 'accept_invitation', label: 'Accept invitation', icon: 'mail' },
+    { value: 'organization_selection', label: 'Organization selection', icon: 'domain' },
+    { value: 'password_reset', label: 'Password reset', icon: 'lock_reset' },
+    { value: 'mfa_setup', label: 'MFA Setup', icon: 'shield' },
+    { value: 'sso_consent', label: 'SSO Consent', icon: 'verified_user' },
+    { value: 'radar_block', label: 'Radar block', icon: 'block' }
+  ];
+
   // Selected Language & Theme in Preview
   selectedLanguage = signal<string>('English (US)');
+  languageSelectOptions: SelectOption[] = [
+    { value: 'English (US)', label: 'English (US)' },
+    { value: 'Bengali (বাংলা)', label: 'Bengali (বাংলা)' },
+    { value: 'Spanish (Español)', label: 'Spanish (Español)' },
+    { value: 'French (Français)', label: 'French (Français)' }
+  ];
   previewTheme = signal<'dark' | 'light'>('dark');
   viewportMode = signal<'fullscreen' | 'desktop' | 'tablet' | 'mobile'>('fullscreen');
   isMobileViewport = computed(() => this.viewportMode() === 'mobile');
@@ -616,6 +634,18 @@ export class LoginBrandingEditComponent {
   selectPage(pageId: PreviewPageId) {
     this.selectedPage.set(pageId);
     this.isPageDropdownOpen.set(false);
+  }
+
+  onPageSelectChange(pageId: any) {
+    if (pageId) {
+      this.selectedPage.set(pageId as PreviewPageId);
+    }
+  }
+
+  onLanguageChange(lang: any) {
+    if (lang) {
+      this.selectedLanguage.set(lang);
+    }
   }
 
   togglePageDropdown() {
