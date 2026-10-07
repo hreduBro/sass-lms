@@ -129,20 +129,6 @@
             }
           </div>
 
-          <!-- Assessment Code -->
-          <div>
-            <label class="block text-xs font-semibold text-text-primary mb-1">
-              Assessment Code <span class="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="input-assessment-code"
-              [ngModel]="code()"
-              (ngModelChange)="code.set($event)"
-              placeholder="e.g. ASM-BRAC-101"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-base-200 border border-base-300 text-xs font-bold font-mono focus:outline-none focus:border-tenant-500 transition-all" />
-          </div>
-
           <!-- Assessment Type (Hard-coded Static Options including Pre-test & Post-test) -->
           <div>
             <app-custom-select
@@ -169,7 +155,7 @@
           </div>
 
           <!-- Responsible Instructor -->
-          <div>
+          <div class="md:col-span-2">
             <app-custom-select
               id="select-responsible-instructor"
               [ngModel]="responsibleInstructorId()"

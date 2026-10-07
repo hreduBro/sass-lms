@@ -144,19 +144,6 @@
                 <p class="text-xs text-text-secondary">Official institutional nomenclature and curriculum overview</p>
               </div>
             </div>
-
-            <!-- Auto-generated Plan Code -->
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">System Code:</span>
-              <button 
-                type="button"
-                (click)="copyPlanCode()"
-                class="px-2.5 py-1 rounded-lg bg-base-200/80 hover:bg-base-200 text-xs font-mono font-bold text-tenant-600 dark:text-tenant-400 border border-base-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Click to copy plan code">
-                <span>{{ planCode() }}</span>
-                <span class="material-symbols-outlined text-xs">content_copy</span>
-              </button>
-            </div>
           </div>
 
           <div class="space-y-4">
@@ -458,90 +445,41 @@
   @if (currentStep() === 2) {
     <div class="animate-step space-y-6">
 
-      <!-- Plan Metrics Banner & Canvas Toolbar (Redesigned) -->
-      <div class="p-4 sm:p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        
-        <!-- Left: Metrics & Overview Chips -->
-        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          
-          <!-- Plan Code Pill -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-tenant-500/10 border border-tenant-500/20 text-xs shadow-2xs">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Plan Code:</span>
-            <span class="font-mono font-bold text-tenant-600 dark:text-tenant-400">{{ planCode() }}</span>
+      <!-- Canvas Filter & Phase Action Bar (Redesigned) -->
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-base-100 border border-base-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Left: Section Title & Phase Count -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-base">view_timeline</span>
           </div>
-
-          <!-- Timeline Date Window Pill -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/70 border border-base-300 text-xs shadow-2xs">
-            <span class="material-symbols-outlined text-sm text-tenant-500">calendar_month</span>
-            <span class="font-mono font-medium text-text-primary">{{ basicForm.get('startDate')?.value }} – {{ basicForm.get('endDate')?.value }}</span>
-            <span class="font-bold text-[11px] text-tenant-600 dark:text-tenant-400 bg-tenant-500/10 px-2 py-0.5 rounded-md">
-              {{ computedPlanDuration() }} Days
+          <div class="flex items-center gap-2">
+            <h3 class="text-xs font-bold text-text-primary uppercase tracking-wider">Curriculum Phases</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 border border-tenant-500/20">
+              {{ phases().length }} {{ phases().length === 1 ? 'Phase' : 'Phases' }}
             </span>
           </div>
-
-          <!-- Curriculum Counter Pill -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/70 border border-base-300 text-xs shadow-2xs">
-            <span class="material-symbols-outlined text-sm text-text-secondary">account_tree</span>
-            <span class="text-text-secondary">Curriculum:</span>
-            <span class="font-bold text-text-primary">{{ components().length }} Total Components</span>
-            <span class="text-text-secondary">&bull;</span>
-            <span class="font-bold text-tenant-600 dark:text-tenant-400">{{ phases().length }} Phases</span>
-          </div>
-
-          <!-- Plan Graduation Rewards Pill -->
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs shadow-2xs">
-            <span class="material-symbols-outlined text-sm text-amber-600">workspace_premium</span>
-            <span class="text-text-secondary">Graduation:</span>
-            <span class="font-bold text-amber-700 dark:text-amber-300">{{ planCompletionSkills().length }} Skills Tagged</span>
-            @if (basicForm.get('planCompletionCertificateId')?.value) {
-              <span class="text-text-secondary">&bull;</span>
-              <span class="font-bold text-amber-700 dark:text-amber-300">Cert</span>
-            }
-            @if (basicForm.get('planCompletionBadgeId')?.value) {
-              <span class="text-text-secondary">&bull;</span>
-              <span class="font-bold text-amber-700 dark:text-amber-300">Badge</span>
-            }
-          </div>
-
         </div>
 
-        <!-- Right: Filter Dropdown & Action Buttons -->
-        <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-          <div class="w-48 sm:w-56 min-w-[180px]">
+        <!-- Right: Phase Filter & Add Phase Action (Grouped Together) -->
+        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          <div class="w-48 sm:w-56">
             <app-custom-select
               [options]="phaseFilterOptions()"
               [value]="activePhaseFilter()"
               (valueChange)="setPhaseFilter($event)"
               [clearable]="false"
               dropdownAlign="right"
+              customTriggerClass="font-semibold bg-base-200/50 hover:bg-base-200 border-base-300 shadow-2xs"
               placeholder="Filter by phase...">
             </app-custom-select>
           </div>
 
           <button 
             type="button"
-            (click)="openAddDrawer('Offline Training', null)"
-            class="h-10 px-4 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700 text-xs font-bold flex items-center gap-2 transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer shrink-0"
-            title="Add an in-person offline training with physical venue">
-            <span class="material-symbols-outlined text-base text-teal-600 dark:text-teal-300">business</span>
-            <span>+ Offline Training</span>
-          </button>
-
-          <button 
-            type="button"
-            (click)="openAddDrawer('Task', null)"
-            class="h-10 px-4 rounded-xl bg-base-100 hover:bg-base-200 active:bg-base-300/80 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-2 transition-all shadow-2xs hover:shadow-xs active:scale-[0.98] cursor-pointer shrink-0"
-            title="Add a new curriculum component">
-            <span class="material-symbols-outlined text-sm text-tenant-600 dark:text-tenant-400">add_circle</span>
-            <span>Add Component</span>
-          </button>
-
-          <button 
-            type="button"
             (click)="addPhase()"
-            class="h-10 px-4 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:bg-tenant-700 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-xs hover:shadow active:scale-[0.98] cursor-pointer shrink-0"
+            class="h-[38px] px-4 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:bg-tenant-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:shadow-md hover:shadow-tenant-500/20 active:scale-[0.98] cursor-pointer shrink-0"
             title="Create a new milestone phase">
-            <span class="material-symbols-outlined text-sm">view_timeline</span>
+            <span class="material-symbols-outlined text-base">view_timeline</span>
             <span>Add Phase</span>
           </button>
         </div>
@@ -641,23 +579,6 @@
 
                 <!-- Phase Header Actions -->
                 <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                  <button 
-                    type="button"
-                    (click)="openAddDrawer('Offline Training', ph.id)"
-                    class="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                    title="Add in-person offline training with physical venue into this phase">
-                    <span class="material-symbols-outlined text-xs text-teal-600 dark:text-teal-400">business</span>
-                    <span>+ Offline Training</span>
-                  </button>
-
-                  <button 
-                    type="button"
-                    (click)="editPhase(ph)"
-                    class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                    title="Configure Phase Skills, Certificate, and Milestone Badge Tagging">
-                    <span class="material-symbols-outlined text-xs text-amber-600">military_tech</span>
-                    <span>Phase Tagging & Rewards</span>
-                  </button>
                   <button 
                     type="button"
                     (click)="openAddDrawer('Task', ph.id)"

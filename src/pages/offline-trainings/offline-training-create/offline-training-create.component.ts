@@ -62,15 +62,14 @@ export class OfflineTrainingCreateComponent implements OnInit {
       step1Fields.forEach(f => this.trainingForm.get(f)?.markAsTouched());
 
       const codeCtrl = this.trainingForm.get('code');
+      if (!codeCtrl?.value) {
+        this.trainingForm.get('code')?.setValue(`TRN-OFF-${Date.now().toString().slice(-4)}`);
+      }
       const titleCtrl = this.trainingForm.get('title');
       const descCtrl = this.trainingForm.get('description');
       const catCtrl = this.trainingForm.get('category');
       const hoursCtrl = this.trainingForm.get('durationHours');
       const daysCtrl = this.trainingForm.get('durationDays');
-
-      if (codeCtrl?.invalid) {
-        return { valid: false, message: 'Training Code is required (alphanumeric, up to 30 characters).' };
-      }
       if (titleCtrl?.invalid) {
         return { valid: false, message: 'Workshop Title is required (up to 150 characters).' };
       }

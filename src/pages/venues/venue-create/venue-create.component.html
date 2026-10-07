@@ -139,34 +139,17 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Venue Unique Code <span class="text-rose-500">*</span>
-                </label>
-                <input type="text" formControlName="code" placeholder="e.g. VEN-DHK-01"
-                       [class.border-rose-500]="isFieldInvalid('code')"
-                       [class.bg-rose-50/20]="isFieldInvalid('code')"
-                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary transition-colors" />
-                @if (isFieldInvalid('code')) {
-                  <p class="text-[11px] text-rose-500 mt-1">Unique alphanumeric facility code is required.</p>
-                } @else {
-                  <p class="text-[11px] text-text-secondary mt-1">Unique alphanumeric facility identifier</p>
-                }
-              </div>
-
-              <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Venue Name <span class="text-rose-500">*</span>
-                </label>
-                <input type="text" formControlName="name" placeholder="e.g. Dhaka Executive Learning Center"
-                       [class.border-rose-500]="isFieldInvalid('name')"
-                       [class.bg-rose-50/20]="isFieldInvalid('name')"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary transition-colors" />
-                @if (isFieldInvalid('name')) {
-                  <p class="text-[11px] text-rose-500 mt-1">Venue Name is required (up to 120 characters).</p>
-                }
-              </div>
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Venue Name <span class="text-rose-500">*</span>
+              </label>
+              <input type="text" formControlName="name" placeholder="e.g. Dhaka Executive Learning Center"
+                     [class.border-rose-500]="isFieldInvalid('name')"
+                     [class.bg-rose-50/20]="isFieldInvalid('name')"
+                     class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 text-text-primary transition-colors" />
+              @if (isFieldInvalid('name')) {
+                <p class="text-[11px] text-rose-500 mt-1">Venue Name is required (up to 120 characters).</p>
+              }
             </div>
 
             <div class="border-t border-base-300 pt-4">

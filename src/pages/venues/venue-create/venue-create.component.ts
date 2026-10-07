@@ -65,14 +65,13 @@ export class VenueCreateComponent implements OnInit {
       step1Fields.forEach(f => this.venueForm.get(f)?.markAsTouched());
 
       const codeCtrl = this.venueForm.get('code');
+      if (!codeCtrl?.value) {
+        this.venueForm.get('code')?.setValue(`VEN-${Date.now().toString().slice(-4)}`);
+      }
       const nameCtrl = this.venueForm.get('name');
       const addrCtrl = this.venueForm.get('addressLine1');
       const cityCtrl = this.venueForm.get('city');
       const countryCtrl = this.venueForm.get('country');
-
-      if (codeCtrl?.invalid) {
-        return { valid: false, message: 'Venue Unique Code is required (alphanumeric, up to 30 characters).' };
-      }
       if (nameCtrl?.invalid) {
         return { valid: false, message: 'Venue Name is required (up to 120 characters).' };
       }

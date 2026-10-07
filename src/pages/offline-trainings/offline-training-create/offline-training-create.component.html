@@ -143,31 +143,17 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Training Code <span class="text-rose-500">*</span>
-                </label>
-                <input type="text" formControlName="code"
-                       [class.border-rose-500]="isFieldInvalid('code')"
-                       [class.bg-rose-50/20]="isFieldInvalid('code')"
-                       class="w-full px-3 py-2 text-sm font-mono uppercase bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
-                @if (isFieldInvalid('code')) {
-                  <p class="text-[11px] text-rose-500 mt-1">Training code is required (alphanumeric).</p>
-                }
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Workshop Title <span class="text-rose-500">*</span>
-                </label>
-                <input type="text" formControlName="title" placeholder="e.g. Field Emergency Response & Tactical Leadership"
-                       [class.border-rose-500]="isFieldInvalid('title')"
-                       [class.bg-rose-50/20]="isFieldInvalid('title')"
-                       class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
-                @if (isFieldInvalid('title')) {
-                  <p class="text-[11px] text-rose-500 mt-1">Workshop title is required (up to 150 characters).</p>
-                }
-              </div>
+            <div>
+              <label class="block text-xs font-semibold text-text-primary mb-1">
+                Workshop Title <span class="text-rose-500">*</span>
+              </label>
+              <input type="text" formControlName="title" placeholder="e.g. Field Emergency Response & Tactical Leadership"
+                     [class.border-rose-500]="isFieldInvalid('title')"
+                     [class.bg-rose-50/20]="isFieldInvalid('title')"
+                     class="w-full px-3 py-2 text-sm bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+              @if (isFieldInvalid('title')) {
+                <p class="text-[11px] text-rose-500 mt-1">Workshop title is required (up to 150 characters).</p>
+              }
             </div>
 
             <div>
