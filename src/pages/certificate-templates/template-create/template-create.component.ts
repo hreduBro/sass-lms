@@ -1009,9 +1009,10 @@ export class CertificateTemplateCreateComponent implements OnInit {
     }
   }
 
-  // =========================================================================
-  // Save Draft, Publish, Discard
-  // =========================================================================
+  saveAsDraft() {
+    this.saveAsDraftAndExit();
+  }
+
   saveAsDraftAndExit() {
     if (!this.detailsForm.value.name) {
       this.detailsForm.patchValue({ name: `Draft Certificate (${new Date().toLocaleDateString()})` });

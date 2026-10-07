@@ -809,6 +809,10 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
+  saveAsDraft(): void {
+    this.saveDraft();
+  }
+
   // Save Draft
   saveDraft(): void {
     this.lms.saveLandingPage(this.pageConfig());

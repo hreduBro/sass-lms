@@ -737,6 +737,10 @@ export class CourseTemplateCreateComponent implements OnInit {
     this.lms.showToast('Template saved as Draft.', 'success', 4000, 'Draft Saved');
   }
 
+  saveAsDraft() {
+    this.saveDraftInPlace();
+  }
+
   onPublishClick() {
     if (this.criticalErrors().length > 0) {
       this.formErrorAlert.set('Cannot publish Template. Please resolve all critical validation errors first.');

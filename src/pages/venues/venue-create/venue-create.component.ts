@@ -417,6 +417,67 @@ export class VenueCreateComponent implements OnInit {
     }
   }
 
+  saveAsDraft(): void {
+    const val = this.venueForm.getRawValue();
+    const name = (val.name || '').trim() || 'Untitled Venue';
+    const rooms: Room[] = this.roomsArray.controls.map(rc => {
+      const r = rc.value;
+      return {
+        roomId: r.roomId || `room-${Date.now()}-${Math.floor(Math.random()*100)}`,
+        venueId: this.venueId() || '',
+        name: (r.name || '').trim() || 'Hall A',
+        capacity: Number(r.capacity) || 20,
+        floorLevel: r.floorLevel || '1st Floor',
+        notes: r.notes || '',
+        equipment: {
+          projector: !!r.hasProjector,
+          soundSystem: !!r.hasSoundSystem,
+          microphone: !!r.hasMicrophone,
+          displayScreen: !!r.hasDisplayScreen,
+          otherTags: []
+        },
+        seatingLayouts: ['classroom'],
+        status: 'active',
+        usedInClassesCount: 0,
+        createdAt: new Date().toISOString()
+      };
+    });
+
+    const venuePayload: Partial<Venue> = {
+      code: (val.code || `VEN-${Date.now().toString().slice(-4)}`).toUpperCase().trim(),
+      name,
+      type: 'physical',
+      address: {
+        line1: val.addressLine1 || 'Pending Address',
+        city: val.city || 'Dhaka',
+        postcode: val.postcode || '1000',
+        country: val.country || 'Bangladesh',
+        formatted: `${val.addressLine1 || 'Pending Address'}, ${val.city || 'Dhaka'}`
+      },
+      geo: {
+        lat: Number(val.lat) || 23.7925,
+        lng: Number(val.lng) || 90.4078
+      },
+      facilities: {
+        internet: !!val.internet,
+        parking: !!val.parking,
+        accessibility: !!val.accessibility,
+        otherTags: []
+      },
+      rooms
+    };
+
+    if (this.isEditMode() && this.venueId()) {
+      this.lmsData.updateVenue(this.venueId()!, venuePayload);
+      this.lmsData.showToast(`Venue draft "${name}" saved.`, 'success', 3500, 'Draft Saved', 'DRAFT');
+    } else {
+      const created = this.lmsData.createVenue(venuePayload);
+      this.venueId.set(created.venueId);
+      this.isEditMode.set(true);
+      this.lmsData.showToast(`Venue saved as Draft.`, 'success', 3500, 'Draft Saved', 'DRAFT');
+    }
+  }
+
   cancel(): void {
     if (this.isEditMode() && this.venueId()) {
       this.router.navigate(['/venues/view', this.venueId()]);

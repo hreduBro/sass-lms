@@ -334,6 +334,10 @@ export class BadgeCreateComponent implements OnInit {
     return true;
   }
 
+  saveAsDraft() {
+    this.saveDraftAndExit();
+  }
+
   saveDraftAndExit() {
     this.saveOrUpdateBadge('draft');
     this.router.navigate(['/certificates/badges']);

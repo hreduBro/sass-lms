@@ -478,6 +478,43 @@ export class OfflineTrainingCreateComponent implements OnInit {
     }
   }
 
+  saveAsDraft(): void {
+    const val = this.trainingForm.getRawValue();
+    const title = (val.title || '').trim() || 'Untitled Offline Training';
+    const v = this.venues().find(x => x.venueId === val.venueId);
+    const r = v?.rooms.find(x => x.roomId === val.roomId);
+
+    const payload: Partial<OfflineTraining> = {
+      code: (val.code || `TRN-OFF-${Date.now().toString().slice(-4)}`).toUpperCase().trim(),
+      title,
+      description: (val.description || '').trim(),
+      category: val.category || 'General Operations',
+      deliveryMode: val.deliveryMode || 'in_person',
+      targetAudience: val.targetAudience,
+      durationHours: Number(val.durationHours) || 8,
+      durationDays: Number(val.durationDays) || 1,
+      venueId: val.venueId,
+      venueName: v?.name || 'Assigned Venue',
+      roomId: val.roomId,
+      roomName: r?.name || 'Main Room',
+      maxCapacity: Number(val.maxCapacity) || 30,
+      primaryTrainerId: val.primaryTrainerId,
+      primaryTrainerName: val.primaryTrainerName,
+      primaryTrainerEmail: val.primaryTrainerEmail,
+      status: 'draft'
+    };
+
+    if (this.isEditMode() && this.trainingId()) {
+      this.lmsData.updateOfflineTraining(this.trainingId()!, payload);
+      this.lmsData.showToast(`Draft "${payload.title}" saved.`, 'success', 3500, 'Draft Saved', 'DRAFT');
+    } else {
+      const created = this.lmsData.createOfflineTraining(payload);
+      this.trainingId.set(created.trainingId);
+      this.isEditMode.set(true);
+      this.lmsData.showToast(`Offline Training saved as Draft.`, 'success', 3500, 'Draft Saved', 'DRAFT');
+    }
+  }
+
   cancel(): void {
     if (this.isEditMode() && this.trainingId()) {
       this.router.navigate(['/offline-trainings/view', this.trainingId()]);

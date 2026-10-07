@@ -818,6 +818,10 @@ export class LmsCreateComponent implements OnInit {
     }
   }
 
+  saveAsDraft() {
+    this.onSaveAsDraft();
+  }
+
   onSaveAsDraft() {
     const draftPayload: LmsDraft = {
       id: this.draftId() || `LMS-DRAFT-${this.parentOrg().numericId || 'ORG'}-${Math.floor(1000 + Math.random() * 9000)}`,

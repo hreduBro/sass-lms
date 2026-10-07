@@ -19,7 +19,6 @@ import {
   getHeroPanelDefaultCss
 } from '../../../models/login-branding.model';
 import { SsoLogoComponent } from '../../../components/sso-logo/sso-logo.component';
-import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 
 export type BrandingPortalTab = 'authkit' | 'admin_portal' | 'emails';
 export type RightPanelTab = 'global_styles' | 'page_settings' | 'custom_css';
@@ -52,7 +51,6 @@ export interface ScopedCssElement {
   id: string;
   name: string;
   selector: string;
-  description?: string;
   isOpen: boolean;
   enabled: boolean;
   removeOriginalStyles: boolean;
@@ -71,7 +69,7 @@ export interface ElementMenuItem {
 
 @Component({
   selector: 'app-login-branding-edit',
-  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent, CustomSelectComponent],
+  imports: [CommonModule, RouterModule, FormsModule, SsoLogoComponent],
   templateUrl: './login-branding-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -106,25 +104,8 @@ export class LoginBrandingEditComponent {
   selectedPage = signal<PreviewPageId>('sign_in');
   isPageDropdownOpen = signal<boolean>(false);
 
-  pageSelectOptions: SelectOption[] = [
-    { value: 'sign_in', label: 'Sign-in', icon: 'login' },
-    { value: 'sign_up', label: 'Sign-up', icon: 'person_add' },
-    { value: 'accept_invitation', label: 'Accept invitation', icon: 'mail' },
-    { value: 'organization_selection', label: 'Organization selection', icon: 'domain' },
-    { value: 'password_reset', label: 'Password reset', icon: 'lock_reset' },
-    { value: 'mfa_setup', label: 'MFA Setup', icon: 'shield' },
-    { value: 'sso_consent', label: 'SSO Consent', icon: 'verified_user' },
-    { value: 'radar_block', label: 'Radar block', icon: 'block' }
-  ];
-
   // Selected Language & Theme in Preview
   selectedLanguage = signal<string>('English (US)');
-  languageSelectOptions: SelectOption[] = [
-    { value: 'English (US)', label: 'English (US)' },
-    { value: 'Bengali (বাংলা)', label: 'Bengali (বাংলা)' },
-    { value: 'Spanish (Español)', label: 'Spanish (Español)' },
-    { value: 'French (Français)', label: 'French (Français)' }
-  ];
   previewTheme = signal<'dark' | 'light'>('dark');
   viewportMode = signal<'fullscreen' | 'desktop' | 'tablet' | 'mobile'>('fullscreen');
   isMobileViewport = computed(() => this.viewportMode() === 'mobile');
@@ -186,8 +167,7 @@ export class LoginBrandingEditComponent {
     { 
       id: 'background', 
       name: 'Background', 
-      selector: '.ak-Background',
-      description: 'Outer page canvas background wrapper and responsive viewport container',
+      selector: '.ak-Background', 
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -210,7 +190,6 @@ export class LoginBrandingEditComponent {
       id: 'header', 
       name: 'Header', 
       selector: '.ak-Header', 
-      description: 'Brand identity, workspace logo, title headline, and subheadline wrapper',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -230,7 +209,6 @@ export class LoginBrandingEditComponent {
       id: 'card', 
       name: 'Card', 
       selector: '.ak-Card', 
-      description: 'Authentication card surface enclosing the login form and credentials input',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -253,7 +231,6 @@ export class LoginBrandingEditComponent {
       id: 'primary-button', 
       name: 'Primary button', 
       selector: '.ak-PrimaryButton', 
-      description: 'Main action submission button for signing in or continuing authorization',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -276,7 +253,6 @@ export class LoginBrandingEditComponent {
       id: 'secondary-button', 
       name: 'Secondary button', 
       selector: '.ak-SecondaryButton', 
-      description: 'Enterprise SSO federation buttons (Google, Microsoft, Okta, SAML)',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -296,7 +272,6 @@ export class LoginBrandingEditComponent {
       id: 'text-field', 
       name: 'Text field', 
       selector: '.ak-TextField', 
-      description: 'Email, username, password input controls, bounding borders, and icons',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -317,7 +292,6 @@ export class LoginBrandingEditComponent {
       id: 'label', 
       name: 'Label', 
       selector: '.ak-Label', 
-      description: 'Form field descriptions, password recovery trigger links, and indicators',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -336,7 +310,6 @@ export class LoginBrandingEditComponent {
       id: 'callout', 
       name: 'Callout', 
       selector: '.ak-Callout', 
-      description: 'System announcement ribbons, security maintenance banners, and alerts',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -355,7 +328,6 @@ export class LoginBrandingEditComponent {
       id: 'org-selection', 
       name: 'Organization selection', 
       selector: '.ak-OrganizationSelection', 
-      description: 'Multi-tenant organization switcher tile cards and selector list items',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -374,7 +346,6 @@ export class LoginBrandingEditComponent {
       id: 'sso-trigger', 
       name: 'SSO profile trigger', 
       selector: '.ak-SSOProfileTrigger', 
-      description: 'Floating or embedded SSO profile avatar badge and current user pill',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -392,7 +363,6 @@ export class LoginBrandingEditComponent {
       id: 'sso-menu', 
       name: 'SSO profile menu', 
       selector: '.ak-SSOProfileMenu', 
-      description: 'SSO user context menu dropdown with logout and account switcher actions',
       isOpen: false, 
       enabled: true, 
       removeOriginalStyles: false,
@@ -646,18 +616,6 @@ export class LoginBrandingEditComponent {
   selectPage(pageId: PreviewPageId) {
     this.selectedPage.set(pageId);
     this.isPageDropdownOpen.set(false);
-  }
-
-  onPageSelectChange(pageId: any) {
-    if (pageId) {
-      this.selectedPage.set(pageId as PreviewPageId);
-    }
-  }
-
-  onLanguageChange(lang: any) {
-    if (lang) {
-      this.selectedLanguage.set(lang);
-    }
   }
 
   togglePageDropdown() {
@@ -1138,39 +1096,25 @@ export class LoginBrandingEditComponent {
     }
   }
 
-  async onPublish() {
+  onPublish() {
     this.isSaving.set(true);
-    const data = this.formData();
-    try {
-      await fetch('/api/login-branding/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    } catch {
-      // fallback to local service state
-    }
-    this.isSaving.set(false);
-    this.lms.publishLoginBranding(data);
-    this.lms.showToast('Login branding changes successfully saved and published!', 'success', 3500, 'Changes Saved');
-    this.router.navigate(['/login-branding']);
+    setTimeout(() => {
+      this.isSaving.set(false);
+      this.lms.publishLoginBranding(this.formData());
+      this.lms.showToast('Login branding changes successfully saved and published!', 'success', 3500, 'Changes Saved');
+      this.router.navigate(['/login-branding']);
+    }, 600);
   }
 
-  async onSaveDraft() {
-    const draftData = {
+  saveAsDraft() {
+    this.onSaveDraft();
+  }
+
+  onSaveDraft() {
+    this.lms.updateLoginBranding({
       ...this.formData(),
-      status: 'Draft' as const
-    };
-    try {
-      await fetch('/api/login-branding', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draftData)
-      });
-    } catch {
-      // fallback to local service state
-    }
-    this.lms.updateLoginBranding(draftData);
+      status: 'Draft'
+    });
     this.lms.showToast('Login branding draft saved successfully.', 'info', 3000, 'Draft Saved');
   }
 
@@ -1357,7 +1301,8 @@ export class LoginBrandingEditComponent {
           text: current?.text || 'Scheduled system maintenance on Sunday at 02:00 UTC. SSO logins will remain uninterrupted.',
           type: current?.type || 'info',
           style: current?.style || 'floating_pill',
-          dismissible: current?.dismissible ?? true
+          dismissible: current?.dismissible ?? true,
+          actionText: current?.actionText || 'System Status'
         }
       };
     });

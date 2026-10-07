@@ -743,6 +743,10 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.lms.showToast(`Step ${step} form fields have been reset.`, 'info', 4000, `Step ${step} Reset`, `STEP ${step} / 4`);
   }
 
+  saveAsDraft() {
+    this.onSaveAsDraft();
+  }
+
   // 3. Save as draft -> Save all inputs as draft, redirect to All Organization grid (§3.4, §4.3, §5.2, §6.2)
   onSaveAsDraft() {
     const draft = this.constructDraftObject();
