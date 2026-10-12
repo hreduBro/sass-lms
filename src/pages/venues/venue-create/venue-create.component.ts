@@ -207,8 +207,7 @@ export class VenueCreateComponent implements OnInit {
       city: ['Dhaka', Validators.required],
       postcode: ['1212'],
       country: ['Bangladesh', Validators.required],
-      lat: [23.7925],
-      lng: [90.4078],
+      googleMapUrl: ['https://maps.google.com/?q=23.777176,90.417381'],
       internet: [true],
       parking: [true],
       accessibility: [true],
@@ -283,8 +282,7 @@ export class VenueCreateComponent implements OnInit {
       city: venue.address.city,
       postcode: venue.address.postcode,
       country: venue.address.country,
-      lat: venue.geo?.lat || 23.7925,
-      lng: venue.geo?.lng || 90.4078,
+      googleMapUrl: venue.googleMapUrl || venue.geo?.mapUrl || '',
       internet: venue.facilities.internet,
       parking: venue.facilities.parking,
       accessibility: venue.facilities.accessibility,
@@ -388,9 +386,11 @@ export class VenueCreateComponent implements OnInit {
         country: val.country,
         formatted: `${val.addressLine1}, ${val.city} ${val.postcode}, ${val.country}`
       },
+      googleMapUrl: (val.googleMapUrl || '').trim(),
       geo: {
-        lat: Number(val.lat) || null,
-        lng: Number(val.lng) || null
+        lat: null,
+        lng: null,
+        mapUrl: (val.googleMapUrl || '').trim()
       },
       facilities: {
         internet: !!val.internet,
@@ -454,9 +454,11 @@ export class VenueCreateComponent implements OnInit {
         country: val.country || 'Bangladesh',
         formatted: `${val.addressLine1 || 'Pending Address'}, ${val.city || 'Dhaka'}`
       },
+      googleMapUrl: (val.googleMapUrl || '').trim(),
       geo: {
-        lat: Number(val.lat) || 23.7925,
-        lng: Number(val.lng) || 90.4078
+        lat: null,
+        lng: null,
+        mapUrl: (val.googleMapUrl || '').trim()
       },
       facilities: {
         internet: !!val.internet,

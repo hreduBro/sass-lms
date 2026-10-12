@@ -295,18 +295,30 @@
           }
         </div>
 
-        <!-- Geo Coordinates Card -->
+        <!-- Google Maps Location Card -->
         <div class="p-6 bg-base-100 rounded-3xl border border-base-300 shadow-sm space-y-3">
           <h3 class="font-bold text-sm text-text-primary flex items-center gap-2 pb-3 border-b border-base-300">
-            <span class="material-symbols-outlined text-tenant-600">map</span>
-            <span>Location & Geo Coordinates</span>
+            <span class="material-symbols-outlined text-tenant-600">location_on</span>
+            <span>Location & Google Maps</span>
           </h3>
-          <div class="text-xs space-y-1 font-mono text-text-primary">
-            <div>Lat: <strong>{{ v.geo.lat || '23.7925' }}</strong></div>
-            <div>Lng: <strong>{{ v.geo.lng || '90.4078' }}</strong></div>
-          </div>
+          @if (v.googleMapUrl || v.geo?.mapUrl) {
+            <div class="space-y-3">
+              <a [href]="v.googleMapUrl || v.geo?.mapUrl" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800 hover:bg-tenant-100 dark:hover:bg-tenant-900/60 font-semibold text-xs transition-colors shadow-2xs">
+                <span class="material-symbols-outlined text-base">open_in_new</span>
+                <span>Open in Google Maps</span>
+              </a>
+              <div class="text-[11px] font-mono text-text-secondary truncate bg-base-200/50 p-2 rounded-lg border border-base-300/50">
+                {{ v.googleMapUrl || v.geo?.mapUrl }}
+              </div>
+            </div>
+          } @else {
+            <div class="text-xs text-text-secondary italic">No Google Map link provided.</div>
+          }
           <div class="pt-2 text-[11px] text-text-secondary border-t border-base-300">
-            Mapped into Enterprise Learning GPS dispatcher.
+            Click to view driving directions and facility navigation on Google Maps.
           </div>
         </div>
 

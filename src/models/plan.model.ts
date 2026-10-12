@@ -31,6 +31,7 @@ export interface Phase {
   certificateBadgeStatus: CertificateBadgeStatus;
   description?: string;
   assignedCourses?: string[];
+  marketingEnrollment?: MarketingEnrollmentConfig;
 }
 
 export interface PlanCapabilities {
@@ -54,10 +55,49 @@ export type EnrollmentConfirmation = 'Auto Onboard' | 'Manual Review';
 export type PlanComponentType = 'Task' | 'Content' | 'Course' | 'Offline Training' | 'Pre-Test' | 'Post-Test' | 'Survey' | 'Phase';
 
 export interface PlanBudget {
-  budgetYear: string;  // e.g. "FY 2026"
+  budgetYear?: string;  // e.g. "FY 2026"
+  fiscalStartDate?: string; // DD/MM/YYYY
+  fiscalEndDate?: string;   // DD/MM/YYYY
   budgetAmount: number; // e.g. 4500000
+  actualBurn?: number;  // e.g. 1250000 (Actual burn of budget, editable for ongoing plans)
   currency: string;    // e.g. "BDT"
 }
+
+export interface RegistrationFormField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'number' | 'select' | 'textarea';
+  required: boolean;
+  enabled: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: string[];
+}
+
+export interface MarketingEnrollmentConfig {
+  enabled: boolean;
+  marketingSlug: string;
+  publicLink: string;
+  campaignTitle?: string;
+  campaignDescription?: string;
+  bannerHeadline?: string;
+  formTemplate: {
+    formTitle: string;
+    formDescription: string;
+    fields: RegistrationFormField[];
+  };
+}
+
+export const DEFAULT_INTAKE_FORM_FIELDS: RegistrationFormField[] = [
+  { id: 'fld-name', name: 'fullName', label: 'Full Legal Name', type: 'text', required: true, enabled: true, placeholder: 'e.g. Farhana Ahmed', helpText: 'Official identity as per national NID' },
+  { id: 'fld-email', name: 'email', label: 'Primary Email Address', type: 'email', required: true, enabled: true, placeholder: 'e.g. farhana.ahmed@brac.net', helpText: 'Confirmation credentials will be delivered here' },
+  { id: 'fld-phone', name: 'phone', label: 'Telephone / Mobile Number', type: 'tel', required: true, enabled: true, placeholder: 'e.g. +880 1713-001122', helpText: 'Direct SMS notifications for batch schedules' },
+  { id: 'fld-dept', name: 'department', label: 'Organization / Branch Name', type: 'text', required: false, enabled: true, placeholder: 'e.g. Microfinance Field Operations (Rangpur)', helpText: 'Current operational assignment' },
+  { id: 'fld-pin', name: 'pin', label: 'BRAC PIN / Staff ID', type: 'text', required: false, enabled: true, placeholder: 'e.g. PIN-77291', helpText: 'Leave empty if external candidate' },
+  { id: 'fld-title', name: 'designation', label: 'Current Designation / Role', type: 'text', required: false, enabled: true, placeholder: 'e.g. Junior Field Officer', helpText: 'Current job responsibility' },
+  { id: 'fld-motivation', name: 'motivation', label: 'Statement of Purpose / Why do you wish to join?', type: 'textarea', required: false, enabled: true, placeholder: 'Briefly explain your learning goals and field expectations...', helpText: 'Reviewed by the Admissions Committee' }
+];
 
 export interface PlanComponentClassSession {
   id: string;
@@ -406,6 +446,7 @@ export interface Plan {
   completionCertificateName?: string;
   completionBadgeId?: string;
   completionBadgeName?: string;
+  marketingEnrollment?: MarketingEnrollmentConfig;
 }
 
 export interface PlanGridFilter {
@@ -454,6 +495,34 @@ export const INITIAL_PLANS: Plan[] = [
       canActivate: false,
       canArchive: true,
       protectedFields: ['startDate', 'endDate', 'durationType']
+    },
+    budget: {
+      budgetYear: 'FY 2026',
+      fiscalStartDate: '01/01/2026',
+      fiscalEndDate: '31/12/2026',
+      budgetAmount: 4500000,
+      actualBurn: 1850000,
+      currency: 'BDT'
+    },
+    marketingEnrollment: {
+      enabled: true,
+      marketingSlug: 'pln-1972-001',
+      publicLink: '/login?enrollType=plan&targetId=plan-brac-01',
+      campaignTitle: '2026 Microfinance Transformation Campaign',
+      campaignDescription: 'Open enrollment for aspiring field supervisors and financial coaches.',
+      bannerHeadline: 'Join BRAC Microfinance Transformation Track 2026',
+      formTemplate: {
+        formTitle: 'Curriculum Trainee Enrollment Application',
+        formDescription: 'Please submit your personnel credentials to enroll in this comprehensive qualification track.',
+        fields: [
+          { id: 'f-1', name: 'fullName', label: 'Full Name', type: 'text', required: true, enabled: true, placeholder: 'e.g. Farhana Ahmed' },
+          { id: 'f-2', name: 'email', label: 'Work / Official Email', type: 'email', required: true, enabled: true, placeholder: 'e.g. farhana.ahmed@brac.net' },
+          { id: 'f-3', name: 'phone', label: 'Telephone / Mobile Number', type: 'tel', required: true, enabled: true, placeholder: 'e.g. 01713001122' },
+          { id: 'f-4', name: 'department', label: 'Department / Organization Branch', type: 'text', required: false, enabled: true, placeholder: 'e.g. Microfinance - Rangpur Region' },
+          { id: 'f-5', name: 'pin', label: 'BRAC PIN / Employee ID', type: 'text', required: false, enabled: true, placeholder: 'e.g. PIN-88412' },
+          { id: 'f-6', name: 'motivation', label: 'Statement of Interest & Objectives', type: 'textarea', required: false, enabled: true, placeholder: 'Explain why you are applying for this track...' }
+        ]
+      }
     },
     phases: [
       {
@@ -1257,8 +1326,8 @@ export function validateComponentBasedPlan(
     addBlock('VAL-04', 'Timeline Inversion', 'Plan Start Date must be strictly before Plan End Date.');
   }
 
-  if (!plan.budget?.budgetYear || !plan.budget?.currency || (plan.budget?.budgetAmount ?? 0) <= 0) {
-    addBlock('VAL-05', 'Plan Budget', 'Plan Budget Year, Currency, and a positive Budget Amount are required.');
+  if ((!plan.budget?.budgetYear && (!plan.budget?.fiscalStartDate || !plan.budget?.fiscalEndDate)) || !plan.budget?.currency || (plan.budget?.budgetAmount ?? 0) <= 0) {
+    addBlock('VAL-05', 'Plan Budget', 'Plan Fiscal Date Range, Currency, and a positive Budget Amount are required.');
   }
 
   // 2. Component Structure (Step 02)

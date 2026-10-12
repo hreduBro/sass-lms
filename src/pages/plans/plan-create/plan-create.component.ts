@@ -11,6 +11,8 @@ import {
   PlanOnboardedUser,
   OnboardingScope,
   PlanBudget,
+  RegistrationFormField,
+  MarketingEnrollmentConfig,
   createWorkedExamplePlan,
   validateComponentBasedPlan,
   getDurationDays,
@@ -113,14 +115,110 @@ export class PlanCreateComponent implements OnInit {
     durationType: ['Yearly', [Validators.required]],
     enrollmentType: ['Closed', [Validators.required]],
     recurringPlan: [true],
-    budgetYear: ['FY 2026', [Validators.required]],
+    fiscalStartDate: ['01/01/2026', [Validators.required]],
+    fiscalEndDate: ['31/12/2026', [Validators.required]],
+    budgetYear: ['FY 2026'],
     budgetAmount: [4500000, [Validators.required, Validators.min(0)]],
+    actualBurn: [0, [Validators.min(0)]],
     currency: ['BDT', [Validators.required]],
     defaultProgressionMode: ['Sequential', [Validators.required]],
     ownerUserId: ['usr-admin-01', [Validators.required]],
     planCompletionCertificateId: ['cert-tpl-001'],
     planCompletionBadgeId: ['badge-tpl-001']
   });
+
+  // Marketing & Trainee Intake Form Template State
+  marketingEnabled = signal<boolean>(true);
+  marketingSlug = signal<string>('pln-fodp-2026');
+  marketingCampaignTitle = signal<string>('Field Officer Development Programme 2026');
+  marketingCampaignDescription = signal<string>('Open intake enrollment for aspiring BRAC microfinance leaders and field credit officers.');
+  marketingBannerHeadline = signal<string>('Join BRAC Community Transformation Academy');
+  showMarketingPreview = signal<boolean>(false);
+
+  // New Custom Intake Field Form State
+  newFieldLabel = signal<string>('');
+  newFieldType = signal<'text' | 'email' | 'tel' | 'number' | 'textarea'>('text');
+  newFieldRequired = signal<boolean>(false);
+  showAddCustomFieldModal = signal<boolean>(false);
+
+  intakeFormFields = signal<RegistrationFormField[]>([
+    { id: 'fld-name', name: 'fullName', label: 'Full Legal Name', type: 'text', required: true, enabled: true, placeholder: 'e.g. Farhana Ahmed', helpText: 'Official identity as per national NID' },
+    { id: 'fld-email', name: 'email', label: 'Primary Email Address', type: 'email', required: true, enabled: true, placeholder: 'e.g. farhana.ahmed@brac.net', helpText: 'Confirmation credentials will be delivered here' },
+    { id: 'fld-phone', name: 'phone', label: 'Telephone / Mobile Number', type: 'tel', required: true, enabled: true, placeholder: 'e.g. +880 1713-001122', helpText: 'Direct SMS notifications for batch schedules' },
+    { id: 'fld-dept', name: 'department', label: 'Organization / Branch Name', type: 'text', required: false, enabled: true, placeholder: 'e.g. Microfinance Field Operations (Rangpur)', helpText: 'Current operational assignment' },
+    { id: 'fld-pin', name: 'pin', label: 'BRAC PIN / Staff ID', type: 'text', required: false, enabled: true, placeholder: 'e.g. PIN-77291', helpText: 'Leave empty if external candidate' },
+    { id: 'fld-title', name: 'designation', label: 'Current Designation / Role', type: 'text', required: false, enabled: true, placeholder: 'e.g. Junior Field Officer', helpText: 'Current job responsibility' },
+    { id: 'fld-motivation', name: 'motivation', label: 'Statement of Purpose / Why do you wish to join?', type: 'textarea', required: false, enabled: true, placeholder: 'Briefly explain your learning goals and field expectations...', helpText: 'Reviewed by the Plan Admissions Committee' }
+  ]);
+
+  marketingPublicLink = computed(() => {
+    const pid = this.planId();
+    const slug = this.marketingSlug();
+    return `/login?enrollType=plan&targetId=${pid}&code=${slug}`;
+  });
+
+  generateMarketingLink() {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newSlug = `mkt-${this.planCode().toLowerCase()}-${randomSuffix}`;
+    this.marketingSlug.set(newSlug);
+    this.marketingEnabled.set(true);
+    this.copyMarketingLink();
+    this.lmsData.showToast(`New marketing enrollment link generated and copied to clipboard!`, 'success', 4000, 'Marketing Link Active', 'MARKETING');
+  }
+
+  copyMarketingLink() {
+    const fullUrl = `${window?.location?.origin || ''}${this.marketingPublicLink()}`;
+    navigator.clipboard?.writeText(fullUrl);
+    this.lmsData.showToast(`Marketing enrollment link copied: ${fullUrl}`, 'info', 3500, 'Link Copied');
+  }
+
+  toggleFieldEnabled(id: string) {
+    this.intakeFormFields.update(fields => fields.map(f => {
+      if (f.id === id) {
+        if (f.required && f.enabled) return f;
+        return { ...f, enabled: !f.enabled };
+      }
+      return f;
+    }));
+  }
+
+  toggleFieldRequired(id: string) {
+    this.intakeFormFields.update(fields => fields.map(f => {
+      if (f.id === id) {
+        if (f.name === 'fullName' || f.name === 'email') return f;
+        return { ...f, required: !f.required };
+      }
+      return f;
+    }));
+  }
+
+  addCustomField() {
+    const label = this.newFieldLabel().trim();
+    if (!label) {
+      this.lmsData.showToast('Field label is required.', 'error');
+      return;
+    }
+    const name = label.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const newField: RegistrationFormField = {
+      id: `custom-fld-${Date.now()}`,
+      name,
+      label,
+      type: this.newFieldType(),
+      required: this.newFieldRequired(),
+      enabled: true,
+      placeholder: `Enter ${label}...`
+    };
+    this.intakeFormFields.update(f => [...f, newField]);
+    this.newFieldLabel.set('');
+    this.newFieldRequired.set(false);
+    this.showAddCustomFieldModal.set(false);
+    this.lmsData.showToast(`Added custom intake field "${label}" to registration template.`, 'success');
+  }
+
+  removeCustomField(id: string) {
+    this.intakeFormFields.update(f => f.filter(item => item.id !== id));
+    this.lmsData.showToast('Field removed from template.', 'info');
+  }
 
   // Step 02 State: Plan Builder
   activePhaseFilter = signal<string>('all'); // 'all' or phaseId
@@ -283,9 +381,25 @@ export class PlanCreateComponent implements OnInit {
       updatedDate: '01/01/2026',
       defaultProgressionMode: val.defaultProgressionMode,
       budget: {
-        budgetYear: val.budgetYear,
+        budgetYear: `${val.fiscalStartDate} - ${val.fiscalEndDate}`,
+        fiscalStartDate: val.fiscalStartDate,
+        fiscalEndDate: val.fiscalEndDate,
         budgetAmount: Number(val.budgetAmount) || 0,
+        actualBurn: Number(val.actualBurn) || 0,
         currency: val.currency
+      },
+      marketingEnrollment: {
+        enabled: this.marketingEnabled(),
+        marketingSlug: this.marketingSlug(),
+        publicLink: this.marketingPublicLink(),
+        campaignTitle: this.marketingCampaignTitle(),
+        campaignDescription: this.marketingCampaignDescription(),
+        bannerHeadline: this.marketingBannerHeadline(),
+        formTemplate: {
+          formTitle: 'Curriculum Trainee Enrollment Application',
+          formDescription: 'Please submit your personnel credentials to apply for this learning plan.',
+          fields: this.intakeFormFields()
+        }
       },
       // Plan Completion Tagging (§ Requirements 5 & 6)
       completionSkills: this.planCompletionSkills(),
@@ -472,11 +586,33 @@ export class PlanCreateComponent implements OnInit {
       enrollmentType: plan.enrollmentType,
       recurringPlan: plan.recurringPlan,
       budgetYear: plan.budget?.budgetYear || 'FY 2026',
+      fiscalStartDate: plan.budget?.fiscalStartDate || plan.startDate,
+      fiscalEndDate: plan.budget?.fiscalEndDate || plan.endDate,
       budgetAmount: plan.budget?.budgetAmount || 0,
+      actualBurn: plan.budget?.actualBurn || 0,
       currency: plan.budget?.currency || 'BDT',
       defaultProgressionMode: plan.defaultProgressionMode || 'Sequential',
       ownerUserId: plan.owner?.userId || 'usr-admin-01'
     });
+
+    if (plan.marketingEnrollment) {
+      this.marketingEnabled.set(!!plan.marketingEnrollment.enabled);
+      if (plan.marketingEnrollment.marketingSlug) {
+        this.marketingSlug.set(plan.marketingEnrollment.marketingSlug);
+      }
+      if (plan.marketingEnrollment.campaignTitle) {
+        this.marketingCampaignTitle.set(plan.marketingEnrollment.campaignTitle);
+      }
+      if (plan.marketingEnrollment.campaignDescription) {
+        this.marketingCampaignDescription.set(plan.marketingEnrollment.campaignDescription);
+      }
+      if (plan.marketingEnrollment.bannerHeadline) {
+        this.marketingBannerHeadline.set(plan.marketingEnrollment.bannerHeadline);
+      }
+      if (plan.marketingEnrollment.formTemplate?.fields?.length) {
+        this.intakeFormFields.set(plan.marketingEnrollment.formTemplate.fields);
+      }
+    }
 
     if (plan.components && plan.components.length > 0) {
       this.components.set(plan.components);

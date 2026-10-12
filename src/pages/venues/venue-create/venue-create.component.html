@@ -203,17 +203,28 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                  <div>
-                    <label class="block text-xs font-semibold text-text-primary mb-1">Latitude</label>
-                    <input type="number" step="0.0001" formControlName="lat" placeholder="23.7925"
-                           class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
+                <div class="pt-2">
+                  <label class="block text-xs font-semibold text-text-primary mb-1 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-sm text-tenant-600">location_on</span>
+                      Google Map Link
+                    </span>
+                    @if (venueForm.get('googleMapUrl')?.value) {
+                      <a [href]="venueForm.get('googleMapUrl')?.value" target="_blank" rel="noopener noreferrer" 
+                         class="text-[11px] text-tenant-600 dark:text-tenant-400 font-semibold hover:underline flex items-center gap-1">
+                        <span>Open on Map</span>
+                        <span class="material-symbols-outlined text-xs">open_in_new</span>
+                      </a>
+                    }
+                  </label>
+                  <div class="relative">
+                    <input type="url" formControlName="googleMapUrl" placeholder="e.g. https://maps.google.com/?q=23.777176,90.417381 or https://goo.gl/maps/..."
+                           class="w-full pl-9 pr-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary transition-colors" />
+                    <span class="material-symbols-outlined text-base text-text-secondary absolute left-2.5 top-2.5 pointer-events-none">map</span>
                   </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-text-primary mb-1">Longitude</label>
-                    <input type="number" step="0.0001" formControlName="lng" placeholder="90.4078"
-                           class="w-full px-3 py-2 text-sm font-mono bg-base-200 border border-base-300 rounded-xl focus:border-tenant-500 focus:outline-none text-text-primary" />
-                  </div>
+                  <p class="text-[11px] text-text-secondary mt-1">
+                    Direct Google Maps location URL for directions and navigation in the Venue Directory.
+                  </p>
                 </div>
               </div>
             </div>
@@ -484,7 +495,7 @@
 
               <div>
                 <label class="block text-xs font-semibold text-text-primary mb-1">
-                  Direct Telephone / Mobile <span class="text-rose-500">*</span>
+                  Telephone / Mobile <span class="text-rose-500">*</span>
                 </label>
                 <input type="text" formControlName="contactPhone" placeholder="e.g. +880 1711-445566"
                        [class.border-rose-500]="isFieldInvalid('contactPhone')"

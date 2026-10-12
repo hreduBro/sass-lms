@@ -262,6 +262,19 @@
                     <div class="text-[11px] text-text-secondary truncate max-w-xs mt-0.5">
                       {{ venue.address.formatted || venue.address.line1 }}
                     </div>
+                    @if (venue.googleMapUrl || venue.geo?.mapUrl) {
+                      <div class="mt-1">
+                        <a [href]="venue.googleMapUrl || venue.geo?.mapUrl" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           (click)="$event.stopPropagation()"
+                           class="inline-flex items-center gap-1 text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 hover:underline">
+                          <span class="material-symbols-outlined text-[13px]">location_on</span>
+                          <span>Google Map</span>
+                          <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                        </a>
+                      </div>
+                    }
                   </td>
 
                   <!-- Rooms -->
@@ -431,10 +444,23 @@
                   {{ venue.name }}
                 </h3>
               </a>
-              <p class="text-xs text-text-secondary flex items-start gap-1.5 mb-4 line-clamp-2">
+              <p class="text-xs text-text-secondary flex items-start gap-1.5 mb-2 line-clamp-2">
                 <span class="material-symbols-outlined text-sm text-text-secondary shrink-0 mt-0.5">place</span>
                 <span>{{ venue.address.formatted || (venue.address.line1 + ', ' + venue.address.city) }}</span>
               </p>
+              @if (venue.googleMapUrl || venue.geo?.mapUrl) {
+                <div class="mb-3">
+                  <a [href]="venue.googleMapUrl || venue.geo?.mapUrl" 
+                     target="_blank" 
+                     rel="noopener noreferrer" 
+                     (click)="$event.stopPropagation()"
+                     class="inline-flex items-center gap-1 text-[11px] font-semibold text-tenant-600 dark:text-tenant-400 hover:underline">
+                    <span class="material-symbols-outlined text-[13px]">location_on</span>
+                    <span>View on Google Maps</span>
+                    <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                  </a>
+                </div>
+              }
 
               <!-- Amenities Pills -->
               <div class="flex flex-wrap gap-1.5 mb-4">

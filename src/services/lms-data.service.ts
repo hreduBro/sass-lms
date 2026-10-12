@@ -10280,7 +10280,8 @@ export class LmsDataService {
       name: data.name?.trim() || 'New Physical Venue',
       type: 'physical',
       address: data.address || { line1: '', city: 'Dhaka', postcode: '', country: 'Bangladesh', formatted: '' },
-      geo: data.geo || { lat: null, lng: null },
+      googleMapUrl: data.googleMapUrl || data.geo?.mapUrl || '',
+      geo: data.geo || (data.googleMapUrl ? { lat: null, lng: null, mapUrl: data.googleMapUrl } : { lat: null, lng: null }),
       facilities: data.facilities || { internet: true, parking: true, accessibility: true, otherTags: [] },
       organizationId: data.organizationId || 'org-01',
       organizationName: data.organizationName || 'Grameenphone Corporate Academy',
@@ -10317,6 +10318,38 @@ export class LmsDataService {
     }));
     this.showToast('Venue has been updated successfully.', 'success', 3000, 'Venue Updated');
     this.logAction('Venue Updated', `Updated venue record ID ${venueId}`, 'info');
+  }
+
+  submitTraineeMarketEnrollment(application: {
+    targetType: 'plan' | 'phase';
+    targetId: string;
+    targetName: string;
+    planId?: string;
+    formData: Record<string, any>;
+  }): { success: boolean; applicantId: string; referenceNo: string; message: string } {
+    const referenceNo = `APP-${Date.now().toString().slice(-6)}`;
+    const applicantName = application.formData['fullName'] || application.formData['name'] || 'Learner';
+    const applicantEmail = application.formData['email'] || 'learner@domain.com';
+
+    this.showToast(
+      `Enrollment application submitted for ${application.targetName} (Ref: ${referenceNo})`,
+      'success',
+      5000,
+      'Enrollment Application Received',
+      'ENROLLMENT'
+    );
+    this.logAction(
+      'Public Trainee Application Submitted',
+      `Trainee ${applicantName} (${applicantEmail}) applied for marketed ${application.targetType} "${application.targetName}" [Ref: ${referenceNo}]`,
+      'info'
+    );
+
+    return {
+      success: true,
+      applicantId: `applicant-${Date.now()}`,
+      referenceNo,
+      message: `Your enrollment application for "${application.targetName}" has been successfully recorded.`
+    };
   }
 
   deactivateVenue(venueId: string): { success: boolean; message: string } {

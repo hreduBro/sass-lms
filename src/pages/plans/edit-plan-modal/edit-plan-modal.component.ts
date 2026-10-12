@@ -178,6 +178,103 @@ import { DatePickerComponent } from '../../../components/date-picker/date-picker
               class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-base-200 border border-base-300 dark:border-slate-700 text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500/20 focus:border-tenant-500 transition-all" />
           </div>
 
+          <!-- Budget Allocation & Expense Burn Card (Editable for ongoing plans) -->
+          <div class="p-4 rounded-xl bg-base-200/50 border border-base-300 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-base-300 dark:border-slate-800">
+              <span class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-tenant-600">payments</span>
+                Fiscal Allocation & Actual Budget Burn
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-300 dark:border-tenant-800">
+                Ongoing Tracking Enabled
+              </span>
+            </div>
+
+            <!-- Fiscal Date Range (From & To) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <app-date-picker
+                  label="Fiscal Period (From)"
+                  [required]="true"
+                  hint="DD/MM/YYYY"
+                  placeholder="01/01/2026"
+                  formControlName="fiscalStartDate"
+                  [hasError]="isFieldInvalid('fiscalStartDate')"
+                  errorMessage="Valid fiscal start date is required.">
+                </app-date-picker>
+              </div>
+
+              <div>
+                <app-date-picker
+                  label="Fiscal Period (To)"
+                  [required]="true"
+                  hint="DD/MM/YYYY"
+                  placeholder="31/12/2026"
+                  [minDate]="editForm.get('fiscalStartDate')?.value || ''"
+                  formControlName="fiscalEndDate"
+                  [hasError]="isFieldInvalid('fiscalEndDate')"
+                  errorMessage="Valid fiscal end date is required.">
+                </app-date-picker>
+              </div>
+            </div>
+
+            <!-- Budget Allocation and Actual Burn -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div>
+                <label class="block text-[11px] font-semibold text-text-primary mb-1">
+                  Budget Allocation <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <input 
+                    type="number" 
+                    formControlName="budgetAmount"
+                    placeholder="4500000"
+                    class="w-full px-3 py-2 rounded-xl text-xs font-mono bg-base-100 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500" />
+                  <span class="text-[10px] font-bold text-text-secondary absolute right-2.5 top-2.5 pointer-events-none">
+                    {{ editForm.get('currency')?.value || 'BDT' }}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-text-primary mb-1">
+                  Actual Burn of Budget <span class="text-tenant-600 font-bold">*</span>
+                </label>
+                <div class="relative">
+                  <input 
+                    type="number" 
+                    formControlName="actualBurn"
+                    placeholder="0"
+                    class="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-base-100 border border-tenant-500 text-tenant-700 dark:text-tenant-300 focus:outline-none focus:ring-2 focus:ring-tenant-500/20" />
+                  <span class="text-[10px] font-bold text-text-secondary absolute right-2.5 top-2.5 pointer-events-none">
+                    {{ editForm.get('currency')?.value || 'BDT' }}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-text-primary mb-1">Currency</label>
+                <input 
+                  type="text" 
+                  formControlName="currency" 
+                  class="w-full px-3 py-2 rounded-xl text-xs font-mono bg-base-100 border border-base-300 text-text-primary" />
+              </div>
+            </div>
+
+            <!-- Burn rate visual summary -->
+            <div class="pt-2 border-t border-base-300/60 dark:border-slate-800/60">
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-text-secondary">Ongoing Budget Consumption:</span>
+                <span class="font-bold text-text-primary">
+                  {{ computeBurnPercentage() }}% Burned
+                </span>
+              </div>
+              <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
+                <div class="h-full bg-tenant-500 transition-all" [style.width.%]="computeBurnPercentage()"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Error Alert List if Validation Fails -->
           @if (errorsList().length > 0) {
             <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs text-rose-700 dark:text-rose-400 space-y-1">
@@ -266,10 +363,22 @@ export class EditPlanModalComponent implements OnInit {
     enrollmentType: ['Open', [Validators.required]],
     startDate: ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
     endDate: ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
-    recurringPlan: ['']
+    recurringPlan: [''],
+    fiscalStartDate: ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
+    fiscalEndDate: ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
+    budgetAmount: [4500000, [Validators.required, Validators.min(0)]],
+    actualBurn: [0, [Validators.required, Validators.min(0)]],
+    currency: ['BDT', [Validators.required]]
   });
 
   isActivePlan = computed(() => this.plan().status === 'Active');
+
+  computeBurnPercentage(): number {
+    const alloc = Number(this.editForm.get('budgetAmount')?.value) || 0;
+    const burn = Number(this.editForm.get('actualBurn')?.value) || 0;
+    if (alloc <= 0) return 0;
+    return Math.min(100, Math.round((burn / alloc) * 100));
+  }
 
   dateOrderError = computed<string | null>(() => {
     const s = this.editForm.get('startDate')?.value;
@@ -291,7 +400,12 @@ export class EditPlanModalComponent implements OnInit {
       enrollmentType: p.enrollmentType,
       startDate: p.startDate,
       endDate: p.endDate,
-      recurringPlan: p.recurringPlan || ''
+      recurringPlan: p.recurringPlan || '',
+      fiscalStartDate: p.budget?.fiscalStartDate || p.startDate,
+      fiscalEndDate: p.budget?.fiscalEndDate || p.endDate,
+      budgetAmount: p.budget?.budgetAmount || 4500000,
+      actualBurn: p.budget?.actualBurn || 0,
+      currency: p.budget?.currency || 'BDT'
     });
   }
 
@@ -334,7 +448,15 @@ export class EditPlanModalComponent implements OnInit {
       enrollmentType: formVal.enrollmentType as EnrollmentType,
       startDate: formVal.startDate.trim(),
       endDate: formVal.endDate.trim(),
-      recurringPlan: formVal.recurringPlan?.trim() || null
+      recurringPlan: formVal.recurringPlan?.trim() || null,
+      budget: {
+        budgetYear: `${formVal.fiscalStartDate} - ${formVal.fiscalEndDate}`,
+        fiscalStartDate: formVal.fiscalStartDate.trim(),
+        fiscalEndDate: formVal.fiscalEndDate.trim(),
+        budgetAmount: Number(formVal.budgetAmount) || 0,
+        actualBurn: Number(formVal.actualBurn) || 0,
+        currency: formVal.currency?.trim() || 'BDT'
+      }
     };
 
     const res = this.lmsData.updatePlan(this.plan().id, changes);

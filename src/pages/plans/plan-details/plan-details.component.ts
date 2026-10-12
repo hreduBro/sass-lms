@@ -337,6 +337,61 @@ import { TranscriptRecord } from '../../../models/transcript.model';
               </div>
             </div>
 
+            <!-- 8. Fiscal Period -->
+            <div class="p-3.5 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-text-secondary">Fiscal Period</span>
+              <div class="font-bold text-text-primary text-xs mt-1 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-indigo-500">date_range</span>
+                <span>{{ currentPlan()!.budget?.fiscalStartDate || currentPlan()!.startDate }} — {{ currentPlan()!.budget?.fiscalEndDate || currentPlan()!.endDate }}</span>
+              </div>
+            </div>
+
+            <!-- 9. Budget & Actual Burn -->
+            <div class="p-3.5 rounded-xl bg-base-200/50 dark:bg-base-300/30 border border-base-300 dark:border-slate-800 sm:col-span-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-text-secondary">Budget & Expense Burn</span>
+                <button 
+                  type="button" 
+                  (click)="openEditPlanModal()"
+                  class="text-[10px] text-tenant-600 dark:text-tenant-400 font-bold hover:underline flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-xs">edit</span>
+                  <span>Update Burn</span>
+                </button>
+              </div>
+              <div class="mt-1 flex items-baseline justify-between flex-wrap gap-2 text-xs">
+                <div>
+                  <span class="text-text-secondary text-[11px]">Allocation: </span>
+                  <strong class="font-mono text-text-primary">{{ (currentPlan()!.budget?.budgetAmount || 0) | number }} {{ currentPlan()!.budget?.currency || 'BDT' }}</strong>
+                </div>
+                <div>
+                  <span class="text-text-secondary text-[11px]">Actual Burn: </span>
+                  <strong class="font-mono text-tenant-600 dark:text-tenant-400 font-bold">{{ (currentPlan()!.budget?.actualBurn || 0) | number }} {{ currentPlan()!.budget?.currency || 'BDT' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- 10. Public Marketing Enrollment Link -->
+            @if (currentPlan()!.marketingEnrollment?.enabled) {
+              <div class="p-3.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/40 sm:col-span-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] uppercase font-bold tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">campaign</span>
+                    <span>Marketing & Intake Link</span>
+                  </span>
+                  <button 
+                    type="button" 
+                    (click)="copyPlanMarketingLink()"
+                    class="text-[10px] font-bold text-indigo-600 hover:underline flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-xs">content_copy</span>
+                    <span>Copy Link</span>
+                  </button>
+                </div>
+                <div class="font-mono text-[11px] font-bold text-text-primary mt-1 truncate">
+                  {{ currentPlan()!.marketingEnrollment?.publicLink }}
+                </div>
+              </div>
+            }
+
           </div>
 
           <!-- Description Section -->
@@ -1096,7 +1151,16 @@ export class PlanDetailsComponent implements OnInit {
 
   openEditPlanModal() {
     if (this.currentPlan()) {
-      this.router.navigate(['/plans/edit', this.currentPlan()!.id]);
+      this.showEditPlanModal.set(true);
+    }
+  }
+
+  copyPlanMarketingLink() {
+    const link = this.currentPlan()?.marketingEnrollment?.publicLink || `/login?enrollType=plan&targetId=${this.currentPlan()?.id}`;
+    const fullUrl = `${typeof window !== 'undefined' ? window?.location?.origin : ''}${link}`;
+    if (typeof navigator !== 'undefined' && navigator?.clipboard) {
+      navigator.clipboard.writeText(fullUrl);
+      this.lmsData.showToast(`Plan marketing link copied to clipboard: ${link}`, 'success', 3500, 'Link Copied');
     }
   }
 

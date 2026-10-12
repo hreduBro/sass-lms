@@ -8,7 +8,9 @@ import {
   Phase, 
   PlanOwner, 
   parseDateDDMMYYYY, 
-  formatDateDDMMYYYY 
+  formatDateDDMMYYYY,
+  RegistrationFormField,
+  MarketingEnrollmentConfig
 } from '../../../models/plan.model';
 import { Course } from '../../../models/lms.model';
 import {
@@ -223,6 +225,98 @@ export class PhaseCreateComponent implements OnInit {
   });
 
   // =========================================================================
+  // STEP 6: Phase Marketing & Public Trainee Intake Form Template (§ Requirements)
+  // =========================================================================
+  marketingEnabled = signal<boolean>(true);
+  marketingSlug = signal<string>('phs-mkt-2026');
+  marketingCampaignTitle = signal<string>('Foundation Skills Orientation 2026');
+  marketingCampaignDescription = signal<string>('Open intake enrollment for aspiring participants joining this phase.');
+  marketingBannerHeadline = signal<string>('Join Accelerated Learning Phase');
+  showMarketingPreview = signal<boolean>(false);
+
+  // New Custom Intake Field Form State
+  newFieldLabel = signal<string>('');
+  newFieldType = signal<'text' | 'email' | 'tel' | 'number' | 'textarea'>('text');
+  newFieldRequired = signal<boolean>(false);
+  showAddCustomFieldModal = signal<boolean>(false);
+
+  intakeFormFields = signal<RegistrationFormField[]>([
+    { id: 'fld-name', name: 'fullName', label: 'Full Legal Name', type: 'text', required: true, enabled: true, placeholder: 'e.g. Farhana Ahmed', helpText: 'Official identity as per national NID' },
+    { id: 'fld-email', name: 'email', label: 'Primary Email Address', type: 'email', required: true, enabled: true, placeholder: 'e.g. farhana.ahmed@brac.net', helpText: 'Confirmation credentials will be delivered here' },
+    { id: 'fld-phone', name: 'phone', label: 'Telephone / Mobile Number', type: 'tel', required: true, enabled: true, placeholder: 'e.g. +880 1713-001122', helpText: 'Direct SMS notifications for batch schedules' },
+    { id: 'fld-dept', name: 'department', label: 'Organization / Branch Name', type: 'text', required: false, enabled: true, placeholder: 'e.g. Microfinance Field Operations (Rangpur)', helpText: 'Current operational assignment' },
+    { id: 'fld-pin', name: 'pin', label: 'BRAC PIN / Staff ID', type: 'text', required: false, enabled: true, placeholder: 'e.g. PIN-77291', helpText: 'Leave empty if external candidate' },
+    { id: 'fld-title', name: 'designation', label: 'Current Designation / Role', type: 'text', required: false, enabled: true, placeholder: 'e.g. Junior Field Officer', helpText: 'Current job responsibility' },
+    { id: 'fld-motivation', name: 'motivation', label: 'Statement of Purpose / Reason for Applying', type: 'textarea', required: false, enabled: true, placeholder: 'Briefly explain your learning goals and field expectations...', helpText: 'Reviewed by the Admissions Committee' }
+  ]);
+
+  marketingPublicLink = computed(() => {
+    const planId = this.parentPlanId();
+    const phaseId = this.editingPhaseId() || 'phase-01';
+    const slug = this.marketingSlug();
+    return `/login?enrollType=phase&targetId=${phaseId}&planId=${planId}&code=${slug}`;
+  });
+
+  generateMarketingLink() {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newSlug = `mkt-phase-${randomSuffix}`;
+    this.marketingSlug.set(newSlug);
+    this.marketingEnabled.set(true);
+    this.copyMarketingLink();
+    this.lms.showToast(`New phase marketing link generated and copied to clipboard!`, 'success', 4000, 'Marketing Link Active', 'MARKETING');
+  }
+
+  copyMarketingLink() {
+    const fullUrl = `${typeof window !== 'undefined' ? window?.location?.origin : ''}${this.marketingPublicLink()}`;
+    if (typeof navigator !== 'undefined' && navigator?.clipboard) {
+      navigator.clipboard.writeText(fullUrl);
+      this.lms.showToast(`Phase marketing link copied to clipboard: ${this.marketingPublicLink()}`, 'success', 3500, 'Link Copied');
+    }
+  }
+
+  toggleFieldEnabled(fieldId: string) {
+    this.intakeFormFields.update(fields => fields.map(f => 
+      f.id === fieldId ? { ...f, enabled: !f.enabled } : f
+    ));
+  }
+
+  toggleFieldRequired(fieldId: string) {
+    this.intakeFormFields.update(fields => fields.map(f => 
+      f.id === fieldId ? { ...f, required: !f.required } : f
+    ));
+  }
+
+  addCustomField() {
+    const label = this.newFieldLabel().trim();
+    if (!label) {
+      this.lms.showToast('Please enter a question or field title.', 'warning', 3000);
+      return;
+    }
+
+    const newField: RegistrationFormField = {
+      id: `custom-fld-${Date.now()}`,
+      name: `custom_${label.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+      label: label,
+      type: this.newFieldType(),
+      required: this.newFieldRequired(),
+      enabled: true,
+      placeholder: `Enter your ${label.toLowerCase()}...`,
+      helpText: 'Applicant input question'
+    };
+
+    this.intakeFormFields.update(list => [...list, newField]);
+    this.newFieldLabel.set('');
+    this.newFieldRequired.set(false);
+    this.showAddCustomFieldModal.set(false);
+    this.lms.showToast(`Custom intake field "${label}" added to enrollment form template.`, 'success', 3000);
+  }
+
+  removeCustomField(fieldId: string) {
+    this.intakeFormFields.update(fields => fields.filter(f => f.id !== fieldId));
+    this.lms.showToast('Intake question removed from template.', 'info', 2000);
+  }
+
+  // =========================================================================
   // STEP 7: Certificate, Badge & Transcript (Outputs PHASE-08)
   // =========================================================================
   certificateTemplateId = signal<string>('cert-std-01');
@@ -345,6 +439,25 @@ export class PhaseCreateComponent implements OnInit {
         lessonsCount: c.modules ? c.modules.reduce((sum, m) => sum + (m.lessons ? m.lessons.length : 0), 0) : 10,
         courseOwnerName: c.instructorName || 'Assigned Faculty Lead'
       })));
+    }
+
+    if (phase.marketingEnrollment) {
+      this.marketingEnabled.set(!!phase.marketingEnrollment.enabled);
+      if (phase.marketingEnrollment.marketingSlug) {
+        this.marketingSlug.set(phase.marketingEnrollment.marketingSlug);
+      }
+      if (phase.marketingEnrollment.campaignTitle) {
+        this.marketingCampaignTitle.set(phase.marketingEnrollment.campaignTitle);
+      }
+      if (phase.marketingEnrollment.campaignDescription) {
+        this.marketingCampaignDescription.set(phase.marketingEnrollment.campaignDescription);
+      }
+      if (phase.marketingEnrollment.bannerHeadline) {
+        this.marketingBannerHeadline.set(phase.marketingEnrollment.bannerHeadline);
+      }
+      if (phase.marketingEnrollment.formTemplate?.fields?.length) {
+        this.intakeFormFields.set(phase.marketingEnrollment.formTemplate.fields);
+      }
     }
   }
 
@@ -766,7 +879,20 @@ export class PhaseCreateComponent implements OnInit {
       prerequisiteStatus: this.prerequisiteType() === 'None (Free Progression)' ? 'None' : 'Pending',
       certificateBadgeStatus: this.certificateTemplateId() ? 'Configured' : 'None',
       description: this.phaseDescription().trim(),
-      assignedCourses: this.assignedCoursesList().map(c => c.courseId)
+      assignedCourses: this.assignedCoursesList().map(c => c.courseId),
+      marketingEnrollment: {
+        enabled: this.marketingEnabled(),
+        marketingSlug: this.marketingSlug(),
+        publicLink: this.marketingPublicLink(),
+        campaignTitle: this.marketingCampaignTitle() || this.phaseName().trim(),
+        campaignDescription: this.marketingCampaignDescription() || this.phaseDescription().trim(),
+        bannerHeadline: this.marketingBannerHeadline() || `Enroll in ${this.phaseName().trim()}`,
+        formTemplate: {
+          formTitle: `${this.phaseName().trim()} Trainee Application`,
+          formDescription: 'Please submit your personnel details to enroll into this learning phase.',
+          fields: this.intakeFormFields()
+        }
+      }
     };
 
     if (this.isEditMode() && this.editingPhaseId()) {
@@ -875,7 +1001,20 @@ export class PhaseCreateComponent implements OnInit {
       prerequisiteStatus: this.prerequisiteType() === 'None (Free Progression)' ? 'None' : 'Pending',
       certificateBadgeStatus: this.certificateTemplateId() ? 'Configured' : 'None',
       description: this.phaseDescription().trim(),
-      assignedCourses: this.assignedCoursesList().map(c => c.courseId)
+      assignedCourses: this.assignedCoursesList().map(c => c.courseId),
+      marketingEnrollment: {
+        enabled: this.marketingEnabled(),
+        marketingSlug: this.marketingSlug(),
+        publicLink: this.marketingPublicLink(),
+        campaignTitle: this.marketingCampaignTitle() || this.phaseName().trim(),
+        campaignDescription: this.marketingCampaignDescription() || this.phaseDescription().trim(),
+        bannerHeadline: this.marketingBannerHeadline() || `Enroll in ${this.phaseName().trim()}`,
+        formTemplate: {
+          formTitle: `${this.phaseName().trim()} Trainee Application`,
+          formDescription: 'Please submit your personnel details to enroll into this learning phase.',
+          fields: this.intakeFormFields()
+        }
+      }
     };
 
     setTimeout(() => {

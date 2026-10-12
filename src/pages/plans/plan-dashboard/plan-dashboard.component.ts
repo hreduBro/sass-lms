@@ -36,7 +36,6 @@ export interface LearnerProgressRecord {
   imports: [
     CommonModule,
     FormsModule,
-    CustomSelectComponent,
     CustomAvatarComponent,
     DataGridComponent,
     FilterSectionComponent,
@@ -201,7 +200,7 @@ export interface LearnerProgressRecord {
                 <span class="material-symbols-outlined text-base text-tenant-600">pie_chart</span>
                 Plan Status Breakdown
               </h3>
-              <span class="text-[11px] text-text-secondary font-mono">{{ filteredPlans().length }} Shown</span>
+              <span class="text-[11px] text-text-secondary font-mono">{{ plans().length }} Total</span>
             </div>
 
             <!-- Visual Donut & Bars -->
@@ -369,183 +368,6 @@ export interface LearnerProgressRecord {
             </div>
           </div>
 
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- PLAN PORTFOLIO COMPARISON TABLE (ALL PLANS)                       -->
-        <!-- ================================================================= -->
-        <div class="p-6 rounded-2xl border border-base-300 bg-base-100 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-base-300">
-            <div>
-              <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
-                <span class="material-symbols-outlined text-base text-tenant-600">table_chart</span>
-                Plan Portfolio Comparison Matrix
-              </h3>
-              <p class="text-[11px] text-text-secondary">Click any plan to open its dedicated deep-dive dashboard</p>
-            </div>
-            <div class="text-xs text-text-secondary font-medium">
-              Showing {{ filteredPlans().length }} of {{ plans().length }} Plans
-            </div>
-          </div>
-
-          <!-- Comparison Table Search & Filters -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-2 flex-1 max-w-md">
-              <div class="relative flex-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-base pointer-events-none">search</span>
-                <input
-                  type="text"
-                  [ngModel]="searchQuery()"
-                  (ngModelChange)="searchQuery.set($event)"
-                  placeholder="Filter matrix by name, code, or owner..."
-                  class="w-full pl-9 pr-3 py-1.5 bg-base-200 border border-base-300 rounded-xl text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 transition-colors" />
-              </div>
-              @if (hasActivePortfolioFilters()) {
-                <button
-                  type="button"
-                  (click)="resetPortfolioFilters()"
-                  class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1 cursor-pointer">
-                  <span class="material-symbols-outlined text-xs">restart_alt</span>
-                  <span>Reset</span>
-                </button>
-              }
-            </div>
-            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              <div class="w-36">
-                <app-custom-select
-                  [options]="statusFilterOptions"
-                  [ngModel]="selectedStatusFilter()"
-                  (ngModelChange)="selectedStatusFilter.set($event)"
-                  size="sm"
-                  placeholder="Status: All">
-                </app-custom-select>
-              </div>
-              <div class="w-36">
-                <app-custom-select
-                  [options]="durationFilterOptions"
-                  [ngModel]="selectedDurationFilter()"
-                  (ngModelChange)="selectedDurationFilter.set($event)"
-                  size="sm"
-                  placeholder="Duration: All">
-                </app-custom-select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Responsive Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-base-300 text-text-secondary font-semibold uppercase tracking-wider text-[10px]">
-                  <th class="py-3 px-3">Plan Code & Title</th>
-                  <th class="py-3 px-3">Assigned Owner</th>
-                  <th class="py-3 px-3">Duration & Dates</th>
-                  <th class="py-3 px-3">Status</th>
-                  <th class="py-3 px-3">Enrolled</th>
-                  <th class="py-3 px-3">Milestone Progress</th>
-                  <th class="py-3 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-base-300">
-                @for (plan of filteredPlans(); track plan.id) {
-                  <tr class="hover:bg-base-200/50 transition-colors group cursor-pointer" (click)="selectPlan(plan.id)">
-                    
-                    <!-- Code & Title -->
-                    <td class="py-3 px-3 max-w-xs">
-                      <div class="font-bold text-text-primary group-hover:text-tenant-600 dark:group-hover:text-tenant-400 transition-colors">
-                        {{ plan.name }}
-                      </div>
-                      <div class="text-[10px] text-text-secondary font-mono mt-0.5">
-                        {{ plan.planCode }} • {{ plan.enrollmentType }} Enrollment
-                      </div>
-                    </td>
-
-                    <!-- Owner -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      @if (plan.owner?.name) {
-                        <div class="flex items-center gap-2">
-                          <app-custom-avatar 
-                            [name]="plan.owner.name" 
-                            size="xs" 
-                            shape="squircle">
-                          </app-custom-avatar>
-                          <div class="min-w-0">
-                            <div class="font-semibold text-text-primary text-[11px]">{{ plan.owner.name }}</div>
-                            <div class="text-[10px] text-text-secondary truncate">{{ plan.owner.email }}</div>
-                          </div>
-                        </div>
-                      } @else {
-                        <span class="text-rose-500 text-[11px] font-semibold flex items-center gap-1">
-                          <span class="material-symbols-outlined text-xs">warning</span>
-                          Unassigned
-                        </span>
-                      }
-                    </td>
-
-                    <!-- Duration & Dates -->
-                    <td class="py-3 px-3 whitespace-nowrap text-text-secondary">
-                      <div class="font-medium text-text-primary">{{ plan.durationType }}</div>
-                      <div class="text-[10px]">{{ plan.startDate }} → {{ plan.endDate }}</div>
-                    </td>
-
-                    <!-- Status -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <span 
-                        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border"
-                        [ngClass]="getStatusBadgeClass(plan.status)">
-                        {{ plan.status }}
-                      </span>
-                    </td>
-
-                    <!-- Enrolled Learners -->
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <div class="font-bold text-text-primary">{{ getPlanLearnerCount(plan.id) }}</div>
-                      <div class="text-[10px] text-text-secondary">{{ plan.phases?.length || plan.phaseCount }} phases</div>
-                    </td>
-
-                    <!-- Milestone Progress -->
-                    <td class="py-3 px-3 w-40">
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between text-[10px]">
-                          <span class="text-text-secondary">Phase Health</span>
-                          <span class="font-bold text-text-primary">{{ getPlanProgressPct(plan.id) }}%</span>
-                        </div>
-                        <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            class="bg-tenant-600 h-full rounded-full transition-all" 
-                            [style.width.%]="getPlanProgressPct(plan.id)">
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <!-- Actions -->
-                    <td class="py-3 px-3 text-right whitespace-nowrap" (click)="$event.stopPropagation()">
-                      <div class="flex items-center justify-end gap-1.5">
-                        <button 
-                          type="button" 
-                          (click)="selectPlan(plan.id)"
-                          title="Open Deep-Dive Dashboard"
-                          class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 hover:bg-tenant-600 hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
-                          <span class="material-symbols-outlined text-xs">analytics</span>
-                          <span>Dashboard</span>
-                        </button>
-
-                        <button 
-                          type="button" 
-                          (click)="viewPlanDetails(plan.id)"
-                          title="Manage Plan Details"
-                          class="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer">
-                          <span class="material-symbols-outlined text-sm">settings</span>
-                        </button>
-                      </div>
-                    </td>
-
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
         </div>
 
         <!-- Appointed Administrators Roster -->

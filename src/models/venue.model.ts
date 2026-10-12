@@ -71,6 +71,7 @@ export interface Venue {
   division?: string;
   district?: string;
   geo?: VenueGeo;
+  googleMapUrl?: string;
   facilities?: VenueFacilities | any;
   organizationId: string;
   organizationName?: string;
@@ -130,6 +131,7 @@ export const INITIAL_VENUES: Venue[] = [
       lng: 90.417381,
       mapUrl: 'https://maps.google.com/?q=23.777176,90.417381'
     },
+    googleMapUrl: 'https://maps.google.com/?q=23.777176,90.417381',
     facilities: {
       internet: true,
       parking: true,
@@ -243,6 +245,7 @@ export const INITIAL_VENUES: Venue[] = [
       lng: 91.812423,
       mapUrl: 'https://maps.google.com/?q=22.327663,91.812423'
     },
+    googleMapUrl: 'https://maps.google.com/?q=22.327663,91.812423',
     facilities: {
       internet: true,
       parking: true,
