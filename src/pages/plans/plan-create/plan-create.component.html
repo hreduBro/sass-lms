@@ -1020,6 +1020,7 @@
                   <div>
                     <span class="text-[10px] uppercase font-bold tracking-wider text-tenant-600">Public Login Page Preview</span>
                     <h4 class="text-sm font-bold text-text-primary">{{ basicForm.get('name')?.value || 'Plan Enrollment' }} Application Form</h4>
+                    <p class="text-[11px] text-text-secondary mt-0.5">Interactive preview only. Entries here are not saved or submitted.</p>
                   </div>
                   <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">Active Template</span>
                 </div>
@@ -1028,7 +1029,7 @@
                   @for (field of intakeFormFields(); track field.id) {
                     @if (field.enabled) {
                       <div [class.sm:col-span-2]="field.type === 'textarea'">
-                        <label class="block font-semibold text-text-primary mb-1">
+                        <label [for]="'preview-plan-' + field.id" class="block font-semibold text-text-primary mb-1">
                           {{ field.label }}
                           @if (field.required) {
                             <span class="text-rose-500 font-bold">*</span>
@@ -1036,11 +1037,19 @@
                             <span class="text-text-secondary font-normal text-[10px]">(Optional)</span>
                           }
                         </label>
-                        <input 
-                          [type]="field.type" 
-                          disabled 
-                          [placeholder]="field.placeholder || ''"
-                          class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-secondary text-xs opacity-75" />
+                        @if (field.type === 'textarea') {
+                          <textarea 
+                            [id]="'preview-plan-' + field.id"
+                            rows="3"
+                            [placeholder]="field.placeholder || ''"
+                            class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/30"></textarea>
+                        } @else {
+                          <input 
+                            [id]="'preview-plan-' + field.id"
+                            [type]="field.type" 
+                            [placeholder]="field.placeholder || ''"
+                            class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/30" />
+                        }
                       </div>
                     }
                   }
