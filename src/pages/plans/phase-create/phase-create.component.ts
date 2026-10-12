@@ -30,6 +30,7 @@ import {
 import { StepperComponent, StepItem } from '../../../components/stepper/stepper.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
+import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 
 @Component({
@@ -41,7 +42,8 @@ import { ConfirmationModalService } from '../../../services/confirmation-modal.s
     RouterModule, 
     StepperComponent,
     CustomAvatarComponent,
-    DatePickerComponent
+    DatePickerComponent,
+    CustomSelectComponent
   ],
   templateUrl: './phase-create.component.html',
   styles: [`
@@ -227,12 +229,23 @@ export class PhaseCreateComponent implements OnInit {
   // =========================================================================
   // STEP 6: Phase Marketing & Public Trainee Intake Form Template (§ Requirements)
   // =========================================================================
-  marketingEnabled = signal<boolean>(true);
+  enrollmentMode = signal<'internal' | 'public'>('internal');
+  marketingEnabled = signal<boolean>(false);
   marketingSlug = signal<string>('phs-mkt-2026');
   marketingCampaignTitle = signal<string>('Foundation Skills Orientation 2026');
   marketingCampaignDescription = signal<string>('Open intake enrollment for aspiring participants joining this phase.');
   marketingBannerHeadline = signal<string>('Join Accelerated Learning Phase');
   showMarketingPreview = signal<boolean>(false);
+
+  enrollmentModeOptions = [
+    { value: 'internal', label: 'Internal Cohort Only (Default)', sublabel: 'Restricted roster assignment for internal personnel' },
+    { value: 'public', label: 'Public / Marketing Enrollment', sublabel: 'Generate public enrollment link and configure trainee intake form' }
+  ];
+
+  onEnrollmentModeChange(mode: string) {
+    this.enrollmentMode.set(mode as 'internal' | 'public');
+    this.marketingEnabled.set(mode === 'public');
+  }
 
   // New Custom Intake Field Form State
   newFieldLabel = signal<string>('');
@@ -443,6 +456,7 @@ export class PhaseCreateComponent implements OnInit {
 
     if (phase.marketingEnrollment) {
       this.marketingEnabled.set(!!phase.marketingEnrollment.enabled);
+      this.enrollmentMode.set(phase.marketingEnrollment.enabled ? 'public' : 'internal');
       if (phase.marketingEnrollment.marketingSlug) {
         this.marketingSlug.set(phase.marketingEnrollment.marketingSlug);
       }

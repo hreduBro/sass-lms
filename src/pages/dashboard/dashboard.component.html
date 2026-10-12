@@ -1,24 +1,43 @@
-<div class="space-y-6">
+<div class="space-y-4">
   <!-- 1. Normal View Header -->
   @if (!isBuilderMode()) {
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
       <div>
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
           <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tenant-50 dark:bg-tenant-500/20 text-tenant-700 dark:text-tenant-200 border border-tenant-500/30 flex items-center gap-1">
             <span class="material-symbols-outlined text-xs">apartment</span>
             {{ activeTenant().name }}
           </span>
-          <span class="text-xs text-text-secondary flex items-center gap-1">
-            <span>Role:</span> 
-            <strong class="text-text-primary capitalize bg-base-200 px-2 py-0.2 rounded-md font-semibold">{{ activeRole().replace('_', ' ') }}</strong>
-          </span>
+          
+          <!-- Direct Quick Role Switcher Buttons -->
+          <div class="flex items-center gap-0.5 bg-base-200 dark:bg-base-200/80 p-0.5 rounded-xl border border-base-300">
+            <button 
+              type="button"
+              (click)="switchRole('learner')"
+              title="Switch to Learner View"
+              class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+              [class]="activeRole() === 'learner' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-xs">school</span>
+              <span>Learner View</span>
+            </button>
+            <button 
+              type="button"
+              (click)="switchRole('tenant_admin')"
+              title="Switch to Admin View"
+              class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+              [class]="activeRole() !== 'learner' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+              <span class="material-symbols-outlined text-xs">admin_panel_settings</span>
+              <span>Admin View</span>
+            </button>
+          </div>
+
           @if (isAdmin()) {
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
               Layout v{{ activeDashboard().version }} &bull; {{ activeDashboard().widgets.length }} widgets
             </span>
           }
         </div>
-        <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+        <h1 class="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
           @if (activeRole() === 'learner') {
             <span>Welcome back, {{ lms.activeUser().name }}!</span>
           } @else {
@@ -35,25 +54,25 @@
       </div>
 
       <!-- Trainee Plan Journey & Learning Navigation Banner (Learner Role Only) -->
-      <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+      <div class="flex items-center gap-2 self-start md:self-auto flex-wrap">
         @if (activeRole() === 'learner') {
           <a 
             routerLink="/my-plans" 
-            class="px-4 py-2.5 rounded-2xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-tenant-600/20 active:scale-[0.98]">
+            class="px-3.5 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-[0.98]">
             <span class="material-symbols-outlined text-base">school</span>
             <span>My Learning Plans</span>
           </a>
 
           <a 
             routerLink="/my-schedule" 
-            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+            class="px-3 py-2 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs">
             <span class="material-symbols-outlined text-base text-indigo-500">calendar_month</span>
             <span>My Schedule</span>
           </a>
 
           <a 
             routerLink="/my-achievements" 
-            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs">
+            class="px-3 py-2 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs">
             <span class="material-symbols-outlined text-base text-amber-500">military_tech</span>
             <span>My Achievements</span>
           </a>
@@ -64,7 +83,7 @@
           <button 
             id="btn-open-builder"
             (click)="enterBuilderMode()"
-            class="px-3.5 py-2.5 rounded-2xl bg-base-100 hover:bg-base-200 text-text-secondary hover:text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs group">
+            class="px-3.5 py-2 rounded-xl bg-base-100 hover:bg-base-200 text-text-secondary hover:text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs group">
             <span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform duration-300">dashboard_customize</span>
             <span>Customize</span>
           </button>
@@ -72,30 +91,30 @@
       </div>
     </div>
 
-    <!-- Active Learning Plan Hero Card (Learner Role Only) -->
+    <!-- Active Learning Plan Hero Card (Learner Role Only - Compact & Streamlined) -->
     @if (activeRole() === 'learner') {
-      <div class="p-5 sm:p-6 rounded-3xl border-2 border-tenant-500/30 bg-gradient-to-r from-tenant-50/60 via-base-100 to-indigo-50/40 dark:from-tenant-950/40 dark:via-base-200 dark:to-indigo-950/30 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div class="space-y-2 max-w-2xl">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tenant-100 dark:bg-tenant-900/60 text-tenant-700 dark:text-tenant-300 flex items-center gap-1">
+      <div class="px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-tenant-500/25 bg-gradient-to-r from-tenant-50/70 via-base-100 to-indigo-50/50 dark:from-tenant-950/40 dark:via-base-200 dark:to-indigo-950/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="min-w-0 flex-1 space-y-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tenant-100 dark:bg-tenant-900/60 text-tenant-700 dark:text-tenant-300 flex items-center gap-1 shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-tenant-500 animate-pulse"></span>
               Active Learning Pathway
             </span>
             <span class="text-xs text-text-secondary">•</span>
-            <span class="text-xs text-text-secondary font-medium">PLN-1972-001</span>
+            <span class="text-xs text-text-secondary font-mono font-medium">PLN-1972-001</span>
           </div>
-          <h3 class="text-lg font-bold text-text-primary">
+          <h3 class="text-sm sm:text-base font-bold text-text-primary truncate">
             2026 Microfinance Branch Transformation & Ethics Plan
           </h3>
-          <p class="text-xs text-text-secondary leading-relaxed">
+          <p class="text-xs text-text-secondary line-clamp-1">
             Structured curriculum covering client protection, digital credit POS operations, disaster-resilient micro-insurance, and graduation diplomas.
           </p>
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2 shrink-0 self-start sm:self-center">
           <a 
             routerLink="/my-plans/plan-brac-01" 
-            class="px-5 py-3 rounded-2xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-tenant-600/20 hover:scale-[1.02] transition-all">
+            class="px-3.5 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:scale-[1.01] transition-all active:scale-[0.98]">
             <span class="material-symbols-outlined text-base">route</span>
             <span>Open Plan Journey</span>
           </a>
@@ -247,13 +266,13 @@
 
   <!-- 3. Dynamic Canvas Layout (12-Column Symmetrical Responsive Grid) -->
   <div 
-    class="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch"
-    [class.gap-4]="canvasDensity() === 'compact'"
-    [class.gap-6]="canvasDensity() === 'comfortable'">
+    class="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4 items-stretch"
+    [class.gap-3]="canvasDensity() === 'compact'"
+    [class.gap-5]="canvasDensity() === 'comfortable'">
     
     @for (widget of displayedWidgets(); track widget.id; let idx = $index) {
       <div 
-        [class]="getColSpanClass(widget.colSpan) + ' ' + getRowSpanClass(widget.rowSpan)"
+        [class]="getColSpanClass(widget.colSpan) + ' ' + getRowSpanClass(widget.rowSpan, widget.type)"
         [class.opacity-40]="draggedIndex() === idx"
         [class.scale-[0.98]]="draggedIndex() === idx"
         [class.border-2]="dragOverIndex() === idx && draggedIndex() !== idx"

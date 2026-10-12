@@ -211,6 +211,48 @@ export class DashboardWidgetRendererComponent {
     return mapped;
   });
 
+  // Guarantee row of three or four course cards for Continue Active Learning
+  displayedCourseCards = computed(() => {
+    let list = [...this.myEnrollments()];
+    const targetCount = this.widget().colSpan === 4 ? 4 : 3;
+
+    if (list.length < targetCount) {
+      const existingCourseIds = new Set(list.map(e => e.course?.id));
+      const availableCourses = this.lms.courses().filter(c => !existingCourseIds.has(c.id));
+      const mockPercentages = [65, 40, 85, 20];
+      let mockIdx = 0;
+      for (const course of availableCourses) {
+        if (list.length >= targetCount) break;
+        list.push({
+          enrollment: {
+            id: `auto-enr-${course.id}`,
+            tenantId: this.lms.activeTenantId(),
+            userId: this.lms.activeUser().id,
+            courseId: course.id,
+            progressPercent: mockPercentages[mockIdx % mockPercentages.length],
+            completedLessonIds: [],
+            quizScores: {},
+            status: 'in_progress',
+            startedAt: new Date().toISOString()
+          },
+          course
+        });
+        mockIdx++;
+      }
+    }
+
+    return list.slice(0, targetCount);
+  });
+
+  // Displayed webinars for Upcoming Live Classrooms
+  displayedWebinars = computed(() => {
+    const activeTenantId = this.lms.activeTenantId();
+    const list = this.lms.webinars();
+    const matched = list.filter(w => w.tenantId === activeTenantId || w.tenantId === 'global');
+    const pool = matched.length > 0 ? matched : list;
+    return pool.slice(0, 2);
+  });
+
   // Leaderboard ranking
   topLearners = computed(() => {
     const users = [...this.lms.tenantUsers()];

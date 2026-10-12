@@ -1633,12 +1633,46 @@ const INITIAL_ENROLLMENTS: CourseEnrollment[] = [
     tenantId: 'tenant-brac',
     userId: 'usr-brac-3', // Nusrat Jahan
     courseId: 'course-brac-101',
-    progressPercent: 100,
-    completedLessonIds: ['brac-les-1-1', 'brac-les-1-2', 'brac-les-2-1'],
-    quizScores: { 'brac-les-2-1': 100 },
-    status: 'completed',
+    progressPercent: 78,
+    completedLessonIds: ['brac-les-1-1', 'brac-les-1-2'],
+    quizScores: { 'brac-les-1-1': 100 },
+    status: 'in_progress',
     startedAt: '2025-02-05T09:00:00Z',
-    completedAt: '2025-02-05T11:30:00Z'
+    lastAccessedLessonId: 'brac-les-2-1'
+  },
+  {
+    id: 'enr-brac-2-nj',
+    tenantId: 'tenant-brac',
+    userId: 'usr-brac-3', // Nusrat Jahan
+    courseId: 'course-brac-102',
+    progressPercent: 50,
+    completedLessonIds: ['brac-les-2-1'],
+    quizScores: {},
+    status: 'in_progress',
+    startedAt: '2025-02-10T10:00:00Z',
+    lastAccessedLessonId: 'brac-les-2-2'
+  },
+  {
+    id: 'enr-brac-3-nj',
+    tenantId: 'tenant-brac',
+    userId: 'usr-brac-3', // Nusrat Jahan
+    courseId: 'course-brac-103',
+    progressPercent: 35,
+    completedLessonIds: [],
+    quizScores: {},
+    status: 'in_progress',
+    startedAt: '2025-02-12T11:00:00Z'
+  },
+  {
+    id: 'enr-brac-4-nj',
+    tenantId: 'tenant-brac',
+    userId: 'usr-brac-3', // Nusrat Jahan
+    courseId: 'course-sec-101',
+    progressPercent: 65,
+    completedLessonIds: ['les-1-1'],
+    quizScores: {},
+    status: 'in_progress',
+    startedAt: '2025-02-14T15:00:00Z'
   },
   {
     id: 'enr-brac-2',
@@ -2409,7 +2443,7 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
   {
     id: 'w-announcement-1',
     type: 'announcement_banner',
-    title: 'Tenant Skill & Compliance Directive',
+    title: 'Announcement',
     colSpan: 4,
     rowSpan: 1,
     visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner'],
@@ -2437,13 +2471,22 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     visibleForRoles: ['learner']
   },
   {
+    id: 'w-upcoming-webinars-1',
+    type: 'upcoming_webinars',
+    title: 'Upcoming Live Classrooms',
+    subtitle: 'Interactive virtual sessions and workshops',
+    colSpan: 1,
+    rowSpan: 2,
+    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
+  },
+  {
     id: 'w-gamification-1',
     type: 'gamification_leaderboard',
     title: 'Skill Mastery & XP Leaderboard',
     subtitle: 'Top achievers and credential badge showcase',
     colSpan: 1,
     rowSpan: 2,
-    visibleForRoles: ['learner', 'instructor']
+    visibleForRoles: ['instructor']
   },
   {
     id: 'w-dept-matrix-1',
@@ -2480,15 +2523,6 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     colSpan: 2,
     rowSpan: 2,
     visibleForRoles: ['super_admin', 'tenant_admin']
-  },
-  {
-    id: 'w-upcoming-webinars-1',
-    type: 'upcoming_webinars',
-    title: 'Upcoming Live Virtual Classrooms',
-    subtitle: 'Interactive instructor-led sessions and workshops',
-    colSpan: 2,
-    rowSpan: 2,
-    visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
   },
   {
     id: 'w-quick-actions-1',

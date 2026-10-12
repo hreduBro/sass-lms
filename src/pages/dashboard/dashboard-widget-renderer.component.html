@@ -182,28 +182,26 @@
     }
 
     <!-- Widget Body Container -->
-    <div [class]="widget().type === 'announcement_banner' || widget().type === 'kpi_grid' ? 'p-0' : 'p-5 flex-1 flex flex-col'">
+    <div [class]="widget().type === 'announcement_banner' || widget().type === 'kpi_grid' ? 'p-0' : 'p-3.5 sm:p-4 flex-1 flex flex-col'">
       
-      <!-- 1. ANNOUNCEMENT BANNER -->
+      <!-- 1. ANNOUNCEMENT BANNER (Slim Strip) -->
       @if (widget().type === 'announcement_banner') {
-        <div class="p-5 bg-gradient-to-r from-tenant-500/15 via-tenant-500/5 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-2xl bg-tenant-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
-              <span class="material-symbols-outlined text-xl">campaign</span>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="font-bold text-sm text-text-primary">{{ widget().title }}</span>
-                <span class="text-[10px] px-2 py-0.2 rounded-full font-semibold bg-tenant-500 text-white">Broadcast</span>
-              </div>
-              <p class="text-xs text-text-secondary leading-relaxed">
-                {{ widget().config?.bannerText || 'Mandatory Compliance & Cyber Skill initiative is active. Review requirements before semester close.' }}
+        <div class="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-amber-500/10 via-base-100 to-tenant-500/10 dark:from-amber-500/5 dark:via-base-200 dark:to-tenant-500/5 border-l-4 border-amber-500 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <span class="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-sm">campaign</span>
+            </span>
+            <div class="flex items-center gap-2 min-w-0 flex-1 flex-wrap sm:flex-nowrap">
+              <span class="font-bold text-text-primary shrink-0">{{ widget().title }}</span>
+              <span class="text-text-secondary hidden sm:inline">&bull;</span>
+              <p class="text-text-secondary truncate text-xs flex-1">
+                {{ widget().config?.bannerText || 'Annual Mandatory Cybersecurity & Regulatory Certification cycle is in effect. All personnel must complete assignments before the due date.' }}
               </p>
             </div>
           </div>
-          <div class="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
-            <a routerLink="/courses" class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors">
-              <span>Explore Curriculum</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <a routerLink="/courses" class="text-tenant-600 dark:text-tenant-400 hover:text-tenant-700 dark:hover:text-tenant-300 font-semibold text-xs flex items-center gap-1 hover:underline">
+              <span>View</span>
               <span class="material-symbols-outlined text-xs">arrow_forward</span>
             </a>
           </div>
@@ -526,76 +524,110 @@
 
       <!-- 8. IN-PROGRESS LEARNER COURSEWARE -->
       @if (widget().type === 'learner_in_progress') {
-        <div class="flex-1 flex flex-col">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-base-300 gap-2 mb-4">
-            <div>
-              <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
-                <span class="material-symbols-outlined text-tenant-600 text-base">play_circle</span>
-                {{ widget().title }}
-              </h3>
-              @if (widget().subtitle) {
-                <p class="text-[11px] text-text-secondary mt-0.5">{{ widget().subtitle }}</p>
-              }
-            </div>
-
-            <!-- Course Filter Tabs -->
-            <div class="flex items-center bg-base-200 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300">
-              <button 
-                type="button"
-                (click)="courseFilter.set('all')"
-                class="px-2 py-0.5 rounded-lg transition-all"
-                [class]="courseFilter() === 'all' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-                All
-              </button>
-              <button 
-                type="button"
-                (click)="courseFilter.set('in_progress')"
-                class="px-2 py-0.5 rounded-lg transition-all"
-                [class]="courseFilter() === 'in_progress' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-                In-Progress
-              </button>
-              <button 
-                type="button"
-                (click)="courseFilter.set('completed')"
-                class="px-2 py-0.5 rounded-lg transition-all"
-                [class]="courseFilter() === 'completed' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
-                Completed
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            @for (item of myEnrollments(); track item.enrollment.id) {
-              <div class="p-3.5 rounded-2xl bg-base-200/50 border border-base-300/80 flex flex-col justify-between hover:border-tenant-500/50 transition-all group/course">
-                <div class="flex items-start gap-3 mb-3">
-                  <img [src]="item.course?.thumbnail" [alt]="item.course?.title" class="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-xs" referrerpolicy="no-referrer" />
-                  <div class="min-w-0 flex-1">
-                    <span class="text-[10px] px-2 py-0.2 rounded-md bg-base-100 font-semibold text-text-secondary border border-base-300">
-                      {{ item.course?.category }}
-                    </span>
-                    <h4 class="font-bold text-xs text-text-primary line-clamp-1 mt-1">{{ item.course?.title }}</h4>
-                    <p class="text-[10px] text-text-secondary line-clamp-1">{{ item.course?.instructorName }}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="flex items-center justify-between text-[11px] mb-1">
-                    <span class="text-text-secondary">Progress</span>
-                    <span class="font-bold text-tenant-600 font-mono">{{ item.enrollment.progressPercent }}%</span>
-                  </div>
-                  <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden mb-3">
-                    <div class="bg-tenant-500 h-full rounded-full transition-all duration-300" [style.width.%]="item.enrollment.progressPercent"></div>
-                  </div>
-
-                  <a 
-                    [routerLink]="['/courses', item.course?.id, 'learn']"
-                    class="w-full py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs">
-                    <span class="material-symbols-outlined text-sm">play_arrow</span>
-                    <span>{{ item.enrollment.progressPercent === 100 ? 'Review Course' : 'Resume Lesson' }}</span>
-                  </a>
+        <div class="flex-1 flex flex-col justify-between">
+          <div>
+            <!-- Header with Title, Subtitle, and 'View all' link to My Learning -->
+            <div class="flex items-center justify-between pb-2.5 border-b border-base-200 dark:border-base-300/70 gap-2 mb-3">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="material-symbols-outlined text-tenant-600 text-lg">play_circle</span>
+                <div class="min-w-0">
+                  <h3 class="font-bold text-xs sm:text-sm text-text-primary leading-tight truncate">{{ widget().title }}</h3>
+                  @if (widget().subtitle) {
+                    <p class="text-[11px] text-text-secondary truncate hidden sm:block mt-0.5">{{ widget().subtitle }}</p>
+                  }
                 </div>
               </div>
-            }
+
+              <!-- View all Link to My Learning + Compact Filters -->
+              <div class="flex items-center gap-2.5 shrink-0">
+                <div class="hidden sm:flex items-center bg-base-200 rounded-xl p-0.5 text-[10px] font-semibold border border-base-300/70">
+                  <button 
+                    type="button"
+                    (click)="courseFilter.set('all')"
+                    class="px-2 py-0.5 rounded-lg transition-all"
+                    [class]="courseFilter() === 'all' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                    All
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="courseFilter.set('in_progress')"
+                    class="px-2 py-0.5 rounded-lg transition-all"
+                    [class]="courseFilter() === 'in_progress' ? 'bg-base-100 text-tenant-600 shadow-2xs font-bold' : 'text-text-secondary hover:text-text-primary'">
+                    In-Progress
+                  </button>
+                </div>
+                
+                <a 
+                  routerLink="/courses" 
+                  class="text-xs font-semibold text-tenant-600 dark:text-tenant-400 hover:text-tenant-700 dark:hover:text-tenant-300 flex items-center gap-1 hover:underline transition-colors group">
+                  <span>View all</span>
+                  <span class="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Row of three or four course cards -->
+            <div 
+              class="grid gap-3"
+              [class]="widget().colSpan === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'">
+              @for (item of displayedCourseCards(); track item.enrollment.id) {
+                <div class="p-3 rounded-2xl bg-base-200/40 dark:bg-base-200/20 border border-base-300/80 hover:border-tenant-500/50 hover:shadow-xs flex flex-col justify-between transition-all group/course">
+                  
+                  <div>
+                    <!-- 1. Thumbnail -->
+                    <div class="relative aspect-video rounded-xl overflow-hidden bg-base-300 mb-2">
+                      <img 
+                        [src]="item.course?.coverImage || item.course?.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80'" 
+                        [alt]="item.course?.title" 
+                        class="w-full h-full object-cover group-hover/course:scale-105 transition-transform duration-300" 
+                        referrerpolicy="no-referrer" />
+                      <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[9px] font-semibold text-white truncate max-w-[140px]">
+                        {{ item.course?.category }}
+                      </span>
+                    </div>
+
+                    <!-- 2. Title -->
+                    <h4 
+                      class="font-bold text-xs text-text-primary line-clamp-1 leading-snug group-hover/course:text-tenant-600 transition-colors"
+                      [title]="item.course?.title">
+                      {{ item.course?.title }}
+                    </h4>
+
+                    <!-- 3. Instructor -->
+                    <div class="flex items-center gap-1.5 text-[11px] text-text-secondary mt-1">
+                      <img 
+                        [src]="item.course?.instructorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'" 
+                        [alt]="item.course?.instructorName" 
+                        class="w-4 h-4 rounded-full object-cover shrink-0" 
+                        referrerpolicy="no-referrer" />
+                      <span class="truncate">{{ item.course?.instructorName }}</span>
+                    </div>
+                  </div>
+
+                  <!-- 4. Progress Bar & 5. One Button -->
+                  <div class="mt-2.5 pt-2 border-t border-base-200 dark:border-base-300/50">
+                    <div class="flex items-center justify-between text-[11px] text-text-secondary mb-1">
+                      <span class="font-medium">Progress</span>
+                      <span class="font-bold font-mono text-tenant-600 dark:text-tenant-400">{{ item.enrollment.progressPercent }}%</span>
+                    </div>
+                    <div class="w-full bg-base-300/80 dark:bg-base-300 h-1.5 rounded-full overflow-hidden mb-2.5">
+                      <div 
+                        class="bg-tenant-500 h-full rounded-full transition-all duration-300" 
+                        [style.width.%]="item.enrollment.progressPercent">
+                      </div>
+                    </div>
+
+                    <a 
+                      [routerLink]="['/courses', item.course?.id, 'learn']"
+                      class="w-full py-1.5 px-3 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-[0.99]">
+                      <span class="material-symbols-outlined text-sm">play_arrow</span>
+                      <span>{{ item.enrollment.progressPercent === 100 ? 'Review Course' : 'Resume Lesson' }}</span>
+                    </a>
+                  </div>
+
+                </div>
+              }
+            </div>
           </div>
         </div>
       }
@@ -703,39 +735,68 @@
         </div>
       }
 
-      <!-- 11. UPCOMING WEBINARS -->
+      <!-- 11. UPCOMING WEBINARS / LIVE CLASSROOMS -->
       @if (widget().type === 'upcoming_webinars') {
-        <div class="flex-1 flex flex-col">
-          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
-            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-tenant-600 text-base">videocam</span>
-              {{ widget().title }}
-            </h3>
-            <a routerLink="/webinars" class="text-xs text-tenant-600 font-semibold hover:underline">View Schedule</a>
-          </div>
+        <div class="flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-2.5 border-b border-base-200 dark:border-base-300/70 mb-3 gap-2">
+              <h3 class="font-bold text-xs sm:text-sm text-text-primary flex items-center gap-1.5 truncate">
+                <span class="material-symbols-outlined text-rose-500 text-base">videocam</span>
+                <span class="truncate">{{ widget().title }}</span>
+              </h3>
+              <a routerLink="/webinars" class="text-xs text-tenant-600 dark:text-tenant-400 font-semibold hover:underline shrink-0">
+                View Schedule
+              </a>
+            </div>
 
-          <div class="space-y-2.5 flex-1">
-            @for (webinar of lms.webinars().slice(0, 2); track webinar.id) {
-              <div class="p-3 rounded-2xl bg-base-200/50 border border-base-300 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3 min-w-0">
-                  <img [src]="webinar.instructorAvatar" [alt]="webinar.instructor" class="w-9 h-9 rounded-xl object-cover flex-shrink-0" referrerpolicy="no-referrer" />
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-xs text-text-primary line-clamp-1">{{ webinar.title }}</h4>
-                    <div class="text-[10px] text-text-secondary flex items-center gap-1.5 mt-0.5">
-                      <span>{{ webinar.scheduledAt | date:'short' }}</span>
-                      <span>&bull;</span>
-                      <span class="text-tenant-600 font-medium">{{ webinar.platform }}</span>
+            <div class="space-y-2.5">
+              @for (webinar of displayedWebinars(); track webinar.id) {
+                <div class="p-2.5 rounded-xl bg-base-200/50 dark:bg-base-200/30 border border-base-300/70 hover:border-tenant-500/40 transition-all flex flex-col gap-2">
+                  <div class="flex items-start justify-between gap-1.5">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <span class="px-1.5 py-0.2 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 shrink-0">
+                          <span class="w-1 h-1 rounded-full bg-rose-500 animate-pulse"></span>
+                          Live
+                        </span>
+                        <span class="text-[10px] text-text-secondary font-medium truncate">
+                          {{ webinar.scheduledAt | date:'EEE, MMM d' }}
+                        </span>
+                      </div>
+                      <h4 class="font-bold text-xs text-text-primary line-clamp-2 leading-tight" [title]="webinar.title">
+                        {{ webinar.title }}
+                      </h4>
                     </div>
                   </div>
+
+                  <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-base-200 dark:border-base-300/40">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <img 
+                        [src]="webinar.instructorAvatar" 
+                        [alt]="webinar.instructor" 
+                        class="w-4 h-4 rounded-full object-cover shrink-0" 
+                        referrerpolicy="no-referrer" />
+                      <span class="text-[10px] text-text-secondary truncate max-w-[90px]">{{ webinar.instructor }}</span>
+                    </div>
+                    <button 
+                      type="button"
+                      (click)="registerWebinar(webinar.title)" 
+                      class="px-2.5 py-1 rounded-lg bg-tenant-600 hover:bg-tenant-700 text-white text-[10px] font-bold flex items-center gap-1 transition-colors shadow-2xs shrink-0">
+                      <span class="material-symbols-outlined text-xs">videocam</span>
+                      <span>Join</span>
+                    </button>
+                  </div>
                 </div>
-                <button 
-                  type="button"
-                  (click)="registerWebinar(webinar.title)" 
-                  class="px-3 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold shadow-xs flex-shrink-0">
-                  Join
-                </button>
-              </div>
-            }
+              }
+            </div>
+          </div>
+
+          <!-- Bottom quick link -->
+          <div class="pt-2 text-center border-t border-base-200 dark:border-base-300/40 mt-2">
+            <a routerLink="/webinars" class="text-[11px] font-medium text-text-secondary hover:text-tenant-600 dark:hover:text-tenant-400 transition-colors inline-flex items-center gap-1">
+              <span>Explore all live sessions</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
           </div>
         </div>
       }

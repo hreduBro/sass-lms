@@ -128,12 +128,23 @@ export class PlanCreateComponent implements OnInit {
   });
 
   // Marketing & Trainee Intake Form Template State
-  marketingEnabled = signal<boolean>(true);
+  enrollmentMode = signal<'internal' | 'public'>('internal');
+  marketingEnabled = signal<boolean>(false);
   marketingSlug = signal<string>('pln-fodp-2026');
   marketingCampaignTitle = signal<string>('Field Officer Development Programme 2026');
   marketingCampaignDescription = signal<string>('Open intake enrollment for aspiring BRAC microfinance leaders and field credit officers.');
   marketingBannerHeadline = signal<string>('Join BRAC Community Transformation Academy');
   showMarketingPreview = signal<boolean>(false);
+
+  enrollmentModeOptions: SelectOption[] = [
+    { value: 'internal', label: 'Internal Cohort Only (Default)', sublabel: 'Restricted roster onboarding for internal personnel' },
+    { value: 'public', label: 'Public / Marketing Enrollment', sublabel: 'Generate public enrollment link and configure trainee intake form' }
+  ];
+
+  onEnrollmentModeChange(mode: string) {
+    this.enrollmentMode.set(mode as 'internal' | 'public');
+    this.marketingEnabled.set(mode === 'public');
+  }
 
   // New Custom Intake Field Form State
   newFieldLabel = signal<string>('');
@@ -597,6 +608,7 @@ export class PlanCreateComponent implements OnInit {
 
     if (plan.marketingEnrollment) {
       this.marketingEnabled.set(!!plan.marketingEnrollment.enabled);
+      this.enrollmentMode.set(plan.marketingEnrollment.enabled ? 'public' : 'internal');
       if (plan.marketingEnrollment.marketingSlug) {
         this.marketingSlug.set(plan.marketingEnrollment.marketingSlug);
       }

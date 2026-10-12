@@ -750,252 +750,108 @@
         <div class="pt-6 border-t border-base-300 dark:border-slate-800 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <span class="material-symbols-outlined text-base">campaign</span>
+              <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+                <span class="material-symbols-outlined text-base">how_to_reg</span>
               </div>
               <div>
-                <h3 class="text-sm font-bold text-text-primary">Phase Marketing & Trainee Intake Template</h3>
-                <p class="text-xs text-text-secondary">Generate public enrollment link and configure what questions trainees must answer on the login page</p>
+                <h3 class="text-sm font-bold text-text-primary">Phase Enrollment & Intake Mode</h3>
+                <p class="text-xs text-text-secondary">Select enrollment method: closed internal batch or public marketing link</p>
               </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold text-text-secondary">Public Enrollment Link</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  [checked]="marketingEnabled()" 
-                  (change)="marketingEnabled.set(!marketingEnabled())" 
-                  class="sr-only peer">
-                <div class="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-500"></div>
-              </label>
             </div>
           </div>
 
-          <!-- Marketing Link Generator Banner -->
-          <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-900/40 space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="min-w-0 flex-1">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Shareable Phase Enrollment URL</span>
-                <div class="font-mono text-xs font-bold text-text-primary mt-0.5 truncate">
-                  {{ marketingPublicLink() }}
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 shrink-0">
-                <button 
-                  type="button" 
-                  (click)="generateMarketingLink()"
-                  class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
-                  <span class="material-symbols-outlined text-sm text-indigo-600">sync</span>
-                  <span>Generate New Link</span>
-                </button>
-
-                <button 
-                  type="button" 
-                  (click)="copyMarketingLink()"
-                  class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">content_copy</span>
-                  <span>Copy Link</span>
-                </button>
-
-                <button 
-                  type="button" 
-                  (click)="showMarketingPreview.set(!showMarketingPreview())"
-                  class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
-                  <span class="material-symbols-outlined text-sm text-tenant-600">preview</span>
-                  <span>{{ showMarketingPreview() ? 'Hide Preview' : 'Preview Form' }}</span>
-                </button>
-              </div>
-            </div>
-
-            <p class="text-[11px] text-indigo-900/80 dark:text-indigo-300/80">
-              When prospective learners visit this marketing link or click to enroll on the public login page, this configured intake form will be presented.
-            </p>
+          <!-- Enrollment Mode Dropdown -->
+          <div class="max-w-md">
+            <app-custom-select
+              label="Enrollment Type Option"
+              hint="If planner wants to market this phase, select Public Marketing Enrollment"
+              [options]="enrollmentModeOptions"
+              [value]="enrollmentMode()"
+              (valueChange)="onEnrollmentModeChange($event)">
+            </app-custom-select>
           </div>
 
-          <!-- Form Preview Drawer / Box -->
-          @if (showMarketingPreview()) {
-            <div class="p-5 rounded-2xl bg-base-200/70 border border-base-300 space-y-4 animate-in fade-in">
-              <div class="flex items-center justify-between pb-3 border-b border-base-300">
-                <div>
-                  <span class="text-[10px] uppercase font-bold tracking-wider text-tenant-600">Public Login Page Preview</span>
-                  <h4 class="text-sm font-bold text-text-primary">{{ phaseName() || 'Phase Enrollment' }} Application Form</h4>
-                </div>
-                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Active Template</span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                @for (field of intakeFormFields(); track field.id) {
-                  @if (field.enabled) {
-                    <div [class.sm:col-span-2]="field.type === 'textarea'">
-                      <label class="block font-semibold text-text-primary mb-1">
-                        {{ field.label }}
-                        @if (field.required) {
-                          <span class="text-rose-500 font-bold">*</span>
-                        } @else {
-                          <span class="text-text-secondary font-normal text-[10px]">(Optional)</span>
-                        }
-                      </label>
-                      <input 
-                        [type]="field.type" 
-                        disabled 
-                        [placeholder]="field.placeholder || ''"
-                        class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-secondary text-xs opacity-75" />
-                    </div>
-                  }
-                }
-              </div>
-            </div>
-          }
-
-          <!-- Intake Form Template Configuration Grid -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <h4 class="text-xs font-bold text-text-primary">Configure Intake Questions & Fields</h4>
-                <p class="text-[11px] text-text-secondary">Turn fields on/off, mark as required, or add custom organization questions</p>
-              </div>
-
-              <button 
-                type="button"
-                (click)="showAddCustomFieldModal.set(true)"
-                class="px-3 py-1.5 rounded-xl bg-tenant-50 dark:bg-tenant-950/40 text-tenant-700 dark:text-tenant-300 border border-tenant-300 dark:border-tenant-800 text-xs font-bold flex items-center gap-1 cursor-pointer hover:bg-tenant-100">
-                <span class="material-symbols-outlined text-xs">add</span>
-                <span>Add Question / Field</span>
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              @for (field of intakeFormFields(); track field.id) {
-                <div class="p-3.5 rounded-xl border transition-all space-y-2.5"
-                     [class.bg-base-200/50]="field.enabled"
-                     [class.border-base-300]="field.enabled"
-                     [class.opacity-50]="!field.enabled"
-                     [class.bg-base-100]="!field.enabled">
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
-                      <span class="font-bold text-xs text-text-primary block truncate">{{ field.label }}</span>
-                      <span class="text-[10px] text-text-secondary font-mono capitalize">Type: {{ field.type }}</span>
-                    </div>
-
-                    <div class="flex items-center gap-1.5 shrink-0">
-                      <button 
-                        type="button"
-                        (click)="toggleFieldEnabled(field.id)"
-                        class="p-1 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                        [class.text-emerald-600]="field.enabled"
-                        [class.hover:bg-emerald-50]="field.enabled"
-                        [class.text-slate-400]="!field.enabled"
-                        [title]="field.enabled ? 'Enabled in Form' : 'Disabled from Form'">
-                        <span class="material-symbols-outlined text-sm">{{ field.enabled ? 'visibility' : 'visibility_off' }}</span>
-                      </button>
-
-                      @if (field.id.startsWith('custom-fld-')) {
-                        <button 
-                          type="button"
-                          (click)="removeCustomField(field.id)"
-                          class="p-1 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Remove Field">
-                          <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                      }
+          @if (enrollmentMode() === 'public') {
+            <div class="space-y-4 pt-2 border-t border-base-200 dark:border-slate-800 animate-in fade-in">
+              <!-- Marketing Link Generator Banner -->
+              <div class="p-4 rounded-2xl bg-tenant-500/10 dark:bg-tenant-500/10 border border-tenant-500/20 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-tenant-600 dark:text-tenant-400">Shareable Phase Enrollment URL</span>
+                    <div class="font-mono text-xs font-bold text-text-primary mt-0.5 truncate">
+                      {{ marketingPublicLink() }}
                     </div>
                   </div>
 
-                  @if (field.helpText) {
-                    <p class="text-[10px] text-text-secondary line-clamp-1">{{ field.helpText }}</p>
-                  }
-
-                  <div class="pt-2 border-t border-base-300 flex items-center justify-between text-[11px]">
-                    <span class="text-text-secondary">Mandatory Field</span>
+                  <div class="flex items-center gap-2 shrink-0">
                     <button 
-                      type="button"
-                      (click)="toggleFieldRequired(field.id)"
-                      class="px-2 py-0.5 rounded-md font-bold text-[10px] cursor-pointer transition-colors"
-                      [class.bg-rose-100]="field.required"
-                      [class.text-rose-700]="field.required"
-                      [class.bg-base-200]="!field.required"
-                      [class.text-text-secondary]="!field.required">
-                      {{ field.required ? 'Required *' : 'Optional' }}
+                      type="button" 
+                      (click)="generateMarketingLink()"
+                      class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                      <span class="material-symbols-outlined text-sm text-tenant-600">sync</span>
+                      <span>Generate New Link</span>
                     </button>
+
+                    <button 
+                      type="button" 
+                      (click)="copyMarketingLink()"
+                      class="px-3.5 py-1.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                      <span class="material-symbols-outlined text-sm">content_copy</span>
+                      <span>Copy Link</span>
+                    </button>
+
+                    <button 
+                      type="button" 
+                      (click)="showMarketingPreview.set(!showMarketingPreview())"
+                      class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+                      <span class="material-symbols-outlined text-sm text-tenant-600">preview</span>
+                      <span>{{ showMarketingPreview() ? 'Hide Preview' : 'Preview Form' }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p class="text-[11px] text-text-secondary">
+                  When prospective learners visit this marketing link or click to enroll on the public login page, this configured intake form will be presented.
+                </p>
+              </div>
+
+              <!-- Form Preview Drawer / Box -->
+              @if (showMarketingPreview()) {
+                <div class="p-5 rounded-2xl bg-base-200/70 border border-base-300 space-y-4 animate-in fade-in">
+                  <div class="flex items-center justify-between pb-3 border-b border-base-300">
+                    <div>
+                      <span class="text-[10px] uppercase font-bold tracking-wider text-tenant-600">Public Login Page Preview</span>
+                      <h4 class="text-sm font-bold text-text-primary">{{ phaseName() || 'Phase Enrollment' }} Application Form</h4>
+                    </div>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">Active Template</span>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    @for (field of intakeFormFields(); track field.id) {
+                      @if (field.enabled) {
+                        <div [class.sm:col-span-2]="field.type === 'textarea'">
+                          <label class="block font-semibold text-text-primary mb-1">
+                            {{ field.label }}
+                            @if (field.required) {
+                              <span class="text-rose-500 font-bold">*</span>
+                            } @else {
+                              <span class="text-text-secondary font-normal text-[10px]">(Optional)</span>
+                            }
+                          </label>
+                          <input 
+                            [type]="field.type" 
+                            disabled 
+                            [placeholder]="field.placeholder || ''"
+                            class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-secondary text-xs opacity-75" />
+                        </div>
+                      }
+                    }
                   </div>
                 </div>
               }
             </div>
-          </div>
+          }
         </div>
-
-        <!-- Add Custom Field Modal in Step 6 -->
-        @if (showAddCustomFieldModal()) {
-          <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="w-full max-w-md bg-base-100 rounded-3xl border border-base-300 shadow-2xl p-6 space-y-4 animate-in zoom-in-95">
-              <div class="flex items-center justify-between border-b border-base-300 pb-3">
-                <h3 class="text-sm font-bold text-text-primary flex items-center gap-2">
-                  <span class="material-symbols-outlined text-tenant-600">help</span>
-                  Add Custom Intake Question
-                </h3>
-                <button type="button" (click)="showAddCustomFieldModal.set(false)" class="text-text-secondary hover:text-text-primary">
-                  <span class="material-symbols-outlined text-base">close</span>
-                </button>
-              </div>
-
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-xs font-semibold text-text-primary mb-1">Question / Field Label *</label>
-                  <input 
-                    type="text" 
-                    [value]="newFieldLabel()"
-                    (input)="newFieldLabel.set($any($event.target).value)"
-                    placeholder="e.g. Years of Field Microfinance Experience"
-                    class="w-full px-3 py-2 rounded-xl text-xs bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500" />
-                </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-text-primary mb-1">Field Input Type</label>
-                  <select 
-                    [value]="newFieldType()"
-                    (change)="newFieldType.set($any($event.target).value)"
-                    class="w-full px-3 py-2 rounded-xl text-xs bg-base-200 border border-base-300 text-text-primary focus:outline-none focus:border-tenant-500">
-                    <option value="text">Single Line Text</option>
-                    <option value="number">Numeric Value</option>
-                    <option value="email">Email Address</option>
-                    <option value="tel">Telephone / Mobile</option>
-                    <option value="textarea">Paragraph / Long Text</option>
-                  </select>
-                </div>
-
-                <div class="flex items-center gap-2 pt-1">
-                  <input 
-                    type="checkbox" 
-                    id="newFieldReqChk"
-                    [checked]="newFieldRequired()"
-                    (change)="newFieldRequired.set(!newFieldRequired())"
-                    class="rounded border-base-300 text-tenant-600 cursor-pointer" />
-                  <label for="newFieldReqChk" class="text-xs font-medium text-text-primary cursor-pointer">
-                    Applicant must answer this question (Mandatory)
-                  </label>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-300">
-                <button 
-                  type="button" 
-                  (click)="showAddCustomFieldModal.set(false)"
-                  class="px-4 py-2 rounded-xl text-xs font-semibold bg-base-200 text-text-secondary hover:bg-base-300">
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  (click)="addCustomField()"
-                  class="px-4 py-2 rounded-xl text-xs font-bold bg-tenant-500 text-white hover:bg-tenant-600 shadow-sm">
-                  Add to Template
-                </button>
-              </div>
-            </div>
-          </div>
-        }
-
       </div>
     }
 

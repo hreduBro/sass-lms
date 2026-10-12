@@ -92,7 +92,7 @@ export class DashboardComponent {
     {
       id: 'learner',
       name: 'Learner Progression',
-      description: 'Active Courseware, XP Leaderboard & Learning Heatmap',
+      description: 'Active Courseware, Live Classrooms & Metrics',
       icon: 'school',
       badge: 'Learner',
     },
@@ -154,7 +154,7 @@ export class DashboardComponent {
       this.draftWidgets.set(filtered);
       this.showToast('Applied "Executive Cockpit" layout preset');
     } else if (presetId === 'learner') {
-      const order = ['announcement_banner', 'learner_in_progress', 'gamification_leaderboard', 'chart_activity_heatmap', 'upcoming_webinars'];
+      const order = ['announcement_banner', 'kpi_grid', 'learner_in_progress', 'upcoming_webinars'];
       const filtered: DashboardWidget[] = [];
       order.forEach((type, idx) => {
         const found = allWidgets.find(w => w.type === type);
@@ -162,8 +162,8 @@ export class DashboardComponent {
           filtered.push({
             ...found,
             id: `w-${type}-${idx}`,
-            colSpan: (type === 'announcement_banner' ? 4 : type === 'learner_in_progress' ? 3 : type === 'gamification_leaderboard' ? 1 : 2) as any,
-            rowSpan: (type === 'announcement_banner' ? 1 : type === 'learner_in_progress' ? 3 : 2) as any
+            colSpan: (type === 'announcement_banner' || type === 'kpi_grid' ? 4 : type === 'learner_in_progress' ? 3 : 1) as any,
+            rowSpan: (type === 'announcement_banner' || type === 'kpi_grid' ? 1 : 2) as any
           });
         }
       });
@@ -205,7 +205,7 @@ export class DashboardComponent {
         } else if (w.type === 'learner_in_progress') {
           span = 3;
           rSpan = 2;
-        } else if (w.type === 'gamification_leaderboard') {
+        } else if (w.type === 'upcoming_webinars') {
           span = 1;
           rSpan = 2;
         } else if (span > 2) {
@@ -395,6 +395,11 @@ export class DashboardComponent {
     this.dragOverIndex.set(null);
   }
 
+  switchRole(role: 'learner' | 'instructor' | 'tenant_admin' | 'super_admin') {
+    this.lms.activeRole.set(role);
+    this.showToast(`Switched view mode to ${role.replace('_', ' ').toUpperCase()}`);
+  }
+
   // Utility to determine colSpan class for 12-column CSS grid with optimal symmetry
   getColSpanClass(span: 1 | 2 | 3 | 4): string {
     switch (span) {
@@ -411,18 +416,21 @@ export class DashboardComponent {
   }
 
   // Utility to determine rowSpan & height class for symmetric alignment
-  getRowSpanClass(rowSpan?: 1 | 2 | 3 | 4): string {
+  getRowSpanClass(rowSpan?: 1 | 2 | 3 | 4, type?: string): string {
+    if (type === 'announcement_banner') {
+      return 'min-h-0';
+    }
     const span = rowSpan || 2;
     switch (span) {
       case 1:
-        return 'min-h-[160px] lg:row-span-1';
+        return 'min-h-0 lg:row-span-1';
       case 3:
-        return 'min-h-[500px] lg:row-span-3';
+        return 'min-h-[460px] lg:row-span-3';
       case 4:
-        return 'min-h-[640px] lg:row-span-4';
+        return 'min-h-[580px] lg:row-span-4';
       case 2:
       default:
-        return 'min-h-[360px] lg:row-span-2';
+        return 'min-h-0 lg:row-span-2';
     }
   }
 }
