@@ -1097,4 +1097,40 @@ export class PlanCreateComponent implements OnInit {
       .filter(c => comp.prerequisiteIds?.includes(c.id))
       .map(c => c.name);
   }
+
+  onSubmitPreviewForm() {
+    const newEnrolledUser: PlanOnboardedUser = {
+      id: `usr-mkt-${Date.now()}`,
+      scope: this.activeOnboardingScope(),
+      identifierType: 'BRAC PIN',
+      bracPin: `MKT-${Math.floor(1000 + Math.random() * 9000)}`,
+      email: 'applicant.public@brac.net',
+      fullName: 'Public Enrolled Learner',
+      designation: 'Trainee Applicant',
+      department: 'Microfinance (Public Intake)',
+      notes: 'Self-enrolled via Public Marketing Page Link',
+      status: 'Ready',
+      dateAdded: new Date().toLocaleDateString('en-GB'),
+      source: 'Marketing Link'
+    };
+
+    this.onboardedUsers.set([newEnrolledUser, ...this.onboardedUsers()]);
+
+    this.modalService.confirm({
+      title: 'Enrollment Application Submitted!',
+      message: 'Form submitted successfully! A new prospective learner record ("Public Enrolled Learner") has been enrolled and added to your Trainee Roster table below.',
+      confirmText: 'View in Roster',
+      cancelText: 'Close',
+      icon: 'how_to_reg',
+      iconType: 'success'
+    });
+
+    this.lmsData.showToast(
+      'Enrollment application submitted! Prospective learner added to roster.',
+      'success',
+      4000,
+      'Enrollment Complete',
+      'ENROLLED'
+    );
+  }
 }

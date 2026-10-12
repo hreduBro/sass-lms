@@ -1158,4 +1158,23 @@ export class PhaseCreateComponent implements OnInit {
       }
     }, 60);
   }
+
+  onSubmitPreviewForm() {
+    this.modalService.confirm({
+      title: 'Phase Enrollment Submitted!',
+      message: 'Form submitted successfully! Prospective participants accessing this public marketing link will be automatically enrolled into this Phase batch.',
+      confirmText: 'Got It',
+      cancelText: 'Close',
+      icon: 'how_to_reg',
+      iconType: 'success'
+    });
+
+    this.lms.showToast(
+      'Phase enrollment application submitted successfully in preview mode!',
+      'success',
+      4000,
+      'Enrollment Complete',
+      'ENROLLED'
+    );
+  }
 }

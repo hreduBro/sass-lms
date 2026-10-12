@@ -235,7 +235,7 @@ export interface PlanOnboardedUser {
   notes?: string;
   status: OnboardingStatus;
   dateAdded: string; // DD/MM/YYYY
-  source: 'Bulk Upload' | 'Individual' | 'Copied';
+  source: 'Bulk Upload' | 'Individual' | 'Copied' | 'Marketing Link';
   errorMessage?: string;
 }
 
