@@ -931,15 +931,116 @@
 
           <button 
             type="button"
+            (click)="showAddIndividualForm.set(!showAddIndividualForm())"
+            class="px-3.5 py-2 rounded-xl bg-base-100 hover:bg-base-200 text-tenant-600 border border-tenant-500/30 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            <span>Tag Individual Trainee</span>
+          </button>
+
+          <button 
+            type="button"
             (click)="isBulkUploadOpen.set(true)"
             class="px-3.5 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-sm">upload_file</span>
             <span>Bulk Tag Trainees (CSV)</span>
           </button>
 
-          </div>
+        </div>
 
       </div>
+
+      <!-- Tag Individual Trainee Form Panel -->
+      @if (showAddIndividualForm()) {
+        <div class="p-5 sm:p-6 rounded-3xl bg-base-100 border border-tenant-500/30 shadow-xs space-y-4 animate-in fade-in">
+          <div class="flex items-center justify-between pb-3 border-b border-base-300">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 flex items-center justify-center">
+                <span class="material-symbols-outlined text-base">person_add</span>
+              </div>
+              <div>
+                <span class="text-[10px] uppercase font-bold tracking-wider text-tenant-600">TAG TRAINEE TO SCOPE:</span>
+                <h4 class="text-sm font-bold text-text-primary">{{ activeScopeDisplayName() }}</h4>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="cancelAddIndividualUser()"
+              class="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-base-200 transition-colors cursor-pointer"
+              title="Close">
+              <span class="material-symbols-outlined text-base">close</span>
+            </button>
+          </div>
+
+          <div [formGroup]="individualUserForm" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <app-custom-select
+                  label="Identifier Type"
+                  [required]="true"
+                  [options]="individualIdentifierOptions"
+                  formControlName="identifierType"
+                  [searchable]="false"
+                  [clearable]="false"
+                  placeholder="Select identifier type...">
+                </app-custom-select>
+              </div>
+
+              <div>
+                <label for="ind-identifier-value" class="block font-semibold text-text-primary mb-1">
+                  {{ individualUserForm.get('identifierType')?.value === 'Email' ? 'Email Address' : 'BRAC PIN' }}
+                  <span class="text-rose-500 font-bold">*</span>
+                </label>
+                <input
+                  id="ind-identifier-value"
+                  type="text"
+                  formControlName="identifierValue"
+                  [placeholder]="individualUserForm.get('identifierType')?.value === 'Email' ? 'e.g. user@brac.net' : 'e.g. PIN-10492'"
+                  class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/30" />
+              </div>
+
+              <div>
+                <label for="ind-full-name" class="block font-semibold text-text-primary mb-1">
+                  Full Name <span class="text-rose-500 font-bold">*</span>
+                </label>
+                <input
+                  id="ind-full-name"
+                  type="text"
+                  formControlName="fullName"
+                  placeholder="e.g. Tahmina Akter"
+                  class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/30" />
+              </div>
+
+              <div>
+                <label for="ind-designation" class="block font-semibold text-text-primary mb-1">
+                  Designation <span class="text-text-secondary font-normal text-[10px]">(Optional)</span>
+                </label>
+                <input
+                  id="ind-designation"
+                  type="text"
+                  formControlName="designation"
+                  placeholder="e.g. Junior Field Officer"
+                  class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-text-primary text-xs focus:outline-none focus:border-tenant-500 focus:ring-1 focus:ring-tenant-500/30" />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-base-300">
+              <button
+                type="button"
+                (click)="cancelAddIndividualUser()"
+                class="px-4 py-2 rounded-xl border border-base-300 hover:bg-base-200 text-text-secondary text-xs font-semibold transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                (click)="addIndividualUser()"
+                class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-sm">bookmark_add</span>
+                <span>Save to Roster</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Plan Enrollment & Intake Form Template Configuration (§ Requirements) -->
       <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
@@ -1154,7 +1255,7 @@
                   <td class="py-3 px-4">
                     <span class="px-2 py-0.5 rounded-md font-semibold text-[10px]"
                       [class]="user.scope === 'Whole Plan' ? 'bg-tenant-50 text-tenant-700 dark:bg-tenant-950 dark:text-tenant-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300'">
-                      {{ user.scope }}
+                      {{ getScopeDisplayName(user.scope) }}
                     </span>
                   </td>
 
@@ -1291,8 +1392,9 @@
   <app-bulk-upload-modal
     [isOpen]="isBulkUploadOpen()"
     [targetScope]="activeOnboardingScope()"
+    [existingUsers]="existingUsersForActiveScope()"
     (close)="isBulkUploadOpen.set(false)"
-    (usersCommitted)="onBulkUsersCommitted($event)">
+    (commit)="onBulkUsersCommitted($event)">
   </app-bulk-upload-modal>
 
 </div>

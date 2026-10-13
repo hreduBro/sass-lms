@@ -324,8 +324,8 @@ export class BulkUploadModalComponent {
 
       if (isValid) {
         const alreadyInScope = this.existingUsers().some(u => 
-          (u.identifierType === 'BRAC PIN' && u.bracPin === pin) ||
-          (u.identifierType === 'Email' && u.email.toLowerCase() === email.toLowerCase())
+          (u.identifierType === 'BRAC PIN' && (u.bracPin || '').trim().toLowerCase() === pin.toLowerCase()) ||
+          (u.identifierType === 'Email' && (u.email || '').trim().toLowerCase() === email.toLowerCase())
         );
         if (alreadyInScope) {
           isValid = false;

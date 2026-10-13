@@ -260,7 +260,7 @@ export class PlanCreateComponent implements OnInit {
     identifierType: ['BRAC PIN', Validators.required],
     identifierValue: ['', [Validators.required, Validators.minLength(2)]],
     fullName: ['', [Validators.required, Validators.minLength(2)]],
-    designation: ['Junior Field Officer', Validators.required],
+    designation: ['Junior Field Officer'],
     department: ['Microfinance (Field Operations)']
   });
 
@@ -424,6 +424,20 @@ export class PlanCreateComponent implements OnInit {
   // Derived Phases
   phases = computed<PlanComponent[]>(() => {
     return this.components().filter(c => c.type === 'Phase');
+  });
+
+  activeScopeDisplayName = computed<string>(() => {
+    const scope = this.activeOnboardingScope();
+    if (scope === 'Whole Plan') {
+      return 'Whole Plan Cohort';
+    }
+    const ph = this.phases().find(p => p.id === scope);
+    return ph?.name || scope;
+  });
+
+  existingUsersForActiveScope = computed<PlanOnboardedUser[]>(() => {
+    const scope = this.activeOnboardingScope();
+    return this.onboardedUsers().filter(u => u.scope === scope);
   });
 
   phaseFilterOptions = computed<SelectOption[]>(() => {
@@ -875,6 +889,15 @@ export class PlanCreateComponent implements OnInit {
   // Step 03 User Onboarding Actions
   setScope(scope: OnboardingScope) {
     this.activeOnboardingScope.set(scope);
+    this.cancelAddIndividualUser();
+  }
+
+  getScopeDisplayName(scope: OnboardingScope): string {
+    if (scope === 'Whole Plan') {
+      return 'Whole Plan';
+    }
+    const ph = this.phases().find(p => p.id === scope);
+    return ph?.name || scope;
   }
 
   getScopeUserCount(scope: OnboardingScope): number {
@@ -887,33 +910,7 @@ export class PlanCreateComponent implements OnInit {
     this.lmsData.showToast('User removed from roster.', 'info');
   }
 
-  addIndividualUser() {
-    if (this.individualUserForm.invalid) {
-      this.individualUserForm.markAllAsTouched();
-      this.lmsData.showToast('Please provide both Identifier and Full Name.', 'warning');
-      return;
-    }
-
-    const val = this.individualUserForm.value;
-    const idVal = val.identifierValue.trim();
-    const nameVal = val.fullName.trim();
-
-    const newUser: PlanOnboardedUser = {
-      id: `usr-ind-${Date.now()}`,
-      scope: this.activeOnboardingScope(),
-      identifierType: val.identifierType,
-      bracPin: val.identifierType === 'BRAC PIN' ? idVal : undefined,
-      email: val.identifierType === 'Email' ? idVal : `${idVal.toLowerCase()}@brac.net`,
-      fullName: nameVal,
-      designation: val.designation?.trim() || 'Junior Field Officer',
-      department: val.department?.trim() || 'Microfinance (Field Operations)',
-      notes: 'Individually added by Planner',
-      status: 'Ready',
-      dateAdded: '01/01/2026',
-      source: 'Individual'
-    };
-
-    this.onboardedUsers.set([...this.onboardedUsers(), newUser]);
+  cancelAddIndividualUser() {
     this.showAddIndividualForm.set(false);
     this.individualUserForm.reset({
       identifierType: 'BRAC PIN',
@@ -922,6 +919,65 @@ export class PlanCreateComponent implements OnInit {
       designation: 'Junior Field Officer',
       department: 'Microfinance (Field Operations)'
     });
+  }
+
+  addIndividualUser() {
+    const val = this.individualUserForm.value;
+    const idVal = (val.identifierValue || '').trim();
+    const nameVal = (val.fullName || '').trim();
+
+    if (!idVal || !nameVal) {
+      this.individualUserForm.markAllAsTouched();
+      this.lmsData.showToast('Please provide both Identifier and Full Name.', 'warning');
+      return;
+    }
+
+    if (val.identifierType === 'Email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(idVal)) {
+        this.lmsData.showToast('Please enter a valid email address.', 'warning');
+        return;
+      }
+    }
+
+    const activeScope = this.activeOnboardingScope();
+    const isDuplicate = this.onboardedUsers().some(u => {
+      if (u.scope !== activeScope) return false;
+      if (val.identifierType === 'BRAC PIN') {
+        return u.identifierType === 'BRAC PIN' && (u.bracPin || '').trim().toLowerCase() === idVal.toLowerCase();
+      } else {
+        return u.identifierType === 'Email' && (u.email || '').trim().toLowerCase() === idVal.toLowerCase();
+      }
+    });
+
+    if (isDuplicate) {
+      this.lmsData.showToast(`User with ${val.identifierType} "${idVal}" is already tagged to this scope.`, 'warning');
+      return;
+    }
+
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const dateFormatted = `${dd}/${mm}/${yyyy}`;
+
+    const newUser: PlanOnboardedUser = {
+      id: `usr-ind-${Date.now()}`,
+      scope: activeScope,
+      identifierType: val.identifierType,
+      bracPin: val.identifierType === 'BRAC PIN' ? idVal : undefined,
+      email: val.identifierType === 'Email' ? idVal : `${idVal.toLowerCase()}@brac.net`,
+      fullName: nameVal,
+      designation: val.designation?.trim() || 'Junior Field Officer',
+      department: val.department?.trim() || 'Microfinance (Field Operations)',
+      notes: 'Individually added by Planner',
+      status: 'Ready',
+      dateAdded: dateFormatted,
+      source: 'Individual'
+    };
+
+    this.onboardedUsers.set([...this.onboardedUsers(), newUser]);
+    this.cancelAddIndividualUser();
     this.lmsData.showToast(`User "${nameVal}" added to roster.`, 'success');
   }
 
