@@ -977,9 +977,11 @@ export class PlanCreateComponent implements OnInit {
       return;
     }
 
+    const formTitle = (this.basicForm.get('name')?.value || 'Field Officer Development Programme 2026') + ' Application Form';
+
     this.modalService.confirm({
       title: 'Publish Learning Plan?',
-      message: `Publishing "${this.currentPlan().name}" will lock its core structural configuration and assign code ${this.planCode()}. Once published, you can dispatch trainee invitations and activate learning tracks.`,
+      message: `Publishing "${this.currentPlan().name}" will lock its core structural configuration, activate code ${this.planCode()}, and publish "${formTitle}" to the public enrollment page. Form information will automatically be registered in the Appointed Plan Administrators Roster.`,
       confirmText: 'Publish Plan',
       iconType: 'info',
       onConfirm: () => {
@@ -987,19 +989,42 @@ export class PlanCreateComponent implements OnInit {
         const plan = this.currentPlan();
         plan.status = 'Published';
         plan.components = this.components();
-        plan.onboardedUsers = this.onboardedUsers();
 
+        // Register Public Marketing Application Form info into Appointed Plan Administrators Roster (§ User Request)
+        const formAdminRecord: PlanOnboardedUser = {
+          id: `usr-adm-mkt-${Date.now()}`,
+          scope: this.activeOnboardingScope(),
+          identifierType: 'BRAC PIN',
+          bracPin: `ADM-MKT-2026`,
+          email: 'intake.form@brac.net',
+          fullName: `${formTitle} (Appointed Public Intake Lead)`,
+          designation: 'Appointed Plan Administrator & Public Intake Form Lead',
+          department: 'Microfinance (Public Marketing Intake)',
+          notes: `Published Public Enrollment Application Form (${this.marketingSlug()}) registered to Appointed Plan Administrators Roster`,
+          status: 'Ready',
+          dateAdded: new Date().toLocaleDateString('en-GB'),
+          source: 'Marketing Link'
+        };
+
+        const existingUsers = this.onboardedUsers();
+        if (!existingUsers.some(u => u.bracPin === 'ADM-MKT-2026')) {
+          this.onboardedUsers.set([formAdminRecord, ...existingUsers]);
+        }
+
+        plan.onboardedUsers = this.onboardedUsers();
         this.lmsData.savePlan(plan);
         this.lastSavedAt.set('Just now');
         this.isReviewModalOpen.set(false);
 
         this.lmsData.showToast(
-          'Plan published successfully! Ready for trainee activation.',
+          `Plan published! "${formTitle}" information registered in Appointed Plan Administrators Roster.`,
           'success',
           5000,
-          'Plan Published',
+          'Plan Published & Form Registered',
           'PUBLISHED'
         );
+
+        this.scrollToRosterTable();
       }
     });
   }
@@ -1132,5 +1157,17 @@ export class PlanCreateComponent implements OnInit {
       'Enrollment Complete',
       'ENROLLED'
     );
+
+    this.scrollToRosterTable();
+  }
+
+  scrollToRosterTable() {
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      const el = document.getElementById('trainee-roster-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
   }
 }
