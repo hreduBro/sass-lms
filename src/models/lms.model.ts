@@ -275,6 +275,7 @@ export type DashboardWidgetType =
   | 'chart_compliance_gauge'
   | 'chart_activity_heatmap'
   | 'learner_in_progress'
+  | 'my_skills'
   | 'escalation_queue'
   | 'live_audit_feed'
   | 'upcoming_webinars'

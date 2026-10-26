@@ -28,7 +28,12 @@ export interface PhaseDeliverySession {
   instructorName?: string;
   instructorEmail?: string;
   venueName?: string; // For in-person/hybrid
+  roomName?: string; // Room for in-person/hybrid
   meetingLink?: string; // For virtual classrooms
+  liveSessionId?: string; // Reference to LMS webinar / live session
+  platform?: string; // Zoom, Teams, Google Meet, WebRTC
+  maxAttendees?: number;
+  attendeeCount?: number;
 }
 
 export interface PhasePrerequisiteConfig {

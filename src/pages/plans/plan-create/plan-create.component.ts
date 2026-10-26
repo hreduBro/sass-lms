@@ -1139,6 +1139,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Content': return 'bg-indigo-500 text-white';
       case 'Course': return 'bg-emerald-600 text-white';
       case 'Offline Training': return 'bg-teal-600 text-white';
+      case 'Live Classroom': return 'bg-cyan-600 text-white';
       case 'Pre-Test': return 'bg-amber-500 text-white';
       case 'Post-Test': return 'bg-rose-500 text-white';
       case 'Survey': return 'bg-purple-600 text-white';
@@ -1152,6 +1153,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Content': return 'border-l-indigo-500';
       case 'Course': return 'border-l-emerald-600';
       case 'Offline Training': return 'border-l-teal-600';
+      case 'Live Classroom': return 'border-l-cyan-600';
       case 'Pre-Test': return 'border-l-amber-500';
       case 'Post-Test': return 'border-l-rose-500';
       case 'Survey': return 'border-l-purple-600';
@@ -1165,6 +1167,7 @@ export class PlanCreateComponent implements OnInit {
       case 'Content': return 'play_lesson';
       case 'Course': return 'school';
       case 'Offline Training': return 'business';
+      case 'Live Classroom': return 'videocam';
       case 'Pre-Test': return 'quiz';
       case 'Post-Test': return 'assignment_turned_in';
       case 'Survey': return 'reviews';

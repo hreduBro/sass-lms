@@ -278,6 +278,22 @@ export const INITIAL_SKILLS: Skill[] = [
     createdBy: 'System Admin',
     createdAt: '01/01/2025',
     updatedAt: '10/01/2026'
+  },
+  {
+    skillId: 'skl-009',
+    skillCode: 'SKL-0009',
+    name: 'Field Data Collection',
+    description: 'Proficiency in structured field household surveys, geospatial tagging, poverty scorecard surveys, and data integrity.',
+    category: 'Operations',
+    clusterId: 'cls-002',
+    clusterName: 'Field Operations & Ethics',
+    levels: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    status: 'active',
+    mappedElementCount: 4,
+    learnersAcquiredCount: 88,
+    createdBy: 'Compliance Officer',
+    createdAt: '01/02/2026',
+    updatedAt: '25/02/2026'
   }
 ];
 
@@ -413,6 +429,24 @@ export const INITIAL_LEARNER_SKILL_PROGRESS: LearnerSkillProgress[] = [
     linkedCredentials: [],
     firstAcquiredAt: '28/02/2026',
     updatedAt: '28/02/2026'
+  },
+  {
+    learnerId: 'usr-001',
+    learnerName: 'Trainee User',
+    skillId: 'skl-009',
+    skillName: 'Field Data Collection',
+    skillCategory: 'Operations',
+    acquired: true,
+    level: 'Intermediate',
+    progressPercent: 78,
+    contributingElements: [
+      { targetType: 'phase', targetId: 'phase-brac-01-2', targetName: 'Phase 2: Digital Credit & Biometric KYC Operations', completedAt: '18/02/2026' }
+    ],
+    linkedCredentials: [
+      { type: 'badge', id: 'bdg-field-01', title: 'Field Operations Specialist' }
+    ],
+    firstAcquiredAt: '18/02/2026',
+    updatedAt: '25/02/2026'
   },
   {
     learnerId: 'usr-001',

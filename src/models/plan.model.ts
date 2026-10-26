@@ -52,7 +52,7 @@ export type EnrollmentConfirmation = 'Auto Onboard' | 'Manual Review';
 // =========================================================================
 // COMPONENT-BASED PLAN BUILDER SPECIFICATION (v2.3)
 // =========================================================================
-export type PlanComponentType = 'Task' | 'Content' | 'Course' | 'Offline Training' | 'Pre-Test' | 'Post-Test' | 'Survey' | 'Phase';
+export type PlanComponentType = 'Task' | 'Content' | 'Course' | 'Offline Training' | 'Live Classroom' | 'Pre-Test' | 'Post-Test' | 'Survey' | 'Phase';
 
 export interface PlanBudget {
   budgetYear?: string;  // e.g. "FY 2026"
@@ -206,6 +206,13 @@ export interface PlanComponent {
   sessionCapacity?: number;
   offlineAttendanceRequirementPct?: number;
   materialsProvided?: boolean;
+
+  // Live Classroom & Virtual Session specific (BRD §4.2.2)
+  liveSessionId?: string;
+  meetingLink?: string;
+  platform?: string;
+  attendeeCount?: number;
+  attendanceRequirementPct?: number;
 
   // Completion Tagging: Skills, Certificates & Badges (Phase/Component completion)
   completionSkills?: string[];

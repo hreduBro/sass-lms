@@ -154,7 +154,7 @@ export class DashboardComponent {
       this.draftWidgets.set(filtered);
       this.showToast('Applied "Executive Cockpit" layout preset');
     } else if (presetId === 'learner') {
-      const order = ['announcement_banner', 'kpi_grid', 'learner_in_progress', 'upcoming_webinars'];
+      const order = ['announcement_banner', 'kpi_grid', 'learner_in_progress', 'my_skills', 'upcoming_webinars'];
       const filtered: DashboardWidget[] = [];
       order.forEach((type, idx) => {
         const found = allWidgets.find(w => w.type === type);
@@ -162,7 +162,7 @@ export class DashboardComponent {
           filtered.push({
             ...found,
             id: `w-${type}-${idx}`,
-            colSpan: (type === 'announcement_banner' || type === 'kpi_grid' ? 4 : type === 'learner_in_progress' ? 3 : 1) as any,
+            colSpan: (type === 'announcement_banner' || type === 'kpi_grid' ? 4 : 2) as any,
             rowSpan: (type === 'announcement_banner' || type === 'kpi_grid' ? 1 : 2) as any
           });
         }
@@ -202,11 +202,11 @@ export class DashboardComponent {
         if (w.type === 'announcement_banner' || w.type === 'kpi_grid') {
           span = 4;
           rSpan = 1;
-        } else if (w.type === 'learner_in_progress') {
-          span = 3;
+        } else if (w.type === 'learner_in_progress' || w.type === 'my_skills') {
+          span = 2;
           rSpan = 2;
         } else if (w.type === 'upcoming_webinars') {
-          span = 1;
+          span = 2;
           rSpan = 2;
         } else if (span > 2) {
           span = 2;

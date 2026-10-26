@@ -585,13 +585,23 @@
               <p class="text-[11px] text-text-secondary mt-0.5">Configure live webinars, virtual lectures, or in-person workshop timings</p>
             </div>
 
-            <button 
-              type="button" 
-              (click)="openAddSessionModal()"
-              class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto">
-              <span class="material-symbols-outlined text-base">add_circle</span>
-              <span>Schedule Session</span>
-            </button>
+            <div class="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+              <button 
+                type="button" 
+                (click)="openLiveClassroomPicker()"
+                class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-outlined text-base">cast_for_education</span>
+                <span>Pick Live Classroom</span>
+              </button>
+
+              <button 
+                type="button" 
+                (click)="openAddSessionModal()"
+                class="px-4 py-2 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap">
+                <span class="material-symbols-outlined text-base">add_circle</span>
+                <span>Schedule Custom Session</span>
+              </button>
+            </div>
           </div>
 
           <!-- Scheduled Sessions List -->
@@ -1262,6 +1272,27 @@
 
       <!-- Form Inputs -->
       <div class="space-y-3.5">
+        <!-- Quick Pick from Live Classroom / Webinar Catalog -->
+        <div class="p-3 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-900/50 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-800 dark:text-cyan-300 flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">cast_for_education</span>
+              <span>Quick Pick from Live Classroom Catalog</span>
+            </span>
+            <span class="text-[10px] text-cyan-700 dark:text-cyan-400 font-semibold">BRD §4.2.2</span>
+          </div>
+          <select 
+            (change)="onSelectCatalogWebinarInModal($any($event.target).value); $any($event.target).value = ''"
+            class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-cyan-300 dark:border-cyan-800 text-text-primary focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
+            <option value="">-- Choose scheduled webinar / classroom --</option>
+            @for (w of availableLiveClassrooms(); track w.id) {
+              <option [value]="w.id">
+                {{ w.title }} ({{ w.scheduledAt }} &bull; {{ w.instructor }})
+              </option>
+            }
+          </select>
+        </div>
+
         <div>
           <label class="block text-xs font-semibold text-text-primary mb-1">
             Session Title <span class="text-rose-500">*</span>
@@ -1410,6 +1441,172 @@
             <span class="material-symbols-outlined text-base">check</span>
             <span>{{ isEditMode() ? 'Confirm & Update Phase' : 'Confirm & Publish Phase' }}</span>
           }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- 3. Dedicated Live Classroom Picker Modal (BRD §4.2.2) -->
+@if (showLiveClassroomPickerModal()) {
+  <div 
+    class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 animate-modal-backdrop overflow-y-auto"
+    (click)="closeLiveClassroomPicker()">
+    <div 
+      class="relative bg-base-100 dark:bg-base-200 border border-base-300 dark:border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl p-6 space-y-4 animate-modal-card m-auto"
+      (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-base-300 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-600/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl">cast_for_education</span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-text-primary">Pick Live Classroom (BRD §4.2.2)</h2>
+            <p class="text-xs text-text-secondary">Attach a scheduled live online or virtual classroom to this Plan Phase.</p>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          (click)="closeLiveClassroomPicker()"
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-base-200 transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Timeframe Rule Banner -->
+      <div class="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 flex items-center gap-2.5 text-xs">
+        <span class="material-symbols-outlined text-cyan-600 shrink-0 text-lg">info</span>
+        <div class="min-w-0 text-text-secondary leading-snug">
+          <strong class="text-text-primary">Phase Window:</strong> 
+          <span class="font-mono font-bold text-cyan-700 dark:text-cyan-300 mx-1">{{ startDate() }} – {{ endDate() }}</span>.
+          A class attaches to one Phase only, and its date must fit within this timeframe window.
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+          <input 
+            type="text" 
+            [value]="liveClassroomSearchQuery()"
+            (input)="liveClassroomSearchQuery.set($any($event.target).value)"
+            placeholder="Search live classroom title, instructor, or platform..." 
+            class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-base-200/60 dark:bg-base-300/40 border border-base-300 dark:border-slate-700 text-xs text-text-primary focus:outline-none focus:border-cyan-500 focus:bg-base-100 transition-all">
+        </div>
+      </div>
+
+      <!-- Live Classrooms List -->
+      <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+        @for (webinar of filteredLiveClassrooms(); track webinar.id) {
+          @let siblingPhase = getSiblingPhaseForLiveClassroom(webinar);
+          @let isAttached = isLiveClassroomAttachedToCurrentPhase(webinar);
+
+          <div 
+            class="p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            [class]="isAttached 
+              ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800' 
+              : siblingPhase 
+                ? 'bg-base-200/40 dark:bg-base-300/20 border-base-300 opacity-60' 
+                : 'bg-base-100 dark:bg-base-200/40 border-base-300 hover:border-cyan-500/50 hover:shadow-xs'">
+            
+            <div class="flex items-start gap-3 min-w-0 flex-1">
+              <div class="w-9 h-9 rounded-xl bg-cyan-600/10 text-cyan-600 flex items-center justify-center shrink-0 mt-0.5">
+                <span class="material-symbols-outlined text-lg">videocam</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <h4 class="font-bold text-xs text-text-primary">{{ webinar.title }}</h4>
+                  
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
+                    {{ webinar.platform }}
+                  </span>
+
+                  @if (isAttached) {
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 flex items-center gap-0.5">
+                      <span class="material-symbols-outlined text-xs">check_circle</span>
+                      Attached to This Phase
+                    </span>
+                  } @else if (siblingPhase) {
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 flex items-center gap-0.5">
+                      <span class="material-symbols-outlined text-xs">lock</span>
+                      Attached to {{ siblingPhase }}
+                    </span>
+                  }
+                </div>
+
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-secondary mt-1">
+                  <span class="font-mono text-text-primary font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-slate-400">event</span>
+                    {{ webinar.scheduledAt }}
+                  </span>
+                  <span>&bull;</span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-slate-400">schedule</span>
+                    {{ webinar.durationMinutes }} mins
+                  </span>
+                  <span>&bull;</span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-slate-400">person</span>
+                    Instructor: <strong class="text-text-primary">{{ webinar.instructor }}</strong>
+                  </span>
+                  <span>&bull;</span>
+                  <span>{{ webinar.attendeeCount || 0 }} / {{ webinar.maxAttendees || 50 }} Attendees</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="shrink-0 self-end sm:self-center">
+              @if (isAttached) {
+                <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">check</span>
+                  <span>Attached</span>
+                </span>
+              } @else if (siblingPhase) {
+                <button 
+                  type="button" 
+                  disabled
+                  title="A class attaches to one Phase only"
+                  class="px-3.5 py-1.5 rounded-xl bg-base-200 text-text-secondary text-xs font-semibold opacity-60 cursor-not-allowed flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">block</span>
+                  <span>Locked</span>
+                </button>
+              } @else {
+                <button 
+                  type="button" 
+                  (click)="pickLiveClassroom(webinar)"
+                  class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">add_link</span>
+                  <span>Attach to Phase</span>
+                </button>
+              }
+            </div>
+
+          </div>
+        }
+
+        @if (filteredLiveClassrooms().length === 0) {
+          <div class="p-8 text-center rounded-2xl border border-dashed border-base-300 bg-base-200/30 text-xs text-text-secondary">
+            <span class="material-symbols-outlined text-2xl text-slate-400 mb-1">search_off</span>
+            <p class="font-semibold text-text-primary">No live classrooms match search query</p>
+            <p class="text-[11px] mt-0.5">Try searching for other webinar topics or instructors.</p>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-base-300 dark:border-slate-800">
+        <span class="text-[11px] text-text-secondary">BRD §4.2.2 Curriculum Phase Class Rule</span>
+        <button 
+          type="button" 
+          (click)="closeLiveClassroomPicker()"
+          class="px-4 py-2 rounded-xl bg-base-200 hover:bg-base-300 text-xs font-semibold text-text-secondary hover:text-text-primary transition-all cursor-pointer">
+          Close
         </button>
       </div>
 

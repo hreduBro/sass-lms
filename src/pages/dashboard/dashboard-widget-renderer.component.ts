@@ -154,12 +154,16 @@ export class DashboardWidgetRendererComponent {
       const user = this.lms.activeUser();
       const enrolled = this.lms.enrollments().filter(e => e.userId === user.id);
       const completed = enrolled.filter(e => e.status === 'completed');
+      const allSkills = this.lms.learnerSkillProgress();
+      const acquiredCount = allSkills.filter(s => s.acquired).length;
+      const proficientCount = allSkills.filter(s => s.level === 'Advanced' || s.level === 'Expert' || s.level === 'Proficient').length;
+      const developingCount = allSkills.length - proficientCount;
 
       return [
         { title: 'My Enrolled Courses', value: enrolled.length.toString(), change: 'Active', icon: 'school', color: 'indigo', subtext: 'In your learning path' },
         { title: 'Completed Courses', value: completed.length.toString(), change: '+100%', icon: 'check', color: 'emerald', subtext: 'Great progress!' },
         { title: 'Earned Certificates', value: user.earnedCertificates.length.toString(), change: 'Verified', icon: 'badge', color: 'amber', subtext: 'Available for download' },
-        { title: 'My Skills', value: '12 Acquired', change: '4 Proficient', icon: 'psychology', color: 'violet', subtext: '4 Proficient • 8 Developing' }
+        { title: 'My Skills', value: `${acquiredCount} Acquired`, change: `${proficientCount} Proficient`, icon: 'psychology', color: 'violet', subtext: `${proficientCount} Proficient • ${developingCount} In-Progress` }
       ];
     }
 
@@ -311,6 +315,40 @@ export class DashboardWidgetRendererComponent {
   registerWebinar(title: string) {
     this.lms.logAction('Webinar Registered', `Registered for ${title}`, 'info');
     this.showWidgetToast(`Successfully registered & added "${title}" to calendar!`);
+  }
+
+  // =========================================================================
+  // MY SKILLS WIDGET STATE & HELPERS (BRD §4.10, §5.6)
+  // =========================================================================
+  skillsFilter = signal<'all' | 'acquired' | 'in_progress'>('all');
+
+  filteredLearnerSkills = computed(() => {
+    let list = this.lms.learnerSkillProgress();
+    const filter = this.skillsFilter();
+
+    if (filter === 'acquired') {
+      list = list.filter(s => s.acquired);
+    } else if (filter === 'in_progress') {
+      list = list.filter(s => !s.acquired || s.progressPercent < 100);
+    }
+
+    return list;
+  });
+
+  getSkillLevelBadgeClass(level: string): string {
+    switch (level?.toLowerCase()) {
+      case 'expert':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+      case 'advanced':
+      case 'proficient':
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+      case 'intermediate':
+        return 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border-teal-200 dark:border-teal-800';
+      case 'beginner':
+      case 'foundational':
+      default:
+        return 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border-sky-200 dark:border-sky-800';
+    }
   }
 }
 

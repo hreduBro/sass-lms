@@ -12,7 +12,7 @@ import {
   RegistrationFormField,
   MarketingEnrollmentConfig
 } from '../../../models/plan.model';
-import { Course } from '../../../models/lms.model';
+import { Course, LiveWebinar } from '../../../models/lms.model';
 import {
   PhaseTask,
   PhaseDeliverySession,
@@ -199,6 +199,60 @@ export class PhaseCreateComponent implements OnInit {
   newSessionInstructor = signal<string>('');
   newSessionVenue = signal<string>('Main Campus - Hall A');
   newSessionMeetingLink = signal<string>('https://meet.google.com/onelms-session');
+
+  // Live Classroom / Webinar Catalog State (BRD §4.2.2)
+  showLiveClassroomPickerModal = signal<boolean>(false);
+  liveClassroomSearchQuery = signal<string>('');
+  selectedCatalogWebinarId = signal<string>('');
+
+  availableLiveClassrooms = computed(() => this.lms.webinars());
+
+  filteredLiveClassrooms = computed(() => {
+    const q = this.liveClassroomSearchQuery().trim().toLowerCase();
+    const list = this.availableLiveClassrooms();
+    if (!q) return list;
+    return list.filter(w => 
+      w.title.toLowerCase().includes(q) || 
+      w.instructor.toLowerCase().includes(q) ||
+      w.platform.toLowerCase().includes(q)
+    );
+  });
+
+  // Track live classrooms attached in sibling phases (BRD §4.2.2: A class attaches to ONE Phase only)
+  liveClassroomsInSiblingPhases = computed(() => {
+    const plan = this.parentPlan();
+    const editingId = this.editingPhaseId();
+    const map = new Map<string, string>(); // webinarId or title -> sibling phase name
+
+    if (!plan) return map;
+
+    if (plan.components) {
+      plan.components.forEach(comp => {
+        if ((comp.type === 'Live Classroom' || comp.type === 'Offline Training') && comp.phaseId && comp.phaseId !== editingId) {
+          const sibPhase = plan.phases?.find(p => p.id === comp.phaseId);
+          const phaseName = sibPhase ? sibPhase.name : `Phase ${comp.phaseId}`;
+          if (comp.liveSessionId) map.set(comp.liveSessionId, phaseName);
+          if (comp.name) map.set(comp.name, phaseName);
+        }
+      });
+    }
+
+    if (plan.phases) {
+      plan.phases.forEach(ph => {
+        if (ph.id !== editingId) {
+          const draft = this.lms.phaseDrafts().find(d => d.id === ph.id);
+          if (draft?.delivery?.sessions) {
+            draft.delivery.sessions.forEach(sess => {
+              if (sess.liveSessionId) map.set(sess.liveSessionId, ph.name);
+              if (sess.sessionName) map.set(sess.sessionName, ph.name);
+            });
+          }
+        }
+      });
+    }
+
+    return map;
+  });
 
   // =========================================================================
   // STEP 8: Publish Confirmation Modal (§10)
@@ -840,6 +894,156 @@ export class PhaseCreateComponent implements OnInit {
   removeSession(sessionId: string) {
     this.sessionsList.update(list => list.filter(s => s.id !== sessionId));
     this.lms.showToast('Session removed from schedule.', 'info', 2000);
+  }
+
+  // =========================================================================
+  // LIVE CLASSROOM PICKER ACTIONS (BRD §4.2.2)
+  // =========================================================================
+  getSiblingPhaseForLiveClassroom(webinar: LiveWebinar): string | null {
+    const map = this.liveClassroomsInSiblingPhases();
+    return map.get(webinar.id) || map.get(webinar.title) || null;
+  }
+
+  isLiveClassroomAttachedToCurrentPhase(webinar: LiveWebinar): boolean {
+    return this.sessionsList().some(s => s.liveSessionId === webinar.id || s.sessionName === webinar.title);
+  }
+
+  openLiveClassroomPicker() {
+    this.liveClassroomSearchQuery.set('');
+    this.showLiveClassroomPickerModal.set(true);
+  }
+
+  closeLiveClassroomPicker() {
+    this.showLiveClassroomPickerModal.set(false);
+  }
+
+  pickLiveClassroom(webinar: LiveWebinar) {
+    // 1. Check if class is already attached to a sibling phase (BRD §4.2.2: A class attaches to one Phase only)
+    const siblingPhaseName = this.getSiblingPhaseForLiveClassroom(webinar);
+    if (siblingPhaseName) {
+      this.lms.showToast(
+        `Live Classroom "${webinar.title}" is already attached to Phase "${siblingPhaseName}". Per BRD §4.2.2, a class attaches to one Phase only.`,
+        'warning',
+        5000,
+        'Single Phase Rule'
+      );
+      return;
+    }
+
+    // 2. Check if already attached to current phase
+    if (this.isLiveClassroomAttachedToCurrentPhase(webinar)) {
+      this.lms.showToast(`"${webinar.title}" is already attached to this Phase.`, 'info', 3000);
+      return;
+    }
+
+    // 3. Check if session date fits within Phase window (BRD §4.2.2: its date must fit the Phase window)
+    let sessionDate = this.startDate() || formatDateDDMMYYYY(new Date());
+    if (webinar.scheduledAt) {
+      const parsed = new Date(webinar.scheduledAt);
+      if (!isNaN(parsed.getTime())) {
+        sessionDate = formatDateDDMMYYYY(parsed);
+      }
+    }
+
+    const pStart = parseDateDDMMYYYY(this.startDate());
+    const pEnd = parseDateDDMMYYYY(this.endDate());
+    const sDate = parseDateDDMMYYYY(sessionDate);
+
+    if (pStart && sDate && sDate.getTime() < pStart.getTime()) {
+      this.lms.showToast(
+        `Class session date (${sessionDate}) precedes Phase start date (${this.startDate()}). Per BRD §4.2.2, a class date must fit the Phase window.`,
+        'warning',
+        5500,
+        'Phase Window Mismatch'
+      );
+      return;
+    }
+    if (pEnd && sDate && sDate.getTime() > pEnd.getTime()) {
+      this.lms.showToast(
+        `Class session date (${sessionDate}) exceeds Phase end date (${this.endDate()}). Per BRD §4.2.2, a class date must fit the Phase window.`,
+        'warning',
+        5500,
+        'Phase Window Mismatch'
+      );
+      return;
+    }
+
+    // 4. Attach class session to phase
+    const newSession: PhaseDeliverySession = {
+      id: `sess-${Date.now()}`,
+      sessionName: webinar.title,
+      mode: 'Virtual Classroom',
+      sessionDate: sessionDate,
+      startTime: '10:00 AM',
+      durationMinutes: webinar.durationMinutes || 90,
+      instructorName: webinar.instructor,
+      meetingLink: webinar.joinUrl,
+      liveSessionId: webinar.id,
+      platform: webinar.platform,
+      maxAttendees: webinar.maxAttendees || 50,
+      attendeeCount: webinar.attendeeCount || webinar.attendeesCount || 0
+    };
+
+    this.sessionsList.update(list => [...list, newSession]);
+    this.closeLiveClassroomPicker();
+    this.lms.showToast(
+      `Live Classroom "${webinar.title}" successfully attached to Phase.`,
+      'success',
+      4000,
+      'Class Attached'
+    );
+  }
+
+  onSelectCatalogWebinarInModal(webinarId: string) {
+    if (!webinarId) return;
+    const webinar = this.availableLiveClassrooms().find(w => w.id === webinarId);
+    if (!webinar) return;
+
+    // Check sibling phase attachment
+    const siblingPhaseName = this.getSiblingPhaseForLiveClassroom(webinar);
+    if (siblingPhaseName) {
+      this.lms.showToast(
+        `Live Classroom "${webinar.title}" is already attached to Phase "${siblingPhaseName}". Per BRD §4.2.2, a class attaches to one Phase only.`,
+        'warning',
+        5000,
+        'Single Phase Rule'
+      );
+    }
+
+    let sessionDate = this.newSessionDate() || this.startDate() || formatDateDDMMYYYY(new Date());
+    if (webinar.scheduledAt) {
+      const parsed = new Date(webinar.scheduledAt);
+      if (!isNaN(parsed.getTime())) {
+        sessionDate = formatDateDDMMYYYY(parsed);
+      }
+    }
+
+    const pStart = parseDateDDMMYYYY(this.startDate());
+    const pEnd = parseDateDDMMYYYY(this.endDate());
+    const sDate = parseDateDDMMYYYY(sessionDate);
+
+    if (pStart && sDate && sDate.getTime() < pStart.getTime()) {
+      this.lms.showToast(
+        `Class session date (${sessionDate}) precedes Phase start date (${this.startDate()}). A class date must fit the Phase window.`,
+        'warning',
+        5000,
+        'Phase Window Mismatch'
+      );
+    } else if (pEnd && sDate && sDate.getTime() > pEnd.getTime()) {
+      this.lms.showToast(
+        `Class session date (${sessionDate}) exceeds Phase end date (${this.endDate()}). A class date must fit the Phase window.`,
+        'warning',
+        5000,
+        'Phase Window Mismatch'
+      );
+    }
+
+    this.newSessionName.set(webinar.title);
+    this.newSessionDate.set(sessionDate);
+    this.newSessionDuration.set(webinar.durationMinutes || 90);
+    this.newSessionInstructor.set(webinar.instructor);
+    this.newSessionMeetingLink.set(webinar.joinUrl);
+    this.newSessionVenue.set(webinar.platform || 'Virtual Classroom');
   }
 
   // =========================================================================

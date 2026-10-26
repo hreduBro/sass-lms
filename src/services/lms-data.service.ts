@@ -2466,16 +2466,25 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     type: 'learner_in_progress',
     title: 'Continue Active Learning',
     subtitle: 'Enrolled interactive curricula & mandatory certification modules',
-    colSpan: 3,
+    colSpan: 2,
     rowSpan: 2,
     visibleForRoles: ['learner']
+  },
+  {
+    id: 'w-my-skills-1',
+    type: 'my_skills',
+    title: 'My Skills & Competencies',
+    subtitle: 'Acquired capabilities and progress levels (BRD §4.10, §5.6)',
+    colSpan: 2,
+    rowSpan: 2,
+    visibleForRoles: ['learner', 'super_admin', 'tenant_admin']
   },
   {
     id: 'w-upcoming-webinars-1',
     type: 'upcoming_webinars',
     title: 'Upcoming Live Classrooms',
     subtitle: 'Interactive virtual sessions and workshops',
-    colSpan: 1,
+    colSpan: 2,
     rowSpan: 2,
     visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
   },
@@ -2598,6 +2607,15 @@ export const CATALOG_WIDGET_TEMPLATES: { type: DashboardWidgetType; name: string
     defaultRowSpan: 2,
     icon: 'play_circle',
     category: 'Courseware'
+  },
+  {
+    type: 'my_skills',
+    name: 'My Skills & Competencies Breakdown',
+    description: 'Shows learners their acquired skills and in-progress skill milestones with levels (Beginner, Intermediate, Advanced, Expert) per BRD §4.10.',
+    defaultColSpan: 2,
+    defaultRowSpan: 2,
+    icon: 'psychology',
+    category: 'Skills & Mastery'
   },
   {
     type: 'escalation_queue',

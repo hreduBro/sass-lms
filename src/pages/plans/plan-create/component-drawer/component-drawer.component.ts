@@ -7,7 +7,8 @@ import {
   PlanComponentType, 
   PlanComponentClassSession,
   getDurationDays,
-  parseDateDDMMYYYY
+  parseDateDDMMYYYY,
+  formatDateDDMMYYYY
 } from '../../../../models/plan.model';
 import { LmsDataService } from '../../../../services/lms-data.service';
 import { CustomSelectComponent, SelectOption } from '../../../../components/custom-select/custom-select.component';
@@ -661,6 +662,135 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
               </div>
             }
 
+            <!-- G: Live Classroom & Webinar Specific (BRD §4.2.2) -->
+            @if (selectedType() === 'Live Classroom') {
+              <div class="space-y-4 p-4 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-900/50">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">videocam</span>
+                    <span>Live Classroom & Webinar Session</span>
+                  </h3>
+                  <span class="text-[10px] text-cyan-700 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-900/50 px-2 py-0.5 rounded font-bold">
+                    BRD §4.2.2 Phase Class
+                  </span>
+                </div>
+
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Per BRD §4.2.2, a class belongs to a Plan Phase with an instructor, its attendees, and a venue and room if in person. A class attaches to one Phase only, and its date must fit the Phase window.
+                </p>
+
+                <!-- Live Classroom Picker from Catalog -->
+                <div>
+                  <app-custom-select
+                    label="Pick Live Classroom from LMS Catalog"
+                    hint="Select scheduled virtual session or webinar to auto-populate class attributes"
+                    [searchable]="true"
+                    [clearable]="true"
+                    [options]="liveSessionSelectOptions()"
+                    formControlName="liveSessionId"
+                    (valueChange)="onLiveSessionSelected($event)"
+                    placeholder="Search and pick Live Classroom or Webinar...">
+                  </app-custom-select>
+                </div>
+
+                <!-- Instructor & Platform Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Lead Facilitator / Instructor <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      formControlName="instructorName" 
+                      placeholder="e.g. Dr. Imran Matin" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Conferencing Platform
+                    </label>
+                    <input 
+                      type="text" 
+                      formControlName="platform" 
+                      placeholder="e.g. Google Meet, Zoom, MS Teams" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  </div>
+                </div>
+
+                <!-- Meeting Join URL -->
+                <div>
+                  <label class="block text-xs font-semibold text-text-primary mb-1">
+                    Meeting URL / Broadcast Link
+                  </label>
+                  <input 
+                    type="text" 
+                    formControlName="meetingLink" 
+                    placeholder="https://meet.google.com/..." 
+                    class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                </div>
+
+                <!-- Capacity & Min Attendance Requirement -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Attendee Capacity Limit
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      formControlName="sessionCapacity" 
+                      placeholder="50" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-primary mb-1">
+                      Min Attendance Requirement (%)
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="100"
+                      formControlName="attendanceRequirementPct" 
+                      placeholder="80" 
+                      class="w-full px-3 py-2 rounded-xl text-xs bg-base-100 border border-base-300 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                  </div>
+                </div>
+
+                <!-- Physical Venue & Room if In-Person / Hybrid (§4.2.2) -->
+                <div class="pt-2 border-t border-cyan-200 dark:border-cyan-900/50 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-text-primary flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm text-cyan-600">location_on</span>
+                      <span>Physical Venue & Room (If Hybrid / In-Person)</span>
+                    </span>
+                    <span class="text-[10px] text-text-secondary">Optional per BRD §4.2.2</span>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <app-custom-select
+                        label="Physical Venue (Optional)"
+                        [searchable]="true"
+                        [clearable]="true"
+                        [options]="venueSelectOptions()"
+                        formControlName="venueId"
+                        (valueChange)="onVenueSelected($event)"
+                        placeholder="Select venue if hybrid...">
+                      </app-custom-select>
+                    </div>
+                    <div>
+                      <app-custom-select
+                        label="Designated Room (Optional)"
+                        [options]="roomSelectOptions()"
+                        formControlName="roomName"
+                        placeholder="Select room if hybrid...">
+                      </app-custom-select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
             @if (selectedType() === 'Phase') {
               <div class="space-y-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-semibold text-xs">
@@ -782,6 +912,7 @@ export class ComponentDrawerComponent {
     'Content',
     'Course',
     'Offline Training',
+    'Live Classroom',
     'Pre-Test',
     'Post-Test',
     'Survey',
@@ -795,6 +926,19 @@ export class ComponentDrawerComponent {
 
   // Phase Completion Tagging signal (§ Requirements 5 & 6)
   selectedCompletionSkills = signal<string[]>([]);
+
+  // Live Sessions / Webinars (§ BRD 4.2.2 Live Classroom)
+  liveSessions = computed(() => this.lmsData.webinars());
+  liveSessionSelectOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'Create New Scheduled Live Session', sublabel: 'Manually configure date, instructor & meeting link' },
+      ...this.liveSessions().map(w => ({
+        value: w.id,
+        label: w.title,
+        sublabel: `${w.instructor} • ${w.scheduledAt} • ${w.platform} (${w.attendeeCount || 0} attendees)`
+      }))
+    ];
+  });
 
   // Physical Venues (§ Requirement 4)
   venues = computed(() => this.lmsData.venues());
@@ -882,6 +1026,11 @@ export class ComponentDrawerComponent {
     sessionCapacity: [35],
     offlineAttendanceRequirementPct: [80],
     materialsProvided: [true],
+    // Live Classroom (§ BRD 4.2.2)
+    liveSessionId: [''],
+    meetingLink: ['https://meet.google.com/onelms-live'],
+    platform: ['Google Meet'],
+    attendanceRequirementPct: [80],
     // Test
     evaluationType: ['Online'],
     passMark: [70],
@@ -936,7 +1085,7 @@ export class ComponentDrawerComponent {
             endDate: comp.endDate,
             phaseId: comp.phaseId || null,
             isMandatory: comp.isMandatory,
-            progressionRule: comp.progressionCondition?.rule || (comp.type === 'Offline Training' ? 'attendance_verified' : 'mark_done'),
+            progressionRule: comp.progressionCondition?.rule || ((comp.type === 'Offline Training' || comp.type === 'Live Classroom') ? 'attendance_verified' : 'mark_done'),
             progressionThreshold: comp.progressionCondition?.threshold || 75,
             venueId: comp.venueId || 'venue-001',
             roomName: comp.roomName || 'Executive Boardroom 402',
@@ -944,6 +1093,10 @@ export class ComponentDrawerComponent {
             sessionCapacity: comp.sessionCapacity || 35,
             offlineAttendanceRequirementPct: comp.offlineAttendanceRequirementPct || 80,
             materialsProvided: comp.materialsProvided ?? true,
+            liveSessionId: comp.liveSessionId || '',
+            meetingLink: comp.meetingLink || 'https://meet.google.com/onelms-live',
+            platform: comp.platform || 'Google Meet',
+            attendanceRequirementPct: comp.attendanceRequirementPct || 80,
             completionCertificateId: comp.completionCertificateId || '',
             completionBadgeId: comp.completionBadgeId || ''
           });
@@ -960,13 +1113,22 @@ export class ComponentDrawerComponent {
 
           const isPhase = this.initialType() === 'Phase';
           const isOffline = this.initialType() === 'Offline Training';
+          const isLive = this.initialType() === 'Live Classroom';
           const nextPhaseNum = this.availablePhases().length + 1;
           const defaultName = isPhase 
             ? `Phase 0${nextPhaseNum}: Field Specialization` 
-            : (isOffline ? 'In-Person Workshop: Dhaka Executive Learning Center' : '');
+            : isOffline 
+              ? 'In-Person Workshop: Dhaka Executive Learning Center' 
+              : isLive
+                ? 'Interactive Live Classroom: Field Orientation'
+                : '';
           const defaultDesc = isPhase 
             ? `Structured curriculum stage 0${nextPhaseNum} for targeted qualification.` 
-            : (isOffline ? 'Intensive physical hands-on training and peer group workshop.' : '');
+            : isOffline 
+              ? 'Intensive physical hands-on training and peer group workshop.' 
+              : isLive
+                ? 'Live video lecture, real-time Q&A, and interactive syndicate debrief.'
+                : '';
 
           this.form.patchValue({
             name: defaultName,
@@ -975,14 +1137,18 @@ export class ComponentDrawerComponent {
             endDate: pEnd,
             phaseId: this.targetPhaseId() || null,
             isMandatory: true,
-            progressionRule: isOffline ? 'attendance_verified' : 'mark_done',
+            progressionRule: (isOffline || isLive) ? 'attendance_verified' : 'mark_done',
             progressionThreshold: 75,
             venueId: 'venue-001',
             roomName: 'Executive Boardroom 402',
-            instructorName: 'Dr. Mahfuz Rahman',
-            sessionCapacity: 35,
+            instructorName: isLive ? 'Dr. Imran Matin' : 'Dr. Mahfuz Rahman',
+            sessionCapacity: isLive ? 50 : 35,
             offlineAttendanceRequirementPct: 80,
             materialsProvided: true,
+            liveSessionId: '',
+            meetingLink: 'https://meet.google.com/onelms-live',
+            platform: 'Google Meet',
+            attendanceRequirementPct: 80,
             completionCertificateId: '',
             completionBadgeId: ''
           });
@@ -999,7 +1165,7 @@ export class ComponentDrawerComponent {
     this.selectedType.set(type);
     if (type === 'Course') {
       this.form.patchValue({ progressionRule: 'course_passed' });
-    } else if (type === 'Offline Training') {
+    } else if (type === 'Offline Training' || type === 'Live Classroom') {
       this.form.patchValue({ progressionRule: 'attendance_verified' });
     } else if (type === 'Pre-Test' || type === 'Post-Test') {
       this.form.patchValue({ progressionRule: 'score_threshold' });
@@ -1035,6 +1201,11 @@ export class ComponentDrawerComponent {
         return [
           { value: 'attendance_verified', label: 'Physical Attendance Verified' },
           { value: 'mark_done', label: 'Instructor In-Person Evaluation Pass' }
+        ];
+      case 'Live Classroom':
+        return [
+          { value: 'attendance_verified', label: 'Live Session Attendance Verified' },
+          { value: 'mark_done', label: 'Facilitator Verified Participation' }
         ];
       case 'Pre-Test':
       case 'Post-Test':
@@ -1239,6 +1410,7 @@ export class ComponentDrawerComponent {
       case 'Content': return 'bg-indigo-500';
       case 'Course': return 'bg-emerald-600';
       case 'Offline Training': return 'bg-teal-600';
+      case 'Live Classroom': return 'bg-cyan-600';
       case 'Pre-Test': return 'bg-amber-500';
       case 'Post-Test': return 'bg-rose-500';
       case 'Survey': return 'bg-purple-600';
@@ -1252,6 +1424,7 @@ export class ComponentDrawerComponent {
       case 'Content': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
       case 'Course': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
       case 'Offline Training': return 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300';
+      case 'Live Classroom': return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300';
       case 'Pre-Test': return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
       case 'Post-Test': return 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
       case 'Survey': return 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300';
@@ -1265,11 +1438,81 @@ export class ComponentDrawerComponent {
       case 'Content': return 'play_lesson';
       case 'Course': return 'school';
       case 'Offline Training': return 'business';
+      case 'Live Classroom': return 'videocam';
       case 'Pre-Test': return 'quiz';
       case 'Post-Test': return 'assignment_turned_in';
       case 'Survey': return 'reviews';
       case 'Phase': return 'timeline';
     }
+  }
+
+  onLiveSessionSelected(sessionId: any) {
+    if (!sessionId) return;
+    const session = this.liveSessions().find(s => s.id === sessionId);
+    if (!session) return;
+
+    // BRD §4.2.2 Rule 1: A class attaches to ONE Phase only!
+    const targetPhaseId = this.form.get('phaseId')?.value || this.targetPhaseId();
+    const existingAttachedComp = this.allComponents().find(c => 
+      c.type === 'Live Classroom' && 
+      c.liveSessionId === session.id &&
+      c.phaseId && 
+      c.phaseId !== targetPhaseId
+    );
+    if (existingAttachedComp && existingAttachedComp.phaseId) {
+      const siblingName = this.getPhaseName(existingAttachedComp.phaseId);
+      this.lmsData.showToast(
+        `Live Classroom "${session.title}" is already attached to sibling Phase "${siblingName}". Per BRD §4.2.2, a class can attach to only one Phase.`,
+        'warning',
+        5000,
+        'Single Phase Rule'
+      );
+    }
+
+    // BRD §4.2.2 Rule 2: Date must fit Phase window!
+    let sessionDate = this.form.get('startDate')?.value || '15/03/2026';
+    if (session.scheduledAt) {
+      const parsed = new Date(session.scheduledAt);
+      if (!isNaN(parsed.getTime())) {
+        sessionDate = formatDateDDMMYYYY(parsed);
+      }
+    }
+
+    const targetPhase = this.availablePhases().find(p => p.id === targetPhaseId);
+    if (targetPhase) {
+      const pStart = parseDateDDMMYYYY(targetPhase.startDate);
+      const pEnd = parseDateDDMMYYYY(targetPhase.endDate);
+      const sDate = parseDateDDMMYYYY(sessionDate);
+      if (sDate && pStart && sDate.getTime() < pStart.getTime()) {
+        this.lmsData.showToast(
+          `Live Classroom date (${sessionDate}) precedes Phase "${targetPhase.name}" start date (${targetPhase.startDate}). A class date must fit the Phase window.`,
+          'warning',
+          5000,
+          'Phase Window Mismatch'
+        );
+      } else if (sDate && pEnd && sDate.getTime() > pEnd.getTime()) {
+        this.lmsData.showToast(
+          `Live Classroom date (${sessionDate}) exceeds Phase "${targetPhase.name}" end date (${targetPhase.endDate}). A class date must fit the Phase window.`,
+          'warning',
+          5000,
+          'Phase Window Mismatch'
+        );
+      }
+    }
+
+    this.form.patchValue({
+      name: session.title,
+      description: session.description || `Interactive live virtual session hosted on ${session.platform}.`,
+      liveSessionId: session.id,
+      instructorName: session.instructor,
+      meetingLink: session.joinUrl,
+      platform: session.platform,
+      sessionCapacity: session.maxAttendees || 50,
+      startDate: sessionDate,
+      endDate: sessionDate,
+      progressionRule: 'attendance_verified'
+    });
+    this.updateDates();
   }
 
   onCourseSelected(courseId: any) {
@@ -1369,15 +1612,21 @@ export class ComponentDrawerComponent {
       },
       includedClasses: type === 'Course' ? this.selectedCourseClasses() : undefined,
       
-      // Offline Training Specific (§ Requirement 4)
-      venueId: type === 'Offline Training' ? val.venueId : undefined,
-      venueName: type === 'Offline Training' ? (venue?.name || 'BRAC Executive Learning Center') : undefined,
-      venueAddress: type === 'Offline Training' ? venueAddressStr : undefined,
-      roomName: type === 'Offline Training' ? val.roomName : undefined,
-      instructorName: type === 'Offline Training' ? val.instructorName : undefined,
-      sessionCapacity: type === 'Offline Training' ? Number(val.sessionCapacity) || 35 : undefined,
+      // Offline Training & In-Person Venue Specific (§ Requirement 4 / BRD §4.2.2)
+      venueId: (type === 'Offline Training' || (type === 'Live Classroom' && val.venueId)) ? val.venueId : undefined,
+      venueName: (type === 'Offline Training' || (type === 'Live Classroom' && val.venueId)) ? (venue?.name || 'BRAC Executive Learning Center') : undefined,
+      venueAddress: (type === 'Offline Training' || (type === 'Live Classroom' && val.venueId)) ? venueAddressStr : undefined,
+      roomName: (type === 'Offline Training' || (type === 'Live Classroom' && val.venueId)) ? val.roomName : undefined,
+      instructorName: (type === 'Offline Training' || type === 'Live Classroom') ? val.instructorName : undefined,
+      sessionCapacity: (type === 'Offline Training' || type === 'Live Classroom') ? Number(val.sessionCapacity) || 35 : undefined,
       offlineAttendanceRequirementPct: type === 'Offline Training' ? Number(val.offlineAttendanceRequirementPct) || 80 : undefined,
       materialsProvided: type === 'Offline Training' ? !!val.materialsProvided : undefined,
+
+      // Live Classroom Specific (BRD §4.2.2)
+      liveSessionId: type === 'Live Classroom' ? val.liveSessionId : undefined,
+      meetingLink: type === 'Live Classroom' ? val.meetingLink : undefined,
+      platform: type === 'Live Classroom' ? val.platform : undefined,
+      attendanceRequirementPct: type === 'Live Classroom' ? Number(val.attendanceRequirementPct) || 80 : undefined,
 
       // Phase Completion Tagging (§ Requirements 5 & 6)
       completionSkills: type === 'Phase' ? this.selectedCompletionSkills() : undefined,
@@ -1387,7 +1636,7 @@ export class ComponentDrawerComponent {
       completionBadgeName: type === 'Phase' ? (badge?.name || undefined) : undefined,
 
       source: currentComp?.source || {
-        sourceType: type === 'Course' ? 'Course Catalog' : type === 'Content' ? 'Content Repository' : type === 'Offline Training' ? 'Venue Training Facility' : type === 'Pre-Test' || type === 'Post-Test' || type === 'Survey' ? 'Questionnaire Library' : 'Task Template',
+        sourceType: type === 'Course' ? 'Course Catalog' : type === 'Content' ? 'Content Repository' : type === 'Offline Training' ? 'Venue Training Facility' : type === 'Live Classroom' ? 'Virtual Classroom Catalog' : type === 'Pre-Test' || type === 'Post-Test' || type === 'Survey' ? 'Questionnaire Library' : 'Task Template',
         itemName: val.name
       },
       isComplete: currentComp?.isComplete || false
