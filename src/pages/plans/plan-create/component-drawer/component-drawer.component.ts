@@ -159,7 +159,7 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
           @if (!isEditing()) {
             <div class="space-y-2">
               <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider">
-                Select Component Type (§2.1)
+                Select Component Type   
               </label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 @for (type of componentTypes; track type) {
@@ -671,12 +671,12 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
                     <span>Live Classroom & Webinar Session</span>
                   </h3>
                   <span class="text-[10px] text-cyan-700 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-900/50 px-2 py-0.5 rounded font-bold">
-                    BRD §4.2.2 Phase Class
+                    Phase Class
                   </span>
                 </div>
 
                 <p class="text-[11px] text-text-secondary leading-relaxed">
-                  Per BRD §4.2.2, a class belongs to a Plan Phase with an instructor, its attendees, and a venue and room if in person. A class attaches to one Phase only, and its date must fit the Phase window.
+                  A class belongs to a Plan Phase with an instructor, its attendees, and a venue and room if in person. A class attaches to one Phase only, and its date must fit the Phase window.
                 </p>
 
                 <!-- Live Classroom Picker from Catalog -->

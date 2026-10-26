@@ -30,7 +30,7 @@ import {
 import { StepperComponent, StepItem } from '../../../components/stepper/stepper.component';
 import { CustomAvatarComponent } from '../../../components/custom-avatar/custom-avatar.component';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
-import { CustomSelectComponent } from '../../../components/custom-select/custom-select.component';
+import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
 
 @Component({
@@ -206,6 +206,14 @@ export class PhaseCreateComponent implements OnInit {
   selectedCatalogWebinarId = signal<string>('');
 
   availableLiveClassrooms = computed(() => this.lms.webinars());
+
+  liveClassroomCatalogOptions = computed<SelectOption[]>(() =>
+    this.availableLiveClassrooms().map(w => ({
+      value: w.id,
+      label: w.title,
+      sublabel: `${w.scheduledAt} • ${w.instructor}`
+    }))
+  );
 
   filteredLiveClassrooms = computed(() => {
     const q = this.liveClassroomSearchQuery().trim().toLowerCase();
