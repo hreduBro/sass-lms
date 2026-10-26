@@ -70,6 +70,8 @@ export class KpiCardComponent {
   }
 
   getValueColorClass(): string {
+    // ponytail: title match covers learner card; add custom color/token property to Kpi when more cards need distinct text colors
+    if (this.resolvedData().title === 'My Skills') return 'text-black dark:text-white';
     const col = this.resolvedData().color;
     if (col === 'emerald') return 'text-emerald-600 dark:text-emerald-400';
     if (col === 'sky') return 'text-sky-600 dark:text-sky-400';
