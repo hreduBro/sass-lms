@@ -425,9 +425,9 @@ export class PhaseCreateComponent implements OnInit {
       if (plan) {
         const existingCount = plan.phases ? plan.phases.length : 0;
         this.phaseSequence.set(existingCount + 1);
-        this.phaseName.set(`Phase ${existingCount + 1}: `);
-        this.startDate.set(plan.startDate);
-        this.endDate.set(plan.endDate);
+        this.phaseName.set(`Phase ${existingCount + 1}: Live Sessions & Operational Delivery`);
+        this.startDate.set('01/04/2026');
+        this.endDate.set('30/06/2026');
         if (plan.owner) {
           this.phaseOwner.set({ ...plan.owner });
         }
@@ -585,25 +585,21 @@ export class PhaseCreateComponent implements OnInit {
   // STEPPER NAVIGATION & STEP VALIDATION
   // =========================================================================
   goToStep(stepNumber: number) {
-    if (stepNumber < this.currentStep()) {
-      this.currentStep.set(stepNumber);
-      this.formErrorAlert.set(null);
-      this.showStepAlert(stepNumber, 'back');
-      return;
-    }
-
+    if (stepNumber === this.currentStep()) return;
+    
+    // Track previous step as completed if it passes validation
     if (this.validateCurrentStep()) {
       this.completedSteps.update(set => {
         const next = new Set(set);
         next.add(this.currentStep());
         return next;
       });
-      this.currentStep.set(stepNumber);
-      this.formErrorAlert.set(null);
-      this.showStepAlert(stepNumber, 'jump');
-    } else {
-      this.scrollToFirstError();
     }
+
+    // Allow user to navigate freely between steps via the stepper bar
+    this.currentStep.set(stepNumber);
+    this.formErrorAlert.set(null);
+    this.showStepAlert(stepNumber, 'jump');
   }
 
   nextStep() {
