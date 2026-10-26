@@ -193,14 +193,14 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/plans/phases', 
         icon: 'timeline', 
         description: 'Curriculum phases, prerequisites & task roadmaps',
-        matchPatterns: ['/plans/phases', '/phases', '/plans/*/phases/**', '/plans/phases/**', '/phases/**']
+        matchPatterns: ['/plans/phases', '/phases', '/plans/*/phases', '/plans/phases/details/**', '/phases/details/**']
       },
       { 
         label: 'Create Phase', 
         route: '/plans/phases/create', 
         icon: 'add_circle', 
         description: 'Step-by-step 8-stage phase creation wizard & delivery classes',
-        matchPatterns: ['/plans/*/phases/create', '/plans/phases/create']
+        matchPatterns: ['/plans/*/phases/create', '/plans/phases/create', '/phases/create']
       },
       { 
         label: 'Plan Dashboard', 
@@ -627,6 +627,19 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
   if (childRoute === '/certificates/badges' && (!childQueryParams || !childQueryParams['tab'])) {
     if (currentUrl.includes('tab=earned') || currentUrl.includes('tab=templates')) {
       return false;
+    }
+  }
+
+  // Disambiguation for Phase Grid vs Create Phase
+  if (cleanChildRoute === '/plans/phases' || cleanChildRoute === '/phases') {
+    if (cleanUrl === '/plans/phases/create' || cleanUrl.endsWith('/phases/create') || cleanUrl.includes('/phases/create')) {
+      return false;
+    }
+  }
+
+  if (cleanChildRoute === '/plans/phases/create' || cleanChildRoute === '/phases/create') {
+    if (cleanUrl === '/plans/phases/create' || cleanUrl.endsWith('/phases/create') || cleanUrl.includes('/phases/create')) {
+      return true;
     }
   }
 

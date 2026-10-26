@@ -228,39 +228,55 @@ export class PhaseCreateComponent implements OnInit {
 
   // Track live classrooms attached in sibling phases (BRD §4.2.2: A class attaches to ONE Phase only)
   liveClassroomsInSiblingPhases = computed(() => {
-    const plan = this.parentPlan();
-    const editingId = this.editingPhaseId();
-    const map = new Map<string, string>(); // webinarId or title -> sibling phase name
+    try {
+      const plan = this.parentPlan();
+      const editingId = this.editingPhaseId();
+      const map = new Map<string, string>(); // webinarId or title -> sibling phase name
 
-    if (!plan) return map;
+      if (!plan) return map;
 
-    if (plan.components) {
-      plan.components.forEach(comp => {
-        if ((comp.type === 'Live Classroom' || comp.type === 'Offline Training') && comp.phaseId && comp.phaseId !== editingId) {
-          const sibPhase = plan.phases?.find(p => p.id === comp.phaseId);
-          const phaseName = sibPhase ? sibPhase.name : `Phase ${comp.phaseId}`;
-          if (comp.liveSessionId) map.set(comp.liveSessionId, phaseName);
-          if (comp.name) map.set(comp.name, phaseName);
-        }
-      });
-    }
-
-    if (plan.phases) {
-      plan.phases.forEach(ph => {
-        if (ph.id !== editingId) {
-          const draft = this.lms.phaseDrafts().find(d => d.id === ph.id);
-          if (draft?.delivery?.sessions) {
-            draft.delivery.sessions.forEach(sess => {
-              if (sess.liveSessionId) map.set(sess.liveSessionId, ph.name);
-              if (sess.sessionName) map.set(sess.sessionName, ph.name);
-            });
+      if (plan.components) {
+        plan.components.forEach(comp => {
+          if ((comp.type === 'Live Classroom' || comp.type === 'Offline Training') && comp.phaseId && comp.phaseId !== editingId) {
+            const sibPhase = plan.phases?.find(p => p.id === comp.phaseId);
+            const phaseName = sibPhase ? sibPhase.name : `Phase ${comp.phaseId}`;
+            if (comp.liveSessionId) map.set(comp.liveSessionId, phaseName);
+            if (comp.name) map.set(comp.name, phaseName);
           }
-        }
-      });
-    }
+        });
+      }
 
-    return map;
+      if (plan.phases) {
+        plan.phases.forEach(ph => {
+          if (ph.id !== editingId) {
+            const draft = this.lms.getPhaseDraft ? this.lms.getPhaseDraft(ph.id) : null;
+            if (draft?.delivery?.sessions && Array.isArray(draft.delivery.sessions)) {
+              draft.delivery.sessions.forEach((sess: any) => {
+                if (sess.liveSessionId) map.set(sess.liveSessionId, ph.name);
+                if (sess.sessionName) map.set(sess.sessionName, ph.name);
+              });
+            }
+          }
+        });
+      }
+
+      return map;
+    } catch (e) {
+      console.error('Error computing sibling phase live classrooms:', e);
+      return new Map<string, string>();
+    }
   });
+
+  formatScheduledDate(isoStr?: string): string {
+    if (!isoStr) return 'TBD';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      return formatDateDDMMYYYY(d);
+    } catch {
+      return isoStr;
+    }
+  }
 
   // =========================================================================
   // STEP 8: Publish Confirmation Modal (§10)
@@ -953,23 +969,13 @@ export class PhaseCreateComponent implements OnInit {
     const pEnd = parseDateDDMMYYYY(this.endDate());
     const sDate = parseDateDDMMYYYY(sessionDate);
 
+    let dateAdjusted = false;
     if (pStart && sDate && sDate.getTime() < pStart.getTime()) {
-      this.lms.showToast(
-        `Class session date (${sessionDate}) precedes Phase start date (${this.startDate()}). Per BRD §4.2.2, a class date must fit the Phase window.`,
-        'warning',
-        5500,
-        'Phase Window Mismatch'
-      );
-      return;
-    }
-    if (pEnd && sDate && sDate.getTime() > pEnd.getTime()) {
-      this.lms.showToast(
-        `Class session date (${sessionDate}) exceeds Phase end date (${this.endDate()}). Per BRD §4.2.2, a class date must fit the Phase window.`,
-        'warning',
-        5500,
-        'Phase Window Mismatch'
-      );
-      return;
+      sessionDate = this.startDate();
+      dateAdjusted = true;
+    } else if (pEnd && sDate && sDate.getTime() > pEnd.getTime()) {
+      sessionDate = this.endDate();
+      dateAdjusted = true;
     }
 
     // 4. Attach class session to phase
@@ -991,9 +997,11 @@ export class PhaseCreateComponent implements OnInit {
     this.sessionsList.update(list => [...list, newSession]);
     this.closeLiveClassroomPicker();
     this.lms.showToast(
-      `Live Classroom "${webinar.title}" successfully attached to Phase.`,
+      dateAdjusted 
+        ? `Live Classroom "${webinar.title}" attached! Session date aligned to Phase start date (${sessionDate}) to fit Phase window.`
+        : `Live Classroom "${webinar.title}" successfully attached to Phase.`,
       'success',
-      4000,
+      4500,
       'Class Attached'
     );
   }
@@ -1027,19 +1035,9 @@ export class PhaseCreateComponent implements OnInit {
     const sDate = parseDateDDMMYYYY(sessionDate);
 
     if (pStart && sDate && sDate.getTime() < pStart.getTime()) {
-      this.lms.showToast(
-        `Class session date (${sessionDate}) precedes Phase start date (${this.startDate()}). A class date must fit the Phase window.`,
-        'warning',
-        5000,
-        'Phase Window Mismatch'
-      );
+      sessionDate = this.startDate();
     } else if (pEnd && sDate && sDate.getTime() > pEnd.getTime()) {
-      this.lms.showToast(
-        `Class session date (${sessionDate}) exceeds Phase end date (${this.endDate()}). A class date must fit the Phase window.`,
-        'warning',
-        5000,
-        'Phase Window Mismatch'
-      );
+      sessionDate = this.endDate();
     }
 
     this.newSessionName.set(webinar.title);
