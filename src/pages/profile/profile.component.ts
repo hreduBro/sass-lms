@@ -134,12 +134,12 @@ interface ProfileTab {
           <!-- Quick Metrics Bar (XP Points, Courses, Certs, Completion) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-base-300/80">
             <div class="p-3.5 rounded-2xl bg-base-200/70 border border-base-300/60 flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-2xl">stars</span>
+              <div class="w-10 h-10 rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-300 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-2xl">psychology</span>
               </div>
               <div class="min-w-0">
-                <span class="text-[11px] text-text-secondary block font-medium">Mastery Points</span>
-                <span class="text-base sm:text-lg font-black text-text-primary">{{ activeUser().points }} <span class="text-xs font-semibold text-amber-500">XP</span></span>
+                <span class="text-[11px] text-text-secondary block font-medium">My Skills</span>
+                <span class="text-base sm:text-lg font-black text-text-primary">12 <span class="text-xs font-semibold text-violet-500">Skills</span></span>
               </div>
             </div>
 

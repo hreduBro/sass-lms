@@ -801,47 +801,6 @@
         </div>
       }
 
-      <!-- 12. GAMIFICATION LEADERBOARD -->
-      @if (widget().type === 'gamification_leaderboard') {
-        <div class="flex-1 flex flex-col">
-          <div class="flex items-center justify-between pb-3 border-b border-base-300 mb-3">
-            <h3 class="font-bold text-sm text-text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-amber-500 text-base">military_tech</span>
-              {{ widget().title }}
-            </h3>
-            <button 
-              type="button"
-              (click)="leaderboardMetric.set(leaderboardMetric() === 'xp' ? 'badges' : 'xp')"
-              class="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors">
-              {{ leaderboardMetric() === 'xp' ? 'Top XP' : 'Top Badges' }}
-            </button>
-          </div>
-
-          <div class="space-y-2 flex-1">
-            @for (learner of topLearners(); track learner.id; let idx = $index) {
-              <div class="flex items-center justify-between p-2 rounded-xl bg-base-200/50 text-xs">
-                <div class="flex items-center gap-2">
-                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                    [class]="idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-slate-300 text-black' : 'bg-base-300 text-text-secondary'">
-                    {{ idx + 1 }}
-                  </span>
-                  <app-custom-avatar 
-                    [imageUrl]="learner.avatar" 
-                    [name]="learner.name" 
-                    size="xs" 
-                    shape="squircle">
-                  </app-custom-avatar>
-                  <span class="font-semibold text-text-primary truncate max-w-[110px]">{{ learner.name }}</span>
-                </div>
-                <span class="font-bold font-mono text-tenant-600">
-                  {{ leaderboardMetric() === 'xp' ? learner.points + ' XP' : (learner.badges?.length || 0) + ' Badges' }}
-                </span>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
       <!-- 13. QUICK ACTIONS DISPATCHER -->
       @if (widget().type === 'quick_actions') {
         <div class="flex-1 flex flex-col">

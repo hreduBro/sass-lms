@@ -10,23 +10,20 @@
         <span class="text-xs text-text-secondary">
           Active LMS: <strong class="font-bold text-text-primary">{{ dataService.activeTenant().name }}</strong>
         </span>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-base-200 border border-base-300 font-mono text-text-secondary hidden sm:inline">
-          OpenBadges 2.0 Compliant
-        </span>
       </div>
 
       <h1 class="text-2xl font-bold text-text-primary tracking-tight">
         Badge Template Repository
       </h1>
       <p class="text-xs text-text-secondary mt-0.5">
-        Manage, design, and configure verifiable OpenBadges digital credentials across your learning organization.
+        Manage, design, and configure badge templates.
       </p>
     </div>
 
     <!-- Header Actions -->
     <div class="flex items-center gap-2.5 flex-wrap">
-      <a 
-        routerLink="/certificates/badges/dashboard" 
+      <a
+        routerLink="/certificates/badges/dashboard"
         class="px-3.5 py-2.5 rounded-2xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-xs">
         <span class="material-symbols-outlined text-base text-tenant-500">analytics</span>
         <span>Analytics Dashboard</span>
@@ -36,7 +33,7 @@
         <button 
           type="button" 
           id="btn-create-badge-template"
-          (click)="createBadge()" 
+          (click)="createBadge()"
           class="px-4 py-2.5 rounded-2xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
           <span class="material-symbols-outlined text-base">add_circle</span>
           <span>Create Badge</span>
@@ -84,11 +81,15 @@
     </div>
 
     <!-- Drafts -->
-    <div class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <div (click)="filterByStatus('draft')"
+         class="bg-base-100 border border-base-300 rounded-2xl p-4 shadow-sm flex items-center justify-between cursor-pointer hover:border-amber-400 hover:bg-amber-500/5 transition-all"
+         [class.ring-2]="appliedFilters().statuses.includes('draft')"
+         [class.ring-amber-500]="appliedFilters().statuses.includes('draft')"
+         title="Click to filter drafts">
       <div>
         <p class="text-xs font-medium text-text-secondary">Creation Drafts</p>
         <h3 class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ kpiStats().draft }}</h3>
-        <span class="text-[11px] text-amber-700 dark:text-amber-400">In composition</span>
+        <span class="text-[11px] text-amber-700 dark:text-amber-400">Filter drafts</span>
       </div>
       <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-800">
         <span class="material-symbols-outlined">edit_document</span>
@@ -150,7 +151,7 @@
             <div class="grid grid-cols-2 gap-2 pt-1">
               @for (st of availableStatuses; track st) {
                 <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                  <input 
+                  <input
                     type="checkbox"
                     [checked]="draftFilters().statuses.includes(st)"
                     (change)="toggleStatusDraft(st)"
@@ -252,9 +253,9 @@
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-tenant-50 dark:bg-tenant-950/60 text-tenant-700 dark:text-tenant-300 border border-tenant-200 dark:border-tenant-800/60">
           <span class="text-text-secondary font-normal">{{ badge.label }}:</span>
           <span>{{ badge.value }}</span>
-          <button 
-            type="button" 
-            (click)="badge.remove()" 
+          <button
+            type="button"
+            (click)="badge.remove()"
             class="hover:text-rose-500 ml-0.5 flex items-center cursor-pointer">
             <span class="material-symbols-outlined text-xs">close</span>
           </button>
@@ -273,7 +274,7 @@
             </span>
 
             <div class="flex items-center gap-1.5">
-              <span 
+              <span
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
                 [ngClass]="getStatusBadgeClass(badge.status)">
                 <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatusDotClass(badge.status)"></span>
@@ -344,7 +345,7 @@
               <h3 class="text-sm font-bold text-text-primary group-hover:text-tenant-600 transition-colors line-clamp-1">
                 {{ badge.name }}
               </h3>
-              
+
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-[10px] font-mono text-text-secondary bg-base-200 px-1.5 py-0.5 rounded border border-base-300">
                   {{ badge.templateId }}
@@ -395,27 +396,27 @@
 
           <!-- Card Footer: Quick Actions -->
           <div class="pt-3 border-t border-base-300 flex items-center justify-between gap-2">
-            <button 
-              type="button" 
-              (click)="openPreview(badge)" 
+            <button
+              type="button"
+              (click)="openPreview(badge)"
               class="px-2.5 py-1.5 rounded-xl bg-base-200 hover:bg-base-300 text-text-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-sm">visibility</span>
               <span>Preview</span>
             </button>
 
             <div class="flex items-center gap-1">
-              <button 
-                type="button" 
-                (click)="openManageMappingsModal(badge)" 
+              <button
+                type="button"
+                (click)="openManageMappingsModal(badge)"
                 class="w-7 h-7 rounded-lg bg-base-200 hover:bg-purple-100 dark:hover:bg-purple-950/40 text-text-secondary hover:text-purple-600 flex items-center justify-center transition-colors cursor-pointer"
                 title="Manage Curriculum Mappings">
                 <span class="material-symbols-outlined text-sm">account_tree</span>
               </button>
 
               @if (permissions().canEdit) {
-                <button 
-                  type="button" 
-                  (click)="editBadge(badge)" 
+                <button
+                  type="button"
+                  (click)="editBadge(badge)"
                   class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Edit Badge Template">
                   <span class="material-symbols-outlined text-sm">edit</span>
@@ -423,9 +424,9 @@
               }
 
               @if (permissions().canCreate) {
-                <button 
-                  type="button" 
-                  (click)="duplicateBadge(badge)" 
+                <button
+                  type="button"
+                  (click)="duplicateBadge(badge)"
                   class="w-7 h-7 rounded-lg bg-base-200 hover:bg-base-300 text-text-secondary hover:text-tenant-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Duplicate as Draft">
                   <span class="material-symbols-outlined text-sm">content_copy</span>
@@ -433,9 +434,9 @@
               }
 
               @if (badge.status === 'published' && permissions().canArchive) {
-                <button 
-                  type="button" 
-                  (click)="openConfirmModal(badge, 'archive')" 
+                <button
+                  type="button"
+                  (click)="openConfirmModal(badge, 'archive')"
                   class="w-7 h-7 rounded-lg bg-base-200 hover:bg-amber-100 text-text-secondary hover:text-amber-700 flex items-center justify-center transition-colors cursor-pointer"
                   title="Archive Badge Template">
                   <span class="material-symbols-outlined text-sm">archive</span>
@@ -443,9 +444,9 @@
               }
 
               @if (badge.status === 'draft' && permissions().canDelete) {
-                <button 
-                  type="button" 
-                  (click)="openConfirmModal(badge, 'delete')" 
+                <button
+                  type="button"
+                  (click)="openConfirmModal(badge, 'delete')"
                   class="w-7 h-7 rounded-lg bg-base-200 hover:bg-rose-100 text-text-secondary hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
                   title="Delete Draft Badge">
                   <span class="material-symbols-outlined text-sm">delete</span>
@@ -509,7 +510,7 @@
 
                 <!-- Scope -->
                 <td class="py-3.5 px-4">
-                  <span 
+                  <span
                     class="px-2 py-0.5 text-[10px] font-bold rounded-lg border capitalize"
                     [ngClass]="{
                       'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800': badge.sharing.level === 'organization',
@@ -534,7 +535,7 @@
 
                 <!-- Status -->
                 <td class="py-3.5 px-4">
-                  <span 
+                  <span
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
                     [ngClass]="getStatusBadgeClass(badge.status)">
                     <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getStatusDotClass(badge.status)"></span>
@@ -543,12 +544,12 @@
                 </td>
 
                 <!-- Actions Sticky Column -->
-                <td 
+                <td
                   class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white dark:bg-base-100 group-hover:bg-slate-50 dark:group-hover:bg-base-200 transition-colors z-10 w-[70px] min-w-[70px] border-b border-l border-base-300/60 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)]"
                   (click)="$event.stopPropagation()">
                   <div class="flex items-center justify-center">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       [id]="'btn-table-badge-menu-' + badge.templateId"
                       (click)="toggleBadgeActionMenu(badge, $event)"
                       class="badge-action-menu-btn w-8 h-8 rounded-xl bg-slate-100 dark:bg-base-200 hover:bg-slate-200 dark:hover:bg-base-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 focus:outline-none"
@@ -681,7 +682,7 @@
             Close
           </button>
           <button 
-            type="button" 
+            type="button"
             (click)="editBadge(previewingBadge()!); closePreview()"
             class="px-4 py-2 bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">edit</span>
@@ -753,7 +754,7 @@
       </div>
 
       <!-- Preview Badge -->
-      <button 
+      <button
         type="button"
         (click)="previewBadgeFromMenu()"
         class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-base-200 flex items-center gap-2 font-medium cursor-pointer transition-colors">
@@ -773,7 +774,7 @@
       }
 
       <!-- Manage Mappings -->
-      <button 
+      <button
         type="button"
         (click)="manageMappingsFromMenu()"
         class="w-full text-left px-3.5 py-2 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center gap-2 font-medium cursor-pointer transition-colors">
@@ -831,14 +832,14 @@
 
   <!-- POLYMORPHIC BADGE MAPPING MODAL -->
   @if (isMappingModalOpen() && mappingBadge(); as badge) {
-    <div 
+    <div
       class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-modal-backdrop"
       (click)="onMappingBackdropClick($event)">
-      
-      <div 
+
+      <div
         class="bg-base-100 rounded-3xl border border-base-300 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh] my-auto"
         (click)="$event.stopPropagation()">
-        
+
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-5 border-b border-base-300 bg-base-200 shrink-0">
           <div class="flex items-center gap-3">
@@ -867,9 +868,9 @@
             </div>
           </div>
 
-          <button 
-            type="button" 
-            (click)="closeMappingModal()" 
+          <button
+            type="button"
+            (click)="closeMappingModal()"
             class="w-8 h-8 rounded-full hover:bg-base-300 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
             title="Close">
             <span class="material-symbols-outlined text-lg">close</span>
@@ -980,7 +981,7 @@
                           <div class="text-[10px] font-mono text-text-secondary">{{ mapping.targetId }}</div>
                         </td>
                         <td class="py-3 px-3">
-                          <span 
+                          <span
                             class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider"
                             [class]="getTargetTypeColor(mapping.targetType)">
                             <span class="material-symbols-outlined text-xs">
@@ -1018,9 +1019,9 @@
             <span>Badges with active mappings are protected from accidental deletion.</span>
           </div>
 
-          <button 
-            type="button" 
-            (click)="closeMappingModal()" 
+          <button
+            type="button"
+            (click)="closeMappingModal()"
             class="px-4 py-2 bg-base-100 hover:bg-base-300 text-text-primary text-xs font-bold rounded-xl border border-base-300 transition-colors cursor-pointer">
             Done
           </button>

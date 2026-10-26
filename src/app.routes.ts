@@ -328,10 +328,8 @@ export const routes: Routes = [
   // Courses & Learning Player
   { 
     path: 'courses/dashboard', 
-    loadComponent: () => import('./pages/courses/course-dashboard/course-dashboard.component').then(m => m.CourseDashboardComponent), 
-    title: 'Course Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'courses',
+    pathMatch: 'full'
   },
   { 
     path: 'courses/create', 
@@ -356,10 +354,8 @@ export const routes: Routes = [
   },
   { 
     path: 'courses/templates/dashboard', 
-    component: CourseTemplateDashboardComponent, 
-    title: 'Course Templates Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'courses/templates',
+    pathMatch: 'full'
   },
   { 
     path: 'courses/templates/create', 
@@ -480,10 +476,8 @@ export const routes: Routes = [
   },
   { 
     path: 'certificates/templates/dashboard', 
-    component: CertificateTemplateDashboardComponent, 
-    title: 'Certificate Templates Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'certificates/templates',
+    pathMatch: 'full'
   },
   { 
     path: 'certificates/templates/create', 
@@ -517,13 +511,11 @@ export const routes: Routes = [
   },
   {
     path: 'certificates/signatories/dashboard',
-    component: SignatoryDashboardComponent,
-    title: 'Signatory Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'certificates/signatories',
+    pathMatch: 'full'
   },
   { path: 'signatories', redirectTo: 'certificates/signatories', pathMatch: 'full' },
-  { path: 'signatories/dashboard', redirectTo: 'certificates/signatories/dashboard', pathMatch: 'full' },
+  { path: 'signatories/dashboard', redirectTo: 'certificates/signatories', pathMatch: 'full' },
 
   // Badge Template Management (§4.8.2)
   {
@@ -535,10 +527,8 @@ export const routes: Routes = [
   },
   {
     path: 'certificates/badges/dashboard',
-    component: BadgeDashboardComponent,
-    title: 'Badge Templates Overview | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'certificates/badges',
+    pathMatch: 'full'
   },
   {
     path: 'certificates/badges/create',
@@ -548,7 +538,7 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
   { path: 'badges', redirectTo: 'certificates/badges', pathMatch: 'full' },
-  { path: 'badges/dashboard', redirectTo: 'certificates/badges/dashboard', pathMatch: 'full' },
+  { path: 'badges/dashboard', redirectTo: 'certificates/badges', pathMatch: 'full' },
   { path: 'badges/create', redirectTo: 'certificates/badges/create', pathMatch: 'full' },
 
   // Certificates Vault (Legacy / Root)
@@ -572,10 +562,8 @@ export const routes: Routes = [
   // Skill Mapping Module (§4.10)
   { 
     path: 'skills/dashboard', 
-    loadComponent: () => import('./pages/skills/skill-dashboard/skill-dashboard.component').then(m => m.SkillDashboardComponent), 
-    title: 'Skill Mapping Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'skills',
+    pathMatch: 'full'
   },
   { 
     path: 'skills/clusters', 
@@ -602,10 +590,8 @@ export const routes: Routes = [
   },
   { 
     path: 'assessments/dashboard', 
-    loadComponent: () => import('./pages/assessments/assessment-dashboard/assessment-dashboard.component').then(m => m.AssessmentDashboardComponent), 
-    title: 'Assessment Studio Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'assessments/results',
+    pathMatch: 'full'
   },
   { 
     path: 'assessments/create', 
@@ -653,10 +639,8 @@ export const routes: Routes = [
   },
   {
     path: 'venues/dashboard',
-    component: VenueDashboardComponent,
-    title: 'Venue Capacity & Utilization | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'venues',
+    pathMatch: 'full'
   },
   {
     path: 'venues/create',
@@ -690,10 +674,8 @@ export const routes: Routes = [
   },
   {
     path: 'offline-trainings/dashboard',
-    component: OfflineTrainingDashboardComponent,
-    title: 'Offline Training Telemetry | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'offline-trainings',
+    pathMatch: 'full'
   },
   {
     path: 'offline-trainings/create',

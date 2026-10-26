@@ -27,24 +27,6 @@
 
     <!-- Top-Right Actions -->
     <div class="flex items-center gap-2.5 flex-wrap">
-      @if (lmsService.assessmentPermissions().canManageDashboardStudio) {
-        <a
-          routerLink="/assessments/dashboard"
-          class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-base-100 hover:bg-slate-50 dark:hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-slate-200/80 dark:border-base-300 transition-all shadow-2xs cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-indigo-600 text-lg">space_dashboard</span>
-          <span>Dashboard Studio</span>
-        </a>
-      }
-
-      <a
-        routerLink="/assessments/results"
-        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-base-100 hover:bg-slate-50 dark:hover:bg-base-200 active:scale-95 text-text-primary text-xs font-semibold border border-slate-200/80 dark:border-base-300 transition-all shadow-2xs cursor-pointer"
-      >
-        <span class="material-symbols-outlined text-emerald-600 text-lg">fact_check</span>
-        <span>Results & Grading</span>
-      </a>
-
       @if (lmsService.assessmentPermissions().canCreateAssessment) {
         <button
           type="button"
@@ -55,90 +37,6 @@
           <span>Create Assessment</span>
         </button>
       }
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- 2. LIVE TELEMETRY KPI CARDS (Standardized rounded-[24px]/[28px] Design)   -->
-  <!-- ========================================================================= -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
-    
-    <!-- Total Assessments -->
-    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Total Assessments</span>
-        <div class="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-base">inventory_2</span>
-        </div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ kpis().total }}</div>
-        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Across active LMS bank</p>
-      </div>
-    </div>
-
-    <!-- Published Live -->
-    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Published Live</span>
-        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-base">check_circle</span>
-        </div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-          {{ kpis().published }} <span class="text-xs font-normal text-slate-400">/ {{ kpis().total }}</span>
-        </div>
-        <div class="w-full bg-slate-100 dark:bg-base-200 h-1.5 rounded-full overflow-hidden mt-2">
-          <div
-            class="bg-emerald-500 h-full rounded-full transition-all duration-500"
-            [style.width.%]="(kpis().published / (kpis().total || 1)) * 100"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Draft / Revision -->
-    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Drafts In-Progress</span>
-        <div class="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-base">edit_note</span>
-        </div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold tracking-tight text-sky-600 dark:text-sky-400">{{ kpis().draft }}</div>
-        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Under composition / forked</p>
-      </div>
-    </div>
-
-    <!-- Manual Graded -->
-    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Manual Graded</span>
-        <div class="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-base">assignment_ind</span>
-        </div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold tracking-tight text-purple-600 dark:text-purple-400">{{ kpis().manualGradedCount }}</div>
-        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">Requires instructor evaluation</p>
-      </div>
-    </div>
-
-    <!-- Avg Pass Rate -->
-    <div class="p-5 rounded-[24px] bg-white dark:bg-base-100 border border-slate-200/80 dark:border-base-300 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-medium text-slate-500 dark:text-text-secondary">Avg Pass Rate</span>
-        <div class="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-          <span class="material-symbols-outlined text-base">military_tech</span>
-        </div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-          {{ kpis().passRate }}%
-        </div>
-        <p class="text-xs text-slate-400 dark:text-text-secondary mt-0.5">From {{ kpis().totalAttempts }} total attempts</p>
-      </div>
     </div>
   </div>
 

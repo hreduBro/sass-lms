@@ -159,7 +159,7 @@ export class DashboardWidgetRendererComponent {
         { title: 'My Enrolled Courses', value: enrolled.length.toString(), change: 'Active', icon: 'school', color: 'indigo', subtext: 'In your learning path' },
         { title: 'Completed Courses', value: completed.length.toString(), change: '+100%', icon: 'check', color: 'emerald', subtext: 'Great progress!' },
         { title: 'Earned Certificates', value: user.earnedCertificates.length.toString(), change: 'Verified', icon: 'badge', color: 'amber', subtext: 'Available for download' },
-        { title: 'Skill Mastery Points', value: `${Math.round(user.points * (period === '30d' ? 1 : 1.2))} XP`, change: '+250 XP', icon: 'zap', color: 'violet', subtext: 'Level 4 Learner' }
+        { title: 'My Skills', value: '12 Acquired', change: '4 Proficient', icon: 'psychology', color: 'violet', subtext: '4 Proficient • 8 Developing' }
       ];
     }
 

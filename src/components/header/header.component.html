@@ -338,19 +338,8 @@
     </div>
   </div>
 
-  <!-- Right Side: Backend API, Layout Customizer, Dark Mode, Alerts, User Profile -->
+  <!-- Right Side: Layout Customizer, Dark Mode, Alerts, User Profile -->
   <div class="flex items-center gap-2 lg:gap-3">
-    <!-- Backend API Console Button -->
-    <button
-      id="btn-backend-console"
-      (click)="lms.openBackendConsole()"
-      class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all shadow-xs cursor-pointer"
-      title="Open Express Backend & REST API Telemetry Console">
-      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-      <span class="material-symbols-outlined text-sm">dns</span>
-      <span>API Server</span>
-    </button>
-
     <!-- Admin Layout Customizer Button -->
     @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'lms_admin' || lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
       <button
@@ -526,8 +515,8 @@
           <!-- Quick Stats Pill -->
           <div class="grid grid-cols-2 divide-x divide-base-300 py-1.5 px-2 rounded-xl bg-base-200/50 dark:bg-base-200/30 border border-base-300/50 text-center">
             <div class="px-2">
-              <span class="text-[9px] text-text-secondary uppercase tracking-wider font-semibold block">Mastery Score</span>
-              <span class="text-xs font-bold text-tenant-600 dark:text-tenant-300 font-mono">{{ lms.activeUser().points | number }} <span class="text-[9px] font-normal text-text-secondary">pts</span></span>
+              <span class="text-[9px] text-text-secondary uppercase tracking-wider font-semibold block">My Skills</span>
+              <span class="text-xs font-bold text-tenant-600 dark:text-tenant-300 font-mono">12 <span class="text-[9px] font-normal text-text-secondary">skills</span></span>
             </div>
             <div class="px-2">
               <span class="text-[9px] text-text-secondary uppercase tracking-wider font-semibold block">Certificates</span>

@@ -268,14 +268,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/offline-trainings', '/offline-trainings/view/**']
       },
       {
-        label: 'Training Dashboard',
-        route: '/offline-trainings/dashboard',
-        icon: 'space_dashboard',
-        description: 'Classroom statistics, venue distribution & capacity metrics',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/offline-trainings/dashboard']
-      },
-      {
         label: 'Create Training',
         route: '/offline-trainings/create',
         icon: 'add_circle',
@@ -309,13 +301,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/venues', '/venues/view/**']
       },
       {
-        label: 'Venue Dashboard',
-        route: '/venues/dashboard',
-        icon: 'space_dashboard',
-        description: 'Venue telemetry, room utilization & capacity benchmarks',
-        matchPatterns: ['/venues/dashboard']
-      },
-      {
         label: 'Create Venue',
         route: '/venues/create',
         icon: 'add_location_alt',
@@ -330,7 +315,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Design, configure & manage reusable curriculum modules & templates',
-    matchPatterns: ['/courses', '/courses/dashboard', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**', '/courses/templates', '/courses/templates/**'],
+    matchPatterns: ['/courses', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**', '/courses/templates', '/courses/templates/**'],
     children: [
       {
         label: 'Course Library',
@@ -340,27 +325,12 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/courses']
       },
       {
-        label: 'Course Dashboard',
-        route: '/courses/dashboard',
-        icon: 'space_dashboard',
-        description: 'High-level course status, content split & publish governance',
-        matchPatterns: ['/courses/dashboard']
-      },
-      {
         label: 'Template Grid',
         route: '/courses/templates',
         icon: 'dashboard_customize',
         description: 'Browse, filter & manage course blueprints',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/courses/templates', '/courses/templates/view/**']
-      },
-      {
-        label: 'Template Dashboard',
-        route: '/courses/templates/dashboard',
-        icon: 'monitoring',
-        description: 'Blueprint metrics, adoption velocity & slot telemetry',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/courses/templates/dashboard']
       },
       {
         label: 'Create Course',
@@ -472,13 +442,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'bubble_chart',
         description: 'Group skills into broader competency areas',
         matchPatterns: ['/skills/clusters']
-      },
-      {
-        label: 'Skill Dashboard',
-        route: '/skills/dashboard',
-        icon: 'space_dashboard',
-        description: 'Skill coverage metrics, distribution, learner progress & gap reports',
-        matchPatterns: ['/skills/dashboard']
       }
     ]
   },
@@ -496,13 +459,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         icon: 'grid_view',
         description: 'Browse, filter & manage certificate templates',
         matchPatterns: ['/certificates/templates', '/certificates/templates/view/**']
-      },
-      {
-        label: 'Template Dashboard',
-        route: '/certificates/templates/dashboard',
-        icon: 'space_dashboard',
-        description: 'KPI summary, status & sharing analytics studio',
-        matchPatterns: ['/certificates/templates/dashboard']
       },
       {
         label: 'Create Template',
@@ -528,14 +484,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/certificates/signatories', '/signatories']
       },
       {
-        label: 'Signatory Dashboard',
-        route: '/certificates/signatories/dashboard',
-        icon: 'space_dashboard',
-        description: 'Signatory repository health, usage & propagation telemetry',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/certificates/signatories/dashboard', '/signatories/dashboard']
-      },
-      {
         label: 'My Transcripts',
         route: '/my-transcripts',
         icon: 'school',
@@ -549,18 +497,9 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/certificates/badges',
     icon: 'military_tech',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Trainee earned badges with LMS provenance and template repository',
+    description: 'Manage, design, and configure badge templates',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
-      {
-        label: 'Earned Badges (LMS Origins)',
-        route: '/certificates/badges',
-        queryParams: { tab: 'earned' },
-        icon: 'verified',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-        description: 'Verifiable credentials categorized by originating enterprise LMS portal',
-        matchPatterns: ['/certificates/badges?tab=earned', '/certificates/badges/earned', '/badges/earned']
-      },
       {
         label: 'Badge Repository',
         route: '/certificates/badges',
@@ -569,14 +508,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Browse, filter & manage digital badge templates',
         matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
-      },
-      {
-        label: 'Badge Dashboard',
-        route: '/certificates/badges/dashboard',
-        icon: 'space_dashboard',
-        description: 'Badge telemetry, level/tier breakdown & utilization metrics',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/certificates/badges/dashboard', '/badges/dashboard', '/certificates/badges/analytics']
       },
       {
         label: 'Create Badge',

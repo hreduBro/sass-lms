@@ -501,6 +501,19 @@ export class BadgeGridComponent {
     this.isFilterPanelOpen.set(false);
   }
 
+  filterByStatus(status: BadgeTemplateStatus) {
+    const isCurrentlyActive = this.appliedFilters().statuses.includes(status) && this.appliedFilters().statuses.length === 1;
+    this.appliedFilters.update(f => ({
+      ...f,
+      statuses: isCurrentlyActive ? [] : [status]
+    }));
+    this.draftFilters.update(f => ({
+      ...f,
+      statuses: isCurrentlyActive ? [] : [status]
+    }));
+    this.currentPage.set(1);
+  }
+
   clearFilterPanelDraft() {
     this.draftFilters.set({
       statuses: [],

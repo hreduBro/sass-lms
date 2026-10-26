@@ -202,14 +202,11 @@ import { TraineeScheduleItem, TRAINEE_PERSONAS } from '../../../models/trainee-p
 
               <!-- Right Actions -->
               <div class="flex items-center gap-2.5 shrink-0">
-                @if (item.type === 'class_session') {
-                  <button 
-                    type="button" 
-                    (click)="toggleAttendance(item.id)"
-                    class="px-3.5 py-2 rounded-xl border border-base-300 dark:border-slate-700 text-xs font-bold hover:bg-base-200 transition-colors cursor-pointer flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-sm text-tenant-600">how_to_reg</span>
-                    <span>{{ item.status === 'Attended' ? 'Mark as Upcoming' : 'Confirm Attended' }}</span>
-                  </button>
+                @if (item.type === 'class_session' && item.status === 'Attended') {
+                  <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-semibold flex items-center gap-1.5" title="Attendance recorded by instructor">
+                    <span class="material-symbols-outlined text-sm text-emerald-600">verified</span>
+                    <span>Attended</span>
+                  </span>
                 }
 
                 <a 
@@ -292,8 +289,7 @@ import { TraineeScheduleItem, TRAINEE_PERSONAS } from '../../../models/trainee-p
                 <div class="space-y-1 mt-1.5 overflow-hidden">
                   @for (ev of slot.events; track ev.id) {
                     <div 
-                      (click)="toggleAttendance(ev.id)"
-                      class="p-1.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-transform hover:scale-[1.02] shadow-2xs"
+                      class="p-1.5 rounded-lg text-[10px] font-bold truncate shadow-2xs"
                       [class.bg-amber-100]="ev.type === 'class_session'"
                       [class.text-amber-900]="ev.type === 'class_session'"
                       [class.border-l-2]="ev.type === 'class_session'"
@@ -381,6 +377,11 @@ export class MyScheduleComponent {
   });
 
   toggleAttendance(sessionId: string) {
+    const current = this.traineeService.sessionAttendance()[sessionId] || 'Upcoming';
+    if (current === 'Attended') {
+      // The instructor captures attendance, not the learner. Attended sessions cannot be reverted.
+      return;
+    }
     this.traineeService.toggleSessionAttendanceState(sessionId);
   }
 

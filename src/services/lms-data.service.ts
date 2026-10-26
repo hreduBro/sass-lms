@@ -2480,15 +2480,6 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidget[] = [
     visibleForRoles: ['super_admin', 'tenant_admin', 'instructor', 'learner']
   },
   {
-    id: 'w-gamification-1',
-    type: 'gamification_leaderboard',
-    title: 'Skill Mastery & XP Leaderboard',
-    subtitle: 'Top achievers and credential badge showcase',
-    colSpan: 1,
-    rowSpan: 2,
-    visibleForRoles: ['instructor']
-  },
-  {
     id: 'w-dept-matrix-1',
     type: 'chart_department_matrix',
     title: 'Department Progress & Compliance Matrix',
@@ -2634,15 +2625,6 @@ export const CATALOG_WIDGET_TEMPLATES: { type: DashboardWidgetType; name: string
     defaultRowSpan: 2,
     icon: 'videocam',
     category: 'Live Sessions'
-  },
-  {
-    type: 'gamification_leaderboard',
-    name: 'Skill Mastery Leaderboard & Badges',
-    description: 'Top organizational learners ranked by XP points, earned badges, and milestone awards.',
-    defaultColSpan: 1,
-    defaultRowSpan: 2,
-    icon: 'military_tech',
-    category: 'Gamification'
   },
   {
     type: 'quick_actions',
