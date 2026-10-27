@@ -271,7 +271,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Offline Trainings',
     route: '/offline-trainings',
     icon: 'groups_3',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
     matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
     children: [
@@ -328,7 +328,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'Design, configure & manage reusable curriculum modules & templates',
     matchPatterns: ['/courses', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**', '/courses/templates', '/courses/templates/**'],
     children: [
@@ -361,7 +361,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Assessments & Exams',
     route: '/assessments/results',
     icon: 'quiz',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'Learner attempt results, score distributions & manual grading queue',
     matchPatterns: ['/assessments/results', '/assessments/results/**', '/assessments/grade/**'],
     children: [
@@ -370,7 +370,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/assessments/results',
         icon: 'fact_check',
         description: 'Learner attempt results, score distributions & manual grading queue',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/assessments/results', '/assessments/grade/**']
       }
     ]
@@ -456,7 +456,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Certificate Templates',
     route: '/certificates/templates',
     icon: 'workspace_premium',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'WYSIWYG designer, template grid, sharing & credentials',
     matchPatterns: ['/certificates/templates/**', '/certificates/templates', '/certificates/vault', '/certificates/signatories/**'],
     children: [
@@ -496,7 +496,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Badges & Credentials',
     route: '/certificates/badges',
     icon: 'military_tech',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'Manage, design, and configure badge templates',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
@@ -505,7 +505,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/certificates/badges',
         queryParams: { tab: 'templates' },
         icon: 'grid_view',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         description: 'Browse, filter & manage digital badge templates',
         matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
       },
@@ -523,7 +523,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Live Classrooms',
     route: '/webinars',
     icon: 'videocam',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
   },

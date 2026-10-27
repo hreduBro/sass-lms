@@ -529,7 +529,7 @@ export class CourseCreateComponent implements OnInit {
         title: 'Foundations & Overview',
         layer: 1,
         order: 1,
-        instructorTags: [defaultInst],
+        instructorTags: [],
         children: [
           {
             nodeId: `node-${Date.now()}-2`,
@@ -564,7 +564,7 @@ export class CourseCreateComponent implements OnInit {
                     order: 2,
                     assessment: {
                       subtype: 'quiz',
-                      gradingMode: 'auto',
+                      gradingMode: 'manual',
                       passingScorePercent: 80,
                       durationMinutes: 15
                     },

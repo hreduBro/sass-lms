@@ -405,14 +405,14 @@ export function validateCourseEntity(course: CourseEntity): CourseValidationResu
     for (const node of nodes) {
       totalLayerNodes++;
       
-      const nodeInstructors = node.instructorTags || [];
+      const nodeInstructors = (node.instructorTags || []).filter(i => i.id && i.id !== '__none__');
       if (nodeInstructors.length > 0) {
         taggedLayers.add(node.layer);
       }
 
       const effectiveInstructors = nodeInstructors.length > 0 
         ? nodeInstructors 
-        : inheritedInstructorTags;
+        : inheritedInstructorTags.filter(i => i.id && i.id !== '__none__');
 
       // Inspect child nodes
       if (node.children && node.children.length > 0) {
@@ -425,14 +425,23 @@ export function validateCourseEntity(course: CourseEntity): CourseValidationResu
           totalContentItems++;
           
           // Check Rule Engine #3: Manual Grading mandatory instructor
-          if (item.family === 'assessment' && item.assessment?.gradingMode === 'manual') {
-            const hasDirectInstructor = (item.instructorTags && item.instructorTags.length > 0);
-            if (effectiveInstructors.length === 0 && !hasDirectInstructor) {
-              uncoveredManualAssessments.push({
-                contentId: item.contentId,
-                title: item.title,
-                nodeTitle: node.title
-              });
+          if (item.family === 'assessment') {
+            const isManualGraded = item.assessment?.gradingMode === 'manual' || 
+                                   item.assessment?.subtype === 'assignment' || 
+                                   item.assessment?.subtype === 'questionnaire' ||
+                                   !item.assessment?.gradingMode;
+
+            if (isManualGraded) {
+              const itemInstructors = (item.instructorTags || []).filter(i => i.id && i.id !== '__none__');
+              const hasDirectInstructor = itemInstructors.length > 0;
+
+              if (effectiveInstructors.length === 0 && !hasDirectInstructor) {
+                uncoveredManualAssessments.push({
+                  contentId: item.contentId,
+                  title: item.title,
+                  nodeTitle: node.title
+                });
+              }
             }
           }
         }

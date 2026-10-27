@@ -258,37 +258,26 @@
   @if (isCompact()) {
     <!-- Compact Rail Footer (Icon Meter) -->
     <div class="p-2 mb-3 mx-auto rounded-xl bg-base-200 border border-base-300 text-center flex-shrink-0"
-         [title]="'Seats: ' + lms.activeTenant().stats.seatsUsed + '/' + lms.activeTenant().stats.seatLimit + ' (' + lms.activeTenant().stats.complianceRate + '% compliant)'">
-      <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 block">verified</span>
+         [title]="'File Capacity: ' + lms.activeTenant().stats.storageUsedGb + ' GB (Subject to backend confirmation)'">
+      <span class="material-symbols-outlined text-base text-tenant-600 dark:text-tenant-300 block">cloud</span>
       <span class="text-[9px] font-mono font-bold text-text-primary block leading-none mt-0.5">
-        {{ lms.activeTenant().stats.complianceRate }}%
+        {{ lms.activeTenant().stats.storageUsedGb }}GB
       </span>
     </div>
   } @else {
     <!-- Full Footer on Standard Sidebar and Mobile Drawer -->
     <div class="p-3 m-3 rounded-2xl bg-base-200 border border-base-300 text-xs flex-shrink-0">
-      <div class="flex items-center justify-between mb-1.5">
+      <div class="flex items-center justify-between">
         <span class="text-[11px] font-medium text-text-secondary flex items-center gap-1">
-          <span class="material-symbols-outlined text-xs">badge</span> Seats Used
+          <span class="material-symbols-outlined text-xs">cloud</span> File Capacity
         </span>
         <span class="font-bold text-[11px] text-text-primary font-mono">
-          {{ lms.activeTenant().stats.seatsUsed }} / {{ lms.activeTenant().stats.seatLimit }}
+          {{ lms.activeTenant().stats.storageUsedGb }} GB
         </span>
       </div>
-      
-      <!-- Progress Bar -->
-      <div class="w-full bg-base-300 h-1.5 rounded-full overflow-hidden mb-2">
-        <div 
-          class="bg-tenant-500 h-full rounded-full transition-all duration-500" 
-          [style.width.%]="(lms.activeTenant().stats.seatsUsed / lms.activeTenant().stats.seatLimit) * 100">
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between text-[10px] text-text-secondary pt-1 border-t border-base-300/60">
-        <span>Storage: {{ lms.activeTenant().stats.storageUsedGb }} GB</span>
-        <span class="text-tenant-600 dark:text-tenant-300 font-semibold">
-          {{ lms.activeTenant().stats.complianceRate }}% Compliant
-        </span>
+      <div class="text-[10px] text-text-secondary mt-1.5 pt-1.5 border-t border-base-300/60 flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs text-amber-500 shrink-0">info</span>
+        <span>Subject to backend confirmation</span>
       </div>
     </div>
   }
