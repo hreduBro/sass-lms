@@ -194,8 +194,11 @@ export interface PlanComponent {
   targetAudience?: string;
 
   // Phase specific (when type === 'Phase')
-  phaseCompletionRule?: 'All mandatory components completed' | 'All courses completed' | 'All components completed' | 'Minimum share of components completed';
+  phaseCompletionRule?: 'All mandatory components completed' | 'All courses completed' | 'All components completed' | 'Minimum share of components completed' | string;
   phaseCompletionMinSharePct?: number;
+  phaseMinPassScorePct?: number;
+  phaseRequireAssessmentPass?: boolean;
+  phaseAttendanceThresholdPct?: number;
   phaseProgressionMode?: 'Plan Default' | 'Sequential' | 'Free';
   phaseGradingOverride?: string;
   phaseCertificateOverride?: string;
@@ -452,7 +455,11 @@ export interface Plan {
   engagement?: EngagementConfig;
   recurringConfig?: RecurringConfig;
   alumniTracking?: boolean;
-  // Plan Completion Tagging (§ Plan completion credentials & skill tagging)
+  // Plan Completion Tagging & Scoring Rules (§ Requirements Step 4)
+  planCompletionRule?: string;
+  planMinPassScorePct?: number;
+  phaseWeightingMode?: string;
+  retakePolicy?: string;
   completionSkills?: string[];
   completionCertificateId?: string;
   completionCertificateName?: string;

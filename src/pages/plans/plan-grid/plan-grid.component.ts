@@ -461,7 +461,7 @@ export class PlanGridComponent implements OnInit {
   // Navigation handlers
   showPhaseGrid(plan: Plan) {
     this.closeActionMenu();
-    this.router.navigate(['/plans/phases'], { queryParams: { planId: plan.id } });
+    this.router.navigate(['/plans/details', plan.id]);
   }
 
   navigateToCreatePhase(plan: Plan) {

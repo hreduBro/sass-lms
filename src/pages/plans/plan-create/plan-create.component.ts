@@ -63,8 +63,8 @@ export class PlanCreateComponent implements OnInit {
   activeTenant = this.lmsData.activeTenant;
   activeLms = this.lmsData.activeLms;
 
-  // Active Wizard Step (1: Basic Info, 2: Plan Builder, 3: User Onboarding)
-  currentStep = signal<1 | 2 | 3>(1);
+  // Active Wizard Step (1: Basic Info, 2: Plan Builder, 3: User Onboarding, 4: Scoring & Completion Rules)
+  currentStep = signal<1 | 2 | 3 | 4>(1);
 
   // Welcome Alert & Form Error States
   showWelcomeAlert = signal<boolean>(true);
@@ -75,7 +75,8 @@ export class PlanCreateComponent implements OnInit {
   steps: StepperStep[] = [
     { id: 1, shortTitle: 'Curriculum Identity', sublabel: 'Identity & Bounds', icon: 'info' },
     { id: 2, shortTitle: 'Component Canvas', sublabel: 'Structure & Phases', icon: 'account_tree' },
-    { id: 3, shortTitle: 'User Tagging', sublabel: 'Cohorts & Rosters', icon: 'groups' }
+    { id: 3, shortTitle: 'User Tagging', sublabel: 'Cohorts & Rosters', icon: 'groups' },
+    { id: 4, shortTitle: 'Scoring & Rules', sublabel: 'Phase & Plan Criteria', icon: 'fact_check' }
   ];
 
   completedSteps = computed<Set<number>>(() => {
@@ -86,8 +87,47 @@ export class PlanCreateComponent implements OnInit {
     if (this.currentStep() > 2) {
       s.add(2);
     }
+    if (this.currentStep() > 3) {
+      s.add(3);
+    }
     return s;
   });
+
+  // Step 04 State: Scoring & Completion Rules
+  planCompletionRule = signal<string>('Completing all phases within the plan in sequential order');
+  planMinPassScorePct = signal<number>(75);
+  phaseWeightingMode = signal<string>('Equal Phase Weighting');
+  retakePolicy = signal<string>('Up to 2 Retakes Allowed');
+
+  phaseCompletionRuleOptions: SelectOption[] = [
+    { value: 'Completing all courses within phase', label: 'Completing all courses within phase', sublabel: 'Must complete 100% of courses assigned to phase' },
+    { value: 'Completing all mandatory courses & components within phase', label: 'Completing all mandatory courses & components', sublabel: 'Must complete all mandatory items in phase' },
+    { value: 'Completing 100% of all components within phase', label: 'Completing 100% of all phase components', sublabel: 'Tasks, courses, assessments, and surveys' },
+    { value: 'Achieving minimum average pass mark across phase assessments', label: 'Achieving minimum average pass mark', sublabel: 'Requires meeting phase target percentage score' },
+    { value: 'Completing minimum required percentage share of phase components', label: 'Completing minimum required share (%)', sublabel: 'e.g. 80% of phase items completed' },
+    { value: 'Instructor / Manager evaluation sign-off', label: 'Instructor / Manager evaluation sign-off', sublabel: 'Manual approval by designated instructor' }
+  ];
+
+  planCompletionRuleOptions: SelectOption[] = [
+    { value: 'Completing all phases within the plan in sequential order', label: 'Completing all phases within the plan in sequential order', sublabel: 'All phase requirements must be satisfied sequentially' },
+    { value: 'Completing all courses across all phases in the plan', label: 'Completing all courses across all phases', sublabel: 'Every course across all phases must be completed' },
+    { value: 'Achieving minimum overall plan average pass score', label: 'Achieving overall target average pass score', sublabel: 'Combined average score across all phases' },
+    { value: 'Passing overall capstone assessment & all mandatory phases', label: 'Passing capstone assessment & mandatory phases', sublabel: 'Requires passing capstone post-test' },
+    { value: 'Completing all mandatory phases with departmental sign-off', label: 'Completing mandatory phases with departmental sign-off', sublabel: 'Requires manager verification' }
+  ];
+
+  phaseWeightingOptions: SelectOption[] = [
+    { value: 'Equal Phase Weighting', label: 'Equal Phase Weighting (Default)', sublabel: 'All phases carry equal weight toward overall plan score' },
+    { value: 'Weighted by Duration Hours', label: 'Weighted by Duration Hours', sublabel: 'Phases with higher total duration carry proportional weight' },
+    { value: 'Custom Percentage Weighting', label: 'Custom Percentage Weighting per Phase', sublabel: 'Explicitly define weightage % for each phase' }
+  ];
+
+  retakePolicyOptions: SelectOption[] = [
+    { value: 'Up to 2 Retakes Allowed', label: 'Up to 2 Retakes Allowed', sublabel: 'Learners can attempt failed assessments up to 2 times' },
+    { value: 'Unlimited Retakes', label: 'Unlimited Retakes', sublabel: 'Learners can retake failed quizzes until passing score is achieved' },
+    { value: 'Up to 3 Retakes Allowed', label: 'Up to 3 Retakes Allowed', sublabel: 'Maximum 3 attempts permitted per assessment' },
+    { value: 'Instructor Approval Required for Retake', label: 'Instructor Approval Required for Retake', sublabel: 'Requires manual unlock by assigned course instructor' }
+  ];
 
   // Edit / Plan state
   isEditing = signal<boolean>(false);
@@ -412,7 +452,11 @@ export class PlanCreateComponent implements OnInit {
           fields: this.intakeFormFields()
         }
       },
-      // Plan Completion Tagging (§ Requirements 5 & 6)
+      // Plan Completion Tagging & Scoring Rules (§ Step 4)
+      planCompletionRule: this.planCompletionRule(),
+      planMinPassScorePct: this.planMinPassScorePct(),
+      phaseWeightingMode: this.phaseWeightingMode(),
+      retakePolicy: this.retakePolicy(),
       completionSkills: this.planCompletionSkills(),
       completionCertificateId: val.planCompletionCertificateId || undefined,
       completionCertificateName: certObj && certObj.value ? certObj.label : undefined,
@@ -667,14 +711,14 @@ export class PlanCreateComponent implements OnInit {
         'error',
         4500,
         'Step 1 Validation Blocked',
-        'STEP 1 / 3'
+        'STEP 1 / 4'
       );
       this.scrollToFirstError();
       return;
     }
 
     const prevStep = this.currentStep();
-    this.currentStep.set(step as 1 | 2 | 3);
+    this.currentStep.set(step as 1 | 2 | 3 | 4);
 
     // Auto-save per stage (§ Auto-saved per stage)
     if (step > prevStep) {
@@ -692,7 +736,8 @@ export class PlanCreateComponent implements OnInit {
     const stepNames: Record<number, string> = {
       1: 'Step 1: Curriculum Identity & Bounds',
       2: 'Step 2: Component & Phase Plan Builder',
-      3: 'Step 3: User Tagging & Scope Assignment'
+      3: 'Step 3: User Tagging & Scope Assignment',
+      4: 'Step 4: Phase & Plan Scoring & Completion Rules'
     };
 
     const successMsg = `Successfully transitioned to ${stepNames[step]} from ${stepNames[prevStep]}.`;
@@ -703,10 +748,76 @@ export class PlanCreateComponent implements OnInit {
       'success',
       3500,
       'Step Navigation Complete',
-      `STEP ${step} OF 3`
+      `STEP ${step} OF 4`
     );
 
     this.scrollToTop();
+  }
+
+  // Step 04 Phase Scoring & Rule Updaters
+  updatePhaseCompletionRule(phaseId: string, rule: string) {
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { ...c, phaseCompletionRule: rule };
+      }
+      return c;
+    }));
+    this.lmsData.showToast('Updated phase completion rule.', 'info');
+  }
+
+  updatePhaseMinPassScore(phaseId: string, score: number) {
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { ...c, phaseMinPassScorePct: score };
+      }
+      return c;
+    }));
+  }
+
+  updatePhaseRequireAssessmentPass(phaseId: string, req: boolean) {
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { ...c, phaseRequireAssessmentPass: req };
+      }
+      return c;
+    }));
+  }
+
+  updatePhaseAttendanceThreshold(phaseId: string, pct: number) {
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { ...c, phaseAttendanceThresholdPct: pct };
+      }
+      return c;
+    }));
+  }
+
+  updatePhaseCertificate(phaseId: string, certId: string) {
+    const certObj = this.certificateOptions().find(c => c.value === certId);
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { 
+          ...c, 
+          completionCertificateId: certId || undefined,
+          completionCertificateName: certObj && certObj.value ? certObj.label : undefined
+        };
+      }
+      return c;
+    }));
+  }
+
+  updatePhaseBadge(phaseId: string, badgeId: string) {
+    const badgeObj = this.badgeOptions().find(b => b.value === badgeId);
+    this.components.update(list => list.map(c => {
+      if (c.id === phaseId) {
+        return { 
+          ...c, 
+          completionBadgeId: badgeId || undefined,
+          completionBadgeName: badgeObj && badgeObj.value ? badgeObj.label : undefined
+        };
+      }
+      return c;
+    }));
   }
 
   scrollToTop() {

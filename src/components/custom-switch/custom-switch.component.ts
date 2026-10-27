@@ -57,7 +57,7 @@ export class CustomSwitchComponent implements ControlValueAccessor {
   offLabel = input<string>('Disabled');
   showStatusLabel = input<boolean>(true);
   size = input<'sm' | 'md' | 'lg'>('md');
-  variant = input<'tenant' | 'emerald'>('emerald');
+  variant = input<'tenant' | 'emerald'>('tenant');
 
   // Outputs
   checkedChange = output<boolean>();

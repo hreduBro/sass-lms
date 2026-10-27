@@ -258,17 +258,13 @@ export const routes: Routes = [
   },
   { 
     path: 'plans/phases', 
-    loadComponent: () => import('./pages/plans/phase-grid/phase-grid.component').then(m => m.PhaseGridComponent), 
-    title: 'Phase Grid | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'plans',
+    pathMatch: 'full'
   },
   { 
     path: 'phases', 
-    loadComponent: () => import('./pages/plans/phase-grid/phase-grid.component').then(m => m.PhaseGridComponent), 
-    title: 'Phase Grid | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'plans',
+    pathMatch: 'full'
   },
   { 
     path: 'plans/:planId/phases/create', 

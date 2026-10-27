@@ -19,17 +19,20 @@
         @if (isEditing()) {
           @if (currentStep() === 1) { Edit Plan – Curriculum Identity }
           @else if (currentStep() === 2) { Edit Plan – Component Canvas }
-          @else { Edit Plan – User Tagging }
+          @else if (currentStep() === 3) { Edit Plan – User Tagging }
+          @else { Edit Plan – Completion & Scoring Rules }
         } @else {
           @if (currentStep() === 1) { Create Plan – Curriculum Identity }
           @else if (currentStep() === 2) { Create Plan – Component Canvas }
-          @else { Create Plan – User Tagging }
+          @else if (currentStep() === 3) { Create Plan – User Tagging }
+          @else { Create Plan – Completion & Scoring Rules }
         }
       </h1>
       <p class="text-xs text-text-secondary mt-0.5">
         @if (currentStep() === 1) { Define plan code, title, duration bounds, budget, and curriculum owner. }
         @else if (currentStep() === 2) { Assemble tasks, content, courses, assessments, surveys, and modular phases. }
-        @else { Tag target trainee cohorts, set directory mappings, and configure access scopes. }
+        @else if (currentStep() === 3) { Tag target trainee cohorts, set directory mappings, and configure access scopes. }
+        @else { Configure completion rules, minimum passing marks, assessment requirements, and overall plan pass criteria. }
       </p>
     </div>
 
@@ -1359,7 +1362,265 @@
   }
 
   <!-- ===================================================================== -->
-  <!-- BOTTOM ACTION DOCK (Clean In-Flow Divider Layout matching Image 2) -->
+  <!-- STEP 04: SCORING & COMPLETION RULES (Phase & Plan Level) -->
+  <!-- ===================================================================== -->
+  @if (currentStep() === 4) {
+    <div class="animate-step space-y-6">
+
+      <!-- SECTION 1: Phase-Level Scoring & Completion Rules -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-tenant-500/10 text-tenant-600 dark:text-tenant-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">timeline</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Phase-Level Scoring & Completion Rules</h2>
+              <p class="text-xs text-text-secondary">Configure passing criteria, minimum target score, attendance thresholds, and credentials for each phase</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-tenant-500/10 text-tenant-700 dark:text-tenant-300 border border-tenant-500/20">
+            {{ phases().length }} Phase {{ phases().length === 1 ? 'Rule' : 'Rules' }}
+          </span>
+        </div>
+
+        @if (phases().length === 0) {
+          <div class="p-8 text-center rounded-2xl bg-base-200/40 border border-dashed border-base-300 space-y-2">
+            <p class="text-xs text-text-secondary">No phases created yet in Step 2. You can configure Plan Overall rules below or return to Step 2 to add phases.</p>
+            <button 
+              type="button" 
+              (click)="goToStep(2)" 
+              class="px-3.5 py-1.5 rounded-xl bg-tenant-500 text-white text-xs font-semibold inline-flex items-center gap-1 shadow-2xs">
+              <span class="material-symbols-outlined text-xs">add</span>
+              <span>Go to Step 2 & Add Phases</span>
+            </button>
+          </div>
+        }
+
+        @for (ph of phases(); track ph.id; let idx = $index) {
+          <div class="p-5 rounded-2xl bg-base-200/50 border border-base-300 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-base-300">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-lg bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold flex items-center justify-center font-mono">
+                  {{ idx + 1 }}
+                </span>
+                <div>
+                  <h3 class="text-xs font-bold text-text-primary">{{ ph.name }}</h3>
+                  <span class="text-[10px] text-text-secondary font-mono">{{ ph.startDate }} – {{ ph.endDate }}</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-tenant-500/10 text-tenant-600 dark:text-tenant-400">
+                Phase Container
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <!-- Phase Completion Criteria Dropdown -->
+              <div class="md:col-span-2">
+                <app-custom-select
+                  label="Phase Completion Criteria"
+                  hint="Rule required for learner to complete this phase"
+                  [options]="phaseCompletionRuleOptions"
+                  [value]="ph.phaseCompletionRule || 'Completing all courses within phase'"
+                  (valueChange)="updatePhaseCompletionRule(ph.id, $event)">
+                </app-custom-select>
+              </div>
+
+              <!-- Minimum Pass Score Threshold % -->
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">
+                  Minimum Pass Mark (% Score)
+                </label>
+                <div class="relative">
+                  <input 
+                    type="number"
+                    min="0"
+                    max="100"
+                    [value]="ph.phaseMinPassScorePct ?? 70"
+                    (input)="updatePhaseMinPassScore(ph.id, +$any($event.target).value)"
+                    placeholder="70"
+                    class="w-full pl-3.5 pr-8 py-2 rounded-xl bg-base-100 border border-base-300 text-xs text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                  <span class="absolute right-3 top-2 text-xs font-bold text-text-secondary pointer-events-none">%</span>
+                </div>
+                <p class="text-[10px] text-text-secondary mt-1">Average score threshold for phase quizzes</p>
+              </div>
+
+              <!-- Attendance Threshold % -->
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">
+                  Class & Attendance Requirement (%)
+                </label>
+                <div class="relative">
+                  <input 
+                    type="number"
+                    min="0"
+                    max="100"
+                    [value]="ph.phaseAttendanceThresholdPct ?? 80"
+                    (input)="updatePhaseAttendanceThreshold(ph.id, +$any($event.target).value)"
+                    placeholder="80"
+                    class="w-full pl-3.5 pr-8 py-2 rounded-xl bg-base-100 border border-base-300 text-xs text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+                  <span class="absolute right-3 top-2 text-xs font-bold text-text-secondary pointer-events-none">%</span>
+                </div>
+                <p class="text-[10px] text-text-secondary mt-1">For offline workshops & live webinars</p>
+              </div>
+
+              <!-- Phase Certificate Award -->
+              <div>
+                <app-custom-select
+                  label="Phase Certificate Award"
+                  hint="Certificate issued on completing phase"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [options]="certificateOptions()"
+                  [value]="ph.completionCertificateId || ''"
+                  (valueChange)="updatePhaseCertificate(ph.id, $event)"
+                  placeholder="Select phase certificate...">
+                </app-custom-select>
+              </div>
+
+              <!-- Phase Badge Award -->
+              <div>
+                <app-custom-select
+                  label="Phase Badge Award"
+                  hint="Milestone badge awarded on completing phase"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [options]="badgeOptions()"
+                  [value]="ph.completionBadgeId || ''"
+                  (valueChange)="updatePhaseBadge(ph.id, $event)"
+                  placeholder="Select phase badge...">
+                </app-custom-select>
+              </div>
+            </div>
+
+            <!-- Mandatory Assessment Pass Requirement Toggle -->
+            <div class="p-3 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-rose-500">verified_user</span>
+                <div>
+                  <span class="text-xs font-semibold text-text-primary block">Mandatory Post-Test & Exam Pass Requirement</span>
+                  <span class="text-[10px] text-text-secondary">Learners must achieve pass marks in all post-tests to complete phase</span>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  [checked]="ph.phaseRequireAssessmentPass !== false"
+                  (change)="updatePhaseRequireAssessmentPass(ph.id, $any($event.target).checked)"
+                  class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tenant-500"></div>
+              </label>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- SECTION 2: Plan Overall Scoring & Master Pass Rules -->
+      <div class="p-6 rounded-3xl bg-base-100 border border-base-300 shadow-xs space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-base-300">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <span class="material-symbols-outlined text-base">verified</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-text-primary">Plan Overall Completion & Master Scoring Rules</h2>
+              <p class="text-xs text-text-secondary">Configure overall plan pass criteria, cumulative score threshold, phase weightages, and retake limits</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+            Master Plan Rule
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Overall Plan Completion Rule Dropdown -->
+          <div>
+            <app-custom-select
+              label="Plan Overall Completion Criteria"
+              hint="Master requirement to achieve full Plan Graduation"
+              [options]="planCompletionRuleOptions"
+              [value]="planCompletionRule()"
+              (valueChange)="planCompletionRule.set($event)">
+            </app-custom-select>
+          </div>
+
+          <!-- Overall Plan Passing Mark % -->
+          <div>
+            <label class="block text-xs font-semibold text-text-primary mb-1">
+              Overall Plan Minimum Passing Score (%)
+            </label>
+            <div class="relative">
+              <input 
+                type="number"
+                min="0"
+                max="100"
+                [value]="planMinPassScorePct()"
+                (input)="planMinPassScorePct.set(+$any($event.target).value)"
+                placeholder="75"
+                class="w-full pl-3.5 pr-8 py-2.5 rounded-xl bg-base-100 border border-base-300 text-xs text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-tenant-500" />
+              <span class="absolute right-3 top-3 text-xs font-bold text-text-secondary pointer-events-none">%</span>
+            </div>
+            <p class="text-[10px] text-text-secondary mt-1">Minimum cumulative average mark required across full plan</p>
+          </div>
+
+          <!-- Phase Weightage Distribution -->
+          <div>
+            <app-custom-select
+              label="Phase Weightage Calculation Engine"
+              hint="How phase scores contribute to the overall plan score"
+              [options]="phaseWeightingOptions"
+              [value]="phaseWeightingMode()"
+              (valueChange)="phaseWeightingMode.set($event)">
+            </app-custom-select>
+          </div>
+
+          <!-- Assessment Retake & Grace Attempt Policy -->
+          <div>
+            <app-custom-select
+              label="Assessment Retake & Grace Attempt Policy"
+              hint="Max attempt limits permitted for failed assessments"
+              [options]="retakePolicyOptions"
+              [value]="retakePolicy()"
+              (valueChange)="retakePolicy.set($event)">
+            </app-custom-select>
+          </div>
+        </div>
+
+        <!-- Master Graduation Credentials Summary Banner -->
+        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <span class="material-symbols-outlined text-lg">workspace_premium</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Graduation Credentials Configured</span>
+              <p class="text-xs font-bold text-text-primary mt-0.5">
+                @if (currentPlan().completionCertificateName) { Cert: {{ currentPlan().completionCertificateName }} }
+                @else { No Certificate }
+                •
+                @if (currentPlan().completionBadgeName) { Badge: {{ currentPlan().completionBadgeName }} }
+                @else { No Badge }
+                •
+                {{ (currentPlan().completionSkills || []).length }} Skills Tagged
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="goToStep(1)"
+            class="px-3 py-1.5 rounded-xl bg-base-100 hover:bg-base-200 text-text-primary border border-base-300 text-xs font-semibold transition-all cursor-pointer shrink-0">
+            Edit Credentials in Step 1
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+  <!-- ===================================================================== -->
+  <!-- BOTTOM ACTION DOCK (Clean In-Flow Divider Layout) -->
   <!-- ===================================================================== -->
   <div class="flex flex-wrap items-center justify-between gap-3 pt-6 mt-8 border-t border-base-300 dark:border-slate-800">
     
@@ -1383,7 +1644,7 @@
       @if (currentStep() > 1) {
         <button 
           type="button"
-          (click)="goToStep(currentStep() === 2 ? 1 : 2)"
+          (click)="goToStep(currentStep() - 1)"
           class="px-4 py-2.5 rounded-xl border border-base-300 bg-base-200/50 hover:bg-base-200 dark:border-slate-700 dark:bg-slate-800 text-xs font-semibold text-text-primary transition-all flex items-center gap-1.5 cursor-pointer">
           <span class="material-symbols-outlined text-sm">arrow_back</span>
           <span>Back</span>
@@ -1393,19 +1654,19 @@
 
     <!-- Right: Next / Publish Actions -->
     <div class="flex items-center gap-2.5">
-      <!-- Step 1 & Step 2: Next Step Button (Image 3 Style: Vibrant Brand Button + Arrow) -->
-      @if (currentStep() < 3) {
+      <!-- Steps 1 - 3: Next Step Button -->
+      @if (currentStep() < 4) {
         <button 
           type="button"
-          (click)="goToStep(currentStep() === 1 ? 2 : 3)"
+          (click)="goToStep(currentStep() + 1)"
           class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-[0.98] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer">
           <span>Next</span>
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
       }
 
-      <!-- Step 3: Publish Plan Button -->
-      @if (currentStep() === 3) {
+      <!-- Step 4: Publish Plan Button -->
+      @if (currentStep() === 4) {
         <button 
           type="button"
           (click)="publishPlan()"
