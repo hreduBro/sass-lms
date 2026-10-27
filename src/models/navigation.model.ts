@@ -200,7 +200,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/plans/phases/create', 
         icon: 'add_circle', 
         description: 'Step-by-step 8-stage phase creation wizard & delivery classes',
-        matchPatterns: ['/plans/*/phases/create', '/plans/phases/create', '/phases/create']
+        matchPatterns: ['/plans/*/phases/create', '/plans/phases/create', '/phases/create', '/plans/*/phases/edit/*']
       },
       { 
         label: 'Plan Dashboard', 
