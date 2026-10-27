@@ -80,41 +80,6 @@
     </div>
   }
 
-  <!-- Rule Engine #3 Warning: Manual-graded Assessment Has No Responsible Instructor (BRD §4.4) -->
-  @if (validationResult().uncoveredManualAssessments.length > 0) {
-    <div id="manual-assessment-warning-banner" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs font-medium space-y-2 animate-in fade-in slide-in-from-top-2 shadow-xs">
-      <div class="flex items-center justify-between font-bold text-amber-800 dark:text-amber-300">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-amber-600 text-lg">warning</span>
-          <span class="text-sm">Publishing Blocked: Manual-Graded Assessment Has No Responsible Instructor</span>
-        </div>
-        <span class="px-2 py-0.5 rounded bg-amber-200 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 font-mono text-[10px] uppercase font-bold">
-          BRD §4.4 Rule Engine #3
-        </span>
-      </div>
-      <p class="text-[11px] text-amber-800/90 dark:text-amber-300/90">
-        The following manual-graded assessment(s) have no faculty instructor tagged in their parent node or directly on the assessment item. As per BRD §4.4, publishing is blocked until a responsible instructor is assigned:
-      </p>
-      <ul class="list-disc list-inside space-y-1 pl-1 font-semibold text-amber-900 dark:text-amber-200">
-        @for (item of validationResult().uncoveredManualAssessments; track item.contentId) {
-          <li class="flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-xs text-amber-600">assignment</span>
-            <span>"{{ item.title }}" in <strong class="underline">{{ item.nodeTitle }}</strong></span>
-          </li>
-        }
-      </ul>
-      <div class="pt-1 flex items-center gap-2">
-        <button 
-          type="button" 
-          (click)="jumpToStep(3)" 
-          class="px-3 py-1 rounded-lg bg-amber-200 dark:bg-amber-900 hover:bg-amber-300 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer">
-          <span class="material-symbols-outlined text-xs">school</span>
-          Go to Step 3 (Tag Topic Instructor)
-        </button>
-      </div>
-    </div>
-  }
-
   <!-- ========================================================================= -->
   <!-- STEP 1: COURSE BASIC DETAILS -->
   <!-- ========================================================================= -->
