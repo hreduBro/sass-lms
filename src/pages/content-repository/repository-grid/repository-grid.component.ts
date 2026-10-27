@@ -181,7 +181,12 @@ export class RepositoryGridComponent {
     { value: 'Recorded Class', label: 'Recorded Class' },
     { value: 'Book / E-book', label: 'Book / E-book' },
     { value: 'External Link', label: 'External Link' },
-    { value: 'Question Bank / Question Set', label: 'Question Bank / Question Set' }
+    { value: 'Quiz', label: 'Quiz' },
+    { value: 'Exam', label: 'Exam' },
+    { value: 'Assignment', label: 'Assignment' },
+    { value: 'Pre-Test', label: 'Pre-Test' },
+    { value: 'Post-Test', label: 'Post-Test' },
+    { value: 'Survey', label: 'Survey' }
   ];
 
   statusOptions: SelectOption[] = [
@@ -442,23 +447,7 @@ export class RepositoryGridComponent {
   }
 
   getGradingLabel(item: RepositoryItem): string {
-    if (item.family !== 'Assessment' && item.type !== 'Question Bank / Question Set') {
-      return '';
-    }
-    if (item.type === 'Survey') return '';
-    if (item.type === 'Assignment') return 'Needs manual grading';
-
-    const config = item.contentConfig as any;
-    if (config?.assessmentId) {
-      const linked = this.lmsData.assessments().find(a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode);
-      if (linked) {
-        const currentVer = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
-        if (currentVer?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
-          return 'Needs manual grading';
-        }
-      }
-    }
-    return 'Auto';
+    return this.lmsData.getRepositoryItemGradingLabel(item);
   }
 
   getStatusBadgeClass(status: ContentStatus): string {

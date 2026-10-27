@@ -23,6 +23,33 @@ export type AssessmentContentType =
 
 export type ContentType = LearningContentType | AssessmentContentType;
 
+/**
+ * Assessment types that carry points / a pass mark and are therefore eligible
+ * for the Plan's Pre-Test and Post-Test pickers (§5.2).
+ * Survey is deliberately excluded because it is unscored.
+ */
+export const SCORED_ASSESSMENT_TYPES: AssessmentContentType[] = [
+  'Quiz',
+  'Exam',
+  'Assignment',
+  'Pre-Test',
+  'Post-Test'
+];
+
+/** Assessment type used by the Plan's Survey picker (§5.2). */
+export const SURVEY_ASSESSMENT_TYPE: AssessmentContentType = 'Survey';
+
+export function isScoredAssessmentType(type: ContentType | string | null | undefined): boolean {
+  return !!type && (SCORED_ASSESSMENT_TYPES as string[]).includes(type);
+}
+
+export function isSurveyAssessmentType(type: ContentType | string | null | undefined): boolean {
+  return type === SURVEY_ASSESSMENT_TYPE;
+}
+
+/** Derived grading label shown for assessments across the app (§2.4). */
+export type AssessmentGradingLabel = 'Auto' | 'Needs manual grading';
+
 export type SharingMode = 'Private' | 'Organization-wide' | 'Custom Share';
 
 export type ContentStatus = 'Draft' | 'Scheduled' | 'Active' | 'Inactive' | 'Expired';
@@ -233,12 +260,6 @@ export const AUTHORITATIVE_ASSESSMENT_CONTENT_TYPES: { type: AssessmentContentTy
     icon: 'ballot',
     description: 'Unscored feedback survey or learner experience form',
     formats: 'Unscored Questions'
-  },
-  {
-    type: 'Question Bank / Question Set',
-    icon: 'dataset',
-    description: 'Reusable question set or assessment pool',
-    formats: 'Question Pool'
   }
 ];
 
@@ -401,7 +422,7 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     title: 'Smart Campaign Client Protection Core Ethics & Standards Exam',
     titleBangla: 'স্মার্ট ক্যাম্পেইন গ্রাহক সুরক্ষা নীতি ও মান মূল্যায়ন প্রশ্নব্যাংক',
     family: 'Assessment',
-    type: 'Question Bank / Question Set',
+    type: 'Exam',
     authorIds: ['usr-brac-auth-2'],
     authorNames: ['Farhana Ahmed'],
     publishDate: '01/02/2026',
@@ -417,9 +438,9 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     updatedAt: '01/02/2026',
     createdBy: 'Farhana Ahmed',
     contentConfig: {
-      assessmentId: 'asm-101',
-      assessmentTitle: 'Microfinance Client Protection & Ethics Exam',
-      assessmentCode: 'ASM-1972-MF',
+      assessmentId: 'asm-brac-01',
+      assessmentTitle: 'Microfinance Field Ethics, Client Protection & POS Operations Final Exam',
+      assessmentCode: 'EXAM-SEC-2026',
       questionCount: 12,
       scoringMode: 'scored',
       passMarkPercent: 80,
@@ -743,7 +764,7 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     title: 'Field Operations & Tablet POS Mastery Diagnostic Quiz',
     titleBangla: 'ফিল্ড অপারেশনস ও ট্যাবলেট পিওএস দক্ষতা কুইজ',
     family: 'Assessment',
-    type: 'Question Bank / Question Set',
+    type: 'Quiz',
     authorIds: ['usr-brac-auth-1'],
     authorNames: ['Tanvir Hossain'],
     publishDate: '01/02/2026',
@@ -775,7 +796,7 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     title: 'Trainee Onboarding & Learner Experience Survey',
     titleBangla: 'শিক্ষার্থী অভিজ্ঞতা ও মডিউল প্রতিক্রিয়া জরিপ',
     family: 'Assessment',
-    type: 'Question Bank / Question Set',
+    type: 'Survey',
     authorIds: ['usr-brac-auth-2'],
     authorNames: ['Farhana Ahmed'],
     publishDate: '01/02/2026',
@@ -798,6 +819,72 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     },
     referencedInPlansCount: 1,
     referencedInCoursesCount: 1,
+    referencedEntities: []
+  },
+  {
+    id: 'repo-item-15',
+    title: 'BRAC Field Officer Baseline Numeracy & Compliance Pre-Test',
+    titleBangla: 'ব্র্যাক ফিল্ড অফিসার বেসলাইন সংখ্যাজ্ঞান ও কমপ্লায়েন্স প্রি-টেস্ট',
+    family: 'Assessment',
+    type: 'Pre-Test',
+    authorIds: ['usr-brac-auth-5'],
+    authorNames: ['Shakil Anwar'],
+    publishDate: '01/02/2026',
+    expiryDate: null,
+    hasNoExpiry: true,
+    description: 'Auto-graded baseline diagnostic pre-test measuring numerical literacy and field compliance before curriculum onboarding.',
+    owningLmsId: 'LMS-1972-01',
+    owningLmsName: 'Microfinance Academy',
+    owningOrganizationId: 'tenant-brac',
+    sharingMode: 'Organization-wide',
+    status: 'Active',
+    createdAt: '29/01/2026',
+    updatedAt: '01/02/2026',
+    createdBy: 'Shakil Anwar',
+    contentConfig: {
+      assessmentId: 'asm-brac-05',
+      assessmentTitle: 'Core Numerical Literacy & Field Compliance Diagnostic Baseline',
+      assessmentCode: 'INDEP-DIAG-2026',
+      questionCount: 2,
+      scoringMode: 'scored',
+      passMarkPercent: 70,
+      totalMarks: 25
+    },
+    referencedInPlansCount: 0,
+    referencedInCoursesCount: 0,
+    referencedEntities: []
+  },
+  {
+    id: 'repo-item-16',
+    title: 'BRAC Field Officer Final Compliance & Client Protection Post-Test',
+    titleBangla: 'ব্র্যাক ফিল্ড অফিসার চূড়ান্ত কমপ্লায়েন্স ও গ্রাহক সুরক্ষা পোস্ট-টেস্ট',
+    family: 'Assessment',
+    type: 'Post-Test',
+    authorIds: ['usr-brac-auth-2'],
+    authorNames: ['Farhana Ahmed'],
+    publishDate: '01/02/2026',
+    expiryDate: null,
+    hasNoExpiry: true,
+    description: 'Auto-graded summative post-test verifying field compliance and client protection standards after training.',
+    owningLmsId: 'LMS-1972-01',
+    owningLmsName: 'Microfinance Academy',
+    owningOrganizationId: 'tenant-brac',
+    sharingMode: 'Organization-wide',
+    status: 'Active',
+    createdAt: '30/01/2026',
+    updatedAt: '01/02/2026',
+    createdBy: 'Farhana Ahmed',
+    contentConfig: {
+      assessmentId: 'asm-brac-02',
+      assessmentTitle: 'Field Operations & Tablet POS Quiz',
+      assessmentCode: 'QUIZ-GRAD-02',
+      questionCount: 10,
+      scoringMode: 'scored',
+      passMarkPercent: 75,
+      totalMarks: 20
+    },
+    referencedInPlansCount: 0,
+    referencedInCoursesCount: 0,
     referencedEntities: []
   }
 ];

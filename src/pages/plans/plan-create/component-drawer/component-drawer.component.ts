@@ -11,6 +11,11 @@ import {
   formatDateDDMMYYYY
 } from '../../../../models/plan.model';
 import { LmsDataService } from '../../../../services/lms-data.service';
+import {
+  RepositoryItem,
+  isScoredAssessmentType,
+  isSurveyAssessmentType
+} from '../../../../models/content-repository.model';
 import { CustomSelectComponent, SelectOption } from '../../../../components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../../components/date-picker/date-picker.component';
 
@@ -504,19 +509,41 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
                 <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
                   [class]="selectedType() === 'Pre-Test' ? 'text-amber-800 dark:text-amber-300' : 'text-rose-800 dark:text-rose-300'">
                   <span class="material-symbols-outlined text-sm">quiz</span>
-                  <span>{{ selectedType() }} Questionnaire Mapping</span>
+                  <span>{{ selectedType() }} Repository Assessment</span>
                 </h3>
+
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Pick an Active, scored assessment from the Content Repository. The repository item is live-referenced — the Plan does not keep its own questions.
+                </p>
 
                 <div>
                   <app-custom-select
                     label="Select Scored Assessment"
+                    hint="Only Active scored assessments appear"
                     [searchable]="true"
                     [clearable]="true"
                     [options]="questionnaireSelectOptions()"
+                    formControlName="assessmentItemId"
                     (valueChange)="onQuestionnaireSelected($event)"
                     placeholder="Search active repository assessments...">
                   </app-custom-select>
                 </div>
+
+                @if (selectedAssessmentOption(); as selectedAssessment) {
+                  <div class="p-2.5 rounded-xl bg-base-100 border border-base-300 flex items-center justify-between gap-2 text-[11px]">
+                    <span class="text-text-secondary">
+                      {{ selectedAssessment.type }} · {{ selectedAssessment.owningLmsName }}
+                    </span>
+                    @if (selectedAssessment.gradingLabel) {
+                      <span class="px-2 py-0.5 rounded-md font-bold border"
+                        [class]="selectedAssessment.gradingLabel === 'Auto'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                          : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'">
+                        {{ selectedAssessment.gradingLabel }}
+                      </span>
+                    }
+                  </div>
+                }
 
                 <div class="grid grid-cols-2 gap-3">
                   <div>
@@ -544,12 +571,18 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
                   <span>Survey & Feedback Configuration</span>
                 </h3>
 
+                <p class="text-[11px] text-text-secondary leading-relaxed">
+                  Pick an Active Survey from the Content Repository. The Plan references the survey live and does not hold its own questions.
+                </p>
+
                 <div>
                   <app-custom-select
                     label="Select Survey"
+                    hint="Only Active repository surveys appear"
                     [searchable]="true"
                     [clearable]="true"
                     [options]="surveyFormOptions()"
+                    formControlName="surveyItemId"
                     (valueChange)="onSurveyFormSelected($event)"
                     placeholder="Search active repository surveys...">
                   </app-custom-select>
@@ -1034,8 +1067,10 @@ export class ComponentDrawerComponent {
     // Test
     evaluationType: ['Online'],
     passMark: [70],
+    assessmentItemId: [null],
     // Survey
     surveyMode: ['Anonymous'],
+    surveyItemId: [null],
     // Phase Completion Tagging (§ Requirements 5 & 6)
     completionCertificateId: [''],
     completionBadgeId: ['']
@@ -1097,6 +1132,12 @@ export class ComponentDrawerComponent {
             meetingLink: comp.meetingLink || 'https://meet.google.com/onelms-live',
             platform: comp.platform || 'Google Meet',
             attendanceRequirementPct: comp.attendanceRequirementPct || 80,
+            assessmentItemId: (comp.type === 'Pre-Test' || comp.type === 'Post-Test')
+              ? (comp.repositoryItemId || comp.questionnaireId || comp.source?.itemId || null)
+              : null,
+            surveyItemId: comp.type === 'Survey'
+              ? (comp.repositoryItemId || comp.surveyFormId || comp.source?.itemId || null)
+              : null,
             completionCertificateId: comp.completionCertificateId || '',
             completionBadgeId: comp.completionBadgeId || ''
           });
@@ -1149,6 +1190,8 @@ export class ComponentDrawerComponent {
             meetingLink: 'https://meet.google.com/onelms-live',
             platform: 'Google Meet',
             attendanceRequirementPct: 80,
+            assessmentItemId: null,
+            surveyItemId: null,
             completionCertificateId: '',
             completionBadgeId: ''
           });
@@ -1163,6 +1206,12 @@ export class ComponentDrawerComponent {
 
   changeType(type: PlanComponentType) {
     this.selectedType.set(type);
+    if (type !== 'Pre-Test' && type !== 'Post-Test') {
+      this.form.patchValue({ assessmentItemId: null });
+    }
+    if (type !== 'Survey') {
+      this.form.patchValue({ surveyItemId: null });
+    }
     if (type === 'Course') {
       this.form.patchValue({ progressionRule: 'course_passed' });
     } else if (type === 'Offline Training' || type === 'Live Classroom') {
@@ -1352,55 +1401,46 @@ export class ComponentDrawerComponent {
   });
 
   // Scored Assessments from Content Repository (Only Active items appear)
-  questionnaireOptions = computed<any[]>(() => {
-    const items = this.lmsData.activeLmsRepositoryItems();
-    return items
-      .filter(item => item.status === 'Active' && (item.family === 'Assessment' || item.type === 'Question Bank / Question Set') && item.type !== 'Survey')
-      .map(item => {
-        let gradingLabel = 'Auto';
-        if (item.type === 'Assignment') {
-          gradingLabel = 'Needs manual grading';
-        } else {
-          const config = item.contentConfig as any;
-          if (config?.assessmentId) {
-            const linked = this.lmsData.assessments().find(a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode);
-            if (linked) {
-              const currentVer = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
-              if (currentVer?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
-                gradingLabel = 'Needs manual grading';
-              }
-            }
-          }
-        }
-        return {
-          id: item.id,
-          title: item.title,
-          type: item.type,
-          gradingLabel,
-          owningLmsName: item.owningLmsName
-        };
-      });
+  questionnaireOptions = computed<Array<RepositoryItem & { gradingLabel: string; owningLmsName: string }>>(() => {
+    return this.lmsData.activeLmsRepositoryItems()
+      .filter(item =>
+        item.status === 'Active' &&
+        item.family === 'Assessment' &&
+        isScoredAssessmentType(item.type)
+      )
+      .map(item => ({
+        ...item,
+        gradingLabel: this.lmsData.getRepositoryItemGradingLabel(item),
+        owningLmsName: item.owningLmsName
+      }));
   });
 
   questionnaireSelectOptions = computed<SelectOption[]>(() => {
     return this.questionnaireOptions().map(q => ({
       value: q.id,
       label: q.title,
-      sublabel: `Assessment · ${q.gradingLabel} · ${q.owningLmsName}`
+      sublabel: `${q.type} · ${q.gradingLabel} · ${q.owningLmsName}`,
+      badge: q.gradingLabel,
+      badgeClass: q.gradingLabel === 'Auto'
+        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+        : 'bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
     }));
   });
 
-  // Surveys from Content Repository (Only Active items appear)
-  surveyOptions = computed<any[]>(() => {
-    const items = this.lmsData.activeLmsRepositoryItems();
-    return items
-      .filter(item => item.status === 'Active' && (item.type === 'Survey' || (item.family === 'Assessment' && (item.contentConfig as any)?.scoringMode === 'unscored')))
-      .map(item => ({
-        id: item.id,
-        title: item.title,
-        type: item.type,
-        owningLmsName: item.owningLmsName
-      }));
+  selectedAssessmentOption() {
+    const selectedId = this.form.get('assessmentItemId')?.value;
+    if (!selectedId) return null;
+    return this.questionnaireOptions().find(q => q.id === selectedId) || null;
+  }
+
+  // Surveys from Content Repository (Only Active Survey-type items appear)
+  surveyOptions = computed<RepositoryItem[]>(() => {
+    return this.lmsData.activeLmsRepositoryItems()
+      .filter(item =>
+        item.status === 'Active' &&
+        item.family === 'Assessment' &&
+        isSurveyAssessmentType(item.type)
+      );
   });
 
   surveyFormOptions = computed<SelectOption[]>(() => {
@@ -1579,25 +1619,32 @@ export class ComponentDrawerComponent {
   }
 
   onQuestionnaireSelected(qId: any) {
-    if (!qId) return;
-    const item = this.lmsData.activeLmsRepositoryItems().find(x => x.id === qId);
-    if (item) {
-      this.form.patchValue({
-        name: item.title,
-        description: item.description || ''
-      });
+    if (!qId) {
+      this.form.patchValue({ assessmentItemId: null });
+      return;
     }
+    const item = this.questionnaireOptions().find(x => x.id === qId);
+    if (!item) return;
+    this.form.patchValue({
+      assessmentItemId: item.id,
+      name: item.title,
+      description: item.description || '',
+      passMark: (item.contentConfig as any)?.passMarkPercent ?? this.form.get('passMark')?.value
+    });
   }
 
   onSurveyFormSelected(sId: any) {
-    if (!sId) return;
-    const item = this.lmsData.activeLmsRepositoryItems().find(x => x.id === sId);
-    if (item) {
-      this.form.patchValue({
-        name: item.title,
-        description: item.description || ''
-      });
+    if (!sId) {
+      this.form.patchValue({ surveyItemId: null });
+      return;
     }
+    const item = this.surveyOptions().find(x => x.id === sId);
+    if (!item) return;
+    this.form.patchValue({
+      surveyItemId: item.id,
+      name: item.title,
+      description: item.description || ''
+    });
   }
 
   onClose() {
@@ -1619,6 +1666,16 @@ export class ComponentDrawerComponent {
     const venueAddressStr = typeof venue?.address === 'object' 
       ? `${venue?.address?.line1 || ''}, ${venue?.address?.city || ''}` 
       : (venue?.address || '75 Mohakhali, Dhaka');
+
+    const isTest = type === 'Pre-Test' || type === 'Post-Test';
+    const isSurvey = type === 'Survey';
+    const selectedRepositoryItemId = isTest ? val.assessmentItemId : isSurvey ? val.surveyItemId : null;
+    const selectedRepositoryItem = selectedRepositoryItemId
+      ? this.lmsData.repositoryItems().find(item => item.id === selectedRepositoryItemId) || null
+      : null;
+    const gradingLabel = selectedRepositoryItem
+      ? this.lmsData.getRepositoryItemGradingLabel(selectedRepositoryItem)
+      : '';
 
     const component: PlanComponent = {
       id: currentComp?.id || (type === 'Phase' ? `comp-ph-${Date.now()}` : `comp-${Date.now()}`),
@@ -1663,9 +1720,30 @@ export class ComponentDrawerComponent {
       completionBadgeId: type === 'Phase' ? (val.completionBadgeId || undefined) : undefined,
       completionBadgeName: type === 'Phase' ? (badge?.name || undefined) : undefined,
 
-      source: currentComp?.source || {
-        sourceType: type === 'Course' ? 'Course Catalog' : type === 'Content' ? 'Content Repository' : type === 'Offline Training' ? 'Venue Training Facility' : type === 'Live Classroom' ? 'Virtual Classroom Catalog' : type === 'Pre-Test' || type === 'Post-Test' || type === 'Survey' ? 'Questionnaire Library' : 'Task Template',
-        itemName: val.name
+      // Repository assessment / survey live reference (§5.2)
+      repositoryItemId: selectedRepositoryItem?.id,
+      repositoryItemTitle: selectedRepositoryItem?.title,
+      repositoryItemType: selectedRepositoryItem?.type,
+      gradingLabel: gradingLabel || undefined,
+      questionnaireId: isTest ? selectedRepositoryItem?.id : undefined,
+      questionnaireTitle: isTest ? selectedRepositoryItem?.title : undefined,
+      surveyFormId: isSurvey ? selectedRepositoryItem?.id : undefined,
+      surveyFormTitle: isSurvey ? selectedRepositoryItem?.title : undefined,
+
+      source: {
+        sourceType: type === 'Course'
+          ? 'Course Catalog'
+          : type === 'Content'
+            ? 'Content Repository'
+            : type === 'Offline Training'
+              ? 'Venue Training Facility'
+              : type === 'Live Classroom'
+                ? 'Virtual Classroom Catalog'
+                : isTest || isSurvey
+                  ? 'Content Repository'
+                  : 'Task Template',
+        itemId: selectedRepositoryItem?.id,
+        itemName: selectedRepositoryItem?.title || val.name
       },
       isComplete: currentComp?.isComplete || false
     };

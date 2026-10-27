@@ -13,6 +13,8 @@ import {
   ContentStatus,
   AUTHORITATIVE_LEARNING_CONTENT_TYPES,
   AUTHORITATIVE_ASSESSMENT_CONTENT_TYPES,
+  isScoredAssessmentType,
+  isSurveyAssessmentType,
   formatDateToDDMMYYYY,
   parseDateString
 } from '../../../models/content-repository.model';
@@ -87,9 +89,16 @@ export class RepositoryCreateComponent implements OnInit {
     }));
   });
 
+  readonly documentCategoryOptions: SelectOption[] = [
+    { value: 'PDF', label: 'PDF Document' },
+    { value: 'DOCX', label: 'Microsoft Word (.docx)' },
+    { value: 'XLSX', label: 'Excel Spreadsheet (.xlsx)' }
+  ];
+
   // Learning types
   learningTypes = AUTHORITATIVE_LEARNING_CONTENT_TYPES;
   assessmentTypes = AUTHORITATIVE_ASSESSMENT_CONTENT_TYPES;
+  readonly isSurveyAssessmentType = isSurveyAssessmentType;
 
   // Selected Family and Type
   selectedFamily = signal<ContentFamily>('Learning');
@@ -183,11 +192,11 @@ export class RepositoryCreateComponent implements OnInit {
     verificationStatus: ['verified']
   });
 
-  // Question Set
+  // Assessment configuration (shared by Quiz, Exam, Assignment, Pre-Test, Post-Test & Survey)
   questionSetForm: FormGroup = this.fb.group({
-    assessmentId: ['asm-101', [Validators.required]],
-    assessmentTitle: ['Microfinance Client Protection & Ethics Exam'],
-    assessmentCode: ['ASM-1972-MF'],
+    assessmentId: ['asm-brac-01', [Validators.required]],
+    assessmentTitle: ['Microfinance Field Ethics, Client Protection & POS Operations Final Exam'],
+    assessmentCode: ['EXAM-SEC-2026'],
     questionCount: [12],
     scoringMode: ['scored'],
     passMarkPercent: [80]
@@ -267,7 +276,7 @@ export class RepositoryCreateComponent implements OnInit {
       this.bookForm.patchValue(item.contentConfig);
     } else if (item.type === 'External Link' && item.contentConfig) {
       this.externalLinkForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Question Bank / Question Set' && item.contentConfig) {
+    } else if (this.isAssessmentType(item.type) && item.contentConfig) {
       this.questionSetForm.patchValue(item.contentConfig);
     }
 
@@ -340,9 +349,16 @@ export class RepositoryCreateComponent implements OnInit {
     if (family === 'Learning') {
       this.selectedType.set('PDF / Document');
     } else {
-      this.selectedType.set('Question Bank / Question Set');
+      this.selectedType.set('Quiz');
     }
     this.clearError('type');
+  }
+
+  /** True for every assessment family type, including the legacy question-set type. */
+  isAssessmentType(type: ContentType | string | null | undefined): boolean {
+    return type === 'Question Bank / Question Set' ||
+      isScoredAssessmentType(type) ||
+      isSurveyAssessmentType(type);
   }
 
   selectType(type: ContentType) {
@@ -585,10 +601,10 @@ export class RepositoryCreateComponent implements OnInit {
       if (!content) {
         newErrors['readingContent'] = 'Reading article content cannot be empty.';
       }
-    } else if (type === 'Question Bank / Question Set') {
+    } else if (this.isAssessmentType(type)) {
       const asmId = this.questionSetForm.get('assessmentId')?.value;
-      if (!asmId) {
-        newErrors['assessmentId'] = 'Please select a Question Set / Assessment.';
+      if (isScoredAssessmentType(type) && !asmId) {
+        newErrors['assessmentId'] = 'Please select the repository assessment for this item.';
       }
     }
 
@@ -635,16 +651,28 @@ export class RepositoryCreateComponent implements OnInit {
     const type = this.selectedType();
 
     let contentConfig: any = {};
-    switch (type) {
-      case 'Video': contentConfig = this.videoForm.value; break;
-      case 'Audio': contentConfig = this.audioForm.value; break;
-      case 'PDF / Document': contentConfig = this.documentForm.value; break;
-      case 'Slides / Presentation': contentConfig = this.slidesForm.value; break;
-      case 'Reading': contentConfig = this.readingForm.value; break;
-      case 'Recorded Class': contentConfig = this.recordedClassForm.value; break;
-      case 'Book / E-book': contentConfig = this.bookForm.value; break;
-      case 'External Link': contentConfig = this.externalLinkForm.value; break;
-      case 'Question Bank / Question Set': contentConfig = this.questionSetForm.value; break;
+    if (this.isAssessmentType(type)) {
+      const assessmentConfig = this.questionSetForm.value;
+      contentConfig = isSurveyAssessmentType(type)
+        ? {
+            assessmentId: assessmentConfig.assessmentId,
+            assessmentTitle: assessmentConfig.assessmentTitle,
+            assessmentCode: assessmentConfig.assessmentCode,
+            questionCount: assessmentConfig.questionCount,
+            scoringMode: 'unscored'
+          }
+        : { ...assessmentConfig, scoringMode: 'scored' };
+    } else {
+      switch (type) {
+        case 'Video': contentConfig = this.videoForm.value; break;
+        case 'Audio': contentConfig = this.audioForm.value; break;
+        case 'PDF / Document': contentConfig = this.documentForm.value; break;
+        case 'Slides / Presentation': contentConfig = this.slidesForm.value; break;
+        case 'Reading': contentConfig = this.readingForm.value; break;
+        case 'Recorded Class': contentConfig = this.recordedClassForm.value; break;
+        case 'Book / E-book': contentConfig = this.bookForm.value; break;
+        case 'External Link': contentConfig = this.externalLinkForm.value; break;
+      }
     }
 
     return {

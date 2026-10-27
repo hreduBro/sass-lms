@@ -145,6 +145,11 @@ export interface PlanComponent {
     itemName?: string;
     version?: string;
   };
+  // Live reference to a Content Repository item (§5.2)
+  repositoryItemId?: string;
+  repositoryItemTitle?: string;
+  repositoryItemType?: string;
+  gradingLabel?: string;
   // Completion for Active plan (Tasks)
   isComplete?: boolean;
   completedBy?: string;
@@ -1686,10 +1691,9 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
       resultVisibility: 'Immediate',
       prerequisiteIds: ['comp-03'],
       source: {
-        sourceType: 'Questionnaire Library',
-        itemId: 'q-baseline-2026',
-        itemName: 'Baseline Technical Aptitude Q-2026',
-        version: 'v2.4'
+        sourceType: 'Content Repository',
+        itemId: 'repo-item-15',
+        itemName: 'BRAC Field Officer Baseline Numeracy & Compliance Pre-Test'
       }
     },
     {
@@ -2033,10 +2037,9 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
       },
       prerequisiteIds: ['comp-09-child-1'],
       source: {
-        sourceType: 'Questionnaire Library',
-        itemId: 'q-phase2-check',
-        itemName: 'Phase 2 Skills Verification Q-2026',
-        version: 'v1.0'
+        sourceType: 'Content Repository',
+        itemId: 'repo-item-16',
+        itemName: 'BRAC Field Officer Final Compliance & Client Protection Post-Test'
       }
     },
     // Final components at Plan level
@@ -2059,10 +2062,9 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
       },
       prerequisiteIds: ['comp-09-child-2'],
       source: {
-        sourceType: 'Questionnaire Library',
-        itemId: 'q-summative-2026',
-        itemName: 'Comprehensive Summative Evaluation Q-2026',
-        version: 'v2.0'
+        sourceType: 'Content Repository',
+        itemId: 'repo-item-03',
+        itemName: 'Smart Campaign Client Protection Core Ethics & Standards Exam'
       }
     },
     {
@@ -2083,10 +2085,9 @@ export function createWorkedExamplePlan(lmsId = 'lms-microfinance-brac', orgId =
       },
       prerequisiteIds: ['comp-10'],
       source: {
-        sourceType: 'Survey Form Library',
-        itemId: 'fb-form-2026',
-        itemName: 'Annual Trainee Satisfaction & Venue Survey',
-        version: 'v1.1'
+        sourceType: 'Content Repository',
+        itemId: 'repo-item-14',
+        itemName: 'Trainee Onboarding & Learner Experience Survey'
       }
     }
   ];

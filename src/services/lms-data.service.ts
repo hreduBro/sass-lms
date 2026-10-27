@@ -263,6 +263,7 @@ import {
   RepositoryItem,
   SharingMode,
   ContentStatus,
+  AssessmentGradingLabel,
   INITIAL_REPOSITORY_ITEMS,
   evaluateAutomaticStatus,
   formatDateToDDMMYYYY,
@@ -2777,6 +2778,34 @@ export class LmsDataService {
       return false;
     });
   });
+
+  /**
+   * Derived grading label for a repository assessment (§2.4).
+   * Computed from the linked assessment's current questions — never set by hand.
+   * Learning items and surveys intentionally return an empty label.
+   */
+  getRepositoryItemGradingLabel(item: RepositoryItem): AssessmentGradingLabel | '' {
+    if (item.family !== 'Assessment' || item.type === 'Survey') {
+      return '';
+    }
+    if (item.type === 'Assignment') {
+      return 'Needs manual grading';
+    }
+
+    const config = item.contentConfig as any;
+    if (config?.assessmentId) {
+      const linked = this.assessments().find(
+        a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode
+      );
+      if (linked) {
+        const currentVersion = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
+        if (currentVersion?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
+          return 'Needs manual grading';
+        }
+      }
+    }
+    return 'Auto';
+  }
 
   createRepositoryItem(data: Partial<RepositoryItem>, isDraft: boolean): RepositoryItem {
     const activeLms = this.activeLms();
