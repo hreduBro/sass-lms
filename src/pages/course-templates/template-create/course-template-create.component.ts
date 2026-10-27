@@ -315,7 +315,7 @@ export class CourseTemplateCreateComponent implements OnInit {
 
   getCurrentStepTitle(): string {
     const step = this.wizardSteps.find(s => s.id === this.currentStep());
-    return step ? step.title : 'Author Course Template';
+    return step?.title || 'Author Course Template';
   }
 
   getCurrentStepSubtitle(): string {

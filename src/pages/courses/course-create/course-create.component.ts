@@ -248,7 +248,7 @@ export class CourseCreateComponent implements OnInit {
       return {
         value: s.skillId,
         label: s.name,
-        sublabel: `${s.skillCode} • ${s.clusterName || s.category} • (${s.levels.join(', ')})`,
+        sublabel: `${s.skillCode} • ${s.clusterName || s.category} • (${(s.levels ?? []).join(', ')})`,
         badge: s.category,
         badgeClass,
         icon: 'psychology'

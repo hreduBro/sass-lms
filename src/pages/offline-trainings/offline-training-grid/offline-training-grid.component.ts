@@ -415,9 +415,9 @@ export class OfflineTrainingGridComponent implements OnInit {
 
   promptDuplicate(training: OfflineTraining): void {
     this.closeActionMenu();
-    const cloned = this.lmsData.duplicateOfflineTraining(training.trainingId);
+    const cloned = this.lmsData.duplicateOfflineTraining(training.id);
     if (cloned) {
-      this.router.navigate(['/offline-trainings/view', cloned.trainingId]);
+      this.router.navigate(['/offline-trainings/view', cloned.id]);
     }
   }
 
@@ -438,13 +438,13 @@ export class OfflineTrainingGridComponent implements OnInit {
     if (!dialog.training) return;
 
     if (dialog.action === 'publish') {
-      this.lmsData.publishOfflineTraining(dialog.training.trainingId);
+      this.lmsData.publishOfflineTraining(dialog.training.id);
     } else if (dialog.action === 'deactivate') {
-      this.lmsData.deactivateOfflineTraining(dialog.training.trainingId);
+      this.lmsData.deactivateOfflineTraining(dialog.training.id);
     } else if (dialog.action === 'reactivate') {
-      this.lmsData.reactivateOfflineTraining(dialog.training.trainingId);
+      this.lmsData.reactivateOfflineTraining(dialog.training.id);
     } else if (dialog.action === 'delete') {
-      this.lmsData.deleteOfflineTraining(dialog.training.trainingId);
+      this.lmsData.deleteOfflineTraining(dialog.training.id);
     }
 
     this.closeConfirmDialog();

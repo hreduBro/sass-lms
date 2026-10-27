@@ -285,7 +285,7 @@ export class BadgeGridComponent {
         const matchDesc = (badge.description || '').toLowerCase().includes(query);
         const matchCriteria = (badge.earning?.criteria || '').toLowerCase().includes(query);
         const matchTags = badge.earning?.skillTags?.some(t => t.toLowerCase().includes(query)) || false;
-        const matchCat = badge.category.toLowerCase().includes(query);
+        const matchCat = (badge.category || '').toLowerCase().includes(query);
         if (!matchName && !matchId && !matchDesc && !matchCriteria && !matchTags && !matchCat) {
           return false;
         }
@@ -347,7 +347,7 @@ export class BadgeGridComponent {
         return a.name.localeCompare(b.name) * order;
       }
       if (field === 'category') {
-        return a.category.localeCompare(b.category) * order;
+        return (a.category || '').localeCompare(b.category || '') * order;
       }
       if (field === 'usageCount') {
         return ((a.usageCount || 0) - (b.usageCount || 0)) * order;

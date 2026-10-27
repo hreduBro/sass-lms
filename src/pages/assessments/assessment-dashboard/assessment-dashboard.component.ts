@@ -129,7 +129,7 @@ export class AssessmentDashboardComponent implements OnInit {
       if (types[t]) {
         types[t].count++;
       } else {
-        types.exam.count++;
+        types['exam'].count++;
       }
     });
 

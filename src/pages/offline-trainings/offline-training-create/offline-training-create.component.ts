@@ -334,6 +334,7 @@ export class OfflineTrainingCreateComponent implements OnInit {
       return;
     }
 
+    this.trainingId.set(training.id);
     this.selectedVenueId.set(training.venueId || '');
     this.selectedRoomId.set(training.roomId || '');
 
@@ -467,14 +468,15 @@ export class OfflineTrainingCreateComponent implements OnInit {
       status: val.publishDirectly ? 'published' : 'draft'
     };
 
-    if (this.isEditMode() && this.trainingId()) {
-      this.lmsData.updateOfflineTraining(this.trainingId()!, payload);
+    const currentId = this.trainingId();
+    if (this.isEditMode() && currentId) {
+      this.lmsData.updateOfflineTraining(currentId, payload);
       this.lmsData.showToast(`Training "${payload.title}" updated successfully!`, 'success', 4000, 'Training Updated');
-      this.router.navigate(['/offline-trainings/view', this.trainingId()]);
+      this.router.navigate(['/offline-trainings/view', currentId]);
     } else {
       const created = this.lmsData.createOfflineTraining(payload);
       this.lmsData.showToast(`Offline Training "${created.title}" published successfully!`, 'success', 4500, 'Training Published');
-      this.router.navigate(['/offline-trainings/view', created.trainingId]);
+      this.router.navigate(['/offline-trainings/view', created.id]);
     }
   }
 
@@ -504,12 +506,13 @@ export class OfflineTrainingCreateComponent implements OnInit {
       status: 'draft'
     };
 
-    if (this.isEditMode() && this.trainingId()) {
-      this.lmsData.updateOfflineTraining(this.trainingId()!, payload);
+    const currentId = this.trainingId();
+    if (this.isEditMode() && currentId) {
+      this.lmsData.updateOfflineTraining(currentId, payload);
       this.lmsData.showToast(`Draft "${payload.title}" saved.`, 'success', 3500, 'Draft Saved', 'DRAFT');
     } else {
       const created = this.lmsData.createOfflineTraining(payload);
-      this.trainingId.set(created.trainingId);
+      this.trainingId.set(created.id);
       this.isEditMode.set(true);
       this.lmsData.showToast(`Offline Training saved as Draft.`, 'success', 3500, 'Draft Saved', 'DRAFT');
     }

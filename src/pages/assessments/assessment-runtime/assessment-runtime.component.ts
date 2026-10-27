@@ -242,7 +242,7 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
         numericResponse = rawVal !== undefined && rawVal !== '' ? Number(rawVal) : undefined;
       } else if (q.type === 'matching') {
         matchingSelections = rawVal || {};
-        matchedPairs = Object.entries(matchingSelections).map(([leftId, rightId]) => ({
+        matchedPairs = Object.entries(matchingSelections ?? {}).map(([leftId, rightId]) => ({
           leftId,
           rightId
         }));

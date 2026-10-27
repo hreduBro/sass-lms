@@ -1054,7 +1054,7 @@ export class ForumWorkspaceComponent implements OnInit {
     const filters = this.appliedFilters();
 
     if (filters.categories.length > 0) {
-      list = list.filter(t => filters.categories.includes(t.categoryTag));
+      list = list.filter(t => !!t.categoryTag && filters.categories.includes(t.categoryTag));
     }
     if (filters.statuses.length > 0) {
       list = list.filter(t => {

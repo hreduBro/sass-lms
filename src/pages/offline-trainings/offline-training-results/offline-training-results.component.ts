@@ -39,7 +39,7 @@ export class OfflineTrainingResultsComponent implements OnInit {
   selectedTrainingId = signal<string>('');
 
   selectedTraining = computed<OfflineTraining | undefined>(() => {
-    return this.trainings().find(t => t.trainingId === this.selectedTrainingId());
+    return this.trainings().find(t => t.id === this.selectedTrainingId() || t.trainingId === this.selectedTrainingId());
   });
 
   // Embeddings / Cohorts for selected training
@@ -77,7 +77,7 @@ export class OfflineTrainingResultsComponent implements OnInit {
   trainingOptions = computed<SelectOption[]>(() => {
     return this.trainings().map(t => ({
       label: `${t.title} (${t.code})`,
-      value: t.trainingId || t.id,
+      value: t.id,
       sublabel: `${t.category || 'Workshop'} • ${t.durationHours || 0} hrs`
     }));
   });
@@ -316,9 +316,15 @@ export class OfflineTrainingResultsComponent implements OnInit {
     return sorted;
   });
 
+  // ponytail: composite key fallback handles missing resultId in UI state; upgrade to nested map by [embeddingId][traineeId] if delimiter collisions ever occur
+  getResultKey(r: OfflineTraineeResult): string {
+    return r.resultId || `${r.traineeId}-${r.embeddingId}`;
+  }
+
   ngOnInit(): void {
-    if (this.trainings().length > 0) {
-      this.selectedTrainingId.set(this.trainings()[0].trainingId);
+    const firstTraining = this.trainings()[0];
+    if (firstTraining) {
+      this.selectedTrainingId.set(firstTraining.id);
       this.syncEditableState();
     }
   }
@@ -447,7 +453,8 @@ export class OfflineTrainingResultsComponent implements OnInit {
   syncEditableState(): void {
     const map: Record<string, { marks: number; attendance: number; remarks: string; isDirty?: boolean }> = {};
     this.results().forEach(r => {
-      map[r.resultId] = {
+      const key = this.getResultKey(r);
+      map[key] = {
         marks: r.manualMarkScore ?? 0,
         attendance: r.attendancePercentage ?? 0,
         remarks: r.instructorRemarks || '',
@@ -458,19 +465,19 @@ export class OfflineTrainingResultsComponent implements OnInit {
   }
 
   getLiveMarks(r: OfflineTraineeResult): number {
-    const edit = this.editableMarks()[r.resultId];
+    const edit = this.editableMarks()[this.getResultKey(r)];
     if (edit && edit.marks !== undefined) return edit.marks;
     return r.manualMarkScore ?? 0;
   }
 
   getLiveAttendance(r: OfflineTraineeResult): number {
-    const edit = this.editableMarks()[r.resultId];
+    const edit = this.editableMarks()[this.getResultKey(r)];
     if (edit && edit.attendance !== undefined) return edit.attendance;
     return r.attendancePercentage ?? 0;
   }
 
   getLiveRemarks(r: OfflineTraineeResult): string {
-    const edit = this.editableMarks()[r.resultId];
+    const edit = this.editableMarks()[this.getResultKey(r)];
     if (edit && edit.remarks !== undefined) return edit.remarks;
     return r.instructorRemarks || '';
   }
@@ -500,7 +507,7 @@ export class OfflineTrainingResultsComponent implements OnInit {
   }
 
   isRowDirty(r: OfflineTraineeResult): boolean {
-    return !!this.editableMarks()[r.resultId]?.isDirty;
+    return !!this.editableMarks()[this.getResultKey(r)]?.isDirty;
   }
 
   updateMark(resultId: string, val: number): void {
@@ -547,8 +554,9 @@ export class OfflineTrainingResultsComponent implements OnInit {
     this.editableMarks.update(curr => {
       const updated = { ...curr };
       this.results().forEach(r => {
-        updated[r.resultId] = {
-          ...updated[r.resultId],
+        const key = this.getResultKey(r);
+        updated[key] = {
+          ...updated[key],
           attendance: val,
           isDirty: true
         };
@@ -563,10 +571,11 @@ export class OfflineTrainingResultsComponent implements OnInit {
     this.editableMarks.update(curr => {
       const updated = { ...curr };
       this.results().forEach(r => {
-        const current = updated[r.resultId]?.marks ?? 0;
+        const key = this.getResultKey(r);
+        const current = updated[key]?.marks ?? 0;
         if (current === 0) {
-          updated[r.resultId] = {
-            ...updated[r.resultId],
+          updated[key] = {
+            ...updated[key],
             marks: defaultScore,
             isDirty: true
           };
@@ -579,7 +588,8 @@ export class OfflineTrainingResultsComponent implements OnInit {
   }
 
   saveRow(result: OfflineTraineeResult): void {
-    const edit = this.editableMarks()[result.resultId || `${result.traineeId}-${result.embeddingId}`];
+    const key = this.getResultKey(result);
+    const edit = this.editableMarks()[key];
     if (!edit) return;
 
     this.lmsData.saveOfflineManualMarks(result.embeddingId, result.traineeId, 'manual:Practical Exam', edit.marks, 100, edit.remarks);
@@ -587,8 +597,8 @@ export class OfflineTrainingResultsComponent implements OnInit {
 
     this.editableMarks.update(curr => ({
       ...curr,
-      [result.resultId]: {
-        ...curr[result.resultId],
+      [key]: {
+        ...curr[key],
         isDirty: false
       }
     }));
@@ -599,7 +609,8 @@ export class OfflineTrainingResultsComponent implements OnInit {
 
   saveAll(): void {
     this.results().forEach(r => {
-      const edit = this.editableMarks()[r.resultId || `${r.traineeId}-${r.embeddingId}`];
+      const key = this.getResultKey(r);
+      const edit = this.editableMarks()[key];
       if (edit) {
         this.lmsData.saveOfflineManualMarks(r.embeddingId, r.traineeId, 'manual:Practical Exam', edit.marks, 100, edit.remarks);
         this.lmsData.saveOfflineAttendance(r.embeddingId, r.traineeId, edit.attendance >= 50 ? 'present' : 'absent', edit.remarks);

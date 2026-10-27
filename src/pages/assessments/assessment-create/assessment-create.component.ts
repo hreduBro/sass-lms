@@ -551,7 +551,7 @@ export class AssessmentCreateComponent implements OnInit {
         this.negativePenalty.set(sp.negativeMarking.penalty);
         this.allowedAttempts.set(sp.attempts.allowed);
         this.keepScoreRule.set(sp.attempts.keep);
-        this.timeLimitMinutes.set(sp.timeLimitMinutes);
+        this.timeLimitMinutes.set(sp.timeLimitMinutes ?? null);
         this.showScorePolicy.set(sp.resultDisplay.showScore);
         this.showCorrectAnswers.set(sp.resultDisplay.showCorrect);
         this.showFeedback.set(sp.resultDisplay.showFeedback);

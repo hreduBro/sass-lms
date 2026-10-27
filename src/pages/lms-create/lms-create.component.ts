@@ -159,8 +159,9 @@ export class LmsCreateComponent implements OnInit {
         this.loadDraft(qDraftId);
       } else if (!this.route.snapshot.paramMap.get('id')) {
         // Set default timezone from parent organization
-        if (this.parentOrg().timezone) {
-          this.selectedTimezone.set(this.parentOrg().timezone);
+        const parentTz = this.parentOrg().timezone;
+        if (parentTz) {
+          this.selectedTimezone.set(parentTz);
         }
         this.showStepAlert(1, 'entered');
       }
@@ -375,8 +376,8 @@ export class LmsCreateComponent implements OnInit {
 
     // Resources
     if (draft.resources) {
-      this.databaseSizeGb.set(draft.resources.databaseSizeGb);
-      this.fileStorageGb.set(draft.resources.fileStorageGb);
+      this.databaseSizeGb.set(draft.resources.databaseSizeGb ?? null);
+      this.fileStorageGb.set(draft.resources.fileStorageGb ?? null);
       this.usageAlertThresholdPct.set(draft.resources.usageAlertThresholdPct || 80);
 
       if (draft.resources.dataSharing) {
@@ -500,7 +501,7 @@ export class LmsCreateComponent implements OnInit {
         this.logoUrl.set(e.target?.result as string);
         this.errors.update(e => {
           const copy = { ...e };
-          delete copy.logo;
+          delete copy['logo'];
           return copy;
         });
       };

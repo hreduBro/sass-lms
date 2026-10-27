@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env['PORT'] || 3000;
 
 // Middleware
 app.use(cors());
@@ -20,8 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 // Lazy Google GenAI Client
 let genAIClient: GoogleGenAI | null = null;
 function getGenAI(): GoogleGenAI | null {
-  if (!genAIClient && process.env.GEMINI_API_KEY) {
-    genAIClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  if (!genAIClient && process.env['GEMINI_API_KEY']) {
+    genAIClient = new GoogleGenAI({ apiKey: process.env['GEMINI_API_KEY'] });
   }
   return genAIClient;
 }
@@ -349,7 +349,7 @@ let dashboardConfigs: Record<string, DashboardLayoutConfig> = {
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'healthy',
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env['NODE_ENV'] || 'development',
     version: '2.4.0',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
@@ -359,7 +359,7 @@ app.get('/api/health', (req: Request, res: Response) => {
       learnersCount: learners.length,
       auditLogsCount: auditLogs.length
     },
-    aiEnabled: Boolean(process.env.GEMINI_API_KEY)
+    aiEnabled: Boolean(process.env['GEMINI_API_KEY'])
   });
 });
 
@@ -382,12 +382,12 @@ app.get('/api/tenants', (req: Request, res: Response) => {
   res.json({ success: true, count: results.length, data: results });
 });
 
-app.get('/api/tenants/:id', (req: Request, res: Response) => {
-  const tenant = tenants.find(t => t.id === req.params.id);
+app.get('/api/tenants/:id', (req: Request<{ id: string }>, res: Response) => {
+  const tenant = tenants.find(t => t.id === req.params['id']);
   if (!tenant) {
     return res.status(404).json({ success: false, error: 'Tenant workspace not found' });
   }
-  res.json({ success: true, data: tenant });
+  return res.json({ success: true, data: tenant });
 });
 
 app.post('/api/tenants', (req: Request, res: Response) => {
@@ -438,11 +438,11 @@ app.post('/api/tenants', (req: Request, res: Response) => {
     type: 'success'
   });
 
-  res.status(201).json({ success: true, message: 'Tenant provisioned successfully', data: newTenant });
+  return res.status(201).json({ success: true, message: 'Tenant provisioned successfully', data: newTenant });
 });
 
-app.put('/api/tenants/:id', (req: Request, res: Response) => {
-  const index = tenants.findIndex(t => t.id === req.params.id);
+app.put('/api/tenants/:id', (req: Request<{ id: string }>, res: Response) => {
+  const index = tenants.findIndex(t => t.id === req.params['id']);
   if (index === -1) {
     return res.status(404).json({ success: false, error: 'Tenant workspace not found' });
   }
@@ -455,7 +455,7 @@ app.put('/api/tenants/:id', (req: Request, res: Response) => {
 
   auditLogs.unshift({
     id: `log-${Date.now()}`,
-    tenantId: req.params.id,
+    tenantId: req.params['id'],
     action: 'Tenant Branding Updated',
     details: `Updated workspace settings and theme branding for ${tenants[index].name}`,
     user: 'Administrator',
@@ -463,16 +463,16 @@ app.put('/api/tenants/:id', (req: Request, res: Response) => {
     type: 'info'
   });
 
-  res.json({ success: true, message: 'Tenant updated successfully', data: tenants[index] });
+  return res.json({ success: true, message: 'Tenant updated successfully', data: tenants[index] });
 });
 
-app.delete('/api/tenants/:id', (req: Request, res: Response) => {
-  const index = tenants.findIndex(t => t.id === req.params.id);
+app.delete('/api/tenants/:id', (req: Request<{ id: string }>, res: Response) => {
+  const index = tenants.findIndex(t => t.id === req.params['id']);
   if (index === -1) {
     return res.status(404).json({ success: false, error: 'Tenant not found' });
   }
   const deleted = tenants.splice(index, 1)[0];
-  res.json({ success: true, message: `Tenant ${deleted.name} decommissioned` });
+  return res.json({ success: true, message: `Tenant ${deleted.name} decommissioned` });
 });
 
 // ----------------------------------------------------
@@ -762,12 +762,12 @@ app.get('/api/courses', (req: Request, res: Response) => {
   res.json({ success: true, count: results.length, data: results });
 });
 
-app.get('/api/courses/:id', (req: Request, res: Response) => {
-  const course = courses.find(c => c.id === req.params.id);
+app.get('/api/courses/:id', (req: Request<{ id: string }>, res: Response) => {
+  const course = courses.find(c => c.id === req.params['id']);
   if (!course) {
     return res.status(404).json({ success: false, error: 'Course not found' });
   }
-  res.json({ success: true, data: course });
+  return res.json({ success: true, data: course });
 });
 
 app.post('/api/courses', (req: Request, res: Response) => {
@@ -799,25 +799,25 @@ app.post('/api/courses', (req: Request, res: Response) => {
   };
 
   courses.unshift(newCourse);
-  res.status(201).json({ success: true, message: 'Course created successfully', data: newCourse });
+  return res.status(201).json({ success: true, message: 'Course created successfully', data: newCourse });
 });
 
-app.put('/api/courses/:id', (req: Request, res: Response) => {
-  const index = courses.findIndex(c => c.id === req.params.id);
+app.put('/api/courses/:id', (req: Request<{ id: string }>, res: Response) => {
+  const index = courses.findIndex(c => c.id === req.params['id']);
   if (index === -1) {
     return res.status(404).json({ success: false, error: 'Course not found' });
   }
   courses[index] = { ...courses[index], ...req.body };
-  res.json({ success: true, message: 'Course updated successfully', data: courses[index] });
+  return res.json({ success: true, message: 'Course updated successfully', data: courses[index] });
 });
 
-app.delete('/api/courses/:id', (req: Request, res: Response) => {
-  const index = courses.findIndex(c => c.id === req.params.id);
+app.delete('/api/courses/:id', (req: Request<{ id: string }>, res: Response) => {
+  const index = courses.findIndex(c => c.id === req.params['id']);
   if (index === -1) {
     return res.status(404).json({ success: false, error: 'Course not found' });
   }
   const deleted = courses.splice(index, 1)[0];
-  res.json({ success: true, message: `Course "${deleted.title}" deleted` });
+  return res.json({ success: true, message: `Course "${deleted.title}" deleted` });
 });
 
 // 4. Learners & Progress API
@@ -841,9 +841,9 @@ app.get('/api/learners', (req: Request, res: Response) => {
   res.json({ success: true, count: results.length, data: results });
 });
 
-app.post('/api/learners/:id/progress', (req: Request, res: Response) => {
+app.post('/api/learners/:id/progress', (req: Request<{ id: string }>, res: Response) => {
   const { courseId, completed = false, timeSpentMinutes = 15 } = req.body;
-  const learner = learners.find(l => l.id === req.params.id);
+  const learner = learners.find(l => l.id === req.params['id']);
   if (!learner) {
     return res.status(404).json({ success: false, error: 'Learner not found' });
   }
@@ -856,7 +856,7 @@ app.post('/api/learners/:id/progress', (req: Request, res: Response) => {
     learner.certificatesCount += 1;
   }
 
-  res.json({ success: true, message: 'Progress recorded', data: learner });
+  return res.json({ success: true, message: 'Progress recorded', data: learner });
 });
 
 // 5. Analytics & Multi-Tenant KPI Overview
@@ -891,8 +891,8 @@ app.get('/api/analytics', (req: Request, res: Response) => {
 });
 
 // 6. Drag-and-Drop Customizable Dashboard Configs API
-app.get('/api/dashboards/:tenantId', (req: Request, res: Response) => {
-  const { tenantId } = req.params;
+app.get('/api/dashboards/:tenantId', (req: Request<{ tenantId: string }>, res: Response) => {
+  const tenantId = req.params['tenantId'];
   const config = dashboardConfigs[tenantId] || {
     tenantId,
     updatedAt: new Date().toISOString(),
@@ -903,11 +903,11 @@ app.get('/api/dashboards/:tenantId', (req: Request, res: Response) => {
       { id: 'w-courses', type: 'course_grid', title: 'Course Catalog', size: 'full', enabled: true, order: 2 }
     ]
   };
-  res.json({ success: true, data: config });
+  return res.json({ success: true, data: config });
 });
 
-app.post('/api/dashboards/:tenantId', (req: Request, res: Response) => {
-  const { tenantId } = req.params;
+app.post('/api/dashboards/:tenantId', (req: Request<{ tenantId: string }>, res: Response) => {
+  const tenantId = req.params['tenantId'];
   const { widgets, updatedBy = 'Administrator' } = req.body;
 
   if (!widgets || !Array.isArray(widgets)) {
@@ -931,7 +931,7 @@ app.post('/api/dashboards/:tenantId', (req: Request, res: Response) => {
     type: 'success'
   });
 
-  res.json({ success: true, message: 'Custom dashboard layout published successfully', data: dashboardConfigs[tenantId] });
+  return res.json({ success: true, message: 'Custom dashboard layout published successfully', data: dashboardConfigs[tenantId] });
 });
 
 // 7. AI Course & Quiz Generator (Powered by Server-Side Gemini API)
@@ -1032,7 +1032,7 @@ Return ONLY valid JSON matching this exact structure:
     return res.json({ success: true, source: 'curriculum-engine', data: generatedCourse });
   } catch (error: any) {
     console.error('Error generating course curriculum:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to generate curriculum' });
+    return res.status(500).json({ success: false, error: error.message || 'Failed to generate curriculum' });
   }
 });
 
@@ -1049,8 +1049,8 @@ app.get('/api/audit-logs', (req: Request, res: Response) => {
 });
 
 // 9. SCORM & Compliance Export API
-app.get('/api/export/scorm/:courseId', (req: Request, res: Response) => {
-  const course = courses.find(c => c.id === req.params.courseId);
+app.get('/api/export/scorm/:courseId', (req: Request<{ courseId: string }>, res: Response) => {
+  const course = courses.find(c => c.id === req.params['courseId']);
   if (!course) {
     return res.status(404).json({ success: false, error: 'Course not found' });
   }
@@ -1080,7 +1080,7 @@ app.get('/api/export/scorm/:courseId', (req: Request, res: Response) => {
 
   res.setHeader('Content-Type', 'application/xml');
   res.setHeader('Content-Disposition', `attachment; filename="imsmanifest-${course.id}.xml"`);
-  res.send(manifestXml);
+  return res.send(manifestXml);
 });
 
 // ----------------------------------------------------
@@ -1564,8 +1564,8 @@ app.get('/api/landing-pages', (req: Request, res: Response) => {
   res.json({ success: true, data: Object.values(landingPagesStore) });
 });
 
-app.get('/api/landing-pages/:lmsId', (req: Request, res: Response) => {
-  const lmsId = req.params.lmsId || 'default';
+app.get('/api/landing-pages/:lmsId', (req: Request<{ lmsId: string }>, res: Response) => {
+  const lmsId = req.params['lmsId'] || 'default';
   let page = landingPagesStore[lmsId];
   if (!page) {
     page = getDefaultLandingPageRecord(lmsId);
@@ -1574,8 +1574,8 @@ app.get('/api/landing-pages/:lmsId', (req: Request, res: Response) => {
   res.json({ success: true, data: page });
 });
 
-app.put('/api/landing-pages/:lmsId', (req: Request, res: Response) => {
-  const lmsId = req.params.lmsId || 'default';
+app.put('/api/landing-pages/:lmsId', (req: Request<{ lmsId: string }>, res: Response) => {
+  const lmsId = req.params['lmsId'] || 'default';
   const updates = req.body || {};
   let current = landingPagesStore[lmsId] || getDefaultLandingPageRecord(lmsId);
 
@@ -1592,8 +1592,8 @@ app.put('/api/landing-pages/:lmsId', (req: Request, res: Response) => {
   res.json({ success: true, message: 'Landing page configuration updated successfully', data: updated });
 });
 
-app.post('/api/landing-pages/:lmsId/publish', (req: Request, res: Response) => {
-  const lmsId = req.params.lmsId || 'default';
+app.post('/api/landing-pages/:lmsId/publish', (req: Request<{ lmsId: string }>, res: Response) => {
+  const lmsId = req.params['lmsId'] || 'default';
   let current = landingPagesStore[lmsId] || getDefaultLandingPageRecord(lmsId);
   current.status = 'Published';
   current.version = Math.floor((current.version || 1) + 1);
@@ -1602,25 +1602,25 @@ app.post('/api/landing-pages/:lmsId/publish', (req: Request, res: Response) => {
   res.json({ success: true, message: `Landing page for ${current.lmsName} published live (v${current.version})!`, data: current });
 });
 
-app.post('/api/landing-pages/:lmsId/reset', (req: Request, res: Response) => {
-  const lmsId = req.params.lmsId || 'default';
+app.post('/api/landing-pages/:lmsId/reset', (req: Request<{ lmsId: string }>, res: Response) => {
+  const lmsId = req.params['lmsId'] || 'default';
   const fresh = getDefaultLandingPageRecord(lmsId);
   landingPagesStore[lmsId] = fresh;
   res.json({ success: true, message: 'Landing page reset to LMS theme defaults', data: fresh });
 });
 
-app.post('/api/landing-pages/:lmsId/contact', (req: Request, res: Response) => {
+app.post('/api/landing-pages/:lmsId/contact', (req: Request<{ lmsId: string }>, res: Response) => {
   const { name, email, subject, message } = req.body || {};
-  console.log(`[Contact Form Submission] [${req.params.lmsId}] From: ${name} <${email}> - ${subject}`);
+  console.log(`[Contact Form Submission] [${req.params['lmsId']}] From: ${name} <${email}> - ${subject}`);
   res.json({
     success: true,
     message: 'Your inquiry has been received! An academic advisor will reach out to you within 24 hours.'
   });
 });
 
-app.post('/api/landing-pages/:lmsId/newsletter', (req: Request, res: Response) => {
+app.post('/api/landing-pages/:lmsId/newsletter', (req: Request<{ lmsId: string }>, res: Response) => {
   const { email } = req.body || {};
-  console.log(`[Newsletter Subscription] [${req.params.lmsId}] Email: ${email}`);
+  console.log(`[Newsletter Subscription] [${req.params['lmsId']}] Email: ${email}`);
   res.json({
     success: true,
     message: 'Thank you for subscribing to our executive briefings!'
@@ -1632,8 +1632,8 @@ app.post('/api/landing-pages/:lmsId/newsletter', (req: Request, res: Response) =
 // ----------------------------------------------------
 let retryTracker503 = 0;
 
-app.get('/api/test/error/:statusCode', (req: Request, res: Response) => {
-  const code = parseInt(req.params.statusCode, 10);
+app.get('/api/test/error/:statusCode', (req: Request<{ statusCode: string }>, res: Response) => {
+  const code = parseInt(req.params['statusCode'], 10);
   switch (code) {
     case 401:
       return res.status(401).json({ message: 'Session expired, please login again' });
