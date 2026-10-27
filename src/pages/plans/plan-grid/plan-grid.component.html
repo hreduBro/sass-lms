@@ -178,9 +178,9 @@
       <div class="lg:col-span-12 pt-2 border-t border-base-300/60">
         <app-filter-section title="3. Created Date Range">
           <app-date-range-filter
-            [fromDate]="draftFilters().createdDateFrom"
+            [fromDate]="draftFilters().createdDateFrom || null"
             (fromDateChange)="setCreatedDateFromDraft($event || '')"
-            [toDate]="draftFilters().createdDateTo"
+            [toDate]="draftFilters().createdDateTo || null"
             (toDateChange)="setCreatedDateToDraft($event || '')">
           </app-date-range-filter>
         </app-filter-section>

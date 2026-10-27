@@ -742,10 +742,10 @@ import { TranscriptRecord } from '../../../models/transcript.model';
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-base-300 dark:divide-slate-800 text-text-primary">
-                  @for (t of planTranscripts(); track t.id) {
+                  @for (t of planTranscripts(); track t.transcriptId) {
                     <tr class="hover:bg-base-200/40 transition-colors">
                       <td class="py-3 px-3.5 font-mono font-bold text-tenant-600 dark:text-tenant-400">
-                        {{ t.transcriptCode }}
+                        {{ t.transcriptId }}
                       </td>
                       <td class="py-3 px-3.5">
                         <div class="font-bold">{{ t.traineeName }}</div>
@@ -753,15 +753,15 @@ import { TranscriptRecord } from '../../../models/transcript.model';
                       </td>
                       <td class="py-3 px-3.5">
                         <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-base-200 dark:bg-base-300">
-                          {{ t.scope }}
+                          {{ t.scopeName }}
                         </span>
                       </td>
                       <td class="py-3 px-3.5 font-semibold">
-                        {{ t.overallGpa.toFixed(2) }} ({{ t.overallGrade }})
+                        {{ t.content.cgpa ? (t.content.cgpa.toFixed(2) + ' CGPA') : (t.content.score + '%') }} ({{ t.content.result }})
                       </td>
                       <td class="py-3 px-3.5">
-                        <span class="font-bold">{{ t.totalCreditsEarned }}/{{ t.totalCreditsAttempted }} Credits</span>
-                        <div class="text-[10px] text-text-secondary">{{ t.overallCompletionPct }}% Completed</div>
+                        <span class="font-bold">{{ t.content.totalCredits }} Credits</span>
+                        <div class="text-[10px] text-text-secondary">{{ t.content.percentage || 100 }}% Completed</div>
                       </td>
                       <td class="py-3 px-3.5">
                         <span 
@@ -887,7 +887,7 @@ import { TranscriptRecord } from '../../../models/transcript.model';
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-lg text-cyan-600">article</span>
               <h3 class="text-sm font-bold text-text-primary">Academic Transcript Viewer</h3>
-              <span class="font-mono text-xs text-text-secondary">({{ activeTranscript()!.transcriptCode }})</span>
+              <span class="font-mono text-xs text-text-secondary">({{ activeTranscript()!.transcriptId }})</span>
             </div>
             <button 
               type="button" 

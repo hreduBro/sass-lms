@@ -7,7 +7,7 @@ import { SkillCluster, Skill } from '../../../models/skill-mapping.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { DataGridComponent } from '../../../components/data-grid/data-grid.component';
 import { FilterSectionComponent } from '../../../components/data-grid/filter-section.component';
-import { GridViewMode } from '../../../components/data-grid/data-grid.types';
+import { GridViewMode, GridEmptyStateType } from '../../../components/data-grid/data-grid.types';
 
 @Component({
   selector: 'app-skill-clusters',
@@ -192,8 +192,8 @@ export class SkillClustersComponent implements OnInit {
     return list.slice(start, start + this.pageSize());
   });
 
-  emptyStateType = computed<'no-data' | 'no-results'>(() => {
-    return this.lmsData.skillClusters().length === 0 ? 'no-data' : 'no-results';
+  emptyStateType = computed<GridEmptyStateType>(() => {
+    return this.lmsData.skillClusters().length === 0 ? 'true_empty' : 'search_miss';
   });
 
   onSearchChange(val: string) {

@@ -365,7 +365,7 @@
   <app-phase-details-modal
     [phase]="selectedPhaseForDetails()!"
     [plan]="selectedPlanForDetails()!"
-    [totalPhases]="selectedPlanForDetails()!.phases ? selectedPlanForDetails()!.phases.length : 1"
+    [totalPhases]="selectedPlanForDetails()?.phases?.length || 1"
     (close)="selectedPhaseForDetails.set(null)">
   </app-phase-details-modal>
 }

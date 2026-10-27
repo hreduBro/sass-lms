@@ -3404,15 +3404,13 @@ export class LmsDataService {
     }
 
     const fullAttempt: AssessmentAttempt = {
-      assessmentId: attemptData.assessmentId,
-      assessmentVersionId: attemptData.assessmentVersionId,
+      ...attemptData,
       versionLabel: attemptData.versionLabel || version?.versionLabel || 'v1',
       traineeId: attemptData.traineeId || 'usr-brac-1',
       traineeName: attemptData.traineeName || 'Farhana Ahmed',
       traineeEmail: attemptData.traineeEmail || 'farhana.ahmed@brac.net',
       attemptNumber: attemptData.attemptNumber || 1,
       timeTakenSeconds: attemptData.timeTakenSeconds || 180,
-      ...attemptData,
       attemptId,
       submittedAt: formattedTime,
       autoScore: calculated.autoScore,

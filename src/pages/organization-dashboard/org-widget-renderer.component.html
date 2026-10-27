@@ -32,7 +32,7 @@
           @for (span of [1, 2, 3, 4]; track span) {
             <button 
               type="button"
-              (click)="changeColSpan.emit({ id: widget().id, colSpan: span })"
+              (click)="changeColSpan.emit({ id: widget().id, colSpan: $any(span) })"
               class="px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
               [class]="widget().colSpan === span ? 'bg-tenant-500 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
               {{ span * 25 }}%
@@ -45,7 +45,7 @@
           @for (rSpan of [1, 2, 3, 4]; track rSpan) {
             <button 
               type="button"
-              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: rSpan })"
+              (click)="changeRowSpan.emit({ id: widget().id, rowSpan: $any(rSpan) })"
               class="px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
               [class]="(widget().rowSpan || 2) === rSpan ? 'bg-tenant-500 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
               {{ rSpan }}x
@@ -723,21 +723,21 @@
               <div class="p-2.5 rounded-2xl bg-base-200/50 hover:bg-base-200 border border-base-300/60 transition-colors flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                    [ngClass]="item.family === 'Assessment' ? 'bg-amber-500/10 text-amber-600' : item.family === 'Video' ? 'bg-rose-500/10 text-rose-600' : 'bg-tenant-500/10 text-tenant-600'">
+                    [ngClass]="$any(item).family === 'Assessment' ? 'bg-amber-500/10 text-amber-600' : $any(item).family === 'Video' ? 'bg-rose-500/10 text-rose-600' : 'bg-tenant-500/10 text-tenant-600'">
                     <span class="material-symbols-outlined text-sm">
-                      {{ item.family === 'Assessment' ? 'quiz' : item.family === 'Video' ? 'play_circle' : 'description' }}
+                      {{ $any(item).family === 'Assessment' ? 'quiz' : $any(item).family === 'Video' ? 'play_circle' : 'description' }}
                     </span>
                   </div>
                   <div class="min-w-0">
                     <span class="font-bold text-xs text-text-primary truncate block">{{ item.title }}</span>
-                    <span class="text-[10px] text-text-secondary">{{ item.type }} &bull; {{ item.family }}</span>
+                    <span class="text-[10px] text-text-secondary">{{ item.type }} &bull; {{ item.family || 'Asset' }}</span>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-2 flex-shrink-0">
                   <span class="text-[9px] px-2 py-0.5 rounded-full font-semibold"
-                    [ngClass]="item.sharingLevel === 'Organization' || item.sharingLevel === 'Platform' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-base-300 text-text-secondary'">
-                    {{ item.sharingLevel || 'Isolated' }}
+                    [ngClass]="$any(item).sharingLevel === 'Organization' || $any(item).sharingLevel === 'Platform' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-base-300 text-text-secondary'">
+                    {{ $any(item).sharingLevel || $any(item).sharingMode || 'Isolated' }}
                   </span>
                   <a routerLink="/content-repository" class="p-1 rounded-lg hover:bg-base-300 text-text-secondary hover:text-tenant-600">
                     <span class="material-symbols-outlined text-xs">open_in_new</span>
@@ -814,14 +814,14 @@
                   <div class="flex items-center gap-2">
                     <span class="font-bold text-xs text-text-primary truncate">{{ course.title }}</span>
                     <span class="text-[9px] px-1.5 py-0.2 rounded-md font-bold"
-                      [ngClass]="course.status === 'published' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
+                      [ngClass]="$any(course).status === 'Published' || $any(course).status === 'published' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'">
                       {{ course.status }}
                     </span>
                   </div>
                   <div class="flex items-center gap-2 text-[10px] text-text-secondary mt-0.5">
-                    <span>{{ course.structure?.nodes?.length || 0 }} Topics</span>
+                    <span>{{ $any(course).structure?.modules?.length || $any(course).modulesCount || 0 }} Topics</span>
                     <span>&bull;</span>
-                    <span>{{ course.enrollmentCount || 0 }} Learners</span>
+                    <span>{{ course.enrolledCount || $any(course).enrollmentCount || 0 }} Learners</span>
                   </div>
                 </div>
 

@@ -108,7 +108,7 @@
     [itemCountText]="'Showing ' + filteredVenues().length + ' of ' + lmsData.venues().length + ' Facilities'"
     filterPanelTitle="FILTER PHYSICAL VENUES"
     filterPanelSubtitle="Filter learning facilities by status, metropolitan city, or available amenities"
-    [emptyStateType]="filteredVenues().length === 0 ? (hasActiveFilters() ? 'no-results' : 'empty') : 'none'"
+    [emptyStateType]="filteredVenues().length === 0 ? (hasActiveFilters() ? 'search_miss' : 'true_empty') : 'none'"
     emptyTitle="No Physical Venues configured"
     emptyMessage="Register your first physical learning facility to organize in-person classrooms and training sessions."
     emptyIcon="location_off"
@@ -403,7 +403,7 @@
                           <span>Edit Venue</span>
                         </button>
                       }
-                      @if (permissions().canAddRoom) {
+                      @if (permissions().canManageRooms) {
                         <button (click)="openAddRoomModal(venue)" class="w-full px-3 py-2 text-left hover:bg-base-200 flex items-center gap-2 cursor-pointer">
                           <span class="material-symbols-outlined text-sm text-sky-600">meeting_room</span>
                           <span>Add Room</span>
@@ -421,7 +421,7 @@
                           <span>Reactivate Venue</span>
                         </button>
                       }
-                      @if (permissions().canDeleteVenue) {
+                      @if (permissions().canDeactivateVenue) {
                         <button (click)="promptDelete(venue)" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 flex items-center gap-2 cursor-pointer">
                           <span class="material-symbols-outlined text-sm">delete</span>
                           <span>Delete Venue</span>

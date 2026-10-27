@@ -391,7 +391,7 @@
                 <button (click)="editingWidget.set(widget)" class="p-1 rounded-lg text-text-secondary hover:text-tenant-600 hover:bg-base-200 cursor-pointer" title="Configure Widget">
                   <span class="material-symbols-outlined text-sm">settings</span>
                 </button>
-                <button (click)="removeWidget(widget.id)" class="p-1 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 cursor-pointer" title="Remove Widget">
+                <button (click)="onRemoveWidget(widget.id)" class="p-1 rounded-lg text-text-secondary hover:text-rose-600 hover:bg-rose-50 cursor-pointer" title="Remove Widget">
                   <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
               </div>
@@ -414,14 +414,14 @@
 @if (editingWidget(); as w) {
   <app-org-widget-config-modal 
     [widget]="w"
-    (save)="updateWidgetConfig($event)"
+    (save)="onSaveWidgetConfig($event)"
     (close)="editingWidget.set(null)">
   </app-org-widget-config-modal>
 }
 
 @if (showAddWidgetModal()) {
   <app-org-add-widget-modal 
-    (addWidget)="onAddWidget($event)"
+    (selectWidget)="onAddWidget($event)"
     (close)="showAddWidgetModal.set(false)">
   </app-org-add-widget-modal>
 }
