@@ -48,6 +48,14 @@ export class InstructorDetailsComponent implements OnInit {
   activeTab = signal<'dashboard' | 'details' | 'feedback' | 'bio' | 'profile'>('dashboard');
   selectedDeliveryModeFilter = signal<string>('all');
   selectedLayerFilter = signal<string>('all');
+  selectedLmsFilter = signal<string>('all');
+  lmsFilterOptions = computed(() => [
+    { value: 'all', label: 'All LMS Portals' },
+    ...this.lms.lmsInstances().map(inst => ({
+      value: inst.id,
+      label: inst.basicInfo?.lmsName || inst.id
+    }))
+  ]);
   searchQuery = signal<string>('');
 
   previewModalAttachment = signal<PersonnelAttachment | null>(null);

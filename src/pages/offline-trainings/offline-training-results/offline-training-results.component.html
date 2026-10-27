@@ -293,8 +293,8 @@
               <app-date-range-filter
                 [fromDate]="draftFilters().dateFrom"
                 [toDate]="draftFilters().dateTo"
-                (fromChange)="draftFilters().dateFrom = $event"
-                (toChange)="draftFilters().dateTo = $event"
+                (fromDateChange)="draftFilters().dateFrom = $event || ''"
+                (toDateChange)="draftFilters().dateTo = $event || ''"
                 fromLabel="Evaluation From Date"
                 toLabel="Evaluation To Date">
               </app-date-range-filter>
@@ -710,7 +710,7 @@
     <app-modal-overlay
       [isOpen]="showDetailModal()"
       (close)="closeTraineeModal()"
-      maxWidth="max-w-xl"
+      maxWidth="xl"
       title="Trainee Evaluation Dossier"
       [subtitle]="t.traineeName"
       icon="account_circle">

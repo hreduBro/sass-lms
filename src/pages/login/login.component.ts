@@ -38,8 +38,9 @@ export class LoginComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
 
-  email = signal<string>('farhana.ahmed@brac.net');
-  password = signal<string>('••••••••••••');
+  username = signal<string>('Dumbledore');
+  email = signal<string>('Dumbledore');
+  password = signal<string>('Rubeas@Dum123');
   rememberMe = signal<boolean>(true);
   showPassword = signal<boolean>(false);
   selectedLang = signal<string>('English');
@@ -145,10 +146,11 @@ export class LoginComponent implements OnInit {
   });
 
   demoAccounts = [
-    { name: 'Farhana Ahmed', role: 'system_admin' as UserRole, email: 'farhana.ahmed@brac.net', label: 'System Admin' },
-    { name: 'David Miller', role: 'tenant_admin' as UserRole, email: 'david.miller@brac.net', label: 'Tenant Admin' },
-    { name: 'Rahim Chowdhury', role: 'instructor' as UserRole, email: 'rahim.chowdhury@brac.net', label: 'Instructor' },
-    { name: 'Nusrat Jahan', role: 'learner' as UserRole, email: 'nusrat.jahan@brac.net', label: 'Learner' }
+    { name: 'Albus Dumbledore', role: 'system_admin' as UserRole, email: 'Dumbledore', password: 'Rubeas@Dum123', label: 'Dumbledore (Super Admin)' },
+    { name: 'Farhana Ahmed', role: 'system_admin' as UserRole, email: 'farhana.ahmed@brac.net', password: '••••••••••••', label: 'System Admin' },
+    { name: 'David Miller', role: 'tenant_admin' as UserRole, email: 'david.miller@brac.net', password: '••••••••••••', label: 'Tenant Admin' },
+    { name: 'Rahim Chowdhury', role: 'instructor' as UserRole, email: 'rahim.chowdhury@brac.net', password: '••••••••••••', label: 'Instructor' },
+    { name: 'Nusrat Jahan', role: 'learner' as UserRole, email: 'nusrat.jahan@brac.net', password: '••••••••••••', label: 'Learner' }
   ];
 
   ngOnInit() {
@@ -279,9 +281,16 @@ export class LoginComponent implements OnInit {
   }
 
   fillDemo(account: typeof this.demoAccounts[0]) {
+    this.username.set(account.email);
     this.email.set(account.email);
+    if (account.password) {
+      this.password.set(account.password);
+    }
     this.lms.switchRole(account.role);
-    this.lms.showToast(`Selected demo credentials for ${account.name} (${account.label})`, 'info', 2500, 'Demo Filled');
+    if (account.name.includes('Dumbledore')) {
+      this.lms.setDumbledoreUser();
+    }
+    this.lms.showToast(`Selected credentials for ${account.name} (${account.label})`, 'info', 2500, 'Demo Filled');
   }
 
   togglePasswordVisibility() {
@@ -294,9 +303,18 @@ export class LoginComponent implements OnInit {
 
     setTimeout(() => {
       this.isSubmitting.set(false);
-      this.lms.showToast(`Welcome back, ${this.lms.activeUser()?.name || 'User'}! Authentication verified.`, 'success', 3500, 'Logged In');
+      const uname = (this.username() || this.email() || '').trim();
+      
+      // Specifically handle Dumbledore login
+      if (uname.toLowerCase() === 'dumbledore' || uname.toLowerCase().includes('dumble')) {
+        this.lms.setDumbledoreUser();
+      } else {
+        this.lms.switchRole('system_admin');
+      }
+
+      this.lms.showToast(`Welcome back, ${this.lms.activeUser()?.name || 'Albus Dumbledore'}! Authentication verified.`, 'success', 3500, 'Logged In');
       this.router.navigate(['/dashboard']);
-    }, 1000);
+    }, 500);
   }
 
   onSsoSignIn(provider: string) {

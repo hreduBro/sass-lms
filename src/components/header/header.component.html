@@ -204,12 +204,16 @@
         class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-tenant-500/10 hover:bg-tenant-500/20 border border-tenant-500/30 text-left transition-all cursor-pointer"
         title="Switch Active LMS Portal (Theming & Layout mapped to LMS)">
         <div class="w-6 h-6 rounded-lg bg-tenant-500 text-white flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
-          @if (lms.activeLms()?.branding?.logoUrl) {
-            <img 
-              [src]="lms.activeLms().branding.logoUrl" 
-              [alt]="lms.activeLms().basicInfo.lmsName"
-              class="w-full h-full object-contain"
-              referrerpolicy="no-referrer" />
+          @if (lms.activeLms(); as activeInst) {
+            @if (activeInst.branding?.logoUrl) {
+              <img 
+                [src]="activeInst.branding?.logoUrl" 
+                [alt]="activeInst.basicInfo.lmsName"
+                class="w-full h-full object-contain"
+                referrerpolicy="no-referrer" />
+            } @else {
+              <span class="material-symbols-outlined text-xs">school</span>
+            }
           } @else {
             <span class="material-symbols-outlined text-xs">school</span>
           }

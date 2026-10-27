@@ -134,6 +134,7 @@ export interface Assessment {
   title: string;
   description?: string;
   type: AssessmentType;
+  category?: string;
   categoryTags: string[];
   tags?: string[];
   scoringMode: AssessmentScoringMode;
@@ -171,6 +172,7 @@ export interface AssessmentAttemptAnswer {
   matchedPairs?: { leftId: string; rightId: string }[];
   matchingSelections?: Record<string, string>;
   orderedSequence?: string[];
+  value?: any;
   isCorrect?: boolean;
   earnedPoints?: number;
   maxPoints?: number;

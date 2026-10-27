@@ -64,12 +64,15 @@ export interface AuthorshipRecord {
   contentType: 'video' | 'audio' | 'document' | 'quiz' | 'reading' | 'interactive' | 'assignment' | 'lab' | string;
   courseId: string;
   courseName: string;
+  courseTitle?: string;
+  courseCode?: string;
   courseStatus: 'Published' | 'Draft' | 'Inactive' | 'Archived';
   lmsId: string;
   lmsName: string;
   version: string;
   nodeTitle?: string;
   creditedDate: string;
+  assignedDate?: string;
 }
 
 export interface DeactivationBlockResolution {

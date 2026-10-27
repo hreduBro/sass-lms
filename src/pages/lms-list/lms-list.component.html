@@ -206,7 +206,7 @@
     emptyTitle="No LMS Portal configured"
     emptyMessage="Create your first dedicated LMS portal to begin enrolling learners."
     emptyIcon="layers_clear"
-    [emptyActionText]="canCreateLms() ? 'Create LMS Instance' : undefined"
+    [emptyActionText]="canCreateLms() ? 'Create LMS Instance' : ''"
     (emptyAction)="canCreateLms() ? openCreateWizard() : null"
     (clearFilters)="clearFilterPanelDraft()"
     (cancelFilters)="closeFilterPanel()"

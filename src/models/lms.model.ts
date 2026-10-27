@@ -107,6 +107,9 @@ export interface User {
   incompleteReason?: string;
   authorId?: string;
   instructorId?: string;
+  joinDate?: string;
+  plan?: 'Free' | 'Pro' | 'Enterprise' | string;
+  creditBalance?: number;
 }
 
 export interface QuizQuestion {
@@ -131,6 +134,7 @@ export interface Lesson {
   type: LessonType;
   durationMinutes: number;
   summary: string;
+  content?: string;
   contentHtml?: string;
   videoUrl?: string;
   resources?: LessonResource[];
@@ -152,6 +156,7 @@ export interface Course {
   subtitle: string;
   description: string;
   coverImage: string;
+  thumbnail?: string;
   category: CourseCategory;
   level: CourseLevel;
   durationMinutes: number;

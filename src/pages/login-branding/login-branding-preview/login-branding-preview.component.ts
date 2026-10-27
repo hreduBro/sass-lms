@@ -39,6 +39,7 @@ export class LoginBrandingPreviewComponent {
   simPassword = signal<string>('••••••••••••');
   simRememberMe = signal<boolean>(true);
   showPassword = signal<boolean>(false);
+  simShowPassword = signal<boolean>(false);
   simSelectedLang = signal<string>('English');
   isSubmitting = signal<boolean>(false);
 

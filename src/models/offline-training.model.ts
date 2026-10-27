@@ -200,6 +200,8 @@ export interface OfflineTrainingPermissions {
   canPublishOfflineTraining: boolean;
   canDeactivateOfflineTraining: boolean;
   canEmbedInLearning: boolean;
+  canEmbedOfflineTraining?: boolean;
+  canDeleteOfflineTraining?: boolean;
   canOverrideTrainer: boolean;
   canEnterManualMarks: boolean;
   canRecordAttendance: boolean;
@@ -213,6 +215,8 @@ export const DEFAULT_OFFLINE_TRAINING_PERMISSIONS: OfflineTrainingPermissions = 
   canPublishOfflineTraining: true,
   canDeactivateOfflineTraining: true,
   canEmbedInLearning: true,
+  canEmbedOfflineTraining: true,
+  canDeleteOfflineTraining: true,
   canOverrideTrainer: true,
   canEnterManualMarks: true,
   canRecordAttendance: true,

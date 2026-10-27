@@ -81,6 +81,7 @@ export interface CertificateTemplate {
   usageCount: number;                       // # of Phases referencing this template
   mappedElementCount?: number;              // # of curriculum elements mapped
   previewThumbnail?: string;
+  signatories?: any[];
 }
 
 export interface PlaceholderTokenDef {
@@ -1088,6 +1089,8 @@ export interface CertificateMapping {
   achievementRule?: string;
   mappedBy: string;
   mappedAt: string;
+  id?: string;
+  createdAt?: string;
 }
 
 export const INITIAL_CERTIFICATE_MAPPINGS: CertificateMapping[] = [

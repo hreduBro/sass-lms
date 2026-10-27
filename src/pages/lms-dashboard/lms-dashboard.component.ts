@@ -178,7 +178,8 @@ export class LmsDashboardComponent {
       badgesCount: badges.length,
       storageAllocated,
       storageUsed,
-      storagePct: Math.round((storageUsed / storageAllocated) * 100)
+      storagePct: Math.round((storageUsed / storageAllocated) * 100),
+      dbSizeGb: currentLms?.resources?.databaseSizeGb || 100
     };
   });
 
@@ -323,6 +324,10 @@ export class LmsDashboardComponent {
     const item = this.draftWidgets().find(w => w.id === id);
     this.draftWidgets.update(list => list.filter(w => w.id !== id));
     this.lms.showToast(`Removed "${item?.title || 'Widget'}"`, 'info');
+  }
+
+  removeWidget(id: string) {
+    this.onRemoveWidget(id);
   }
 
   // Duplicate widget

@@ -22,18 +22,16 @@ export class UserDetailModalComponent {
     event.stopPropagation();
   }
   
-  get planColorMap() {
-    return {
-      Free: 'bg-sky-500/20 text-sky-400',
-      Pro: 'bg-emerald-500/20 text-emerald-400',
-      Enterprise: 'bg-violet-500/20 text-violet-400'
-    };
-  }
+  planColorMap: Record<string, string> = {
+    Free: 'bg-sky-500/20 text-sky-400',
+    Pro: 'bg-emerald-500/20 text-emerald-400',
+    Enterprise: 'bg-violet-500/20 text-violet-400'
+  };
 
-  get statusColorMap() {
-    return {
-      Active: 'bg-emerald-500/20 text-emerald-400',
-      Banned: 'bg-rose-500/20 text-rose-400',
-    };
-  }
+  statusColorMap: Record<string, string> = {
+    Active: 'bg-emerald-500/20 text-emerald-400',
+    Invited: 'bg-sky-500/20 text-sky-400',
+    Suspended: 'bg-amber-500/20 text-amber-400',
+    Banned: 'bg-rose-500/20 text-rose-400'
+  };
 }

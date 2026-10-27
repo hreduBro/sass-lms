@@ -64,7 +64,7 @@ import { CustomSelectComponent, SelectOption } from '../../components/custom-sel
             <div>
               <label class="block text-xs font-semibold text-text-primary mb-1">Column Width</label>
               <div class="grid grid-cols-4 gap-1">
-                @for (span of [1, 2, 3, 4]; track span) {
+                @for (span of colSpanOptions; track span) {
                   <button 
                     type="button"
                     (click)="colSpan.set(span)"
@@ -79,7 +79,7 @@ import { CustomSelectComponent, SelectOption } from '../../components/custom-sel
             <div>
               <label class="block text-xs font-semibold text-text-primary mb-1">Height Scale</label>
               <div class="grid grid-cols-4 gap-1">
-                @for (rSpan of [1, 2, 3, 4]; track rSpan) {
+                @for (rSpan of rowSpanOptions; track rSpan) {
                   <button 
                     type="button"
                     (click)="rowSpan.set(rSpan)"
@@ -106,7 +106,7 @@ import { CustomSelectComponent, SelectOption } from '../../components/custom-sel
               <div>
                 <label class="block text-xs font-semibold text-text-primary mb-1">Banner Accent Style</label>
                 <div class="grid grid-cols-4 gap-1.5">
-                  @for (type of ['indigo', 'info', 'warning', 'success']; track type) {
+                  @for (type of bannerTypeOptions; track type) {
                     <button 
                       type="button"
                       (click)="bannerType.set(type)"
@@ -169,6 +169,10 @@ export class LmsWidgetConfigModalComponent implements OnInit {
   bannerText = signal<string>('');
   bannerType = signal<'indigo' | 'info' | 'warning' | 'success'>('indigo');
   maxItems = signal<number>(5);
+
+  readonly colSpanOptions: (1 | 2 | 3 | 4)[] = [1, 2, 3, 4];
+  readonly rowSpanOptions: (1 | 2 | 3 | 4)[] = [1, 2, 3, 4];
+  readonly bannerTypeOptions: ('indigo' | 'info' | 'warning' | 'success')[] = ['indigo', 'info', 'warning', 'success'];
 
   maxItemsOptions: SelectOption[] = [
     { value: 3, label: '3 items' },

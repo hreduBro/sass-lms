@@ -37,6 +37,7 @@ export interface InstructorAssignmentRecord {
   instructorEmail: string;
   courseId: string;
   courseName: string;
+  courseTitle?: string;
   layer: string;
   layerType: 'course' | 'module' | 'lesson' | 'quiz' | 'assignment' | string;
   nodeId?: string;

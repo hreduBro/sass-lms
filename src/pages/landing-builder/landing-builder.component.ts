@@ -32,6 +32,12 @@ import {
   FaqAccordionContent,
   CtaBannerContent,
   HeroStatChip,
+  BrowseCategoriesContent,
+  FeaturedProgrammesContent,
+  WhyLmsContent,
+  HowItWorksContent,
+  CredentialsEarnedContent,
+  ImpactFiguresContent,
   createDefaultLandingPage
 } from '../../models/landing-page.model';
 import { SafeResourceUrlPipe } from '../../pipes/safe-url.pipe';
@@ -502,6 +508,181 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
             showEnrollButton: true,
             viewAllLink: '/courses'
           } as CoursesGridContent
+        };
+        break;
+
+      case 'browse_categories':
+        newSection = {
+          id: newId,
+          type: 'browse_categories',
+          title: 'Browse by Category',
+          subtitle: 'Explore learning paths categorized by industry domains and core competency areas.',
+          badge: 'Curriculum Domains',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'neutral' },
+          padding: 'standard',
+          content: {
+            heading: 'Explore Knowledge by Domain',
+            intro: 'Select a specialized domain to discover accredited curricula, practical field simulations, and expert faculty.',
+            categories: [
+              { id: 'cat-microfinance', name: 'Microfinance & Operations', icon: 'payments', description: 'Village organization discipline, client protection, and digitized micro-credit recovery.', count: 14, color: '#EC008C' },
+              { id: 'cat-ai', name: 'Artificial Intelligence & Systems', icon: 'psychology', description: 'Production multi-agent frameworks, enterprise LLM orchestration, and ethical AI deployment.', count: 18, color: '#7c3aed' },
+              { id: 'cat-security', name: 'Cybersecurity & Governance', icon: 'security', description: 'Zero-Trust defense, SOC-2 audit conformity, threat modeling, and regulatory compliance.', count: 12, color: '#2563eb' },
+              { id: 'cat-health', name: 'Healthcare & Clinical Safety', icon: 'health_and_safety', description: 'Good Clinical Practice (GCP), FDA regulations, and hospital infection prevention protocols.', count: 9, color: '#e11d48' }
+            ]
+          } as BrowseCategoriesContent
+        };
+        break;
+
+      case 'featured_programmes':
+        newSection = {
+          id: newId,
+          type: 'featured_programmes',
+          title: 'Featured Programmes',
+          subtitle: 'Structured, multi-phase curriculum pathways designed to achieve certified organizational mastery.',
+          badge: 'Flagship Curriculum',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'theme_light' },
+          padding: 'spacious',
+          content: {
+            heading: 'Featured Enterprise Programmes',
+            intro: 'Cohort-based learning journeys featuring peer collaboration, field practicums, and verifiable credentials upon graduation.',
+            displayCount: 3,
+            programmes: [
+              {
+                id: 'plan-1',
+                name: 'Field Officer Development Programme 2026',
+                planCode: 'FODP-2026',
+                coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+                typeLabel: 'Programme',
+                shortDescription: 'Build core field leadership, responsible credit management, and digitized service delivery skills across regional branches.',
+                durationMonths: 12,
+                durationLabel: '12 months',
+                startDate: '01/04/2026',
+                credentialTitle: 'Certified Field Operations Specialist',
+                credentialType: 'Certificate',
+                availability: 'open',
+                availabilityLabel: 'Enrolling now',
+                seatsLeft: 24,
+                target: '/login'
+              }
+            ]
+          } as FeaturedProgrammesContent
+        };
+        break;
+
+      case 'why_lms':
+        newSection = {
+          id: newId,
+          type: 'why_lms',
+          title: 'Why Choose Our Academy',
+          subtitle: 'Engineered from the ground up for measurable organizational impact and verifiable outcomes.',
+          badge: 'The Platform Advantage',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'theme_light' },
+          padding: 'spacious',
+          content: {
+            heading: 'Why Learn with OneLMS',
+            intro: 'We combine institutional-grade pedagogy with cutting-edge learning technology to deliver proven capability growth.',
+            valueProps: [
+              { id: 'vp-1', icon: 'verified_user', title: 'Cryptographically Verifiable Credentials', description: 'Every certificate and badge is backed by tamper-proof digital signatures verifiable across global networks.' },
+              { id: 'vp-2', icon: 'hub', title: 'Modular Multi-Phase Learning Journeys', description: 'Break down complex enterprise curricula into sequenced phases with prerequisite enforcement and milestone checks.' },
+              { id: 'vp-3', icon: 'groups', title: 'Peer Collaboration & Live Masterclasses', description: 'Engage in discussion forums, live virtual breakout rooms, and mentor-guided problem-solving sessions.' }
+            ]
+          } as WhyLmsContent
+        };
+        break;
+
+      case 'how_it_works':
+        newSection = {
+          id: newId,
+          type: 'how_it_works',
+          title: 'How It Works',
+          subtitle: 'A straightforward, sequenced path from initial admission to accredited career credential.',
+          badge: 'Learner Journey',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'neutral' },
+          padding: 'spacious',
+          content: {
+            heading: 'Your 4-Step Pathway to Mastery',
+            intro: 'Clear milestones designed to guide learners seamlessly through each phase of their professional training.',
+            steps: [
+              { stepNumber: 1, title: 'Explore & Choose Programme', description: 'Browse accredited curriculum plans, review syllabus requirements, and confirm enrollment eligibility.', icon: 'search' },
+              { stepNumber: 2, title: 'Engage Interactive Learning', description: 'Complete bite-sized video modules, interactive lab assignments, and collaborative forum exercises.', icon: 'play_lesson' },
+              { stepNumber: 3, title: 'Pass Knowledge Assessments', description: 'Demonstrate competency via proctored quizzes, peer reviews, and practical capstone projects.', icon: 'quiz' },
+              { stepNumber: 4, title: 'Earn & Share Credentials', description: 'Receive verifiable digital badges and accredited certificates to showcase on LinkedIn and professional resumes.', icon: 'workspace_premium' }
+            ]
+          } as HowItWorksContent
+        };
+        break;
+
+      case 'credentials_earned':
+        newSection = {
+          id: newId,
+          type: 'credentials_earned',
+          title: 'Credentials You Earn',
+          subtitle: 'Open digital badges and accredited certificates recognized across top enterprises and institutions.',
+          badge: 'Recognized Proof',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'theme_light' },
+          padding: 'spacious',
+          content: {
+            heading: 'Verifiable Credentials That Stand Out',
+            description: 'Our graduates receive verifiable, secure credentials that prove their mastery to employers and accreditation bodies.',
+            samples: [
+              {
+                id: 'cred-cert-1',
+                type: 'Certificate',
+                title: 'Executive Certificate of Leadership & Governance',
+                description: 'Awarded upon successfully completing the curriculum with distinction and capstone defense.',
+                sampleArtworkUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=600&q=80',
+                issuerName: 'OneLMS Academic Accreditation Board'
+              },
+              {
+                id: 'cred-badge-1',
+                type: 'Badge',
+                title: 'Certified Zero-Trust Architect',
+                description: 'OpenBadges 2.0 verifiable digital achievement acknowledging deep cloud infrastructure security expertise.',
+                sampleArtworkUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80',
+                issuerName: 'Security Certification Authority'
+              }
+            ]
+          } as CredentialsEarnedContent
+        };
+        break;
+
+      case 'impact_figures':
+        newSection = {
+          id: newId,
+          type: 'impact_figures',
+          title: 'Our Global Impact in Numbers',
+          subtitle: 'Empowering learners, transforming field operations, and accelerating institutional capability.',
+          badge: 'Live Telemetry',
+          enabled: true,
+          order: 0,
+          layout: 'standard',
+          background: { type: 'dark' },
+          padding: 'standard',
+          content: {
+            heading: 'Real-Time Impact Across Communities',
+            subheading: 'Audited figures tracking active engagement, completions, and certified professionals worldwide.',
+            figures: [
+              { id: 'fig-1', label: 'Certified Professionals', value: '45,820', prefix: '', suffix: '+', isLive: true },
+              { id: 'fig-2', label: 'Curriculum Completion Rate', value: '98.7', prefix: '', suffix: '%', isLive: true },
+              { id: 'fig-3', label: 'Operational Branches Reached', value: '64', prefix: '', suffix: ' Districts', isLive: false },
+              { id: 'fig-4', label: 'Learning Hours Logged', value: '1.2', prefix: '', suffix: 'M+ Hours', isLive: true }
+            ]
+          } as ImpactFiguresContent
         };
         break;
 
@@ -1093,6 +1274,22 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  removeFooterLink(colIndex: number, linkIndex: number): void {
+    const cfg = this.pageConfig();
+    const columns = cfg.footer.columns.map((col, idx) => {
+      if (idx === colIndex) {
+        return {
+          ...col,
+          links: col.links.filter((_, lIdx) => lIdx !== linkIndex)
+        };
+      }
+      return col;
+    });
+    this.updatePageConfig({
+      footer: { ...cfg.footer, columns }
+    });
+  }
+
   addSocialLink(): void {
     const cfg = this.pageConfig();
     const current = cfg.footer.socialLinks || [];
@@ -1138,16 +1335,18 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
     this.cookiesModalOpen.set(false);
   }
 
-  handleFooterLegalLink(type: 'privacy' | 'terms' | 'cookies', event?: Event): void {
+  handleFooterLegalLink(typeOrUrl: 'privacy' | 'terms' | 'cookies' | string, event?: Event): void {
     if (event) {
       event.preventDefault();
     }
     const footer = this.pageConfig().footer;
-    const url = type === 'privacy' 
+    const url = typeOrUrl === 'privacy' 
       ? (footer.privacyUrl || '#privacy') 
-      : type === 'terms' 
+      : typeOrUrl === 'terms' 
         ? (footer.termsUrl || '#terms') 
-        : (footer.cookiesUrl || '#cookies');
+        : typeOrUrl === 'cookies'
+          ? (footer.cookiesUrl || '#cookies')
+          : typeOrUrl;
 
     if (url.startsWith('http://') || url.startsWith('https://')) {
       if (typeof window !== 'undefined') {
@@ -1156,9 +1355,9 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (type === 'privacy') {
+    if (typeOrUrl === 'privacy' || url.includes('privacy')) {
       this.openPrivacyModal();
-    } else if (type === 'terms') {
+    } else if (typeOrUrl === 'terms' || url.includes('terms')) {
       this.openTermsModal();
     } else {
       this.openCookiesModal();
@@ -1574,6 +1773,14 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
     this.updateSelectedSection({
       content: { ...sec.content, faqs }
     });
+  }
+
+  addFaqItem(): void {
+    this.addFaq();
+  }
+
+  removeFaqItem(index: number): void {
+    this.removeFaq(index);
   }
 
   // Instructor management

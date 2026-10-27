@@ -17,6 +17,10 @@ export class CertificatesComponent {
   searchQuery = signal<string>('');
   verificationCodeInput = signal<string>('');
   verificationResult = signal<Certificate | null | 'not_found'>(null);
+  verifiedCertificate = computed<Certificate | null>(() => {
+    const res = this.verificationResult();
+    return (res && typeof res === 'object') ? res : null;
+  });
   selectedCert = signal<Certificate | null>(null);
 
   // Pagination

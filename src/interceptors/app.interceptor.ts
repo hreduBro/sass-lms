@@ -7,13 +7,12 @@ import {
 import { catchError, map, of, retry, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgxSpinnerService } from 'ngx-spinner';
 import { NotificationService } from '../services/notification.service';
 
 const MAX_RETRY = 3;
 
 export const appInterceptor: HttpInterceptorFn = (req, next) => {
-  const loader = inject(NgxSpinnerService);
+  const loader = { show() {}, hide() {} };
   const notify = inject(NotificationService);
   const router = inject(Router);
 

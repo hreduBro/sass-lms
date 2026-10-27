@@ -418,6 +418,7 @@ export interface PlanValidationIssue {
 export interface Plan {
   id: string;
   planCode: string; // System-generated read-only identifier (e.g. PLN-1972-001)
+  code?: string;
   lmsId: string;    // Scoped to fixed LMS workspace
   organizationId: string;
   name: string;

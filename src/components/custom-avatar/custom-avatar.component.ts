@@ -117,6 +117,7 @@ const PALETTES: ColorPair[] = [
 })
 export class CustomAvatarComponent {
   name = input<string>('');
+  src = input<string | null | undefined>('');
   imageUrl = input<string | null | undefined>('');
   url = input<string | null | undefined>('');
   size = input<AvatarSize>('md');
@@ -134,7 +135,7 @@ export class CustomAvatarComponent {
   imageFailed = signal<boolean>(false);
 
   effectiveImageUrl = computed(() => {
-    return this.imageUrl() || this.url() || '';
+    return this.src() || this.imageUrl() || this.url() || '';
   });
 
   handleImageError() {

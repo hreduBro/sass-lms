@@ -62,6 +62,88 @@ export class LandingComponent implements OnInit, OnDestroy {
   activeNavSection = signal<string>('#hero');
   private scrollListener: (() => void) | null = null;
 
+  // Header Navigation & Search Controls (§2)
+  exploreDropdownOpen = signal<boolean>(false);
+  languageDropdownOpen = signal<boolean>(false);
+  searchOverlayOpen = signal<boolean>(false);
+  headerSearchQuery = signal<string>('');
+  currentLanguage = signal<string>('English');
+  publishedLanguages = signal<string[]>(['English', 'বাংলা (Bangla)']);
+
+  // Program Card Detail Modal (§3.4)
+  programDetailModalOpen = signal<boolean>(false);
+  selectedProgramForDetail = signal<any>(null);
+
+  // Derive categories list (with count > 0) (§3.3)
+  isBrowseCategoriesEnabled = computed<boolean>(() => {
+    return this.pageConfig().sections.some(s => s.type === 'browse_categories' && s.enabled);
+  });
+
+  browseCategoriesList = computed(() => {
+    const section = this.pageConfig().sections.find(s => s.type === 'browse_categories');
+    if (section?.content?.categories) {
+      return section.content.categories;
+    }
+    return [
+      { id: 'cat-microfinance', name: 'Microfinance & Operations', icon: 'payments', count: 14, color: '#EC008C', description: 'Village organization discipline, client protection, and credit recovery.' },
+      { id: 'cat-ai', name: 'AI & Neural Systems', icon: 'psychology', count: 18, color: '#7c3aed', description: 'Production multi-agent frameworks and enterprise LLM orchestration.' },
+      { id: 'cat-security', name: 'Cybersecurity & Governance', icon: 'security', count: 12, color: '#2563eb', description: 'Zero-Trust defense, SOC-2 audit conformity, and compliance.' },
+      { id: 'cat-health', name: 'Healthcare & Clinical Safety', icon: 'health_and_safety', count: 9, color: '#e11d48', description: 'Good Clinical Practice (GCP) and hospital infection protocols.' },
+      { id: 'cat-climate', name: 'Climate Resilience & Ops', icon: 'eco', count: 11, color: '#0891b2', description: 'Community disaster adaptation, insurance, and emergency logistics.' },
+      { id: 'cat-leadership', name: 'Strategic Leadership', icon: 'military_tech', count: 16, color: '#d97706', description: 'Executive change management and high-velocity team orchestration.' }
+    ];
+  });
+
+  // Client-side hydrated plan availability (§4 Data that bypasses cache)
+  hydratedProgrammes = computed(() => {
+    const section = this.pageConfig().sections.find(s => s.type === 'featured_programmes');
+    const configuredProgs = section?.content?.programmes;
+    if (configuredProgs && configuredProgs.length > 0) {
+      return configuredProgs;
+    }
+
+    const plans = this.lms.plans();
+    return plans.slice(0, 3).map((p, idx) => {
+      const availStates = ['open', 'closing_soon', 'open'];
+      const labels = ['Enrolling now', 'Closing soon', 'Enrolling now'];
+      const state = availStates[idx % availStates.length];
+      const label = labels[idx % labels.length];
+      return {
+        id: p.id,
+        name: p.name,
+        planCode: p.planCode,
+        coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+        typeLabel: 'Programme',
+        shortDescription: p.description || 'Enterprise accredited curriculum plan.',
+        durationMonths: 12,
+        durationLabel: '12 months',
+        startDate: p.startDate || '01/04/2026',
+        credentialTitle: 'Accredited Certificate on Completion',
+        credentialType: 'Certificate',
+        availability: state,
+        availabilityLabel: label,
+        seatsLeft: state === 'closing_soon' ? 5 : 35,
+        target: '/login'
+      };
+    });
+  });
+
+  // Search results combining programmes and courses (§2 Header search overlay)
+  headerSearchResults = computed(() => {
+    const q = this.headerSearchQuery().trim().toLowerCase();
+    if (!q) return { programmes: [], courses: [] };
+
+    const progs = this.hydratedProgrammes().filter((p: any) => 
+      p.name.toLowerCase().includes(q) || (p.shortDescription && p.shortDescription.toLowerCase().includes(q))
+    );
+
+    const crs = this.lms.courses().filter(c => 
+      c.title.toLowerCase().includes(q) || (c.description && c.description.toLowerCase().includes(q)) || (c.category && c.category.toLowerCase().includes(q))
+    ).slice(0, 6);
+
+    return { programmes: progs, courses: crs };
+  });
+
   // Interactive Carousel states
   activeSlideIndex = signal<number>(0);
   carouselIsPlaying = signal<boolean>(true);
@@ -207,16 +289,18 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.cookiesModalOpen.set(false);
   }
 
-  handleFooterLegalLink(type: 'privacy' | 'terms' | 'cookies', event?: Event): void {
+  handleFooterLegalLink(typeOrUrl: 'privacy' | 'terms' | 'cookies' | string, event?: Event): void {
     if (event) {
       event.preventDefault();
     }
     const footer = this.pageConfig().footer;
-    const url = type === 'privacy' 
+    const url = typeOrUrl === 'privacy' 
       ? (footer.privacyUrl || '#privacy') 
-      : type === 'terms' 
+      : typeOrUrl === 'terms' 
         ? (footer.termsUrl || '#terms') 
-        : (footer.cookiesUrl || '#cookies');
+        : typeOrUrl === 'cookies'
+          ? (footer.cookiesUrl || '#cookies')
+          : typeOrUrl;
 
     if (url.startsWith('http://') || url.startsWith('https://')) {
       if (typeof window !== 'undefined') {
@@ -225,9 +309,9 @@ export class LandingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (type === 'privacy') {
+    if (typeOrUrl === 'privacy' || url.includes('privacy')) {
       this.openPrivacyModal();
-    } else if (type === 'terms') {
+    } else if (typeOrUrl === 'terms' || url.includes('terms')) {
       this.openTermsModal();
     } else {
       this.openCookiesModal();
@@ -635,5 +719,56 @@ export class LandingComponent implements OnInit, OnDestroy {
         this.lms.showToast('Subscribed to academy updates!', 'success', 3000);
       }
     });
+  }
+
+  // --- Explore Dropdown & Header Search Modal ---
+  toggleExploreDropdown(): void {
+    this.exploreDropdownOpen.update(v => !v);
+    this.languageDropdownOpen.set(false);
+  }
+
+  toggleLanguageDropdown(): void {
+    this.languageDropdownOpen.update(v => !v);
+    this.exploreDropdownOpen.set(false);
+  }
+
+  switchLanguage(lang: string): void {
+    this.currentLanguage.set(lang);
+    this.languageDropdownOpen.set(false);
+    this.lms.showToast(`Display language updated to ${lang}`, 'info', 2000);
+  }
+
+  openSearchOverlay(): void {
+    this.searchOverlayOpen.set(true);
+    this.headerSearchQuery.set('');
+  }
+
+  closeSearchOverlay(): void {
+    this.searchOverlayOpen.set(false);
+  }
+
+  onSelectSearchResult(type: 'programme' | 'course', item: any): void {
+    this.closeSearchOverlay();
+    if (type === 'programme') {
+      this.openProgramDetail(item);
+    } else {
+      this.scrollToSection('#courses');
+    }
+  }
+
+  openProgramDetail(prog: any): void {
+    this.selectedProgramForDetail.set(prog);
+    this.programDetailModalOpen.set(true);
+  }
+
+  closeProgramDetail(): void {
+    this.programDetailModalOpen.set(false);
+    this.selectedProgramForDetail.set(null);
+  }
+
+  onSelectCategoryFilter(catName: string): void {
+    this.selectedCategory.set(catName);
+    this.scrollToSection('#courses');
+    this.exploreDropdownOpen.set(false);
   }
 }

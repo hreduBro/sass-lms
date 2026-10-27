@@ -47,7 +47,12 @@ import { LandingBuilderComponent } from './pages/landing-builder/landing-builder
 import { LandingComponent } from './pages/landing/landing.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  // Root URL displays the Public Landing Page
+  { 
+    path: '', 
+    component: LandingComponent, 
+    title: 'OneLMS | Public Learning Academy & Portal' 
+  },
   
   // Public-Facing Multi-Tenant Landing Pages (SSR SEO Enabled)
   {

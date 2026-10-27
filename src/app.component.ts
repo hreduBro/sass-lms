@@ -11,7 +11,6 @@ import { LayoutSwitcherModalComponent } from './components/layout-switcher-modal
 import { BackendConsoleModalComponent } from './components/backend-console-modal/backend-console-modal.component';
 import { ConfirmationModalComponent } from './components/confirmation-modal/confirmation-modal.component';
 import { NotificationDialogComponent } from './components/notification-dialog/notification-dialog.component';
-import { NgxSpinnerComponent } from 'ngx-spinner';
 import { FooterComponent } from './components/footer/footer.component';
 import { ThemeService } from './services/theme.service';
 import { LmsDataService } from './services/lms-data.service';
@@ -31,7 +30,6 @@ import { LmsDataService } from './services/lms-data.service';
     BackendConsoleModalComponent,
     ConfirmationModalComponent,
     NotificationDialogComponent,
-    NgxSpinnerComponent,
     FooterComponent
   ]
 })
@@ -63,24 +61,23 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     // Reset scroll position and track full screen / builder / error views
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd || event instanceof Scroll)
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        const path = (event.urlAfterRedirects || event.url || '').split('?')[0];
-        const isFullScreen = 
-          path.startsWith('/landing-builder') ||
-          path.startsWith('/landing') ||
-          path.startsWith('/p/') ||
-          path === '/login' ||
-          path === '/401' || path === '/unauthorized' ||
-          path === '/403' || path === '/forbidden' ||
-          path === '/404' || path === '/not-found' ||
-          path === '/500' || path === '/server-error' ||
-          path === '/maintenance' || path === '/503';
-        
-        this.isFullScreenMode.set(isFullScreen);
-        this.isFullScreenError.set(isFullScreen);
-      }
+      const path = (event.urlAfterRedirects || event.url || '').split('?')[0];
+      const isFullScreen = 
+        path === '' || path === '/' ||
+        path.startsWith('/landing-builder') ||
+        path.startsWith('/landing') ||
+        path.startsWith('/p/') ||
+        path === '/login' ||
+        path === '/401' || path === '/unauthorized' ||
+        path === '/403' || path === '/forbidden' ||
+        path === '/404' || path === '/not-found' ||
+        path === '/500' || path === '/server-error' ||
+        path === '/maintenance' || path === '/503';
+      
+      this.isFullScreenMode.set(isFullScreen);
+      this.isFullScreenError.set(isFullScreen);
       this.resetScrollPosition();
     });
   }

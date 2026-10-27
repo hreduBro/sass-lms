@@ -29,7 +29,7 @@
           (change)="onLmsChange($event)"
           class="bg-transparent text-white font-semibold text-xs focus:outline-none cursor-pointer">
           @for (inst of lms.lmsInstances(); track inst.id) {
-            <option [value]="inst.id" class="bg-slate-900 text-white">{{ inst.name }} ({{ inst.id }})</option>
+            <option [value]="inst.id" class="bg-slate-900 text-white">{{ inst.basicInfo?.lmsName || inst.id }} ({{ inst.id }})</option>
           }
           <option value="tenant-1" class="bg-slate-900 text-white">Apex Global Academy (tenant-1)</option>
           <option value="tenant-2" class="bg-slate-900 text-white">BioHealth Sciences Institute (tenant-2)</option>

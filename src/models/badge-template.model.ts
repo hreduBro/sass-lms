@@ -14,6 +14,7 @@ export interface BadgeEmblem {
   baseShape?: BadgeBaseShape;
   fillColor?: string;
   accentColor?: string;
+  colorHex?: string;
   gradient?: string;
   iconRef?: string;
 }
@@ -34,6 +35,7 @@ export interface BadgeEarningMetadata {
   skillTags: string[];
   expires: boolean;
   validity?: BadgeEarningValidity;
+  validityYears?: number;
   issuerName?: string;
   machineRule?: string | null;
 }
@@ -77,6 +79,7 @@ export interface BadgePermissions {
   canPublish: boolean;
   canSetOrgWideSharing: boolean;
   canManageDashboardStudio: boolean;
+  canArchive?: boolean;
 }
 
 export interface BadgePlaceholderToken {
@@ -395,6 +398,8 @@ export interface BadgeMapping {
   achievementRule?: string;
   mappedBy: string;
   mappedAt: string;
+  id?: string;
+  createdAt?: string;
 }
 
 export interface EarnedBadge {

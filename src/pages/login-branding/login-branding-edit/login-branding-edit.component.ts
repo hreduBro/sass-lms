@@ -51,6 +51,7 @@ export interface ChildClassSuggestion {
 export interface ScopedCssElement {
   id: string;
   name: string;
+  description?: string;
   selector: string;
   isOpen: boolean;
   enabled: boolean;
@@ -898,6 +899,18 @@ export class LoginBrandingEditComponent {
     }
   }
 
+  onScopedTextareaClick(id: string, textarea: HTMLTextAreaElement) {
+    if (this.showAutocomplete() && this.activeAutocompleteElementId() !== id) {
+      this.showAutocomplete.set(false);
+      this.activeAutocompleteElementId.set(null);
+    }
+  }
+
+  insertAutocompleteSuggestion(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
+    this.insertChildClass(elemId, suggestion, textarea);
+    this.closeAutocomplete();
+  }
+
   insertChildClass(elemId: string, suggestion: ChildClassSuggestion, textarea?: HTMLTextAreaElement) {
     const snippetToInsert = `  ${suggestion.name} {\n    \n  }`;
     this.scopedCssElements.update(elements =>
@@ -1400,14 +1413,14 @@ export class LoginBrandingEditComponent {
   // Content Panel Modal Actions
   openContentPanelModal() {
     const currentHtml = this.formData().customHtml;
-    const initialHtml = (currentHtml !== undefined && currentHtml !== null && currentHtml.includes('hero-content-panel')) 
+    const initialHtml: string = (currentHtml && currentHtml.includes('hero-content-panel')) 
       ? currentHtml 
-      : getHeroPanelDefaultHtml(this.formData());
+      : (getHeroPanelDefaultHtml(this.formData()) || '');
     
     const currentCss = this.formData().customCss;
-    const initialCss = (currentCss !== undefined && currentCss !== null && currentCss.includes('DARK MODE STYLING'))
+    const initialCss: string = (currentCss && currentCss.includes('DARK MODE STYLING'))
       ? currentCss
-      : getHeroPanelDefaultCss();
+      : (getHeroPanelDefaultCss() || '');
 
     this.modalHtmlCode.set(initialHtml);
     this.modalCssCode.set(initialCss);

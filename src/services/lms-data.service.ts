@@ -4891,8 +4891,13 @@ export class LmsDataService {
     return current || list[0];
   });
 
+  customLoggedInUser = signal<User | null>(null);
+
   // Currently active user based on activeTenant, activeLms, and activeRole
   activeUser = computed<User>(() => {
+    if (this.customLoggedInUser()) {
+      return this.customLoggedInUser()!;
+    }
     const currentTenantId = this.activeTenantId();
     const currentRole = this.activeRole();
     const currentLms = this.activeLms();
@@ -5875,9 +5880,39 @@ export class LmsDataService {
     this.updateUser(current.id, changes);
   }
 
+  // Set Dumbledore user session
+  setDumbledoreUser(): User {
+    this.activeRole.set('system_admin');
+    const user: User = {
+      id: 'usr-dumbledore',
+      tenantId: this.activeTenantId() || 'tenant-brac',
+      name: 'Albus Dumbledore',
+      email: 'dumbledore@hogwarts.lms',
+      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
+      role: 'system_admin',
+      department: 'Executive Administration & Leadership',
+      enrolledCourses: [],
+      completedCourses: [],
+      earnedCertificates: [],
+      points: 9999,
+      badges: ['System Admin', 'Headmaster', 'Grand Sorcerer'],
+      lastActive: 'Just now',
+      status: 'Active',
+      complianceStatus: 'Compliant'
+    };
+    this.customLoggedInUser.set(user);
+    this.users.update(list => {
+      const exists = list.some(u => u.id === 'usr-dumbledore');
+      return exists ? list.map(u => u.id === 'usr-dumbledore' ? user : u) : [user, ...list];
+    });
+    this.logAction('User Sign In', `User ${user.name} signed in successfully as System Admin`, 'success');
+    return user;
+  }
+
   // Log out or reset session simulation
   logout() {
     this.logAction('User Sign Out', `User ${this.activeUser().name} signed out of session`, 'info');
+    this.customLoggedInUser.set(null);
   }
 
   // =========================================================================

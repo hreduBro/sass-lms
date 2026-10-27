@@ -500,6 +500,10 @@ export class CourseTemplateGridComponent {
     this.inspectTemplate.set(null);
   }
 
+  closeInspectModal() {
+    this.closeInspect();
+  }
+
   // Spawn Course Modal
   openSpawnModal(template: CourseTemplate) {
     this.closeActionMenu();

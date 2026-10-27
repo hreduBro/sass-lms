@@ -2,8 +2,6 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, O
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import Uppy from '@uppy/core';
-import ThumbnailGenerator from '@uppy/thumbnail-generator';
 import { LmsDataService } from '../../services/lms-data.service';
 import {
   TIMEZONE_OPTIONS,
@@ -109,8 +107,8 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   isEditMode = signal<boolean>(false);
   editingOrgId = signal<string | null>(null);
 
-  // Uppy Core uploader instance
-  private uppy!: Uppy;
+  // Logo uploader state
+  private uppy: any = null;
 
   // Available LMS Instances for Custom batching
   availableLmsNodes = [
@@ -151,57 +149,10 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Initializes Uppy Core file uploader with Thumbnail Generator and file restrictions
+   * Initializes file uploader state
    */
   private initUppy() {
-    this.uppy = new Uppy({
-      id: 'organization-logo-uploader',
-      autoProceed: true,
-      restrictions: {
-        maxFileSize: 5 * 1024 * 1024, // 5MB
-        maxNumberOfFiles: 1,
-        minNumberOfFiles: 1,
-        allowedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp', '.png', '.jpg', '.jpeg', '.svg', '.webp']
-      }
-    });
-
-    this.uppy.use(ThumbnailGenerator, {
-      thumbnailWidth: 400,
-      thumbnailHeight: 400
-    });
-
-    this.uppy.on('file-added', (file) => {
-      this.logoTouched.set(true);
-      this.logoError.set(null);
-      this.logoFileName.set(file.name);
-      this.logoSizeKb.set(Math.round((file.size || 0) / 1024));
-
-      // Read file binary as data URL fallback if thumbnail not yet ready
-      if (file.data instanceof Blob || file.data instanceof File) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (!this.logoPreview()) {
-            this.logoPreview.set(e.target?.result as string);
-          }
-        };
-        reader.readAsDataURL(file.data);
-      }
-    });
-
-    this.uppy.on('thumbnail:generated', (file, preview) => {
-      if (preview) {
-        this.logoPreview.set(preview);
-      }
-    });
-
-    this.uppy.on('restriction-failed', (file, error) => {
-      this.logoTouched.set(true);
-      this.logoError.set(error?.message || 'File violates upload restrictions (Max 5MB; PNG, JPG, SVG, WebP only).');
-    });
-
-    this.uppy.on('error', (error) => {
-      this.logoError.set(error?.message || 'An error occurred during file upload processing.');
-    });
+    this.uppy = { initialized: true };
   }
 
   /**
@@ -623,35 +574,40 @@ export class OrganizationCreateComponent implements OnInit, OnDestroy {
     this.logoTouched.set(true);
     this.logoError.set(null);
 
-    if (!this.uppy) {
-      this.initUppy();
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type.toLowerCase()) && !file.name.match(/\.(png|jpg|jpeg|svg|webp)$/i)) {
+      this.logoError.set('File violates upload restrictions (Max 5MB; PNG, JPG, SVG, WebP only).');
+      return;
     }
 
-    try {
-      // Clear existing files from Uppy queue for single logo replacement
-      const currentFiles = this.uppy.getFiles();
-      currentFiles.forEach(f => this.uppy.removeFile(f.id));
-
-      this.uppy.addFile({
-        name: file.name,
-        type: file.type,
-        data: file,
-        source: 'Local File'
-      });
-    } catch (err: any) {
-      this.logoError.set(err?.message || 'Invalid logo file or restriction failed.');
+    if (file.size > maxBytes) {
+      this.logoError.set('File exceeds maximum size of 5MB.');
+      return;
     }
+
+    this.logoFileName.set(file.name);
+    this.logoSizeKb.set(Math.round(file.size / 1024));
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      this.logoPreview.set(dataUrl);
+      this.basicInfoForm.patchValue({ logoUrl: dataUrl });
+    };
+    reader.onerror = () => {
+      this.logoError.set('An error occurred while reading the logo file.');
+    };
+    reader.readAsDataURL(file);
   }
 
   removeLogo() {
-    if (this.uppy) {
-      const currentFiles = this.uppy.getFiles();
-      currentFiles.forEach(f => this.uppy.removeFile(f.id));
-    }
     this.logoPreview.set(null);
     this.logoFileName.set(null);
     this.logoSizeKb.set(0);
     this.logoError.set(null);
+    this.basicInfoForm.patchValue({ logoUrl: null });
   }
 
   // Custom batching logic for Data Sharing (§4.2.2)

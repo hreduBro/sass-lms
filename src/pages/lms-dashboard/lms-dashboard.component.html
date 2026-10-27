@@ -189,7 +189,7 @@
               <tbody class="divide-y divide-base-200">
                 @for (plan of lmsPlans(); track plan.id) {
                   <tr class="hover:bg-base-200/50 transition-colors">
-                    <td class="py-3 px-3 font-mono font-bold text-tenant-600">{{ plan.code }}</td>
+                    <td class="py-3 px-3 font-mono font-bold text-tenant-600">{{ plan.code || plan.planCode }}</td>
                     <td class="py-3 px-3 font-semibold text-text-primary">{{ plan.name }}</td>
                     <td class="py-3 px-3 text-text-secondary font-mono">{{ plan.startDate }} – {{ plan.endDate }}</td>
                     <td class="py-3 px-3 font-mono font-bold text-text-primary">{{ plan.enrolledLearnersCount || 120 }}</td>
@@ -536,14 +536,14 @@
 @if (editingWidget(); as w) {
   <app-lms-widget-config-modal 
     [widget]="w"
-    (save)="updateWidgetConfig($event)"
+    (save)="onSaveWidgetConfig($event)"
     (close)="editingWidget.set(null)">
   </app-lms-widget-config-modal>
 }
 
 @if (showAddWidgetModal()) {
   <app-lms-add-widget-modal 
-    (addWidget)="onAddWidget($event)"
+    (selectWidget)="onAddWidget($event)"
     (close)="showAddWidgetModal.set(false)">
   </app-lms-add-widget-modal>
 }

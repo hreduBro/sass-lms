@@ -16,31 +16,71 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 2. STICKY GLASS HEADER & NAVIGATION                                       -->
+  <!-- 2. STICKY GLASS HEADER & NAVIGATION (§2)                                   -->
   <!-- ========================================================================= -->
   <header 
     [class.sticky]="pageConfig().navbar.sticky"
     [class.top-0]="pageConfig().navbar.sticky"
     [class.relative]="!pageConfig().navbar.sticky"
     [class.z-40]="true"
-    [class.bg-white/90]="pageConfig().navbar.sticky"
+    [class.bg-white/95]="pageConfig().navbar.sticky"
     [class.backdrop-blur-xl]="pageConfig().navbar.sticky"
     [class.bg-white]="!pageConfig().navbar.sticky"
     [class.shadow-xs]="pageConfig().navbar.sticky"
     class="w-full px-4 sm:px-8 lg:px-12 py-3.5 border-b border-slate-200/60 flex items-center justify-between transition-all">
     
-    <!-- Logo & Title -->
-    <a routerLink="/" class="flex items-center gap-3 group">
-      @if (lmsLogo()) {
-        <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[170px] object-contain group-hover:opacity-90 transition-opacity" referrerpolicy="no-referrer" />
+    <div class="flex items-center gap-6">
+      <!-- Logo & Title -->
+      <a routerLink="/" class="flex items-center gap-3 group">
+        @if (lmsLogo()) {
+          <img [src]="lmsLogo()" [alt]="pageConfig().lmsName" class="h-8 max-w-[170px] object-contain group-hover:opacity-90 transition-opacity" referrerpolicy="no-referrer" />
+        }
+        <span class="text-base font-black text-slate-900 tracking-tight hidden sm:inline">
+          {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
+        </span>
+      </a>
+
+      <!-- Explore Dropdown (Hidden when Browse by Category is disabled per §2) -->
+      @if (isBrowseCategoriesEnabled()) {
+        <div class="relative hidden lg:block">
+          <button 
+            type="button" 
+            (click)="toggleExploreDropdown()"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm text-pink-600">category</span>
+            <span>Explore</span>
+            <span class="material-symbols-outlined text-xs transition-transform" [class.rotate-180]="exploreDropdownOpen()">expand_more</span>
+          </button>
+
+          @if (exploreDropdownOpen()) {
+            <div class="absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fadeIn">
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100">
+                Browse by Category
+              </div>
+              <div class="max-h-72 overflow-y-auto py-1 space-y-0.5">
+                @for (cat of browseCategoriesList(); track cat.id) {
+                  <button 
+                    type="button"
+                    (click)="onSelectCategoryFilter(cat.name)"
+                    class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-pink-50 hover:text-pink-600 flex items-center justify-between transition-colors cursor-pointer group">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-pink-600">{{ cat.icon || 'folder' }}</span>
+                      <span class="truncate">{{ cat.name }}</span>
+                    </div>
+                    @if (cat.count) {
+                      <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-500 font-mono">{{ cat.count }}</span>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
       }
-      <span class="text-base font-black text-slate-900 tracking-tight hidden sm:inline">
-        {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
-      </span>
-    </a>
+    </div>
 
     <!-- Navigation Links -->
-    <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-bold text-slate-700">
+    <nav class="hidden md:flex items-center gap-5 lg:gap-6 text-xs font-bold text-slate-700">
       @for (link of pageConfig().navbar.links; track link.id) {
         <a 
           [href]="link.target" 
@@ -59,8 +99,50 @@
       }
     </nav>
 
-    <!-- Header Actions -->
-    <div class="flex items-center gap-3">
+    <!-- Header Actions (Search, Language Switcher, Log In & Sign Up) -->
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      
+      <!-- Search Button (Expands overlay per §2) -->
+      <button 
+        type="button"
+        (click)="openSearchOverlay()"
+        class="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+        title="Search programmes and courses">
+        <span class="material-symbols-outlined text-lg">search</span>
+        <span class="hidden xl:inline text-slate-400 text-xs">Search...</span>
+      </button>
+
+      <!-- Language Switcher (Shown when >1 language published per §2) -->
+      @if (publishedLanguages().length > 1) {
+        <div class="relative hidden sm:block">
+          <button 
+            type="button"
+            (click)="toggleLanguageDropdown()"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">language</span>
+            <span class="text-[11px]">{{ currentLanguage() === 'English' ? 'EN' : 'BN' }}</span>
+            <span class="material-symbols-outlined text-xs">expand_more</span>
+          </button>
+
+          @if (languageDropdownOpen()) {
+            <div class="absolute right-0 top-full mt-2 w-36 bg-white rounded-xl shadow-lg border border-slate-200 p-1.5 z-50 animate-fadeIn">
+              @for (lang of publishedLanguages(); track lang) {
+                <button 
+                  type="button"
+                  (click)="switchLanguage(lang)"
+                  class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-100 flex items-center justify-between"
+                  [class.text-pink-600]="currentLanguage() === lang">
+                  <span>{{ lang }}</span>
+                  @if (currentLanguage() === lang) {
+                    <span class="material-symbols-outlined text-xs">check</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <!-- Admin Edit Link (if admin user is previewing) -->
       @if (lms.activeUser()?.role === 'system_admin' || lms.activeUser()?.role === 'lms_admin') {
         <a 
@@ -71,15 +153,15 @@
         </a>
       }
 
-      @if (pageConfig().navbar.ctaButton.enabled) {
-        <a 
-          routerLink="/login"
-          class="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-          [style.backgroundColor]="primaryColor()">
-          <span class="material-symbols-outlined text-sm">login</span>
-          <span>{{ pageConfig().navbar.ctaButton.label }}</span>
-        </a>
-      }
+      <!-- Log In CTA Button (Mandatory entry point from brief & §2) -->
+      <a 
+        routerLink="/login"
+        id="landing-login-btn"
+        class="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+        [style.backgroundColor]="primaryColor()">
+        <span class="material-symbols-outlined text-sm">login</span>
+        <span>Log In</span>
+      </a>
 
       <!-- Mobile Hamburger Button -->
       <button 
@@ -92,7 +174,7 @@
     </div>
   </header>
 
-  <!-- Mobile Dropdown Navigation Menu -->
+  <!-- Mobile Dropdown Navigation Menu Drawer -->
   @if (mobileMenuOpen()) {
     <div class="md:hidden sticky top-[61px] z-30 bg-white border-b border-slate-200 px-6 py-4 shadow-lg flex flex-col gap-3 animate-fadeIn">
       @for (link of pageConfig().navbar.links; track link.id) {
@@ -106,6 +188,109 @@
           }
         </a>
       }
+
+      <div class="pt-2 flex flex-col gap-2">
+        <a 
+          routerLink="/login"
+          id="mobile-landing-login-btn"
+          (click)="mobileMenuOpen.set(false)"
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white text-center shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+          [style.backgroundColor]="primaryColor()">
+          <span class="material-symbols-outlined text-sm">login</span>
+          <span>Log In</span>
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Header Search Results Overlay (§2 Search Overlay) -->
+  @if (searchOverlayOpen()) {
+    <div 
+      class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-start justify-center pt-16 px-4 animate-fadeIn"
+      (click)="closeSearchOverlay()">
+      <div 
+        class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 border border-slate-200 space-y-4"
+        (click)="$event.stopPropagation()">
+        
+        <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+          <span class="material-symbols-outlined text-slate-400 text-xl">search</span>
+          <input 
+            type="text" 
+            [ngModel]="headerSearchQuery()" 
+            (ngModelChange)="headerSearchQuery.set($event)"
+            autofocus
+            placeholder="Search public programmes, courses, and skills..."
+            class="flex-1 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent" />
+          <button 
+            type="button" 
+            (click)="closeSearchOverlay()"
+            class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <div class="max-h-96 overflow-y-auto space-y-4 pr-1">
+          @if (headerSearchResults().programmes.length > 0) {
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Programmes</div>
+              <div class="space-y-1.5">
+                @for (prog of headerSearchResults().programmes; track prog.id) {
+                  <div 
+                    (click)="onSelectSearchResult('programme', prog)"
+                    class="p-3 rounded-xl hover:bg-slate-50 border border-slate-100 flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">school</span>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="text-xs font-bold text-slate-900 group-hover:text-pink-600 truncate">{{ prog.name }}</div>
+                        <div class="text-[11px] text-slate-500 truncate">{{ prog.shortDescription }}</div>
+                      </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-2"
+                          [class.bg-emerald-100]="prog.availability === 'open'"
+                          [class.text-emerald-700]="prog.availability === 'open'"
+                          [class.bg-amber-100]="prog.availability === 'closing_soon'"
+                          [class.text-amber-700]="prog.availability === 'closing_soon'">
+                      {{ prog.availabilityLabel }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (headerSearchResults().courses.length > 0) {
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Courses</div>
+              <div class="space-y-1.5">
+                @for (c of headerSearchResults().courses; track c.id) {
+                  <div 
+                    (click)="onSelectSearchResult('course', c)"
+                    class="p-3 rounded-xl hover:bg-slate-50 border border-slate-100 flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-lg">play_lesson</span>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="text-xs font-bold text-slate-900 group-hover:text-pink-600 truncate">{{ c.title }}</div>
+                        <div class="text-[11px] text-slate-500 truncate">{{ c.category }} • {{ c.level }}</div>
+                      </div>
+                    </div>
+                    <span class="text-xs text-pink-600 font-bold group-hover:underline shrink-0">View &rarr;</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (headerSearchQuery() && headerSearchResults().programmes.length === 0 && headerSearchResults().courses.length === 0) {
+            <div class="py-8 text-center text-slate-500 text-xs">
+              No public programmes or courses match "{{ headerSearchQuery() }}".
+            </div>
+          }
+        </div>
+      </div>
     </div>
   }
 
@@ -1552,6 +1737,302 @@
               </div>
             }
 
+            <!-- BROWSE BY CATEGORY WIDGET (§3.3) -->
+            @if (sec.type === 'browse_categories') {
+              <div class="text-center max-w-3xl mx-auto mb-10">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.heading || sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.intro || sec.subtitle }}</p>
+              </div>
+
+              <!-- 4 columns desktop, 2 tablet, 1 mobile -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                @for (cat of browseCategoriesList(); track cat.id) {
+                  <div 
+                    (click)="onSelectCategoryFilter(cat.name)"
+                    class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-xl hover:border-pink-500/40 transition-all duration-300 flex flex-col justify-between cursor-pointer group">
+                    <div class="space-y-3">
+                      <div class="flex items-center justify-between">
+                        <div 
+                          class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform"
+                          [style.backgroundColor]="cat.color || primaryColor()">
+                          <span class="material-symbols-outlined text-2xl">{{ cat.icon || 'school' }}</span>
+                        </div>
+                        @if (cat.count && cat.count > 0) {
+                          <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 group-hover:bg-pink-100 group-hover:text-pink-700 transition-colors">
+                            {{ cat.count }} items
+                          </span>
+                        }
+                      </div>
+
+                      <div>
+                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors">{{ cat.name }}</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ cat.description }}</p>
+                      </div>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-pink-600 group-hover:underline">
+                      <span>Explore Domain</span>
+                      <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- FEATURED PROGRAMMES WIDGET (§3.4) -->
+            @if (sec.type === 'featured_programmes') {
+              <div class="text-center max-w-3xl mx-auto mb-10">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.heading || sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.intro || sec.subtitle }}</p>
+              </div>
+
+              <!-- 3 columns desktop, 2 tablet, 1 mobile -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @for (prog of hydratedProgrammes(); track prog.id) {
+                  <div 
+                    (click)="openProgramDetail(prog)"
+                    class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer group">
+                    <div>
+                      <!-- Cover Image 16:9 -->
+                      <div class="relative aspect-video w-full overflow-hidden bg-slate-900">
+                        <img 
+                          [src]="prog.coverImage" 
+                          [alt]="prog.name" 
+                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          referrerpolicy="no-referrer" />
+                        
+                        <!-- Client-Hydrated Availability Badge (§4) -->
+                        @if (prog.availability) {
+                          <div class="absolute top-3 left-3">
+                            <span 
+                              class="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm backdrop-blur-xs"
+                              [class.bg-emerald-500]="prog.availability === 'open'"
+                              [class.text-white]="prog.availability === 'open'"
+                              [class.bg-amber-500]="prog.availability === 'closing_soon'"
+                              [class.text-slate-950]="prog.availability === 'closing_soon'"
+                              [class.bg-slate-800]="prog.availability === 'full' || prog.availability === 'closed'"
+                              [class.text-slate-300]="prog.availability === 'full' || prog.availability === 'closed'">
+                              {{ prog.availabilityLabel || 'Enrolling now' }}
+                            </span>
+                          </div>
+                        }
+
+                        @if (prog.planCode) {
+                          <span class="absolute top-3 right-3 text-[10px] font-mono font-bold bg-slate-950/70 text-slate-200 px-2 py-0.5 rounded backdrop-blur-xs">
+                            {{ prog.planCode }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Card Body -->
+                      <div class="p-5 space-y-3">
+                        <div class="flex items-center gap-2 text-[11px] font-bold text-pink-600 uppercase tracking-wider">
+                          <span>{{ prog.typeLabel || 'PROGRAMME' }}</span>
+                          <span>•</span>
+                          <span>{{ prog.durationLabel || (prog.durationMonths + ' months') }}</span>
+                        </div>
+
+                        <h3 class="text-base font-bold text-slate-900 group-hover:text-pink-600 transition-colors leading-snug">
+                          {{ prog.name }}
+                        </h3>
+
+                        <!-- Clamped to 2 lines per spec §3.4 -->
+                        <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                          {{ prog.shortDescription }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="p-5 pt-0 space-y-3">
+                      <div class="pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-xs text-slate-500">
+                        <div class="flex items-center justify-between">
+                          <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs text-slate-400">event</span>
+                            <span>Starts {{ prog.startDate }}</span>
+                          </span>
+                          @if (prog.seatsLeft && prog.availability === 'closing_soon') {
+                            <span class="text-[11px] font-bold text-amber-600">{{ prog.seatsLeft }} seats left</span>
+                          }
+                        </div>
+
+                        @if (prog.credentialTitle) {
+                          <div class="flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+                            <span class="material-symbols-outlined text-sm text-emerald-600">verified</span>
+                            <span class="truncate">{{ prog.credentialTitle }}</span>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="flex items-center justify-between pt-1">
+                        <span class="text-xs font-bold text-pink-600 flex items-center gap-1 group-hover:underline">
+                          <span>View Details & Syllabus</span>
+                          <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                        </span>
+                        <a 
+                          routerLink="/login"
+                          (click)="$event.stopPropagation()"
+                          class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1"
+                          [style.backgroundColor]="primaryColor()">
+                          <span>Enroll</span>
+                          <span class="material-symbols-outlined text-xs">login</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- WHY THIS LMS WIDGET (§3.6) -->
+            @if (sec.type === 'why_lms') {
+              <div class="text-center max-w-3xl mx-auto mb-10">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.heading || sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.intro || sec.subtitle }}</p>
+              </div>
+
+              <!-- 3 columns desktop, 2 tablet, 1 mobile -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @for (vp of sec.content.valueProps; track vp.id) {
+                  <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+                    <div class="space-y-3">
+                      <div class="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shadow-xs">
+                        <span class="material-symbols-outlined text-2xl">{{ vp.icon || 'verified' }}</span>
+                      </div>
+                      <h3 class="text-base font-bold text-slate-900">{{ vp.title }}</h3>
+                      <p class="text-xs text-slate-600 leading-relaxed">{{ vp.description }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- HOW IT WORKS WIDGET (§3.7) -->
+            @if (sec.type === 'how_it_works') {
+              <div class="text-center max-w-3xl mx-auto mb-12">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.heading || sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.intro || sec.subtitle }}</p>
+              </div>
+
+              <!-- Horizontal with connecting line on desktop, vertical on mobile -->
+              <div class="relative">
+                <div class="hidden lg:block absolute top-7 left-14 right-14 h-0.5 bg-slate-200 z-0"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+                  @for (st of sec.content.steps; track st.stepNumber) {
+                    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col items-center text-center space-y-3">
+                      <div 
+                        class="w-14 h-14 rounded-full flex items-center justify-center text-white text-base font-black shadow-md border-4 border-white"
+                        [style.backgroundColor]="primaryColor()">
+                        0{{ st.stepNumber }}
+                      </div>
+
+                      @if (st.icon) {
+                        <span class="material-symbols-outlined text-xl text-pink-600">{{ st.icon }}</span>
+                      }
+
+                      <h3 class="text-sm font-bold text-slate-900">{{ st.title }}</h3>
+                      <p class="text-xs text-slate-500 leading-relaxed">{{ st.description }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- CREDENTIALS YOU EARN WIDGET (§3.8) -->
+            @if (sec.type === 'credentials_earned') {
+              <div class="text-center max-w-3xl mx-auto mb-10">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.heading || sec.title }}</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.description || sec.subtitle }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @for (cred of sec.content.samples; track cred.id) {
+                  <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between items-center text-center">
+                    <div class="space-y-3 w-full flex flex-col items-center">
+                      <!-- Badge vs Certificate Rendering Style -->
+                      @if (cred.type === 'Badge') {
+                        <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-pink-400/40 p-1 bg-gradient-to-tr from-pink-500 to-indigo-500 shadow-md flex items-center justify-center">
+                          <img [src]="cred.sampleArtworkUrl" [alt]="cred.title" class="w-full h-full object-cover rounded-full" referrerpolicy="no-referrer" />
+                        </div>
+                      } @else {
+                        <div class="w-full aspect-4/3 rounded-xl overflow-hidden border-4 border-amber-200 bg-amber-50/40 p-1 shadow-md">
+                          <img [src]="cred.sampleArtworkUrl" [alt]="cred.title" class="w-full h-full object-cover rounded-lg" referrerpolicy="no-referrer" />
+                        </div>
+                      }
+
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                            [class.bg-purple-100]="cred.type === 'Badge'"
+                            [class.text-purple-700]="cred.type === 'Badge'"
+                            [class.bg-amber-100]="cred.type === 'Certificate'"
+                            [class.text-amber-800]="cred.type === 'Certificate'">
+                        {{ cred.type }}
+                      </span>
+
+                      <div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">{{ cred.title }}</h3>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ cred.description }}</p>
+                      </div>
+                    </div>
+
+                    <div class="pt-3 mt-3 border-t border-slate-100 w-full text-[10px] text-slate-400 font-medium">
+                      {{ cred.issuerName }}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- IMPACT FIGURES WIDGET (§3.9) -->
+            @if (sec.type === 'impact_figures') {
+              <div class="text-center max-w-3xl mx-auto mb-10">
+                @if (sec.badge) {
+                  <span class="text-xs font-extrabold text-pink-400 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                }
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">{{ sec.content.heading || sec.title }}</h2>
+                @if (sec.content.subheading || sec.subtitle) {
+                  <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl mx-auto">{{ sec.content.subheading || sec.subtitle }}</p>
+                }
+              </div>
+
+              <!-- Large Numerals Tabular Figures Grid -->
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                @for (fig of sec.content.figures; track fig.id) {
+                  <div class="bg-slate-900/80 rounded-2xl border border-slate-800 p-6 text-center shadow-lg backdrop-blur-xs flex flex-col justify-between">
+                    <div>
+                      @if (fig.isLive) {
+                        <div class="flex items-center justify-center gap-1.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">
+                          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                          <span>Live Telemetry</span>
+                        </div>
+                      }
+                      <div class="text-3xl sm:text-4xl lg:text-5xl font-mono font-black text-white tracking-tight">
+                        {{ fig.prefix }}{{ fig.value }}{{ fig.suffix }}
+                      </div>
+                    </div>
+                    <div class="text-xs font-medium text-slate-400 mt-2">
+                      {{ fig.label }}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
             <!-- 8. LATEST NEWS & INSIGHTS WIDGET -->
             @if (sec.type === 'latest_news') {
               <div class="text-center max-w-3xl mx-auto mb-12">
@@ -2174,6 +2655,127 @@
           <button type="button" (click)="closeNewsModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer">
             Close Article
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Program Detail & Syllabus Modal (§3.4) -->
+  @if (programDetailModalOpen() && selectedProgramForDetail()) {
+    @let prog = selectedProgramForDetail()!;
+    <div 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn"
+      (click)="closeProgramDetail()">
+      <div 
+        class="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col max-h-[90vh]"
+        (click)="$event.stopPropagation()">
+        
+        <!-- Modal Top Cover Image -->
+        <div class="relative h-56 sm:h-64 overflow-hidden bg-slate-950 flex-shrink-0">
+          <img [src]="prog.coverImage" [alt]="prog.name" class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+          
+          <button 
+            type="button" 
+            (click)="closeProgramDetail()"
+            class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-950/80 hover:bg-pink-600 text-white flex items-center justify-center transition-colors cursor-pointer shadow-lg">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+
+          <div class="absolute bottom-4 left-6 right-6 text-white space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-pink-600 text-white shadow-sm">
+                {{ prog.typeLabel || 'PROGRAMME' }}
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-xs text-white">
+                {{ prog.durationLabel || (prog.durationMonths + ' months') }}
+              </span>
+              @if (prog.availability) {
+                <span 
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-xs"
+                  [class.bg-emerald-500]="prog.availability === 'open'"
+                  [class.text-white]="prog.availability === 'open'"
+                  [class.bg-amber-400]="prog.availability === 'closing_soon'"
+                  [class.text-slate-950]="prog.availability === 'closing_soon'">
+                  {{ prog.availabilityLabel || 'Enrolling now' }}
+                </span>
+              }
+            </div>
+            <h2 class="text-xl sm:text-2xl font-black text-white leading-tight">{{ prog.name }}</h2>
+          </div>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="p-6 overflow-y-auto space-y-5">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Start Date</span>
+              <span class="font-bold text-slate-800">{{ prog.startDate }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Timeline</span>
+              <span class="font-bold text-slate-800">{{ prog.durationLabel || (prog.durationMonths + ' months') }}</span>
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <span class="text-slate-400 block text-[10px] font-bold uppercase">Code</span>
+              <span class="font-mono font-bold text-slate-800">{{ prog.planCode || 'ACAD-2026' }}</span>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">Executive Overview</h4>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ prog.shortDescription }}</p>
+          </div>
+
+          @if (prog.credentialTitle) {
+            <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span class="material-symbols-outlined text-xl">workspace_premium</span>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Completion Credential</span>
+                <div class="text-xs sm:text-sm font-bold text-emerald-950">{{ prog.credentialTitle }}</div>
+                <div class="text-[11px] text-emerald-700">OpenBadges 2.0 & PDF Certificate with tamper-proof verification</div>
+              </div>
+            </div>
+          }
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Curriculum Highlights</h4>
+            <div class="space-y-2 text-xs text-slate-700">
+              <div class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="material-symbols-outlined text-base text-pink-600 mt-0.5">check_circle</span>
+                <span>Structured phased modules combining on-demand videos, peer breakout rooms, and practical field labs.</span>
+              </div>
+              <div class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="material-symbols-outlined text-base text-pink-600 mt-0.5">check_circle</span>
+                <span>Weekly live instructor office hours and collaborative discussion assignments.</span>
+              </div>
+              <div class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="material-symbols-outlined text-base text-pink-600 mt-0.5">check_circle</span>
+                <span>Proctored capstone assessment with automated institutional transcript synchronization.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer CTA -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+          <button 
+            type="button" 
+            (click)="closeProgramDetail()"
+            class="px-5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer">
+            Close
+          </button>
+          <a 
+            routerLink="/login" 
+            (click)="closeProgramDetail()"
+            id="modal-enroll-login-btn"
+            class="px-6 py-2.5 rounded-xl text-xs font-extrabold text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            [style.backgroundColor]="primaryColor()">
+            <span>Log In to Enroll in Programme</span>
+            <span class="material-symbols-outlined text-sm">login</span>
+          </a>
         </div>
       </div>
     </div>
