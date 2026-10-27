@@ -476,6 +476,9 @@
               <!-- 3. Content Type -->
               <th scope="col" class="py-3.5 px-4 min-w-[150px] border-b border-base-300">Content Type</th>
 
+              <!-- 4. Grading -->
+              <th scope="col" class="py-3.5 px-4 min-w-[130px] border-b border-base-300">Grading</th>
+
               <!-- 4. Source -->
               <th scope="col" class="py-3.5 px-4 min-w-[160px] border-b border-base-300">Source</th>
 
@@ -601,6 +604,19 @@
                     </span>
                     <span class="truncate max-w-[130px]">{{ item.type }}</span>
                   </span>
+                </td>
+
+                <!-- 4. Grading -->
+                <td class="py-3.5 px-4 border-b border-base-300/60">
+                  @if (getGradingLabel(item); as gLabel) {
+                    <span
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border shadow-2xs"
+                      [class]="gLabel === 'Auto' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800' : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800'">
+                      <span>{{ gLabel }}</span>
+                    </span>
+                  } @else {
+                    <span class="text-text-tertiary text-xs">&mdash;</span>
+                  }
                 </td>
 
                 <!-- 4. Source -->

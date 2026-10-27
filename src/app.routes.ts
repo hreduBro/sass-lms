@@ -580,13 +580,11 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
 
-  // Assessment & Quiz Module
+  // Assessment & Quiz Module (Results & Analytics only; authoring moved to Content Repository)
   { 
     path: 'assessments', 
-    loadComponent: () => import('./pages/assessments/assessment-grid/assessment-grid.component').then(m => m.AssessmentGridComponent), 
-    title: 'Assessments & Exam Bank | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+    redirectTo: 'assessments/results',
+    pathMatch: 'full'
   },
   { 
     path: 'assessments/dashboard', 
@@ -595,17 +593,13 @@ export const routes: Routes = [
   },
   { 
     path: 'assessments/create', 
-    loadComponent: () => import('./pages/assessments/assessment-create/assessment-create.component').then(m => m.AssessmentCreateComponent), 
-    title: 'Author Assessment | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'content-repository/create',
+    pathMatch: 'full'
   },
   { 
     path: 'assessments/edit/:id', 
-    loadComponent: () => import('./pages/assessments/assessment-create/assessment-create.component').then(m => m.AssessmentCreateComponent), 
-    title: 'Edit Assessment | Multi-Tenant LMS',
-    canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
+    redirectTo: 'content-repository/create',
+    pathMatch: 'full'
   },
   { 
     path: 'assessments/take/:id', 

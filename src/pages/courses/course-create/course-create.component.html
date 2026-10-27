@@ -2382,7 +2382,7 @@
               class="px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1"
               [class]="repoFamilyFilter() === 'assessment' ? 'bg-tenant-500 text-white shadow-xs' : 'bg-base-200 text-text-secondary hover:text-text-primary'">
               <span class="material-symbols-outlined text-xs">quiz</span>
-              <span>Question Sets</span>
+              <span>Assessments</span>
             </button>
           </div>
         </div>
@@ -2411,6 +2411,12 @@
                         [ngClass]="item.family === 'Learning' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'">
                         {{ item.type }}
                       </span>
+                      @if (getItemGradingLabel(item); as gLabel) {
+                        <span class="px-2 py-0.2 rounded-md text-[10px] font-bold"
+                          [ngClass]="gLabel === 'Auto' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300'">
+                          {{ gLabel }}
+                        </span>
+                      }
                       @if (item.owningLmsName) {
                         <span class="text-[10px] font-mono text-text-secondary">
                           • {{ item.owningLmsName }}

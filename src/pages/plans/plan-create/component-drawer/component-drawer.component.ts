@@ -509,12 +509,12 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
 
                 <div>
                   <app-custom-select
-                    label="Pick Questionnaire Bank"
+                    label="Select Scored Assessment"
                     [searchable]="true"
                     [clearable]="true"
                     [options]="questionnaireSelectOptions()"
                     (valueChange)="onQuestionnaireSelected($event)"
-                    placeholder="Search assessment bank...">
+                    placeholder="Search active repository assessments...">
                   </app-custom-select>
                 </div>
 
@@ -546,12 +546,12 @@ import { DatePickerComponent } from '../../../../components/date-picker/date-pic
 
                 <div>
                   <app-custom-select
-                    label="Select Feedback Survey Form"
+                    label="Select Survey"
                     [searchable]="true"
                     [clearable]="true"
                     [options]="surveyFormOptions()"
                     (valueChange)="onSurveyFormSelected($event)"
-                    placeholder="Search feedback surveys...">
+                    placeholder="Search active repository surveys...">
                   </app-custom-select>
                 </div>
 
@@ -1351,35 +1351,63 @@ export class ComponentDrawerComponent {
     }));
   });
 
-  // Questionnaires from Assessments
+  // Scored Assessments from Content Repository (Only Active items appear)
   questionnaireOptions = computed<any[]>(() => {
-    return this.lmsData.assessments().map((a: any) => ({
-      id: a.assessmentId || a.id,
-      title: a.title,
-      version: a.versions?.[0]?.versionLabel || 'v1.0'
-    }));
+    const items = this.lmsData.activeLmsRepositoryItems();
+    return items
+      .filter(item => item.status === 'Active' && (item.family === 'Assessment' || item.type === 'Question Bank / Question Set') && item.type !== 'Survey')
+      .map(item => {
+        let gradingLabel = 'Auto';
+        if (item.type === 'Assignment') {
+          gradingLabel = 'Needs manual grading';
+        } else {
+          const config = item.contentConfig as any;
+          if (config?.assessmentId) {
+            const linked = this.lmsData.assessments().find(a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode);
+            if (linked) {
+              const currentVer = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
+              if (currentVer?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
+                gradingLabel = 'Needs manual grading';
+              }
+            }
+          }
+        }
+        return {
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          gradingLabel,
+          owningLmsName: item.owningLmsName
+        };
+      });
   });
 
   questionnaireSelectOptions = computed<SelectOption[]>(() => {
     return this.questionnaireOptions().map(q => ({
       value: q.id,
       label: q.title,
-      sublabel: `Assessment Bank · ${q.version}`
+      sublabel: `Assessment · ${q.gradingLabel} · ${q.owningLmsName}`
     }));
   });
 
-  // Survey Forms
+  // Surveys from Content Repository (Only Active items appear)
   surveyOptions = computed<any[]>(() => {
-    return this.lmsData.feedbackForms().map((f: any) => ({
-      id: f.feedbackFormId || f.id,
-      title: f.title
-    }));
+    const items = this.lmsData.activeLmsRepositoryItems();
+    return items
+      .filter(item => item.status === 'Active' && (item.type === 'Survey' || (item.family === 'Assessment' && (item.contentConfig as any)?.scoringMode === 'unscored')))
+      .map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        owningLmsName: item.owningLmsName
+      }));
   });
 
   surveyFormOptions = computed<SelectOption[]>(() => {
     return this.surveyOptions().map(s => ({
       value: s.id,
-      label: s.title
+      label: s.title,
+      sublabel: `Survey · Active · ${s.owningLmsName}`
     }));
   });
 
@@ -1552,22 +1580,22 @@ export class ComponentDrawerComponent {
 
   onQuestionnaireSelected(qId: any) {
     if (!qId) return;
-    const q: any = this.lmsData.assessments().find((x: any) => (x.assessmentId || x.id) === qId);
-    if (q) {
+    const item = this.lmsData.activeLmsRepositoryItems().find(x => x.id === qId);
+    if (item) {
       this.form.patchValue({
-        name: q.title,
-        description: q.description || ''
+        name: item.title,
+        description: item.description || ''
       });
     }
   }
 
   onSurveyFormSelected(sId: any) {
     if (!sId) return;
-    const s: any = this.lmsData.feedbackForms().find((x: any) => (x.feedbackFormId || x.id) === sId);
-    if (s) {
+    const item = this.lmsData.activeLmsRepositoryItems().find(x => x.id === sId);
+    if (item) {
       this.form.patchValue({
-        name: s.title,
-        description: s.description || ''
+        name: item.title,
+        description: item.description || ''
       });
     }
   }

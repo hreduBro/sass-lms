@@ -12,7 +12,14 @@ export type LearningContentType =
   | 'Book / E-book'
   | 'External Link';
 
-export type AssessmentContentType = 'Question Bank / Question Set';
+export type AssessmentContentType =
+  | 'Quiz'
+  | 'Exam'
+  | 'Assignment'
+  | 'Pre-Test'
+  | 'Post-Test'
+  | 'Survey'
+  | 'Question Bank / Question Set';
 
 export type ContentType = LearningContentType | AssessmentContentType;
 
@@ -192,10 +199,46 @@ export const AUTHORITATIVE_LEARNING_CONTENT_TYPES: { type: LearningContentType; 
 
 export const AUTHORITATIVE_ASSESSMENT_CONTENT_TYPES: { type: AssessmentContentType; icon: string; description: string; formats: string }[] = [
   {
-    type: 'Question Bank / Question Set',
+    type: 'Quiz',
     icon: 'quiz',
-    description: 'Reusable question set linked from the Central Assessment Bank (MCQ, Multi-select, Open Essay)',
-    formats: 'Assessment Bank Reference'
+    description: 'Knowledge check or topic quiz (MCQ, Fill in blank, True/False)',
+    formats: 'Auto / Manual Scored'
+  },
+  {
+    type: 'Exam',
+    icon: 'assignment_turned_in',
+    description: 'Formal exam with passing mark, time limit & attempt rules',
+    formats: 'Auto / Manual Scored'
+  },
+  {
+    type: 'Assignment',
+    icon: 'assignment',
+    description: 'Practical assignment submission or open-ended essay',
+    formats: 'Needs manual grading'
+  },
+  {
+    type: 'Pre-Test',
+    icon: 'fact_check',
+    description: 'Baseline diagnostic pre-test for curriculum plans',
+    formats: 'Scored Assessment'
+  },
+  {
+    type: 'Post-Test',
+    icon: 'verified',
+    description: 'Final evaluation post-test for curriculum plans',
+    formats: 'Scored Assessment'
+  },
+  {
+    type: 'Survey',
+    icon: 'ballot',
+    description: 'Unscored feedback survey or learner experience form',
+    formats: 'Unscored Questions'
+  },
+  {
+    type: 'Question Bank / Question Set',
+    icon: 'dataset',
+    description: 'Reusable question set or assessment pool',
+    formats: 'Question Pool'
   }
 ];
 
@@ -208,6 +251,12 @@ export const ALL_CONTENT_TYPES: ContentType[] = [
   'Recorded Class',
   'Book / E-book',
   'External Link',
+  'Quiz',
+  'Exam',
+  'Assignment',
+  'Pre-Test',
+  'Post-Test',
+  'Survey',
   'Question Bank / Question Set'
 ];
 
@@ -687,6 +736,68 @@ export const INITIAL_REPOSITORY_ITEMS: RepositoryItem[] = [
     },
     referencedInPlansCount: 0,
     referencedInCoursesCount: 0,
+    referencedEntities: []
+  },
+  {
+    id: 'repo-item-13',
+    title: 'Field Operations & Tablet POS Mastery Diagnostic Quiz',
+    titleBangla: 'ফিল্ড অপারেশনস ও ট্যাবলেট পিওএস দক্ষতা কুইজ',
+    family: 'Assessment',
+    type: 'Question Bank / Question Set',
+    authorIds: ['usr-brac-auth-1'],
+    authorNames: ['Tanvir Hossain'],
+    publishDate: '01/02/2026',
+    expiryDate: null,
+    hasNoExpiry: true,
+    description: 'Auto-graded 10-question diagnostic quiz evaluating tablet POS cash reconciliation and biometric verification.',
+    owningLmsId: 'LMS-1972-01',
+    owningLmsName: 'Microfinance Academy',
+    owningOrganizationId: 'tenant-brac',
+    sharingMode: 'Organization-wide',
+    status: 'Active',
+    createdAt: '25/01/2026',
+    updatedAt: '01/02/2026',
+    createdBy: 'Tanvir Hossain',
+    contentConfig: {
+      assessmentId: 'asm-brac-02',
+      assessmentTitle: 'Field Operations & Tablet POS Quiz',
+      questionCount: 10,
+      scoringMode: 'scored',
+      passMarkPercent: 75,
+      totalMarks: 20
+    },
+    referencedInPlansCount: 1,
+    referencedInCoursesCount: 1,
+    referencedEntities: []
+  },
+  {
+    id: 'repo-item-14',
+    title: 'Trainee Onboarding & Learner Experience Survey',
+    titleBangla: 'শিক্ষার্থী অভিজ্ঞতা ও মডিউল প্রতিক্রিয়া জরিপ',
+    family: 'Assessment',
+    type: 'Question Bank / Question Set',
+    authorIds: ['usr-brac-auth-2'],
+    authorNames: ['Farhana Ahmed'],
+    publishDate: '01/02/2026',
+    expiryDate: null,
+    hasNoExpiry: true,
+    description: 'Unscored feedback survey evaluating course pacing, facilitator clarity, and training venue facilities.',
+    owningLmsId: 'LMS-1972-01',
+    owningLmsName: 'Microfinance Academy',
+    owningOrganizationId: 'tenant-brac',
+    sharingMode: 'Organization-wide',
+    status: 'Active',
+    createdAt: '28/01/2026',
+    updatedAt: '01/02/2026',
+    createdBy: 'Farhana Ahmed',
+    contentConfig: {
+      assessmentId: 'asm-brac-04',
+      assessmentTitle: 'Trainee Onboarding Survey',
+      questionCount: 5,
+      scoringMode: 'unscored'
+    },
+    referencedInPlansCount: 1,
+    referencedInCoursesCount: 1,
     referencedEntities: []
   }
 ];

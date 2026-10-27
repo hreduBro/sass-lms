@@ -1545,6 +1545,26 @@ export class CourseCreateComponent implements OnInit {
     });
   });
 
+  getItemGradingLabel(item: RepositoryItem): string {
+    if (item.family !== 'Assessment' && item.type !== 'Question Bank / Question Set') {
+      return '';
+    }
+    if (item.type === 'Survey') return '';
+    if (item.type === 'Assignment') return 'Needs manual grading';
+
+    const config = item.contentConfig as any;
+    if (config?.assessmentId) {
+      const linked = this.lmsService.assessments().find(a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode);
+      if (linked) {
+        const currentVer = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
+        if (currentVer?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
+          return 'Needs manual grading';
+        }
+      }
+    }
+    return 'Auto';
+  }
+
   // Content Modal Operations: Opens Repository Attachment Selector
   openAddContentModal(nodeId: string) {
     this.activeTargetNodeId.set(nodeId);

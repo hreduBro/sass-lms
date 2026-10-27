@@ -409,7 +409,13 @@ export class RepositoryGridComponent {
       case 'Recorded Class': return 'videocam';
       case 'Book / E-book': return 'menu_book';
       case 'External Link': return 'open_in_new';
-      case 'Question Bank / Question Set': return 'quiz';
+      case 'Quiz': return 'quiz';
+      case 'Exam': return 'assignment_turned_in';
+      case 'Assignment': return 'assignment';
+      case 'Pre-Test': return 'fact_check';
+      case 'Post-Test': return 'verified';
+      case 'Survey': return 'ballot';
+      case 'Question Bank / Question Set': return 'dataset';
       default: return 'folder';
     }
   }
@@ -424,9 +430,35 @@ export class RepositoryGridComponent {
       case 'Recorded Class': return 'text-teal-600 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-900';
       case 'Book / E-book': return 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-900';
       case 'External Link': return 'text-sky-600 bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-900';
+      case 'Quiz':
+      case 'Exam':
+      case 'Assignment':
+      case 'Pre-Test':
+      case 'Post-Test':
+      case 'Survey':
       case 'Question Bank / Question Set': return 'text-purple-600 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-900';
       default: return 'text-slate-600 bg-slate-50 border-slate-200';
     }
+  }
+
+  getGradingLabel(item: RepositoryItem): string {
+    if (item.family !== 'Assessment' && item.type !== 'Question Bank / Question Set') {
+      return '';
+    }
+    if (item.type === 'Survey') return '';
+    if (item.type === 'Assignment') return 'Needs manual grading';
+
+    const config = item.contentConfig as any;
+    if (config?.assessmentId) {
+      const linked = this.lmsData.assessments().find(a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode);
+      if (linked) {
+        const currentVer = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
+        if (currentVer?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
+          return 'Needs manual grading';
+        }
+      }
+    }
+    return 'Auto';
   }
 
   getStatusBadgeClass(status: ContentStatus): string {

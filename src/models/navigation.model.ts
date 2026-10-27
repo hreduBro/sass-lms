@@ -36,8 +36,8 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/my-plans',
     icon: 'school',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Trainee Plan Journey, Classroom Sessions, and Credentials',
-    matchPatterns: ['/my-plans', '/my-plans/**', '/my-schedule', '/my-schedule/**', '/my-achievements', '/my-achievements/**', '/achievements', '/schedule'],
+    description: 'Trainee Plan Journey, Classroom Sessions, Credentials, and Transcripts',
+    matchPatterns: ['/my-plans', '/my-plans/**', '/my-schedule', '/my-schedule/**', '/my-achievements', '/my-achievements/**', '/achievements', '/schedule', '/my-transcripts', '/my-transcripts/**'],
     children: [
       {
         label: 'My Plans',
@@ -62,6 +62,14 @@ export const APP_NAV_ITEMS: NavItem[] = [
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Earned course badges, phase & graduation certificates',
         matchPatterns: ['/my-achievements', '/my-achievements/**', '/achievements']
+      },
+      {
+        label: 'My Transcripts',
+        route: '/my-transcripts',
+        icon: 'receipt_long',
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+        description: 'Personal verified academic transcripts & grades',
+        matchPatterns: ['/my-transcripts', '/my-transcripts/**']
       }
     ]
   },
@@ -354,17 +362,9 @@ export const APP_NAV_ITEMS: NavItem[] = [
     route: '/assessments/results',
     icon: 'quiz',
     roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
-    description: 'Assessment Authoring, Exam Runtime, Scoring Policies & Trainee Results',
-    matchPatterns: ['/assessments', '/assessments/**'],
+    description: 'Learner attempt results, score distributions & manual grading queue',
+    matchPatterns: ['/assessments/results', '/assessments/results/**', '/assessments/grade/**'],
     children: [
-      {
-        label: 'Create Assessment',
-        route: '/assessments/create',
-        icon: 'add_circle',
-        description: '4-step question authoring & scoring policy builder (saves to Content Repository)',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
-        matchPatterns: ['/assessments/create', '/assessments/edit/**']
-      },
       {
         label: 'Results & Analytics',
         route: '/assessments/results',
@@ -489,13 +489,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         description: 'Centralized repository of authorized signatories & digital signatures',
         roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
         matchPatterns: ['/certificates/signatories', '/signatories']
-      },
-      {
-        label: 'My Transcripts',
-        route: '/my-transcripts',
-        icon: 'school',
-        description: 'Personal verified academic transcripts & grades',
-        matchPatterns: ['/my-transcripts', '/my-transcripts/**']
       }
     ]
   },
