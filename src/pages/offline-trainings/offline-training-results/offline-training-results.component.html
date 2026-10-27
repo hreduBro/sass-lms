@@ -474,7 +474,8 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-base-300">
-          @for (r of results(); track r.resultId) {
+          @for (r of results(); track getResultKey(r)) {
+            @let rowKey = getResultKey(r);
             @let avatar = getAvatarColors(r.traineeName);
             @let currentAttendance = getLiveAttendance(r);
             @let currentMarks = getLiveMarks(r);
@@ -515,7 +516,7 @@
                         min="0"
                         max="100"
                         [value]="currentAttendance"
-                        (input)="updateAttendance(r.resultId, $any($event.target).valueAsNumber)"
+                        (input)="updateAttendance(rowKey, $any($event.target).valueAsNumber)"
                         class="w-full pl-3 pr-6 py-1.5 text-xs font-mono font-bold bg-white dark:bg-base-200/50 border rounded-xl text-center text-text-primary focus:outline-none focus:ring-2 focus:ring-tenant-500 shadow-2xs transition-all"
                         [class.border-emerald-400]="currentAttendance >= 80"
                         [class.border-amber-400]="currentAttendance >= 50 && currentAttendance < 80"
@@ -528,12 +529,12 @@
                     <div class="hidden sm:flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                       <button
                         type="button"
-                        (click)="updateAttendance(r.resultId, 100)"
+                        (click)="updateAttendance(rowKey, 100)"
                         class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 cursor-pointer"
                         title="100%">100</button>
                       <button
                         type="button"
-                        (click)="updateAttendance(r.resultId, 50)"
+                        (click)="updateAttendance(rowKey, 50)"
                         class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-700 cursor-pointer"
                         title="50%">50</button>
                     </div>
@@ -560,7 +561,7 @@
                         min="0"
                         max="100"
                         [value]="currentMarks"
-                        (input)="updateMark(r.resultId, $any($event.target).valueAsNumber)"
+                        (input)="updateMark(rowKey, $any($event.target).valueAsNumber)"
                         class="w-full pl-3 pr-7 py-1.5 text-xs font-mono font-bold bg-white dark:bg-base-200/50 border rounded-xl text-center text-tenant-600 dark:text-tenant-400 focus:outline-none focus:ring-2 focus:ring-tenant-500 shadow-2xs transition-all"
                         [class.border-tenant-400]="currentMarks >= 60"
                         [class.border-rose-400]="currentMarks < 50 && currentMarks > 0"
@@ -610,7 +611,7 @@
                     <input
                       type="text"
                       [value]="getLiveRemarks(r)"
-                      (input)="updateRemarks(r.resultId, $any($event.target).value)"
+                      (input)="updateRemarks(rowKey, $any($event.target).value)"
                       placeholder="Add performance feedback or viva notes..."
                       class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-base-200/40 border border-slate-200/80 dark:border-base-300 rounded-xl text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-tenant-500 focus:bg-white dark:focus:bg-base-100 transition-colors shadow-2xs" />
                   </div>
@@ -619,19 +620,19 @@
                   <div class="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
                     <button
                       type="button"
-                      (click)="applyQuickRemark(r.resultId, 'Exemplary hands-on execution.')"
+                      (click)="applyQuickRemark(rowKey, 'Exemplary hands-on execution.')"
                       class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
                       + Exemplary
                     </button>
                     <button
                       type="button"
-                      (click)="applyQuickRemark(r.resultId, 'Passed practical evaluation and viva.')"
+                      (click)="applyQuickRemark(rowKey, 'Passed practical evaluation and viva.')"
                       class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
                       + Passed Viva
                     </button>
                     <button
                       type="button"
-                      (click)="applyQuickRemark(r.resultId, 'Requires review on clinical protocols.')"
+                      (click)="applyQuickRemark(rowKey, 'Requires review on clinical protocols.')"
                       class="px-1.5 py-0.5 text-[10px] rounded-md bg-slate-100 dark:bg-base-200 hover:bg-slate-200 text-text-secondary whitespace-nowrap cursor-pointer transition-colors">
                       + Needs Review
                     </button>
