@@ -1,0 +1,180 @@
+<div class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-950 text-slate-100 relative overflow-hidden select-none font-sans">
+  
+  <!-- Subtle ambient decorative glow with BRAC magenta (#EC008C) & deep magenta (#700042) -->
+  <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#EC008C]/20 blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#700042]/30 blur-3xl pointer-events-none"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#EC008C]/5 blur-[120px] pointer-events-none"></div>
+
+  <!-- Main Card Container -->
+  <div class="relative w-full max-w-lg z-10">
+    
+    <!-- Outer glass card with BRAC magenta border glow -->
+    <div class="rounded-3xl bg-slate-900/90 backdrop-blur-2xl border border-[#EC008C]/30 shadow-2xl shadow-[#EC008C]/10 p-6 sm:p-10 transition-all duration-300">
+      
+      <!-- BRAC Brand Header -->
+      <div class="flex flex-col items-center text-center space-y-4 mb-8">
+        
+        <!-- Logo Emblem -->
+        <div class="relative group">
+          <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#EC008C] to-[#C40072] opacity-75 blur-sm group-hover:opacity-100 transition duration-300"></div>
+          <div class="relative w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center p-3.5 border border-[#EC008C]/40 shadow-inner">
+            <img 
+              [src]="bracLogoIcon" 
+              alt="BRAC Logo" 
+              class="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(236,0,140,0.5)]"
+              onerror="this.src='assets/bracit-logo-light.png'"
+            />
+          </div>
+        </div>
+
+        <!-- Portal Titles -->
+        <div class="space-y-1.5">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#EC008C]/15 text-[#EC008C] border border-[#EC008C]/30 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] animate-pulse"></span>
+            <span>Enterprise Admin Portal</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            BRAC Learning Portal
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400 font-medium max-w-sm">
+            Sign in with administrative credentials to access System Admin and Org Admin workspaces.
+          </p>
+        </div>
+
+        <!-- Dual Scope Indicator Pill -->
+        <div class="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 font-semibold text-emerald-400">
+            <span class="material-symbols-outlined text-xs">shield_person</span>
+            System Admin
+          </span>
+          <span class="text-slate-500">•</span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 font-semibold text-sky-400">
+            <span class="material-symbols-outlined text-xs">corporate_fare</span>
+            Org Admin
+          </span>
+        </div>
+      </div>
+
+      <!-- Error Alert Message -->
+      @if (errorMessage()) {
+        <div class="mb-6 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5 animate-in fade-in duration-200">
+          <span class="material-symbols-outlined text-rose-400 text-base shrink-0">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Login Form -->
+      <form (ngSubmit)="onSignIn()" class="space-y-4 sm:space-y-5" autocomplete="on">
+        
+        <!-- Username Field -->
+        <div class="space-y-1.5">
+          <label for="admin-username" class="block text-xs font-semibold text-slate-300">
+            Username
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <span class="material-symbols-outlined text-lg">person</span>
+            </div>
+            <input 
+              id="admin-username"
+              type="text" 
+              name="username"
+              [ngModel]="username()"
+              (ngModelChange)="username.set($event)"
+              required
+              placeholder="Enter username"
+              class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 transition-all focus:outline-none focus:border-[#EC008C] focus:ring-2 focus:ring-[#EC008C]/20"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-1.5">
+          <label for="admin-password" class="block text-xs font-semibold text-slate-300">
+            Password
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <span class="material-symbols-outlined text-lg">lock</span>
+            </div>
+            <input 
+              id="admin-password"
+              [type]="showPassword() ? 'text' : 'password'" 
+              name="password"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              required
+              placeholder="Enter password"
+              class="w-full pl-10 pr-11 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 transition-all focus:outline-none focus:border-[#EC008C] focus:ring-2 focus:ring-[#EC008C]/20"
+            />
+            <button 
+              type="button" 
+              (click)="togglePasswordVisibility()"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
+              title="Toggle password view">
+              <span class="material-symbols-outlined text-lg">
+                {{ showPassword() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="flex items-center justify-between text-xs pt-1">
+          <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-300">
+            <input 
+              type="checkbox" 
+              name="rememberMe"
+              [ngModel]="rememberMe()"
+              (ngModelChange)="rememberMe.set($event)"
+              class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-[#EC008C] focus:ring-[#EC008C]/30 focus:ring-offset-0"
+            />
+            <span>Remember session</span>
+          </label>
+
+          <span class="text-[11px] text-slate-500 font-mono">
+            TLS 1.3 • AES-256
+          </span>
+        </div>
+
+        <!-- Submit Button Styled with BRAC Magenta -->
+        <button 
+          id="btn-admin-signin"
+          type="submit"
+          [disabled]="isSubmitting()"
+          class="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#EC008C] to-[#C40072] hover:from-[#d6007e] hover:to-[#b00066] shadow-lg shadow-[#EC008C]/25 transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2">
+          @if (isSubmitting()) {
+            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span>Verifying Credentials...</span>
+          } @else {
+            <span class="material-symbols-outlined text-lg">login</span>
+            <span>Sign In to Admin Dashboard</span>
+          }
+        </button>
+
+      </form>
+
+      <!-- Footer Info -->
+      <div class="mt-8 pt-6 border-t border-slate-800 text-center space-y-2">
+        <p class="text-[11px] text-slate-400">
+          BRAC IT Services &bull; Enterprise Learning Management Platform
+        </p>
+        <p class="text-[10px] text-slate-500 font-mono">
+          &copy; 2026 BRAC. All Rights Reserved.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Return to standard user portal link -->
+    <div class="mt-4 text-center">
+      <a 
+        routerLink="/login" 
+        class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#EC008C] transition-colors">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Standard Learner / Staff Portal</span>
+      </a>
+    </div>
+
+  </div>
+</div>
