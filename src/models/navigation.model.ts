@@ -197,13 +197,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
         matchPatterns: ['/plans', '/plans/details/**', '/plans/view/**']
       },
       { 
-        label: 'Create Phase', 
-        route: '/plans/phases/create', 
-        icon: 'add_circle', 
-        description: 'Step-by-step phase creation wizard & delivery classes',
-        matchPatterns: ['/plans/*/phases/create', '/plans/phases/create', '/phases/create', '/plans/*/phases/edit/*']
-      },
-      { 
         label: 'Plan Dashboard', 
         route: '/plans/dashboard', 
         icon: 'monitoring', 
@@ -264,7 +257,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Offline Trainings',
     route: '/offline-trainings',
     icon: 'groups_3',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'In-person classroom workshops, physical venues, reusable content & multi-mode assessments',
     matchPatterns: ['/offline-trainings', '/offline-trainings/**'],
     children: [
@@ -288,7 +281,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/offline-trainings/results',
         icon: 'fact_check',
         description: 'Attendance log, manual mark entry & cohort pass status',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         matchPatterns: ['/offline-trainings/results']
       }
     ]
@@ -321,7 +314,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Courses & Catalog',
     route: '/courses',
     icon: 'school',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Design, configure & manage reusable curriculum modules & templates',
     matchPatterns: ['/courses', '/courses/create', '/courses/edit/**', '/courses/*/learn', '/courses/learn/**', '/courses/templates', '/courses/templates/**'],
     children: [
@@ -354,7 +347,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Assessments & Exams',
     route: '/assessments/results',
     icon: 'quiz',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Learner attempt results, score distributions & manual grading queue',
     matchPatterns: ['/assessments/results', '/assessments/results/**', '/assessments/grade/**'],
     children: [
@@ -363,7 +356,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/assessments/results',
         icon: 'fact_check',
         description: 'Learner attempt results, score distributions & manual grading queue',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         matchPatterns: ['/assessments/results', '/assessments/grade/**']
       }
     ]
@@ -449,7 +442,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Certificate Templates',
     route: '/certificates/templates',
     icon: 'workspace_premium',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'WYSIWYG designer, template grid, sharing & credentials',
     matchPatterns: ['/certificates/templates/**', '/certificates/templates', '/certificates/vault', '/certificates/signatories/**'],
     children: [
@@ -489,7 +482,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Badges & Credentials',
     route: '/certificates/badges',
     icon: 'military_tech',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Manage, design, and configure badge templates',
     matchPatterns: ['/certificates/badges/**', '/certificates/badges', '/badges/**', '/badges'],
     children: [
@@ -498,7 +491,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
         route: '/certificates/badges',
         queryParams: { tab: 'templates' },
         icon: 'grid_view',
-        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+        roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
         description: 'Browse, filter & manage digital badge templates',
         matchPatterns: ['/certificates/badges?tab=templates', '/certificates/badges/repository', '/badges/repository', '/certificates/badges/view/**']
       },
@@ -516,7 +509,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'Live Classrooms',
     route: '/webinars',
     icon: 'videocam',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
     description: 'Virtual interactive classrooms & webinars',
     matchPatterns: ['/webinars/**']
   },
@@ -524,7 +517,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'LMS Theming & Layout',
     route: '/settings',
     icon: 'palette',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin'],
     description: 'LMS-mapped theme, layout & brand customizer',
     matchPatterns: ['/settings/**']
   },
@@ -532,7 +525,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
     label: 'My Profile',
     route: '/profile',
     icon: 'account_circle',
-    roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'],
+    roles: ['system_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'],
     description: 'Personal profile & skills',
     matchPatterns: ['/profile/**']
   }

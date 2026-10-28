@@ -2673,7 +2673,8 @@ export class LmsDataService {
   // Core reactive signals
   tenants = signal<Tenant[]>(INITIAL_TENANTS);
   activeTenantId = signal<string>('tenant-brac');
-  activeRole = signal<UserRole>('system_admin');
+  activeRole = signal<UserRole>('lms_admin');
+  isAdminPortalSession = signal<boolean>(LocalPersistenceRepository.isAdminPortalSession());
 
   // Skill Mapping Store (§4.10)
   skills = signal<Skill[]>(INITIAL_SKILLS);
@@ -5031,10 +5032,19 @@ export class LmsDataService {
   });
 
   constructor() {
-    // Check if Dumbledore or another session is persisted in sessionStorage
+    // Check if Dumbledore or Admin session is persisted in sessionStorage
     const storedSession = LocalPersistenceRepository.getAuthSession();
-    if (storedSession && storedSession.authenticated && storedSession.username === 'Dumbledore') {
-      this.setDumbledoreUser();
+    if (storedSession && storedSession.authenticated) {
+      const uname = (storedSession.username || '').toLowerCase();
+      if (uname === 'dumbledore') {
+        const storedRole = storedSession.role as UserRole;
+        const validRole = (storedRole === 'lms_admin' || storedRole === 'instructor' || storedRole === 'learner')
+          ? storedRole
+          : 'lms_admin';
+        this.setDumbledoreUser(validRole);
+      } else if (uname === 'admin' || LocalPersistenceRepository.isAdminPortalSession()) {
+        this.setAdminUser();
+      }
     }
 
     // Dynamic CSS theme and favicon injection effect:
@@ -5245,9 +5255,41 @@ export class LmsDataService {
     return true;
   }
 
+  // Permitted view roles for the active authenticated user
+  permittedRoles = computed<UserRole[]>(() => {
+    if (this.isAdminPortalSession()) {
+      return ['system_admin', 'tenant_admin'];
+    }
+    const current = this.customLoggedInUser();
+    if (current && current.id === 'usr-dumbledore') {
+      return ['lms_admin', 'instructor', 'learner'];
+    }
+    const stored = LocalPersistenceRepository.getAuthSession();
+    const storedUname = (stored?.username || '').toLowerCase();
+    if (storedUname === 'dumbledore') {
+      return ['lms_admin', 'instructor', 'learner'];
+    }
+    // Default open role options for standard mode if not restricted to Dumbledore/Admin
+    return ['system_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'];
+  });
+
   // Switch active role preview & enforce route authorization
   switchRole(role: UserRole) {
+    const allowed = this.permittedRoles();
+    if (!allowed.includes(role)) {
+      this.showToast(`Role "${role}" is not permitted for your current session scope.`, 'warning', 3500, 'Access Restricted');
+      return;
+    }
+
     this.activeRole.set(role);
+
+    // Update persisted auth session role if present
+    const stored = LocalPersistenceRepository.getAuthSession();
+    if (stored && stored.authenticated) {
+      stored.role = role;
+      LocalPersistenceRepository.setAuthSession(stored);
+    }
+
     const roleLabels: Record<string, string> = {
       system_admin: 'System Admin',
       super_admin: 'System Admin',
@@ -5260,18 +5302,19 @@ export class LmsDataService {
     this.logAction('Role Switch', `Switched active view mode to: ${roleName}`, 'info');
     this.showToast(`Switched active view mode to "${roleName.toUpperCase()}"`, 'info', 3000, 'Role Switched', 'RBAC');
 
-    // If current route is restricted for newly active role, immediately redirect to /dashboard
+    // If current route is restricted for newly active role, immediately redirect to appropriate landing
     if (this.router) {
       const currentUrl = this.router.url;
       if (!this.isRouteAllowedForRole(currentUrl, role)) {
+        const targetLanding = role === 'lms_admin' ? '/lms/dashboard' : '/dashboard';
         this.showToast(
-          `Access Restricted: "${roleName}" cannot access this page. Redirecting to Dashboard.`,
+          `Access Restricted: "${roleName}" cannot access this page. Redirecting to ${role === 'lms_admin' ? 'LMS Admin Dashboard' : 'Dashboard'}.`,
           'warning',
           4000,
           'Route Restricted',
           'GUARD'
         );
-        this.router.navigate(['/dashboard']);
+        this.router.navigate([targetLanding]);
       }
     }
   }
@@ -5887,22 +5930,35 @@ export class LmsDataService {
     this.updateUser(current.id, changes);
   }
 
-  // Set Dumbledore user session
-  setDumbledoreUser(): User {
-    this.activeRole.set('system_admin');
+  // Set Dumbledore user session (Standard LMS workspace with LMS Admin, Instructor, and Learner access)
+  setDumbledoreUser(initialRole: UserRole = 'lms_admin'): User {
+    const validRole = (initialRole === 'lms_admin' || initialRole === 'instructor' || initialRole === 'learner')
+      ? initialRole
+      : 'lms_admin';
+    this.activeRole.set(validRole);
+    this.isAdminPortalSession.set(false);
+    LocalPersistenceRepository.setAdminPortalSession(false);
+
+    // Target active LMS under tenant-brac
+    const targetOrgId = this.activeTenantId() || 'tenant-brac';
+    const orgLms = this.lmsInstances().filter(l => l.organizationId === targetOrgId);
+    if (orgLms.length > 0 && !this.activeLmsId()) {
+      this.activeLmsId.set(orgLms[0].id);
+    }
+
     const user: User = {
       id: 'usr-dumbledore',
-      tenantId: this.activeTenantId() || 'tenant-brac',
+      tenantId: targetOrgId,
       name: 'Albus Dumbledore',
       email: 'dumbledore@hogwarts.lms',
       avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
-      role: 'system_admin',
+      role: 'lms_admin',
       department: 'Executive Administration & Leadership',
       enrolledCourses: [],
       completedCourses: [],
       earnedCertificates: [],
       points: 9999,
-      badges: ['System Admin', 'Headmaster', 'Grand Sorcerer'],
+      badges: ['LMS Admin', 'Instructor', 'Master Educator'],
       lastActive: 'Just now',
       status: 'Active',
       complianceStatus: 'Compliant'
@@ -5912,7 +5968,55 @@ export class LmsDataService {
       const exists = list.some(u => u.id === 'usr-dumbledore');
       return exists ? list.map(u => u.id === 'usr-dumbledore' ? user : u) : [user, ...list];
     });
-    this.logAction('User Sign In', `User ${user.name} signed in successfully as System Admin`, 'success');
+    this.logAction('User Sign In', `User ${user.name} signed in successfully with LMS Admin, Instructor & Learner access`, 'success');
+    return user;
+  }
+
+  // Set BRAC Admin user session (Scoped access to System Admin & Org Admin)
+  setAdminUser(): User {
+    this.activeTenantId.set('tenant-brac');
+    this.activeRole.set('system_admin');
+    this.isAdminPortalSession.set(true);
+    LocalPersistenceRepository.setAdminPortalSession(true);
+
+    const user: User = {
+      id: 'usr-admin',
+      tenantId: 'tenant-brac',
+      name: 'BRAC Administrator',
+      email: 'admin@brac.net',
+      avatar: 'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+      role: 'system_admin',
+      department: 'Central Administration & Governance',
+      enrolledCourses: [],
+      completedCourses: [],
+      earnedCertificates: [],
+      points: 9999,
+      badges: ['System Admin', 'Org Admin', 'BRAC Executive'],
+      lastActive: 'Just now',
+      status: 'Active',
+      complianceStatus: 'Compliant',
+      joinDate: '2023-01-01',
+      title: 'Enterprise System & Org Administrator',
+      phone: '+880 2 2222 81265',
+      bio: 'Enterprise Administrator with System Admin and Org Admin scope.'
+    };
+
+    this.customLoggedInUser.set(user);
+    this.users.update(list => {
+      const exists = list.some(u => u.id === 'usr-admin');
+      return exists ? list.map(u => u.id === 'usr-admin' ? user : u) : [user, ...list];
+    });
+
+    // Enforce BRAC standard Magenta theme
+    this.applyTenantTheme(
+      '#EC008C',
+      '#C40072',
+      'https://freelogopng.com/images/all_img/1679820004brac-icon.png',
+      'BRAC Learning Portal',
+      'solid'
+    );
+
+    this.logAction('Admin Sign In', `User ${user.name} signed in successfully via Admin Portal`, 'success');
     return user;
   }
 
@@ -5920,6 +6024,8 @@ export class LmsDataService {
   logout() {
     this.logAction('User Sign Out', `User ${this.activeUser().name} signed out of session`, 'info');
     this.customLoggedInUser.set(null);
+    this.isAdminPortalSession.set(false);
+    LocalPersistenceRepository.setAdminPortalSession(false);
     LocalPersistenceRepository.setAuthSession(null);
   }
 

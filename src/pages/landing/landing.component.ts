@@ -5,7 +5,8 @@ import {
   signal,
   computed,
   OnInit,
-  OnDestroy
+  OnDestroy,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -296,6 +297,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.scrollToSection('#courses');
   }
 
+  quickSearch(tag: string): void {
+    this.courseSearchQuery.set(tag);
+    this.onHeroSearchSubmit();
+  }
+
   resetCourseFilters(): void {
     this.courseSearchQuery.set('');
     this.selectedCategory.set('All Categories');
@@ -455,7 +461,31 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.videoModalOpen.set(false);
   }
 
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault();
+      this.openSearchOverlay();
+    } else if (event.key === 'Escape') {
+      this.closeSearchOverlay();
+      this.closeEnrollModal();
+      this.closeProgramDetail();
+      this.closeNewsModal();
+      this.closeVideoTour();
+      this.closePrivacyModal();
+      this.closeTermsModal();
+      this.closeCookiesModal();
+      this.exploreDropdownOpen.set(false);
+      this.languageDropdownOpen.set(false);
+      this.mobileMenuOpen.set(false);
+    }
+  }
+
   // --- Course Enrollment Modal ---
+  openEnrollModal(course: any): void {
+    this.handleCourseEnroll(course);
+  }
+
   handleCourseEnroll(course: any, secContent?: any): void {
     const action = secContent?.enrollButtonAction || 'modal';
     if (action === 'route') {
@@ -479,6 +509,14 @@ export class LandingComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.router.navigate(['/courses', course.id, 'learn']);
     }, 600);
+  }
+
+  formatCourseDuration(minutes?: number): string {
+    if (!minutes) return '2h 00m';
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hrs === 0) return `${mins}m`;
+    return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
   }
 
   // --- News Modal ---

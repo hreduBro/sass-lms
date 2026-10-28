@@ -55,7 +55,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
           
           <div class="flex items-center gap-1 sm:gap-1.5 min-w-max">
             @for (item of navItems; track item.label) {
-              @if (isAllowed(item.roles)) {
+              @if (isAllowed(item.roles, item.label)) {
                 @if (item.children && item.children.length > 0) {
                   <!-- Nested Dropdown Menu Trigger Item -->
                   <div 
@@ -144,7 +144,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
 
             <div class="space-y-1">
               @for (child of item.children; track (child.route + '-' + child.label)) {
-                @if (!child.roles || isAllowed(child.roles)) {
+                @if (!child.roles || isAllowed(child.roles, child.label)) {
                   <a 
                     [routerLink]="child.route"
                     (click)="closeDropdown()"
@@ -420,9 +420,28 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles?: string[]): boolean {
-    if (!roles || roles.length === 0) return true;
+  isAllowed(roles?: string[], label?: string): boolean {
+    const permitted = this.lms.permittedRoles();
     const activeRole = this.lms.activeRole();
+
+    if (!permitted.includes(activeRole)) {
+      return false;
+    }
+
+    if (this.lms.isAdminPortalSession()) {
+      if (label === 'My Learning' || label === 'My Plans' || label === 'My Schedule' || label === 'My Achievements' || label === 'My Transcripts') {
+        return false;
+      }
+      if (!roles || roles.length === 0) return true;
+      const hasAdmin = roles.includes('system_admin') || roles.includes('super_admin') || roles.includes('tenant_admin');
+      if (!hasAdmin) return false;
+
+      return roles.includes(activeRole) ||
+        (activeRole === 'super_admin' && roles.includes('system_admin')) ||
+        (activeRole === 'system_admin' && roles.includes('super_admin'));
+    }
+
+    if (!roles || roles.length === 0) return true;
     return roles.includes(activeRole) ||
       (activeRole === 'super_admin' && roles.includes('system_admin')) ||
       (activeRole === 'system_admin' && roles.includes('super_admin'));

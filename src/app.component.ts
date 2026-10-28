@@ -70,6 +70,8 @@ export class AppComponent implements OnInit {
         path.startsWith('/landing') ||
         path.startsWith('/p/') ||
         path === '/login' ||
+        path === '/login/admin' ||
+        path === '/admin/login' ||
         path === '/401' || path === '/unauthorized' ||
         path === '/403' || path === '/forbidden' ||
         path === '/404' || path === '/not-found' ||
@@ -90,6 +92,7 @@ export class AppComponent implements OnInit {
       component?.constructor?.name === 'LandingBuilderComponent' ||
       component?.constructor?.name === 'LandingComponent' ||
       component?.constructor?.name === 'LoginComponent' ||
+      component?.constructor?.name === 'AdminLoginComponent' ||
       component?.constructor?.name === 'ForbiddenComponent' ||
       component?.constructor?.name === 'NotFoundComponent' ||
       component?.constructor?.name === 'ServerErrorComponent' ||

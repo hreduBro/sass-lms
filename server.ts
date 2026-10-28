@@ -1677,10 +1677,7 @@ app.use(express.static(join(__dirname, 'public')));
 
 const distDirs = [
   join(__dirname, 'dist', 'browser'),
-  join(__dirname, 'dist'),
-  join(__dirname, 'dist', 'app'),
-  join(__dirname, 'dist', 'ai-chatbot-admin-console'),
-  join(__dirname, 'build')
+  join(__dirname, 'dist')
 ];
 
 for (const dir of distDirs) {

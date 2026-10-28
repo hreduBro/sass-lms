@@ -146,6 +146,11 @@ export class HeaderComponent {
     { role: 'learner', label: 'Learner', icon: 'person' },
   ];
 
+  get availableRoles() {
+    const permitted = this.lms.permittedRoles();
+    return this.roles.filter(r => permitted.includes(r.role));
+  }
+
   selectTenant(id: string) {
     if (!this.lms.isSystemAdmin()) return;
     this.lms.switchTenant(id);

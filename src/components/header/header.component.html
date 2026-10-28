@@ -329,7 +329,7 @@
       <span class="material-symbols-outlined text-xs">manage_accounts</span> Role:
     </span>
     <div class="flex items-center gap-1">
-      @for (r of roles; track r.role) {
+      @for (r of availableRoles; track r.role) {
         <button
           [id]="'btn-role-' + r.role"
           (click)="selectRole(r.role)"

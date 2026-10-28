@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { DashboardWidget, UserRole, CustomTenantDashboard } from '../../models/lms.model';
@@ -32,8 +32,14 @@ export interface LayoutPreset {
 })
 export class DashboardComponent {
   lms = inject(LmsDataService);
+  private router = inject(Router);
 
-  // Builder Mode State
+  ngOnInit() {
+    // If the active role is lms_admin and user visits /dashboard directly, redirect them to the dedicated LMS Admin Dashboard
+    if (this.lms.activeRole() === 'lms_admin') {
+      this.router.navigate(['/lms/dashboard'], { replaceUrl: true });
+    }
+  }
   isBuilderMode = signal<boolean>(false);
   editingWidget = signal<DashboardWidget | null>(null);
   showAddWidgetModal = signal<boolean>(false);
@@ -71,7 +77,18 @@ export class DashboardComponent {
       return this.draftWidgets();
     }
     const currentRole = this.activeRole();
-    return this.activeDashboard().widgets.filter(w => w.visibleForRoles.includes(currentRole));
+    const isPortalAdmin = this.lms.isAdminPortalSession();
+
+    return this.activeDashboard().widgets.filter(w => {
+      // In admin portal session, strictly enforce that widget has System Admin or Org Admin access
+      if (isPortalAdmin) {
+        const hasAdminAccess = w.visibleForRoles.includes('system_admin') || 
+                               w.visibleForRoles.includes('super_admin') || 
+                               w.visibleForRoles.includes('tenant_admin');
+        if (!hasAdminAccess) return false;
+      }
+      return w.visibleForRoles.includes(currentRole);
+    });
   });
 
   // Visible widgets count for the active/preview role
@@ -395,9 +412,8 @@ export class DashboardComponent {
     this.dragOverIndex.set(null);
   }
 
-  switchRole(role: 'learner' | 'instructor' | 'tenant_admin' | 'super_admin') {
-    this.lms.activeRole.set(role);
-    this.showToast(`Switched view mode to ${role.replace('_', ' ').toUpperCase()}`);
+  switchRole(role: UserRole) {
+    this.lms.switchRole(role);
   }
 
   // Utility to determine colSpan class for 12-column CSS grid with optimal symmetry

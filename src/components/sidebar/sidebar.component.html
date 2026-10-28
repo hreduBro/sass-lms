@@ -75,7 +75,7 @@
     }
 
     @for (item of navItems; track item.label) {
-      @if (isAllowed(item.roles)) {
+      @if (isAllowed(item.roles, item.label)) {
         
         @if (isCompact()) {
           <!-- ============================================================= -->
@@ -113,7 +113,7 @@
                   <!-- Flyout Child Menu Items -->
                   <div class="p-1.5 space-y-1">
                     @for (child of item.children; track child.route) {
-                      @if (!child.roles || isAllowed(child.roles)) {
+                      @if (!child.roles || isAllowed(child.roles, child.label)) {
                         <a 
                           [routerLink]="child.route"
                           [queryParams]="child.queryParams || null"
@@ -193,7 +193,7 @@
               @if (isMenuExpanded(item.label)) {
                 <div class="border-l border-slate-200 dark:border-slate-800 ml-4 pl-3.5 space-y-1.5 my-1.5 animate-accordion">
                   @for (child of item.children; track (child.route + '-' + child.label)) {
-                    @if (!child.roles || isAllowed(child.roles)) {
+                    @if (!child.roles || isAllowed(child.roles, child.label)) {
                       <a 
                         [routerLink]="child.route"
                         [queryParams]="child.queryParams || null"

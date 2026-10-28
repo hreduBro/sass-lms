@@ -44,6 +44,7 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { LoginBrandingPreviewComponent } from './pages/login-branding/login-branding-preview/login-branding-preview.component';
 import { LoginBrandingEditComponent } from './pages/login-branding/login-branding-edit/login-branding-edit.component';
 import { LoginComponent } from './pages/login/login.component';
+import { AdminLoginComponent } from './pages/admin-login/admin-login.component';
 import { LandingBuilderComponent } from './pages/landing-builder/landing-builder.component';
 import { LandingComponent } from './pages/landing/landing.component';
 
@@ -101,7 +102,7 @@ export const routes: Routes = [
     component: ProfileComponent, 
     title: 'User Profile | Multi-Tenant LMS',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'instructor', 'learner'] }
   },
 
   // Organization Level Routes:
@@ -702,13 +703,13 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor'] }
   },
 
-  // Theming, Layout & Branding Setup (LMS Admin, Org Admin, System Admin)
+  // Theming, Layout & Branding Setup (Org Admin, System Admin)
   { 
     path: 'settings', 
     component: SettingsComponent, 
     title: 'LMS Theming & Settings | Multi-Tenant LMS',
     canActivate: [roleGuard],
-    data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
+    data: { roles: ['system_admin', 'super_admin', 'tenant_admin'] }
   },
 
   // Login Branding Management (System Admin Scope)
@@ -739,6 +740,18 @@ export const routes: Routes = [
     path: 'login',
     component: LoginComponent,
     title: 'Sign In | Multi-Tenant Learning Portal'
+  },
+
+  // Dedicated BRAC Admin Live Authentication Portal (System Admin & Org Admin)
+  {
+    path: 'login/admin',
+    component: AdminLoginComponent,
+    title: 'BRAC Admin Portal Sign In | OneLMS'
+  },
+  {
+    path: 'admin/login',
+    redirectTo: 'login/admin',
+    pathMatch: 'full'
   },
 
   // Dedicated Error & Exception Pages (§4.15)

@@ -535,16 +535,17 @@ export function createDefaultLandingPage(
       logoOverride: logoUrl,
       sticky: true,
       style: 'glass',
-       links: [
-         { id: 'nav-home', label: 'Home', type: 'scroll', target: '#hero' },
-         { id: 'nav-categories', label: 'Categories', type: 'scroll', target: '#categories' },
-         { id: 'nav-programmes', label: 'Programmes', type: 'scroll', target: '#programmes', badge: 'Enrolling' },
-         { id: 'nav-why', label: 'Why BRAC ONE', type: 'scroll', target: '#why-lms' },
-         { id: 'nav-how', label: 'How It Works', type: 'scroll', target: '#how-it-works' },
-         { id: 'nav-credentials', label: 'Certificates', type: 'scroll', target: '#credentials' },
-         { id: 'nav-faq', label: 'FAQ', type: 'scroll', target: '#faq' },
-         { id: 'nav-contact', label: 'Contact', type: 'scroll', target: '#contact' }
-       ],
+        links: [
+          { id: 'nav-home', label: 'Home', type: 'scroll', target: '#hero' },
+          { id: 'nav-categories', label: 'Domains', type: 'scroll', target: '#categories' },
+          { id: 'nav-programmes', label: 'Programmes', type: 'scroll', target: '#programmes', badge: 'Enrolling' },
+          { id: 'nav-courses', label: 'Courses', type: 'scroll', target: '#courses' },
+          { id: 'nav-why', label: 'Why Us', type: 'scroll', target: '#why-lms' },
+          { id: 'nav-how', label: 'How It Works', type: 'scroll', target: '#how-it-works' },
+          { id: 'nav-credentials', label: 'Certificates', type: 'scroll', target: '#credentials' },
+          { id: 'nav-faq', label: 'FAQ', type: 'scroll', target: '#faq' },
+          { id: 'nav-contact', label: 'Contact', type: 'scroll', target: '#contact' }
+        ],
       ctaButton: {
         label: 'Log In',
         action: 'login',
@@ -746,7 +747,36 @@ export function createDefaultLandingPage(
          } as FeaturedProgrammesContent
        },
 
-       // 3. Video Showcase
+       // 5. Courses Catalog Grid (§3.5)
+       {
+         id: 'courses',
+         type: 'courses_grid',
+         title: 'Explore Certified Courses',
+         subtitle: 'Practical, high-impact modules crafted with field-tested curriculum, interactive assignments, and verifiable certifications.',
+         badge: 'Course Catalog',
+         enabled: true,
+         order: 4,
+         layout: 'standard',
+         background: {
+           type: 'neutral'
+         },
+         padding: 'spacious',
+         content: {
+           sectionTagline: 'Learn practical, field-tested skills with flexible video lessons, interactive quizzes, and verifiable certificates.',
+           filterCategories: ['All Categories', 'Microfinance & Compliance', 'Artificial Intelligence', 'Cybersecurity', 'Healthcare', 'Strategic Leadership'],
+           displayCount: 6,
+           columns: 3,
+           showPrice: false,
+           showRating: true,
+           showEnrollButton: true,
+           enrollButtonText: 'Enroll Now',
+           enrollButtonAction: 'modal',
+           showLevelBadge: true,
+           showInstructor: true
+         } as CoursesGridContent
+       },
+
+       // 6. Video Showcase
        {
         id: 'video',
         type: 'video_showcase',
@@ -1037,46 +1067,6 @@ export function createDefaultLandingPage(
             }
           ]
         } as TestimonialsContent
-      },
-
-      // 7. Partners & Accreditation
-      {
-        id: 'partners',
-        type: 'partners_ticker',
-        title: 'Accredited by Global Authorities & Industry Leaders',
-        subtitle: 'Our curricula and certifications are recognized worldwide by top industry organizations and institutions.',
-        badge: 'Accreditation & Partners',
-        enabled: true,
-        order: 6,
-        layout: 'standard',
-        background: {
-          type: 'theme_light'
-        },
-        padding: 'compact',
-        content: {
-          title: 'Accredited by Global Authorities & Industry Leaders',
-          subtitle: 'Our curricula and certifications are recognized worldwide by top industry organizations and institutions.',
-          badge: 'Trusted Worldwide',
-          showHeadline: true,
-          displayStyle: 'monochrome',
-          tickerSpeed: 'normal',
-          direction: 'left',
-          pauseOnHover: true,
-          showLogoText: true,
-          itemGap: 'standard',
-          containerWidth: 'standard',
-          grayscale: true,
-          partners: [
-            { id: 'p1', name: 'logoipsum', svgType: 'radar', category: 'Technology' },
-            { id: 'p2', name: 'logoipsum', svgType: 'waves', category: 'Standards' },
-            { id: 'p3', name: 'logoipsum', svgType: 'cube', category: 'Accreditation' },
-            { id: 'p4', name: 'logoipsum', svgType: 'split', category: 'Healthcare' },
-            { id: 'p5', name: 'logoipsum', svgType: 'nodes', category: 'Cloud Infrastructure' },
-            { id: 'p6', name: 'logoipsum', svgType: 'shield', category: 'Security' },
-            { id: 'p7', name: 'logoipsum', svgType: 'spark', category: 'Innovation' },
-            { id: 'p8', name: 'logoipsum', svgType: 'infinity', category: 'Continuous Learning' }
-          ]
-        } as PartnersTickerContent
       },
 
       // 8. Latest News

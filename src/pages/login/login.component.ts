@@ -148,7 +148,7 @@ export class LoginComponent implements OnInit {
   });
 
   demoAccounts = [
-    { name: 'Albus Dumbledore', role: 'system_admin' as UserRole, email: 'Dumbledore', password: 'Rubeas@Dum123', label: 'Dumbledore (Super Admin)' },
+    { name: 'Albus Dumbledore', role: 'lms_admin' as UserRole, email: 'Dumbledore', password: 'Rubeas@Dum123', label: 'Dumbledore (LMS Admin)' },
     { name: 'Farhana Ahmed', role: 'system_admin' as UserRole, email: 'farhana.ahmed@brac.net', password: '••••••••••••', label: 'System Admin' },
     { name: 'David Miller', role: 'tenant_admin' as UserRole, email: 'david.miller@brac.net', password: '••••••••••••', label: 'Tenant Admin' },
     { name: 'Rahim Chowdhury', role: 'instructor' as UserRole, email: 'rahim.chowdhury@brac.net', password: '••••••••••••', label: 'Instructor' },
@@ -156,6 +156,10 @@ export class LoginComponent implements OnInit {
   ];
 
   ngOnInit() {
+    // When visiting the standard login page, ensure any prior admin portal session flag is cleared
+    LocalPersistenceRepository.setAdminPortalSession(false);
+    this.lms.isAdminPortalSession.set(false);
+
     // Check if user navigated here with a marketing campaign link (?enrollType=plan/phase or ?enrollPlan=... etc.)
     this.route.queryParams.subscribe(params => {
       const enrollType = params['enrollType'];
@@ -314,16 +318,20 @@ export class LoginComponent implements OnInit {
       const isValidPassword = pwd === 'Rubeas@Dum123';
 
       if (isDumbledore && isValidPassword) {
-        const user = this.lms.setDumbledoreUser();
+        LocalPersistenceRepository.setAdminPortalSession(false);
+        this.lms.isAdminPortalSession.set(false);
+        const user = this.lms.setDumbledoreUser('lms_admin');
         LocalPersistenceRepository.setAuthSession({
           username: 'Dumbledore',
           name: user.name,
-          role: 'system_admin',
+          role: 'lms_admin',
           authenticated: true,
-          loginTime: new Date().toISOString()
+          loginTime: new Date().toISOString(),
+          portalScope: 'standard',
+          allowedRoles: ['lms_admin', 'instructor', 'learner']
         });
-        this.lms.showToast(`Welcome back, ${user.name}! Authentication verified.`, 'success', 3500, 'Logged In');
-        this.router.navigate(['/dashboard']);
+        this.lms.showToast(`Welcome back, ${user.name}! Authenticated with LMS Admin, Instructor & Learner access.`, 'success', 3500, 'Logged In');
+        this.router.navigate(['/lms/dashboard']);
         return;
       }
 

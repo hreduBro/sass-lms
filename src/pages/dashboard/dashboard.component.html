@@ -11,24 +11,61 @@
           
           <!-- Direct Quick Role Switcher Buttons -->
           <div class="flex items-center gap-0.5 bg-base-200 dark:bg-base-200/80 p-0.5 rounded-xl border border-base-300">
-            <button 
-              type="button"
-              (click)="switchRole('learner')"
-              title="Switch to Learner View"
-              class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-              [class]="activeRole() === 'learner' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
-              <span class="material-symbols-outlined text-xs">school</span>
-              <span>Learner View</span>
-            </button>
-            <button 
-              type="button"
-              (click)="switchRole('tenant_admin')"
-              title="Switch to Admin View"
-              class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-              [class]="activeRole() !== 'learner' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
-              <span class="material-symbols-outlined text-xs">admin_panel_settings</span>
-              <span>Admin View</span>
-            </button>
+            @if (lms.isAdminPortalSession()) {
+              <!-- Admin-only scoped switcher: System Admin and Org Admin ONLY -->
+              <button 
+                type="button"
+                (click)="switchRole('system_admin')"
+                title="Switch to System Admin View"
+                class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                [class]="activeRole() === 'system_admin' || activeRole() === 'super_admin' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+                <span class="material-symbols-outlined text-xs">shield_person</span>
+                <span>System Admin</span>
+              </button>
+              <button 
+                type="button"
+                (click)="switchRole('tenant_admin')"
+                title="Switch to Org Admin View"
+                class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                [class]="activeRole() === 'tenant_admin' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+                <span class="material-symbols-outlined text-xs">corporate_fare</span>
+                <span>Org Admin</span>
+              </button>
+            } @else {
+              @if (lms.permittedRoles().includes('learner')) {
+                <button 
+                  type="button"
+                  (click)="switchRole('learner')"
+                  title="Switch to Learner View"
+                  class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                  [class]="activeRole() === 'learner' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+                  <span class="material-symbols-outlined text-xs">school</span>
+                  <span>Learner</span>
+                </button>
+              }
+              @if (lms.permittedRoles().includes('instructor')) {
+                <button 
+                  type="button"
+                  (click)="switchRole('instructor')"
+                  title="Switch to Instructor View"
+                  class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                  [class]="activeRole() === 'instructor' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+                  <span class="material-symbols-outlined text-xs">co_present</span>
+                  <span>Instructor</span>
+                </button>
+              }
+              @if (lms.permittedRoles().includes('lms_admin')) {
+                <button 
+                  type="button"
+                  (click)="switchRole('lms_admin')"
+                  title="Switch to LMS Admin View"
+                  class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                  [class]="activeRole() === 'lms_admin' ? 'bg-tenant-600 text-white shadow-2xs' : 'text-text-secondary hover:text-text-primary'">
+                  <span class="material-symbols-outlined text-xs">admin_panel_settings</span>
+                  <span>LMS Admin</span>
+                </button>
+              }
+            }
           </div>
 
           @if (isAdmin()) {
@@ -38,14 +75,18 @@
           }
         </div>
         <h1 class="text-xl sm:text-2xl font-bold text-text-primary tracking-tight">
-          @if (activeRole() === 'learner') {
+          @if (lms.isAdminPortalSession()) {
+            <span>BRAC Enterprise Administration Cockpit</span>
+          } @else if (activeRole() === 'learner') {
             <span>Welcome back, {{ lms.activeUser().name }}!</span>
           } @else {
             <span>Enterprise Learning & Operational Intelligence</span>
           }
         </h1>
         <p class="text-xs text-text-secondary mt-0.5">
-          @if (activeRole() === 'learner') {
+          @if (lms.isAdminPortalSession()) {
+            <span>Dual-scoped administrator console. Exclusively displaying options accessible to <strong>System Admin</strong> and <strong>Org Admin</strong>.</span>
+          } @else if (activeRole() === 'learner') {
             <span>Track your courseware progress, complete mandatory compliance modules, and earn certified credentials.</span>
           } @else {
             <span>Real-time multi-tenant telemetry, regulatory compliance tracking, and curriculum management for {{ activeTenant().name }}.</span>
@@ -53,9 +94,9 @@
         </p>
       </div>
 
-      <!-- Trainee Plan Journey & Learning Navigation Banner (Learner Role Only) -->
+      <!-- Trainee Plan Journey & Learning Navigation Banner (Learner Role Only, Hidden for Admin Portal) -->
       <div class="flex items-center gap-2 self-start md:self-auto flex-wrap">
-        @if (activeRole() === 'learner') {
+        @if (!lms.isAdminPortalSession() && activeRole() === 'learner') {
           <a 
             routerLink="/my-plans" 
             class="px-3.5 py-2 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-[0.98]">
@@ -91,8 +132,8 @@
       </div>
     </div>
 
-    <!-- Active Learning Plan Hero Card (Learner Role Only - Compact & Streamlined) -->
-    @if (activeRole() === 'learner') {
+    <!-- Active Learning Plan Hero Card (Learner Role Only - Compact & Streamlined, Hidden for Admin Portal) -->
+    @if (!lms.isAdminPortalSession() && activeRole() === 'learner') {
       <div class="px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-tenant-500/25 bg-gradient-to-r from-tenant-50/70 via-base-100 to-indigo-50/50 dark:from-tenant-950/40 dark:via-base-200 dark:to-indigo-950/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="min-w-0 flex-1 space-y-1">
           <div class="flex items-center gap-2 flex-wrap">

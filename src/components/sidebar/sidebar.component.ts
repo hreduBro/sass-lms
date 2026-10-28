@@ -74,9 +74,33 @@ export class SidebarComponent {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles?: string[]): boolean {
-    if (!roles || roles.length === 0) return true;
+  isAllowed(roles?: string[], label?: string): boolean {
+    const permitted = this.lms.permittedRoles();
     const activeRole = this.lms.activeRole();
+
+    // If active role is not in the account's permitted roles, deny immediately
+    if (!permitted.includes(activeRole)) {
+      return false;
+    }
+
+    if (this.lms.isAdminPortalSession()) {
+      // In Admin Portal Session, suppress trainee-only / learner views
+      if (label === 'My Learning' || label === 'My Plans' || label === 'My Schedule' || label === 'My Achievements' || label === 'My Transcripts') {
+        return false;
+      }
+      if (!roles || roles.length === 0) return true;
+      const hasAdmin = roles.includes('system_admin') || roles.includes('super_admin') || roles.includes('tenant_admin');
+      if (!hasAdmin) return false;
+
+      return roles.includes(activeRole) ||
+        (activeRole === 'super_admin' && roles.includes('system_admin')) ||
+        (activeRole === 'system_admin' && roles.includes('super_admin'));
+    }
+
+    // For standard session (e.g. Dumbledore who only has lms_admin, instructor, learner):
+    // Never show items that strictly require system_admin or tenant_admin and don't include any permitted role
+    if (!roles || roles.length === 0) return true;
+
     return roles.includes(activeRole) ||
       (activeRole === 'super_admin' && roles.includes('system_admin')) ||
       (activeRole === 'system_admin' && roles.includes('super_admin'));
