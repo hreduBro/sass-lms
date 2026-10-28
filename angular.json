@@ -45,6 +45,22 @@
             }
           },
           "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "applet:build:production"
+            },
+            "development": {
+              "buildTarget": "applet:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 3100
+          }
         }
       }
     }

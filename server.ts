@@ -580,7 +580,7 @@ app.get('/api/login-branding', (req: Request, res: Response) => {
       });
     }
   }
-  res.json({ success: true, data: loginBrandingConfig });
+  return res.json({ success: true, data: loginBrandingConfig });
 });
 
 // PUT update draft branding configuration
