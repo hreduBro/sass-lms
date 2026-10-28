@@ -53,7 +53,7 @@ export const routes: Routes = [
   { 
     path: '', 
     component: LandingComponent, 
-    title: 'OneLMS | Public Learning Academy & Portal' 
+    title: 'BLD LMS | Public Learning Academy & Portal' 
   },
   
   // Public-Facing Multi-Tenant Landing Pages (SSR SEO Enabled)

@@ -1972,7 +1972,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
     updatedAt: '2024-03-01',
     createdBy: 'System Admin',
     basicInfo: {
-      lmsName: 'BRAC ONE LMS',
+      lmsName: 'BLD LMS',
       programmeDepartment: 'BRAC Learning Academy',
       summary: 'Centralized enterprise learning management system managing staff certifications, skill pathways, and workforce education.',
       goal: 'Empower and certify over 45,000+ staff members and community leaders with modern, accessible skills.',
@@ -11128,7 +11128,7 @@ export class LmsDataService {
     const created = createDefaultLandingPage(
       lmsId,
       targetTenant?.id || 'tenant-1',
-      'BRAC ONE LMS',
+      'BLD LMS',
       'Learn Today. Lead Tomorrow. Practical skills and leadership pathways for BRAC.',
       targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
       '#EC008C',

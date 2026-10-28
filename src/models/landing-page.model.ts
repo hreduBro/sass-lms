@@ -508,7 +508,7 @@ export function createDefaultLandingPage(
   primaryColor: string = '#EC008C',
   accentColor: string = '#005b94'
 ): LandingPageConfig {
-  const safeName = 'BRAC ONE LMS';
+  const safeName = 'BLD LMS';
   const safeTagline = 'Learn Today. Lead Tomorrow. Practical, career-advancing skills designed for BRAC leaders and staff.';
 
   return {
@@ -521,17 +521,17 @@ export function createDefaultLandingPage(
     lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     lastUpdatedBy: 'System Administrator',
     seo: {
-      pageTitle: `BRAC ONE LMS — Learning Portal & Academy`,
-      metaDescription: `BRAC ONE LMS: Practical skills, leadership pathways, certified courses, and interactive training modules.`,
-      metaKeywords: ['BRAC ONE LMS', 'BRAC Learning', 'Skills Academy', 'Professional Development', 'Certifications'],
+      pageTitle: `BLD LMS — BRAC Learning Portal & Academy`,
+      metaDescription: `BLD LMS by BRAC: Practical skills, leadership pathways, certified courses, and interactive training modules.`,
+      metaKeywords: ['BLD LMS', 'BRAC', 'BRAC Learning', 'Skills Academy', 'Professional Development', 'Certifications'],
       ogImageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&h=630&q=85',
       canonicalUrl: `https://academy.enterprise.io/p/${lmsId}`,
       schemaType: 'EducationalOrganization',
-      author: 'BRAC ONE LMS',
+      author: 'BRAC — BLD LMS',
       language: 'en'
     },
     navbar: {
-      siteTitle: 'BRAC ONE LMS',
+      siteTitle: 'BLD LMS',
       logoOverride: logoUrl,
       sticky: true,
       style: 'glass',
@@ -598,7 +598,7 @@ export function createDefaultLandingPage(
           showSearchBox: true,
           searchPlaceholder: 'What do you want to learn today?',
           statChips: [
-            { id: 's1', value: 'Practical', label: 'Field-tested skills', icon: 'verified' },
+            { id: 's1', value: 'Practical', label: 'BRAC field skills', icon: 'verified' },
             { id: 's2', value: 'Flexible', label: 'Learn on any phone', icon: 'phone_android' },
             { id: 's3', value: 'Certified', label: 'BRAC certificates', icon: 'workspace_premium' }
           ]
@@ -815,9 +815,9 @@ export function createDefaultLandingPage(
        {
         id: 'why-lms',
         type: 'why_lms',
-        title: 'Why BRAC ONE LMS',
-        subtitle: 'Built to deliver practical capability and career-advancing skills across Bangladesh.',
-        badge: 'Why Learn With Us',
+        title: 'Why BLD LMS by BRAC',
+        subtitle: 'Built to deliver practical capability and career-advancing skills across BRAC and Bangladesh.',
+        badge: 'Why Learn With BRAC',
         enabled: true,
         order: 5,
         layout: 'standard',
@@ -826,7 +826,7 @@ export function createDefaultLandingPage(
         },
         padding: 'spacious',
         content: {
-          heading: 'Why Learn with BRAC ONE LMS',
+          heading: 'Why Learn with BLD LMS by BRAC',
           intro: 'Accessible, practical, high-impact learning crafted with BRAC’s trusted excellence and 10 Minute School-style ease of learning.',
           valueProps: [
             { id: 'vp-1', icon: 'school', title: 'Actionable, Practical Lessons', description: 'Bite-sized video lessons and interactive exercises designed to be applied immediately in the field.' },
@@ -934,8 +934,8 @@ export function createDefaultLandingPage(
         },
         padding: 'standard',
         content: {
-          heading: 'Our Learning Impact',
-          subheading: 'Practical milestones tracking active engagement and skills developed across Bangladesh.',
+          heading: 'BRAC Learning Impact',
+          subheading: 'Practical milestones tracking active engagement and skills developed across BRAC communities and Bangladesh.',
           figures: [
             { id: 'fig-1', label: 'Certified Professionals', value: '45,000', prefix: '', suffix: '+', isLive: true },
             { id: 'fig-2', label: 'Course Completion Rate', value: '98.6', prefix: '', suffix: '%', isLive: true },
@@ -1224,8 +1224,8 @@ export function createDefaultLandingPage(
       }
     ],
     footer: {
-      brandSummary: `${safeName} provides scalable, accredited enterprise learning pathways, interactive classroom players, and verifiable digital credentials for global organizations.`,
-      copyrightText: `© ${new Date().getFullYear()} BRAC ONE LMS Portal. All Rights Reserved.`,
+      brandSummary: `${safeName} is the centralized enterprise learning platform of BRAC, delivering accredited learning pathways, interactive classroom players, and verifiable digital credentials across BRAC and partner organizations.`,
+      copyrightText: `© ${new Date().getFullYear()} BRAC — BLD LMS Portal. All Rights Reserved.`,
       showSocialLinks: true,
       socialLinks: [
         { platform: 'linkedin', url: 'https://linkedin.com' },
