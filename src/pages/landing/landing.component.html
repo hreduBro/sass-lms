@@ -39,44 +39,6 @@
           {{ pageConfig().navbar.siteTitle || pageConfig().lmsName }}
         </span>
       </a>
-
-      <!-- Explore Dropdown (Hidden when Browse by Category is disabled per §2) -->
-      @if (isBrowseCategoriesEnabled()) {
-        <div class="relative hidden lg:block">
-          <button 
-            type="button" 
-            (click)="toggleExploreDropdown()"
-            class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-1.5 cursor-pointer">
-            <span class="material-symbols-outlined text-sm text-pink-600">category</span>
-            <span>Explore</span>
-            <span class="material-symbols-outlined text-xs transition-transform" [class.rotate-180]="exploreDropdownOpen()">expand_more</span>
-          </button>
-
-          @if (exploreDropdownOpen()) {
-            <div class="absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fadeIn">
-              <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100">
-                Browse by Category
-              </div>
-              <div class="max-h-72 overflow-y-auto py-1 space-y-0.5">
-                @for (cat of browseCategoriesList(); track cat.id) {
-                  <button 
-                    type="button"
-                    (click)="onSelectCategoryFilter(cat.name)"
-                    class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-pink-50 hover:text-pink-600 flex items-center justify-between transition-colors cursor-pointer group">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-pink-600">{{ cat.icon || 'folder' }}</span>
-                      <span class="truncate">{{ cat.name }}</span>
-                    </div>
-                    @if (cat.count) {
-                      <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-500 font-mono">{{ cat.count }}</span>
-                    }
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      }
     </div>
 
     <!-- Navigation Links -->
@@ -141,16 +103,6 @@
             </div>
           }
         </div>
-      }
-
-      <!-- Admin Edit Link (if admin user is previewing) -->
-      @if (lms.activeUser()?.role === 'system_admin' || lms.activeUser()?.role === 'lms_admin') {
-        <a 
-          [routerLink]="['/landing-builder', activeLmsId()]"
-          class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-xs text-pink-600">design_services</span>
-          <span class="hidden sm:inline">Page Builder</span>
-        </a>
       }
 
       <!-- Log In CTA Button (Mandatory entry point from brief & §2) -->
@@ -303,12 +255,11 @@
         <section 
           [id]="sec.id"
           class="relative transition-all"
-          [class]="sec.padding === 'compact' ? 'py-10 px-4 sm:px-8 lg:px-16' : sec.padding === 'standard' ? 'py-16 px-4 sm:px-8 lg:px-20' : 'py-24 px-4 sm:px-8 lg:px-24'"
-          [class.bg-slate-50]="sec.background.type === 'neutral'"
-          [class.bg-white]="sec.background.type === 'theme_light'"
-          [class.bg-slate-950]="sec.background.type === 'dark'"
-          [class.text-white]="sec.background.type === 'dark'"
-          [style.background]="sec.background.type === 'theme_gradient' ? 'linear-gradient(135deg, ' + primaryColor() + '10 0%, ' + accentColor() + '15 100%)' : null">
+          [class]="sec.padding === 'compact' ? 'py-10 px-4 sm:px-8 lg:px-16' : sec.padding === 'standard' ? 'py-16 px-4 sm:px-8 lg:px-20' : 'py-20 px-4 sm:px-8 lg:px-24'"
+          [class.bg-white]="sec.type === 'hero_banner' || sec.background.type === 'theme_light'"
+          [class.bg-slate-50]="sec.type !== 'hero_banner' && sec.background.type === 'neutral'"
+          [class.bg-slate-950]="sec.type !== 'hero_banner' && sec.background.type === 'dark'"
+          [class.text-white]="sec.type !== 'hero_banner' && sec.background.type === 'dark'">
 
           <div class="max-w-6xl mx-auto w-full">
             
@@ -316,696 +267,132 @@
             @if (sec.type === 'hero_banner') {
               <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
                 <div class="lg:col-span-7 space-y-6">
-                  @if (sec.content.badgeText) {
-                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border"
-                         [style.borderColor]="primaryColor() + '40'"
-                         [style.backgroundColor]="primaryColor() + '10'">
-                      <span class="material-symbols-outlined text-sm" [style.color]="primaryColor()">{{ sec.content.badgeIcon || 'verified' }}</span>
-                      <span [style.color]="primaryColor()">{{ sec.content.badgeText }}</span>
-                    </div>
-                  }
 
-                  <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
-                    {{ sec.content.headline }}
-                  </h1>
+                  <div class="space-y-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200/60">
+                      <span class="w-2 h-2 rounded-full bg-pink-600"></span>
+                      <span>BRAC Learning Platform</span>
+                    </span>
 
-                  <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
-                    {{ sec.content.subheadline }}
-                  </p>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-[1.15]">
+                      {{ sec.content.headline }}
+                    </h1>
 
-                  <!-- Search Box -->
+                    <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
+                      {{ sec.content.subheadline }}
+                    </p>
+                  </div>
+
+                  <!-- Professional Search Bar (10 Minute School Clean Input) -->
                   @if (sec.content.showSearchBox) {
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-2xl p-1.5 border border-slate-200 shadow-lg max-w-xl gap-1 sm:gap-0">
-                      <div class="flex items-center flex-1 min-w-0">
-                        <span class="material-symbols-outlined text-slate-400 pl-3">search</span>
-                        <input 
-                          type="text" 
-                          [ngModel]="courseSearchQuery()" 
-                          (ngModelChange)="courseSearchQuery.set($event)"
-                          (keyup.enter)="onHeroSearchSubmit()"
-                          [placeholder]="sec.content.searchPlaceholder || 'Search 250+ courses, skills, or certifications...'"
-                          class="w-full px-3 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent" />
-                        @if (courseSearchQuery()) {
-                          <button 
-                            type="button" 
-                            (click)="courseSearchQuery.set('')" 
-                            class="p-1 text-slate-400 hover:text-slate-600 mr-2 cursor-pointer" 
-                            title="Clear search">
-                            <span class="material-symbols-outlined text-sm">close</span>
-                          </button>
-                        }
-                      </div>
+                    <div class="flex items-center bg-white rounded-2xl p-2 border border-slate-200 shadow-md max-w-xl focus-within:border-pink-500 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
+                      <span class="material-symbols-outlined text-slate-400 pl-3 pr-2 text-xl">search</span>
+                      <input 
+                        type="text" 
+                        [ngModel]="courseSearchQuery()" 
+                        (ngModelChange)="courseSearchQuery.set($event)"
+                        (keyup.enter)="onHeroSearchSubmit()"
+                        [placeholder]="sec.content.searchPlaceholder || 'What do you want to learn today?'"
+                        class="w-full px-2 py-2 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none bg-transparent" />
+                      @if (courseSearchQuery()) {
+                        <button 
+                          type="button" 
+                          (click)="courseSearchQuery.set('')" 
+                          class="p-1 text-slate-400 hover:text-slate-600 mr-2 cursor-pointer" 
+                          title="Clear search">
+                          <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      }
                       <button 
                         type="button"
                         (click)="onHeroSearchSubmit()"
-                        class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 flex-shrink-0 cursor-pointer active:scale-95"
-                        [style.backgroundColor]="primaryColor()">
-                        <span>Search Courses</span>
+                        class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95 bg-pink-600 hover:bg-pink-700">
+                        <span>Search</span>
                         <span class="material-symbols-outlined text-xs">arrow_forward</span>
                       </button>
                     </div>
                   }
 
                   <!-- Primary & Secondary CTA Buttons -->
-                  <div class="flex flex-wrap items-center gap-4 pt-2">
+                  <div class="flex flex-wrap items-center gap-3 pt-1">
                     <button 
                       type="button"
                       (click)="scrollToSection(sec.content.primaryCtaAction || '#courses')"
-                      class="px-7 py-4 rounded-xl text-sm font-extrabold text-white shadow-lg hover:shadow-xl transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                      [style.backgroundColor]="primaryColor()">
-                      <span>{{ sec.content.primaryCtaText }}</span>
+                      class="px-6 py-3.5 rounded-xl text-xs sm:text-sm font-extrabold text-white shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95 bg-pink-600 hover:bg-pink-700">
+                      <span>{{ sec.content.primaryCtaText || 'Explore Courses' }}</span>
                       <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
 
                     @if (sec.content.secondaryCtaText && sec.content.showSecondaryCta !== false) {
                       <button 
                         type="button"
-                        (click)="handleHeroSecondaryCta(sec.content)"
-                        class="px-6 py-4 rounded-xl text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                        <span class="material-symbols-outlined text-base text-pink-600">
-                          {{ sec.content.secondaryCtaActionType === 'video_modal' ? 'play_circle' : (sec.content.secondaryCtaActionType === 'route_link' || sec.content.secondaryCtaActionType === 'route' ? 'arrow_forward' : (sec.content.secondaryCtaActionType === 'external_url' || sec.content.secondaryCtaActionType === 'link' ? 'open_in_new' : 'arrow_downward')) }}
-                        </span>
-                        <span>{{ sec.content.secondaryCtaText }}</span>
+                        (click)="scrollToSection('#programmes')"
+                        class="px-5 py-3.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                        <span class="material-symbols-outlined text-sm text-pink-600">school</span>
+                        <span>{{ sec.content.secondaryCtaText || 'View Programmes' }}</span>
                       </button>
                     }
                   </div>
 
-                  <!-- Statistics Chips -->
-                  @if (sec.content.statChips?.length) {
-                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200">
-                      @for (stat of sec.content.statChips; track stat.id) {
-                        <div>
-                          <div class="text-xl sm:text-2xl font-black text-slate-900">{{ stat.value }}</div>
-                          <div class="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
-                            <span class="material-symbols-outlined text-xs text-pink-600">{{ stat.icon }}</span>
-                            <span>{{ stat.label }}</span>
-                          </div>
-                        </div>
-                      }
+                  <!-- Clean Value Indicators -->
+                  <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100 max-w-xl">
+                    <div class="space-y-0.5">
+                      <div class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-pink-600">verified</span>
+                        <span>Practical</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500">Field-tested skills</div>
                     </div>
-                  }
+
+                    <div class="space-y-0.5">
+                      <div class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-pink-600">phone_android</span>
+                        <span>Flexible</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500">Learn on any phone</div>
+                    </div>
+
+                    <div class="space-y-0.5">
+                      <div class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-pink-600">workspace_premium</span>
+                        <span>Certified</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500">BRAC certificates</div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Hero Graphic Visual -->
+                <!-- Hero Graphic Visual (Professional 10MS / BRAC Style) -->
                 <div class="lg:col-span-5 relative">
-                  <div class="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-950 group">
+                  <div class="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-white group">
                     <img 
                       [src]="sec.content.heroImageUrl || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80'" 
                       alt="Hero Platform Visual"
                       (error)="onImgError($event, 'technology')"
-                      class="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700" 
+                      class="w-full h-80 sm:h-96 object-cover group-hover:scale-102 transition-transform duration-500" 
                       referrerpolicy="no-referrer" />
 
-                    @if (sec.content.showCardOverlay !== false) {
-                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent flex flex-col justify-end p-6 text-white">
-                        <div class="flex items-center gap-2 mb-2">
-                          @if (sec.content.cardBadgePulse !== false) {
-                            <span 
-                              class="w-2.5 h-2.5 rounded-full"
-                              [class.bg-emerald-400]="!sec.content.cardBadgeColor || sec.content.cardBadgeColor === 'emerald'"
-                              [class.bg-pink-500]="sec.content.cardBadgeColor === 'pink'"
-                              [class.bg-sky-400]="sec.content.cardBadgeColor === 'sky'"
-                              [class.bg-amber-400]="sec.content.cardBadgeColor === 'amber'"
-                              [class.bg-indigo-400]="sec.content.cardBadgeColor === 'indigo'"
-                              [class.bg-rose-400]="sec.content.cardBadgeColor === 'rose'"
-                              [class.animate-pulse]="sec.content.cardBadgePulse !== false"></span>
-                          }
-                          <span 
-                            class="text-xs font-bold uppercase tracking-wider"
-                            [class.text-emerald-300]="!sec.content.cardBadgeColor || sec.content.cardBadgeColor === 'emerald'"
-                            [class.text-pink-300]="sec.content.cardBadgeColor === 'pink'"
-                            [class.text-sky-300]="sec.content.cardBadgeColor === 'sky'"
-                            [class.text-amber-300]="sec.content.cardBadgeColor === 'amber'"
-                            [class.text-indigo-300]="sec.content.cardBadgeColor === 'indigo'"
-                            [class.text-rose-300]="sec.content.cardBadgeColor === 'rose'">
-                            {{ sec.content.cardBadgeText || 'LIVE VIRTUAL CLASSROOMS ACTIVE' }}
-                          </span>
-                        </div>
-
-                        <h4 class="text-lg sm:text-xl font-extrabold text-white leading-snug">
-                          {{ sec.content.cardTitle || 'Interactive Learning Platform' }}
-                        </h4>
-                        <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-                          {{ sec.content.cardDescription || 'Multi-Tenant LMS with SCORM Support, Transcripts & Verifiable Badges' }}
-                        </p>
+                    <div class="p-5 bg-white border-t border-slate-100">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                          Interactive Pathways
+                        </span>
                       </div>
-                    }
+
+                      <h4 class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                        {{ sec.content.cardTitle || 'BRAC Certified Skills Academy' }}
+                      </h4>
+                      <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                        {{ sec.content.cardDescription || 'Comprehensive courses and assessments designed for practical growth.' }}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             }
 
-            <!-- 2. CAROUSEL SLIDER WIDGET (ALL 5 VARIANTS WITH UNIFIED CONTROLS & CONTENT) -->
-            @if (sec.type === 'carousel_slider') {
-              <div class="space-y-6">
-                
-                <!-- VARIANT 1: DEPTH COVERFLOW (3D CENTER STAGE + TIMELINE SCRUBBER) -->
-                @if (!sec.content.variant || sec.content.variant === 'depth_coverflow') {
-                  <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 text-white p-4 sm:p-8 border border-slate-800/80">
-                    
-                    <!-- Carousel Slide Center Window -->
-                    <div class="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center overflow-hidden">
-                      @for (slide of sec.content.slides; track slide.id; let idx = $index) {
-                        <div 
-                          class="absolute inset-0 w-full h-full rounded-2xl overflow-hidden transition-all duration-700 ease-out flex flex-col justify-end p-6 sm:p-12"
-                          [class.opacity-100]="activeSlideIndex() === idx"
-                          [class.opacity-0]="activeSlideIndex() !== idx"
-                          [class.pointer-events-none]="activeSlideIndex() !== idx"
-                          [style.transform]="activeSlideIndex() === idx ? 'scale(1) translateY(0)' : (idx < activeSlideIndex() ? 'scale(0.92) translateX(-40px)' : 'scale(0.92) translateX(40px)')">
-                          
-                          <img [src]="slide.imageUrl" [alt]="slide.title" class="absolute inset-0 w-full h-full object-cover opacity-40 transition-transform duration-1000 scale-100 hover:scale-105" referrerpolicy="no-referrer" />
-                          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/20"></div>
 
-                          <div class="relative z-10 max-w-2xl space-y-3">
-                            <div class="flex flex-wrap items-center gap-2">
-                              @if (slide.badge) {
-                                <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-pink-600 text-white shadow-sm">
-                                  {{ slide.badge }}
-                                </span>
-                              }
-                              @if (slide.category) {
-                                <span class="text-[10px] sm:text-xs font-bold text-slate-200 bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-xs border border-white/10">
-                                  {{ slide.category }}
-                                </span>
-                              }
-                              @if (slide.dateLabel) {
-                                <span class="text-[10px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
-                                  <span class="material-symbols-outlined text-xs text-pink-400">calendar_today</span>
-                                  {{ slide.dateLabel }}
-                                </span>
-                              }
-                            </div>
-
-                            <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
-                              {{ slide.title }}
-                            </h3>
-
-                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
-                              {{ slide.subtitle }}
-                            </p>
-
-                            <div class="pt-2 flex items-center gap-3">
-                              <button 
-                                type="button" 
-                                (click)="scrollToSection(slide.ctaAction || '#courses')" 
-                                class="px-5 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-extrabold shadow-lg hover:bg-pink-50 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                                <span>{{ slide.ctaText || 'Explore Initiative' }}</span>
-                                <span class="material-symbols-outlined text-xs text-pink-600">arrow_forward</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      }
-
-                      <!-- Side Navigation Arrows -->
-                      @if (sec.content.showArrows !== false) {
-                        <button 
-                          type="button" 
-                          (click)="prevSlide()" 
-                          class="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
-                          aria-label="Previous Slide">
-                          <span class="material-symbols-outlined text-xl">chevron_left</span>
-                        </button>
-                        <button 
-                          type="button" 
-                          (click)="nextSlide(true)" 
-                          class="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
-                          aria-label="Next Slide">
-                          <span class="material-symbols-outlined text-xl">chevron_right</span>
-                        </button>
-                      }
-                    </div>
-
-                    <!-- Bottom Scrubber & Controls Bar -->
-                    <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      
-                      <!-- Play/Pause & Step Counter -->
-                      <div class="flex items-center gap-2">
-                        <button 
-                          type="button" 
-                          (click)="toggleCarouselPlay()" 
-                          class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-slate-700/60"
-                          [title]="carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay'">
-                          <span class="material-symbols-outlined text-base">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
-                        </button>
-
-                        <div class="text-[11px] font-bold text-slate-400 px-2">
-                          <span class="text-white">{{ activeSlideIndex() + 1 }}</span>
-                          <span class="text-slate-600"> / </span>
-                          <span>{{ sec.content.slides.length }}</span>
-                        </div>
-                      </div>
-
-                      <!-- Animated Progress Scrubber Bar -->
-                      @if (sec.content.showTimelineBar !== false) {
-                        <div class="flex-1 max-w-md w-full flex items-center gap-2">
-                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                            <button 
-                              type="button" 
-                              (click)="setSlide(sIdx)"
-                              class="flex-1 h-2 rounded-full overflow-hidden bg-slate-800 transition-all cursor-pointer relative group"
-                              [title]="slide.title">
-                              @if (activeSlideIndex() === sIdx) {
-                                <div 
-                                  class="h-full bg-gradient-to-r from-pink-500 to-rose-400 transition-all duration-100 ease-linear rounded-full"
-                                  [style.width.%]="carouselProgressPercent()"></div>
-                              } @else if (sIdx < activeSlideIndex()) {
-                                <div class="h-full bg-pink-500/70 rounded-full w-full"></div>
-                              }
-                            </button>
-                          }
-                        </div>
-                      }
-
-                      <!-- Direct Slide Select Thumbnails / Chips / Dots -->
-                      @if (sec.content.showDots !== false) {
-                        <div class="flex items-center gap-1.5">
-                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                            <button 
-                              type="button" 
-                              (click)="setSlide(sIdx)"
-                              class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
-                              [class]="activeSlideIndex() === sIdx ? 'bg-pink-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'">
-                              {{ slide.badge || ('0' + (sIdx + 1)) }}
-                            </button>
-                          }
-                        </div>
-                      }
-                    </div>
-
-                  </div>
-                }
-
-                <!-- VARIANT 2: SPLIT EDITORIAL MAGAZINE SHOWCASE -->
-                @if (sec.content.variant === 'split_editorial') {
-                  <div class="bg-slate-950 text-white rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-800 space-y-6">
-                    @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
-                    @if (activeSlide) {
-                      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                        <div class="lg:col-span-5 space-y-4">
-                          <div class="flex flex-wrap items-center gap-2">
-                            @if (activeSlide.badge) {
-                              <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full bg-pink-600 text-white">
-                                {{ activeSlide.badge }}
-                              </span>
-                            }
-                            @if (activeSlide.category) {
-                              <span class="text-[10px] sm:text-xs font-bold text-slate-300 bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-xs">
-                                {{ activeSlide.category }}
-                              </span>
-                            }
-                            @if (activeSlide.dateLabel) {
-                              <span class="text-[10px] sm:text-xs text-slate-400 font-medium">
-                                {{ activeSlide.dateLabel }}
-                              </span>
-                            }
-                          </div>
-
-                          <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
-                            {{ activeSlide.title }}
-                          </h3>
-
-                          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                            {{ activeSlide.subtitle }}
-                          </p>
-
-                          <div class="pt-4 flex flex-wrap items-center gap-3">
-                            <button 
-                              type="button" 
-                              (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
-                              class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-extrabold shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                              <span>{{ activeSlide.ctaText || 'Explore Module' }}</span>
-                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                            </button>
-
-                            @if (sec.content.showArrows !== false) {
-                              <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                                <button type="button" (click)="prevSlide()" class="p-2 rounded-lg bg-slate-800 hover:bg-pink-600 text-white cursor-pointer transition-all" aria-label="Previous Slide">
-                                  <span class="material-symbols-outlined text-sm">chevron_left</span>
-                                </button>
-                                <button type="button" (click)="nextSlide(true)" class="p-2 rounded-lg bg-slate-800 hover:bg-pink-600 text-white cursor-pointer transition-all" aria-label="Next Slide">
-                                  <span class="material-symbols-outlined text-sm">chevron_right</span>
-                                </button>
-                              </div>
-                            }
-                          </div>
-                        </div>
-
-                        <div class="lg:col-span-7 relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-slate-900 shadow-xl border border-white/10 group">
-                          <img 
-                            [src]="activeSlide.imageUrl" 
-                            [alt]="activeSlide.title"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                            referrerpolicy="no-referrer" />
-                          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
-                          
-                          @if (activeSlide.badge) {
-                            <span class="absolute top-4 right-4 px-3 py-1 rounded-full bg-slate-900/80 text-white backdrop-blur-md text-xs font-bold border border-white/10">
-                              {{ activeSlide.badge }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-
-                      <!-- Split Editorial Bottom Control Bar -->
-                      <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                          <button 
-                            type="button" 
-                            (click)="toggleCarouselPlay()" 
-                            class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-pink-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-slate-700/60">
-                            <span class="material-symbols-outlined text-base">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
-                          </button>
-                          <span class="text-xs text-slate-400 font-bold">Slide {{ activeSlideIndex() + 1 }} of {{ sec.content.slides.length }}</span>
-                        </div>
-
-                        @if (sec.content.showTimelineBar !== false) {
-                          <div class="flex-1 max-w-xs w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              class="h-full bg-pink-500 transition-all duration-100 ease-linear rounded-full"
-                              [style.width.%]="carouselProgressPercent()"></div>
-                          </div>
-                        }
-
-                        @if (sec.content.showDots !== false) {
-                          <div class="flex items-center gap-2">
-                            @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                              <button 
-                                type="button" 
-                                (click)="setSlide(sIdx)"
-                                class="h-2 rounded-full transition-all cursor-pointer"
-                                [class]="activeSlideIndex() === sIdx ? 'w-6 bg-pink-500' : 'w-2 bg-slate-700 hover:bg-slate-600'"></button>
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-
-                <!-- VARIANT 3: CARD DECK ROW (MULTI-CARD HORIZONTAL SLIDER) -->
-                @if (sec.content.variant === 'card_deck_row') {
-                  <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-pink-600 uppercase tracking-wider">Initiatives Catalog</span>
-                        <span class="text-xs text-slate-400">({{ sec.content.slides.length }} items • Slide {{ activeSlideIndex() + 1 }} of {{ sec.content.slides.length }})</span>
-                      </div>
-                      
-                      <div class="flex items-center gap-2">
-                        <button 
-                          type="button" 
-                          (click)="toggleCarouselPlay()" 
-                          class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all"
-                          [title]="carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay'">
-                          <span class="material-symbols-outlined text-sm">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
-                        </button>
-
-                        @if (sec.content.showArrows !== false) {
-                          <div class="flex items-center gap-1.5">
-                            <button type="button" (click)="prevSlide()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all" aria-label="Previous Slide">
-                              <span class="material-symbols-outlined text-sm">chevron_left</span>
-                            </button>
-                            <button type="button" (click)="nextSlide(true)" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-all" aria-label="Next Slide">
-                              <span class="material-symbols-outlined text-sm">chevron_right</span>
-                            </button>
-                          </div>
-                        }
-                      </div>
-                    </div>
-
-                    <!-- Slide Cards Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                        <div 
-                          (click)="setSlide(sIdx)"
-                          class="rounded-2xl border transition-all duration-300 overflow-hidden cursor-pointer flex flex-col justify-between bg-white shadow-xs hover:shadow-lg relative group"
-                          [class.border-pink-500]="activeSlideIndex() === sIdx"
-                          [class.ring-2]="activeSlideIndex() === sIdx"
-                          [class.ring-pink-500/20]="activeSlideIndex() === sIdx"
-                          [class.border-slate-200]="activeSlideIndex() !== sIdx">
-                          <div class="relative h-48 overflow-hidden bg-slate-950">
-                            <img [src]="slide.imageUrl" [alt]="slide.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
-                            
-                            <div class="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
-                              @if (slide.badge) {
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-pink-600 text-white shadow-sm">
-                                  {{ slide.badge }}
-                                </span>
-                              }
-                              @if (slide.category) {
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-900/80 text-white backdrop-blur-xs">
-                                  {{ slide.category }}
-                                </span>
-                              }
-                            </div>
-
-                            @if (slide.dateLabel) {
-                              <span class="absolute bottom-2 right-3 text-[10px] font-medium text-slate-200 bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">
-                                {{ slide.dateLabel }}
-                              </span>
-                            }
-                          </div>
-
-                          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                              <h4 class="text-base font-bold text-slate-900 group-hover:text-pink-600 transition-colors line-clamp-2">{{ slide.title }}</h4>
-                              <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ slide.subtitle }}</p>
-                            </div>
-                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                              <button 
-                                type="button" 
-                                (click)="scrollToSection(slide.ctaAction || '#courses'); $event.stopPropagation()"
-                                class="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1">
-                                <span>{{ slide.ctaText || 'Learn More' }}</span>
-                                <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                              </button>
-                              @if (activeSlideIndex() === sIdx) {
-                                <span class="w-2 h-2 rounded-full bg-pink-600 animate-pulse"></span>
-                              }
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    </div>
-
-                    <!-- Card Deck Row Indicators -->
-                    @if (sec.content.showDots !== false || sec.content.showTimelineBar !== false) {
-                      <div class="flex items-center justify-center gap-2 pt-2">
-                        @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                          <button 
-                            type="button" 
-                            (click)="setSlide(sIdx)"
-                            class="h-2 rounded-full transition-all cursor-pointer"
-                            [class]="activeSlideIndex() === sIdx ? 'w-8 bg-pink-600' : 'w-2 bg-slate-300 hover:bg-slate-400'"></button>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-
-                <!-- VARIANT 4: CINEMATIC HERO SLIDER -->
-                @if (sec.content.variant === 'cinematic_hero') {
-                  @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
-                  @if (activeSlide) {
-                    <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 text-white min-h-[440px] sm:min-h-[500px] flex items-center justify-center p-6 sm:p-12">
-                      <img 
-                        [src]="activeSlide.imageUrl" 
-                        [alt]="activeSlide.title"
-                        class="absolute inset-0 w-full h-full object-cover transition-all duration-1000 scale-100 opacity-50" 
-                        referrerpolicy="no-referrer" />
-                      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/40"></div>
-
-                      <div class="relative z-10 text-center max-w-3xl px-4 space-y-4">
-                        <div class="flex flex-wrap items-center justify-center gap-2">
-                          @if (activeSlide.badge) {
-                            <span class="inline-block px-3.5 py-1 rounded-full bg-pink-600 text-xs font-black text-white shadow-sm uppercase tracking-wider">
-                              {{ activeSlide.badge }}
-                            </span>
-                          }
-                          @if (activeSlide.category) {
-                            <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold text-white border border-white/10">
-                              {{ activeSlide.category }}
-                            </span>
-                          }
-                          @if (activeSlide.dateLabel) {
-                            <span class="inline-block px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-xs font-medium text-slate-300">
-                              {{ activeSlide.dateLabel }}
-                            </span>
-                          }
-                        </div>
-
-                        <h3 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
-                          {{ activeSlide.title }}
-                        </h3>
-
-                        <p class="text-xs sm:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed">
-                          {{ activeSlide.subtitle }}
-                        </p>
-
-                        <div class="pt-3 flex items-center justify-center gap-3">
-                          <button 
-                            type="button" 
-                            (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
-                            class="px-7 py-3.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs sm:text-sm font-extrabold shadow-xl hover:shadow-pink-600/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                            <span>{{ activeSlide.ctaText || 'Get Started' }}</span>
-                            <span class="material-symbols-outlined text-base">arrow_forward</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Side Navigation Arrows -->
-                      @if (sec.content.showArrows !== false) {
-                        <button 
-                          type="button" 
-                          (click)="prevSlide()" 
-                          class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
-                          aria-label="Previous Slide">
-                          <span class="material-symbols-outlined text-xl">chevron_left</span>
-                        </button>
-                        <button 
-                          type="button" 
-                          (click)="nextSlide(true)" 
-                          class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-pink-600 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 backdrop-blur-xs shadow-lg active:scale-90"
-                          aria-label="Next Slide">
-                          <span class="material-symbols-outlined text-xl">chevron_right</span>
-                        </button>
-                      }
-
-                      <!-- Bottom Progress & Dots Controls -->
-                      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
-                        @if (sec.content.showDots !== false) {
-                          <div class="flex items-center gap-2">
-                            @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                              <button 
-                                type="button" 
-                                (click)="setSlide(sIdx)"
-                                class="h-2 rounded-full transition-all cursor-pointer"
-                                [class]="activeSlideIndex() === sIdx ? 'w-8 bg-pink-500' : 'w-2 bg-white/50'"></button>
-                            }
-                          </div>
-                        }
-
-                        <button 
-                          type="button" 
-                          (click)="toggleCarouselPlay()" 
-                          class="text-[11px] font-bold text-slate-300 hover:text-white flex items-center gap-1 bg-black/40 px-2.5 py-0.5 rounded-full backdrop-blur-xs cursor-pointer">
-                          <span class="material-symbols-outlined text-xs">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
-                          <span>{{ activeSlideIndex() + 1 }} / {{ sec.content.slides.length }}</span>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                }
-
-                <!-- VARIANT 5: TIMELINE SCRUBBER SLIDER -->
-                @if (sec.content.variant === 'timeline_scrubber') {
-                  @let activeSlide = sec.content.slides[activeSlideIndex()] || sec.content.slides[0];
-                  @if (activeSlide) {
-                    <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-lg space-y-6">
-                      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                        <div class="lg:col-span-6 space-y-4">
-                          <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-xs font-bold text-pink-600 uppercase tracking-wider">Step 0{{ activeSlideIndex() + 1 }}</span>
-                            @if (activeSlide.category) {
-                              <span class="text-xs text-slate-400 font-semibold">• {{ activeSlide.category }}</span>
-                            }
-                            @if (activeSlide.badge) {
-                              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-pink-100 text-pink-700">
-                                {{ activeSlide.badge }}
-                              </span>
-                            }
-                            @if (activeSlide.dateLabel) {
-                              <span class="text-xs text-slate-400">• {{ activeSlide.dateLabel }}</span>
-                            }
-                          </div>
-
-                          <h3 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                            {{ activeSlide.title }}
-                          </h3>
-
-                          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                            {{ activeSlide.subtitle }}
-                          </p>
-
-                          <div class="pt-2 flex flex-wrap items-center gap-3">
-                            <button 
-                              type="button" 
-                              (click)="scrollToSection(activeSlide.ctaAction || '#courses')"
-                              class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                              <span>{{ activeSlide.ctaText || 'Explore Milestone' }}</span>
-                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                            </button>
-
-                            @if (sec.content.showArrows !== false) {
-                              <div class="flex items-center gap-1.5">
-                                <button type="button" (click)="prevSlide()" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer" aria-label="Previous Slide">
-                                  <span class="material-symbols-outlined text-sm">chevron_left</span>
-                                </button>
-                                <button type="button" (click)="nextSlide(true)" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer" aria-label="Next Slide">
-                                  <span class="material-symbols-outlined text-sm">chevron_right</span>
-                                </button>
-                              </div>
-                            }
-                          </div>
-                        </div>
-
-                        <div class="lg:col-span-6 h-64 sm:h-80 rounded-2xl overflow-hidden bg-slate-100 shadow-inner relative group">
-                          <img [src]="activeSlide.imageUrl" [alt]="activeSlide.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
-                        </div>
-                      </div>
-
-                      <!-- Interactive Milestones Progress Steps -->
-                      <div class="space-y-2 pt-4 border-t border-slate-100">
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                            <button 
-                              type="button" 
-                              (click)="setSlide(sIdx)"
-                              class="p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden"
-                              [class]="activeSlideIndex() === sIdx ? 'border-pink-500 bg-pink-50/50 text-pink-900 shadow-xs ring-1 ring-pink-500/30' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'">
-                              
-                              @if (activeSlideIndex() === sIdx && sec.content.showTimelineBar !== false) {
-                                <div 
-                                  class="absolute bottom-0 left-0 h-1 bg-pink-500 transition-all duration-100 ease-linear"
-                                  [style.width.%]="carouselProgressPercent()"></div>
-                              }
-
-                              <div class="text-[10px] font-extrabold uppercase text-slate-400">Step 0{{ sIdx + 1 }}</div>
-                              <div class="text-xs font-bold line-clamp-1 mt-0.5">{{ slide.title }}</div>
-                            </button>
-                          }
-                        </div>
-
-                        <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
-                          <button 
-                            type="button" 
-                            (click)="toggleCarouselPlay()" 
-                            class="flex items-center gap-1 hover:text-pink-600 font-medium cursor-pointer">
-                            <span class="material-symbols-outlined text-sm">{{ carouselIsPlaying() ? 'pause' : 'play_arrow' }}</span>
-                            <span>{{ carouselIsPlaying() ? 'Pause Autoplay' : 'Resume Autoplay' }}</span>
-                          </button>
-                          
-                          @if (sec.content.showDots !== false) {
-                            <div class="flex items-center gap-1.5">
-                              @for (slide of sec.content.slides; track slide.id; let sIdx = $index) {
-                                <button 
-                                  type="button" 
-                                  (click)="setSlide(sIdx)"
-                                  class="h-1.5 rounded-full transition-all cursor-pointer"
-                                  [class]="activeSlideIndex() === sIdx ? 'w-5 bg-pink-500' : 'w-1.5 bg-slate-300'"></button>
-                              }
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  }
-                }
-
-              </div>
-            }
 
             <!-- 3. VIDEO SHOWCASE WIDGET -->
             @if (sec.type === 'video_showcase') {
@@ -1290,155 +677,6 @@
             }
 
             <!-- 4. COURSES & PROGRAMS SHOWCASE WIDGET -->
-            @if (sec.type === 'courses_grid') {
-              <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-                <div>
-                  @if (sec.badge) {
-                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
-                  }
-                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.title }}</h2>
-                  <p class="text-xs sm:text-sm text-slate-600 mt-1">{{ sec.content.sectionTagline || sec.subtitle }}</p>
-                </div>
-
-                <!-- Category Filtering -->
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
-                  @for (cat of sec.content.filterCategories; track cat) {
-                    <button 
-                      type="button" 
-                      (click)="selectedCategory.set(cat)"
-                      [class]="selectedCategory() === cat ? 'bg-pink-600 text-white font-bold shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
-                      class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer">
-                      {{ cat }}
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <!-- Active Search / Filter Status Banner -->
-              @if (courseSearchQuery() || (selectedCategory() && selectedCategory() !== 'All')) {
-                <div class="mb-6 flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div class="flex items-center gap-2 text-xs text-slate-600">
-                    <span class="material-symbols-outlined text-sm text-pink-600">filter_alt</span>
-                    <span>
-                      Active Filters: 
-                      @if (courseSearchQuery()) {
-                        Search <strong class="text-slate-900">"{{ courseSearchQuery() }}"</strong>
-                      }
-                      @if (courseSearchQuery() && selectedCategory() !== 'All') {
-                        • 
-                      }
-                      @if (selectedCategory() !== 'All') {
-                        Category <strong class="text-slate-900">{{ selectedCategory() }}</strong>
-                      }
-                    </span>
-                    <span class="text-slate-400">({{ filteredCourses().length }} courses found)</span>
-                  </div>
-
-                  <button 
-                    type="button" 
-                    (click)="resetCourseFilters()"
-                    class="px-3 py-1 rounded-lg bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs">
-                    <span class="material-symbols-outlined text-xs">restart_alt</span>
-                    <span>Reset Filters</span>
-                  </button>
-                </div>
-              }
-
-              <!-- Empty State when no courses match filter / search -->
-              @if (filteredCourses().length === 0) {
-                <div class="py-16 px-6 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-300 max-w-2xl mx-auto my-4 space-y-4">
-                  <div class="w-16 h-16 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center mx-auto shadow-xs">
-                    <span class="material-symbols-outlined text-3xl">search_off</span>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900">No Courses Found</h3>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                      @if (courseSearchQuery()) {
-                        We couldn't find any courses matching "<strong>{{ courseSearchQuery() }}</strong>". Try searching for different keywords or browse all categories.
-                      } @else {
-                        There are currently no published courses available in the selected "<strong>{{ selectedCategory() }}</strong>" category.
-                      }
-                    </p>
-                  </div>
-                  <div class="pt-2 flex items-center justify-center gap-3">
-                    <button 
-                      type="button" 
-                      (click)="resetCourseFilters()" 
-                      class="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                      [style.backgroundColor]="primaryColor()">
-                      <span class="material-symbols-outlined text-sm">view_list</span>
-                      <span>Show All Courses</span>
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <!-- Courses Grid (Dynamic Columns: 2, 3, 4) -->
-                <div 
-                  class="grid grid-cols-1 md:grid-cols-2 gap-6"
-                  [class.lg:grid-cols-2]="sec.content.columns === 2"
-                  [class.lg:grid-cols-3]="!sec.content.columns || sec.content.columns === 3"
-                  [class.lg:grid-cols-4]="sec.content.columns === 4">
-                  @for (c of filteredCourses().slice(0, sec.content.displayCount || 6); track c.id) {
-                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group">
-                      <div class="relative h-44 overflow-hidden bg-slate-100">
-                        <img 
-                          [src]="getCourseImage(c)" 
-                          [alt]="c.title" 
-                          (error)="onImgError($event, c.category)"
-                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                          referrerpolicy="no-referrer" />
-                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-950/80 text-white backdrop-blur-xs">
-                          {{ c.category }}
-                        </span>
-                        @if (sec.content.showLevelBadge !== false) {
-                          <span class="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs">
-                            {{ c.level }}
-                          </span>
-                        }
-                      </div>
-
-                      <div class="p-5 flex-1 flex flex-col justify-between">
-                        <div>
-                          @if (sec.content.showRating !== false) {
-                            <div class="flex items-center gap-1 text-amber-500 text-xs mb-1.5 font-bold">
-                              <span class="material-symbols-outlined text-sm">star</span>
-                              <span>{{ c.rating || 4.9 }}</span>
-                              <span class="text-slate-400 font-normal">({{ c.enrolledCount || 120 }})</span>
-                            </div>
-                          }
-                          <h3 class="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                            {{ c.title }}
-                          </h3>
-                          <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ c.description }}</p>
-                        </div>
-
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                          @if (sec.content.showInstructor !== false) {
-                            <div class="flex items-center gap-2">
-                              <img [src]="c.instructorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80'" [alt]="c.instructorName" class="w-6 h-6 rounded-full object-cover" referrerpolicy="no-referrer" />
-                              <span class="text-[11px] font-medium text-slate-600 truncate max-w-[110px]">{{ c.instructorName }}</span>
-                            </div>
-                          } @else {
-                            <span class="text-xs font-bold text-emerald-600">Accredited</span>
-                          }
-
-                          @if (sec.content.showEnrollButton !== false) {
-                            <button 
-                              type="button"
-                              (click)="handleCourseEnroll(c, sec.content)"
-                              class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs hover:shadow-md transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                              [style.backgroundColor]="primaryColor()">
-                              <span>{{ sec.content.enrollButtonText || 'Enroll' }}</span>
-                              <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                            </button>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-            }
 
             <!-- 5. INSTRUCTORS DIRECTORY WIDGET -->
             @if (sec.type === 'instructors_directory') {
@@ -1808,7 +1046,13 @@
                           referrerpolicy="no-referrer" />
                         
                         <!-- Client-Hydrated Availability Badge (§4) -->
-                        @if (prog.availability) {
+                        @if (prog.isLoadingAvailability) {
+                          <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900/60 text-slate-300 animate-pulse">
+                              Loading seats...
+                            </span>
+                          </div>
+                        } @else if (prog.availability) {
                           <div class="absolute top-3 left-3">
                             <span 
                               class="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm backdrop-blur-xs"
@@ -2002,30 +1246,36 @@
             @if (sec.type === 'impact_figures') {
               <div class="text-center max-w-3xl mx-auto mb-10">
                 @if (sec.badge) {
-                  <span class="text-xs font-extrabold text-pink-400 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
+                  <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
                 }
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">{{ sec.content.heading || sec.title }}</h2>
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">{{ sec.content.heading || sec.title || 'Our Learning Impact' }}</h2>
                 @if (sec.content.subheading || sec.subtitle) {
-                  <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl mx-auto">{{ sec.content.subheading || sec.subtitle }}</p>
+                  <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">{{ sec.content.subheading || sec.subtitle }}</p>
                 }
               </div>
 
-              <!-- Large Numerals Tabular Figures Grid -->
+              <!-- Refined Clean Professional Metrics Grid -->
               <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 @for (fig of sec.content.figures; track fig.id) {
-                  <div class="bg-slate-900/80 rounded-2xl border border-slate-800 p-6 text-center shadow-lg backdrop-blur-xs flex flex-col justify-between">
-                    <div>
+                  <div class="bg-white rounded-2xl border border-slate-200/80 p-6 text-center shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="space-y-1">
                       @if (fig.isLive) {
-                        <div class="flex items-center justify-center gap-1.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">
-                          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                          <span>Live Telemetry</span>
+                        <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span>Verified Impact</span>
                         </div>
                       }
-                      <div class="text-3xl sm:text-4xl lg:text-5xl font-mono font-black text-white tracking-tight">
-                        {{ fig.prefix }}{{ fig.value }}{{ fig.suffix }}
+                      <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight">
+                        @if (fig.isLive && liveFiguresLoading()) {
+                          <span class="inline-block w-20 h-10 bg-slate-100 rounded-lg animate-pulse"></span>
+                        } @else {
+                          <span class="text-slate-900 group-hover:text-pink-600 transition-colors">
+                            {{ fig.prefix }}{{ (fig.isLive && liveFiguresMap()[fig.id]) ? liveFiguresMap()[fig.id] : fig.value }}{{ fig.suffix }}
+                          </span>
+                        }
                       </div>
                     </div>
-                    <div class="text-xs font-medium text-slate-400 mt-2">
+                    <div class="text-xs sm:text-sm font-semibold text-slate-600 mt-3 pt-3 border-t border-slate-100">
                       {{ fig.label }}
                     </div>
                   </div>
@@ -2073,35 +1323,6 @@
             }
 
             <!-- 9. ABOUT US & MISSION WIDGET -->
-            @if (sec.type === 'about_us') {
-              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-                <div class="lg:col-span-6 space-y-5">
-                  @if (sec.badge) {
-                    <span class="text-xs font-extrabold text-pink-600 uppercase tracking-wider mb-1 inline-block">{{ sec.badge }}</span>
-                  }
-                  <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950">{{ sec.content.missionTitle }}</h2>
-                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">{{ sec.content.missionText }}</p>
-                  
-                  <div class="space-y-3 pt-2">
-                    @for (p of sec.content.pillars; track p.title) {
-                      <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-100 shadow-2xs">
-                        <span class="material-symbols-outlined text-xl text-pink-600 mt-0.5">{{ p.icon }}</span>
-                        <div>
-                          <h4 class="text-xs font-bold text-slate-900">{{ p.title }}</h4>
-                          <p class="text-[11px] text-slate-500 mt-0.5">{{ p.description }}</p>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-
-                <div class="lg:col-span-6">
-                  <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
-                    <img [src]="sec.content.image1Url" alt="About Mission" class="w-full h-84 object-cover" referrerpolicy="no-referrer" />
-                  </div>
-                </div>
-              </div>
-            }
 
             <!-- 10. CONTACT & INQUIRY FORM WIDGET -->
             @if (sec.type === 'contact_form') {

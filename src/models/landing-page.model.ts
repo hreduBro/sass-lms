@@ -508,8 +508,8 @@ export function createDefaultLandingPage(
   primaryColor: string = '#EC008C',
   accentColor: string = '#005b94'
 ): LandingPageConfig {
-  const safeName = lmsName || 'Enterprise LMS Academy';
-  const safeTagline = tagline || 'Empowering global teams with accredited certifications, practical skills, and compliance pathways.';
+  const safeName = 'BRAC ONE LMS';
+  const safeTagline = 'Learn Today. Lead Tomorrow. Practical, career-advancing skills designed for BRAC leaders and staff.';
 
   return {
     id: `landing-${lmsId}`,
@@ -521,31 +521,30 @@ export function createDefaultLandingPage(
     lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     lastUpdatedBy: 'System Administrator',
     seo: {
-      pageTitle: `${safeName} — Official Learning Portal & Academy`,
-      metaDescription: `${safeName}: ${safeTagline} Explore certified courses, expert instructors, and modern curriculum.`,
-      metaKeywords: [safeName, 'Enterprise LMS', 'Online Learning', 'Accredited Certification', 'Workforce Training', 'Compliance'],
+      pageTitle: `BRAC ONE LMS — Learning Portal & Academy`,
+      metaDescription: `BRAC ONE LMS: Practical skills, leadership pathways, certified courses, and interactive training modules.`,
+      metaKeywords: ['BRAC ONE LMS', 'BRAC Learning', 'Skills Academy', 'Professional Development', 'Certifications'],
       ogImageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&h=630&q=85',
       canonicalUrl: `https://academy.enterprise.io/p/${lmsId}`,
       schemaType: 'EducationalOrganization',
-      author: safeName,
+      author: 'BRAC ONE LMS',
       language: 'en'
     },
     navbar: {
-      siteTitle: safeName,
+      siteTitle: 'BRAC ONE LMS',
       logoOverride: logoUrl,
       sticky: true,
       style: 'glass',
-      links: [
-        { id: 'nav-home', label: 'Home', type: 'scroll', target: '#hero' },
-        { id: 'nav-categories', label: 'Categories', type: 'scroll', target: '#categories' },
-        { id: 'nav-programmes', label: 'Programmes', type: 'scroll', target: '#programmes', badge: 'Enrolling' },
-        { id: 'nav-courses', label: 'Courses', type: 'scroll', target: '#courses', badge: 'Popular' },
-        { id: 'nav-why', label: 'Why Us', type: 'scroll', target: '#why-lms' },
-        { id: 'nav-how', label: 'How It Works', type: 'scroll', target: '#how-it-works' },
-        { id: 'nav-credentials', label: 'Credentials', type: 'scroll', target: '#credentials' },
-        { id: 'nav-faq', label: 'FAQ', type: 'scroll', target: '#faq' },
-        { id: 'nav-contact', label: 'Contact', type: 'scroll', target: '#contact' }
-      ],
+       links: [
+         { id: 'nav-home', label: 'Home', type: 'scroll', target: '#hero' },
+         { id: 'nav-categories', label: 'Categories', type: 'scroll', target: '#categories' },
+         { id: 'nav-programmes', label: 'Programmes', type: 'scroll', target: '#programmes', badge: 'Enrolling' },
+         { id: 'nav-why', label: 'Why BRAC ONE', type: 'scroll', target: '#why-lms' },
+         { id: 'nav-how', label: 'How It Works', type: 'scroll', target: '#how-it-works' },
+         { id: 'nav-credentials', label: 'Certificates', type: 'scroll', target: '#credentials' },
+         { id: 'nav-faq', label: 'FAQ', type: 'scroll', target: '#faq' },
+         { id: 'nav-contact', label: 'Contact', type: 'scroll', target: '#contact' }
+       ],
       ctaButton: {
         label: 'Log In',
         action: 'login',
@@ -554,8 +553,8 @@ export function createDefaultLandingPage(
         enabled: true
       },
       showAnnouncementBar: true,
-      announcementText: '🚀 Spring 2026 Course Catalogs and Certifications are now live! Enroll today to claim early bird credentials.',
-      announcementLink: '#programmes',
+      announcementText: '🌟 Admissions Open for 2026 Core Skills & Leadership Batches. Start Learning Today!',
+      announcementLink: '#courses',
       announcementType: 'highlight'
     },
     sections: [
@@ -563,45 +562,44 @@ export function createDefaultLandingPage(
       {
         id: 'hero',
         type: 'hero_banner',
-        title: 'Welcome Hero Banner',
+        title: 'Hero Banner',
         subtitle: 'Main introductory banner',
-        badge: 'Premier Academy',
+        badge: 'BRAC Learning Academy',
         enabled: true,
         order: 0,
         layout: 'split',
         background: {
-          type: 'theme_gradient',
-          overlayOpacity: 10
+          type: 'theme_light',
+          overlayOpacity: 5
         },
         padding: 'spacious',
         content: {
-          headline: `Transform Your Potential with ${safeName}`,
-          subheadline: safeTagline,
-          badgeText: '🌟 2026 Accredited Enterprise Learning',
-          badgeIcon: 'verified',
-          primaryCtaText: 'Explore Certified Courses',
+          headline: 'Learn Today. Lead Tomorrow.',
+          subheadline: 'Build practical skills, master modern leadership, and achieve certified milestones with interactive courses built for BRAC.',
+          badgeText: '',
+          badgeIcon: '',
+          primaryCtaText: 'Explore Courses',
           primaryCtaAction: '#courses',
-          secondaryCtaText: 'Watch Platform Tour',
-          secondaryCtaAction: '#video',
-          secondaryCtaActionType: 'video_modal',
-          videoModalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+          secondaryCtaText: 'View Programmes',
+          secondaryCtaAction: '#programmes',
+          secondaryCtaActionType: 'scroll',
           showSecondaryCta: true,
           heroMedia: 'interactive_card',
           heroImageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
           showCardOverlay: true,
-          cardBadgeText: 'LIVE VIRTUAL CLASSROOMS ACTIVE',
+          cardBadgeText: 'BRAC ACADEMY CERTIFIED',
           cardBadgeColor: 'emerald',
-          cardBadgePulse: true,
-          cardTitle: 'Interactive Learning Platform',
-          cardDescription: 'Multi-Tenant LMS with SCORM Support, Transcripts & Verifiable Badges',
-          cardActionText: 'Explore Interactive Labs',
+          cardBadgePulse: false,
+          cardTitle: 'Practical Skill Pathways',
+          cardDescription: 'Structured courses and assessments designed for career growth across BRAC.',
+          cardActionText: 'Browse Courses',
           cardActionUrl: '#courses',
           showSearchBox: true,
-          searchPlaceholder: 'Search 250+ courses, skills, or certifications...',
+          searchPlaceholder: 'What do you want to learn today?',
           statChips: [
-            { id: 's1', value: '45,000+', label: 'Active Learners', icon: 'groups' },
-            { id: 's2', value: '98.6%', label: 'Completion Rate', icon: 'trending_up' },
-            { id: 's3', value: '180+', label: 'Accredited Programs', icon: 'workspace_premium' }
+            { id: 's1', value: 'Practical', label: 'Field-tested skills', icon: 'verified' },
+            { id: 's2', value: 'Flexible', label: 'Learn on any phone', icon: 'phone_android' },
+            { id: 's3', value: 'Certified', label: 'BRAC certificates', icon: 'workspace_premium' }
           ]
         } as HeroBannerContent
       },
@@ -745,85 +743,11 @@ export function createDefaultLandingPage(
               target: '/login'
             }
           ]
-        } as FeaturedProgrammesContent
-      },
+         } as FeaturedProgrammesContent
+       },
 
-      // 2. Carousel Slider
-      {
-        id: 'highlights-slider',
-        type: 'carousel_slider',
-        title: 'Featured Initiatives',
-        subtitle: 'Interactive highlight carousel showcasing core program pillars',
-        badge: 'Featured',
-        enabled: true,
-        order: 1,
-        layout: 'fullwidth',
-        background: {
-          type: 'neutral'
-        },
-        padding: 'standard',
-        content: {
-          variant: 'depth_coverflow',
-          autoPlayIntervalMs: 5000,
-          autoPlay: true,
-          showDots: true,
-          showArrows: true,
-          showTimelineBar: true,
-          slides: [
-            {
-              id: 'slide-1',
-              title: 'AI & Next-Gen Cloud Architecture Specialization',
-              subtitle: 'Comprehensive deep dive into multi-agent systems, LLM fine-tuning, and enterprise security frameworks.',
-              imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=80',
-              badge: 'Featured Specialization',
-              ctaText: 'View Curriculum',
-              ctaAction: '#courses',
-              overlayStyle: 'dark',
-              category: 'Artificial Intelligence',
-              dateLabel: '2026 Cohort'
-            },
-            {
-              id: 'slide-2',
-              title: 'Global Compliance & ISO 27001 Master Series',
-              subtitle: 'Mandatory and elective compliance paths designed by top industry practitioners with automated certificates.',
-              imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80',
-              badge: 'Certification',
-              ctaText: 'Explore Compliance',
-              ctaAction: '#courses',
-              overlayStyle: 'gradient',
-              category: 'Security & Governance',
-              dateLabel: 'Accredited Track'
-            },
-            {
-              id: 'slide-3',
-              title: 'Executive Leadership & Strategic Management',
-              subtitle: 'Lead high-performing teams, navigate digital transformation, and foster an agile workplace culture.',
-              imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80',
-              badge: 'Executive',
-              ctaText: 'Join Cohort',
-              ctaAction: '#contact',
-              overlayStyle: 'dark',
-              category: 'Leadership & Strategy',
-              dateLabel: 'Executive Masterclass'
-            },
-            {
-              id: 'slide-4',
-              title: 'Clinical Data Management & Bioethics Certification',
-              subtitle: 'FDA 21 CFR Part 11 compliant protocols and international GCP trial auditing frameworks.',
-              imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1600&q=80',
-              badge: 'Healthcare',
-              ctaText: 'Explore Program',
-              ctaAction: '#courses',
-              overlayStyle: 'gradient',
-              category: 'Healthcare & Regulatory',
-              dateLabel: 'GCP Certified'
-            }
-          ]
-        } as CarouselSliderContent
-      },
-
-      // 3. Video Showcase
-      {
+       // 3. Video Showcase
+       {
         id: 'video',
         type: 'video_showcase',
         title: 'Experience Our Learning Ecosystem',
@@ -857,43 +781,13 @@ export function createDefaultLandingPage(
         } as VideoShowcaseContent
       },
 
-      // 4. Showcasing Products / Courses
-      {
-        id: 'courses',
-        type: 'courses_grid',
-        title: 'Featured Curriculum & Programs',
-        subtitle: 'Explore our highest rated programs taught by leading industry practitioners with verifiable digital certificates upon completion.',
-        badge: 'Top Programs',
-        enabled: true,
-        order: 3,
-        layout: 'standard',
-        background: {
-          type: 'neutral'
-        },
-        padding: 'spacious',
-        content: {
-          sectionTagline: 'Curated by master instructional designers to guarantee job-ready competency.',
-          filterCategories: ['All Categories', 'Compliance & Security', 'AI & Data', 'Healthcare', 'Engineering', 'Leadership'],
-          displayCount: 6,
-          columns: 3,
-          showPrice: true,
-          showRating: true,
-          showEnrollButton: true,
-          enrollButtonText: 'Enroll Now',
-          enrollButtonAction: 'modal',
-          showLevelBadge: true,
-          showInstructor: true,
-          viewAllLink: '/courses'
-        } as CoursesGridContent
-      },
-
-      // 6. Why This LMS (§3.6)
-      {
+       // 6. Why This LMS (§3.6)
+       {
         id: 'why-lms',
         type: 'why_lms',
-        title: 'Why Choose Our Academy',
-        subtitle: 'Engineered from the ground up for measurable organizational impact and verifiable outcomes.',
-        badge: 'The Platform Advantage',
+        title: 'Why BRAC ONE LMS',
+        subtitle: 'Built to deliver practical capability and career-advancing skills across Bangladesh.',
+        badge: 'Why Learn With Us',
         enabled: true,
         order: 5,
         layout: 'standard',
@@ -902,15 +796,15 @@ export function createDefaultLandingPage(
         },
         padding: 'spacious',
         content: {
-          heading: 'Why Learn with OneLMS',
-          intro: 'We combine institutional-grade pedagogy with cutting-edge learning technology to deliver proven capability growth.',
+          heading: 'Why Learn with BRAC ONE LMS',
+          intro: 'Accessible, practical, high-impact learning crafted with BRAC’s trusted excellence and 10 Minute School-style ease of learning.',
           valueProps: [
-            { id: 'vp-1', icon: 'verified_user', title: 'Cryptographically Verifiable Credentials', description: 'Every certificate and badge is backed by tamper-proof digital signatures verifiable across global networks.' },
-            { id: 'vp-2', icon: 'hub', title: 'Modular Multi-Phase Learning Journeys', description: 'Break down complex enterprise curricula into sequenced phases with prerequisite enforcement and milestone checks.' },
-            { id: 'vp-3', icon: 'groups', title: 'Peer Collaboration & Live Masterclasses', description: 'Engage in discussion forums, live virtual breakout rooms, and mentor-guided problem-solving sessions.' },
-            { id: 'vp-4', icon: 'analytics', title: 'Real-Time Competency Telemetry', description: 'Track skill acquisitions, knowledge gaps, and compliance readiness with granular institutional dashboards.' },
-            { id: 'vp-5', icon: 'devices', title: 'Accessible Offline & Low-Bandwidth Delivery', description: 'Optimized video streaming, downloadable PDFs, and responsive mobile interfaces designed for any connection.' },
-            { id: 'vp-6', icon: 'lock', title: 'Zero-Trust Enterprise Security', description: 'Enterprise SSO (Google, Microsoft, Okta), role-based data segmentation, and SOC-2 Type II audit conformity.' }
+            { id: 'vp-1', icon: 'school', title: 'Actionable, Practical Lessons', description: 'Bite-sized video lessons and interactive exercises designed to be applied immediately in the field.' },
+            { id: 'vp-2', icon: 'military_tech', title: 'Recognized BRAC Certificates', description: 'Earn verifiable digital certificates upon completing your course modules and assessments.' },
+            { id: 'vp-3', icon: 'phone_iphone', title: 'Learn Anytime on Any Mobile', description: 'Optimized low-data streaming and mobile-first design so you never stop learning on the move.' },
+            { id: 'vp-4', icon: 'forum', title: 'Community & Peer Support', description: 'Discuss questions with mentors, participate in quizzes, and connect with fellow learners.' },
+            { id: 'vp-5', icon: 'trending_up', title: 'Track Your Daily Growth', description: 'Live progress analytics, chapter checklists, and milestone badges keep you motivated.' },
+            { id: 'vp-6', icon: 'verified', title: 'Industry-Expert Faculty', description: 'Learn directly from seasoned practitioners and master instructors with real-world track records.' }
           ]
         } as WhyLmsContent
       },
@@ -999,24 +893,24 @@ export function createDefaultLandingPage(
       {
         id: 'impact-figures',
         type: 'impact_figures',
-        title: 'Our Global Impact in Numbers',
+        title: 'Our Impact in Numbers',
         subtitle: 'Empowering learners, transforming field operations, and accelerating institutional capability.',
-        badge: 'Live Telemetry',
+        badge: 'Impact & Scale',
         enabled: true,
         order: 8,
         layout: 'standard',
         background: {
-          type: 'dark'
+          type: 'neutral'
         },
         padding: 'standard',
         content: {
-          heading: 'Real-Time Impact Across Communities',
-          subheading: 'Audited figures tracking active engagement, completions, and certified professionals worldwide.',
+          heading: 'Our Learning Impact',
+          subheading: 'Practical milestones tracking active engagement and skills developed across Bangladesh.',
           figures: [
-            { id: 'fig-1', label: 'Certified Professionals', value: '45,820', prefix: '', suffix: '+', isLive: true },
-            { id: 'fig-2', label: 'Curriculum Completion Rate', value: '98.7', prefix: '', suffix: '%', isLive: true },
-            { id: 'fig-3', label: 'Operational Branches Reached', value: '64', prefix: '', suffix: ' Districts', isLive: false },
-            { id: 'fig-4', label: 'Learning Hours Logged', value: '1.2', prefix: '', suffix: 'M+ Hours', isLive: true }
+            { id: 'fig-1', label: 'Certified Professionals', value: '45,000', prefix: '', suffix: '+', isLive: true },
+            { id: 'fig-2', label: 'Course Completion Rate', value: '98.6', prefix: '', suffix: '%', isLive: true },
+            { id: 'fig-3', label: 'Districts Reached', value: '64', prefix: '', suffix: '', isLive: false },
+            { id: 'fig-4', label: 'Learning Hours Completed', value: '1.3', prefix: '', suffix: 'M+', isLive: true }
           ]
         } as ImpactFiguresContent
       },
@@ -1243,41 +1137,8 @@ export function createDefaultLandingPage(
         } as LatestNewsContent
       },
 
-      // 9. About Us / Mission & Highlights
-      {
-        id: 'about',
-        type: 'about_us',
-        title: `About ${safeName}`,
-        subtitle: 'Our story, mission, and dedication to accessible, high-impact enterprise education.',
-        badge: 'Our Mission',
-        enabled: true,
-        order: 8,
-        layout: 'split',
-        background: {
-          type: 'theme_light'
-        },
-        padding: 'spacious',
-        content: {
-          missionTitle: 'Bridging the Global Competency Gap with Next-Generation Learning Infrastructure',
-          missionText: `${safeName} was established to eliminate fragmented learning silos and provide an institutional-grade, multi-tenant portal that empowers individuals and organizations to continuously upskill, certify, and thrive in rapidly changing industries.`,
-          visionText: 'We envision a future where high-quality technical, clinical, and leadership education is seamlessly accessible, verifiable through open credentials, and measurable in real-time business outcomes.',
-          pillars: [
-            { icon: 'military_tech', title: 'Rigorous Academic Quality', description: 'Every curriculum module undergoes dual peer review by domain practitioners and instructional architects.' },
-            { icon: 'security', title: 'Enterprise Governance', description: 'Built-in multi-role access controls, SSO integration, and SOC-2 / ISO 27001 compliant data residency.' },
-            { icon: 'speed', title: 'High Velocity Execution', description: 'Zero friction onboarding with interactive lab environments and automated certificate distribution.' }
-          ],
-          achievementStats: [
-            { value: '14+', label: 'Years of Excellence', icon: 'history_edu' },
-            { value: '99.4%', label: 'Learner Satisfaction', icon: 'sentiment_very_satisfied' },
-            { value: '250+', label: 'Certified Courses', icon: 'menu_book' }
-          ],
-          image1Url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
-          image2Url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80'
-        } as AboutUsContent
-      },
-
-      // 10. Contact & Inquiries
-      {
+       // 10. Contact & Inquiries
+       {
         id: 'contact',
         type: 'contact_form',
         title: 'Get in Touch with Our Academic Advisors',
@@ -1374,7 +1235,7 @@ export function createDefaultLandingPage(
     ],
     footer: {
       brandSummary: `${safeName} provides scalable, accredited enterprise learning pathways, interactive classroom players, and verifiable digital credentials for global organizations.`,
-      copyrightText: `© ${new Date().getFullYear()} ${safeName}. All Rights Reserved.`,
+      copyrightText: `© ${new Date().getFullYear()} BRAC ONE LMS Portal. All Rights Reserved.`,
       showSocialLinks: true,
       socialLinks: [
         { platform: 'linkedin', url: 'https://linkedin.com' },
@@ -1399,8 +1260,7 @@ export function createDefaultLandingPage(
             { label: 'Interactive Tour', url: '#video' },
             { label: 'Distinguished Faculty', url: '#instructors' },
             { label: 'Success Stories', url: '#testimonials' },
-            { label: 'Latest Insights', url: '#news' },
-            { label: 'About Our Mission', url: '#about' }
+            { label: 'Latest Insights', url: '#news' }
           ]
         },
         {

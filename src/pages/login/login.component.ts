@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
+import { LocalPersistenceRepository } from '../../services/local-persistence.repository';
 import { UserRole } from '../../models/lms.model';
 import { LoginBrandingConfig } from '../../models/login-branding.model';
 import { SsoLogoComponent } from '../../components/sso-logo/sso-logo.component';
@@ -138,7 +139,8 @@ export class LoginComponent implements OnInit {
   });
 
   branding = computed<LoginBrandingConfig>(() => {
-    const cfg = { ...this.lms.loginBranding() };
+    // Only published configuration is loaded for the public /login screen
+    const cfg = { ...LocalPersistenceRepository.getPublishedLoginBranding() };
     if (cfg.copyrightText) {
       cfg.copyrightText = cfg.copyrightText.replace(/\s*&\s*BRAC\s*IT\s*Services/gi, '').replace(/\s*&\s*Brac\s*IT\s*Services/gi, '').trim();
     }
@@ -304,17 +306,40 @@ export class LoginComponent implements OnInit {
     setTimeout(() => {
       this.isSubmitting.set(false);
       const uname = (this.username() || this.email() || '').trim();
-      
-      // Specifically handle Dumbledore login
-      if (uname.toLowerCase() === 'dumbledore' || uname.toLowerCase().includes('dumble')) {
-        this.lms.setDumbledoreUser();
-      } else {
-        this.lms.switchRole('system_admin');
+      const pwd = (this.password() || '').trim();
+
+      // Enforce the exact specified credentials:
+      // Username: Dumbledore, Password: Rubeas@Dum123
+      const isDumbledore = uname.toLowerCase() === 'dumbledore';
+      const isValidPassword = pwd === 'Rubeas@Dum123';
+
+      if (isDumbledore && isValidPassword) {
+        const user = this.lms.setDumbledoreUser();
+        LocalPersistenceRepository.setAuthSession({
+          username: 'Dumbledore',
+          name: user.name,
+          role: 'system_admin',
+          authenticated: true,
+          loginTime: new Date().toISOString()
+        });
+        this.lms.showToast(`Welcome back, ${user.name}! Authentication verified.`, 'success', 3500, 'Logged In');
+        this.router.navigate(['/dashboard']);
+        return;
       }
 
-      this.lms.showToast(`Welcome back, ${this.lms.activeUser()?.name || 'Albus Dumbledore'}! Authentication verified.`, 'success', 3500, 'Logged In');
-      this.router.navigate(['/dashboard']);
-    }, 500);
+      // Check fallback demo accounts with valid input
+      if (uname && pwd && pwd !== '••••••••••••') {
+        const foundDemo = this.demoAccounts.find(d => d.email.toLowerCase() === uname.toLowerCase() && d.password === pwd);
+        if (foundDemo) {
+          this.lms.switchRole(foundDemo.role);
+          this.router.navigate(['/dashboard']);
+          return;
+        }
+      }
+
+      this.errorMessage.set('Invalid credentials. Use Username: Dumbledore and Password: Rubeas@Dum123');
+      this.lms.showToast('Invalid credentials provided. Please check your username and password.', 'error', 4000, 'Sign In Failed');
+    }, 400);
   }
 
   onSsoSignIn(provider: string) {

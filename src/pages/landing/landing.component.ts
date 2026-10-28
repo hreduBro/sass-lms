@@ -29,6 +29,7 @@ import { SafeResourceUrlPipe } from '../../pipes/safe-url.pipe';
 })
 export class LandingComponent implements OnInit, OnDestroy {
   isFullScreen = true; // Signal to AppComponent to remove sidebar/topbar/footer
+  Math = Math;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -95,35 +96,50 @@ export class LandingComponent implements OnInit, OnDestroy {
   });
 
   // Client-side hydrated plan availability (§4 Data that bypasses cache)
+  availabilityLoading = signal<boolean>(true);
+  liveFiguresLoading = signal<boolean>(true);
+  planAvailabilityMap = signal<Record<string, { state: string; label: string; seatsLeft?: number }>>({});
+  liveFiguresMap = signal<Record<string, string>>({});
+
   hydratedProgrammes = computed(() => {
     const section = this.pageConfig().sections.find(s => s.type === 'featured_programmes');
     const configuredProgs = section?.content?.programmes;
-    if (configuredProgs && configuredProgs.length > 0) {
-      return configuredProgs;
-    }
+    const baseProgs = (configuredProgs && configuredProgs.length > 0)
+      ? configuredProgs
+      : this.lms.plans().slice(0, 3).map((p) => ({
+          id: p.id,
+          name: p.name,
+          planCode: p.planCode,
+          coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+          typeLabel: 'Programme',
+          shortDescription: p.description || 'Enterprise accredited curriculum plan.',
+          durationMonths: 12,
+          durationLabel: '12 months',
+          startDate: p.startDate || '01/01/2026',
+          credentialTitle: 'Certificate on completion',
+          credentialType: 'Certificate',
+          target: '/login'
+        }));
 
-    const plans = this.lms.plans();
-    return plans.slice(0, 3).map((p, idx) => {
-      const availStates = ['open', 'closing_soon', 'open'];
-      const labels = ['Enrolling now', 'Closing soon', 'Enrolling now'];
-      const state = availStates[idx % availStates.length];
-      const label = labels[idx % labels.length];
+    const availMap = this.planAvailabilityMap();
+    const isLoading = this.availabilityLoading();
+
+    return baseProgs.map((prog: any, idx: number) => {
+      const live = availMap[prog.id];
+      if (isLoading) {
+        return {
+          ...prog,
+          isLoadingAvailability: true,
+          availability: null,
+          availabilityLabel: 'Checking availability...'
+        };
+      }
       return {
-        id: p.id,
-        name: p.name,
-        planCode: p.planCode,
-        coverImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
-        typeLabel: 'Programme',
-        shortDescription: p.description || 'Enterprise accredited curriculum plan.',
-        durationMonths: 12,
-        durationLabel: '12 months',
-        startDate: p.startDate || '01/04/2026',
-        credentialTitle: 'Accredited Certificate on Completion',
-        credentialType: 'Certificate',
-        availability: state,
-        availabilityLabel: label,
-        seatsLeft: state === 'closing_soon' ? 5 : 35,
-        target: '/login'
+        ...prog,
+        isLoadingAvailability: false,
+        availability: live?.state || (idx === 1 ? 'closing_soon' : 'open'),
+        availabilityLabel: live?.label || (idx === 1 ? 'Closing soon' : 'Enrolling now'),
+        seatsLeft: live?.seatsLeft ?? (idx === 1 ? 4 : 28)
       };
     });
   });
@@ -208,10 +224,34 @@ export class LandingComponent implements OnInit, OnDestroy {
       const id = params['id'] || this.lms.activeLms()?.id || 'tenant-1';
       this.activeLmsId.set(id);
       this.loadLandingPage(id);
+      this.hydrateClientData();
     });
 
     this.startCarouselProgressTimer();
     this.setupScrollSpy();
+  }
+
+  // §4 Dynamic data that bypasses the edge cache: simulated batched hydration
+  private hydrateClientData(): void {
+    this.availabilityLoading.set(true);
+    this.liveFiguresLoading.set(true);
+
+    setTimeout(() => {
+      this.planAvailabilityMap.set({
+        'plan-1': { state: 'open', label: 'Enrolling now', seatsLeft: 42 },
+        'plan-2': { state: 'closing_soon', label: 'Closing soon', seatsLeft: 5 },
+        'plan-3': { state: 'open', label: 'Enrolling now', seatsLeft: 20 },
+        'plan-field-ops': { state: 'open', label: 'Enrolling now', seatsLeft: 30 }
+      });
+      this.availabilityLoading.set(false);
+
+      this.liveFiguresMap.set({
+        'fig-1': '46,190',
+        'fig-2': '99.1',
+        'fig-4': '1.3'
+      });
+      this.liveFiguresLoading.set(false);
+    }, 450);
   }
 
   ngOnDestroy(): void {
@@ -319,21 +359,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   loadLandingPage(lmsId: string): void {
-    // Attempt to load from API backend first for dynamic fresh content
-    this.api.getLandingPage(lmsId).subscribe({
-      next: (res) => {
-        if (res) {
-          this.pageConfig.set(res);
-          this.seo.updateLandingPageSeo(res);
-          this.initCarouselConfig();
-        } else {
-          this.loadLocalConfig(lmsId);
-        }
-      },
-      error: () => {
-        this.loadLocalConfig(lmsId);
-      }
-    });
+    // Visitor landing page strictly loads the published configuration from local persistence
+    this.loadLocalConfig(lmsId);
   }
 
   private loadLocalConfig(lmsId: string): void {

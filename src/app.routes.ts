@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from './guards/role.guard';
+import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { OrganizationDashboardComponent } from './pages/organization-dashboard/organization-dashboard.component';
 import { TenantsComponent } from './pages/tenants/tenants.component';
@@ -87,19 +88,19 @@ export const routes: Routes = [
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin'] }
   },
   
-  // Dashboard & Profile: Accessible to all roles
+  // Dashboard & Profile: Accessible to authenticated users with permitted roles
   { 
     path: 'dashboard', 
     component: DashboardComponent, 
     title: 'Dashboard | Multi-Tenant LMS',
-    canActivate: [roleGuard],
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
   },
   { 
     path: 'profile', 
     component: ProfileComponent, 
     title: 'User Profile | Multi-Tenant LMS',
-    canActivate: [roleGuard],
+    canActivate: [authGuard, roleGuard],
     data: { roles: ['system_admin', 'super_admin', 'tenant_admin', 'lms_admin', 'instructor', 'learner'] }
   },
 

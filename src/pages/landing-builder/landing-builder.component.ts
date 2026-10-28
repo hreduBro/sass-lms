@@ -12,6 +12,7 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { LmsApiService } from '../../services/lms-api.service';
+import { LocalPersistenceRepository } from '../../services/local-persistence.repository';
 import { SeoService } from '../../services/seo.service';
 import {
   LandingPageConfig,
@@ -167,7 +168,9 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
   }
 
   loadLandingPage(lmsId: string): void {
-    const local = this.lms.getLandingPageForLms(lmsId);
+    // Load draft if available, otherwise fallback to local/published
+    const draft = LocalPersistenceRepository.getDraftLandingPage(lmsId);
+    const local = draft || this.lms.getLandingPageForLms(lmsId);
     this.pageConfig.set(JSON.parse(JSON.stringify(local)));
     this.pushHistoryState(this.pageConfig());
     this.seo.updateLandingPageSeo(this.pageConfig());
@@ -996,33 +999,17 @@ export class LandingBuilderComponent implements OnInit, OnDestroy {
 
   // Save Draft
   saveDraft(): void {
-    this.lms.saveLandingPage(this.pageConfig());
-    this.api.updateLandingPage(this.activeLmsId(), this.pageConfig()).subscribe({
-      next: () => {
-        this.lms.showToast('Draft synchronized with server database', 'success', 2500, 'Server Sync');
-      },
-      error: () => {
-        this.lms.showToast('Draft saved locally in workspace', 'info', 2000, 'Local Save');
-      }
-    });
+    const current = { ...this.pageConfig(), status: 'Draft' as const };
+    this.pageConfig.set(current);
+    this.lms.saveLandingPage(current);
   }
 
   // Publish Live
   publishLive(): void {
-    this.lms.publishLandingPageConfig(this.pageConfig());
-    this.api.publishLandingPage(this.activeLmsId()).subscribe({
-      next: (res) => {
-        if (res) {
-          this.pageConfig.set(res);
-        }
-        this.seo.updateLandingPageSeo(this.pageConfig());
-        this.lms.showToast(`Landing page published live for ${this.pageConfig().lmsName}!`, 'success', 4000, 'Published');
-      },
-      error: () => {
-        this.seo.updateLandingPageSeo(this.pageConfig());
-        this.lms.showToast('Landing page published to local portal!', 'success', 3500, 'Published');
-      }
-    });
+    const current = { ...this.pageConfig(), status: 'Published' as const };
+    this.pageConfig.set(current);
+    this.lms.publishLandingPageConfig(current);
+    this.seo.updateLandingPageSeo(current);
   }
 
   // Reset to Theme Defaults

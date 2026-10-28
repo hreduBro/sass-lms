@@ -142,6 +142,6 @@ export class AppComponent implements OnInit {
     this.lms.logout();
     this.lms.closeSignOutModal();
     this.lms.showToast('You have been signed out of your session', 'info', 3500, 'Signed Out');
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/login']);
   }
 }

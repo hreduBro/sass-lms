@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { LocalPersistenceRepository } from './local-persistence.repository';
 import {
   Tenant,
   TenantBranding,
@@ -1971,12 +1972,12 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
     updatedAt: '2024-03-01',
     createdBy: 'System Admin',
     basicInfo: {
-      lmsName: 'BRAC Microfinance Learning Portal',
-      programmeDepartment: 'Microfinance',
-      summary: 'Specialized enterprise LMS managing field officer certifications, client protection ethics, and digitized credit recovery workflows across 64 districts.',
-      goal: 'Certify 15,000+ branch accountants, program organizers, and area managers on responsible lending compliance.',
-      lmsType: 'Private',
-      urlDomain: 'microfinance.learn.brac.net',
+      lmsName: 'BRAC ONE LMS',
+      programmeDepartment: 'BRAC Learning Academy',
+      summary: 'Centralized enterprise learning management system managing staff certifications, skill pathways, and workforce education.',
+      goal: 'Empower and certify over 45,000+ staff members and community leaders with modern, accessible skills.',
+      lmsType: 'Public',
+      urlDomain: 'learn.brac.net',
       timezone: 'Asia/Dhaka',
       logo: {
         url: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=200&q=80',
@@ -2716,7 +2717,7 @@ export class LmsDataService {
   });
 
   // Login Branding Store (System Admin Scope)
-  loginBranding = signal<LoginBrandingConfig>(DEFAULT_LOGIN_BRANDING);
+  loginBranding = signal<LoginBrandingConfig>(LocalPersistenceRepository.getPublishedLoginBranding());
 
   // Author Profile Store (Per-LMS Scoped Author Pool)
   authors = signal<AuthorProfile[]>(INITIAL_AUTHORS_REPO);
@@ -5030,6 +5031,12 @@ export class LmsDataService {
   });
 
   constructor() {
+    // Check if Dumbledore or another session is persisted in sessionStorage
+    const storedSession = LocalPersistenceRepository.getAuthSession();
+    if (storedSession && storedSession.authenticated && storedSession.username === 'Dumbledore') {
+      this.setDumbledoreUser();
+    }
+
     // Dynamic CSS theme and favicon injection effect:
     // Theming & layouting setup is STRICTLY dependent on the LMS and mapped with LMS
     effect(() => {
@@ -5913,6 +5920,7 @@ export class LmsDataService {
   logout() {
     this.logAction('User Sign Out', `User ${this.activeUser().name} signed out of session`, 'info');
     this.customLoggedInUser.set(null);
+    LocalPersistenceRepository.setAuthSession(null);
   }
 
   // =========================================================================
@@ -9417,11 +9425,13 @@ export class LmsDataService {
   // LOGIN BRANDING MANAGEMENT (System Admin Scope)
   // =========================================================================
   updateLoginBranding(changes: Partial<LoginBrandingConfig>): void {
-    this.loginBranding.update(current => ({
-      ...current,
+    const draft = {
+      ...this.loginBranding(),
       ...changes,
+      status: 'Draft' as const,
       lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    }));
+    };
+    LocalPersistenceRepository.saveDraftLoginBranding(draft);
   }
 
   publishLoginBranding(updatedConfig: LoginBrandingConfig): void {
@@ -9435,6 +9445,8 @@ export class LmsDataService {
       lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
 
+    LocalPersistenceRepository.savePublishedLoginBranding(finalConfig);
+    LocalPersistenceRepository.saveDraftLoginBranding(finalConfig);
     this.loginBranding.set(finalConfig);
     this.logAction('Login Branding Published', `Published Login Branding configuration v${newVersion} by ${author}`, 'success');
     this.showToast(`Login Branding v${newVersion} published successfully!`, 'success', 3500, 'Branding Published');
@@ -9444,6 +9456,7 @@ export class LmsDataService {
     const currentTenant = this.activeTenant();
     const defaultBrac: LoginBrandingConfig = {
       ...DEFAULT_LOGIN_BRANDING,
+      status: 'Published',
       tenantId: currentTenant?.id || 'tenant-brac',
       logoUrlLight: currentTenant?.branding?.logoUrl || DEFAULT_LOGIN_BRANDING.logoUrlLight,
       primaryColor: currentTenant?.branding?.primaryColor || DEFAULT_LOGIN_BRANDING.primaryColor,
@@ -9453,6 +9466,8 @@ export class LmsDataService {
       lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       lastUpdatedBy: this.activeUser()?.name || 'System Admin'
     };
+    LocalPersistenceRepository.savePublishedLoginBranding(defaultBrac);
+    LocalPersistenceRepository.saveDraftLoginBranding(defaultBrac);
     this.loginBranding.set(defaultBrac);
     this.showToast('Login branding reset to organization standard defaults.', 'info', 3000, 'Reset Complete');
   }
@@ -10991,6 +11006,11 @@ export class LmsDataService {
   });
 
   getLandingPageForLms(lmsId: string): LandingPageConfig {
+    const published = LocalPersistenceRepository.getPublishedLandingPage(lmsId);
+    if (published) {
+      return published;
+    }
+
     const store = this.landingPages();
     if (store[lmsId]) {
       return store[lmsId];
@@ -11002,13 +11022,16 @@ export class LmsDataService {
     const created = createDefaultLandingPage(
       lmsId,
       targetTenant?.id || 'tenant-1',
-      targetLms?.basicInfo?.lmsName || targetTenant?.name || 'Enterprise LMS Academy',
-      targetLms?.branding?.tagline || targetTenant?.branding?.tagline || 'Accredited Workforce Learning & Certifications',
+      'BRAC ONE LMS',
+      'Learn Today. Lead Tomorrow. Practical skills and leadership pathways for BRAC.',
       targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
-      targetLms?.branding?.primaryColor || targetTenant?.branding?.primaryColor || '#EC008C',
-      targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
+      '#EC008C',
+      '#005b94'
     );
 
+    created.status = 'Published';
+    LocalPersistenceRepository.savePublishedLandingPage(created);
+    LocalPersistenceRepository.saveDraftLandingPage(created);
     this.landingPages.update(s => ({ ...s, [lmsId]: created }));
     return created;
   }
@@ -11018,10 +11041,12 @@ export class LmsDataService {
     const author = this.activeUser()?.name || 'System Admin';
     const updated: LandingPageConfig = {
       ...config,
+      status: 'Draft',
       lastUpdatedBy: author,
       lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
 
+    LocalPersistenceRepository.saveDraftLandingPage(updated);
     this.landingPages.update(s => ({ ...s, [config.lmsId]: updated }));
     this.logAction('Landing Page Draft Saved', `Saved Landing Page configuration draft for ${config.lmsName}`, 'info');
     this.showToast(`Landing page draft saved for ${config.lmsName}`, 'success', 2500, 'Draft Saved');
@@ -11039,6 +11064,8 @@ export class LmsDataService {
       lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
 
+    LocalPersistenceRepository.savePublishedLandingPage(published);
+    LocalPersistenceRepository.saveDraftLandingPage(published);
     this.landingPages.update(s => ({ ...s, [config.lmsId]: published }));
     this.logAction('Landing Page Published Live', `Published Landing Page v${newVer} for ${config.lmsName}`, 'success');
     this.showToast(`Landing page for ${config.lmsName} is now live! (v${newVer})`, 'success', 4000, 'Page Published');
@@ -11058,6 +11085,9 @@ export class LmsDataService {
       targetLms?.branding?.accentColor || targetTenant?.branding?.accentColor || '#005b94'
     );
 
+    fresh.status = 'Published';
+    LocalPersistenceRepository.savePublishedLandingPage(fresh);
+    LocalPersistenceRepository.saveDraftLandingPage(fresh);
     this.landingPages.update(s => ({ ...s, [lmsId]: fresh }));
     this.showToast(`Landing page reset to LMS branding preset for ${fresh.lmsName}`, 'info', 3000, 'Reset Complete');
     return fresh;

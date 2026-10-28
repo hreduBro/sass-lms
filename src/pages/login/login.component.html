@@ -29,6 +29,17 @@
     [style.opacity]="(branding().backgroundOverlayOpacity || 45) / 100">
   </div>
 
+  <!-- Top Navigation Bar to Return to Landing Page -->
+  <header class="relative z-30 w-full px-6 sm:px-12 py-3 flex items-center justify-between border-b border-white/10 backdrop-blur-xs">
+    <a routerLink="/" class="flex items-center gap-2 text-xs font-bold text-white/90 hover:text-white transition-colors cursor-pointer group">
+      <span class="material-symbols-outlined text-sm group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+      <span>Back to Public Academy</span>
+    </a>
+    <div class="text-[11px] text-white/60 hidden sm:block">
+      Secure Access Portal
+    </div>
+  </header>
+
   <!-- 3. Top System Announcement Banner (if enabled and not card embedded) -->
   @if (branding().announcementBanner?.enabled && branding().announcementBanner?.text && branding().announcementBanner?.style !== 'card_embedded') {
     @if (branding().announcementBanner?.style === 'floating_pill' || !branding().announcementBanner?.style) {
@@ -295,6 +306,13 @@
             @if (branding().enablePasswordLogin) {
               <form (submit)="onSignIn(); $event.preventDefault()" class="space-y-4">
                 
+                @if (errorMessage()) {
+                  <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-rose-500">error</span>
+                    <span>{{ errorMessage() }}</span>
+                  </div>
+                }
+
                 <div>
                   <label class="auth-label block text-xs font-bold mb-1 text-slate-700">Username or Work Email</label>
                   <div class="relative">
