@@ -24,5 +24,4 @@ build
 *.sln
 *.sw?
 .angular
-package-lock.json
 bun.lock
