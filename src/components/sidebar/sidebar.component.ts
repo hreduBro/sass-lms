@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { LmsDataService } from '../../services/lms-data.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive, isAdminParentAllowed } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-sidebar',
@@ -74,12 +74,16 @@ export class SidebarComponent {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles?: string[], label?: string): boolean {
+  isAllowed(roles?: string[], label?: string, item?: NavItem): boolean {
     const permitted = this.lms.permittedRoles();
     const activeRole = this.lms.activeRole();
 
     // If active role is not in the account's permitted roles, deny immediately
     if (!permitted.includes(activeRole)) {
+      return false;
+    }
+
+    if (item && !isAdminParentAllowed(item, activeRole, this.lms.isAdminPortalSession())) {
       return false;
     }
 

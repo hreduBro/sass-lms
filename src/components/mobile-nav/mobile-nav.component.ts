@@ -4,7 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LmsDataService } from '../../services/lms-data.service';
 import { ThemeService } from '../../services/theme.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive, isAdminParentAllowed } from '../../models/navigation.model';
 import { CustomSelectComponent, SelectOption } from '../custom-select/custom-select.component';
 import { UserRole } from '../../models/lms.model';
 
@@ -16,117 +16,195 @@ import { UserRole } from '../../models/lms.model';
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-base-100/95 backdrop-blur-lg border-t border-base-300 px-2 py-1.5 shadow-lg safe-area-bottom">
       <div class="flex items-center justify-around gap-1">
         
-        <!-- 1. Dashboard -->
-        <a 
-          routerLink="/dashboard"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          [routerLinkActiveOptions]="{ exact: true }"
-          #homeRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="homeRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">space_dashboard</span>
-            @if (homeRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">Dashboard</span>
-        </a>
+        @if (lms.isAdminPortalSession()) {
+          @if (lms.activeRole() === 'tenant_admin') {
+            <!-- Org Dashboard -->
+            <a 
+              routerLink="/organization/dashboard"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              [routerLinkActiveOptions]="{ exact: true }"
+              #orgDashRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="orgDashRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">space_dashboard</span>
+                @if (orgDashRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Org Dashboard</span>
+            </a>
 
-        <!-- 2. My Learning Plans (Trainee Experience) -->
-        <a 
-          routerLink="/my-plans"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          #plansRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="plansRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">assignment_turned_in</span>
-            @if (plansRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">My Plans</span>
-        </a>
+            <!-- LMS Instances -->
+            <a 
+              routerLink="/lms"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              #lmsRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="lmsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">layers</span>
+                @if (lmsRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">LMS Instances</span>
+            </a>
+          } @else {
+            <!-- Dashboard -->
+            <a 
+              routerLink="/dashboard"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              [routerLinkActiveOptions]="{ exact: true }"
+              #homeRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="homeRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">space_dashboard</span>
+                @if (homeRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Dashboard</span>
+            </a>
 
-        <!-- 3. Courses -->
-        <a 
-          routerLink="/courses"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          #coursesRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="coursesRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">school</span>
-            @if (coursesRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">Courses</span>
-        </a>
+            <!-- Organizations -->
+            <a 
+              routerLink="/tenants"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              #orgsRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="orgsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">corporate_fare</span>
+                @if (orgsRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Organizations</span>
+            </a>
+          }
 
-        <!-- 3. Live Classrooms -->
-        <a 
-          routerLink="/webinars"
-          [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-          #webinarsRla="routerLinkActive"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-          [class]="webinarsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-          
-          <div class="relative flex items-center justify-center">
-            <span class="material-symbols-outlined text-2xl">videocam</span>
-            @if (lms.webinars().length > 0 && !webinarsRla.isActive) {
-              <span class="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            }
-            @if (webinarsRla.isActive) {
-              <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-            }
-          </div>
-          <span class="text-[10px] tracking-tight mt-0.5">Live Class</span>
-        </a>
-
-        <!-- 4. Analytics or Certificates based on role -->
-        @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'lms_admin' || lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
-          <a 
-            routerLink="/analytics"
-            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-            #analyticsRla="routerLinkActive"
-            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-            [class]="analyticsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-            
-            <div class="relative flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">analytics</span>
-              @if (analyticsRla.isActive) {
-                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
-              }
-            </div>
-            <span class="text-[10px] tracking-tight mt-0.5">Analytics</span>
-          </a>
+          <!-- More Menu Drawer Trigger -->
+          <button 
+            (click)="showMoreDrawer.set(true)"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200/50 transition-colors active:scale-95 flex-1 cursor-pointer focus:outline-none focus:ring-0 outline-none">
+            <span class="material-symbols-outlined text-2xl">menu</span>
+            <span class="text-[10px] tracking-tight mt-0.5 font-medium">More</span>
+          </button>
         } @else {
+          <!-- 1. Dashboard -->
           <a 
-            routerLink="/certificates"
+            routerLink="/dashboard"
             [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
-            #certsRla="routerLinkActive"
-            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
-            [class]="certsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
-            
+            [routerLinkActiveOptions]="{ exact: true }"
+            #homeRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="homeRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
             <div class="relative flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">verified</span>
-              @if (certsRla.isActive) {
+              <span class="material-symbols-outlined text-2xl">space_dashboard</span>
+              @if (homeRla.isActive) {
                 <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
               }
             </div>
-            <span class="text-[10px] tracking-tight mt-0.5">Certificates</span>
+            <span class="text-[10px] tracking-tight mt-0.5">Dashboard</span>
           </a>
-        }
 
-        <!-- 5. More Menu Drawer Trigger -->
-        <button 
-          (click)="showMoreDrawer.set(true)"
-          class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200/50 transition-colors active:scale-95 flex-1 cursor-pointer focus:outline-none focus:ring-0 outline-none">
-          <span class="material-symbols-outlined text-2xl">menu</span>
-          <span class="text-[10px] tracking-tight mt-0.5 font-medium">More</span>
-        </button>
+          <!-- 2. My Learning Plans (Trainee Experience) -->
+          <a 
+            routerLink="/my-plans"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #plansRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="plansRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">assignment_turned_in</span>
+              @if (plansRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">My Plans</span>
+          </a>
+
+          <!-- 3. Courses -->
+          <a 
+            routerLink="/courses"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #coursesRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2 min-w-[50px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="coursesRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">school</span>
+              @if (coursesRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Courses</span>
+          </a>
+
+          <!-- 3. Live Classrooms -->
+          <a 
+            routerLink="/webinars"
+            [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+            #webinarsRla="routerLinkActive"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+            [class]="webinarsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+            
+            <div class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">videocam</span>
+              @if (lms.webinars().length > 0 && !webinarsRla.isActive) {
+                <span class="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              }
+              @if (webinarsRla.isActive) {
+                <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+              }
+            </div>
+            <span class="text-[10px] tracking-tight mt-0.5">Live Class</span>
+          </a>
+
+          <!-- 4. Analytics or Certificates based on role -->
+          @if (lms.activeRole() === 'system_admin' || lms.activeRole() === 'lms_admin' || lms.activeRole() === 'super_admin' || lms.activeRole() === 'tenant_admin') {
+            <a 
+              routerLink="/analytics"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              #analyticsRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="analyticsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">analytics</span>
+                @if (analyticsRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Analytics</span>
+            </a>
+          } @else {
+            <a 
+              routerLink="/certificates"
+              [routerLinkActive]="'bg-tenant-500/15 dark:bg-tenant-500/25 text-tenant-700 dark:text-tenant-200 font-bold'"
+              #certsRla="routerLinkActive"
+              class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl transition-all active:scale-95 flex-1 relative focus:outline-none focus:ring-0 outline-none"
+              [class]="certsRla.isActive ? '' : 'text-text-secondary hover:text-text-primary hover:bg-base-200/50 font-medium'">
+              
+              <div class="relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">verified</span>
+                @if (certsRla.isActive) {
+                  <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-tenant-500"></span>
+                }
+              </div>
+              <span class="text-[10px] tracking-tight mt-0.5">Certificates</span>
+            </a>
+          }
+
+          <!-- 5. More Menu Drawer Trigger -->
+          <button 
+            (click)="showMoreDrawer.set(true)"
+            class="flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] min-h-[44px] rounded-xl text-text-secondary hover:text-text-primary hover:bg-base-200/50 transition-colors active:scale-95 flex-1 cursor-pointer focus:outline-none focus:ring-0 outline-none">
+            <span class="material-symbols-outlined text-2xl">menu</span>
+            <span class="text-[10px] tracking-tight mt-0.5 font-medium">More</span>
+          </button>
+        }
 
       </div>
     </nav>
@@ -207,34 +285,36 @@ import { UserRole } from '../../models/lms.model';
           }
 
           <!-- Section: Single Nav Items -->
-          <div class="space-y-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Workspace Modules</span>
-            <div class="grid grid-cols-2 gap-2.5">
-              @for (item of directNavItems(); track item.label) {
-                <a 
-                  [routerLink]="item.route" 
-                  (click)="showMoreDrawer.set(false)"
-                  class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
-                  [class]="isItemActive(item) 
-                    ? 'bg-tenant-50 dark:bg-tenant-500/20 border-tenant-200 dark:border-tenant-500/30 text-tenant-600 dark:text-tenant-300 font-bold' 
-                    : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
-                  
-                  <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-tenant-600]="isItemActive(item)" [class.dark:text-tenant-300]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
-                  <div class="text-left min-w-0 flex-1">
-                    <div class="flex items-center gap-1">
-                      <span class="font-bold text-xs block truncate">{{ item.label }}</span>
+          @if (directNavItems().length > 0) {
+            <div class="space-y-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Workspace Modules</span>
+              <div class="grid grid-cols-2 gap-2.5">
+                @for (item of directNavItems(); track item.label) {
+                  <a 
+                    [routerLink]="item.route" 
+                    (click)="showMoreDrawer.set(false)"
+                    class="p-3 rounded-2xl transition-all flex items-center gap-2.5 cursor-pointer focus:outline-none focus:ring-0 outline-none border"
+                    [class]="isItemActive(item) 
+                      ? 'bg-tenant-50 dark:bg-tenant-500/20 border-tenant-200 dark:border-tenant-500/30 text-tenant-600 dark:text-tenant-300 font-bold' 
+                      : 'bg-base-200/70 hover:bg-base-300/70 border-transparent text-slate-700 dark:text-slate-300'">
+                    
+                    <span class="material-symbols-outlined text-xl flex-shrink-0" [class.text-tenant-600]="isItemActive(item)" [class.dark:text-tenant-300]="isItemActive(item)" [class.text-slate-500]="!isItemActive(item)">{{ item.icon }}</span>
+                    <div class="text-left min-w-0 flex-1">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-xs block truncate">{{ item.label }}</span>
+                      </div>
+                      @if (item.description) {
+                        <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-tenant-600/80 dark:text-tenant-300/80' : 'text-slate-400'">{{ item.description }}</span>
+                      }
                     </div>
-                    @if (item.description) {
-                      <span class="text-[10px] block truncate" [class]="isItemActive(item) ? 'text-tenant-600/80 dark:text-tenant-300/80' : 'text-slate-400'">{{ item.description }}</span>
+                    @if (isItemActive(item)) {
+                      <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300 flex-shrink-0">check_circle</span>
                     }
-                  </div>
-                  @if (isItemActive(item)) {
-                    <span class="material-symbols-outlined text-xs text-tenant-600 dark:text-tenant-300 flex-shrink-0">check_circle</span>
-                  }
-                </a>
-              }
+                  </a>
+                }
+              </div>
             </div>
-          </div>
+          }
 
           <!-- Quick Theme & Role Actions -->
           <div class="p-3.5 rounded-2xl bg-base-200/70 border border-base-300 space-y-3">
@@ -320,11 +400,15 @@ export class MobileNavComponent {
 
   navItems: NavItem[] = APP_NAV_ITEMS;
 
-  isAllowed(roles: string[], label?: string): boolean {
+  isAllowed(roles?: string[], label?: string, item?: NavItem): boolean {
     const permitted = this.lms.permittedRoles();
     const activeRole = this.lms.activeRole();
 
     if (!permitted.includes(activeRole)) {
+      return false;
+    }
+
+    if (item && !isAdminParentAllowed(item, activeRole, this.lms.isAdminPortalSession())) {
       return false;
     }
 
@@ -348,11 +432,11 @@ export class MobileNavComponent {
   }
 
   groupedNavItems() {
-    return this.navItems.filter(item => item.children && item.children.length > 0 && this.isAllowed(item.roles, item.label));
+    return this.navItems.filter(item => item.children && item.children.length > 0 && this.isAllowed(item.roles, item.label, item));
   }
 
   directNavItems() {
-    return this.navItems.filter(item => (!item.children || item.children.length === 0) && this.isAllowed(item.roles, item.label));
+    return this.navItems.filter(item => (!item.children || item.children.length === 0) && this.isAllowed(item.roles, item.label, item));
   }
 
   isItemActive(item: NavItem): boolean {

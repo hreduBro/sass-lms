@@ -53,7 +53,7 @@ export const routes: Routes = [
   { 
     path: '', 
     component: LandingComponent, 
-    title: 'BLD LMS | Public Learning Academy & Portal' 
+    title: 'LLD LMS | Learning & Leadership Development, by BRAC' 
   },
   
   // Public-Facing Multi-Tenant Landing Pages (SSR SEO Enabled)

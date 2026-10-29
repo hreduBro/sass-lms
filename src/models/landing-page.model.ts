@@ -508,7 +508,7 @@ export function createDefaultLandingPage(
   primaryColor: string = '#EC008C',
   accentColor: string = '#005b94'
 ): LandingPageConfig {
-  const safeName = 'BLD LMS';
+  const safeName = 'LLD LMS';
   const safeTagline = 'Learn Today. Lead Tomorrow. Practical, career-advancing skills designed for BRAC leaders and staff.';
 
   return {
@@ -521,17 +521,17 @@ export function createDefaultLandingPage(
     lastUpdatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     lastUpdatedBy: 'System Administrator',
     seo: {
-      pageTitle: `BLD LMS — BRAC Learning Portal & Academy`,
-      metaDescription: `BLD LMS by BRAC: Practical skills, leadership pathways, certified courses, and interactive training modules.`,
-      metaKeywords: ['BLD LMS', 'BRAC', 'BRAC Learning', 'Skills Academy', 'Professional Development', 'Certifications'],
+      pageTitle: `LLD LMS — Learning & Leadership Development, by BRAC`,
+      metaDescription: `LLD LMS by BRAC: Practical skills, leadership pathways, certified courses, and interactive training modules.`,
+      metaKeywords: ['LLD LMS', 'BRAC', 'BRAC Learning', 'Skills Academy', 'Leadership Development', 'Professional Development', 'Certifications'],
       ogImageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&h=630&q=85',
       canonicalUrl: `https://academy.enterprise.io/p/${lmsId}`,
       schemaType: 'EducationalOrganization',
-      author: 'BRAC — BLD LMS',
+      author: 'BRAC — LLD LMS',
       language: 'en'
     },
     navbar: {
-      siteTitle: 'BLD LMS',
+      siteTitle: 'LLD LMS',
       logoOverride: logoUrl,
       sticky: true,
       style: 'glass',
@@ -815,7 +815,7 @@ export function createDefaultLandingPage(
        {
         id: 'why-lms',
         type: 'why_lms',
-        title: 'Why BLD LMS by BRAC',
+        title: 'Why LLD LMS by BRAC',
         subtitle: 'Built to deliver practical capability and career-advancing skills across BRAC and Bangladesh.',
         badge: 'Why Learn With BRAC',
         enabled: true,
@@ -826,7 +826,7 @@ export function createDefaultLandingPage(
         },
         padding: 'spacious',
         content: {
-          heading: 'Why Learn with BLD LMS by BRAC',
+          heading: 'Why Learn with LLD LMS by BRAC',
           intro: 'Accessible, practical, high-impact learning crafted with BRAC’s trusted excellence and 10 Minute School-style ease of learning.',
           valueProps: [
             { id: 'vp-1', icon: 'school', title: 'Actionable, Practical Lessons', description: 'Bite-sized video lessons and interactive exercises designed to be applied immediately in the field.' },
@@ -1225,7 +1225,7 @@ export function createDefaultLandingPage(
     ],
     footer: {
       brandSummary: `${safeName} is the centralized enterprise learning platform of BRAC, delivering accredited learning pathways, interactive classroom players, and verifiable digital credentials across BRAC and partner organizations.`,
-      copyrightText: `© ${new Date().getFullYear()} BRAC — BLD LMS Portal. All Rights Reserved.`,
+      copyrightText: `© ${new Date().getFullYear()} BRAC — LLD LMS Portal. All Rights Reserved.`,
       showSocialLinks: true,
       socialLinks: [
         { platform: 'linkedin', url: 'https://linkedin.com' },

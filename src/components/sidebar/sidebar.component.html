@@ -75,7 +75,7 @@
     }
 
     @for (item of navItems; track item.label) {
-      @if (isAllowed(item.roles, item.label)) {
+      @if (isAllowed(item.roles, item.label, item)) {
         
         @if (isCompact()) {
           <!-- ============================================================= -->

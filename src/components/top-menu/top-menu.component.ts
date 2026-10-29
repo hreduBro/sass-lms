@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { LmsDataService } from '../../services/lms-data.service';
-import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive } from '../../models/navigation.model';
+import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChildActive, isAdminParentAllowed } from '../../models/navigation.model';
 
 @Component({
   selector: 'app-top-menu',
@@ -55,7 +55,7 @@ import { NavItem, NavChildItem, APP_NAV_ITEMS, isNavigationItemActive, isNavChil
           
           <div class="flex items-center gap-1 sm:gap-1.5 min-w-max">
             @for (item of navItems; track item.label) {
-              @if (isAllowed(item.roles, item.label)) {
+              @if (isAllowed(item.roles, item.label, item)) {
                 @if (item.children && item.children.length > 0) {
                   <!-- Nested Dropdown Menu Trigger Item -->
                   <div 
@@ -420,11 +420,15 @@ export class TopMenuComponent implements AfterViewInit, OnDestroy {
     return isNavChildActive(this.router.url, child);
   }
 
-  isAllowed(roles?: string[], label?: string): boolean {
+  isAllowed(roles?: string[], label?: string, item?: NavItem): boolean {
     const permitted = this.lms.permittedRoles();
     const activeRole = this.lms.activeRole();
 
     if (!permitted.includes(activeRole)) {
+      return false;
+    }
+
+    if (item && !isAdminParentAllowed(item, activeRole, this.lms.isAdminPortalSession())) {
       return false;
     }
 

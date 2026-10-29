@@ -1,180 +1,200 @@
-<div class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-950 text-slate-100 relative overflow-hidden select-none font-sans">
-  
-  <!-- Subtle ambient decorative glow with BRAC magenta (#EC008C) & deep magenta (#700042) -->
-  <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#EC008C]/20 blur-3xl pointer-events-none"></div>
-  <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#700042]/30 blur-3xl pointer-events-none"></div>
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#EC008C]/5 blur-[120px] pointer-events-none"></div>
+<main class="admin-login-layout">
+  <section class="learning-story-panel" aria-label="BRAC ONE LMS">
+    <img 
+      class="learning-bg-image" 
+      src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1920&q=85" 
+      alt="Collaborative learning environment" 
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="learning-bg-wash" aria-hidden="true"></div>
 
-  <!-- Main Card Container -->
-  <div class="relative w-full max-w-lg z-10">
-    
-    <!-- Outer glass card with BRAC magenta border glow -->
-    <div class="rounded-3xl bg-slate-900/90 backdrop-blur-2xl border border-[#EC008C]/30 shadow-2xl shadow-[#EC008C]/10 p-6 sm:p-10 transition-all duration-300">
-      
-      <!-- BRAC Brand Header -->
-      <div class="flex flex-col items-center text-center space-y-4 mb-8">
-        
-        <!-- Logo Emblem -->
-        <div class="relative group">
-          <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#EC008C] to-[#C40072] opacity-75 blur-sm group-hover:opacity-100 transition duration-300"></div>
-          <div class="relative w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center p-3.5 border border-[#EC008C]/40 shadow-inner">
-            <img 
-              [src]="bracLogoIcon" 
-              alt="BRAC Logo" 
-              class="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(236,0,140,0.5)]"
-              onerror="this.src='assets/bracit-logo-light.png'"
-            />
-          </div>
-        </div>
+    <a routerLink="/login" class="brand-anchor" aria-label="BRAC ONE LMS learner portal">
+      <img [src]="bracLogoIcon" alt="BRAC" class="brand-logo-img" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <span class="brand-title-wrap">
+        <span class="brand-title-main">BRAC ONE LMS</span>
+        <span class="brand-title-sub">ENTERPRISE LEARNING CLOUD</span>
+      </span>
+    </a>
 
-        <!-- Portal Titles -->
-        <div class="space-y-1.5">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#EC008C]/15 text-[#EC008C] border border-[#EC008C]/30 shadow-xs">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#EC008C] animate-pulse"></span>
-            <span>Enterprise Admin Portal</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            BRAC Learning Portal
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-400 font-medium max-w-sm">
-            Sign in with administrative credentials to access System Admin and Org Admin workspaces.
-          </p>
-        </div>
+    <div class="story-center">
+      <div class="story-eyebrow">
+        <span class="story-eyebrow-dot" aria-hidden="true"></span>
+        One platform. Every possibility.
+      </div>
+      <h1 class="story-heading">Learning that moves people<br /><em>forward.</em></h1>
+      <p class="story-lead">
+        BRAC ONE LMS is the unified enterprise learning ecosystem built to upskill teams, scale knowledge delivery, and drive measurable social and institutional impact.
+      </p>
 
-        <!-- Dual Scope Indicator Pill -->
-        <div class="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 font-semibold text-emerald-400">
-            <span class="material-symbols-outlined text-xs">shield_person</span>
-            System Admin
-          </span>
-          <span class="text-slate-500">•</span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-800/80 border border-slate-700 font-semibold text-sky-400">
-            <span class="material-symbols-outlined text-xs">corporate_fare</span>
-            Org Admin
-          </span>
-        </div>
+      <div class="story-highlight-card">
+        <span class="material-symbols-outlined" aria-hidden="true">school</span>
+        <p>
+          <strong>Comprehensive capability engine.</strong> Orchestrate accredited self-paced courses, offline cohort workshops, real-time assessment matrices, and multi-tenant compliance across all administrative hubs.
+        </p>
       </div>
 
-      <!-- Error Alert Message -->
+      <div class="metrics-grid" aria-label="Platform highlights">
+        <div class="metric-item">
+          <span class="metric-value">50K<span class="metric-unit">+</span></span>
+          <span class="metric-label">Active Learners</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">200<span class="metric-unit">+</span></span>
+          <span class="metric-label">Courses &amp; Curricula</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">02<span class="metric-unit"> / consoles</span></span>
+          <span class="metric-label">System &amp; Org Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="story-footer-bar">
+      <span>Designed for institutional scale &amp; human impact.</span>
+      <span class="story-footer-tag">BRAC ONE LMS &bull; ENTERPRISE</span>
+    </footer>
+  </section>
+
+  <section class="signin-panel-container" aria-labelledby="admin-signin-title">
+    <header class="signin-panel-header">
+      <span class="portal-badge">
+        <span class="material-symbols-outlined" aria-hidden="true">shield_person</span>
+        Administrator Portal
+      </span>
+    </header>
+
+    <div class="signin-panel-body">
+      <div class="signin-icon-circle" aria-hidden="true">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+      </div>
+      <p class="form-kicker">Secure management access</p>
+      <h2 id="admin-signin-title" class="signin-title">Welcome back.</h2>
+      <p class="signin-subtitle">Sign in with administrative credentials to access System Admin and Org Admin consoles.</p>
+
+      <div class="admin-roles-pills">
+        <span class="role-pill">
+          <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+          System Admin
+        </span>
+        <span class="role-pill">
+          <span class="material-symbols-outlined" aria-hidden="true">corporate_fare</span>
+          Org Admin
+        </span>
+      </div>
+
       @if (errorMessage()) {
-        <div class="mb-6 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5 animate-in fade-in duration-200">
-          <span class="material-symbols-outlined text-rose-400 text-base shrink-0">error</span>
+        <div class="alert-error" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">error</span>
           <span>{{ errorMessage() }}</span>
         </div>
       }
 
-      <!-- Login Form -->
-      <form (ngSubmit)="onSignIn()" class="space-y-4 sm:space-y-5" autocomplete="on">
-        
-        <!-- Username Field -->
-        <div class="space-y-1.5">
-          <label for="admin-username" class="block text-xs font-semibold text-slate-300">
-            Username
-          </label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <span class="material-symbols-outlined text-lg">person</span>
-            </div>
+      <form (ngSubmit)="onSignIn()" autocomplete="on">
+        <div class="auth-form-field">
+          <label for="admin-username" class="field-label">Admin Username</label>
+          <div class="field-input-wrapper">
+            <span class="material-symbols-outlined field-input-icon" aria-hidden="true">person</span>
             <input 
-              id="admin-username"
+              id="admin-username" 
+              class="text-input" 
               type="text" 
-              name="username"
-              [ngModel]="username()"
-              (ngModelChange)="username.set($event)"
-              required
-              placeholder="Enter username"
-              class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 transition-all focus:outline-none focus:border-[#EC008C] focus:ring-2 focus:ring-[#EC008C]/20"
+              name="username" 
+              autocomplete="username" 
+              [ngModel]="username()" 
+              (ngModelChange)="username.set($event)" 
+              required 
+              placeholder="Enter your username" 
             />
           </div>
         </div>
 
-        <!-- Password Field -->
-        <div class="space-y-1.5">
-          <label for="admin-password" class="block text-xs font-semibold text-slate-300">
-            Password
-          </label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <span class="material-symbols-outlined text-lg">lock</span>
-            </div>
+        <div class="auth-form-field">
+          <label for="admin-password" class="field-label">Password</label>
+          <div class="field-input-wrapper">
+            <span class="material-symbols-outlined field-input-icon" aria-hidden="true">lock</span>
             <input 
-              id="admin-password"
+              id="admin-password" 
+              class="text-input" 
               [type]="showPassword() ? 'text' : 'password'" 
-              name="password"
-              [ngModel]="password()"
-              (ngModelChange)="password.set($event)"
-              required
-              placeholder="Enter password"
-              class="w-full pl-10 pr-11 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 transition-all focus:outline-none focus:border-[#EC008C] focus:ring-2 focus:ring-[#EC008C]/20"
+              name="password" 
+              autocomplete="current-password" 
+              [ngModel]="password()" 
+              (ngModelChange)="password.set($event)" 
+              required 
+              placeholder="Enter your password" 
             />
             <button 
               type="button" 
-              (click)="togglePasswordVisibility()"
-              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
-              title="Toggle password view">
-              <span class="material-symbols-outlined text-lg">
-                {{ showPassword() ? 'visibility_off' : 'visibility' }}
-              </span>
+              class="password-toggle-btn" 
+              (click)="togglePasswordVisibility()" 
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'" 
+              [attr.aria-pressed]="showPassword()">
+              <span class="material-symbols-outlined" aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
             </button>
           </div>
         </div>
 
-        <!-- Remember Me Checkbox -->
-        <div class="flex items-center justify-between text-xs pt-1">
-          <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-300">
+        <div class="remember-row">
+          <label class="checkbox-label">
             <input 
               type="checkbox" 
-              name="rememberMe"
-              [ngModel]="rememberMe()"
-              (ngModelChange)="rememberMe.set($event)"
-              class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-[#EC008C] focus:ring-[#EC008C]/30 focus:ring-offset-0"
+              name="rememberMe" 
+              [ngModel]="rememberMe()" 
+              (ngModelChange)="rememberMe.set($event)" 
             />
-            <span>Remember session</span>
+            <span>Remember admin session</span>
           </label>
-
-          <span class="text-[11px] text-slate-500 font-mono">
-            TLS 1.3 • AES-256
-          </span>
         </div>
 
-        <!-- Submit Button Styled with BRAC Magenta -->
         <button 
-          id="btn-admin-signin"
-          type="submit"
-          [disabled]="isSubmitting()"
-          class="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#EC008C] to-[#C40072] hover:from-[#d6007e] hover:to-[#b00066] shadow-lg shadow-[#EC008C]/25 transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2">
+          id="btn-admin-signin" 
+          type="submit" 
+          class="signin-action-btn" 
+          [disabled]="isSubmitting()" 
+          [attr.aria-busy]="isSubmitting()">
           @if (isSubmitting()) {
-            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span class="spinner" aria-hidden="true"></span>
             <span>Verifying Credentials...</span>
           } @else {
-            <span class="material-symbols-outlined text-lg">login</span>
-            <span>Sign In to Admin Dashboard</span>
+            <span>Sign In to Admin Console</span>
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
           }
         </button>
-
       </form>
 
-      <!-- Footer Info -->
-      <div class="mt-8 pt-6 border-t border-slate-800 text-center space-y-2">
-        <p class="text-[11px] text-slate-400">
-          BRAC IT Services &bull; Enterprise Learning Management Platform
-        </p>
-        <p class="text-[10px] text-slate-500 font-mono">
-          &copy; 2026 BRAC. All Rights Reserved.
-        </p>
+      <p class="security-badge-note">
+        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+        <span>Restricted to authorized system and organization administrators</span>
+      </p>
+
+      <div class="recovery-bridge">
+        <span>Forgot your password?</span>
+        <button 
+          type="button" 
+          class="recovery-action-btn" 
+          (click)="showRecoveryInfo.update(v => !v)" 
+          [attr.aria-expanded]="showRecoveryInfo()" 
+          aria-controls="admin-recovery-info">
+          <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+          <span>Reset Password</span>
+        </button>
       </div>
 
+      @if (showRecoveryInfo()) {
+        <div id="admin-recovery-info" class="recovery-info-card" role="status">
+          <p class="recovery-info-title">
+            <span class="material-symbols-outlined" aria-hidden="true">support_agent</span>
+            Administrator account recovery
+          </p>
+          <p>Contact your system administrator or IT support team (helpdesk@brac.net) to securely reset your administrative credentials.</p>
+        </div>
+      }
     </div>
 
-    <!-- Return to standard user portal link -->
-    <div class="mt-4 text-center">
-      <a 
-        routerLink="/login" 
-        class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#EC008C] transition-colors">
-        <span class="material-symbols-outlined text-sm">arrow_back</span>
-        <span>Standard Learner / Staff Portal</span>
-      </a>
-    </div>
-
-  </div>
-</div>
+    <footer class="signin-panel-footer">
+      &copy; 2026 BRAC. All Rights Reserved.
+    </footer>
+  </section>
+</main>

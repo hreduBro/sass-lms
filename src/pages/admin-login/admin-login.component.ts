@@ -10,6 +10,7 @@ import { LocalPersistenceRepository } from '../../services/local-persistence.rep
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './admin-login.component.html',
+  styleUrl: './admin-login.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminLoginComponent {
@@ -23,6 +24,7 @@ export class AdminLoginComponent {
   showPassword = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string>('');
+  showRecoveryInfo = signal<boolean>(false);
 
   readonly bracLogoIcon = 'https://freelogopng.com/images/all_img/1679820004brac-icon.png';
   readonly bracLogoTextLight = 'assets/bracit-logo-light.png';

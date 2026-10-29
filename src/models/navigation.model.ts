@@ -593,7 +593,6 @@ export function isNavChildActive(currentUrl: string, child: NavChildItem | strin
     if (childRoute === '/certificates/badges' && tabVal === 'earned' && cleanUrl === '/certificates/badges' && !currentUrl.includes('tab=')) {
       return true;
     }
-    return false;
   }
 
   // If this child has no queryParams.tab, check if another tab query param is present in current URL
@@ -707,3 +706,17 @@ export function isNavigationItemActive(currentUrl: string, item: NavItem): boole
 
   return false;
 }
+
+// ponytail: route-based parent filter for admin portal sessions; upgrade to permission schema if dynamic menus added
+export function isAdminParentAllowed(item: NavItem, activeRole: string, isAdminPortalSession: boolean): boolean {
+  if (!isAdminPortalSession) return true;
+  const route = item?.route ? item.route.split('?')[0].replace(/\/+$/, '') : '';
+  if (activeRole === 'system_admin' || activeRole === 'super_admin') {
+    return route === '/dashboard' || route === '/tenants';
+  }
+  if (activeRole === 'tenant_admin') {
+    return route === '/organization/dashboard' || route === '/lms';
+  }
+  return false;
+}
+

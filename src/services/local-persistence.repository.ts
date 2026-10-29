@@ -134,12 +134,12 @@ export class LocalPersistenceRepository {
         if (map[lmsId]) {
           const loaded = map[lmsId];
           // Always sanitize names, titles, and hero headlines
-          loaded.lmsName = 'BLD LMS';
+          loaded.lmsName = 'LLD LMS';
           if (loaded.navbar) {
-            loaded.navbar.siteTitle = 'BLD LMS';
+            loaded.navbar.siteTitle = 'LLD LMS';
           }
           if (loaded.footer) {
-            loaded.footer.copyrightText = '© 2026 BRAC — BLD LMS Portal. All Rights Reserved.';
+            loaded.footer.copyrightText = '© 2026 BRAC — LLD LMS Portal. All Rights Reserved.';
           }
           if (Array.isArray(loaded.sections)) {
             const hero = loaded.sections.find((s: any) => s.type === 'hero_banner');
@@ -155,9 +155,9 @@ export class LocalPersistenceRepository {
 
             const whySec = loaded.sections.find((s: any) => s.type === 'why_lms');
             if (whySec) {
-              whySec.title = 'Why BLD LMS by BRAC';
+              whySec.title = 'Why LLD LMS by BRAC';
               if (whySec.content) {
-                whySec.content.heading = 'Why Learn with BLD LMS by BRAC';
+                whySec.content.heading = 'Why Learn with LLD LMS by BRAC';
               }
             }
 

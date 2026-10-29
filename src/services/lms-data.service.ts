@@ -1972,7 +1972,7 @@ const INITIAL_LMS_INSTANCES: LmsInstance[] = [
     updatedAt: '2024-03-01',
     createdBy: 'System Admin',
     basicInfo: {
-      lmsName: 'BLD LMS',
+      lmsName: 'LLD LMS',
       programmeDepartment: 'BRAC Learning Academy',
       summary: 'Centralized enterprise learning management system managing staff certifications, skill pathways, and workforce education.',
       goal: 'Empower and certify over 45,000+ staff members and community leaders with modern, accessible skills.',
@@ -5302,19 +5302,25 @@ export class LmsDataService {
     this.logAction('Role Switch', `Switched active view mode to: ${roleName}`, 'info');
     this.showToast(`Switched active view mode to "${roleName.toUpperCase()}"`, 'info', 3000, 'Role Switched', 'RBAC');
 
-    // If current route is restricted for newly active role, immediately redirect to appropriate landing
     if (this.router) {
-      const currentUrl = this.router.url;
-      if (!this.isRouteAllowedForRole(currentUrl, role)) {
-        const targetLanding = role === 'lms_admin' ? '/lms/dashboard' : '/dashboard';
-        this.showToast(
-          `Access Restricted: "${roleName}" cannot access this page. Redirecting to ${role === 'lms_admin' ? 'LMS Admin Dashboard' : 'Dashboard'}.`,
-          'warning',
-          4000,
-          'Route Restricted',
-          'GUARD'
-        );
-        this.router.navigate([targetLanding]);
+      if (this.isAdminPortalSession()) {
+        const adminLanding = (role === 'system_admin' || role === 'super_admin')
+          ? '/dashboard'
+          : (role === 'tenant_admin' ? '/organization/dashboard' : '/dashboard');
+        this.router.navigate([adminLanding]);
+      } else {
+        const currentUrl = this.router.url;
+        if (!this.isRouteAllowedForRole(currentUrl, role)) {
+          const targetLanding = role === 'lms_admin' ? '/lms/dashboard' : '/dashboard';
+          this.showToast(
+            `Access Restricted: "${roleName}" cannot access this page. Redirecting to ${role === 'lms_admin' ? 'LMS Admin Dashboard' : 'Dashboard'}.`,
+            'warning',
+            4000,
+            'Route Restricted',
+            'GUARD'
+          );
+          this.router.navigate([targetLanding]);
+        }
       }
     }
   }
@@ -11128,7 +11134,7 @@ export class LmsDataService {
     const created = createDefaultLandingPage(
       lmsId,
       targetTenant?.id || 'tenant-1',
-      'BLD LMS',
+      'LLD LMS',
       'Learn Today. Lead Tomorrow. Practical skills and leadership pathways for BRAC.',
       targetLms?.branding?.logoUrl || targetLms?.basicInfo?.logo?.url || targetTenant?.branding?.logoUrl || '',
       '#EC008C',
