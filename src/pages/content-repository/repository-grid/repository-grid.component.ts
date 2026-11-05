@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LmsDataService } from '../../../services/lms-data.service';
 import { ConfirmationModalService } from '../../../services/confirmation-modal.service';
@@ -13,7 +13,8 @@ import {
   SharingMode,
   ContentStatus,
   formatDateToDDMMYYYY,
-  parseDateString
+  parseDateString,
+  isRepositoryActionAllowed
 } from '../../../models/content-repository.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
@@ -32,10 +33,11 @@ import { FilterSectionComponent } from '../../../components/data-grid/filter-sec
   templateUrl: './repository-grid.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RepositoryGridComponent {
+export class RepositoryGridComponent implements OnInit {
   lmsData = inject(LmsDataService);
   private modalService = inject(ConfirmationModalService);
   router = inject(Router);
+  private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
 
   // View mode: 'table' | 'grid'
@@ -43,6 +45,9 @@ export class RepositoryGridComponent {
 
   // Search
   searchQuery = signal<string>('');
+
+  // Question Bank Quick Filter View (§3.2)
+  isQuestionBankView = signal<boolean>(false);
 
   // Filter Drawer Open/Close State (Like LMS Grid)
   isFilterOpen = signal<boolean>(false);
@@ -52,6 +57,7 @@ export class RepositoryGridComponent {
   appliedType = signal<string>('All');
   appliedStatus = signal<string>('All');
   appliedSource = signal<string>('All');
+  appliedGrading = signal<string>('All');
   appliedSortBy = signal<string>('createdAt');
   sortDirection = signal<'asc' | 'desc'>('desc');
 
@@ -60,6 +66,7 @@ export class RepositoryGridComponent {
   draftType = signal<string>('All');
   draftStatus = signal<string>('All');
   draftSource = signal<string>('All');
+  draftGrading = signal<string>('All');
   draftSortBy = signal<string>('createdAt');
 
   // Aliases for template bindings
@@ -67,6 +74,7 @@ export class RepositoryGridComponent {
   selectedType = this.appliedType;
   selectedStatus = this.appliedStatus;
   selectedSource = this.appliedSource;
+  selectedGrading = this.appliedGrading;
   sortBy = this.appliedSortBy;
 
   toggleFilterPanel() {
@@ -198,6 +206,12 @@ export class RepositoryGridComponent {
     { value: 'Expired', label: 'Expired' }
   ];
 
+  gradingOptions: SelectOption[] = [
+    { value: 'All', label: 'All Grading Modes' },
+    { value: 'Auto', label: 'Auto' },
+    { value: 'Needs manual grading', label: 'Needs manual grading' }
+  ];
+
   sourceOptions: SelectOption[] = [
     { value: 'All', label: 'All Sources' },
     { value: 'This LMS', label: 'This LMS (Created Here)' },
@@ -212,14 +226,32 @@ export class RepositoryGridComponent {
     { value: 'title', label: 'Repository Name (A-Z)' }
   ];
 
+  ngOnInit() {
+    // Read route param for direct item detail view /content-repository/view/:id
+    const viewId = this.route.snapshot.paramMap.get('id');
+    if (viewId) {
+      const item = this.lmsData.repositoryItems().find(r => r.id === viewId);
+      if (item) {
+        this.selectedItemForView.set(item);
+      }
+    }
+  }
+
+  // Toggle Question Bank View Quick Filter (§3.2)
+  toggleQuestionBankView() {
+    this.isQuestionBankView.update(v => !v);
+  }
+
   // Filtered and Sorted Repository Items
   filteredItems = computed(() => {
     const all = this.lmsData.activeLmsRepositoryItems();
     const query = this.searchQuery().trim().toLowerCase();
-    const fam = this.appliedFamily();
+    const isQb = this.isQuestionBankView();
+    const fam = isQb ? 'Assessment' : this.appliedFamily();
     const typ = this.appliedType();
     const st = this.appliedStatus();
     const src = this.appliedSource();
+    const grd = this.appliedGrading();
     const currentLmsId = this.activeLmsId();
 
     return all.filter(item => {
@@ -233,7 +265,7 @@ export class RepositoryGridComponent {
         }
       }
 
-      // Filter by Family
+      // Filter by Family (or Question Bank quick view)
       if (fam !== 'All' && item.family !== fam) {
         return false;
       }
@@ -246,6 +278,14 @@ export class RepositoryGridComponent {
       // Filter by Status
       if (st !== 'All' && item.status !== st) {
         return false;
+      }
+
+      // Filter by Grading
+      if (grd !== 'All') {
+        const itemGrading = this.getGradingLabel(item);
+        if (itemGrading !== grd) {
+          return false;
+        }
       }
 
       // Filter by Source
@@ -321,6 +361,7 @@ export class RepositoryGridComponent {
       this.draftType.set(this.appliedType());
       this.draftStatus.set(this.appliedStatus());
       this.draftSource.set(this.appliedSource());
+      this.draftGrading.set(this.appliedGrading());
       this.draftSortBy.set(this.appliedSortBy());
       this.isFilterOpen.set(true);
     } else {
@@ -333,6 +374,7 @@ export class RepositoryGridComponent {
     this.appliedType.set(this.draftType());
     this.appliedStatus.set(this.draftStatus());
     this.appliedSource.set(this.draftSource());
+    this.appliedGrading.set(this.draftGrading());
     this.appliedSortBy.set(this.draftSortBy());
     this.isFilterOpen.set(false);
   }
@@ -342,6 +384,7 @@ export class RepositoryGridComponent {
     this.draftType.set('All');
     this.draftStatus.set('All');
     this.draftSource.set('All');
+    this.draftGrading.set('All');
     this.draftSortBy.set('createdAt');
   }
 
@@ -351,8 +394,10 @@ export class RepositoryGridComponent {
     this.appliedType.set('All');
     this.appliedStatus.set('All');
     this.appliedSource.set('All');
+    this.appliedGrading.set('All');
     this.appliedSortBy.set('createdAt');
     this.sortDirection.set('desc');
+    this.isQuestionBankView.set(false);
     this.clearFilterDraft();
   }
 
@@ -401,6 +446,11 @@ export class RepositoryGridComponent {
   // Check if current LMS owns item
   isOwner(item: RepositoryItem): boolean {
     return item.owningLmsId === this.activeLmsId();
+  }
+
+  // §3.3 Check if an action is allowed based on ownership and status
+  canPerformAction(action: 'view' | 'continueEditing' | 'editSharing' | 'updateExpiry' | 'activate' | 'deactivate', item: RepositoryItem): boolean {
+    return isRepositoryActionAllowed(action, item.status, this.isOwner(item));
   }
 
   // Badge stylings

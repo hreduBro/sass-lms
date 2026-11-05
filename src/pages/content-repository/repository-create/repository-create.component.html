@@ -12,7 +12,7 @@
         </a>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-xs font-semibold text-tenant-600 dark:text-tenant-400">
-          {{ isEditMode() ? 'Edit Repository Item' : 'Creation Wizard' }}
+          {{ isEditMode() ? 'Edit Repository Item' : 'Create Repository Item' }}
         </span>
         <span class="text-text-secondary text-xs">/</span>
         <span class="text-[11px] font-medium text-text-secondary">
@@ -24,21 +24,24 @@
         @if (isEditMode()) {
           @if (currentStep() === 1) { Edit Item – Details & Provenance }
           @else if (currentStep() === 2) { Edit Item – Content Family & Type }
-          @else if (currentStep() === 3) { Edit Item – Content Setup & Media }
-          @else { Edit Item – Sharing & Publishing }
+          @else if (currentStep() === 3) { Edit Item – Content Setup & Studio }
+          @else if (currentStep() === 4) { Edit Item – Sharing Mode }
+          @else { Edit Item – Save & Publish }
         } @else {
-          @if (currentStep() === 1) { Create Item – Details & Provenance }
-          @else if (currentStep() === 2) { Create Item – Content Family & Type }
-          @else if (currentStep() === 3) { Create Item – Content Setup & Media }
-          @else { Create Item – Sharing & Publishing }
+          @if (currentStep() === 1) { Step 1: Item Details }
+          @else if (currentStep() === 2) { Step 2: Content Family & Type }
+          @else if (currentStep() === 3) { Step 3: Content Setup }
+          @else if (currentStep() === 4) { Step 4: Sharing Mode }
+          @else { Step 5: Save as Draft or Publish }
         }
       </h1>
 
       <p class="text-xs text-text-secondary mt-0.5">
-        @if (currentStep() === 1) { Enter title in English & Bangla, authors, and schedule window. }
-        @else if (currentStep() === 2) { Select between Learning and Assessment families, and pick the authoritative content type. }
-        @else if (currentStep() === 3) { Configure media files, document uploads, or question set references. }
-        @else { Set multi-LMS sharing scope across {{ activeOrg().name }} and publish to repository. }
+        @if (currentStep() === 1) { Set title (English/Bangla), authors attribution, schedule window, description & thumbnail. }
+        @else if (currentStep() === 2) { Choose between Learning materials and Fixed Assessment types (§2.2). }
+        @else if (currentStep() === 3) { Author material directly or upload media. Assessments are built in the integrated builder. }
+        @else if (currentStep() === 4) { Decide repository sharing: Private, Organization-wide, or Custom Share (§2.5). }
+        @else { Review item configuration and save as Draft or Publish to repository grid (§2.7). }
       </p>
     </div>
 
@@ -63,7 +66,7 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 2. REUSABLE STEPPER BAR (IDENTICAL TO CREATE LMS)                         -->
+  <!-- 2. REUSABLE 5-STEP STEPPER BAR                                            -->
   <!-- ========================================================================= -->
   <app-stepper
     [steps]="steps"
@@ -99,10 +102,10 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 4. STEPPER FORM WIZARD PANELS                                             -->
+  <!-- 4. STEPPER FORM WIZARD PANELS (5 STEPS §2)                                -->
   <!-- ========================================================================= -->
 
-  <!-- STEP 1: ITEM DETAILS & PROVENANCE -->
+  <!-- STEP 1: ITEM DETAILS & PROVENANCE (§2.1) -->
   @if (currentStep() === 1) {
     <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
       <form [formGroup]="step1Form" class="space-y-5 text-xs">
@@ -153,7 +156,7 @@
           </div>
         </div>
 
-        <!-- Authors Section -->
+        <!-- Authors Section (§2.6 Attribution) -->
         <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border space-y-3"
           [class.border-rose-500]="hasError('authors')"
           [class.border-base-200]="!hasError('authors')"
@@ -162,7 +165,7 @@
           <div class="flex items-center justify-between">
             <label class="font-bold text-text-primary flex items-center gap-1.5">
               <span class="material-symbols-outlined text-sm text-tenant-500">edit</span>
-              <span>Author(s)</span> <span class="text-rose-500">*</span>
+              <span>Author(s) Attribution</span> <span class="text-rose-500">*</span>
             </label>
             <span class="text-[11px] text-text-secondary">{{ selectedAuthors().length }} Selected</span>
           </div>
@@ -307,7 +310,7 @@
     </div>
   }
 
-  <!-- STEP 2: CONTENT FAMILY & TYPE SELECTION -->
+  <!-- STEP 2: CONTENT FAMILY & TYPE SELECTION (§2.2) -->
   @if (currentStep() === 2) {
     <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
       <div>
@@ -340,7 +343,7 @@
                 }
               </div>
               <p class="text-xs text-text-secondary mt-1">
-                Instructional media including Videos, Audios, PDFs, Slides, Readings, Recorded Classes, and Books.
+                Instructional media: Video, Audio, PDF / Document, Slides, Reading, Recorded Class, Book, External Link.
               </p>
             </div>
           </div>
@@ -364,7 +367,7 @@
                 }
               </div>
               <p class="text-xs text-text-secondary mt-1">
-                Quizzes, Exams, Assignments, Pre-Tests, Post-Tests and Surveys managed through the centralized repository.
+                Authored inside repository: Quiz, Exam, Assignment, Pre-Test, Post-Test, Survey.
               </p>
             </div>
           </div>
@@ -402,7 +405,7 @@
             }
           </div>
         } @else {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             @for (typ of assessmentTypes; track typ.type) {
               <div
                 (click)="selectType(typ.type)"
@@ -430,198 +433,591 @@
     </div>
   }
 
-  <!-- STEP 3: CONTENT SETUP BY TYPE -->
+  <!-- STEP 3: CONTENT SETUP BY FAMILY (§2.3a & §2.3b) -->
   @if (currentStep() === 3) {
     <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
       <div>
         <h2 class="text-xl font-bold text-text-primary">
           Content Setup: {{ selectedType() }}
         </h2>
-        <p class="text-xs text-text-secondary">Provide media files, URLs, or parameter configuration for {{ selectedType() }}.</p>
+        <p class="text-xs text-text-secondary">
+          @if (selectedFamily() === 'Learning') {
+            Upload files, provide URLs, or format reading text directly (§2.3a).
+          } @else {
+            Author assessment questions, benchmark rules, and preview sample delivery (§2.3b).
+          }
+        </p>
       </div>
 
-      <!-- Dynamic Type Form Switch -->
-      @if (selectedType() === 'Video') {
-        <form [formGroup]="videoForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div class="flex items-center gap-4">
-              <label class="font-bold text-text-primary">Source Type:</label>
-              <label class="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" formControlName="source" value="upload" class="text-tenant-600">
-                <span>File Upload (MP4 / WebM)</span>
-              </label>
-              <label class="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" formControlName="source" value="embed" class="text-tenant-600">
-                <span>Streaming URL (HLS / Vimeo)</span>
-              </label>
-            </div>
-
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Video Stream or Hosted URL</label>
-              <input type="text" formControlName="videoUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">File Name</label>
-                <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+      <!-- ========================================================================= -->
+      <!-- 3a. LEARNING TYPES SETUP (4 PATTERNS)                                     -->
+      <!-- ========================================================================= -->
+      @if (selectedFamily() === 'Learning') {
+        
+        <!-- Pattern 1: File Upload (PDF, Audio, Slides, Book) -->
+        @if (selectedType() === 'PDF / Document') {
+          <form [formGroup]="documentForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <!-- Custom Uploader Dropzone matching author-create styling -->
+              <div
+                (dragover)="onFileDragOver('PDF / Document', $event)"
+                (dragleave)="onFileDragLeave('PDF / Document', $event)"
+                (drop)="onFileDrop('PDF / Document', $event)"
+                [class.border-tenant-500]="isDraggingTarget('PDF / Document')"
+                [class.bg-tenant-50/20]="isDraggingTarget('PDF / Document')"
+                class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                <div class="flex justify-center">
+                  <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                </div>
+                <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Drag and drop your document file here, or
+                  <button
+                    type="button"
+                    (click)="pdfFileInput.click()"
+                    class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                    <span>{{ documentForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                  </button>
+                  <input
+                    #pdfFileInput
+                    type="file"
+                    [accept]="getUploadAccept('PDF / Document')"
+                    (change)="onCustomFileSelected('PDF / Document', $event)"
+                    class="hidden" />
+                </p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ getUploadHint('PDF / Document') }}
+                </p>
               </div>
+
+              <!-- Uploaded Document Card with Replace and Remove (§2.3a) -->
+              @if (documentForm.get('fileName')?.value) {
+                <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">description</span>
+                    <div class="truncate">
+                      <strong class="text-slate-900 dark:text-white block truncate">{{ documentForm.get('fileName')?.value }}</strong>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                        {{ documentForm.get('fileCategory')?.value || 'Document' }} &bull; {{ documentForm.get('fileSize')?.value || 'Standard' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      (click)="pdfFileInput.click()"
+                      class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeLearningFile('PDF / Document')"
+                      class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </form>
+        }
+
+        @if (selectedType() === 'Audio') {
+          <form [formGroup]="audioForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <!-- Custom Uploader Dropzone for Audio -->
+              <div
+                (dragover)="onFileDragOver('Audio', $event)"
+                (dragleave)="onFileDragLeave('Audio', $event)"
+                (drop)="onFileDrop('Audio', $event)"
+                [class.border-tenant-500]="isDraggingTarget('Audio')"
+                [class.bg-tenant-50/20]="isDraggingTarget('Audio')"
+                class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                <div class="flex justify-center">
+                  <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                </div>
+                <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Drag and drop your audio file here, or
+                  <button
+                    type="button"
+                    (click)="audioFileInput.click()"
+                    class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                    <span>{{ audioForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                  </button>
+                  <input
+                    #audioFileInput
+                    type="file"
+                    [accept]="getUploadAccept('Audio')"
+                    (change)="onCustomFileSelected('Audio', $event)"
+                    class="hidden" />
+                </p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ getUploadHint('Audio') }}
+                </p>
+              </div>
+
+              @if (audioForm.get('fileName')?.value) {
+                <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">audio_file</span>
+                    <div class="truncate">
+                      <strong class="text-slate-900 dark:text-white block truncate">{{ audioForm.get('fileName')?.value }}</strong>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ audioForm.get('fileSize')?.value }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      (click)="audioFileInput.click()"
+                      class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeLearningFile('Audio')"
+                      class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              }
+
               <div>
-                <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
+                <label class="block font-semibold text-text-primary mb-1">Duration (Minutes, Editable)</label>
                 <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
               </div>
             </div>
-          </div>
-        </form>
-      }
+          </form>
+        }
 
-      @if (selectedType() === 'PDF / Document') {
-        <form [formGroup]="documentForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div>
-              <app-custom-select
-                label="Document Category"
-                [options]="documentCategoryOptions"
-                formControlName="fileCategory"
-                [clearable]="false"
-                [searchable]="false">
-              </app-custom-select>
-            </div>
-
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">File Name</label>
-              <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Storage URL or Download Link</label>
-              <input type="text" formControlName="fileUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-          </div>
-        </form>
-      }
-
-      @if (selectedType() === 'Audio') {
-        <form [formGroup]="audioForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Audio Stream URL (MP3 / AAC)</label>
-              <input type="text" formControlName="audioUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">File Name</label>
-                <input type="text" formControlName="fileName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+        @if (selectedType() === 'Slides / Presentation') {
+          <form [formGroup]="slidesForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <!-- Custom Uploader Dropzone for Slides -->
+              <div
+                (dragover)="onFileDragOver('Slides / Presentation', $event)"
+                (dragleave)="onFileDragLeave('Slides / Presentation', $event)"
+                (drop)="onFileDrop('Slides / Presentation', $event)"
+                [class.border-tenant-500]="isDraggingTarget('Slides / Presentation')"
+                [class.bg-tenant-50/20]="isDraggingTarget('Slides / Presentation')"
+                class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                <div class="flex justify-center">
+                  <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                </div>
+                <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Drag and drop your presentation file here, or
+                  <button
+                    type="button"
+                    (click)="slidesFileInput.click()"
+                    class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                    <span>{{ slidesForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                  </button>
+                  <input
+                    #slidesFileInput
+                    type="file"
+                    [accept]="getUploadAccept('Slides / Presentation')"
+                    (change)="onCustomFileSelected('Slides / Presentation', $event)"
+                    class="hidden" />
+                </p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ getUploadHint('Slides / Presentation') }}
+                </p>
               </div>
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
-                <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-              </div>
-            </div>
-          </div>
-        </form>
-      }
 
-      @if (selectedType() === 'Reading') {
-        <form [formGroup]="readingForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Reading Content (HTML / Text)</label>
-              <textarea rows="6" formControlName="contentHtml" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary font-mono"></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">Approx Word Count</label>
-                <input type="number" formControlName="wordCount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-              </div>
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">Estimated Read Time (Minutes)</label>
-                <input type="number" formControlName="estimatedReadMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-              </div>
-            </div>
-          </div>
-        </form>
-      }
+              @if (slidesForm.get('fileName')?.value) {
+                <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">co_present</span>
+                    <div class="truncate">
+                      <strong class="text-slate-900 dark:text-white block truncate">{{ slidesForm.get('fileName')?.value }}</strong>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ slidesForm.get('fileSize')?.value }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      (click)="slidesFileInput.click()"
+                      class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeLearningFile('Slides / Presentation')"
+                      class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              }
 
-      @if (selectedType() === 'Recorded Class') {
-        <form [formGroup]="recordedClassForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">Session Date</label>
-                <input type="text" formControlName="sessionDate" placeholder="DD/MM/YYYY" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-              </div>
-              <div>
-                <label class="block font-semibold text-text-primary mb-1">Instructor</label>
-                <input type="text" formControlName="instructorName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-              </div>
-            </div>
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Session Recording URL</label>
-              <input type="text" formControlName="sessionUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-          </div>
-        </form>
-      }
-
-      @if (selectedType() === 'External Link') {
-        <form [formGroup]="externalLinkForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">External Resource URL</label>
-              <input type="text" formControlName="url" placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-            <div>
-              <label class="block font-semibold text-text-primary mb-1">Platform / Institution Tag</label>
-              <input type="text" formControlName="platformTag" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
-            </div>
-          </div>
-        </form>
-      }
-
-      @if (isAssessmentType(selectedType())) {
-        <form [formGroup]="questionSetForm" class="space-y-4 text-xs">
-          <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
-            <div>
-              <app-custom-select
-                label="Select Repository Assessment"
-                [options]="assessmentBankOptions()"
-                formControlName="assessmentId"
-                placeholder="Choose linked assessment...">
-              </app-custom-select>
-            </div>
-            @if (!isSurveyAssessmentType(selectedType())) {
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-semibold text-text-primary mb-1">Pass Mark Percentage</label>
-                  <input type="number" formControlName="passMarkPercent" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                  <label class="block font-semibold text-text-primary mb-1">Slide Count</label>
+                  <input type="number" formControlName="slideCount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-text-primary mb-1">Scoring Mode</label>
-                  <select formControlName="scoringMode" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
-                    <option value="scored">Scored</option>
-                    <option value="ungraded">Ungraded / Practice</option>
+                  <label class="block font-semibold text-text-primary mb-1">Format</label>
+                  <select formControlName="format" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
+                    <option value=".pptx">Microsoft PowerPoint (.pptx)</option>
+                    <option value=".ppt">PowerPoint 97-2003 (.ppt)</option>
+                    <option value=".odp">OpenDocument Presentation (.odp)</option>
                   </select>
                 </div>
               </div>
-            } @else {
-              <p class="text-[11px] text-text-secondary">
-                Surveys are unscored. Questions are attached without points, pass mark or answer key.
-              </p>
-            }
-          </div>
-        </form>
+            </div>
+          </form>
+        }
+
+        @if (selectedType() === 'Book / E-book') {
+          <form [formGroup]="bookForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <!-- Custom Uploader Dropzone for Book -->
+              <div
+                (dragover)="onFileDragOver('Book / E-book', $event)"
+                (dragleave)="onFileDragLeave('Book / E-book', $event)"
+                (drop)="onFileDrop('Book / E-book', $event)"
+                [class.border-tenant-500]="isDraggingTarget('Book / E-book')"
+                [class.bg-tenant-50/20]="isDraggingTarget('Book / E-book')"
+                class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                <div class="flex justify-center">
+                  <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                </div>
+                <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Drag and drop your book file here, or
+                  <button
+                    type="button"
+                    (click)="bookFileInput.click()"
+                    class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                    <span>{{ bookForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                  </button>
+                  <input
+                    #bookFileInput
+                    type="file"
+                    [accept]="getUploadAccept('Book / E-book')"
+                    (change)="onCustomFileSelected('Book / E-book', $event)"
+                    class="hidden" />
+                </p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ getUploadHint('Book / E-book') }}
+                </p>
+              </div>
+
+              @if (bookForm.get('fileName')?.value) {
+                <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                  <div class="flex items-center gap-3 overflow-hidden">
+                    <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">book</span>
+                    <div class="truncate">
+                      <strong class="text-slate-900 dark:text-white block truncate">{{ bookForm.get('fileName')?.value }}</strong>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ bookForm.get('fileSize')?.value }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      (click)="bookFileInput.click()"
+                      class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeLearningFile('Book / E-book')"
+                      class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Format</label>
+                  <select formControlName="format" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
+                    <option value="EPUB">EPUB Reader</option>
+                    <option value="PDF">PDF E-Book</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">ISBN (Optional)</label>
+                  <input type="text" formControlName="isbn" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Page Count</label>
+                  <input type="number" formControlName="pageCount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+              </div>
+            </div>
+          </form>
+        }
+
+        <!-- Pattern 2: Upload or Link (Video, Recorded Class) -->
+        @if (selectedType() === 'Video') {
+          <form [formGroup]="videoForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <div class="flex items-center gap-6 pb-2 border-b border-base-200">
+                <span class="font-bold text-text-primary uppercase tracking-wider">Source Switch:</span>
+                <label class="flex items-center gap-2 cursor-pointer font-semibold text-text-primary">
+                  <input type="radio" formControlName="source" value="upload" (change)="setVideoSource('upload')" class="text-tenant-600">
+                  <span>Upload File (MP4, WebM)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer font-semibold text-text-primary">
+                  <input type="radio" formControlName="source" value="embed" (change)="setVideoSource('embed')" class="text-tenant-600">
+                  <span>YouTube URL Reference</span>
+                </label>
+              </div>
+
+              @if (videoForm.get('source')?.value === 'upload') {
+                <!-- Custom Uploader Dropzone for Video -->
+                <div
+                  (dragover)="onFileDragOver('Video', $event)"
+                  (dragleave)="onFileDragLeave('Video', $event)"
+                  (drop)="onFileDrop('Video', $event)"
+                  [class.border-tenant-500]="isDraggingTarget('Video')"
+                  [class.bg-tenant-50/20]="isDraggingTarget('Video')"
+                  class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                  <div class="flex justify-center">
+                    <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                  </div>
+                  <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Drag and drop your video file here, or
+                    <button
+                      type="button"
+                      (click)="videoFileInput.click()"
+                      class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                      <span>{{ videoForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                    </button>
+                    <input
+                      #videoFileInput
+                      type="file"
+                      [accept]="getUploadAccept('Video')"
+                      (change)="onCustomFileSelected('Video', $event)"
+                      class="hidden" />
+                  </p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    {{ getUploadHint('Video') }}
+                  </p>
+                </div>
+
+                @if (videoForm.get('fileName')?.value) {
+                  <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                      <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">movie</span>
+                      <div class="truncate">
+                        <strong class="text-slate-900 dark:text-white block truncate">{{ videoForm.get('fileName')?.value }}</strong>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ videoForm.get('fileSize')?.value }}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        (click)="videoFileInput.click()"
+                        class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        (click)="removeLearningFile('Video')"
+                        class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">YouTube URL Reference <span class="text-rose-500">*</span></label>
+                  <input type="text" formControlName="videoUrl" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                  <p class="text-[11px] text-text-secondary mt-1">Links are verified references; video files are not downloaded.</p>
+                </div>
+              }
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">File / Title Reference</label>
+                  <input type="text" formControlName="fileName" readonly class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-xs text-text-secondary cursor-not-allowed" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
+                  <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+              </div>
+            </div>
+          </form>
+        }
+
+        @if (selectedType() === 'Recorded Class') {
+          <form [formGroup]="recordedClassForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <div class="flex items-center gap-6 pb-2 border-b border-base-200">
+                <span class="font-bold text-text-primary uppercase tracking-wider">Source Switch:</span>
+                <label class="flex items-center gap-2 cursor-pointer font-semibold text-text-primary">
+                  <input type="radio" formControlName="deliverySource" value="upload" (change)="setRecordedClassSource('upload')" class="text-tenant-600">
+                  <span>Upload Recording</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer font-semibold text-text-primary">
+                  <input type="radio" formControlName="deliverySource" value="platform_link" (change)="setRecordedClassSource('platform_link')" class="text-tenant-600">
+                  <span>Recording Link (Zoom, Teams, Meet)</span>
+                </label>
+              </div>
+
+              @if (recordedClassForm.get('deliverySource')?.value === 'upload') {
+                <!-- Custom Uploader Dropzone for Recorded Class -->
+                <div
+                  (dragover)="onFileDragOver('Recorded Class', $event)"
+                  (dragleave)="onFileDragLeave('Recorded Class', $event)"
+                  (drop)="onFileDrop('Recorded Class', $event)"
+                  [class.border-tenant-500]="isDraggingTarget('Recorded Class')"
+                  [class.bg-tenant-50/20]="isDraggingTarget('Recorded Class')"
+                  class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                  <div class="flex justify-center">
+                    <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                  </div>
+                  <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Drag and drop your recording file here, or
+                    <button
+                      type="button"
+                      (click)="recordedFileInput.click()"
+                      class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                      <span>{{ recordedClassForm.get('fileName')?.value ? 'Replace file' : 'Browse files' }}</span>
+                    </button>
+                    <input
+                      #recordedFileInput
+                      type="file"
+                      [accept]="getUploadAccept('Recorded Class')"
+                      (change)="onCustomFileSelected('Recorded Class', $event)"
+                      class="hidden" />
+                  </p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    {{ getUploadHint('Recorded Class') }}
+                  </p>
+                </div>
+
+                @if (recordedClassForm.get('fileName')?.value) {
+                  <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                      <span class="material-symbols-outlined text-tenant-600 text-xl shrink-0">video_file</span>
+                      <div class="truncate">
+                        <strong class="text-slate-900 dark:text-white block truncate">{{ recordedClassForm.get('fileName')?.value }}</strong>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ recordedClassForm.get('fileSize')?.value }}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        (click)="recordedFileInput.click()"
+                        class="text-tenant-600 hover:underline font-semibold cursor-pointer">
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        (click)="removeLearningFile('Recorded Class')"
+                        class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold text-text-primary mb-1">Platform</label>
+                    <select formControlName="platform" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary">
+                      <option value="Zoom">Zoom Cloud Recording</option>
+                      <option value="MS Teams">Microsoft Teams Recording</option>
+                      <option value="Google Meet">Google Meet Session</option>
+                      <option value="Platform CDN">WebRTC Platform CDN</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-text-primary mb-1">Recording Link</label>
+                    <input type="text" formControlName="sessionUrl" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                  </div>
+                </div>
+              }
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Session Date (DD/MM/YYYY) <span class="text-rose-500">*</span></label>
+                  <input type="text" formControlName="sessionDate" placeholder="15/10/2026" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Duration (Minutes)</label>
+                  <input type="number" formControlName="durationMinutes" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Class Instructor</label>
+                  <input type="text" formControlName="instructorName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                </div>
+              </div>
+            </div>
+          </form>
+        }
+
+        <!-- Pattern 3: Editor (Reading) -->
+        @if (selectedType() === 'Reading') {
+          <form [formGroup]="readingForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <div>
+                <label class="block font-bold text-text-primary mb-1">
+                  Rich-Text Content Editor (Headings, Lists, Links, Tables) <span class="text-rose-500">*</span>
+                </label>
+                <textarea rows="8" formControlName="contentHtml" class="w-full p-4 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary font-mono"></textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Word Count (System-calculated)</label>
+                  <input type="number" formControlName="wordCount" readonly class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-xs text-text-secondary cursor-not-allowed" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-text-primary mb-1">Estimated Read Time (Minutes, Read-only)</label>
+                  <input type="number" formControlName="estimatedReadMinutes" readonly class="w-full px-3 py-2 rounded-xl bg-base-100 border border-base-300 text-xs text-text-secondary cursor-not-allowed" />
+                </div>
+              </div>
+            </div>
+          </form>
+        }
+
+        <!-- Pattern 4: URL Only (External Link) -->
+        @if (selectedType() === 'External Link') {
+          <form [formGroup]="externalLinkForm" class="space-y-4 text-xs">
+            <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-4">
+              <div>
+                <label class="block font-bold text-text-primary mb-1">
+                  External Resource URL (http/https) <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" formControlName="url" placeholder="https://..." class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+                <p class="text-[11px] text-text-secondary mt-1">Only the URL reference is stored; no external files are cached.</p>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-text-primary mb-1">Platform / Institution Tag</label>
+                <input type="text" formControlName="platformTag" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-base-300 text-xs text-text-primary" />
+              </div>
+            </div>
+          </form>
+        }
+
+      } @else {
+        <!-- ========================================================================= -->
+        <!-- 3b. ASSESSMENT TYPES SETUP (THE ASSESSMENT BUILDER §2.3b)                 -->
+        <!-- ========================================================================= -->
+        <app-assessment-builder
+          [assessmentType]="$any(selectedType())"
+          [initialAssessmentId]="assessmentBuilderState()?.assessmentId"
+          [initialData]="assessmentBuilderState() || undefined"
+          (stateChange)="onAssessmentBuilderChange($event)">
+        </app-assessment-builder>
       }
 
     </div>
   }
 
-  <!-- STEP 4: SHARING MODE & GOVERNANCE -->
+  <!-- STEP 4: SHARING MODE (§2.5) -->
   @if (currentStep() === 4) {
     <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
       <div>
-        <h2 class="text-xl font-bold text-text-primary">Sharing Governance & Publication</h2>
-        <p class="text-xs text-text-secondary">Determine multi-LMS visibility across the {{ activeOrg().name }} organization.</p>
+        <h2 class="text-xl font-bold text-text-primary">Sharing Mode</h2>
+        <p class="text-xs text-text-secondary">
+          This is the single place a sharing decision is made for an item (§2.5). Sharing never crosses Organizations.
+        </p>
       </div>
 
       <form [formGroup]="step4Form" class="space-y-5 text-xs">
@@ -633,7 +1029,7 @@
             <div>
               <div class="font-bold text-sm text-text-primary">Private</div>
               <div class="text-xs text-text-secondary mt-0.5">
-                Only this LMS instance ({{ activeLms()?.basicInfo?.lmsName || 'Current LMS' }}) can see and attach this item.
+                Only this LMS ({{ activeLms()?.basicInfo?.lmsName || 'Current LMS' }}) can search and use this repository item.
               </div>
             </div>
           </label>
@@ -645,7 +1041,7 @@
             <div>
               <div class="font-bold text-sm text-text-primary">Organization-wide</div>
               <div class="text-xs text-text-secondary mt-0.5">
-                Every LMS instance under <strong>{{ activeOrg().name }}</strong> can search, view, and reference this item live.
+                Every LMS under {{ activeOrg().name }} that has its own Discover switch on can reference this item live.
               </div>
             </div>
           </label>
@@ -655,20 +1051,20 @@
             [class]="step4Form.get('sharingMode')?.value === 'Custom Share' ? 'border-tenant-500 bg-tenant-50/30 ring-2 ring-tenant-500/20' : 'border-base-200 dark:border-slate-800'">
             <input type="radio" formControlName="sharingMode" value="Custom Share" class="mt-0.5 text-tenant-600 focus:ring-tenant-500">
             <div>
-              <div class="font-bold text-sm text-text-primary">Custom Share (Named LMS Portals)</div>
+              <div class="font-bold text-sm text-text-primary">Custom Share (Named LMS List)</div>
               <div class="text-xs text-text-secondary mt-0.5">
-                Share specifically with selected sister LMS portals under {{ activeOrg().name }}.
+                This LMS plus a named list of specific sister LMS under {{ activeOrg().name }}.
               </div>
             </div>
           </label>
         </div>
 
-        <!-- Sister LMS Selector for Custom Share -->
+        <!-- Custom Share Sister LMS Picker -->
         @if (step4Form.get('sharingMode')?.value === 'Custom Share') {
           <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
             <div class="flex items-center justify-between">
               <span class="block font-bold text-text-primary text-xs uppercase tracking-wider">
-                Select Sibling LMS Instances
+                Select Recipient LMS Portals
               </span>
               <div class="flex gap-2 text-xs">
                 <button type="button" (click)="selectAllSisterLms()" class="text-tenant-600 hover:underline font-semibold cursor-pointer">Select All</button>
@@ -697,9 +1093,67 @@
                 </label>
               }
             </div>
+
+            @if (hasError('sharingLms')) {
+              <p class="text-xs text-rose-500 font-medium flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">error</span>
+                <span>{{ getError('sharingLms') }}</span>
+              </p>
+            }
           </div>
         }
       </form>
+    </div>
+  }
+
+  <!-- STEP 5: SAVE AS DRAFT OR PUBLISH (§2.7) -->
+  @if (currentStep() === 5) {
+    <div class="bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+      <div>
+        <h2 class="text-xl font-bold text-text-primary">Step 5: Review &amp; Release</h2>
+        <p class="text-xs text-text-secondary">
+          Confirm item parameters and decide whether to retain as editable Draft or publish into the repository grid.
+        </p>
+      </div>
+
+      <!-- Item Summary Card -->
+      <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Content Title</span>
+            <strong class="text-sm text-text-primary">{{ step1Form.get('title')?.value || 'Untitled' }}</strong>
+          </div>
+          <div>
+            <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Classification</span>
+            <strong class="text-sm text-text-primary">{{ selectedFamily() }} &bull; {{ selectedType() }}</strong>
+          </div>
+          <div>
+            <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Authors Attribution</span>
+            <strong class="text-text-primary">{{ selectedAuthors().join(', ') || 'None' }}</strong>
+          </div>
+          <div>
+            <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Schedule Window</span>
+            <strong class="text-text-primary">
+              {{ step1Form.get('publishDate')?.value }} &rarr;
+              {{ step1Form.get('hasNoExpiry')?.value ? 'No Expiry' : (step1Form.get('expiryDate')?.value || 'No Expiry') }}
+            </strong>
+          </div>
+          <div>
+            <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Sharing Scope</span>
+            <strong class="text-text-primary">{{ step4Form.get('sharingMode')?.value }}</strong>
+          </div>
+          @if (selectedFamily() === 'Assessment' && assessmentBuilderState(); as bld) {
+            <div>
+              <span class="text-text-secondary uppercase tracking-wider block font-semibold text-[10px]">Questions Authored</span>
+              <strong class="text-text-primary">{{ bld.questions.length }} Questions &bull; Mode: {{ bld.randomization }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-tenant-50 dark:bg-tenant-950/20 border border-tenant-200 dark:border-tenant-800 text-xs text-tenant-800 dark:text-tenant-200">
+        <strong>Publishing Rule (§2.7):</strong> Publishing moves the item to <strong>Scheduled</strong> (if Publish Date is in the future) or <strong>Active</strong> (today or past). Core content is locked upon publication; material changes require creating a new item (§4).
+      </div>
     </div>
   }
 
@@ -717,11 +1171,19 @@
     </button>
 
     <div class="flex items-center gap-2.5">
-      @if (currentStep() < 4) {
+      <button
+        type="button"
+        (click)="saveAsDraft()"
+        class="px-4 py-2.5 rounded-xl border border-tenant-500/50 bg-tenant-50 dark:bg-tenant-950/30 text-tenant-700 dark:text-tenant-300 hover:bg-tenant-100 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm">bookmark_border</span>
+        <span>Save as Draft</span>
+      </button>
+
+      @if (currentStep() < 5) {
         <button
           type="button"
           (click)="nextStep()"
-          class="px-5 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5">
+          class="px-5 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center gap-1.5">
           <span>Next Step</span>
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
@@ -729,7 +1191,7 @@
         <button
           type="button"
           (click)="publish()"
-          class="px-6 py-2.5 rounded-xl bg-tenant-500 hover:bg-tenant-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-500/20 transition-all cursor-pointer flex items-center gap-1.5">
+          class="px-6 py-2.5 rounded-xl bg-tenant-600 hover:bg-tenant-700 active:scale-95 text-white text-xs font-bold shadow-md shadow-tenant-600/20 transition-all cursor-pointer flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">publish</span>
           <span>Publish Repository Item</span>
         </button>

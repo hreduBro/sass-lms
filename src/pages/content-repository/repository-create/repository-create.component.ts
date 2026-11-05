@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -18,12 +18,21 @@ import {
   formatDateToDDMMYYYY,
   parseDateString
 } from '../../../models/content-repository.model';
+import {
+  Assessment,
+  AssessmentQuestion
+} from '../../../models/assessment.model';
 import { CustomSelectComponent, SelectOption } from '../../../components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { StepperComponent, StepperStep } from '../../../components/stepper/stepper.component';
+import {
+  AssessmentBuilderComponent,
+  V3AssessmentBuilderState
+} from '../assessment-builder/assessment-builder.component';
 
 @Component({
   selector: 'app-repository-create',
+  standalone: true,
   imports: [
     CommonModule,
     RouterModule,
@@ -31,36 +40,38 @@ import { StepperComponent, StepperStep } from '../../../components/stepper/stepp
     ReactiveFormsModule,
     CustomSelectComponent,
     DatePickerComponent,
-    StepperComponent
+    StepperComponent,
+    AssessmentBuilderComponent
   ],
   templateUrl: './repository-create.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RepositoryCreateComponent implements OnInit {
-  private lmsData = inject(LmsDataService);
+  lmsData = inject(LmsDataService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
 
-  // Stepper state: 1, 2, 3, 4 (Like Create LMS)
+  // Stepper state: 1, 2, 3, 4, 5 (§2 Specification)
   currentStep = signal<number>(1);
   completedSteps = signal<Set<number>>(new Set<number>());
   isEditMode = signal<boolean>(false);
   editingItemId = signal<string | null>(null);
 
-  // Validation errors map & Alert banner (Like Create LMS)
+  // Validation errors map & Alert banner
   errors = signal<Record<string, string>>({});
   formErrorAlert = signal<string | null>(null);
 
-  // Reusable Stepper Configuration (Like Create LMS)
+  // 5 Steps (§2 Create Repository — Step by Step)
   steps: StepperStep[] = [
     { id: 1, key: 'details', title: 'Item Details', shortTitle: 'Item Details', sublabel: 'Title, Authors & Dates', icon: 'article' },
-    { id: 2, key: 'family', title: 'Content Family & Type', shortTitle: 'Family & Type', sublabel: 'Learning or Assessment', icon: 'category' },
-    { id: 3, key: 'setup', title: 'Content Setup', shortTitle: 'Content Setup', sublabel: 'Media, Files & Parameters', icon: 'tune' },
-    { id: 4, key: 'sharing', title: 'Sharing & Review', shortTitle: 'Sharing & Review', sublabel: 'Visibility & Publish', icon: 'share' }
+    { id: 2, key: 'family', title: 'Content Family & Type', shortTitle: 'Family & Type', sublabel: 'Fixed Repository Catalog', icon: 'category' },
+    { id: 3, key: 'setup', title: 'Content Setup', shortTitle: 'Content Setup', sublabel: 'Authoring & Studio', icon: 'tune' },
+    { id: 4, key: 'sharing', title: 'Sharing Mode', shortTitle: 'Sharing Mode', sublabel: 'Multi-LMS Visibility', icon: 'share' },
+    { id: 5, key: 'review', title: 'Save & Publish', shortTitle: 'Save & Publish', sublabel: 'Draft or Active Release', icon: 'publish' }
   ];
 
-  // Active LMS Context
+  // Active LMS Context (workspace LMS is fixed, never selectable §0)
   activeLms = computed(() => this.lmsData.activeLms());
   activeOrg = computed(() => this.lmsData.activeTenant());
   activeLmsId = computed(() => this.lmsData.activeLms()?.id || this.lmsData.activeLmsId());
@@ -71,7 +82,7 @@ export class RepositoryCreateComponent implements OnInit {
     return this.lmsData.activeOrgLmsInstances().filter(l => l.id !== curId);
   });
 
-  // Author pool
+  // Author pool (§2.1 / §2.6 attribution)
   authorOptions = computed<SelectOption[]>(() => {
     return this.lmsData.authors().map(a => ({
       value: a.name,
@@ -80,35 +91,29 @@ export class RepositoryCreateComponent implements OnInit {
     }));
   });
 
-  // Assessments bank options (for Assessment question set picker)
-  assessmentBankOptions = computed<SelectOption[]>(() => {
-    return this.lmsData.assessments().map(a => ({
-      value: a.assessmentId,
-      label: a.title,
-      sublabel: `Code: ${a.code || 'ASM'} · ${a.versions?.[0]?.questions?.length || 10} Questions · ${a.scoringMode}`
-    }));
-  });
-
-  readonly documentCategoryOptions: SelectOption[] = [
-    { value: 'PDF', label: 'PDF Document' },
-    { value: 'DOCX', label: 'Microsoft Word (.docx)' },
-    { value: 'XLSX', label: 'Excel Spreadsheet (.xlsx)' }
-  ];
-
-  // Learning types
+  // Learning types & Fixed assessment types (§2.2)
   learningTypes = AUTHORITATIVE_LEARNING_CONTENT_TYPES;
   assessmentTypes = AUTHORITATIVE_ASSESSMENT_CONTENT_TYPES;
+
   readonly isSurveyAssessmentType = isSurveyAssessmentType;
+  readonly isScoredAssessmentType = isScoredAssessmentType;
 
   // Selected Family and Type
   selectedFamily = signal<ContentFamily>('Learning');
   selectedType = signal<ContentType>('PDF / Document');
 
+  // Drag-and-drop state per learning upload type
+  activeDragTarget = signal<string | null>(null);
+
+  isDraggingTarget(type: string): boolean {
+    return this.activeDragTarget() === type;
+  }
+
   // Multi-select authors
   selectedAuthors = signal<string[]>(['Tanvir Hossain']);
   newAuthorInput = signal<string>('');
 
-  // Step 1 Form: Item Details
+  // Step 1 Form: Item Details (§2.1)
   step1Form: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(199)]],
     titleBangla: ['', [Validators.maxLength(199)]],
@@ -117,28 +122,19 @@ export class RepositoryCreateComponent implements OnInit {
     expiryDate: ['31/12/2027'],
     description: [''],
     thumbnailUrl: [''],
-    altText: ['']
+    altText: [''],
+    tags: ['']
   });
 
-  // Step 3 Forms: Type-specific Content Setup
-  // Video
-  videoForm: FormGroup = this.fb.group({
-    source: ['upload'], // 'upload' | 'embed'
-    videoUrl: ['https://www.w3schools.com/html/mov_bbb.mp4'],
-    fileName: ['Operations_Field_Demonstration.mp4'],
-    fileSize: ['24.5 MB'],
-    durationMinutes: [15, [Validators.min(1)]]
-  });
+  // =========================================================================
+  // Step 3: Learning Forms (§2.3a)
+  // Pattern 1: File Upload (PDF / Document, Audio, Slides, Book)
+  // Pattern 2: Upload or Link (Video, Recorded Class)
+  // Pattern 3: Editor (Reading)
+  // Pattern 4: URL Only (External Link)
+  // =========================================================================
 
-  // Audio
-  audioForm: FormGroup = this.fb.group({
-    audioUrl: ['https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'],
-    fileName: ['Field_Grievance_Deescalation_Audio.mp3'],
-    fileSize: ['14.2 MB'],
-    durationMinutes: [18, [Validators.min(1)]]
-  });
-
-  // Document
+  // Pattern 1: PDF / Document
   documentForm: FormGroup = this.fb.group({
     fileCategory: ['PDF', [Validators.required]],
     fileName: ['BRAC_Field_Operations_Manual_2026.pdf'],
@@ -146,7 +142,15 @@ export class RepositoryCreateComponent implements OnInit {
     fileUrl: ['https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf']
   });
 
-  // Slides
+  // Pattern 1: Audio
+  audioForm: FormGroup = this.fb.group({
+    audioUrl: ['https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'],
+    fileName: ['Field_Grievance_Deescalation_Audio.mp3'],
+    fileSize: ['14.2 MB'],
+    durationMinutes: [18, [Validators.min(1)]]
+  });
+
+  // Pattern 1: Slides / Presentation (.ppt, .pptx, .odp)
   slidesForm: FormGroup = this.fb.group({
     format: ['.pptx', [Validators.required]],
     slideCount: [36, [Validators.required, Validators.min(1)]],
@@ -154,27 +158,7 @@ export class RepositoryCreateComponent implements OnInit {
     fileSize: ['9.4 MB']
   });
 
-  // Reading
-  readingForm: FormGroup = this.fb.group({
-    contentHtml: [
-      `<h3>Core Field Protocols</h3>\n<p>This operating guide establishes mandatory standards for customer protection, interest rate transparency, and dignified loan recovery across rural Village Organizations.</p>`,
-      [Validators.required]
-    ],
-    wordCount: [120],
-    estimatedReadMinutes: [3]
-  });
-
-  // Recorded Class
-  recordedClassForm: FormGroup = this.fb.group({
-    deliverySource: ['platform_link'],
-    platform: ['Zoom'],
-    sessionUrl: ['https://zoom.us/rec/play/sample-session-brac'],
-    sessionDate: ['15/10/2026', [Validators.required]],
-    durationMinutes: [90, [Validators.required, Validators.min(1)]],
-    instructorName: ['Tanvir Hossain']
-  });
-
-  // Book
+  // Pattern 1: Book / E-book (PDF, EPUB)
   bookForm: FormGroup = this.fb.group({
     format: ['EPUB', [Validators.required]],
     isbn: ['978-984-34-5892-1'],
@@ -184,7 +168,38 @@ export class RepositoryCreateComponent implements OnInit {
     fileSize: ['6.4 MB']
   });
 
-  // External Link
+  // Pattern 2: Video (Upload or YouTube URL)
+  videoForm: FormGroup = this.fb.group({
+    source: ['upload'], // 'upload' | 'embed'
+    videoUrl: ['https://www.w3schools.com/html/mov_bbb.mp4'],
+    fileName: ['Operations_Field_Demonstration.mp4'],
+    fileSize: ['24.5 MB'],
+    durationMinutes: [15, [Validators.min(1)]]
+  });
+
+  // Pattern 2: Recorded Class (Upload recording or Recording link)
+  recordedClassForm: FormGroup = this.fb.group({
+    deliverySource: ['platform_link'],
+    platform: ['Zoom'],
+    sessionUrl: ['https://zoom.us/rec/play/sample-session-brac'],
+    fileName: [''],
+    fileSize: [''],
+    sessionDate: ['15/10/2026', [Validators.required]],
+    durationMinutes: [90, [Validators.required, Validators.min(1)]],
+    instructorName: ['Tanvir Hossain']
+  });
+
+  // Pattern 3: Editor (Reading)
+  readingForm: FormGroup = this.fb.group({
+    contentHtml: [
+      `<h3>Core Field Protocols</h3>\n<p>This operating guide establishes mandatory standards for customer protection, interest rate transparency, and dignified loan recovery across rural Village Organizations.</p>`,
+      [Validators.required]
+    ],
+    wordCount: [120],
+    estimatedReadMinutes: [3]
+  });
+
+  // Pattern 4: URL Only (External Link)
   externalLinkForm: FormGroup = this.fb.group({
     url: ['https://www.bb.org.bd/en/index.php/financialactivity/fintech', [Validators.required]],
     platformTag: ['Bangladesh Bank Central Circular'],
@@ -192,17 +207,10 @@ export class RepositoryCreateComponent implements OnInit {
     verificationStatus: ['verified']
   });
 
-  // Assessment configuration (shared by Quiz, Exam, Assignment, Pre-Test, Post-Test & Survey)
-  questionSetForm: FormGroup = this.fb.group({
-    assessmentId: ['asm-brac-01', [Validators.required]],
-    assessmentTitle: ['Microfinance Field Ethics, Client Protection & POS Operations Final Exam'],
-    assessmentCode: ['EXAM-SEC-2026'],
-    questionCount: [12],
-    scoringMode: ['scored'],
-    passMarkPercent: [80]
-  });
+  // Assessment Builder State (Step 3 Assessment Types §2.3b)
+  assessmentBuilderState = signal<V3AssessmentBuilderState | null>(null);
 
-  // Step 4 Form: Sharing Mode
+  // Step 4 Form: Sharing Mode (§2.5)
   step4Form: FormGroup = this.fb.group({
     sharingMode: ['Private', [Validators.required]],
     selectedLmsIds: [[]]
@@ -230,8 +238,6 @@ export class RepositoryCreateComponent implements OnInit {
       this.isEditMode.set(true);
       this.editingItemId.set(editId);
       this.loadItemForEditing(editId);
-    } else {
-      this.showStepAlert(1, 'entered');
     }
   }
 
@@ -259,32 +265,48 @@ export class RepositoryCreateComponent implements OnInit {
       selectedLmsIds: item.sharedWithLmsIds || []
     });
 
-    // Populate type-specific form
-    if (item.type === 'Video' && item.contentConfig) {
-      this.videoForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Audio' && item.contentConfig) {
-      this.audioForm.patchValue(item.contentConfig);
-    } else if (item.type === 'PDF / Document' && item.contentConfig) {
-      this.documentForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Slides / Presentation' && item.contentConfig) {
-      this.slidesForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Reading' && item.contentConfig) {
-      this.readingForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Recorded Class' && item.contentConfig) {
-      this.recordedClassForm.patchValue(item.contentConfig);
-    } else if (item.type === 'Book / E-book' && item.contentConfig) {
-      this.bookForm.patchValue(item.contentConfig);
-    } else if (item.type === 'External Link' && item.contentConfig) {
-      this.externalLinkForm.patchValue(item.contentConfig);
-    } else if (this.isAssessmentType(item.type) && item.contentConfig) {
-      this.questionSetForm.patchValue(item.contentConfig);
+    if (item.family === 'Learning' && item.contentConfig) {
+      switch (item.type) {
+        case 'Video': this.videoForm.patchValue(item.contentConfig); break;
+        case 'Audio': this.audioForm.patchValue(item.contentConfig); break;
+        case 'PDF / Document': this.documentForm.patchValue(item.contentConfig); break;
+        case 'Slides / Presentation': this.slidesForm.patchValue(item.contentConfig); break;
+        case 'Reading': this.readingForm.patchValue(item.contentConfig); break;
+        case 'Recorded Class': this.recordedClassForm.patchValue(item.contentConfig); break;
+        case 'Book / E-book': this.bookForm.patchValue(item.contentConfig); break;
+        case 'External Link': this.externalLinkForm.patchValue(item.contentConfig); break;
+      }
+    } else if (item.family === 'Assessment' && item.contentConfig) {
+      const config = item.contentConfig as any;
+      const linked = this.lmsData.assessments().find(
+        a => a.assessmentId === config.assessmentId || a.code === config.assessmentCode
+      );
+      const currentVersion = linked?.versions?.find(v => v.versionId === linked.currentVersionId) || linked?.versions?.[0];
+
+      this.assessmentBuilderState.set({
+        assessmentId: config.assessmentId || linked?.assessmentId || `ASM-${Date.now()}`,
+        scoringMode: config.scoringMode || 'scored',
+        traineeInstructions: config.traineeInstructions || linked?.description || '',
+        categoryTags: config.categoryTags || linked?.categoryTags || ['General'],
+        randomization: config.randomization || 'None',
+        passMarkPercent: config.passMarkPercent || currentVersion?.scoringPolicy?.passMarkPercent || 60,
+        attemptsAllowed: config.attemptsAllowed || currentVersion?.scoringPolicy?.attempts?.allowed || 1,
+        timeLimitMinutes: config.timeLimitMinutes || currentVersion?.scoringPolicy?.timeLimitMinutes || 30,
+        difficultyRules: config.difficultyRules || {
+          beginnerDrawCount: 2,
+          advancedDrawCount: 2,
+          expertDrawCount: 1,
+          beginnerPoints: 2,
+          advancedPoints: 4,
+          expertPoints: 6
+        },
+        questions: currentVersion?.questions || []
+      });
     }
 
-    // Mark previous steps completed for editing
-    this.completedSteps.set(new Set([1, 2, 3]));
+    this.completedSteps.set(new Set([1, 2, 3, 4]));
   }
 
-  // Stepper helper logic
   isStepClickable(step: number): boolean {
     if (step === this.currentStep()) return true;
     if (this.completedSteps().has(step)) return true;
@@ -292,22 +314,89 @@ export class RepositoryCreateComponent implements OnInit {
     if (step === 2 && this.completedSteps().has(1)) return true;
     if (step === 3 && this.completedSteps().has(2)) return true;
     if (step === 4 && this.completedSteps().has(3)) return true;
+    if (step === 5 && this.completedSteps().has(4)) return true;
     return false;
   }
 
   jumpToStep(step: number) {
     if (this.isStepClickable(step)) {
       this.formErrorAlert.set(null);
-      if (this.currentStep() !== step) {
-        this.currentStep.set(step);
-        this.showStepAlert(step, 'jump');
-      }
+      this.currentStep.set(step);
       this.scrollTop();
     }
   }
 
-  // Step 1: Authors Management
-  addAuthorFromDropdown(authorName: string) {
+  nextStep() {
+    const cur = this.currentStep();
+    if (cur === 1) {
+      if (!this.validateStep1()) {
+        this.scrollToFirstError();
+        return;
+      }
+      this.completedSteps.update(s => new Set([...s, 1]));
+      this.currentStep.set(2);
+    } else if (cur === 2) {
+      if (!this.validateStep2()) {
+        this.scrollToFirstError();
+        return;
+      }
+      this.completedSteps.update(s => new Set([...s, 2]));
+      this.currentStep.set(3);
+    } else if (cur === 3) {
+      if (!this.validateStep3()) {
+        this.scrollToFirstError();
+        return;
+      }
+      this.completedSteps.update(s => new Set([...s, 3]));
+      this.currentStep.set(4);
+    } else if (cur === 4) {
+      if (!this.validateStep4()) {
+        this.scrollToFirstError();
+        return;
+      }
+      this.completedSteps.update(s => new Set([...s, 4]));
+      this.currentStep.set(5);
+    }
+    this.scrollTop();
+  }
+
+  prevStep() {
+    if (this.currentStep() > 1) {
+      this.formErrorAlert.set(null);
+      this.currentStep.update(s => s - 1);
+      this.scrollTop();
+    }
+  }
+
+  selectFamily(family: ContentFamily) {
+    if (this.selectedFamily() !== family) {
+      this.selectedFamily.set(family);
+      if (family === 'Learning') {
+        this.selectedType.set('PDF / Document');
+      } else {
+        this.selectedType.set('Quiz');
+      }
+    }
+  }
+
+  selectType(type: ContentType) {
+    this.selectedType.set(type);
+  }
+
+  isAssessmentType(type: ContentType | string | null | undefined): boolean {
+    return (
+      isScoredAssessmentType(type) ||
+      isSurveyAssessmentType(type)
+    );
+  }
+
+  // Cover image preset picker
+  selectCoverPreset(url: string) {
+    this.step1Form.patchValue({ thumbnailUrl: url });
+  }
+
+  // Authors management
+  addAuthorFromDropdown(authorName: any) {
     if (!authorName) return;
     const current = this.selectedAuthors();
     if (!current.includes(authorName)) {
@@ -318,174 +407,236 @@ export class RepositoryCreateComponent implements OnInit {
 
   addCustomAuthor() {
     const val = this.newAuthorInput().trim();
-    if (!val) return;
-    const current = this.selectedAuthors();
-    if (!current.includes(val)) {
-      this.selectedAuthors.set([...current, val]);
+    if (val && !this.selectedAuthors().includes(val)) {
+      this.selectedAuthors.set([...this.selectedAuthors(), val]);
+      this.newAuthorInput.set('');
       this.clearError('authors');
     }
-    this.newAuthorInput.set('');
   }
 
-  removeAuthor(author: string) {
-    const current = this.selectedAuthors().filter(a => a !== author);
-    this.selectedAuthors.set(current);
-    if (current.length === 0) {
-      this.errors.update(e => ({ ...e, authors: 'At least one Author is mandatory.' }));
-    }
+  removeAuthor(authorName: string) {
+    this.selectedAuthors.set(this.selectedAuthors().filter(a => a !== authorName));
   }
 
-  // Cover Image Selection
-  selectCoverPreset(url: string) {
-    this.step1Form.patchValue({
-      thumbnailUrl: url,
-      altText: `${this.step1Form.get('title')?.value || 'Content'} Cover`
-    });
+  // Sibling LMS selection for Custom Share
+  isSisterLmsSelected(id: string): boolean {
+    const selected: string[] = this.step4Form.get('selectedLmsIds')?.value || [];
+    return selected.includes(id);
   }
 
-  // Step 2: Family & Type selection
-  selectFamily(family: ContentFamily) {
-    this.selectedFamily.set(family);
-    if (family === 'Learning') {
-      this.selectedType.set('PDF / Document');
-    } else {
-      this.selectedType.set('Quiz');
-    }
-    this.clearError('type');
-  }
-
-  /** True for every assessment family type, including the legacy question-set type. */
-  isAssessmentType(type: ContentType | string | null | undefined): boolean {
-    return type === 'Question Bank / Question Set' ||
-      isScoredAssessmentType(type) ||
-      isSurveyAssessmentType(type);
-  }
-
-  selectType(type: ContentType) {
-    this.selectedType.set(type);
-    this.clearError('type');
-  }
-
-  // Step 4: Sister LMS selection for Custom Share
-  toggleSisterLms(lmsId: string) {
+  toggleSisterLms(id: string) {
     const current: string[] = this.step4Form.get('selectedLmsIds')?.value || [];
-    const index = current.indexOf(lmsId);
-    let next: string[];
-    if (index > -1) {
-      next = current.filter(id => id !== lmsId);
+    if (current.includes(id)) {
+      this.step4Form.patchValue({
+        selectedLmsIds: current.filter(x => x !== id)
+      });
     } else {
-      next = [...current, lmsId];
+      this.step4Form.patchValue({
+        selectedLmsIds: [...current, id]
+      });
     }
-    this.step4Form.patchValue({ selectedLmsIds: next });
-    this.clearError('sharing');
+    this.clearError('sharingLms');
   }
 
   selectAllSisterLms() {
-    const allIds = this.sisterLmsList().map(l => l.id);
+    const allIds = this.sisterLmsList().map(s => s.id);
     this.step4Form.patchValue({ selectedLmsIds: allIds });
+    this.clearError('sharingLms');
   }
 
   deselectAllSisterLms() {
     this.step4Form.patchValue({ selectedLmsIds: [] });
   }
 
-  isSisterLmsSelected(lmsId: string): boolean {
-    const current: string[] = this.step4Form.get('selectedLmsIds')?.value || [];
-    return current.includes(lmsId);
+  // Assessment Builder Child handler
+  onAssessmentBuilderChange(state: V3AssessmentBuilderState) {
+    this.assessmentBuilderState.set(state);
   }
 
-  // Alert Suite Handlers & Floating Step Alerts
-  /**
-   * Dispatches a prominent step alert mentioning the exact step number and description,
-   * matching the LMS creation wizard alert system.
-   */
-  showStepAlert(step: number, action: 'entered' | 'completed' | 'back' | 'jump' = 'entered') {
-    const stepTitles: Record<number, string> = {
-      1: 'Step 1 of 4: Basic Information',
-      2: 'Step 2 of 4: Content Family & Type',
-      3: 'Step 3 of 4: Content Setup & Media',
-      4: 'Step 4 of 4: Sharing & Publishing'
-    };
+  // Type-specific Upload Policies (§2.3a)
+  private readonly uploadPolicies: Record<string, { exts: string[]; maxBytes: number; label: string }> = {
+    'PDF / Document': {
+      exts: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt'],
+      maxBytes: 50 * 1024 * 1024,
+      label: 'PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT (Max 50MB)'
+    },
+    'Audio': {
+      exts: ['.mp3', '.aac'],
+      maxBytes: 100 * 1024 * 1024,
+      label: 'MP3, AAC (Max 100MB)'
+    },
+    'Slides / Presentation': {
+      exts: ['.ppt', '.pptx', '.odp'],
+      maxBytes: 50 * 1024 * 1024,
+      label: '.ppt, .pptx, .odp (Max 50MB)'
+    },
+    'Book / E-book': {
+      exts: ['.pdf', '.epub'],
+      maxBytes: 50 * 1024 * 1024,
+      label: 'PDF, EPUB (Max 50MB)'
+    },
+    'Video': {
+      exts: ['.mp4', '.webm'],
+      maxBytes: 250 * 1024 * 1024,
+      label: 'MP4, WebM (Max 250MB)'
+    },
+    'Recorded Class': {
+      exts: ['.mp4', '.webm'],
+      maxBytes: 250 * 1024 * 1024,
+      label: 'MP4, WebM (Max 250MB)'
+    }
+  };
 
-    const stepDescriptions: Record<number, string> = {
-      1: 'Step 1 of 4 — Item Details: Configure English title, Bengali title, authors, and schedule window.',
-      2: 'Step 2 of 4 — Content Family & Type: Select between Learning and Assessment families, and pick the authoritative content type.',
-      3: 'Step 3 of 4 — Content Setup: Configure media files, document uploads, or question set references.',
-      4: 'Step 4 of 4 — Sharing & Publishing: Set multi-LMS sharing scope across organizations and publish to repository.'
-    };
+  getUploadAccept(type: string): string {
+    const policy = this.uploadPolicies[type];
+    return policy ? policy.exts.join(',') : '';
+  }
 
-    let title = stepTitles[step] || `Step ${step} of 4`;
-    let badge = `STEP ${step} / 4`;
-    let type: 'success' | 'info' | 'warning' | 'error' = 'info';
+  getUploadHint(type: string): string {
+    const policy = this.uploadPolicies[type];
+    return policy ? `Allowed formats: ${policy.label}` : '';
+  }
 
-    let msg = stepDescriptions[step] || `Active step ${step}.`;
-    if (action === 'completed') {
-      const prev = step - 1;
-      const prevName = stepTitles[prev]?.split(': ')[1] || `Step ${prev}`;
-      const nextName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
-      title = `Step ${prev} Completed Successfully`;
-      badge = `STEP ${prev} COMPLETED`;
-      msg = `Step ${prev} (${prevName}) saved. Now on Step ${step} of 4: ${nextName}.`;
-      type = 'success';
-    } else if (action === 'back') {
-      const stepName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
-      msg = `Navigated back to Step ${step} of 4 (${stepName}).`;
-      type = 'info';
-    } else if (action === 'jump') {
-      const stepName = stepTitles[step]?.split(': ')[1] || `Step ${step}`;
-      msg = `Active: Step ${step} of 4 (${stepName}).`;
-      type = 'info';
+  // Consolidated Learning File Processing (§2.3a)
+  processLearningFile(type: string, file: File): boolean {
+    const policy = this.uploadPolicies[type];
+    const fileName = file.name.toLowerCase();
+
+    if (policy) {
+      const hasValidExt = policy.exts.some(ext => fileName.endsWith(ext));
+      if (!hasValidExt) {
+        this.lmsData.showToast(
+          `Invalid file format for "${file.name}". Expected: ${policy.label}`,
+          'error',
+          5000
+        );
+        return false;
+      }
+
+      if (file.size > policy.maxBytes) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        const limitMb = (policy.maxBytes / (1024 * 1024)).toFixed(0);
+        this.lmsData.showToast(
+          `File "${file.name}" exceeds the ${limitMb}MB limit (${sizeMb} MB).`,
+          'error',
+          5000
+        );
+        return false;
+      }
     }
 
-    this.lmsData.showToast(msg, type, 4000, title, badge);
+    const sizeFormatted = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+    switch (type) {
+      case 'PDF / Document':
+        this.documentForm.patchValue({ fileName: file.name, fileSize: sizeFormatted });
+        this.clearError('doc');
+        break;
+      case 'Audio':
+        this.audioForm.patchValue({ fileName: file.name, fileSize: sizeFormatted });
+        this.clearError('audio');
+        break;
+      case 'Slides / Presentation':
+        this.slidesForm.patchValue({ fileName: file.name, fileSize: sizeFormatted });
+        this.clearError('slides');
+        break;
+      case 'Book / E-book':
+        this.bookForm.patchValue({ fileName: file.name, fileSize: sizeFormatted });
+        this.clearError('book');
+        break;
+      case 'Video':
+        this.videoForm.patchValue({ fileName: file.name, fileSize: sizeFormatted });
+        this.clearError('video');
+        break;
+      case 'Recorded Class':
+        this.recordedClassForm.patchValue({
+          fileName: file.name,
+          fileSize: sizeFormatted,
+          sessionUrl: `uploaded://${file.name}`
+        });
+        this.clearError('recordedDate');
+        break;
+    }
+
+    this.lmsData.showToast(`Selected file for ${type}: ${file.name} (${sizeFormatted})`, 'info');
+    return true;
   }
 
-  // Step Navigation & Validation
-  nextStep() {
-    this.formErrorAlert.set(null);
-    const step = this.currentStep();
-
-    if (step === 1) {
-      if (!this.validateStep1()) {
-        this.scrollToFirstError();
-        return;
-      }
-      this.completedSteps.update(s => new Set([...s, 1]));
-      this.currentStep.set(2);
-      this.showStepAlert(2, 'completed');
-      this.scrollTop();
-    } else if (step === 2) {
-      if (!this.validateStep2()) {
-        this.scrollToFirstError();
-        return;
-      }
-      this.completedSteps.update(s => new Set([...s, 1, 2]));
-      this.currentStep.set(3);
-      this.showStepAlert(3, 'completed');
-      this.scrollTop();
-    } else if (step === 3) {
-      if (!this.validateStep3()) {
-        this.scrollToFirstError();
-        return;
-      }
-      this.completedSteps.update(s => new Set([...s, 1, 2, 3]));
-      this.currentStep.set(4);
-      this.showStepAlert(4, 'completed');
-      this.scrollTop();
+  // Browse file selector
+  onCustomFileSelected(type: string, event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      this.processLearningFile(type, target.files[0]);
+      target.value = ''; // Reset so the same file can be selected again
     }
   }
 
-  prevStep() {
-    this.formErrorAlert.set(null);
-    const step = this.currentStep();
-    if (step > 1) {
-      const prevStep = step - 1;
-      this.currentStep.set(prevStep);
-      this.showStepAlert(prevStep, 'back');
-      this.scrollTop();
+  // Drag & drop handlers
+  onFileDragOver(type: string, event: DragEvent) {
+    event.preventDefault();
+    this.activeDragTarget.set(type);
+  }
+
+  onFileDragLeave(type: string, event: DragEvent) {
+    if (this.activeDragTarget() === type) {
+      this.activeDragTarget.set(null);
     }
   }
 
+  onFileDrop(type: string, event: DragEvent) {
+    event.preventDefault();
+    this.activeDragTarget.set(null);
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      this.processLearningFile(type, event.dataTransfer.files[0]);
+    }
+  }
+
+  // Remove uploaded file
+  removeLearningFile(type: string) {
+    this.activeDragTarget.set(null);
+    switch (type) {
+      case 'PDF / Document':
+        this.documentForm.patchValue({ fileName: '', fileSize: '' });
+        break;
+      case 'Audio':
+        this.audioForm.patchValue({ fileName: '', fileSize: '' });
+        break;
+      case 'Slides / Presentation':
+        this.slidesForm.patchValue({ fileName: '', fileSize: '' });
+        break;
+      case 'Book / E-book':
+        this.bookForm.patchValue({ fileName: '', fileSize: '' });
+        break;
+      case 'Video':
+        this.videoForm.patchValue({ fileName: '', fileSize: '' });
+        break;
+      case 'Recorded Class':
+        this.recordedClassForm.patchValue({
+          fileName: '',
+          fileSize: '',
+          sessionUrl: ''
+        });
+        break;
+    }
+  }
+
+  // Switch video source
+  setVideoSource(source: 'upload' | 'embed') {
+    this.videoForm.patchValue({ source });
+    if (source === 'embed') {
+      this.videoForm.patchValue({ fileName: '', fileSize: '' });
+    }
+  }
+
+  // Switch recorded class source
+  setRecordedClassSource(deliverySource: 'upload' | 'platform_link') {
+    this.recordedClassForm.patchValue({ deliverySource });
+    if (deliverySource === 'platform_link') {
+      this.recordedClassForm.patchValue({ fileName: '', fileSize: '' });
+    }
+  }
+
+  // Validation helpers
   hasError(field: string): boolean {
     return !!this.errors()[field];
   }
@@ -545,7 +696,7 @@ export class RepositoryCreateComponent implements OnInit {
     if (Object.keys(newErrors).length > 0) {
       const firstMsg = Object.values(newErrors)[0];
       this.formErrorAlert.set(`Validation Error: ${firstMsg}`);
-      this.lmsData.showToast(`Step 1 Validation: ${firstMsg}`, 'error', 4500, 'Step 1 Incomplete', 'STEP 1 / 4');
+      this.lmsData.showToast(`Step 1 Validation: ${firstMsg}`, 'error', 4500, 'Step 1 Incomplete', 'STEP 1 / 5');
       return false;
     }
 
@@ -564,7 +715,7 @@ export class RepositoryCreateComponent implements OnInit {
     if (Object.keys(newErrors).length > 0) {
       const firstMsg = Object.values(newErrors)[0];
       this.formErrorAlert.set(`Validation Error: ${firstMsg}`);
-      this.lmsData.showToast(firstMsg, 'error', 4500, 'Step 2 Incomplete', 'STEP 2 / 4');
+      this.lmsData.showToast(firstMsg, 'error', 4500, 'Step 2 Incomplete', 'STEP 2 / 5');
       return false;
     }
 
@@ -576,35 +727,77 @@ export class RepositoryCreateComponent implements OnInit {
     const newErrors: Record<string, string> = {};
     const type = this.selectedType();
 
-    if (type === 'Video') {
-      const dur = this.videoForm.get('durationMinutes')?.value;
-      if (dur === null || dur === undefined || dur < 1) {
-        newErrors['videoDuration'] = 'Duration must be at least 1 minute.';
+    if (this.isAssessmentType(type)) {
+      const builder = this.assessmentBuilderState();
+      if (!builder || builder.questions.length === 0) {
+        newErrors['assessmentQuestions'] = 'At least one question must be authored in Question Studio.';
+      } else {
+        const hasBlankPrompt = builder.questions.some(q => !q.text || !q.text.trim());
+        if (hasBlankPrompt) {
+          newErrors['assessmentQuestions'] = 'All questions in Question Studio must have text prompts.';
+        }
+
+        // By difficulty validation rules (§2.3b)
+        if (builder.randomization === 'By difficulty' && !isSurveyAssessmentType(type)) {
+          const rules = builder.difficultyRules;
+          let beg = 0, adv = 0, exp = 0;
+          builder.questions.forEach(q => {
+            const d = (q.difficulty || '').toLowerCase();
+            if (d === 'beginner') beg++;
+            else if (d === 'advanced' || d === 'intermediate') adv++;
+            else if (d === 'expert') exp++;
+          });
+
+          if (beg < rules.beginnerDrawCount) {
+            newErrors['difficultyQuota'] = `Beginner pool has ${beg} questions but requires ${rules.beginnerDrawCount} drawn.`;
+          }
+          if (adv < rules.advancedDrawCount) {
+            newErrors['difficultyQuota'] = `Advanced pool has ${adv} questions but requires ${rules.advancedDrawCount} drawn.`;
+          }
+          if (exp < rules.expertDrawCount) {
+            newErrors['difficultyQuota'] = `Expert pool has ${exp} questions but requires ${rules.expertDrawCount} drawn.`;
+          }
+        }
       }
-    } else if (type === 'Audio') {
-      const dur = this.audioForm.get('durationMinutes')?.value;
-      if (dur === null || dur === undefined || dur < 1) {
-        newErrors['audioDuration'] = 'Duration must be at least 1 minute.';
-      }
-    } else if (type === 'PDF / Document') {
-      const fileName = (this.documentForm.get('fileName')?.value || '').trim();
-      if (!fileName) {
-        newErrors['docFile'] = 'File name is required.';
-      }
-    } else if (type === 'External Link') {
-      const url = (this.externalLinkForm.get('url')?.value || '').trim();
-      if (!url) {
-        newErrors['externalUrl'] = 'External Resource URL is mandatory.';
-      }
-    } else if (type === 'Reading') {
-      const content = (this.readingForm.get('contentHtml')?.value || '').trim();
-      if (!content) {
-        newErrors['readingContent'] = 'Reading article content cannot be empty.';
-      }
-    } else if (this.isAssessmentType(type)) {
-      const asmId = this.questionSetForm.get('assessmentId')?.value;
-      if (isScoredAssessmentType(type) && !asmId) {
-        newErrors['assessmentId'] = 'Please select the repository assessment for this item.';
+    } else {
+      if (type === 'Video') {
+        const src = this.videoForm.get('source')?.value;
+        if (src === 'upload' && !this.videoForm.get('fileName')?.value) {
+          newErrors['video'] = 'Please upload a video file.';
+        } else if (src === 'embed' && !this.videoForm.get('videoUrl')?.value) {
+          newErrors['video'] = 'Please provide a valid YouTube / streaming URL.';
+        }
+      } else if (type === 'PDF / Document') {
+        if (!this.documentForm.get('fileName')?.value) {
+          newErrors['doc'] = 'Please upload a document file.';
+        }
+      } else if (type === 'Audio') {
+        if (!this.audioForm.get('fileName')?.value) {
+          newErrors['audio'] = 'Please upload an audio file.';
+        }
+      } else if (type === 'Slides / Presentation') {
+        if (!this.slidesForm.get('fileName')?.value) {
+          newErrors['slides'] = 'Please upload a presentation file (.ppt, .pptx, .odp).';
+        }
+      } else if (type === 'Reading') {
+        const html = (this.readingForm.get('contentHtml')?.value || '').trim();
+        if (!html) {
+          newErrors['reading'] = 'Reading article content is required.';
+        }
+      } else if (type === 'Recorded Class') {
+        const date = this.recordedClassForm.get('sessionDate')?.value;
+        if (!date) {
+          newErrors['recordedDate'] = 'Recorded session date is required.';
+        }
+      } else if (type === 'Book / E-book') {
+        if (!this.bookForm.get('fileName')?.value) {
+          newErrors['book'] = 'Please upload a book file (PDF or EPUB).';
+        }
+      } else if (type === 'External Link') {
+        const url = (this.externalLinkForm.get('url')?.value || '').trim();
+        if (!url || !url.startsWith('http')) {
+          newErrors['extUrl'] = 'A valid http:// or https:// URL is required.';
+        }
       }
     }
 
@@ -613,7 +806,29 @@ export class RepositoryCreateComponent implements OnInit {
     if (Object.keys(newErrors).length > 0) {
       const firstMsg = Object.values(newErrors)[0];
       this.formErrorAlert.set(`Validation Error: ${firstMsg}`);
-      this.lmsData.showToast(`Step 3 Error: ${firstMsg}`, 'error', 4500, 'Step 3 Incomplete', 'STEP 3 / 4');
+      this.lmsData.showToast(`Step 3 Error: ${firstMsg}`, 'error', 4500, 'Step 3 Incomplete', 'STEP 3 / 5');
+      return false;
+    }
+
+    this.formErrorAlert.set(null);
+    return true;
+  }
+
+  validateStep4(): boolean {
+    const newErrors: Record<string, string> = {};
+    const mode = this.step4Form.get('sharingMode')?.value;
+    const selected = this.step4Form.get('selectedLmsIds')?.value || [];
+
+    if (mode === 'Custom Share' && selected.length === 0) {
+      newErrors['sharingLms'] = 'Please select at least one sibling LMS instance for Custom Share.';
+    }
+
+    this.errors.set(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstMsg = Object.values(newErrors)[0];
+      this.formErrorAlert.set(`Validation Error: ${firstMsg}`);
+      this.lmsData.showToast(firstMsg, 'error', 4500, 'Step 4 Incomplete', 'STEP 4 / 5');
       return false;
     }
 
@@ -652,16 +867,29 @@ export class RepositoryCreateComponent implements OnInit {
 
     let contentConfig: any = {};
     if (this.isAssessmentType(type)) {
-      const assessmentConfig = this.questionSetForm.value;
-      contentConfig = isSurveyAssessmentType(type)
-        ? {
-            assessmentId: assessmentConfig.assessmentId,
-            assessmentTitle: assessmentConfig.assessmentTitle,
-            assessmentCode: assessmentConfig.assessmentCode,
-            questionCount: assessmentConfig.questionCount,
-            scoringMode: 'unscored'
-          }
-        : { ...assessmentConfig, scoringMode: 'scored' };
+      const bState = this.assessmentBuilderState();
+      const asmId = bState?.assessmentId || `ASM-${Date.now()}`;
+      const qCount = bState?.questions?.length || 0;
+      const isSurvey = isSurveyAssessmentType(type);
+
+      contentConfig = {
+        assessmentId: asmId,
+        assessmentTitle: s1.title,
+        assessmentCode: `CODE-${asmId}`,
+        questionCount: qCount,
+        scoringMode: isSurvey ? 'unscored' : (bState?.scoringMode || 'scored'),
+        passMarkPercent: isSurvey ? undefined : bState?.passMarkPercent,
+        totalMarks: isSurvey ? 0 : (bState?.questions || []).reduce((sum, q) => sum + (q.points || 0), 0),
+        randomization: bState?.randomization || 'None',
+        difficultyRules: bState?.difficultyRules,
+        traineeInstructions: bState?.traineeInstructions,
+        categoryTags: bState?.categoryTags,
+        attemptsAllowed: bState?.attemptsAllowed,
+        timeLimitMinutes: bState?.timeLimitMinutes
+      };
+
+      // Ensure linked assessment entity exists in assessments store
+      this.syncAssessmentEntity(asmId, s1.title, type as AssessmentContentType, bState, isDraft);
     } else {
       switch (type) {
         case 'Video': contentConfig = this.videoForm.value; break;
@@ -694,7 +922,78 @@ export class RepositoryCreateComponent implements OnInit {
     };
   }
 
-  // SUBMISSION: SAVE AS DRAFT VS PUBLISH
+  private syncAssessmentEntity(
+    asmId: string,
+    title: string,
+    type: AssessmentContentType,
+    bState: V3AssessmentBuilderState | null,
+    isDraft: boolean
+  ) {
+    const existing = this.lmsData.assessments().find(a => a.assessmentId === asmId);
+    const questions = bState?.questions || [];
+    const scoringPolicy = {
+      totalMarks: (bState?.questions || []).reduce((s, q) => s + (q.points || 0), 0),
+      passMarkPercent: bState?.passMarkPercent || 60,
+      negativeMarking: { enabled: false, penalty: 0 },
+      attempts: { allowed: bState?.attemptsAllowed || 1, keep: 'highest' as any },
+      timeLimitMinutes: bState?.timeLimitMinutes || null,
+      resultDisplay: { showScore: 'afterSubmit' as any, showCorrect: true, showFeedback: true }
+    };
+
+    if (existing) {
+      this.lmsData.assessments.update(list =>
+        list.map(a => {
+          if (a.assessmentId !== asmId) return a;
+          const v1 = a.versions?.[0] || {
+            versionId: `${asmId}-v1`,
+            assessmentId: asmId,
+            versionLabel: 'v1',
+            state: isDraft ? 'draft' : 'published-current',
+            responseCount: 0,
+            questions: [],
+            scoringPolicy
+          };
+          return {
+            ...a,
+            title,
+            scoringMode: bState?.scoringMode || 'scored',
+            categoryTags: bState?.categoryTags || ['General'],
+            versions: [{ ...v1, questions, scoringPolicy, state: isDraft ? 'draft' : 'published-current' }]
+          };
+        })
+      );
+    } else {
+      const newAsm: Assessment = {
+        assessmentId: asmId,
+        code: `ASM-${Date.now().toString().slice(-4)}`,
+        title,
+        type: type === 'Exam' ? 'exam' : (type === 'Survey' ? 'survey' : 'quiz'),
+        categoryTags: bState?.categoryTags || ['General'],
+        scoringMode: bState?.scoringMode || 'scored',
+        currentVersionId: `${asmId}-v1`,
+        status: isDraft ? 'draft' : 'published',
+        sharingLevel: 'org',
+        usedInCount: 0,
+        versions: [
+          {
+            versionId: `${asmId}-v1`,
+            assessmentId: asmId,
+            versionLabel: 'v1',
+            state: isDraft ? 'draft' : 'published-current',
+            responseCount: 0,
+            questions,
+            scoringPolicy
+          }
+        ],
+        createdBy: 'Content Repository Author',
+        createdAt: formatDateToDDMMYYYY(new Date()),
+        updatedAt: formatDateToDDMMYYYY(new Date())
+      };
+      this.lmsData.assessments.update(prev => [newAsm, ...prev]);
+    }
+  }
+
+  // SUBMISSION: SAVE AS DRAFT VS PUBLISH (§2.7)
   saveAsDraft() {
     const titleVal = (this.step1Form.get('title')?.value || '').trim();
     if (!titleVal) {
@@ -710,7 +1009,7 @@ export class RepositoryCreateComponent implements OnInit {
 
     if (this.isEditMode() && this.editingItemId()) {
       this.lmsData.updateRepositoryItem(this.editingItemId()!, { ...payload, status: 'Draft' });
-      this.lmsData.showToast(`Draft updated for "${payload.title}"`, 'success', 4500, 'Draft Updated', 'STEP 4 / 4');
+      this.lmsData.showToast(`Draft updated for "${payload.title}"`, 'success', 4500, 'Draft Updated');
     } else {
       this.lmsData.createRepositoryItem(payload, true);
       this.lmsData.showToast(`Draft created for "${payload.title}"`, 'success', 4500, 'Draft Saved', 'DRAFT');
@@ -735,6 +1034,11 @@ export class RepositoryCreateComponent implements OnInit {
       this.scrollToFirstError();
       return;
     }
+    if (!this.validateStep4()) {
+      this.currentStep.set(4);
+      this.scrollToFirstError();
+      return;
+    }
 
     const payload = this.buildPayload(false);
 
@@ -743,10 +1047,10 @@ export class RepositoryCreateComponent implements OnInit {
         ...payload,
         status: undefined // automatic evaluation between Scheduled and Active!
       });
-      this.lmsData.showToast(`Repository item "${payload.title}" updated successfully!`, 'success', 5000, 'Item Updated', 'PUBLISHED');
+      this.lmsData.showToast(`Repository item published: "${payload.title}"`, 'success', 4500, 'Item Published');
     } else {
-      this.lmsData.createRepositoryItem(payload, false);
-      this.lmsData.showToast(`Repository item "${payload.title}" published to Central Store!`, 'success', 5000, 'Item Created', 'PUBLISHED');
+      const created = this.lmsData.createRepositoryItem(payload, false);
+      this.lmsData.showToast(`Published repository item "${created.title}" (${created.status})`, 'success', 4500, 'Publication Complete');
     }
 
     this.router.navigate(['/content-repository']);

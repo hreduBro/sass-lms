@@ -73,6 +73,7 @@ export interface CourseContentItem {
   contentId: string;
   title: string;
   family: ContentFamily; // learning | assessment
+  repositoryItemId?: string; // Stable reference to Content Repository item (§5.1)
   learning?: LearningPayload | null;
   assessment?: AssessmentPayload | null;
   authors: ContentAuthor[]; // Authors tagged at content level (BRD §4.4.2)

@@ -407,16 +407,18 @@ export class AssessmentCreateComponent implements OnInit {
   });
 
   // Difficulty breakdown in authored questions
-  difficultyDistribution = computed(() => {
-    const counts: Record<AssessmentQuestionDifficulty, number> = {
+  difficultyDistribution = computed<{ beginner: number; intermediate: number; advanced: number; expert: number }>(() => {
+    const counts = {
       beginner: 0,
       intermediate: 0,
       advanced: 0,
       expert: 0
     };
     this.questions().forEach(q => {
-      const diff = q.difficulty || 'intermediate';
-      counts[diff] = (counts[diff] || 0) + 1;
+      const diff = (q.difficulty || 'intermediate').toLowerCase() as keyof typeof counts;
+      if (counts[diff] !== undefined) {
+        counts[diff] = (counts[diff] || 0) + 1;
+      }
     });
     return counts;
   });

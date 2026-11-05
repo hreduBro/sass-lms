@@ -26,6 +26,9 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
   assessment = signal<Assessment | null>(null);
   currentVersion = signal<AssessmentVersion | null>(null);
 
+  // Delivered Questions Snapshot (supports None, Shuffle, By difficulty §2.3b)
+  deliveredQuestions = signal<AssessmentQuestion[]>([]);
+
   // Runtime Taker State
   currentQuestionIndex = signal<number>(0);
   userAnswers = signal<Record<string, any>>({}); // questionId -> answer value
@@ -46,11 +49,55 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      const asm = this.lmsService.assessments().find(a => a.assessmentId === id);
+      // Find assessment directly or via linked repository item
+      const repoItem = this.lmsService.repositoryItems().find(r => r.id === id || (r.contentConfig as any)?.assessmentId === id);
+      const targetAsmId = (repoItem?.contentConfig as any)?.assessmentId || id;
+      const asm = this.lmsService.assessments().find(a => a.assessmentId === targetAsmId);
+      
       if (asm) {
         this.assessment.set(asm);
         const ver = asm.versions.find(v => v.versionId === asm.currentVersionId) || asm.versions[0];
         this.currentVersion.set(ver);
+
+        // Deliver questions with Randomization Policy applied (§2.3b)
+        const qConfig = repoItem?.contentConfig as any;
+        const randMode = qConfig?.randomization || ver?.scoringPolicy?.randomization?.mode || 'None';
+        const authoredQuestions = ver?.questions || [];
+
+        let delivered: AssessmentQuestion[] = [];
+        if (randMode === 'Shuffle' || randMode === 'shuffle') {
+          // Shuffle question order and options order (§2.3b)
+          delivered = [...authoredQuestions]
+            .sort(() => Math.random() - 0.5)
+            .map(q => ({
+              ...q,
+              options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : q.options
+            }));
+        } else if (randMode === 'By difficulty' || randMode === 'pool_by_difficulty') {
+          // Draw per difficulty quota and assign uniform level points
+          const rules = qConfig?.difficultyRules || {
+            beginnerDrawCount: 2,
+            advancedDrawCount: 2,
+            expertDrawCount: 1,
+            beginnerPoints: 2,
+            advancedPoints: 4,
+            expertPoints: 6
+          };
+          const bPool = authoredQuestions.filter(q => (q.difficulty || '').toLowerCase() === 'beginner');
+          const aPool = authoredQuestions.filter(q => ['advanced', 'intermediate'].includes((q.difficulty || '').toLowerCase()));
+          const ePool = authoredQuestions.filter(q => (q.difficulty || '').toLowerCase() === 'expert');
+
+          const bSample = [...bPool].sort(() => Math.random() - 0.5).slice(0, rules.beginnerDrawCount).map(q => ({ ...q, points: rules.beginnerPoints }));
+          const aSample = [...aPool].sort(() => Math.random() - 0.5).slice(0, rules.advancedDrawCount).map(q => ({ ...q, points: rules.advancedPoints }));
+          const eSample = [...ePool].sort(() => Math.random() - 0.5).slice(0, rules.expertDrawCount).map(q => ({ ...q, points: rules.expertPoints }));
+
+          delivered = [...bSample, ...aSample, ...eSample];
+        } else {
+          // 'None': authored order
+          delivered = authoredQuestions;
+        }
+
+        this.deliveredQuestions.set(delivered);
 
         // Start timer if time limit exists
         if (ver?.scoringPolicy?.timeLimitMinutes) {
@@ -167,11 +214,11 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
 
   // Progress Calculation
   currentQuestion = computed<AssessmentQuestion | undefined>(() => {
-    return this.currentVersion()?.questions[this.currentQuestionIndex()];
+    return this.deliveredQuestions()[this.currentQuestionIndex()];
   });
 
   totalQuestions = computed<number>(() => {
-    return this.currentVersion()?.questions.length || 0;
+    return this.deliveredQuestions().length;
   });
 
   answeredCount = computed<number>(() => {
@@ -224,8 +271,8 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
     const ver = this.currentVersion();
     if (!asm || !ver) return;
 
-    // Convert userAnswers map into LearnerQuestionAnswer[]
-    const answersList: LearnerQuestionAnswer[] = ver.questions.map(q => {
+    // Convert userAnswers map into LearnerQuestionAnswer[] from delivered questions snapshot
+    const answersList: LearnerQuestionAnswer[] = this.deliveredQuestions().map(q => {
       const rawVal = this.userAnswers()[q.questionId];
       let selectedOptionIds: string[] | undefined;
       let selectedOptionId: string | undefined;
@@ -236,8 +283,9 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
 
       if (q.type === 'singleSelect' || q.type === 'trueFalse') {
         selectedOptionId = rawVal;
+        selectedOptionIds = rawVal ? [rawVal] : [];
       } else if (q.type === 'multiSelect') {
-        selectedOptionIds = Array.isArray(rawVal) ? rawVal : [];
+        selectedOptionIds = Array.isArray(rawVal) ? rawVal : (rawVal ? [rawVal] : []);
       } else if (q.type === 'numeric') {
         numericResponse = rawVal !== undefined && rawVal !== '' ? Number(rawVal) : undefined;
       } else if (q.type === 'matching') {
@@ -246,7 +294,9 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
           leftId,
           rightId
         }));
-      } else if (q.type === 'essay' || q.type === 'fileUpload' || q.type === 'fillBlank' || q.type === 'ordering' || q.type === 'text') {
+      } else if (q.type === 'fillBlank') {
+        textResponse = typeof rawVal === 'string' ? rawVal : '';
+      } else if (q.type === 'essay' || q.type === 'fileUpload' || q.type === 'ordering' || q.type === 'text') {
         textResponse = typeof rawVal === 'string' ? rawVal : JSON.stringify(rawVal);
       }
 
@@ -258,20 +308,21 @@ export class AssessmentRuntimeComponent implements OnInit, OnDestroy {
         numericResponse,
         matchingSelections,
         matchedPairs,
-        earnedPoints: 0 // Will be calculated by submission service
+        maxPoints: q.points
       };
     });
 
     const attempt = this.lmsService.submitAssessmentAttempt({
       assessmentId: asm.assessmentId,
       assessmentVersionId: ver.versionId,
+      deliveredQuestions: this.deliveredQuestions(),
       traineeId: 'usr-brac-1',
       traineeName: 'Farhana Ahmed',
       traineeEmail: 'farhana.ahmed@brac.net',
       attemptNumber: 1,
       answers: answersList,
       timeTakenSeconds: ver.scoringPolicy?.timeLimitMinutes ? ver.scoringPolicy.timeLimitMinutes * 60 - (this.remainingSeconds() || 0) : 180
-    });
+    } as any);
 
     this.submissionAttempt.set(attempt);
     this.isSubmitted.set(true);

@@ -1514,14 +1514,15 @@ export class CourseCreateComponent implements OnInit {
   repoTypeFilter = signal<string>('all');
 
   availableRepoItems = computed<RepositoryItem[]>(() => {
-    const list = this.lmsService.repositoryItems();
+    // Only Active items in the current LMS workspace are available for attachment (§5.1)
+    const list = this.lmsService.activeLmsRepositoryItems();
     const query = (this.repoSearchQuery() || '').toLowerCase().trim();
     const fam = this.repoFamilyFilter();
     const typ = this.repoTypeFilter();
 
     return list.filter(item => {
-      // Must be Active or published
-      if (item.status === 'Draft' || item.status === 'Inactive') return false;
+      // Must be Active (§5.1)
+      if (item.status !== 'Active') return false;
 
       // Search match
       if (query) {
@@ -1570,11 +1571,13 @@ export class CourseCreateComponent implements OnInit {
 
     const isAssessment = repoItem.family === 'Assessment' || repoItem.type === 'Question Bank / Question Set';
     const isLearning = !isAssessment;
+    const gradingLabel = this.lmsService.getRepositoryItemGradingLabel(repoItem);
 
     const contentItem: CourseContentItem = {
       contentId: `cnt-${repoItem.id}-${Date.now()}`,
       title: repoItem.title,
       family: isLearning ? 'learning' : 'assessment',
+      repositoryItemId: repoItem.id,
       order: 1,
       instructorTags: itemInstructors,
       learning: isLearning ? {
@@ -1584,9 +1587,9 @@ export class CourseCreateComponent implements OnInit {
       } : undefined,
       assessment: isAssessment ? {
         subtype: 'quiz',
-        gradingMode: 'auto',
-        passingScorePercent: 80,
-        durationMinutes: 30,
+        gradingMode: gradingLabel === 'Needs manual grading' ? 'manual' : 'auto',
+        passingScorePercent: (repoItem.contentConfig as any)?.passMarkPercent || 80,
+        durationMinutes: (repoItem.contentConfig as any)?.timeLimitMinutes || 30,
         instructions: repoItem.description || 'Complete the attached assessment from Content Repository.'
       } : undefined,
       authors: [

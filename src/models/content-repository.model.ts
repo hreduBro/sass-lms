@@ -23,6 +23,18 @@ export type AssessmentContentType =
 
 export type ContentType = LearningContentType | AssessmentContentType;
 
+export type V3AssessmentDifficulty = 'Beginner' | 'Advanced' | 'Expert';
+export type V3RandomizationMode = 'None' | 'Shuffle' | 'By difficulty';
+
+export interface V3DifficultyRules {
+  beginnerDrawCount: number;
+  advancedDrawCount: number;
+  expertDrawCount: number;
+  beginnerPoints: number;
+  advancedPoints: number;
+  expertPoints: number;
+}
+
 /**
  * Assessment types that carry points / a pass mark and are therefore eligible
  * for the Plan's Pre-Test and Post-Test pickers (§5.2).
@@ -124,6 +136,12 @@ export interface QuestionSetConfig {
   scoringMode: 'scored' | 'unscored';
   passMarkPercent?: number;
   totalMarks?: number;
+  randomization?: V3RandomizationMode;
+  difficultyRules?: V3DifficultyRules;
+  traineeInstructions?: string;
+  categoryTags?: string[];
+  attemptsAllowed?: number;
+  timeLimitMinutes?: number;
 }
 
 export type ContentPayloadConfig =
@@ -340,6 +358,113 @@ export function evaluateAutomaticStatus(
   }
 
   return 'Active';
+}
+
+/**
+ * §3.3 Actions by status and ownership
+ * Non-owner LMS can ONLY perform 'View'.
+ * Owner actions are strictly gated by status.
+ */
+export type RepositoryActionType =
+  | 'view'
+  | 'continueEditing'
+  | 'editSharing'
+  | 'updateExpiry'
+  | 'activate'
+  | 'deactivate';
+
+export function isRepositoryActionAllowed(
+  action: RepositoryActionType,
+  status: ContentStatus,
+  isOwner: boolean
+): boolean {
+  if (action === 'view') return true;
+  if (!isOwner) return false;
+
+  switch (status) {
+    case 'Draft':
+      return action === 'continueEditing';
+    case 'Scheduled':
+      return action === 'editSharing' || action === 'updateExpiry';
+    case 'Active':
+      return action === 'editSharing' || action === 'updateExpiry' || action === 'deactivate';
+    case 'Inactive':
+      return action === 'activate' || action === 'editSharing';
+    case 'Expired':
+      return false;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Checks whether an item is accessible in a consumer LMS workspace (Discovery)
+ * §2.5 / §7 sharing gates:
+ * 1. Owner LMS always sees own items (Draft through Expired).
+ * 2. Shared-in items require:
+ *    - Same organization
+ *    - Not Draft
+ *    - Org master sharing switch enabled (repositorySharingEnabled !== false)
+ *    - Owner LMS sharing enabled and Contribute !== false
+ *    - Consumer LMS sharing enabled and Discover !== false
+ *    - Item-level sharing: Organization-wide OR (Custom Share and consumer LMS in sharedWithLmsIds)
+ */
+export interface SharingGateContext {
+  consumerLmsId: string;
+  consumerOrgId: string;
+  isOrgSharingEnabled: (orgId: string) => boolean;
+  getLmsSharingState: (lmsId: string) => { enabled: boolean; contribute: boolean; discover: boolean };
+}
+
+export function isItemDiscoverableByLms(
+  item: RepositoryItem,
+  context: SharingGateContext
+): boolean {
+  // Owner LMS always sees its own items
+  if (item.owningLmsId === context.consumerLmsId) {
+    return true;
+  }
+
+  // Cross-LMS sharing: must be same organization and not Draft
+  if (item.owningOrganizationId !== context.consumerOrgId || item.status === 'Draft') {
+    return false;
+  }
+
+  // Master Org switch
+  if (!context.isOrgSharingEnabled(item.owningOrganizationId)) {
+    return false;
+  }
+
+  // Owner LMS contribute gate
+  const ownerState = context.getLmsSharingState(item.owningLmsId);
+  if (!ownerState.enabled || !ownerState.contribute) {
+    return false;
+  }
+
+  // Consumer LMS discover gate
+  const consumerState = context.getLmsSharingState(context.consumerLmsId);
+  if (!consumerState.enabled || !consumerState.discover) {
+    return false;
+  }
+
+  // Item-level sharing mode
+  if (item.sharingMode === 'Organization-wide') {
+    return true;
+  }
+  if (item.sharingMode === 'Custom Share') {
+    return !!item.sharedWithLmsIds && item.sharedWithLmsIds.includes(context.consumerLmsId);
+  }
+
+  return false;
+}
+
+/**
+ * Checks whether an existing reference (Course / Plan) is active and usable by learners (§4)
+ * A referenced item stays usable as long as status === 'Active'.
+ * Narrowing sharing only stops new attachment/discovery, but existing references keep working.
+ */
+export function isExistingReferenceActive(item: RepositoryItem | null | undefined): boolean {
+  return !!item && item.status === 'Active';
 }
 
 /**

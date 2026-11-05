@@ -198,6 +198,19 @@
           }
         </div>
 
+        <!-- Question Bank Quick View Toggle (§3.2) -->
+        <button
+          type="button"
+          (click)="toggleQuestionBankView()"
+          class="px-3.5 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+          [class]="isQuestionBankView()
+            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+            : 'bg-slate-50 hover:bg-slate-100 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/60 dark:bg-purple-950/30'"
+          title="Question Bank View: Assessments and questions only">
+          <span class="material-symbols-outlined text-base">quiz</span>
+          <span>Question Bank View</span>
+        </button>
+
         <!-- Filter Option Button (Like LMS Grid) -->
         <button
           type="button"
@@ -682,7 +695,7 @@
                   (click)="$event.stopPropagation()">
                   <div class="flex items-center justify-end gap-1">
                     
-                    <!-- Preview / Details -->
+                    <!-- Preview / Details (View allowed for all §3.3) -->
                     <button
                       type="button"
                       (click)="openViewModal(item)"
@@ -691,8 +704,8 @@
                       <span class="material-symbols-outlined text-base">visibility</span>
                     </button>
 
-                    <!-- If Draft: Continue Editing -->
-                    @if (isOwner(item) && item.status === 'Draft') {
+                    <!-- Continue Editing (Owner Draft only §3.3) -->
+                    @if (canPerformAction('continueEditing', item)) {
                       <button
                         type="button"
                         (click)="continueEditing(item)"
@@ -702,19 +715,8 @@
                       </button>
                     }
 
-                    <!-- If Owner & Published: Clone/Revise -->
-                    @if (isOwner(item) && item.status !== 'Draft') {
-                      <button
-                        type="button"
-                        (click)="cloneItem(item)"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-tenant-600 hover:bg-base-200 transition-colors cursor-pointer"
-                        title="Create New Revision (Clone)">
-                        <span class="material-symbols-outlined text-base">content_copy</span>
-                      </button>
-                    }
-
-                    <!-- If Owner: Edit Sharing -->
-                    @if (isOwner(item)) {
+                    <!-- Edit Sharing (Owner Scheduled, Active, Inactive §3.3) -->
+                    @if (canPerformAction('editSharing', item)) {
                       <button
                         type="button"
                         (click)="openSharingModal(item)"
@@ -722,8 +724,10 @@
                         title="Edit Sharing Mode">
                         <span class="material-symbols-outlined text-base">share</span>
                       </button>
+                    }
 
-                      <!-- Update Expiry -->
+                    <!-- Update Expiry (Owner Scheduled, Active §3.3) -->
+                    @if (canPerformAction('updateExpiry', item)) {
                       <button
                         type="button"
                         (click)="openExpiryModal(item)"
@@ -731,33 +735,27 @@
                         title="Update Expiry Date">
                         <span class="material-symbols-outlined text-base">event</span>
                       </button>
+                    }
 
-                      <!-- Activate / Deactivate Toggle -->
-                      @if (item.status === 'Active') {
-                        <button
-                          type="button"
-                          (click)="openStatusToggleModal(item, 'Inactive')"
-                          class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors cursor-pointer"
-                          title="Deactivate item">
-                          <span class="material-symbols-outlined text-base">pause_circle</span>
-                        </button>
-                      } @else if (item.status === 'Inactive') {
-                        <button
-                          type="button"
-                          (click)="openStatusToggleModal(item, 'Active')"
-                          class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors cursor-pointer"
-                          title="Reactivate item">
-                          <span class="material-symbols-outlined text-base">play_circle</span>
-                        </button>
-                      }
-
-                      <!-- Delete -->
+                    <!-- Deactivate (Owner Active only §3.3) -->
+                    @if (canPerformAction('deactivate', item)) {
                       <button
                         type="button"
-                        (click)="deleteItem(item)"
+                        (click)="openStatusToggleModal(item, 'Inactive')"
                         class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors cursor-pointer"
-                        title="Delete Item">
-                        <span class="material-symbols-outlined text-base">delete</span>
+                        title="Deactivate item">
+                        <span class="material-symbols-outlined text-base">pause_circle</span>
+                      </button>
+                    }
+
+                    <!-- Activate (Owner Inactive only §3.3) -->
+                    @if (canPerformAction('activate', item)) {
+                      <button
+                        type="button"
+                        (click)="openStatusToggleModal(item, 'Active')"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors cursor-pointer"
+                        title="Activate item">
+                        <span class="material-symbols-outlined text-base">play_circle</span>
                       </button>
                     }
                   </div>
@@ -948,13 +946,13 @@
         <!-- Details Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
           <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
-            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Author(s)</span>
+            <span class="text-[10px] text-text-tertiary uppercase font-bold block">Author(s) Attribution</span>
             <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.authorNames.join(', ') }}</span>
           </div>
 
           <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
             <span class="text-[10px] text-text-tertiary uppercase font-bold block">Originating LMS</span>
-            <span class="font-semibold text-text-primary mt-0.5 block">{{ selectedItemForView()!.owningLmsName }}</span>
+            <span class="font-semibold text-text-primary mt-0.5 block">{{ isOwner(selectedItemForView()!) ? 'This LMS (Owner)' : selectedItemForView()!.owningLmsName }}</span>
           </div>
 
           <div class="p-3 rounded-xl bg-base-100 dark:bg-slate-800/60 border border-base-200 dark:border-slate-700">
@@ -980,6 +978,37 @@
               {{ selectedItemForView()!.referencedInPlansCount + selectedItemForView()!.referencedInCoursesCount }} plans/courses
             </span>
           </div>
+        </div>
+
+        <!-- Render Content Config Preview (§3.1 clicking opens item's view) -->
+        <div class="p-4 rounded-2xl bg-base-50 dark:bg-slate-800/30 border border-base-200 dark:border-slate-700 space-y-2 text-xs">
+          <span class="text-[10px] text-text-tertiary uppercase font-bold block">Authored Content Artifact</span>
+          @if (selectedItemForView()!.family === 'Learning') {
+            <div class="space-y-1 text-text-secondary">
+              @if (selectedItemForView()!.type === 'Video') {
+                <p><strong>Source:</strong> {{ $any(selectedItemForView()!.contentConfig).source }} &bull; <strong>File/URL:</strong> {{ $any(selectedItemForView()!.contentConfig).fileName || $any(selectedItemForView()!.contentConfig).videoUrl }} &bull; <strong>Duration:</strong> {{ $any(selectedItemForView()!.contentConfig).durationMinutes }} mins</p>
+              } @else if (selectedItemForView()!.type === 'PDF / Document' || selectedItemForView()!.type === 'Audio' || selectedItemForView()!.type === 'Slides / Presentation' || selectedItemForView()!.type === 'Book / E-book') {
+                <p><strong>File Name:</strong> {{ $any(selectedItemForView()!.contentConfig).fileName || 'Document asset' }} &bull; <strong>Size:</strong> {{ $any(selectedItemForView()!.contentConfig).fileSize || 'Standard' }}</p>
+              } @else if (selectedItemForView()!.type === 'Reading') {
+                <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-base-200 font-mono text-[11px]" [innerHTML]="$any(selectedItemForView()!.contentConfig).contentHtml"></div>
+              } @else if (selectedItemForView()!.type === 'External Link') {
+                <p><strong>URL:</strong> <a [href]="$any(selectedItemForView()!.contentConfig).url" target="_blank" class="text-tenant-600 underline">{{ $any(selectedItemForView()!.contentConfig).url }}</a></p>
+              } @else if (selectedItemForView()!.type === 'Recorded Class') {
+                <p><strong>Session Date:</strong> {{ $any(selectedItemForView()!.contentConfig).sessionDate }} &bull; <strong>Link:</strong> {{ $any(selectedItemForView()!.contentConfig).sessionUrl }}</p>
+              }
+            </div>
+          } @else {
+            <div class="space-y-2 text-text-secondary">
+              <p><strong>Assessment ID:</strong> {{ $any(selectedItemForView()!.contentConfig).assessmentId }} &bull; <strong>Questions:</strong> {{ $any(selectedItemForView()!.contentConfig).questionCount }} &bull; <strong>Scoring Mode:</strong> {{ $any(selectedItemForView()!.contentConfig).scoringMode }} &bull; <strong>Randomization:</strong> {{ $any(selectedItemForView()!.contentConfig).randomization || 'None' }}</p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-text-primary">Grading Label:</span>
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold"
+                  [class]="getGradingLabel(selectedItemForView()!) === 'Auto' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'">
+                  {{ getGradingLabel(selectedItemForView()!) || 'None' }}
+                </span>
+              </div>
+            </div>
+          }
         </div>
 
         <div class="flex justify-end pt-3 border-t border-base-200 dark:border-slate-800">

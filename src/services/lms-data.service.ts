@@ -268,7 +268,10 @@ import {
   INITIAL_REPOSITORY_ITEMS,
   evaluateAutomaticStatus,
   formatDateToDDMMYYYY,
-  parseDateString
+  parseDateString,
+  SharingGateContext,
+  isItemDiscoverableByLms,
+  isRepositoryActionAllowed
 } from '../models/content-repository.model';
 
 const INITIAL_TENANTS: Tenant[] = [
@@ -2749,36 +2752,38 @@ export class LmsDataService {
   // =========================================================================
   // CONTENT REPOSITORY & SHARING STORE (§0 - §6)
   // =========================================================================
-  repositoryItems = signal<RepositoryItem[]>(INITIAL_REPOSITORY_ITEMS);
+  repositoryItems = signal<RepositoryItem[]>(
+    LocalPersistenceRepository.getRepositoryItems<RepositoryItem>() || INITIAL_REPOSITORY_ITEMS
+  );
 
   // Items visible in the current LMS workspace:
   // 1. Items owned by this LMS (owningLmsId === activeLmsId)
   // 2. Items shared-in from other LMS under the same Organization (Drafts excluded)
+  // Evaluated strictly through isItemDiscoverableByLms (§2.5 / §7)
   activeLmsRepositoryItems = computed<RepositoryItem[]>(() => {
     const activeLms = this.activeLms();
     const lmsId = activeLms ? activeLms.id : this.activeLmsId();
     const activeOrgId = this.activeTenantId();
     const all = this.repositoryItems();
 
-    return all.filter(item => {
-      // 1. Owner LMS: sees all items created here
-      if (item.owningLmsId === lmsId) {
-        return true;
+    const gateContext: SharingGateContext = {
+      consumerLmsId: lmsId,
+      consumerOrgId: activeOrgId,
+      isOrgSharingEnabled: (orgId: string) => {
+        const org = this.tenants().find(t => t.id === orgId);
+        return org ? org.repositorySharingEnabled !== false : true;
+      },
+      getLmsSharingState: (instId: string) => {
+        const inst = this.lmsInstances().find(l => l.id === instId);
+        const ds = inst?.resources?.dataSharing;
+        const enabled = ds ? ds.enabled !== false : true;
+        const contribute = ds ? (ds.contribute ?? enabled) : true;
+        const discover = ds ? (ds.discover ?? enabled) : true;
+        return { enabled, contribute, discover };
       }
+    };
 
-      // 2. Shared-in content from sister LMS under the same Organization
-      // Note: Drafts are never visible to other LMS
-      if (item.owningOrganizationId === activeOrgId && item.status !== 'Draft') {
-        if (item.sharingMode === 'Organization-wide') {
-          return true;
-        }
-        if (item.sharingMode === 'Custom Share' && item.sharedWithLmsIds && item.sharedWithLmsIds.includes(lmsId)) {
-          return true;
-        }
-      }
-
-      return false;
-    });
+    return all.filter(item => isItemDiscoverableByLms(item, gateContext));
   });
 
   /**
@@ -2801,7 +2806,7 @@ export class LmsDataService {
       );
       if (linked) {
         const currentVersion = linked.versions?.find(v => v.versionId === linked.currentVersionId) || linked.versions?.[0];
-        if (currentVersion?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload')) {
+        if (currentVersion?.questions?.some(q => q.manualGraded || q.type === 'essay' || q.type === 'fileUpload' || (q.type as any) === 'Q&A' || (q.type as any) === 'File upload')) {
           return 'Needs manual grading';
         }
       }
@@ -2860,6 +2865,19 @@ export class LmsDataService {
   }
 
   updateRepositoryItem(id: string, data: Partial<RepositoryItem>): void {
+    const itemToUpdate = this.repositoryItems().find(r => r.id === id);
+    if (!itemToUpdate) return;
+    const activeLmsId = this.activeLms()?.id || this.activeLmsId();
+    if (itemToUpdate.owningLmsId !== activeLmsId) {
+      this.showToast('You can only edit items owned by this LMS workspace.', 'error');
+      return;
+    }
+    // Draft only check for core editing (§3.3)
+    if (itemToUpdate.status !== 'Draft' && data.contentConfig !== undefined) {
+      this.showToast('Core content of published items cannot be overwritten. A new repository item must be created.', 'warning');
+      return;
+    }
+
     const now = new Date();
     const formattedNow = formatDateToDDMMYYYY(now);
 
@@ -2894,6 +2912,18 @@ export class LmsDataService {
   }
 
   updateRepositoryItemSharing(id: string, sharingMode: SharingMode, sharedWithLmsIds?: string[]): void {
+    const itemToUpdate = this.repositoryItems().find(r => r.id === id);
+    if (!itemToUpdate) return;
+    const activeLmsId = this.activeLms()?.id || this.activeLmsId();
+    if (itemToUpdate.owningLmsId !== activeLmsId) {
+      this.showToast('Only the owning LMS can edit sharing for this item.', 'error');
+      return;
+    }
+    if (!isRepositoryActionAllowed('editSharing', itemToUpdate.status, true)) {
+      this.showToast(`Sharing cannot be edited in "${itemToUpdate.status}" status.`, 'error');
+      return;
+    }
+
     const formattedNow = formatDateToDDMMYYYY(new Date());
     this.repositoryItems.update(list =>
       list.map(item => {
@@ -2910,6 +2940,18 @@ export class LmsDataService {
   }
 
   updateRepositoryItemExpiry(id: string, expiryDate: string | null, hasNoExpiry: boolean): void {
+    const itemToUpdate = this.repositoryItems().find(r => r.id === id);
+    if (!itemToUpdate) return;
+    const activeLmsId = this.activeLms()?.id || this.activeLmsId();
+    if (itemToUpdate.owningLmsId !== activeLmsId) {
+      this.showToast('Only the owning LMS can update expiry date for this item.', 'error');
+      return;
+    }
+    if (!isRepositoryActionAllowed('updateExpiry', itemToUpdate.status, true)) {
+      this.showToast(`Expiry cannot be updated in "${itemToUpdate.status}" status.`, 'error');
+      return;
+    }
+
     const now = new Date();
     const formattedNow = formatDateToDDMMYYYY(now);
 
@@ -2930,6 +2972,19 @@ export class LmsDataService {
   }
 
   toggleRepositoryItemStatus(id: string, targetStatus: 'Active' | 'Inactive'): void {
+    const itemToUpdate = this.repositoryItems().find(r => r.id === id);
+    if (!itemToUpdate) return;
+    const activeLmsId = this.activeLms()?.id || this.activeLmsId();
+    if (itemToUpdate.owningLmsId !== activeLmsId) {
+      this.showToast('Only the owning LMS can activate or deactivate this item.', 'error');
+      return;
+    }
+    const reqAction = targetStatus === 'Active' ? 'activate' : 'deactivate';
+    if (!isRepositoryActionAllowed(reqAction, itemToUpdate.status, true)) {
+      this.showToast(`Action "${reqAction}" is not allowed for status "${itemToUpdate.status}".`, 'error');
+      return;
+    }
+
     const formattedNow = formatDateToDDMMYYYY(new Date());
     this.repositoryItems.update(list =>
       list.map(item => {
@@ -3108,8 +3163,12 @@ export class LmsDataService {
   });
 
   // Assessment Store (§0.1 - §12)
-  assessments = signal<Assessment[]>(INITIAL_ASSESSMENTS);
-  assessmentAttempts = signal<AssessmentAttempt[]>(INITIAL_ASSESSMENT_ATTEMPTS);
+  assessments = signal<Assessment[]>(
+    LocalPersistenceRepository.getAssessments<Assessment>() || INITIAL_ASSESSMENTS
+  );
+  assessmentAttempts = signal<AssessmentAttempt[]>(
+    LocalPersistenceRepository.getAssessmentAttempts<AssessmentAttempt>() || INITIAL_ASSESSMENT_ATTEMPTS
+  );
   assessmentDashboardLayout = signal<AssessmentDashboardLayout>(DEFAULT_ASSESSMENT_DASHBOARD_LAYOUT);
 
   assessmentPermissions = computed<AssessmentPermissions>(() => {
@@ -3402,7 +3461,10 @@ export class LmsDataService {
     };
 
     if (version) {
-      calculated = calculateAssessmentAttemptScore(version.questions, version.scoringPolicy, attemptData.answers);
+      const deliveredQuestions = attemptData.deliveredQuestions && attemptData.deliveredQuestions.length > 0
+        ? attemptData.deliveredQuestions
+        : version.questions;
+      calculated = calculateAssessmentAttemptScore(deliveredQuestions, version.scoringPolicy, attemptData.answers);
     }
 
     const fullAttempt: AssessmentAttempt = {
@@ -5063,6 +5125,22 @@ export class LmsDataService {
           this.adminLayoutPreferences.set({ ...lms.layoutPreferences });
         }
       }
+    });
+
+    // Content repository and assessment persistence effects
+    effect(() => {
+      const items = this.repositoryItems();
+      LocalPersistenceRepository.saveRepositoryItems(items);
+    });
+
+    effect(() => {
+      const asms = this.assessments();
+      LocalPersistenceRepository.saveAssessments(asms);
+    });
+
+    effect(() => {
+      const atts = this.assessmentAttempts();
+      LocalPersistenceRepository.saveAssessmentAttempts(atts);
     });
   }
 

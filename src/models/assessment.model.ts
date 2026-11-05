@@ -15,7 +15,7 @@ export type AssessmentQuestionType =
   | 'fileUpload'
   | 'essay';
 
-export type AssessmentQuestionDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+export type AssessmentQuestionDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'Beginner' | 'Advanced' | 'Expert';
 
 export type RandomizationMode = 'none' | 'shuffle' | 'pool_plain' | 'pool_by_difficulty';
 
@@ -186,6 +186,7 @@ export interface AssessmentAttempt {
   assessmentId: string;
   assessmentVersionId: string;
   versionLabel: string;
+  deliveredQuestions?: AssessmentQuestion[];
   traineeId: string;
   traineeName: string;
   traineeEmail: string;

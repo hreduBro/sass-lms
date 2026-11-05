@@ -8,7 +8,10 @@ const STORAGE_KEYS = {
   DRAFT_LANDING_PAGES: 'onelms_draft_landing_pages',
   HISTORY_LANDING_PAGES: 'onelms_history_landing_pages',
   AUTH_SESSION: 'onelms_auth_session',
-  ADMIN_PORTAL_SESSION: 'onelms_admin_portal_session'
+  ADMIN_PORTAL_SESSION: 'onelms_admin_portal_session',
+  REPOSITORY_ITEMS: 'onelms_content_repository_items',
+  ASSESSMENTS: 'onelms_assessments',
+  ASSESSMENT_ATTEMPTS: 'onelms_assessment_attempts'
 };
 
 export interface AuthSession {
@@ -299,5 +302,66 @@ export class LocalPersistenceRepository {
       return [];
     }
     return [];
+  }
+
+  // --- Content Repository & Assessments Persistence (§0 - §7) ---
+  static getRepositoryItems<T = any>(): T[] | null {
+    if (!this.isBrowser()) return null;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.REPOSITORY_ITEMS);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn('Failed to parse repository items from localStorage', e);
+      return null;
+    }
+  }
+
+  static saveRepositoryItems<T = any>(items: T[]): void {
+    if (!this.isBrowser()) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.REPOSITORY_ITEMS, JSON.stringify(items));
+    } catch (e) {
+      console.warn('Failed to save repository items to localStorage', e);
+    }
+  }
+
+  static getAssessments<T = any>(): T[] | null {
+    if (!this.isBrowser()) return null;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.ASSESSMENTS);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn('Failed to parse assessments from localStorage', e);
+      return null;
+    }
+  }
+
+  static saveAssessments<T = any>(assessments: T[]): void {
+    if (!this.isBrowser()) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.ASSESSMENTS, JSON.stringify(assessments));
+    } catch (e) {
+      console.warn('Failed to save assessments to localStorage', e);
+    }
+  }
+
+  static getAssessmentAttempts<T = any>(): T[] | null {
+    if (!this.isBrowser()) return null;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.ASSESSMENT_ATTEMPTS);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn('Failed to parse assessment attempts from localStorage', e);
+      return null;
+    }
+  }
+
+  static saveAssessmentAttempts<T = any>(attempts: T[]): void {
+    if (!this.isBrowser()) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.ASSESSMENT_ATTEMPTS, JSON.stringify(attempts));
+    } catch (e) {
+      console.warn('Failed to save assessment attempts to localStorage', e);
+    }
   }
 }
