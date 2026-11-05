@@ -1,0 +1,1157 @@
+<div class="assessment-builder bg-white dark:bg-base-100 rounded-3xl border border-slate-200/80 dark:border-base-300 shadow-xs overflow-hidden">
+  
+  <!-- ========================================================================= -->
+  <!-- 1. STUDIO HEADER & 4-PART SEGMENTED NAVIGATION                           -->
+  <!-- ========================================================================= -->
+  <div class="px-6 py-5 bg-slate-50/70 dark:bg-slate-900/40 border-b border-slate-200/80 dark:border-base-300 flex flex-col gap-5">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-tenant-50 dark:bg-tenant-950/40 border border-tenant-200/60 dark:border-tenant-800 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0 shadow-2xs">
+        <span class="material-symbols-outlined text-xl">tune</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Assessment Studio</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-tenant-100 text-tenant-700 dark:bg-tenant-900/60 dark:text-tenant-300">
+            {{ assessmentType }}
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Configure delivery rules, scoring criteria, question bank and learner attempt experience
+        </p>
+      </div>
+    </div>
+
+    <!-- Compact underline navigation; separate from the outer wizard stepper. -->
+    <nav aria-label="Assessment Studio sections" class="grid grid-cols-2 sm:flex sm:flex-wrap gap-x-5 gap-y-1 -mb-5 text-xs font-semibold">
+      @for (section of studioSections; track section.id) {
+        <button
+          type="button"
+          (click)="setPart(section.id)"
+          [attr.aria-current]="currentPart() === section.id ? 'step' : null"
+          [class.text-tenant-600]="currentPart() === section.id"
+          [class.dark:text-tenant-400]="currentPart() === section.id"
+          class="relative min-w-0 flex items-center justify-center sm:justify-start gap-2 px-2 pb-4 pt-2 text-text-secondary hover:text-tenant-600 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tenant-500">
+          <span aria-hidden="true" class="material-symbols-outlined text-base">{{ section.icon }}</span>
+          <span>{{ section.label }}</span>
+          @if (section.id === 3) {
+            <span class="px-1.5 py-0.5 rounded-md bg-base-200 dark:bg-base-300 text-[10px] tabular-nums">{{ questions().length }}</span>
+          }
+          @if (currentPart() === section.id) {
+            <span aria-hidden="true" class="absolute bottom-0 left-2 right-2 h-0.5 rounded-t-full bg-tenant-500"></span>
+          }
+        </button>
+      }
+    </nav>
+  </div>
+
+  <div class="p-6 sm:p-8">
+
+    <!-- ========================================================================= -->
+    <!-- PART 1: BASIC INFO                                                        -->
+    <!-- ========================================================================= -->
+    @if (currentPart() === 1) {
+      <div class="space-y-8 animate-in fade-in duration-200">
+        
+        <!-- Compact, read-only type summary -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-base-200 dark:border-base-300">
+          <div class="flex items-center gap-3 min-w-0">
+            <span aria-hidden="true" class="material-symbols-outlined flex items-center justify-center w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/30 text-tenant-600 dark:text-tenant-400 shrink-0">quiz</span>
+            <div>
+              <h4 class="text-sm font-semibold text-text-primary">Assessment type</h4>
+              <p class="text-xs text-text-secondary mt-0.5">Selected in Family &amp; Type</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tenant-50 dark:bg-tenant-950/30 text-tenant-700 dark:text-tenant-300 text-xs font-semibold">
+            <span aria-hidden="true" class="material-symbols-outlined text-sm">lock</span>
+            {{ assessmentType }}
+          </span>
+        </div>
+
+        <!-- Section: Scoring Mode -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-2">
+            <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">grade</span>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Scoring Mode</h4>
+          </div>
+
+          @if (isSurvey()) {
+            <div class="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl text-xs text-amber-800 dark:text-amber-200 flex items-start gap-3">
+              <span class="material-symbols-outlined text-amber-600 text-lg shrink-0 mt-0.5">info</span>
+              <div>
+                <strong class="font-bold">Unscored Survey:</strong> Surveys collect learner sentiment and feedback without points, pass marks, or graded answer keys.
+              </div>
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <label
+                class="flex items-start gap-3.5 p-5 rounded-2xl border-2 cursor-pointer transition-all"
+                [class.border-tenant-500]="scoringMode() === 'scored'"
+                [class.bg-tenant-50/40]="scoringMode() === 'scored'"
+                [class.dark:bg-tenant-950/20]="scoringMode() === 'scored'"
+                [class.border-slate-200]="scoringMode() !== 'scored'"
+                [class.dark:border-slate-800]="scoringMode() !== 'scored'">
+                <input
+                  type="radio"
+                  name="scoringMode"
+                  value="scored"
+                  [checked]="scoringMode() === 'scored'"
+                  (change)="scoringMode.set('scored')"
+                  class="mt-1 text-tenant-600 focus:ring-tenant-500" />
+                <div class="space-y-1">
+                  <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-base text-tenant-600">scoreboard</span>
+                    <span>Point-Scored &amp; Graded</span>
+                  </div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Evaluates individual question points, calculates total scores, applies pass mark %, and triggers grading.
+                  </div>
+                </div>
+              </label>
+
+              <label
+                class="flex items-start gap-3.5 p-5 rounded-2xl border-2 cursor-pointer transition-all"
+                [class.border-tenant-500]="scoringMode() === 'unscored'"
+                [class.bg-tenant-50/40]="scoringMode() === 'unscored'"
+                [class.dark:bg-tenant-950/20]="scoringMode() === 'unscored'"
+                [class.border-slate-200]="scoringMode() !== 'unscored'"
+                [class.dark:border-slate-800]="scoringMode() !== 'unscored'">
+                <input
+                  type="radio"
+                  name="scoringMode"
+                  value="unscored"
+                  [checked]="scoringMode() === 'unscored'"
+                  (change)="scoringMode.set('unscored')"
+                  class="mt-1 text-tenant-600 focus:ring-tenant-500" />
+                <div class="space-y-1">
+                  <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-base text-slate-500">task_alt</span>
+                    <span>Unscored Assessment</span>
+                  </div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Diagnostic check or self-assessment without awarded marks, pass benchmark, or letter grades.
+                  </div>
+                </div>
+              </label>
+            </div>
+          }
+        </div>
+
+        <!-- Section: Randomization Option -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-2">
+            <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">shuffle</span>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Randomization Strategy</h4>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <label
+              class="flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all text-left"
+              [class.border-tenant-500]="randomization() === 'None'"
+              [class.bg-tenant-50/40]="randomization() === 'None'"
+              [class.dark:bg-tenant-950/20]="randomization() === 'None'"
+              [class.border-slate-200]="randomization() !== 'None'"
+              [class.dark:border-slate-800]="randomization() !== 'None'">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-xl">format_list_numbered</span>
+                </div>
+                <input
+                  type="radio"
+                  name="randomization"
+                  value="None"
+                  [checked]="randomization() === 'None'"
+                  (change)="randomization.set('None')"
+                  class="text-tenant-600 focus:ring-tenant-500" />
+              </div>
+              <strong class="text-sm font-bold text-slate-900 dark:text-white">Standard Order (None)</strong>
+              <span class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                Questions and answer options appear exactly in authored studio order.
+              </span>
+            </label>
+
+            <label
+              class="flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all text-left"
+              [class.border-tenant-500]="randomization() === 'Shuffle'"
+              [class.bg-tenant-50/40]="randomization() === 'Shuffle'"
+              [class.dark:bg-tenant-950/20]="randomization() === 'Shuffle'"
+              [class.border-slate-200]="randomization() !== 'Shuffle'"
+              [class.dark:border-slate-800]="randomization() !== 'Shuffle'">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-xl">shuffle</span>
+                </div>
+                <input
+                  type="radio"
+                  name="randomization"
+                  value="Shuffle"
+                  [checked]="randomization() === 'Shuffle'"
+                  (change)="randomization.set('Shuffle')"
+                  class="text-tenant-600 focus:ring-tenant-500" />
+              </div>
+              <strong class="text-sm font-bold text-slate-900 dark:text-white">Shuffle Questions &amp; Options</strong>
+              <span class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                Randomizes both question sequence and multiple-choice alternatives for each attempt.
+              </span>
+            </label>
+
+            @if (!isSurvey()) {
+              <label
+                class="flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all text-left"
+                [class.border-tenant-500]="randomization() === 'By difficulty'"
+                [class.bg-tenant-50/40]="randomization() === 'By difficulty'"
+                [class.dark:bg-tenant-950/20]="randomization() === 'By difficulty'"
+                [class.border-slate-200]="randomization() !== 'By difficulty'"
+                [class.dark:border-slate-800]="randomization() !== 'By difficulty'">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                    <span class="material-symbols-outlined text-xl">stacked_line_chart</span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="randomization"
+                    value="By difficulty"
+                    [checked]="randomization() === 'By difficulty'"
+                    (change)="randomization.set('By difficulty')"
+                    class="text-tenant-600 focus:ring-tenant-500" />
+                </div>
+                <strong class="text-sm font-bold text-slate-900 dark:text-white">Pool By Difficulty</strong>
+                <span class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Draws fixed question quotas from Beginner, Advanced and Expert pools with equal total marks.
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <!-- Section: Instructions & Category Tags -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          <!-- Trainee Instructions -->
+          <div class="space-y-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Trainee Instructions (Optional)
+            </label>
+            <textarea
+              rows="4"
+              [ngModel]="traineeInstructions()"
+              (ngModelChange)="traineeInstructions.set($event)"
+              placeholder="Guidelines presented to the trainee before starting (e.g. calculators allowed, time limit reminders)..."
+              class="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none transition-all"></textarea>
+          </div>
+
+          <!-- Category Tags -->
+          <div class="space-y-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Assessment Tags &amp; Skills
+            </label>
+            <div class="p-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-3 min-h-[114px]">
+              <div class="flex flex-wrap items-center gap-1.5">
+                @for (tag of categoryTags(); track tag) {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                    {{ tag }}
+                    <button
+                      type="button"
+                      (click)="removeTag(tag)"
+                      class="hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Remove tag">
+                      <span class="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  </span>
+                }
+              </div>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [ngModel]="newTagInput()"
+                  (ngModelChange)="newTagInput.set($event)"
+                  (keyup.enter)="addTag()"
+                  placeholder="Type tag name and press Enter..."
+                  class="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none" />
+                <button
+                  type="button"
+                  (click)="addTag()"
+                  class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold cursor-pointer">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="pt-4 flex justify-end border-t border-slate-200/80 dark:border-slate-800">
+          <button
+            type="button"
+            (click)="setPart(2)"
+            class="px-6 py-2.5 bg-tenant-600 hover:bg-tenant-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2">
+            <span>Next: Scoring &amp; Rules</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- PART 2: SCORING & RULES                                                   -->
+    <!-- ========================================================================= -->
+    @if (currentPart() === 2) {
+      <div class="space-y-8 animate-in fade-in duration-200">
+        
+        @if (isSurvey() || scoringMode() === 'unscored') {
+          <div class="p-6 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-slate-200/80 dark:border-slate-800 text-center space-y-2 max-w-xl mx-auto my-8">
+            <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">task_alt</span>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Unscored Assessment Experience</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              This assessment is configured as Unscored. Passing score, individual points per level, and attempt grades are bypassed. Learners submit answers directly.
+            </p>
+          </div>
+        } @else {
+          <!-- Benchmarks Row -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-2">
+              <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">tune</span>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Performance Thresholds</h4>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+              <!-- Pass Mark -->
+              <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
+                <label class="block text-xs font-bold text-slate-900 dark:text-white">
+                  Pass Mark (%) <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    [ngModel]="passMarkPercent()"
+                    (ngModelChange)="passMarkPercent.set($event)"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none pr-8 font-bold" />
+                  <span class="absolute right-3.5 top-2.5 text-slate-400 font-bold text-xs">%</span>
+                </div>
+                <p class="text-[11px] text-slate-400">Minimum percentage required to achieve passing status</p>
+              </div>
+
+              <!-- Attempts -->
+              <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
+                <label class="block text-xs font-bold text-slate-900 dark:text-white">
+                  Attempts Allowed
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="99"
+                  [ngModel]="attemptsAllowed()"
+                  (ngModelChange)="attemptsAllowed.set($event)"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none font-bold" />
+                <p class="text-[11px] text-slate-400">Set to 0 for unlimited retakes</p>
+              </div>
+
+              <!-- Time Limit -->
+              <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
+                <label class="block text-xs font-bold text-slate-900 dark:text-white">
+                  Time Limit (Minutes)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="timeLimitMinutes()"
+                  (ngModelChange)="timeLimitMinutes.set($event)"
+                  placeholder="Untimed"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none font-bold" />
+                <p class="text-[11px] text-slate-400">Leave blank or 0 for an untimed assessment</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- By Difficulty Rules Table (§2.3b Part 2) -->
+        @if (randomization() === 'By difficulty' && !isSurvey()) {
+          <div class="space-y-3 pt-2">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-tenant-600 dark:text-tenant-400 text-lg">stacked_line_chart</span>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Difficulty Quotas &amp; Point Values</h4>
+              </div>
+              <span class="text-xs text-slate-500 dark:text-slate-400">
+                Equalized marks per attempt across all drawn variations
+              </span>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="text-left bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                      <th class="py-3 px-5 font-bold uppercase tracking-wider">Difficulty Level</th>
+                      <th class="py-3 px-5 font-bold uppercase tracking-wider">Questions To Draw</th>
+                      <th class="py-3 px-5 font-bold uppercase tracking-wider">Points Per Question</th>
+                      <th class="py-3 px-5 font-bold uppercase tracking-wider text-right">Attempt Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td class="py-4 px-5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span>Beginner</span>
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="0"
+                          [ngModel]="beginnerDrawCount()"
+                          (ngModelChange)="beginnerDrawCount.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="1"
+                          [ngModel]="beginnerPoints()"
+                          (ngModelChange)="beginnerPoints.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5 text-right font-bold text-slate-900 dark:text-white">
+                        {{ beginnerDrawCount() * beginnerPoints() }} pts
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td class="py-4 px-5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span>Advanced</span>
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="0"
+                          [ngModel]="advancedDrawCount()"
+                          (ngModelChange)="advancedDrawCount.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="1"
+                          [ngModel]="advancedPoints()"
+                          (ngModelChange)="advancedPoints.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5 text-right font-bold text-slate-900 dark:text-white">
+                        {{ advancedDrawCount() * advancedPoints() }} pts
+                      </td>
+                    </tr>
+
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td class="py-4 px-5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                        <span>Expert</span>
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="0"
+                          [ngModel]="expertDrawCount()"
+                          (ngModelChange)="expertDrawCount.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5">
+                        <input
+                          type="number"
+                          min="1"
+                          [ngModel]="expertPoints()"
+                          (ngModelChange)="expertPoints.set($event)"
+                          class="w-24 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold" />
+                      </td>
+                      <td class="py-4 px-5 text-right font-bold text-slate-900 dark:text-white">
+                        {{ expertDrawCount() * expertPoints() }} pts
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="bg-tenant-50/50 dark:bg-tenant-950/20 border-t-2 border-slate-200 dark:border-slate-700">
+                      <td colspan="3" class="py-3 px-5 font-bold text-slate-900 dark:text-white text-right uppercase tracking-wider">
+                        Total Delivered Attempt Marks:
+                      </td>
+                      <td class="py-3 px-5 text-right font-extrabold text-tenant-600 dark:text-tenant-400 text-sm">
+                        {{ totalMarks() }} pts
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Navigation Footer -->
+        <div class="pt-4 flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800">
+          <button
+            type="button"
+            (click)="setPart(1)"
+            class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back: Basic Info</span>
+          </button>
+          <button
+            type="button"
+            (click)="setPart(3)"
+            class="px-6 py-2.5 bg-tenant-600 hover:bg-tenant-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2">
+            <span>Next: Question Studio</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- PART 3: QUESTION STUDIO                                                   -->
+    <!-- ========================================================================= -->
+    @if (currentPart() === 3) {
+      <div class="space-y-6 animate-in fade-in duration-200">
+        
+        <!-- By Difficulty Live Quota Bar (§2.3b) -->
+        @if (randomization() === 'By difficulty' && !isSurvey()) {
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+              <span class="material-symbols-outlined text-sm text-tenant-600">stacked_line_chart</span>
+              <span>Live Question Pool Quotas:</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-xs font-semibold">
+              <span class="flex items-center gap-1.5" [class.text-emerald-600]="difficultyCounts().beginnerValid" [class.text-rose-600]="!difficultyCounts().beginnerValid">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <strong>Beginner:</strong> {{ difficultyCounts().beginnerAdded }} authored, {{ difficultyCounts().beginnerDrawn }} drawn
+                @if (!difficultyCounts().beginnerValid) { <em class="text-[10px] uppercase font-bold">(Shortage)</em> }
+              </span>
+              <span class="flex items-center gap-1.5" [class.text-amber-600]="difficultyCounts().advancedValid" [class.text-rose-600]="!difficultyCounts().advancedValid">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <strong>Advanced:</strong> {{ difficultyCounts().advancedAdded }} authored, {{ difficultyCounts().advancedDrawn }} drawn
+                @if (!difficultyCounts().advancedValid) { <em class="text-[10px] uppercase font-bold">(Shortage)</em> }
+              </span>
+              <span class="flex items-center gap-1.5" [class.text-rose-600]="!difficultyCounts().expertValid" [class.text-slate-800]="difficultyCounts().expertValid" [class.dark:text-slate-200]="difficultyCounts().expertValid">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <strong>Expert:</strong> {{ difficultyCounts().expertAdded }} authored, {{ difficultyCounts().expertDrawn }} drawn
+                @if (!difficultyCounts().expertValid) { <em class="text-[10px] uppercase font-bold">(Shortage)</em> }
+              </span>
+            </div>
+          </div>
+        }
+
+        <!-- Studio Master-Detail Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Navigator Sidebar (Left) -->
+          <div class="lg:col-span-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Authored Questions ({{ questions().length }})
+              </span>
+              <button
+                type="button"
+                (click)="addQuestion('Single choice')"
+                class="px-3 py-1.5 bg-tenant-600 hover:bg-tenant-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-xs">add</span>
+                <span>Add Question</span>
+              </button>
+            </div>
+
+            <!-- List of Questions -->
+            <div class="space-y-2 max-h-[580px] overflow-y-auto pr-1">
+              @for (q of questions(); track q.questionId; let idx = $index) {
+                <div
+                  (click)="activeQuestionIndex.set(idx)"
+                  class="p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex items-start justify-between gap-2.5"
+                  [class.border-tenant-500]="activeQuestionIndex() === idx"
+                  [class.bg-tenant-50/40]="activeQuestionIndex() === idx"
+                  [class.dark:bg-tenant-950/20]="activeQuestionIndex() === idx"
+                  [class.border-slate-200]="activeQuestionIndex() !== idx"
+                  [class.dark:border-slate-800]="activeQuestionIndex() !== idx">
+                  
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 mb-1">
+                      <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center shrink-0">
+                        {{ idx + 1 }}
+                      </span>
+                      <span class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {{ mapInternalToV3Type(q.type) }}
+                      </span>
+                      @if (!isSurvey() && q.difficulty) {
+                        <span class="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                          {{ q.difficulty }}
+                        </span>
+                      }
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {{ q.authorAttachment ? (q.text || q.authorAttachment.fileName) : (q.text || 'Untitled question prompt...') }}
+                    </p>
+                  </div>
+
+                  <!-- Actions (Up, Down, Delete) -->
+                  <div class="flex items-center gap-0.5 shrink-0" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      [disabled]="idx === 0"
+                      (click)="moveQuestion(idx, idx - 1)"
+                      class="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 cursor-pointer"
+                      title="Move up">
+                      <span class="material-symbols-outlined text-sm">arrow_upward</span>
+                    </button>
+                    <button
+                      type="button"
+                      [disabled]="idx === questions().length - 1"
+                      (click)="moveQuestion(idx, idx + 1)"
+                      class="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 cursor-pointer"
+                      title="Move down">
+                      <span class="material-symbols-outlined text-sm">arrow_downward</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeQuestion(idx)"
+                      class="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                      title="Delete question">
+                      <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="p-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-xs text-slate-400">
+                  No questions authored yet. Click "Add Question" above to begin.
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Active Question Studio Workspace (Right) -->
+          <div class="lg:col-span-8 bg-slate-50/60 dark:bg-slate-900/40 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-5">
+            @if (activeQuestionIndex() !== null && questions()[activeQuestionIndex()!]; as activeQ) {
+              
+              <!-- Workspace Top Bar -->
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-tenant-600 text-white font-bold text-xs flex items-center justify-center">
+                    {{ activeQuestionIndex()! + 1 }}
+                  </span>
+                  <span class="text-sm font-bold text-slate-900 dark:text-white">Question #{{ activeQuestionIndex()! + 1 }}</span>
+                </div>
+
+                <!-- Type Selector -->
+                <div class="flex items-center gap-2">
+                  <label class="text-xs font-semibold text-slate-500">Format:</label>
+                  <app-custom-select
+                    class="w-44 max-w-full"
+                    [options]="questionTypes"
+                    [value]="mapInternalToV3Type(activeQ.type)"
+                    (valueChange)="updateActiveQuestion({ type: mapV3TypeToInternal($event), manualGraded: $event === 'Q&A' || $event === 'File upload' })"
+                    [clearable]="false"
+                    [searchable]="false"
+                    size="sm"
+                    dropdownAlign="right"
+                    placeholder="Select format">
+                  </app-custom-select>
+                </div>
+              </div>
+
+              <!-- FORMAT-SPECIFIC EDITING WORKSPACE -->
+              @if (mapInternalToV3Type(activeQ.type) === 'File upload') {
+                <!-- Full Custom File Uploader for Author Task/Brief (§2.3b Format: File-upload) -->
+                <div class="space-y-4 pt-1">
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-1">
+                      Task / Brief Instructions (Optional)
+                    </label>
+                    <textarea
+                      rows="2"
+                      [ngModel]="activeQ.text"
+                      (ngModelChange)="updateActiveQuestion({ text: $event })"
+                      placeholder="Optional notes or instructions for trainees regarding this file upload task..."
+                      class="w-full px-4 py-2.5 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none"></textarea>
+                  </div>
+
+                  <!-- Custom Uploader Dropzone matching Learning uploads -->
+                  <div class="p-5 rounded-2xl bg-base-50 dark:bg-slate-800/40 border border-base-200 dark:border-slate-700 space-y-3">
+                    <div
+                      (dragover)="onAttachmentDragOver($event)"
+                      (dragleave)="onAttachmentDragLeave($event)"
+                      (drop)="onAttachmentDrop($event)"
+                      [class.border-tenant-500]="isDraggingAttachment()"
+                      [class.bg-tenant-50/20]="isDraggingAttachment()"
+                      class="border border-dashed border-tenant-300 dark:border-slate-700 rounded-2xl p-6 text-center bg-white dark:bg-slate-900/60 space-y-2 transition-all">
+                      <div class="flex justify-center">
+                        <span class="material-symbols-outlined text-4xl text-tenant-600 dark:text-tenant-400">cloud_upload</span>
+                      </div>
+                      <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                        Drag and drop your assignment task or brief file here, or
+                        <button
+                          type="button"
+                          (click)="authorAttachmentInput.click()"
+                          [disabled]="isUploadingAttachment()"
+                          class="text-tenant-600 dark:text-tenant-400 underline font-semibold hover:text-tenant-700 cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-tenant-500 rounded px-1">
+                          <span>{{ activeQ.authorAttachment ? 'Replace file' : 'Browse files' }}</span>
+                        </button>
+                        <input
+                          #authorAttachmentInput
+                          type="file"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+                          (change)="onAttachmentFileSelected($event)"
+                          class="hidden" />
+                      </p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        Allowed formats: {{ fileUploadPolicy.label }}
+                      </p>
+                    </div>
+
+                    @if (attachmentError()) {
+                      <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between gap-2">
+                        <span>{{ attachmentError() }}</span>
+                        <button type="button" (click)="attachmentError.set(null)" class="text-rose-500 hover:text-rose-700">
+                          <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      </div>
+                    }
+
+                    <!-- Selected Task File Card with Open/Download, Replace & Remove -->
+                    @if (activeQ.authorAttachment; as att) {
+                      <div class="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-base-200 dark:border-slate-700 text-xs shadow-2xs">
+                        <div class="flex items-center gap-3 overflow-hidden min-w-0">
+                          <div class="w-9 h-9 rounded-xl bg-tenant-50 dark:bg-tenant-950/50 text-tenant-600 dark:text-tenant-400 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-xl">description</span>
+                          </div>
+                          <div class="truncate">
+                            <strong class="text-slate-900 dark:text-white block truncate">{{ att.fileName }}</strong>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                              Task Attachment &bull; {{ att.fileSize }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 shrink-0">
+                          <button
+                            type="button"
+                            (click)="downloadAuthorAttachment(att)"
+                            class="text-tenant-600 hover:underline font-semibold cursor-pointer flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            <span>Download</span>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="authorAttachmentInput.click()"
+                            class="text-slate-600 dark:text-slate-300 hover:underline font-semibold cursor-pointer">
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            (click)="removeAuthorAttachment()"
+                            class="text-rose-600 hover:underline font-semibold cursor-pointer">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- File-Upload Scoring / Evaluation Settings -->
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                    @if (!isSurvey()) {
+                      <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase">Difficulty</label>
+                        <app-custom-select
+                          [options]="difficulties"
+                          [value]="activeQ.difficulty || 'Beginner'"
+                          (valueChange)="updateActiveQuestion({ difficulty: $event })"
+                          [clearable]="false"
+                          [searchable]="false"
+                          size="sm"
+                          placeholder="Select difficulty">
+                        </app-custom-select>
+                      </div>
+
+                      <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase">Awarded Points</label>
+                        @if (randomization() === 'By difficulty') {
+                          <input
+                            type="text"
+                            readonly
+                            value="From Rules"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 dark:bg-slate-800 text-xs text-slate-400 font-semibold cursor-not-allowed" />
+                        } @else {
+                          <input
+                            type="number"
+                            min="0"
+                            [ngModel]="activeQ.points"
+                            (ngModelChange)="updateActiveQuestion({ points: $event })"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white font-bold" />
+                        }
+                      </div>
+                    }
+
+                    <div class="space-y-1">
+                      <label class="block text-[11px] font-bold text-slate-500 uppercase">Requirement</label>
+                      <label class="flex items-center gap-2 pt-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          [checked]="activeQ.required"
+                          (change)="updateActiveQuestion({ required: !activeQ.required })"
+                          class="rounded text-tenant-600 focus:ring-tenant-500" />
+                        <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Mandatory</span>
+                      </label>
+                    </div>
+
+                    @if (!isSurvey()) {
+                      <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase">Evaluation</label>
+                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                          Manual Review
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <!-- Standard Question Textarea -->
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                    Question Prompt <span class="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows="3"
+                    [ngModel]="activeQ.text"
+                    (ngModelChange)="updateActiveQuestion({ text: $event })"
+                    placeholder="Type the question or instructions clearly for the trainee..."
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-tenant-500 focus:outline-none"></textarea>
+                </div>
+
+                <!-- Attributes Row: Difficulty, Points, Required, Grading Mode -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  @if (!isSurvey()) {
+                    <!-- Difficulty Tier -->
+                    <div class="space-y-1">
+                      <label class="block text-[11px] font-bold text-slate-500 uppercase">Difficulty</label>
+                      <app-custom-select
+                        [options]="difficulties"
+                        [value]="activeQ.difficulty || 'Beginner'"
+                        (valueChange)="updateActiveQuestion({ difficulty: $event })"
+                        [clearable]="false"
+                        [searchable]="false"
+                        size="sm"
+                        placeholder="Select difficulty">
+                      </app-custom-select>
+                    </div>
+
+                    <!-- Points -->
+                    <div class="space-y-1">
+                      <label class="block text-[11px] font-bold text-slate-500 uppercase">Awarded Points</label>
+                      @if (randomization() === 'By difficulty') {
+                        <input
+                          type="text"
+                          readonly
+                          value="From Rules"
+                          class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 dark:bg-slate-800 text-xs text-slate-400 font-semibold cursor-not-allowed" />
+                      } @else {
+                        <input
+                          type="number"
+                          min="0"
+                          [ngModel]="activeQ.points"
+                          (ngModelChange)="updateActiveQuestion({ points: $event })"
+                          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white font-bold" />
+                      }
+                    </div>
+                  }
+
+                  <!-- Required Answer Checkbox -->
+                  <div class="space-y-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase">Requirement</label>
+                    <label class="flex items-center gap-2 pt-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        [checked]="activeQ.required"
+                        (change)="updateActiveQuestion({ required: !activeQ.required })"
+                        class="rounded text-tenant-600 focus:ring-tenant-500" />
+                      <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Mandatory</span>
+                    </label>
+                  </div>
+
+                  <!-- Grading Mode -->
+                  @if (!isSurvey()) {
+                    <div class="space-y-1">
+                      <label class="block text-[11px] font-bold text-slate-500 uppercase">Evaluation</label>
+                      <span
+                        class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold"
+                        [class.bg-emerald-100]="!activeQ.manualGraded"
+                        [class.text-emerald-700]="!activeQ.manualGraded"
+                        [class.dark:bg-emerald-950/60]="!activeQ.manualGraded"
+                        [class.dark:text-emerald-300]="!activeQ.manualGraded"
+                        [class.bg-purple-100]="activeQ.manualGraded"
+                        [class.text-purple-700]="activeQ.manualGraded"
+                        [class.dark:bg-purple-950/60]="activeQ.manualGraded"
+                        [class.dark:text-purple-300]="activeQ.manualGraded">
+                        {{ activeQ.manualGraded ? 'Manual Review' : 'Auto Score' }}
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Options & Answer Key for Single Choice / Multiple Choice -->
+                @if (mapInternalToV3Type(activeQ.type) === 'Single choice' || mapInternalToV3Type(activeQ.type) === 'Multiple choice') {
+                  <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <span>Options &amp; Answer Key</span>
+                        @if (!isSurvey()) { <span class="text-rose-500">*</span> }
+                      </label>
+                      <button
+                        type="button"
+                        (click)="addOption()"
+                        class="text-xs text-tenant-600 hover:text-tenant-700 font-bold flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-xs">add</span>
+                        <span>Add Option</span>
+                      </button>
+                    </div>
+
+                    <div class="space-y-2">
+                      @for (opt of activeQ.options || []; track opt.optionId; let oIdx = $index) {
+                        <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                          @if (!isSurvey()) {
+                            <input
+                              [type]="mapInternalToV3Type(activeQ.type) === 'Single choice' ? 'radio' : 'checkbox'"
+                              [name]="'correctOpt_' + activeQ.questionId"
+                              [checked]="opt.correct"
+                              (change)="toggleOptionCorrect(oIdx, mapInternalToV3Type(activeQ.type) === 'Multiple choice')"
+                              class="text-tenant-600 focus:ring-tenant-500 ml-1.5 cursor-pointer"
+                              title="Mark correct option" />
+                          }
+                          <input
+                            type="text"
+                            [value]="opt.text"
+                            (input)="updateOptionText(oIdx, $any($event.target).value)"
+                            class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none" />
+                          <button
+                            type="button"
+                            (click)="removeOption(oIdx)"
+                            class="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Remove option">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Fill in the Blank -->
+                @if (mapInternalToV3Type(activeQ.type) === 'Fill in the blank') {
+                  <div class="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                      Accepted Blank Answers (Comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      [value]="(activeQ.acceptedBlankAnswers || []).join(', ')"
+                      (input)="updateAcceptedBlanks($any($event.target).value)"
+                      placeholder="e.g. Dhaka, Chittagong, Sylhet"
+                      class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none" />
+                  </div>
+                }
+
+                <!-- Q&A Notification -->
+                @if (mapInternalToV3Type(activeQ.type) === 'Q&A') {
+                  <div class="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
+                    <span class="material-symbols-outlined text-purple-600 text-base shrink-0 mt-0.5">edit_note</span>
+                    <div>
+                      <strong>Subjective Q&amp;A:</strong> Learners respond via open rich text. Answers are routed to instructor review for manual grading and rubrics.
+                    </div>
+                  </div>
+                }
+              }
+
+            } @else {
+              <div class="py-20 text-center text-slate-400 text-xs">
+                Select a question on the left or click "Add Question" to configure details.
+              </div>
+            }
+          </div>
+
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="pt-4 flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800">
+          <button
+            type="button"
+            (click)="setPart(2)"
+            class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back: Scoring &amp; Rules</span>
+          </button>
+          <button
+            type="button"
+            (click)="setPart(4)"
+            class="px-6 py-2.5 bg-tenant-600 hover:bg-tenant-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2">
+            <span>Next: Preview</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- PART 4: PREVIEW (Learner View & Sample Draw §2.3b)                         -->
+    <!-- ========================================================================= -->
+    @if (currentPart() === 4) {
+      <div class="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-200">
+        
+        <!-- Summary Header Card -->
+        <div class="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h4 class="text-base font-bold text-slate-900 dark:text-white">Learner Attempt Preview</h4>
+              @if (derivedGradingLabel()) {
+                <span
+                  class="px-2.5 py-0.5 rounded-full text-xs font-bold"
+                  [class.bg-emerald-100]="derivedGradingLabel() === 'Auto'"
+                  [class.text-emerald-700]="derivedGradingLabel() === 'Auto'"
+                  [class.dark:bg-emerald-950/60]="derivedGradingLabel() === 'Auto'"
+                  [class.dark:text-emerald-300]="derivedGradingLabel() === 'Auto'"
+                  [class.bg-purple-100]="derivedGradingLabel() === 'Needs manual grading'"
+                  [class.text-purple-700]="derivedGradingLabel() === 'Needs manual grading'"
+                  [class.dark:bg-purple-950/60]="derivedGradingLabel() === 'Needs manual grading'"
+                  [class.dark:text-purple-300]="derivedGradingLabel() === 'Needs manual grading'">
+                  {{ derivedGradingLabel() }}
+                </span>
+              }
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Mode: <strong>{{ randomization() }}</strong> &bull; Delivered: <strong>{{ previewQuestions().length }} questions</strong>
+              @if (!isSurvey() && scoringMode() === 'scored') {
+                &bull; Total: <strong>{{ totalMarks() }} pts</strong> &bull; Pass: <strong>{{ passMarkPercent() }}%</strong>
+              }
+            </p>
+          </div>
+
+          @if (randomization() === 'By difficulty' || randomization() === 'Shuffle') {
+            <button
+              type="button"
+              (click)="resamplePreview()"
+              class="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer">
+              <span class="material-symbols-outlined text-sm text-tenant-600">casino</span>
+              <span>Sample Draw Again</span>
+            </button>
+          }
+        </div>
+
+        @if (traineeInstructions()) {
+          <div class="p-5 bg-tenant-50/40 dark:bg-tenant-950/20 rounded-2xl border border-tenant-200/60 dark:border-tenant-800 space-y-1">
+            <strong class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-tenant-600 text-base">info</span>
+              <span>Instructions for Trainees:</span>
+            </strong>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{{ traineeInstructions() }}</p>
+          </div>
+        }
+
+        <!-- Delivered Questions Preview Cards -->
+        <div class="space-y-4">
+          @for (pq of previewQuestions(); track pq.questionId; let pIdx = $index) {
+            <div class="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xs">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  Question {{ pIdx + 1 }}
+                </span>
+                <div class="flex items-center gap-2">
+                  @if (!isSurvey() && pq.difficulty) {
+                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                      {{ pq.difficulty }}
+                    </span>
+                  }
+                  @if (!isSurvey()) {
+                    <span class="text-xs font-extrabold text-tenant-600 dark:text-tenant-400">
+                      {{ pq.points }} pts
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+                {{ pq.text || 'Question text prompt...' }}
+              </p>
+
+              <!-- Choice Options Preview -->
+              @if (mapInternalToV3Type(pq.type) === 'Single choice' || mapInternalToV3Type(pq.type) === 'Multiple choice') {
+                <div class="space-y-2 pt-1">
+                  @for (opt of pq.options || []; track opt.optionId) {
+                    <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-xs text-slate-800 dark:text-slate-200 cursor-not-allowed">
+                      <input
+                        [type]="mapInternalToV3Type(pq.type) === 'Single choice' ? 'radio' : 'checkbox'"
+                        [name]="'previewOpt_' + pq.questionId"
+                        disabled
+                        class="text-tenant-600" />
+                      <span>{{ opt.text }}</span>
+                    </label>
+                  }
+                </div>
+              }
+
+              <!-- Fill in the blank Preview -->
+              @if (mapInternalToV3Type(pq.type) === 'Fill in the blank') {
+                <input
+                  type="text"
+                  disabled
+                  placeholder="Type answer here..."
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-400 cursor-not-allowed" />
+              }
+
+              <!-- Q&A Preview -->
+              @if (mapInternalToV3Type(pq.type) === 'Q&A') {
+                <textarea
+                  rows="3"
+                  disabled
+                  placeholder="Trainee open-ended response goes here..."
+                  class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-400 cursor-not-allowed"></textarea>
+              }
+
+              <!-- File Upload Preview -->
+              @if (mapInternalToV3Type(pq.type) === 'File upload') {
+                <div class="space-y-3">
+                  @if (pq.authorAttachment; as att) {
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                      <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
+                        <span class="material-symbols-outlined text-tenant-600">attachment</span>
+                        <div class="truncate">
+                          <strong class="text-slate-900 dark:text-white block truncate">{{ att.fileName }}</strong>
+                          <span class="text-[10px] text-slate-500">Author Task Attachment &bull; {{ att.fileSize }}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="downloadAuthorAttachment(att)"
+                        class="text-tenant-600 hover:underline font-semibold cursor-pointer shrink-0">
+                        Download Task File
+                      </button>
+                    </div>
+                  }
+                  <div class="p-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-center text-xs text-slate-400 space-y-1">
+                    <span class="material-symbols-outlined text-2xl text-slate-400">upload_file</span>
+                    <div>Trainee file submission dropzone</div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="pt-4 flex justify-between border-t border-slate-200/80 dark:border-slate-800">
+          <button
+            type="button"
+            (click)="setPart(3)"
+            class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span>Back: Question Studio</span>
+          </button>
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>

@@ -1,0 +1,23 @@
+/* Assessment Builder Component Styling */
+:host {
+  display: block;
+}
+
+/* Custom scrollbar for Question Navigator */
+.assessment-builder ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.assessment-builder ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.assessment-builder ::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+.assessment-builder ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
