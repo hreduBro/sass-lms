@@ -732,9 +732,13 @@ export class RepositoryCreateComponent implements OnInit {
       if (!builder || builder.questions.length === 0) {
         newErrors['assessmentQuestions'] = 'At least one question must be authored in Question Studio.';
       } else {
-        const hasBlankPrompt = builder.questions.some(q => !q.text || !q.text.trim());
+        const hasBlankPrompt = builder.questions.some(q => {
+          const isFileFormat = q.type === 'fileUpload' || (q.type as any) === 'File upload';
+          if (isFileFormat && q.authorAttachment) return false;
+          return !q.text || !q.text.trim();
+        });
         if (hasBlankPrompt) {
-          newErrors['assessmentQuestions'] = 'All questions in Question Studio must have text prompts.';
+          newErrors['assessmentQuestions'] = 'All questions in Question Studio must have a text prompt or an attached task file.';
         }
 
         // By difficulty validation rules (§2.3b)

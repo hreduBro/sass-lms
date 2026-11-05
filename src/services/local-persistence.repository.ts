@@ -364,4 +364,96 @@ export class LocalPersistenceRepository {
       console.warn('Failed to save assessment attempts to localStorage', e);
     }
   }
+
+  // --- IndexedDB Asset Storage for Question Author Attachments ---
+  private static readonly DB_NAME = 'onelms_author_assets_db';
+  private static readonly STORE_NAME = 'question_attachments';
+  private static dbPromise: Promise<IDBDatabase | null> | null = null;
+
+  private static getDB(): Promise<IDBDatabase | null> {
+    if (!this.isBrowser() || typeof indexedDB === 'undefined') {
+      return Promise.resolve(null);
+    }
+    if (!this.dbPromise) {
+      this.dbPromise = new Promise((resolve) => {
+        try {
+          const req = indexedDB.open(this.DB_NAME, 1);
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+              db.createObjectStore(this.STORE_NAME, { keyPath: 'assetId' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => {
+            console.warn('Failed to open IndexedDB for author assets', req.error);
+            resolve(null);
+          };
+        } catch (e) {
+          console.warn('IndexedDB not supported or accessible', e);
+          resolve(null);
+        }
+      });
+    }
+    return this.dbPromise;
+  }
+
+  static async saveQuestionAsset(assetId: string, blob: Blob, fileName: string): Promise<boolean> {
+    try {
+      const db = await this.getDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.put({ assetId, blob, fileName, savedAt: Date.now() });
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => {
+          console.warn('Failed to save asset to IndexedDB', tx.error);
+          resolve(false);
+        };
+      });
+    } catch (e) {
+      console.warn('Error saving question asset', e);
+      return false;
+    }
+  }
+
+  static async getQuestionAsset(assetId: string): Promise<{ blob: Blob; fileName: string } | null> {
+    try {
+      const db = await this.getDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.STORE_NAME, 'readonly');
+        const store = tx.objectStore(this.STORE_NAME);
+        const req = store.get(assetId);
+        req.onsuccess = () => {
+          if (req.result && req.result.blob) {
+            resolve({ blob: req.result.blob, fileName: req.result.fileName || 'attachment' });
+          } else {
+            resolve(null);
+          }
+        };
+        req.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      console.warn('Error reading question asset', e);
+      return null;
+    }
+  }
+
+  static async deleteQuestionAsset(assetId: string): Promise<boolean> {
+    try {
+      const db = await this.getDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.delete(assetId);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      });
+    } catch {
+      return false;
+    }
+  }
 }

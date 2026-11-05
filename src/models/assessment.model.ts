@@ -56,11 +56,21 @@ export interface MatchingPair {
   rightItem?: string;
 }
 
+export interface QuestionAuthorAttachment {
+  assetId: string;
+  fileName: string;
+  fileSize: string;
+  fileSizeBytes: number;
+  mimeType: string;
+  uploadedAt: string;
+}
+
 export interface AssessmentQuestion {
   questionId: string;
   type: AssessmentQuestionType;
   text: string;
   prompt?: string;
+  authorAttachment?: QuestionAuthorAttachment;
   required: boolean;
   points: number;
   difficulty?: AssessmentQuestionDifficulty;
